@@ -1,0 +1,447 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -i bash -p git jq
+
+# MIT License
+# Copyright (c) 2024 phR0ze
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Simple NixOS install automation
+# 
+# ## Features
+# - Handles partitioning the disk in preparation for installation
+# - Allows for customizing some common install variations
+#   - hostname
+# --------------------------------------------------------------------------------------------------
+none="\e[m"
+red="\e[1;31m"
+cyan="\e[1;36m"
+green="\e[1;32m"
+yellow="\e[1;33m"
+
+# Determine the script name and absolute root path of the project
+SCRIPT=$(basename $0)
+PROJECT_DIR=$(readlink -f $(dirname $BASH_SOURCE[0]))
+
+# Dump out debug variables
+debug_vars()
+{
+    log_d ">> Debug variables"
+    #log_d "   READ_MNT:  $READ_MNT"
+}
+
+# Common exit code for debug logging
+exit_to_shell()
+{
+    debug_vars
+    exit
+}
+
+check_status()
+{
+    if [ $? -ne 0 ]; then
+        echo -e "${red}failed!${none}"
+        exit_to_shell
+    else
+        [ "$1" != "nomsg" ] && echo -e "${green}success!${none}"
+    fi
+}
+
+# Takes the value in $1 and prints it out if in debug mode
+log_d()
+{
+    local msg=$1
+
+    if [ "x${DEBUG}" == "x1" ]; then
+        echo -e "${yellow}$msg${none}"
+    fi
+}
+
+# Retrieve input from user
+# Useful for making user selections
+#
+# Special commands:
+# - "debug" will switch to debug mode
+# - "exit" will exit to shell
+getinput()
+{
+    local _result=$1                                # Return value target
+    local input=$2                                  # User input value to prompt for
+    local result=$3                                 # Default value to use if not set
+    local silent=$4                                 # Don't echo when set
+
+    # Notify user as directed
+    echo -en "   ${input} (default=${cyber}${result}${none}): "
+
+    # Defaulting settings is true then add a newline format nicely
+    [ "x$DEFAULT" == "xy" ] && echo ''
+
+    # Handle non default options 
+    if [ "x$DEFAULT" == "xn" ]; then
+        if [ $silent ]; then
+            read -s value
+            echo ''
+        else
+            read value
+        fi
+
+        # Handle debug user input
+        [[ "$value" == *"debug"* ]] && DEBUG=1 && value=""
+        [[ "$value" == *"exit"* ]] && exit_to_shell
+
+        # Handle normal user input
+        [ "x$value" != "x" ] && local result="$value"
+    fi
+
+    eval "$_result"="$result"
+}
+
+getsel()
+{
+    local _result=$1                                # Return value container
+    local options=$2                                # Space separate options
+
+    local result=''
+    local out_of_bounds=1
+    for x in $options; do
+        local out_of_bounds=$(($out_of_bounds+1))
+    done
+    while true; do
+        echo -en "   Enter a number (default=${cyber}1${none}): "
+        [ "x$DEFAULT" == "xy" ] && echo '' || read choice
+        [ "$choice" == "exit" ] && exit_to_shell
+        [ "x$choice" == "x" ] && choice=1
+        if [ $choice -gt 0 ] && [ $choice -le $out_of_bounds ]; then
+            local result=$(echo $options | awk "{print \$$choice}")
+            break
+        else
+            echo -e "   ${red}Invalid selection, please try again${none}"
+       fi
+    done
+
+    eval $_result=$result
+}
+
+# Partition disk and mount for install at ${ROOT_MOUNT}
+partition_and_mount_disk()
+{
+    echo -e "\n:: Partitioning and mounting destination disk ${cyber}${DESTDEV}${none}..."
+    echo -e "${cyber}:: $(printf '%0.1s' '-'{1..80})${none}"
+
+    # Wipe, partition and format disk
+    #---------------------------------------------------------------------------
+    echo -en ":: Disk ${cyber}${DESTDEV}${none} identified as destination disk..."
+    [ "x${DESTDEV}" != "x" ]
+    check_status
+
+    echo -en ":: Destroying any magic strings and/or signatures on ${cyber}${DESTDEV}${none}..."
+    wipefs --all --force ${DESTDEV} &>/dev/null
+    check_status
+
+    echo -en ":: Wiping partition table on ${cyber}${DESTDEV}${none}..."
+    sgdisk --zap ${DESTDEV} &>/dev/null
+    check_status
+
+    # Set partition identifiers
+    if [ "x${SCSI}" == "x1" ]; then
+        PART_BOOT="${DESTDEV}1"
+        PART_SWAP="${DESTDEV}2"
+        PART_ROOT="${DESTDEV}3"
+    else
+        PART_BOOT="${DESTDEV}p1"
+        PART_SWAP="${DESTDEV}p2"
+        PART_ROOT="${DESTDEV}p3"
+    fi
+
+    # EFI: Create an ESP (EFI system partition) using linux code EF00
+    # to act as a storage place for the EFI bootloaders to be launched by the UEFI firmware.
+    # https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition
+    if [ "x${EFI}" == "x1" ]; then
+        echo -en ":: Creating ${cyber}${PART_BOOT}${none} as ${cyber}ESP boot partition${none}..."
+        sgdisk -n 0:0:+512M -t 0:EF00 -c 0:"EFI system" ${DESTDEV} &>/dev/null
+        check_status
+
+        echo -en ":: Formatting ${cyber}${PART_BOOT}${none} (ESP) as ${cyber}FAT32${none}..."
+        mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
+        check_status
+
+    # BIOS: Create a BIOS boot partition EF02
+    else
+        echo -en ":: Creating ${cyber}${PART_BOOT}${none} as ${cyber}BIOS boot partition${none}..."
+        sgdisk -n 0:0:+2M -t 0:EF02 -c 0:"BIOS system" ${DESTDEV} &>/dev/null
+        check_status
+    fi
+
+    # Create SWAP partition 8200
+    echo -en ":: Creating ${cyber}${PART_SWAP}${none} as ${cyber}Linux swap partition${none}..."
+    sgdisk -n 0:0:+4G -t 0:8200 -c 0:"Linux swap" ${DESTDEV} &>/dev/null
+    check_status
+
+    # Create root partition 8300
+    echo -en ":: Creating ${cyber}${PART_ROOT}${none} as ${cyber}Linux filesystem partition${none}..."
+    sgdisk -n 0:0:0 -t 0:8300 -c 0:"Linux filesystem" ${DESTDEV} &>/dev/null
+    check_status
+
+    # Set boot flag for device
+    echo -en ":: Setting boot flag on ${cyber}${DESTDEV}${none}..."
+    sgdisk ${DESTDEV} --attributes=3:set:2 &>/dev/null
+    check_status
+
+    # Configure swap partition
+    echo -en ":: Formatting ${cyber}${PART_SWAP}${none} as ${cyber}swap${none}..."
+    mkswap -L SWAP ${PART_SWAP} &>/dev/null
+    check_status
+    echo -en ":: Starting swap on ${cyber}${PART_SWAP}${none}..."
+    swapon ${PART_SWAP} &>/dev/null
+    check_status
+
+    # mkfs.ext4 option descriptions
+    # -F            force creation even if some params don't make sense
+    # -L            set volume name to well known label used by bootloaders
+    # -m 0          don't reserve blocks for super user daemons
+    # -q            run in quiet mode for scripts
+    echo -en ":: Formatting ${cyber}${PART_ROOT}${none} as ${cyber}ext4${none}..."
+    mkfs.ext4 -F -m 0 -q -L ROOT ${PART_ROOT} &>/dev/null
+    check_status
+
+    # Mount root as ROOT_MOUNT and disable access time writes (speeds things up)
+    echo -en ":: Mounting ${cyber}${PART_ROOT}${none} as ${cyber}${ROOT_MOUNT}${none}..."
+    mount -o noatime ${PART_ROOT} ${ROOT_MOUNT} &>/dev/null
+    check_status
+
+    # UEFI: boot partition needs to be mounted over the root at /boot to capture the Linux
+    # standard boot file install e.g. kernel and initramfs. We keep them on the same partition
+    # as the EFI/BOOT/BOOTX64.efi as EFI can't mount a ext4 filesystem.
+    if [ "x${EFI}" == "x1" ]; then
+        echo -en ":: Mounting ${cyber}${PART_BOOT}${none} (ESP) as ${cyber}${ROOT_MOUNT}/boot${none}..."
+        mkdir -p ${ROOT_MOUNT}/boot
+        mount ${PART_BOOT} ${ROOT_MOUNT}/boot &>/dev/null
+        check_status
+    fi
+    # BIOS: boot partition shouldn't be formatted or mounted in this case as its just for the MBR
+}
+
+# Start the install wizard
+# --------------------------------------------------------------------------------------------------
+installer()
+{
+    SCSI=0
+    DEBUG=0
+    DEFAULT='n'
+    TIMEZONE='America/Boise'
+    NETIP='DHCP'
+    HOSTNAME='nixos'
+    USER='admin'
+    PASS='admin'
+    DEFAULT_PASS='admin'
+    ROOT_MOUNT='/mnt'
+
+    # Detect EFI supported system
+    [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
+
+    # Read in the potential destination disks details
+    # ----------------------------------------------------------------------------------------------
+    # [Major Device numers](https://www.kernel.org/doc/Documentation/admin-guide/devices.txt)
+    # Filtering out: loop (7), floppy (2), CD-ROM (11, 15, 20, 24, 25, 26, 27, 28, 29, 30, 32)
+    local excludes=2,7,11,15,20,24,25,26,27,28,29,30,32
+
+    # ### Paramaters
+    # -d    do not print holder devices or slaves
+    # -n    do not print headings line
+    # -e    exclude sepcified devices, loop(7), floppy(2)
+    DISKS_DETAILED=$(lsblk -dn -e ${excludes} -o NAME,SIZE,MODEL,TYPE,HOTPLUG -x SIZE --json | \
+        jq -rc '[.blockdevices[] | select(.type=="disk" and .hotplug!=true)]')
+
+    # Get all the disks by name for selection
+    DISKS=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[]')
+
+    # Sorted by size means the first, i.e. smallest, will likely be the boot drive
+    DESTDEV=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[0]')
+
+    # Determine if this is a default deployment
+    # ----------------------------------------------------------------------------------------------
+    echo -e "${cyber}:: Automatically deploy with defaults?${none}"
+    getinput DEFAULT 'Use automatic mode with defaults' 'n'
+    if [ "x$DEFAULT" == "xy" ]; then
+        AUTOLOGIN=1
+    fi
+
+    # Drop out debug variables if in debug mode
+    # ----------------------------------------------------------------------------------------------
+    log_d ">> Entering debug mode"
+    log_d "   In debug mode all text in yellow is debugging."
+    debug_vars
+
+    # Collect install destination choice from user
+    # ----------------------------------------------------------------------------------------------
+    if [ "x$DEFAULT" != "xy" ]; then
+        echo -e "\n${cyber}:: Select a disk as your install destination:${none}"
+        local i=0
+        echo $DISKS_DETAILED | jq -rc '.[]' | while read x; do
+            i=$((i+1))
+            local disk="/dev/$(echo $x | jq -r '.name')"
+            local size="$(echo $x | jq -r '.size')"
+            local model="$(echo $x | jq -r '.model')"
+            echo -en "   ${i}) [${cyber}${disk}${none}](${cyber}${size}${none})"
+            [ "$model" != "null" ] && echo -en " - ${model}"
+            echo ""
+        done
+        getsel DESTDEV "$DISKS"
+    fi
+
+    # Determine the storage drive partition pattern.
+    # ----------------------------------------------------------------------------------------------
+    # https://wiki.archlinux.org/title/Device_file#Block_devices
+    # Typically this is of the form device name followed by a number or device name
+    # followed by a number with a 'p' prefix. I've only seen two different styles so far.
+    #
+    # Older style
+    # - SCSI: /dev/sda        partition1: /dev/sda1
+    # - QEMU: /dev/vda        partition1: /dev/vda1
+    # Modern style
+    # - NVMe: /dev/nvme0n1    partition1: /dev/nvme0n1p1
+    # - MMC:  /dev/mmcblk0    partition1: /dev/mmcblk0p1
+
+    # Match DESTDEV with /dev/sda and /dev/vda
+    [ -z "${DESTDEV##*/dev/sd*}" ] || [ -z "${DESTDEV##*/dev/vd*}" ] && SCSI=1
+
+    # Collect networking choices from user
+    # ----------------------------------------------------------------------------------------------
+    if [ "x$DEFAULT" != "xy" ]; then
+        echo -e "\n${cyber}:: Configure networking:${none}"
+        getinput HOSTNAME 'Enter hostname' $HOSTNAME
+        getinput NETIP 'Enter static IP, e.g. 192.168.1.2/24' 'DHCP'
+        if [ "x${NETIP}" != "xDHCP" ]; then
+            getinput GATEWAY 'Enter gateway' $(echo $NETIP | awk -F. '{print $1"."$2"."$3".1"}')
+        fi
+        getinput ENABLE_BLUETOOTH 'Enter bluetooth state' 0
+    fi
+
+    # Collect time and date choices from user
+    # ----------------------------------------------------------------------------------------------
+    if [ "x$DEFAULT" != "xy" ]; then
+        echo -e "\n${cyber}:: Configure time and date:${none}"
+        getinput TIMEZONE 'Enter timezone' "$TIMEZONE"
+        getinput TIMEDATE_SET "Change time ${cyber}$(date --iso-8601=seconds) UTC${none}" 'n'
+        if [ "x$TIMEDATE_SET" == "xy" ]; then
+            while true; do
+                getinput TIMEDATE "Use ${cyber}ISO 8601 seconds${none} format" "$(date --iso-8601=seconds)"
+                date -s "${TIMEDATE}" &>/dev/null
+                [ $? -eq 0 ] && break
+            done
+        fi
+    fi
+
+    # Collect new user account choices from user
+    # ----------------------------------------------------------------------------------------------
+    if [ "x$DEFAULT" != "xy" ]; then
+        echo -e "\n${cyber}:: Create new user account:${none}"
+        getinput USER 'Enter new username' $USER
+        while true; do
+            getinput PASS 'Enter new password' 'admin' 1
+            getinput PASS2 'Enter password again' 'admin' 1
+            [ "x$PASS" == "x$PASS2" ] && break
+            echo -e "   ${red}Passwords don't match, please try again${none}"
+        done
+    fi
+
+    # Collect autologin choice from user
+    # ----------------------------------------------------------------------------------------------
+    if [ "x$DEFAULT" != "xy" ]; then
+        if [ "x$AUTOLOGIN" != "x1" ]; then
+            getinput AUTOLOGIN 'Enter autologin' 0
+        fi
+    fi
+
+    # Start install
+    # ----------------------------------------------------------------------------------------------
+    echo -e "\n${cyber}:: $(printf '%0.1s' '-'{1..80})${none}"
+    echo -e ":: ${cyber}Starting installation${none}"
+    echo -e "${cyber}:: $(printf '%0.1s' '-'{1..80})${none}"
+
+    echo -e ":: Options being used for installation"
+    echo -e "   hostname=${cyber}${HOSTNAME}${none}"
+    echo -e "   networking=${cyber}${NETIP}${none}"
+    echo -e "   user=${cyber}${USER}${none}"
+    if [ "x$DEFAULT" == "xy" ] || [ "x$DEFAULT_PASS" == "x$PASS" ]; then
+        echo -e "   pass=${cyber}${DEFAULT_PASS}${none}"
+    else
+        echo -e "   pass=${cyber}********${none}"
+    fi
+    echo -e "   timezone=${cyber}${TIMEZONE}${none}"
+    echo -e "   autologin=${cyber}${AUTOLOGIN}${none}"
+    echo -e "   dest_dev=${cyber}${DESTDEV}${none}"
+    echo -e "   SCSI=${cyber}${SCSI}${none}"
+    echo -e "   EFI=${cyber}${EFI}${none}"
+
+    # Partition the target disk and mount it for deployment
+    partition_and_mount_disk
+
+    # Take user selections and apply to NixOS configuration
+    #config_system
+}
+
+
+# Main entry point
+# --------------------------------------------------------------------------------------------------
+header()
+{
+    VERSION=0.0.1
+    #VERSION=$(cat VERSION)
+    echo -e "${cyan}Codified Likeness Utility - clu v${VERSION}${none}"
+    echo -e "${cyan}------------------------------------------------------------------${none}"
+    echo -e "that is to say, build me a linux that i like\n"
+}
+usage()
+{
+    header
+    echo -e "Usage: ${cyan}./$(basename $0)${none} [options]\n"
+    echo -e "Options:"
+    echo -e "  -f FLAKE_URL     Build the configuration flake at this URL"
+    echo -e "  -h               Display usage help\n"
+    echo -e "Examples:"
+    echo -e "  ${green}Build the configuration flake:${none} ./${SCRIPT} -f https://github.com/phR0ze/nixos-config"
+    echo
+    RELEASED=1
+    exit 1
+}
+
+# getopts notes
+# - expects an argument if the option is followed by a <colon>
+# - suppresses typical diagnostic messages if first char in optstring is <colon>
+# - the \ on ? is required to make it work properly
+while getopts ":f:th" opt; do
+    case $opt in
+        f) FLAKE=$OPTARG;;
+        t) TEST=1;;
+        h) usage;;
+        \?) echo -e "${red}Invalid option: ${none}-${OPTARG}\n"; usage;;
+        :) echo -e "${red}Argument is required for option: ${none}-${OPTARG}\n"; usage;;
+    esac
+done
+[ $(($OPTIND -1)) -eq 0 ] && usage
+header
+
+# Invoke the testing function if given
+[ ! -z ${TEST+x} ] && echo testing
+
+# Build the given configuration flake
+[ ! -z ${FLAKE+x} ] && installer
+
+# vim: ft=sh:ts=4:sw=4:sts=4
