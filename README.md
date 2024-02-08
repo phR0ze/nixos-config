@@ -11,7 +11,8 @@ this functionality .
 Any tooling or documentation here comes with absolutely no guarantees or support of any kind. It is 
 to be used at your own risk. Any damages, issues, losses or problems caused by the use of any tooling 
 or documentation here is strictly the responsiblity of the end user and not the developer/creator of 
-this project. 
+this project. This project is highly opinionated and primarily for my own use but your welcome to 
+fork it and build on my work.
 
 ## Getting started
 Using a simple bash installer ***clu*** you can launch a simple wizard to then:
