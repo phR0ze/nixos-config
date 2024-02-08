@@ -37,9 +37,24 @@ cyan="\e[1;36m"
 green="\e[1;32m"
 yellow="\e[1;33m"
 
+DEBUG=0
+
 # Determine the script name and absolute root path of the project
 SCRIPT=$(basename $0)
 PROJECT_DIR=$(readlink -f $(dirname $BASH_SOURCE[0]))
+
+# Print a repeating character separater
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 char to use
+# - $2 color to use
+separator()
+{
+    local char=$1
+    local color=$2
+
+    echo -e ${color}$_{1..80}'\b'"${char}"${none}
+}
 
 # Dump out debug variables
 debug_vars()
@@ -89,7 +104,7 @@ getinput()
     local silent=$4                                 # Don't echo when set
 
     # Notify user as directed
-    echo -en "   ${input} (default=${cyber}${result}${none}): "
+    echo -en "   ${input} (default=${cyan}${result}${none}): "
 
     # Defaulting settings is true then add a newline format nicely
     [ "x$DEFAULT" == "xy" ] && echo ''
@@ -114,18 +129,27 @@ getinput()
     eval "$_result"="$result"
 }
 
+# Get the user's selection from a given list of options
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 return variable name to be set
+# - $2 space delimited string of options
 getsel()
 {
-    local _result=$1                                # Return value container
-    local options=$2                                # Space separate options
-
+    local _result=$1
+    local options=$2
     local result=''
-    local out_of_bounds=1
+
+    # Count the numer of options available and set out_of_bounds one greater
+    # as we are allowing valid selections to be 1 through n
+    local out_of_bounds=0
     for x in $options; do
         local out_of_bounds=$(($out_of_bounds+1))
     done
+
+    # Present options and retry if an invalid selection is given
     while true; do
-        echo -en "   Enter a number (default=${cyber}1${none}): "
+        echo -en "   Enter a number (default=${cyan}1${none}): "
         [ "x$DEFAULT" == "xy" ] && echo '' || read choice
         [ "$choice" == "exit" ] && exit_to_shell
         [ "x$choice" == "x" ] && choice=1
@@ -140,23 +164,79 @@ getsel()
     eval $_result=$result
 }
 
+detect_disks()
+{
+    # Read in the potential destination disks details
+    # ----------------------------------------------------------------------------------------------
+    # [Major Device numers](https://www.kernel.org/doc/Documentation/admin-guide/devices.txt)
+    # Filtering out: loop (7), floppy (2), CD-ROM (11, 15, 20, 24, 25, 26, 27, 28, 29, 30, 32)
+    local excludes=2,7,11,15,20,24,25,26,27,28,29,30,32
+
+    # ### Paramaters
+    # -d    do not print holder devices or slaves
+    # -n    do not print headings line
+    # -e    exclude sepcified devices, loop(7), floppy(2)
+    DISKS_DETAILED=$(lsblk -dn -e ${excludes} -o NAME,SIZE,MODEL,TYPE,HOTPLUG -x SIZE --json | \
+        jq -rc '[.blockdevices[] | select(.type=="disk" and .hotplug!=true)]')
+
+    # Get all the disks by name for selection
+    DISKS=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[]')
+
+    # Sorted by size means the first, i.e. smallest, will likely be the boot drive
+    DESTDEV=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[0]')
+
+    # Print out the detected disks
+    echo -e "\n${cyan}:: Select a disk as your install destination:${none}"
+    local i=0
+    echo $DISKS_DETAILED | jq -rc '.[]' | while read x; do
+        i=$((i+1))
+        local disk="/dev/$(echo $x | jq -r '.name')"
+        local size="$(echo $x | jq -r '.size')"
+        local model="$(echo $x | jq -r '.model')"
+        echo -en "   ${i}) [${cyan}${disk}${none}](${cyan}${size}${none})"
+        [ "$model" != "null" ] && echo -en " - ${model}"
+        echo ""
+    done
+
+    # Get user choice
+    getsel DESTDEV "$DISKS"
+
+    [ "x${DEBUG}" == "x1" ] && log_d "User selected: $DESTDEV"
+
+    # Determine the storage drive partition pattern.
+    # ----------------------------------------------------------------------------------------------
+    # https://wiki.archlinux.org/title/Device_file#Block_devices
+    # Typically this is of the form device name followed by a number or device name
+    # followed by a number with a 'p' prefix. I've only seen two different styles so far.
+    #
+    # Older style
+    # - SCSI: /dev/sda        partition1: /dev/sda1
+    # - QEMU: /dev/vda        partition1: /dev/vda1
+    # Modern style
+    # - NVMe: /dev/nvme0n1    partition1: /dev/nvme0n1p1
+    # - MMC:  /dev/mmcblk0    partition1: /dev/mmcblk0p1
+
+    # Match DESTDEV with /dev/sda and /dev/vda
+    [ -z "${DESTDEV##*/dev/sd*}" ] || [ -z "${DESTDEV##*/dev/vd*}" ] && SCSI=1
+}
+
 # Partition disk and mount for install at ${ROOT_MOUNT}
 partition_and_mount_disk()
 {
-    echo -e "\n:: Partitioning and mounting destination disk ${cyber}${DESTDEV}${none}..."
-    echo -e ${cyan}$_{1..80}'\b-'${none}
+    echo -e "\n:: Partitioning and mounting destination disk ${cyan}${DESTDEV}${none}..."
+    separator '-' "${cyan}"
 
     # Wipe, partition and format disk
     #---------------------------------------------------------------------------
-    echo -en ":: Disk ${cyber}${DESTDEV}${none} identified as destination disk..."
+    echo -en ":: Disk ${cyan}${DESTDEV}${none} identified as destination disk..."
     [ "x${DESTDEV}" != "x" ]
     check_status
 
-    echo -en ":: Destroying any magic strings and/or signatures on ${cyber}${DESTDEV}${none}..."
+    echo -en ":: Destroying any magic strings and/or signatures on ${cyan}${DESTDEV}${none}..."
     wipefs --all --force ${DESTDEV} &>/dev/null
     check_status
 
-    echo -en ":: Wiping partition table on ${cyber}${DESTDEV}${none}..."
+    echo -en ":: Wiping partition table on ${cyan}${DESTDEV}${none}..."
     sgdisk --zap ${DESTDEV} &>/dev/null
     check_status
 
@@ -175,41 +255,41 @@ partition_and_mount_disk()
     # to act as a storage place for the EFI bootloaders to be launched by the UEFI firmware.
     # https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition
     if [ "x${EFI}" == "x1" ]; then
-        echo -en ":: Creating ${cyber}${PART_BOOT}${none} as ${cyber}ESP boot partition${none}..."
+        echo -en ":: Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
         sgdisk -n 0:0:+512M -t 0:EF00 -c 0:"EFI system" ${DESTDEV} &>/dev/null
         check_status
 
-        echo -en ":: Formatting ${cyber}${PART_BOOT}${none} (ESP) as ${cyber}FAT32${none}..."
+        echo -en ":: Formatting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}FAT32${none}..."
         mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
         check_status
 
     # BIOS: Create a BIOS boot partition EF02
     else
-        echo -en ":: Creating ${cyber}${PART_BOOT}${none} as ${cyber}BIOS boot partition${none}..."
+        echo -en ":: Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
         sgdisk -n 0:0:+2M -t 0:EF02 -c 0:"BIOS system" ${DESTDEV} &>/dev/null
         check_status
     fi
 
     # Create SWAP partition 8200
-    echo -en ":: Creating ${cyber}${PART_SWAP}${none} as ${cyber}Linux swap partition${none}..."
+    echo -en ":: Creating ${cyan}${PART_SWAP}${none} as ${cyan}Linux swap partition${none}..."
     sgdisk -n 0:0:+4G -t 0:8200 -c 0:"Linux swap" ${DESTDEV} &>/dev/null
     check_status
 
     # Create root partition 8300
-    echo -en ":: Creating ${cyber}${PART_ROOT}${none} as ${cyber}Linux filesystem partition${none}..."
+    echo -en ":: Creating ${cyan}${PART_ROOT}${none} as ${cyan}Linux filesystem partition${none}..."
     sgdisk -n 0:0:0 -t 0:8300 -c 0:"Linux filesystem" ${DESTDEV} &>/dev/null
     check_status
 
     # Set boot flag for device
-    echo -en ":: Setting boot flag on ${cyber}${DESTDEV}${none}..."
+    echo -en ":: Setting boot flag on ${cyan}${DESTDEV}${none}..."
     sgdisk ${DESTDEV} --attributes=3:set:2 &>/dev/null
     check_status
 
     # Configure swap partition
-    echo -en ":: Formatting ${cyber}${PART_SWAP}${none} as ${cyber}swap${none}..."
+    echo -en ":: Formatting ${cyan}${PART_SWAP}${none} as ${cyan}swap${none}..."
     mkswap -L SWAP ${PART_SWAP} &>/dev/null
     check_status
-    echo -en ":: Starting swap on ${cyber}${PART_SWAP}${none}..."
+    echo -en ":: Starting swap on ${cyan}${PART_SWAP}${none}..."
     swapon ${PART_SWAP} &>/dev/null
     check_status
 
@@ -218,12 +298,12 @@ partition_and_mount_disk()
     # -L            set volume name to well known label used by bootloaders
     # -m 0          don't reserve blocks for super user daemons
     # -q            run in quiet mode for scripts
-    echo -en ":: Formatting ${cyber}${PART_ROOT}${none} as ${cyber}ext4${none}..."
+    echo -en ":: Formatting ${cyan}${PART_ROOT}${none} as ${cyan}ext4${none}..."
     mkfs.ext4 -F -m 0 -q -L ROOT ${PART_ROOT} &>/dev/null
     check_status
 
     # Mount root as ROOT_MOUNT and disable access time writes (speeds things up)
-    echo -en ":: Mounting ${cyber}${PART_ROOT}${none} as ${cyber}${ROOT_MOUNT}${none}..."
+    echo -en ":: Mounting ${cyan}${PART_ROOT}${none} as ${cyan}${ROOT_MOUNT}${none}..."
     mount -o noatime ${PART_ROOT} ${ROOT_MOUNT} &>/dev/null
     check_status
 
@@ -231,7 +311,7 @@ partition_and_mount_disk()
     # standard boot file install e.g. kernel and initramfs. We keep them on the same partition
     # as the EFI/BOOT/BOOTX64.efi as EFI can't mount a ext4 filesystem.
     if [ "x${EFI}" == "x1" ]; then
-        echo -en ":: Mounting ${cyber}${PART_BOOT}${none} (ESP) as ${cyber}${ROOT_MOUNT}/boot${none}..."
+        echo -en ":: Mounting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}${ROOT_MOUNT}/boot${none}..."
         mkdir -p ${ROOT_MOUNT}/boot
         mount ${PART_BOOT} ${ROOT_MOUNT}/boot &>/dev/null
         check_status
@@ -244,24 +324,26 @@ config_system()
     # Generate the NixOS configuration files
     #---------------------------------------------------------------------------
     echo -e "\n:: Generating NixOS configurations files at ${cyan}${ROOT_MOUNT}/etc/nixos${none}"
-    echo -e ${cyan}$_{1..80}'\b-'${none}
+    separator '-' "${cyan}"
     nixos-generate-config --root ${ROOT_MOUNT}
     check_status
+    CONFIG="${ROOT_MOUNT}/etc/nixos/configuration.nix"
 
     # The pass here is intentially weird in the default case to be printable
     local pass=""
-    [ "x$DEFAULT" == "xy" ] && pass=" (default: ${cyber}${DEFAULT_PASS}${none})"
+    [ "x$DEFAULT" == "xy" ] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
 
-#    # Configuring the root user
-#    #---------------------------------------------------------------------------
-#    echo -e "\n:: Configuring root user..."
-#    echo -e ${cyan}$_{1..80}'\b-'${none}
-#
-#    # Note: the new pam rules require SHA512 encryption else first login will require reset
-#    echo -en ":: Setting root user password${pass}..."
-#    chroot ${ROOT_MOUNT} /bin/bash -c "echo 'root:${PASS}' | chpasswd -c SHA512"
-#    check_status
-#
+    # Configuring the root user
+    #---------------------------------------------------------------------------
+    echo -e "\n:: Configuring root user..."
+    separator '-' "${cyan}"
+
+    # Note: the new pam rules require SHA512 encryption else first login will require reset
+    echo -en ":: Setting root user password${pass}..."
+    #chroot ${ROOT_MOUNT} /bin/bash -c "echo 'root:${PASS}' | chpasswd -c SHA512"
+    #sed -i -e 's/^PermitRootLogin.*/PermitRootLogin yes/' "${CONFIG}"
+    check_status
+
 #    echo -en ":: Copying skel configs to root user..."
 #    chroot ${ROOT_MOUNT} /bin/bash -c "shopt -s dotglob; cp -r /etc/skel/* /root"
 #    check_status
@@ -269,11 +351,11 @@ config_system()
 #    # Configure general system settings
 #    #---------------------------------------------------------------------------
 #    echo -e "\n:: Configuring general system settings..."
-#    echo -e ${cyan}$_{1..80}'\b-'${none}
+#    separator '-' "${cyan}"
 #
 #    # Configure localization to US by default
 #    LOCALE="en_US"
-#    echo -en ":: Setting localization to ${cyber}${LOCALE}${none}..."
+#    echo -en ":: Setting localization to ${cyan}${LOCALE}${none}..."
 #    echo "LANG=${LOCALE}.UTF-8" > ${ROOT_MOUNT}/etc/locale.conf
 #    echo "LANGUAGE=${LOCALE}.UTF-8" >> ${ROOT_MOUNT}/etc/locale.conf
 #    echo "${LOCALE}.UTF-8 UTF-8" > ${ROOT_MOUNT}/etc/locale.gen
@@ -284,25 +366,25 @@ config_system()
 #    #---------------------------------------------------------------------------
 #    if [ "x$TIMEDATE_SET" == "xy" ]; then
 #        local now=$(date --iso-8601=seconds)
-#        echo -en ":: Set time and date to ${cyber}${now}${none}..."
+#        echo -en ":: Set time and date to ${cyan}${now}${none}..."
 #        chroot ${ROOT_MOUNT} date -s ${now} &>/dev/null
 #        check_status
 #    fi
 #
-#    echo -en ":: Setting timezone to ${cyber}${TIMEZONE}${none}..."
+#    echo -en ":: Setting timezone to ${cyan}${TIMEZONE}${none}..."
 #    chroot ${ROOT_MOUNT} ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime &>/dev/null
 #    check_status
 #
-#    echo -en ":: Set hwclock to system clock ${cyber}${TIMEDATE}${none}..."
+#    echo -en ":: Set hwclock to system clock ${cyan}${TIMEDATE}${none}..."
 #    chroot ${ROOT_MOUNT} hwclock --systohc &>/dev/null
 #    check_status
 #
 #    # Configure networking
 #    #---------------------------------------------------------------------------
 #    echo -e "\n:: Configuring networking out of box experience..."
-#    echo -e ${cyan}$_{1..80}'\b-'${none}
+#    separator '-' "${cyan}"
 #
-#    echo -en ":: Setting hostname to ${cyber}${HOSTNAME}${none}..."
+#    echo -en ":: Setting hostname to ${cyan}${HOSTNAME}${none}..."
 #    echo $HOSTNAME > "${ROOT_MOUNT}/etc/hostname"
 #    check_status
 #
@@ -314,7 +396,7 @@ config_system()
 #
 #    # Configure DHCP LAN always as a fall back with a lower priority than static
 #    netconf="${ROOT_MOUNT}/etc/NetworkManager/system-connections/dhcp"
-#    echo -en ":: Configuring ${cyber}dhcp${none} networking..."
+#    echo -en ":: Configuring ${cyan}dhcp${none} networking..."
 #    echo -e "[connection]\nid=Wired dhcp\nuuid=$(uuidgen)\ntype=ethernet\nautoconnect-priority=0\n" > $netconf
 #    echo -e "[ipv4]\nmethod=auto\n" >> $netconf
 #    echo -e "[ipv6]\nmethod=disabled" >> $netconf
@@ -324,7 +406,7 @@ config_system()
 #    # Configure static LAN if set
 #    if [ "x${NETIP}" != "xDHCP" ]; then
 #        netconf="${ROOT_MOUNT}/etc/NetworkManager/system-connections/static"
-#        echo -en ":: Configuring ${cyber}static${none} networking..."
+#        echo -en ":: Configuring ${cyan}static${none} networking..."
 #        echo -e "[connection]\nid=Wired static\nuuid=$(uuidgen)\ntype=ethernet\nautoconnect-priority=1\n" > $netconf
 #        echo -e "[ipv4]\nmethod=manual\naddress=${NETIP}\ngateway=${GATEWAY}\ndns=${DNS1};${DNS2}\n" >> $netconf
 #        echo -e "[ipv6]\nmethod=disabled" >> $netconf
@@ -334,7 +416,7 @@ config_system()
 #
 #    # Configure wireless
 #    netconf="${ROOT_MOUNT}/etc/systemd/network/30-wireless.network"
-#    echo -en ":: Configuring ${cyber}dhcp wireless${none} networking..."
+#    echo -en ":: Configuring ${cyan}dhcp wireless${none} networking..."
 #    echo -e "[Match]\nName=wl*\n" > $netconf
 #    echo -e "[Network]\nDHCP=ipv4\nIPForward=kernel\n" >> $netconf
 #    echo -e "[DHCP]\nRouteMetric=20\nUseDomains=true" >> $netconf
@@ -343,7 +425,7 @@ config_system()
 #    # Configure root access for sshd if default deployment
 #    if [ -e "${ROOT_MOUNT}/etc/ssh/sshd_config" ]; then
 #        if [ "x$DEFAULT" == "xy" ]; then
-#            echo -en ":: Enable sshd root access for ${cyber}auto default${none} deployment..."
+#            echo -en ":: Enable sshd root access for ${cyan}auto default${none} deployment..."
 #            sed -i -e 's/^PermitRootLogin.*/PermitRootLogin yes/' "${ROOT_MOUNT}/etc/ssh/sshd_config"
 #            check_status
 #        fi
@@ -351,10 +433,10 @@ config_system()
 #
 #    # Configuring the new user
 #    #---------------------------------------------------------------------------
-#    echo -e "\n:: Configuring new user ${cyber}${USER}${none}..."
-#    echo -e ${cyan}$_{1..80}'\b-'${none}
+#    echo -e "\n:: Configuring new user ${cyan}${USER}${none}..."
+#    separator '-' "${cyan}"
 #
-#    echo -en ":: Creating user group ${cyber}${USER}${none}..."
+#    echo -en ":: Creating user group ${cyan}${USER}${none}..."
 #    chroot ${ROOT_MOUNT} groupadd ${USER}
 #    check_status
 #
@@ -366,7 +448,7 @@ config_system()
 #        fi
 #    done
 #
-#    echo -en ":: Creating user ${cyber}${USER}${none} with groups ${cyber}${groups}${none}..."
+#    echo -en ":: Creating user ${cyan}${USER}${none} with groups ${cyan}${groups}${none}..."
 #    chroot ${ROOT_MOUNT} useradd -m -g ${USER} -G ${groups} -s /bin/bash ${USER}
 #    check_status
 #
@@ -395,7 +477,6 @@ config_system()
 installer()
 {
     SCSI=0
-    DEBUG=0
     DEFAULT='n'
     TIMEZONE='America/Boise'
     NETIP='DHCP'
@@ -408,28 +489,9 @@ installer()
     # Detect EFI supported system
     [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
 
-    # Read in the potential destination disks details
-    # ----------------------------------------------------------------------------------------------
-    # [Major Device numers](https://www.kernel.org/doc/Documentation/admin-guide/devices.txt)
-    # Filtering out: loop (7), floppy (2), CD-ROM (11, 15, 20, 24, 25, 26, 27, 28, 29, 30, 32)
-    local excludes=2,7,11,15,20,24,25,26,27,28,29,30,32
-
-    # ### Paramaters
-    # -d    do not print holder devices or slaves
-    # -n    do not print headings line
-    # -e    exclude sepcified devices, loop(7), floppy(2)
-    DISKS_DETAILED=$(lsblk -dn -e ${excludes} -o NAME,SIZE,MODEL,TYPE,HOTPLUG -x SIZE --json | \
-        jq -rc '[.blockdevices[] | select(.type=="disk" and .hotplug!=true)]')
-
-    # Get all the disks by name for selection
-    DISKS=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[]')
-
-    # Sorted by size means the first, i.e. smallest, will likely be the boot drive
-    DESTDEV=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[0]')
-
     # Determine if this is a default deployment
     # ----------------------------------------------------------------------------------------------
-    echo -e "${cyber}:: Automatically deploy with defaults?${none}"
+    echo -e "${cyan}:: Automatically deploy with defaults?${none}"
     getinput DEFAULT 'Use automatic mode with defaults' 'n'
     if [ "x$DEFAULT" == "xy" ]; then
         AUTOLOGIN=1
@@ -443,41 +505,12 @@ installer()
 
     # Collect install destination choice from user
     # ----------------------------------------------------------------------------------------------
-    if [ "x$DEFAULT" != "xy" ]; then
-        echo -e "\n${cyber}:: Select a disk as your install destination:${none}"
-        local i=0
-        echo $DISKS_DETAILED | jq -rc '.[]' | while read x; do
-            i=$((i+1))
-            local disk="/dev/$(echo $x | jq -r '.name')"
-            local size="$(echo $x | jq -r '.size')"
-            local model="$(echo $x | jq -r '.model')"
-            echo -en "   ${i}) [${cyber}${disk}${none}](${cyber}${size}${none})"
-            [ "$model" != "null" ] && echo -en " - ${model}"
-            echo ""
-        done
-        getsel DESTDEV "$DISKS"
-    fi
-
-    # Determine the storage drive partition pattern.
-    # ----------------------------------------------------------------------------------------------
-    # https://wiki.archlinux.org/title/Device_file#Block_devices
-    # Typically this is of the form device name followed by a number or device name
-    # followed by a number with a 'p' prefix. I've only seen two different styles so far.
-    #
-    # Older style
-    # - SCSI: /dev/sda        partition1: /dev/sda1
-    # - QEMU: /dev/vda        partition1: /dev/vda1
-    # Modern style
-    # - NVMe: /dev/nvme0n1    partition1: /dev/nvme0n1p1
-    # - MMC:  /dev/mmcblk0    partition1: /dev/mmcblk0p1
-
-    # Match DESTDEV with /dev/sda and /dev/vda
-    [ -z "${DESTDEV##*/dev/sd*}" ] || [ -z "${DESTDEV##*/dev/vd*}" ] && SCSI=1
+    [ "x$DEFAULT" != "xy" ] && detect_disks
 
     # Collect networking choices from user
     # ----------------------------------------------------------------------------------------------
     if [ "x$DEFAULT" != "xy" ]; then
-        echo -e "\n${cyber}:: Configure networking:${none}"
+        echo -e "\n${cyan}:: Configure networking:${none}"
         getinput HOSTNAME 'Enter hostname' $HOSTNAME
         getinput NETIP 'Enter static IP, e.g. 192.168.1.2/24' 'DHCP'
         if [ "x${NETIP}" != "xDHCP" ]; then
@@ -489,12 +522,12 @@ installer()
     # Collect time and date choices from user
     # ----------------------------------------------------------------------------------------------
     if [ "x$DEFAULT" != "xy" ]; then
-        echo -e "\n${cyber}:: Configure time and date:${none}"
+        echo -e "\n${cyan}:: Configure time and date:${none}"
         getinput TIMEZONE 'Enter timezone' "$TIMEZONE"
-        getinput TIMEDATE_SET "Change time ${cyber}$(date --iso-8601=seconds) UTC${none}" 'n'
+        getinput TIMEDATE_SET "Change time ${cyan}$(date --iso-8601=seconds) UTC${none}" 'n'
         if [ "x$TIMEDATE_SET" == "xy" ]; then
             while true; do
-                getinput TIMEDATE "Use ${cyber}ISO 8601 seconds${none} format" "$(date --iso-8601=seconds)"
+                getinput TIMEDATE "Use ${cyan}ISO 8601 seconds${none} format" "$(date --iso-8601=seconds)"
                 date -s "${TIMEDATE}" &>/dev/null
                 [ $? -eq 0 ] && break
             done
@@ -504,7 +537,7 @@ installer()
     # Collect new user account choices from user
     # ----------------------------------------------------------------------------------------------
     if [ "x$DEFAULT" != "xy" ]; then
-        echo -e "\n${cyber}:: Create new user account:${none}"
+        echo -e "\n${cyan}:: Create new user account:${none}"
         getinput USER 'Enter new username' $USER
         while true; do
             getinput PASS 'Enter new password' 'admin' 1
@@ -524,24 +557,25 @@ installer()
 
     # Start install
     # ----------------------------------------------------------------------------------------------
-    echo -e "\n${cyan}"$_{1..80}'\b-'${none}
-    echo -e ":: ${cyber}Starting installation${none}"
-    echo -e ${cyan}$_{1..80}'\b-'${none}
+    echo
+    separator '-' "${cyan}"
+    echo -e ":: ${cyan}Starting installation${none}"
+    separator '-' "${cyan}"
 
     echo -e ":: Options being used for installation"
-    echo -e "   hostname=${cyber}${HOSTNAME}${none}"
-    echo -e "   networking=${cyber}${NETIP}${none}"
-    echo -e "   user=${cyber}${USER}${none}"
+    echo -e "   hostname=${cyan}${HOSTNAME}${none}"
+    echo -e "   networking=${cyan}${NETIP}${none}"
+    echo -e "   user=${cyan}${USER}${none}"
     if [ "x$DEFAULT" == "xy" ] || [ "x$DEFAULT_PASS" == "x$PASS" ]; then
-        echo -e "   pass=${cyber}${DEFAULT_PASS}${none}"
+        echo -e "   pass=${cyan}${DEFAULT_PASS}${none}"
     else
-        echo -e "   pass=${cyber}********${none}"
+        echo -e "   pass=${cyan}********${none}"
     fi
-    echo -e "   timezone=${cyber}${TIMEZONE}${none}"
-    echo -e "   autologin=${cyber}${AUTOLOGIN}${none}"
-    echo -e "   dest_dev=${cyber}${DESTDEV}${none}"
-    echo -e "   SCSI=${cyber}${SCSI}${none}"
-    echo -e "   EFI=${cyber}${EFI}${none}"
+    echo -e "   timezone=${cyan}${TIMEZONE}${none}"
+    echo -e "   autologin=${cyan}${AUTOLOGIN}${none}"
+    echo -e "   dest_dev=${cyan}${DESTDEV}${none}"
+    echo -e "   SCSI=${cyan}${SCSI}${none}"
+    echo -e "   EFI=${cyan}${EFI}${none}"
 
     # Partition the target disk and mount it for deployment
     partition_and_mount_disk
@@ -557,8 +591,9 @@ header()
 {
     VERSION=0.0.1
     #VERSION=$(cat VERSION)
+    separator '=' "${cyan}"
     echo -e "${cyan}Codified Likeness Utility - clu v${VERSION}${none}"
-    echo -e ${cyan}$_{1..80}'\b='${none}
+    separator '=' "${cyan}"
     echo -e "${green}that is to say, build me a linux that i like${none}\n"
 }
 usage()
@@ -567,22 +602,22 @@ usage()
     echo -e "Usage: ${cyan}./$(basename $0)${none} [options]\n"
     echo -e "Options:"
     echo -e "  -f FLAKE_URL     Build the configuration flake at this URL"
+    echo -e "  -t TEST_FUNC     Execute the given function for testing purposes"
     echo -e "  -h               Display usage help\n"
     echo -e "Examples:"
     echo -e "  ${green}Build the configuration flake:${none} ./${SCRIPT} -f https://github.com/phR0ze/nixos-config"
     echo
-    RELEASED=1
-    exit 1
+    exit
 }
 
 # getopts notes
 # - expects an argument if the option is followed by a <colon>
 # - suppresses typical diagnostic messages if first char in optstring is <colon>
 # - the \ on ? is required to make it work properly
-while getopts ":f:th" opt; do
+while getopts ":f:t:h" opt; do
     case $opt in
         f) FLAKE=$OPTARG;;
-        t) TEST=1;;
+        t) TEST=$OPTARG;;
         h) usage;;
         \?) echo -e "${red}Invalid option: ${none}-${OPTARG}\n"; usage;;
         :) echo -e "${red}Argument is required for option: ${none}-${OPTARG}\n"; usage;;
@@ -592,7 +627,12 @@ done
 header
 
 # Invoke the testing function if given
-[ ! -z ${TEST+x} ] && echo testing
+if [ ! -z ${TEST+x} ]; then
+    DEBUG=1
+    echo -e "${yellow}Testing function invoked:${none} ${TEST}"
+    separator '-' "$yellow"
+    eval $TEST
+fi
 
 # Build the given configuration flake
 [ ! -z ${FLAKE+x} ] && installer

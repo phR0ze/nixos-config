@@ -17,11 +17,13 @@ this project.
 Using a simple bash installer ***clu*** you can launch a simple wizard to then:
 
 **User choices**
+* Choose automatic mode for testing in VMs
+* Choose the target install disk
+* Choose basic networking options
+* Choose basic time date changes
 * Choose basic user account options
 * Choose autologin options
-* Choose basic networking options
 * Choose a pre-customized deployment type
-* Choose the target install disk
 * Trigger the install
 
 **Installation features**
