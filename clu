@@ -164,62 +164,6 @@ getsel()
     eval $_result=$result
 }
 
-detect_disks()
-{
-    # Read in the potential destination disks details
-    # ----------------------------------------------------------------------------------------------
-    # [Major Device numers](https://www.kernel.org/doc/Documentation/admin-guide/devices.txt)
-    # Filtering out: loop (7), floppy (2), CD-ROM (11, 15, 20, 24, 25, 26, 27, 28, 29, 30, 32)
-    local excludes=2,7,11,15,20,24,25,26,27,28,29,30,32
-
-    # ### Paramaters
-    # -d    do not print holder devices or slaves
-    # -n    do not print headings line
-    # -e    exclude sepcified devices, loop(7), floppy(2)
-    DISKS_DETAILED=$(lsblk -dn -e ${excludes} -o NAME,SIZE,MODEL,TYPE,HOTPLUG -x SIZE --json | \
-        jq -rc '[.blockdevices[] | select(.type=="disk" and .hotplug!=true)]')
-
-    # Get all the disks by name for selection
-    DISKS=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[]')
-
-    # Sorted by size means the first, i.e. smallest, will likely be the boot drive
-    DESTDEV=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[0]')
-
-    # Print out the detected disks
-    echo -e "\n${cyan}:: Select a disk as your install destination:${none}"
-    local i=0
-    echo $DISKS_DETAILED | jq -rc '.[]' | while read x; do
-        i=$((i+1))
-        local disk="/dev/$(echo $x | jq -r '.name')"
-        local size="$(echo $x | jq -r '.size')"
-        local model="$(echo $x | jq -r '.model')"
-        echo -en "   ${i}) [${cyan}${disk}${none}](${cyan}${size}${none})"
-        [ "$model" != "null" ] && echo -en " - ${model}"
-        echo ""
-    done
-
-    # Get user choice
-    getsel DESTDEV "$DISKS"
-
-    [ "x${DEBUG}" == "x1" ] && log_d "User selected: $DESTDEV"
-
-    # Determine the storage drive partition pattern.
-    # ----------------------------------------------------------------------------------------------
-    # https://wiki.archlinux.org/title/Device_file#Block_devices
-    # Typically this is of the form device name followed by a number or device name
-    # followed by a number with a 'p' prefix. I've only seen two different styles so far.
-    #
-    # Older style
-    # - SCSI: /dev/sda        partition1: /dev/sda1
-    # - QEMU: /dev/vda        partition1: /dev/vda1
-    # Modern style
-    # - NVMe: /dev/nvme0n1    partition1: /dev/nvme0n1p1
-    # - MMC:  /dev/mmcblk0    partition1: /dev/mmcblk0p1
-
-    # Match DESTDEV with /dev/sda and /dev/vda
-    [ -z "${DESTDEV##*/dev/sd*}" ] || [ -z "${DESTDEV##*/dev/vd*}" ] && SCSI=1
-}
-
 # Partition disk and mount for install at ${ROOT_MOUNT}
 partition_and_mount_disk()
 {
@@ -322,7 +266,8 @@ partition_and_mount_disk()
 config_system()
 {
     # Generate the NixOS configuration files
-    #---------------------------------------------------------------------------
+    # This must be done after the disk partioning so that the system picks up the new partitions
+    #-----------------------------------------------------------------------------------------------
     echo -e "\n:: Generating NixOS configurations files at ${cyan}${ROOT_MOUNT}/etc/nixos${none}"
     separator '-' "${cyan}"
     nixos-generate-config --root ${ROOT_MOUNT}
@@ -334,7 +279,7 @@ config_system()
     [ "x$DEFAULT" == "xy" ] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
 
     # Configuring the root user
-    #---------------------------------------------------------------------------
+    #-----------------------------------------------------------------------------------------------
     echo -e "\n:: Configuring root user..."
     separator '-' "${cyan}"
 
@@ -505,7 +450,60 @@ installer()
 
     # Collect install destination choice from user
     # ----------------------------------------------------------------------------------------------
-    [ "x$DEFAULT" != "xy" ] && detect_disks
+
+    # Read in the potential destination disks details
+    # [Major Device numers](https://www.kernel.org/doc/Documentation/admin-guide/devices.txt)
+    # Filtering out: loop (7), floppy (2), CD-ROM (11, 15, 20, 24, 25, 26, 27, 28, 29, 30, 32)
+    local excludes=2,7,11,15,20,24,25,26,27,28,29,30,32
+
+    # ### Paramaters
+    # -d    do not print holder devices or slaves
+    # -n    do not print headings line
+    # -e    exclude sepcified devices, loop(7), floppy(2)
+    DISKS_DETAILED=$(lsblk -dn -e ${excludes} -o NAME,SIZE,MODEL,TYPE,HOTPLUG -x SIZE --json | \
+        jq -rc '[.blockdevices[] | select(.type=="disk" and .hotplug!=true)]')
+
+    # Get all the disks by name for selection
+    DISKS=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[]')
+
+    # Sorted by size means the first, i.e. smallest, will likely be the boot drive
+    DESTDEV=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[0]')
+
+    # Print out the detected disks
+    echo -e "\n${cyan}:: Select a disk as your install destination:${none}"
+    local i=0
+    echo $DISKS_DETAILED | jq -rc '.[]' | while read x; do
+        i=$((i+1))
+        local disk="/dev/$(echo $x | jq -r '.name')"
+        local size="$(echo $x | jq -r '.size')"
+        local model="$(echo $x | jq -r '.model')"
+        echo -en "   ${i}) [${cyan}${disk}${none}](${cyan}${size}${none})"
+        [ "$model" != "null" ] && echo -en " - ${model}"
+        echo ""
+    done
+
+    # Get user choice
+    if [ "x$DEFAULT" != "xy" ]; then
+        getsel DESTDEV "$DISKS"
+    fi
+
+    [ "x${DEBUG}" == "x1" ] && log_d "User selected: $DESTDEV"
+
+    # Determine the storage drive partition pattern.
+    # ----------------------------------------------------------------------------------------------
+    # https://wiki.archlinux.org/title/Device_file#Block_devices
+    # Typically this is of the form device name followed by a number or device name
+    # followed by a number with a 'p' prefix. I've only seen two different styles so far.
+    #
+    # Older style
+    # - SCSI: /dev/sda        partition1: /dev/sda1
+    # - QEMU: /dev/vda        partition1: /dev/vda1
+    # Modern style
+    # - NVMe: /dev/nvme0n1    partition1: /dev/nvme0n1p1
+    # - MMC:  /dev/mmcblk0    partition1: /dev/mmcblk0p1
+
+    # Match DESTDEV with /dev/sda and /dev/vda
+    [ -z "${DESTDEV##*/dev/sd*}" ] || [ -z "${DESTDEV##*/dev/vd*}" ] && SCSI=1
 
     # Collect networking choices from user
     # ----------------------------------------------------------------------------------------------
