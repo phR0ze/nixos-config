@@ -1,11 +1,11 @@
 # nixos-config
-A simpler approach to deploying a number of different pre-determined deployment types at install time 
+A simpler approach to deploying a number of different pre-defined system profiles at install time 
 using only a bootable NixOS image and network connectivity.
 
 Due to the number of different machines I maintain and how often I change their intended purpose I 
 find it essential to be able to take a new system from baremetal to a pre-defined, pre-customized 
-purposefully built deployment type. NixOS's flakes provides a fantastic platform on which to build 
-this functionality .
+purposefully built system profile. NixOS's flakes and profiles provide a fantastic platform on which 
+to build this functionality .
 
 ### Disclaimer
 Any tooling or documentation here comes with absolutely no guarantees or support of any kind. It is 
@@ -24,13 +24,15 @@ Using a simple bash installer ***clu*** you can launch a simple wizard to then:
 * Choose basic time date changes
 * Choose basic user account options
 * Choose autologin options
-* Choose a pre-customized deployment type
+* Choose a pre-defined system profile
+* Choose pre-defined hardware configurations
 * Trigger the install
 
 **Installation features**
 * Target disk preperation including:
   * Automatic partitioning and mounting
   * Automatic support for EFI or BIOS
+* User settings transferred to the underlying `flake.nix` for install
 
 ### Install instructions
 Using ***clu*** in a few simple steps you can install a fully customized NixOS system.
@@ -65,20 +67,6 @@ Using ***clu*** in a few simple steps you can install a fully customized NixOS s
    ```bash
    $ sudo ./clu
    ```
-
-### Deployments
-Deployments are configuration crafted for a specific purpose but are machine agnostic. For example a 
-deployment may be intended to be a server vs a theater system in which case the choice of 
-configuration, i.e. packages and settings, would be different to satisfy the intent of the 
-deployment.
-
-* `deployments/theater` - machine generic configuration crafted to be media oriented
-
-### Machines
-Machine configurations are crafted to the specific hardware of the device i.e. GPU drivers, 
-configuration to accomodate particulare screen sizes or CPU limitations, power consumption etc...
-
-* `machines/beelink_s12_pro` - Intel 12th Gen N100
 
 <!-- 
 vim: ts=2:sw=2:sts=2

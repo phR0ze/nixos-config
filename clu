@@ -270,6 +270,7 @@ config_system()
     #-----------------------------------------------------------------------------------------------
     echo -e "\n:: Generating NixOS configurations files at ${cyan}${ROOT_MOUNT}/etc/nixos${none}"
     separator '-' "${cyan}"
+    #nixos-generate-config --show-hardware-config > system/hardware-configuration.nix
     nixos-generate-config --root ${ROOT_MOUNT}
     check_status
     CONFIG="${ROOT_MOUNT}/etc/nixos/configuration.nix"
