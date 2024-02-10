@@ -12,8 +12,8 @@
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-23.11"; 
   };
 
-  outputs = { self, nixpkgs, ... }@inputs:
-  let {
+  outputs = { self, nixpkgs, nixpkgs-stable, ... }@inputs:
+  let
     # System install settings
     # ----------------------------------------------------------------------------------------------
     systemSettings = {
@@ -39,10 +39,10 @@
     # User selected tooling and environment settings
     # ----------------------------------------------------------------------------------------------
     homeSettings = {
-      wmType = if (wm == "hyprland") then "wayland" else "x11";
+      #wmType = if (wm == "hyprland") then "wayland" else "x11";
       term = "alacritty";             # default terminal to use
       fontName = "Intel One Mono";    # default font name
-      fontPkg = pkgs.intel-one-mono;  # default font package
+      #fontPkg = pkgs.intel-one-mono;  # default font package
       editor = "nvim";                # default editor
     };
 
@@ -64,20 +64,20 @@
 #      config.allowUnfree = true;
 #      config.allowUnfreePredicate = _: true;
 #    };
-  }
+    lib = nixpkgs.lib;
 
   # Pass along configuration variables defined above
   # * [Special Args](https://github.com/nix-community/home-manager/issues/1022)
   # ------------------------------------------------------------------------------------------------
   in {
     nixosConfigurations = {
+      stateVersion = systemSettings.stateVersion;
       system = lib.nixosSystem {
         inherit system;
-        stateVersion = systemSettings.stateVersion;
 
         # Pass along config variables defined above
         specialArgs = {
-          inherit pkgs-stable;
+          #inherit pkgs-stable;
           inherit systemSettings;
           inherit homeSettings;
         };
@@ -90,11 +90,11 @@
 #            };
 #          }
           ./hardware-configuration.nix
-          ./. + "/profiles/" + systemSettings.profile + ".nix"
+          (./. + "/profiles" + ("/" + systemSettings.profile + ".nix"))
         ];
       };
     };
-  }
+  };
 }
 
 # vim:set ts=2:sw=2:sts=2

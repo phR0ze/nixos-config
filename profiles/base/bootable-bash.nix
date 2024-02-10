@@ -12,9 +12,10 @@
     ../../system/boot/initrd.nix
     ../../system/shell/bash.nix
     ../../system/locale.nix
-    ../../system/home/users.nix
+    ../../system/users.nix
     ../../system/security/sudo.nix
     ../../system/services/sshd.nix
+    ../../system/networking.nix
     ../../system/nix.nix
   ];
 }
