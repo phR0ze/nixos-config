@@ -15,27 +15,16 @@ this project. This project is highly opinionated and primarily for my own use bu
 fork it and build on my work.
 
 ## Getting started
-Using a simple bash installer ***clu*** you can launch a simple wizard to then:
+***clu***, a simple bash script, provides an install wizard to:
 
-**User choices**
-* Choose automatic mode for testing in VMs
-* Choose the target install disk
-* Choose basic networking options
-* Choose basic time date changes
-* Choose basic user account options
-* Choose autologin options
-* Choose a pre-defined system profile
-* Choose pre-defined hardware configurations
-* Trigger the install
-
-**Installation features**
-* Target disk preperation including:
-  * Automatic partitioning and mounting
-  * Automatic support for EFI or BIOS
-* User settings transferred to the underlying `flake.nix` for install
+* Prompt you for a few simple customization selections
+* Automate the annoying tasks like
+  * disk paritioning and mounting
+  * generation of nixos hardware configuration
+  * transfering your customizations to the underlying nix flake
+  * installing your complete system via nix flakes
 
 ### Install instructions
-Using ***clu*** in a few simple steps you can install a fully customized NixOS system.
 
 1. Download the minimal image from [NixOS downloads](https://nixos.org/download.html#nixos-iso)
    ```bash
@@ -67,6 +56,15 @@ Using ***clu*** in a few simple steps you can install a fully customized NixOS s
    ```bash
    $ sudo ./clu
    ```
+
+## Advanced use cases
+Most linux users, especially those coming from Arch Linux, will immediately be interested in how they 
+can extend and make this their own. Following best practices across the NixOS community and loving 
+the Arch Linux documentation I'm breaking out my Nix modules based roughly around the
+[Arch Linux table of contents](https://wiki.archlinux.org/title/Table_of_contents) with a couple 
+notable exceptions like `profiles`. Hopefully that helps you find the module your looking for once 
+you clone the repo.
+
 
 <!-- 
 vim: ts=2:sw=2:sts=2
