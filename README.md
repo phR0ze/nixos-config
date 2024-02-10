@@ -54,7 +54,8 @@ fork it and build on my work.
 
 5. Execute the installer
    ```bash
-   $ sudo ./clu
+   $ chmod +x clu
+   $ sudo ./clu -f https://github.com/phR0ze/nixos-config
    ```
 
 ## Advanced use cases

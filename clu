@@ -1,7 +1,5 @@
-#! /usr/bin/env bash
-
-##! /usr/bin/env nix-shell
-##! nix-shell -i bash -p git jq
+#! /usr/bin/env nix-shell
+#! nix-shell -i bash -p git jq
 
 # MIT License
 # Copyright (c) 2024 phR0ze
@@ -265,30 +263,51 @@ partition_and_mount_disk()
 
 config_system()
 {
+    # Clone the flake
+    #-----------------------------------------------------------------------------------------------
+    NIXOS_CONFIG="${ROOT_MOUNT}/etc/nixos"
+    echo -e "\n:: Cloning flake locally ${cyan}${NIXOS_CONFIG}${none}"
+    git clone ${FLAKE} ${NIXOS_CONFIG}
+
     # Generate the NixOS configuration files
     # This must be done after the disk partioning so that the system picks up the new partitions
     #-----------------------------------------------------------------------------------------------
-    echo -e "\n:: Generating NixOS configurations files at ${cyan}${ROOT_MOUNT}/etc/nixos${none}"
+    echo -e "\n:: Generating NixOS configurations files at ${cyan}${NIXOS_CONFIG}${none}"
     separator '-' "${cyan}"
-    #nixos-generate-config --show-hardware-config > system/hardware-configuration.nix
     nixos-generate-config --root ${ROOT_MOUNT}
     check_status
-    CONFIG="${ROOT_MOUNT}/etc/nixos/configuration.nix"
 
+    # Modules must be at least staged for the flake to reconize them
+    pushd ${NIXOS_CONFIG}
+    git add hardware-configuration.nix
+    popd
+
+    # Extract the current NIXOS version
+    NIXOS_VER==$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${NIXOS_CONFIG}/configuration.nix")
+    echo -e "   NIXOS target version: ${cyan}${NIXOS_VER}${none}"
+    check_status
+    rm -f "${NIXOS_CONFIG}/configuration.nix" # clean up
+
+    # Configuring the root user
+    #-----------------------------------------------------------------------------------------------
     # The pass here is intentially weird in the default case to be printable
     local pass=""
     [ "x$DEFAULT" == "xy" ] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
 
-    # Configuring the root user
+    # Execute the NixOS install
     #-----------------------------------------------------------------------------------------------
-    echo -e "\n:: Configuring root user..."
-    separator '-' "${cyan}"
+    #sudo nix-shell -p git jq
+    git clone ${FLAKE}
+    nixos-install --no-root-passd --flake "${NIXOS_CONFIG}#system"
+
+    #echo -e "\n:: Configuring root user..."
+    #separator '-' "${cyan}"
 
     # Note: the new pam rules require SHA512 encryption else first login will require reset
-    echo -en ":: Setting root user password${pass}..."
+    #echo -en ":: Setting root user password${pass}..."
     #chroot ${ROOT_MOUNT} /bin/bash -c "echo 'root:${PASS}' | chpasswd -c SHA512"
     #sed -i -e 's/^PermitRootLogin.*/PermitRootLogin yes/' "${CONFIG}"
-    check_status
+    #check_status
 
 #    echo -en ":: Copying skel configs to root user..."
 #    chroot ${ROOT_MOUNT} /bin/bash -c "shopt -s dotglob; cp -r /etc/skel/* /root"
@@ -604,7 +623,7 @@ usage()
     echo -e "  -t TEST_FUNC     Execute the given function for testing purposes"
     echo -e "  -h               Display usage help\n"
     echo -e "Examples:"
-    echo -e "  ${green}Build the configuration flake:${none} ./${SCRIPT} -f https://github.com/phR0ze/nixos-config"
+    echo -e "  ${green}Build the configuration flake:${none} sudo ./${SCRIPT} -f https://github.com/phR0ze/nixos-config"
     echo
     exit
 }
@@ -628,9 +647,11 @@ header
 # Invoke the testing function if given
 if [ ! -z ${TEST+x} ]; then
     DEBUG=1
-    echo -e "${yellow}Testing function invoked:${none} ${TEST}"
+    echo -e "${yellow}Testing function invoked${none}"
     separator '-' "$yellow"
-    eval $TEST
+    nixos-generate-config --dir .
+    'system.stateVersion = "23.11"'
+    #eval $TEST
 fi
 
 # Build the given configuration flake

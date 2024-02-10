@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { systemSettings, ... }:
 {
-  users.users${systemSettings.username} = {
+  users.users.${systemSettings.username} = {
     isNormalUser = true;
     extraGroups = [
       "wheel"                   # enables passwordless sudo for this user
