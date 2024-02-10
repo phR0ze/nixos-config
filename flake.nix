@@ -1,3 +1,8 @@
+# NixOS system configuration
+#
+# Inspiration:
+# * [spikespaz](https://github.com/spikespaz/dotfiles/blob/odyssey/flake.nix)
+# --------------------------------------------------------------------------------------------------
 {
   description = "System Configuration";
 
@@ -14,10 +19,11 @@
     systemSettings = {
       stateVersion = "23.11";
 
-      # Configuration set user interaction
+      # Configuration overriden by user selections in the clu installer
       hostname = "nixos";             # hostname to use for the install
       hardware = [ ];                 # pre-defined configuration for specific hardware in './hardware'
       user = "nixos";                 # initial admin user to create during install
+      pass = "nixos";                 # admin user password securely entered during boot
       name = "nixos";                 # name to use for git and other app configurations
       email = "nixos@nixos.org";      # email to use for git and other app configurations          
       profile = "base/bootable-bash"; # pre-defined configurations in path './profiles' selection
@@ -43,21 +49,21 @@
     # Allow for package patches, overrides and additions
     # * [allowUnfree](https://nixos.wiki/wiki/Unfree_Software)
     # * [lookup-paths](https://nix.dev/tutorials/nix-language.html#lookup-paths)
+    # * [Override nixpkgs](https://discourse.nixos.org/t/allowunfree-predicate-does-not-apply-to-self-packages/21734/6)
     # ----------------------------------------------------------------------------------------------
-    pkgs = import nixpkgs {
-      system = systemSettings.system;
-      config.allowUnfree = true;
-      config.allowUnfreePredicate = _: true;
-    };
-
-    # Preserve the ability to access stable packages
-    pkgs-stable = import nixpkgs-stable {
-      system = systemSettings.system;
-      config.allowUnfree = true;
-      config.allowUnfreePredicate = _: true;
-    };
-
-    lib = nixpkgs.lib;
+    system = systemSettings.system;
+#    pkgs = import nixpkgs {
+#      inherit system;
+#      config.allowUnfree = true;
+#      config.allowUnfreePredicate = _: true;
+#    };
+#
+#    # Preserve the ability to access stable packages
+#    pkgs-stable = import nixpkgs-stable {
+#      inherit system;
+#      config.allowUnfree = true;
+#      config.allowUnfreePredicate = _: true;
+#    };
   }
 
   # Pass along configuration variables defined above
@@ -66,20 +72,26 @@
   in {
     nixosConfigurations = {
       system = lib.nixosSystem {
-        system = systemSettings.system;
+        inherit system;
         stateVersion = systemSettings.stateVersion;
-        modules = [ 
-          ./hardware-configuration.nix
-          ./. + "/profiles/" + systemSettings.profile + ".nix"
-        ];
 
         # Pass along config variables defined above
         specialArgs = {
-          inherit pkgs;
           inherit pkgs-stable;
           inherit systemSettings;
           inherit homeSettings;
         };
+
+        # Load configuration modules and use the modified pkgs
+        modules = [ 
+#          {
+#            nixpkgs = {
+#              inherit pkgs;
+#            };
+#          }
+          ./hardware-configuration.nix
+          ./. + "/profiles/" + systemSettings.profile + ".nix"
+        ];
       };
     };
   }
