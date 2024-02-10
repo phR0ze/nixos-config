@@ -22,8 +22,8 @@
       # Configuration overriden by user selections in the clu installer
       hostname = "nixos";             # hostname to use for the install
       hardware = [ ];                 # pre-defined configuration for specific hardware in './hardware'
-      user = "nixos";                 # initial admin user to create during install
-      pass = "nixos";                 # admin user password securely entered during boot
+      username = "nixos";             # initial admin user to create during install
+      userpass = "nixos";             # admin user password securely entered during boot
       name = "nixos";                 # name to use for git and other app configurations
       email = "nixos@nixos.org";      # email to use for git and other app configurations          
       profile = "base/bootable-bash"; # pre-defined configurations in path './profiles' selection
@@ -52,6 +52,7 @@
     # * [Override nixpkgs](https://discourse.nixos.org/t/allowunfree-predicate-does-not-apply-to-self-packages/21734/6)
     # ----------------------------------------------------------------------------------------------
     system = systemSettings.system;
+    stateVersion = systemSettings.stateVersion;
 #    pkgs = import nixpkgs {
 #      inherit system;
 #      config.allowUnfree = true;
@@ -71,8 +72,10 @@
   # ------------------------------------------------------------------------------------------------
   in {
     nixosConfigurations = {
-      stateVersion = systemSettings.stateVersion;
-      system = lib.nixosSystem {
+
+      # Define default system configuration
+      # Note this 'default' value is used in place of the hostname target in most flakes
+      default = lib.nixosSystem {
         inherit system;
 
         # Pass along config variables defined above

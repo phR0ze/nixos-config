@@ -5,7 +5,7 @@
 # - bash.nix
 # - nix core configuration
 #---------------------------------------------------------------------------------------------------
-{ ... }:
+{ systemSettings, ... }:
 {
   imports = [
     ./minimal.nix
@@ -18,6 +18,9 @@
     ../../system/networking.nix
     ../../system/nix.nix
   ];
+
+  # Set the NixOS version that this was installed with
+  config.system.stateVersion = systemSettings.stateVersion;
 }
 
 # vim:set ts=2:sw=2:sts=2
