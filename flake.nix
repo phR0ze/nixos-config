@@ -65,37 +65,35 @@
 #      config.allowUnfree = true;
 #      config.allowUnfreePredicate = _: true;
 #    };
-    lib = nixpkgs.lib;
+#lib = nixpkgs.lib;
 
   # Pass along configuration variables defined above
   # * [Special Args](https://github.com/nix-community/home-manager/issues/1022)
   # ------------------------------------------------------------------------------------------------
   in {
-    nixosConfigurations = {
 
-      # Define default system configuration
-      # Note this 'default' value is used in place of the hostname target in most flakes
-      default = lib.nixosSystem {
-        inherit system;
+    # Define default system configuration
+    # Note this 'default' value is used in place of the hostname target in most flakes
+    nixosConfigurations.default = nixpkgs.lib.nixosSystem {
+      inherit system;
 
-        # Pass along config variables defined above
-        specialArgs = {
-          #inherit pkgs-stable;
-          inherit systemSettings;
-          inherit homeSettings;
-        };
+      # Pass along config variables defined above
+      specialArgs = {
+        #inherit pkgs-stable;
+        inherit systemSettings;
+        inherit homeSettings;
+      };
 
-        # Load configuration modules and use the modified pkgs
-        modules = [ 
+      # Load configuration modules and use the modified pkgs
+      modules = [
 #          {
 #            nixpkgs = {
 #              inherit pkgs;
 #            };
 #          }
-          ./hardware-configuration.nix
-          (./. + "/profiles" + ("/" + systemSettings.profile + ".nix"))
-        ];
-      };
+        ./hardware-configuration.nix
+        (./. + "/profiles" + ("/" + systemSettings.profile + ".nix"))
+      ];
     };
   };
 }
