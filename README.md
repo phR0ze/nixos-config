@@ -60,12 +60,44 @@ fork it and build on my work.
 
 ## Advanced use cases
 Most linux users, especially those coming from Arch Linux, will immediately be interested in how they 
-can extend and make this their own. Following best practices across the NixOS community and loving 
-the Arch Linux documentation I'm breaking out my Nix modules based roughly around the
-[Arch Linux table of contents](https://wiki.archlinux.org/title/Table_of_contents) with a couple 
-notable exceptions like `profiles`. Hopefully that helps you find the module your looking for once 
-you clone the repo.
+can extend and make this their own. Following best practices across the NixOS community I'm breaking 
+down my configuration into modules. This allows for composability for higher level concepts like 
+profiles. I'm organizing my modules to follow the nix options for the most part.
 
+### Build the live ISO for installation
+NixOS has a lot of reusable automation built into it. In the Arch world typically you have to start 
+from scratch and build your own automation if you want control over how its being built. In the Nix 
+world though this already exists.
+
+1. Clone this repo
+   ```bash
+   $ git clone https://github.com/phR0ze/nixos-config
+   ```
+
+2. Modify the `flake.nix` file changing the `nixosConfigurations.iso` block as desired
+
+3. Commit or at the least stage your changes so Nix will see them
+   ```bash
+   $ git add .
+   ```
+
+4. Now build the iso
+   ```bash
+   $ nix build .#nixosConfigurations.iso.config.system.build.isoImage
+   ```
+
+5. The ISO will end up in `result/iso/`
+
+## Backlog
+* [ ] Build installer automation
+  * [ ] Clone config repo on boot and launch `clu`
+  * [ ] clu needs to present profiles for install
+  * [ ] clu to update `flake.nix` with user selection
+  * [ ] install
+* [ ] Build out standard xfce desktop
+  * [ ] 
+* [ ] Change the autologin welcome message
+* [ ] Change the kernel boot colors 
 
 <!-- 
 vim: ts=2:sw=2:sts=2
