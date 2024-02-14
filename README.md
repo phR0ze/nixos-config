@@ -55,6 +55,7 @@ fork it and build on my work.
 5. Execute the installer
    ```bash
    $ chmod +x clu
+   $ nix-shell -p git jq
    $ sudo ./clu -f https://github.com/phR0ze/nixos-config
    ```
 
@@ -90,7 +91,9 @@ world though this already exists.
 
 ## Backlog
 * [ ] Build installer automation
-  * [ ] Clone config repo on boot and launch `clu`
+  * [ ] Inject clu as bootable ISO launch
+    * [ ] Clone config repo
+    * [ ] Launch `clu`
   * [ ] clu needs to present profiles for install
   * [ ] clu to update `flake.nix` with user selection
   * [ ] install

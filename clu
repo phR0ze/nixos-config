@@ -1,5 +1,4 @@
-#! /usr/bin/env nix-shell
-#! nix-shell -i bash -p git jq
+#! /usr/bin/env bash
 
 # MIT License
 # Copyright (c) 2024 phR0ze
@@ -22,11 +21,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# --------------------------------------------------------------------------------------------------
 # Simple NixOS install automation
 # 
 # ## Features
 # - Handles partitioning the disk in preparation for installation
-# - Allows for customizing some common install variations
+# - Allows for customizing some common install settings
 #   - hostname
 # --------------------------------------------------------------------------------------------------
 none="\e[m"
@@ -299,7 +299,7 @@ config_system()
     #sudo nix-shell -p git jq
     git clone ${FLAKE}
     exit
-    nixos-install --impure --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#default"
+    nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#default"
 
     #echo -e "\n:: Configuring root user..."
     #separator '-' "${cyan}"
@@ -606,10 +606,9 @@ installer()
 # Build a minimal iso
 # https://releases.nixos.org/
 # https://discourse.nixos.org/t/nixos-reproducible-builds-minimal-installation-iso-successfully-independently-rebuilt/34756
-build()
+build_iso()
 {
-
-
+   nix build .#nixosConfigurations.iso.config.system.build.isoImage
 }
 
 
@@ -642,8 +641,9 @@ usage()
 # - expects an argument if the option is followed by a <colon>
 # - suppresses typical diagnostic messages if first char in optstring is <colon>
 # - the \ on ? is required to make it work properly
-while getopts ":f:t:h" opt; do
+while getopts ":b:f:t:h" opt; do
     case $opt in
+        b) BUILD=$OPTARG;;
         f) FLAKE=$OPTARG;;
         t) TEST=$OPTARG;;
         h) usage;;
@@ -662,6 +662,11 @@ if [ ! -z ${TEST+x} ]; then
     nixos-generate-config --dir .
     'system.stateVersion = "23.11"'
     #eval $TEST
+fi
+
+# Build the given component
+if [ ! -z ${BUILD+x} ]; then
+    [ "${BUILD}" == "iso" ] && build_iso
 fi
 
 # Build the given configuration flake
