@@ -87,14 +87,11 @@
   # ------------------------------------------------------------------------------------------------
   in {
     nixosConfigurations = let
-      # Shared base configuration
-      base = {
-        system = systemSettings.system;
-        modules = [
+      # Shared base modules configuration
+      baseModules = [
           # Use modified pkgs throughout
           #{ nixpkgs = { inherit pkgs; }; }
-        ];
-      };
+      ];
     in {
       # Define system configuration for an installation
       # Note this 'install' value is used in place of the hostname target in most flakes
@@ -126,8 +123,8 @@
           # Inline module to add additional packages
           ({ pkgs, ... }: with pkgs; {
             environment.systemPackages = [
-              git
-              jq
+              git                 # Needed for clu installer automation
+              jq                  # Needed for clu installer automation
             ];
           })
         ];

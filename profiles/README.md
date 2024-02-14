@@ -1,6 +1,6 @@
 # System Profiles
-NixOS's profile concept is a powerful way to pre-configure a full system for any imaginable number of 
-different special built tasks. System profiles essentially allow you to custom tailor configuration 
+System profiles in this context are being defined as top level NixOS modules that pre-define a system 
+for a pre-determined purpose. System profiles essentially allow you to custom tailor configuration 
 for your specific purpose, i.e. maybe a theater focused system, or a minimal server or your daily 
 runner desktop. With system profiles you can have a new system up and running in minutes exactly the 
 way you wanted it. No more painfully pieceing together your perfect system to have it get bricked or 
@@ -8,7 +8,7 @@ fried and having to start all over.
 
 ## Pre-defined system profiles
 These are the pre-defined system profiles that can be used in the root `flake.nix` by setting the 
-`installSettings.profile` variable e.g. `profile = "xfce/desktop";`. I've crafted the system profiles 
+`systemSettings.profile` variable e.g. `profile = "xfce/desktop";`. I've crafted the system profiles 
 in such a way that most build on a prior one including more packages and configuration for their 
 specific use case.
 
