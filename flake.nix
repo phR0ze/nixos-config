@@ -6,14 +6,30 @@
 {
   description = "System Configuration";
 
+  # ### inputs specifies other flakes to be used in the outputs as dependencies.
+  # After inputs are resolved they are passed to the outputs function and map to the explicit and 
+  # implicit arguments as defined by the outputs function.
   inputs = {
-    # Call out the https://github.com/NixOS/nixpkgs branches to use
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable"; 
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-23.11"; 
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11"; 
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable"; 
   };
 
-  outputs = { self, nixpkgs, nixpkgs-stable, ... }@inputs:
-  let
+  # ### Implicit arguments
+  # In nix function syntax we can require arguments by name explicitly as 'self' is below and using 
+  # the '...' allow for additional implicit arguments that will be gathered into a set named 'NAME' 
+  # with the '@NAME' syntax. Flake syntax specifies that once 'inputs' are resolved they are passed 
+  # to the outputs function as arguments. Thus by naming the implicit arguments '@inputs' we are not 
+  # referring to the original inputs attribute set but rather naming the implicit arguments to our 
+  # function 'inputs' which happens to also be the name of a flakes inputs attribute set. In the end
+  # it works out function the same but is a mistake to conflate the two for general nix cases.
+  #
+  # ### Explicit arguments
+  # Although it is nice to gather all implicit arguments together this means to use them without the 
+  # do notation would require an 'inherit (inputs) nixpkgs' to bring them into scope. Another option 
+  # is to just call them out explicitly as required named arguments which does this scoping for you.
+  outputs = { self, ... }@inputs: let
+    inherit (inputs) nixpkgs;
+
     # System install settings
     # ----------------------------------------------------------------------------------------------
     systemSettings = {
@@ -51,49 +67,71 @@
     # * [lookup-paths](https://nix.dev/tutorials/nix-language.html#lookup-paths)
     # * [Override nixpkgs](https://discourse.nixos.org/t/allowunfree-predicate-does-not-apply-to-self-packages/21734/6)
     # ----------------------------------------------------------------------------------------------
-    system = systemSettings.system;
-    stateVersion = systemSettings.stateVersion;
-#    pkgs = import nixpkgs {
-#      inherit system;
+#    nixpkgs.config.allowUnfree = true;
+
+#    pkgs = import inputs.nixpkgs {
+#      system = systemSettings.system;
 #      config.allowUnfree = true;
 #      config.allowUnfreePredicate = _: true;
 #    };
 #
-#    # Preserve the ability to access stable packages
-#    pkgs-stable = import nixpkgs-stable {
-#      inherit system;
+#    # Add the ability to access unstable packages
+#    pkgs-unstable = import inputs.nixpkgs-unstable {
+#      system = systemSettings.system;
 #      config.allowUnfree = true;
 #      config.allowUnfreePredicate = _: true;
 #    };
-#lib = nixpkgs.lib;
 
   # Pass along configuration variables defined above
   # * [Special Args](https://github.com/nix-community/home-manager/issues/1022)
   # ------------------------------------------------------------------------------------------------
   in {
+    nixosConfigurations = let
+      # Shared base configuration
+      base = {
+        system = systemSettings.system;
+        modules = [
+          # Use modified pkgs throughout
+          #{ nixpkgs = { inherit pkgs; }; }
+        ];
+      };
+    in {
+      # Define system configuration for an installation
+      # Note this 'install' value is used in place of the hostname target in most flakes
+      install = nixpkgs.lib.nixosSystem {
+        system = systemSettings.system;
 
-    # Define default system configuration
-    # Note this 'default' value is used in place of the hostname target in most flakes
-    nixosConfigurations.default = nixpkgs.lib.nixosSystem {
-      inherit system;
+        # Pass along config variables defined above
+        specialArgs = {
+          #inherit pkgs-unstable;
+          inherit systemSettings;
+          inherit homeSettings;
+        };
 
-      # Pass along config variables defined above
-      specialArgs = {
-        #inherit pkgs-stable;
-        inherit systemSettings;
-        inherit homeSettings;
+        # Load configuration modules
+        # modules = base.modules ++ [ ];
+        modules = [
+          ./hardware-configuration.nix
+          (./. + "/profiles" + ("/" + systemSettings.profile + ".nix"))
+        ];
       };
 
-      # Load configuration modules and use the modified pkgs
-      modules = [
-#          {
-#            nixpkgs = {
-#              inherit pkgs;
-#            };
-#          }
-        ./hardware-configuration.nix
-        (./. + "/profiles" + ("/" + systemSettings.profile + ".nix"))
-      ];
+      # Defines configuration for building an ISO
+      # Starts from the minimal iso config and adds additional config
+      iso = nixpkgs.lib.nixosSystem {
+        system = systemSettings.system;
+        modules = [
+          "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+
+          # Inline module to add additional packages
+          ({ pkgs, ... }: with pkgs; {
+            environment.systemPackages = [
+              git
+              jq
+            ];
+          })
+        ];
+      };
     };
   };
 }

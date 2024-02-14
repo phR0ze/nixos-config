@@ -298,7 +298,8 @@ config_system()
     #-----------------------------------------------------------------------------------------------
     #sudo nix-shell -p git jq
     git clone ${FLAKE}
-    nixos-install --impure --no-root-passd --no-channel-copy --flake "${NIXOS_CONFIG}#default"
+    exit
+    nixos-install --impure --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#default"
 
     #echo -e "\n:: Configuring root user..."
     #separator '-' "${cyan}"
@@ -600,6 +601,15 @@ installer()
 
     # Take user selections and apply to NixOS configuration
     config_system
+}
+
+# Build a minimal iso
+# https://releases.nixos.org/
+# https://discourse.nixos.org/t/nixos-reproducible-builds-minimal-installation-iso-successfully-independently-rebuilt/34756
+build()
+{
+
+
 }
 
 
