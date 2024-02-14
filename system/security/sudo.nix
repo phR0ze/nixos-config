@@ -4,10 +4,14 @@
 {
   security.sudo = {
     enable = true;
-    extraRules = [
-      # Configure passwordless sudo access for 'wheel' group
-      { commands = [{ command = "ALL"; options = [ "NOPASSWD" ];}]; groups = [ "wheel" ]; }
-    ];
+
+    # Configure passwordless sudo access for 'wheel' group
+    wheelNeedsPassword = false;
+
+    # Non wheel groups can be modified with this syntax
+#    extraRules = [
+#      { commands = [{ command = "ALL"; options = [ "NOPASSWD" ];}]; groups = [ "wheel" ]; }
+#    ];
   };
 }
 

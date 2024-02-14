@@ -5,6 +5,7 @@
   nix = {
     package = pkgs.nixFlakes;
     settings.experimental-features = [ "nix-command" "flakes" ]; # enable flake support
+    extraOptions = "experimental-features = nix-command flakes";
   };
 }
 
