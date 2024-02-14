@@ -117,17 +117,7 @@
       # Starts from the minimal iso config and adds additional config
       iso = nixpkgs.lib.nixosSystem {
         system = systemSettings.system;
-        modules = [
-          "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-
-          # Inline module to add additional packages
-          ({ pkgs, ... }: with pkgs; {
-            environment.systemPackages = [
-              git                 # Needed for clu installer automation
-              jq                  # Needed for clu installer automation
-            ];
-          })
-        ];
+        modules = [ ./iso.nix ];
       };
     };
   };
