@@ -89,8 +89,8 @@
     system = systemSettings.system;
     pkgs = nixpkgs.legacyPackages.${system};
     specialArgs = {
+      inherit inputs;
       inherit nixpkgs;
-      inherit home-manager;
       inherit systemSettings;
       inherit homeSettings;
     };
@@ -125,7 +125,12 @@
       # Starts from the minimal iso config and adds additional config
       iso = lib.nixosSystem {
         inherit pkgs system specialArgs;
-        modules = [ ./profiles/base/iso.nix ];
+        modules = [
+          ./profiles/base/iso.nix
+          home-manager.nixosModules.home-manager {
+            home-manager.users.nixos = import ./home-manager/iso.nix
+          }
+        ];
       };
     };
 
