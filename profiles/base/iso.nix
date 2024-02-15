@@ -13,6 +13,8 @@
     ../../system/nix.nix
   ];
 
+  # Configure home-manager for ISO to have a script that is automatically run on login
+  # to launcher our installer automation 'clu'
   home-manager = {
     extraSpecialArgs = { inherit args; };
     users.nixos = {
