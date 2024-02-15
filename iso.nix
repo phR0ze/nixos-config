@@ -1,9 +1,12 @@
 # iso configuration
 # --------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+# https://nixos.wiki/wiki/Creating_a_NixOS_live_CD
+# --------------------------------------------------------------------------------------------------
+{ config, nixpkgs, pkgs, ... }:
 {
   imports = [
-    "${pkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+    # I get a weird infinit recursion bug if I use ${pkgs} instead
+    "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
   ];
 
   environment.systemPackages = with pkgs; [

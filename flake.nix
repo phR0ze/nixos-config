@@ -87,25 +87,27 @@
   # ------------------------------------------------------------------------------------------------
   in {
     nixosConfigurations = let
+      system = systemSettings.system;
+      pkgs = nixpkgs.legacyPackages.${system};
+
+      # Shared variables defined above
+      specialArgs = {
+        inherit nixpkgs;
+        inherit systemSettings;
+        inherit homeSettings;
+      };
+
       # Shared base modules configuration
       baseModules = [
-          # Use modified pkgs throughout
           #{ nixpkgs = { inherit pkgs; }; }
       ];
     in {
+
       # Define system configuration for an installation
       # Note this 'install' value is used in place of the hostname target in most flakes
       install = nixpkgs.lib.nixosSystem {
-        system = systemSettings.system;
+        inherit pkgs system specialArgs;
 
-        # Pass along config variables defined above
-        specialArgs = {
-          #inherit pkgs-unstable;
-          inherit systemSettings;
-          inherit homeSettings;
-        };
-
-        # Load configuration modules
         # modules = base.modules ++ [ ];
         modules = [
           ./hardware-configuration.nix
@@ -116,7 +118,7 @@
       # Defines configuration for building an ISO
       # Starts from the minimal iso config and adds additional config
       iso = nixpkgs.lib.nixosSystem {
-        system = systemSettings.system;
+        inherit pkgs system specialArgs;
         modules = [ ./iso.nix ];
       };
     };
