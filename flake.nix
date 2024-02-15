@@ -90,6 +90,7 @@
     pkgs = nixpkgs.legacyPackages.${system};
     specialArgs = {
       inherit nixpkgs;
+      inherit home-manager;
       inherit systemSettings;
       inherit homeSettings;
     };
