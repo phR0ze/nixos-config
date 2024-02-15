@@ -2,9 +2,12 @@
 # --------------------------------------------------------------------------------------------------
 # https://nixos.wiki/wiki/Creating_a_NixOS_live_CD
 # --------------------------------------------------------------------------------------------------
-{ nixpkgs, pkgs, lib, ... }:
+{ inputs, nixpkgs, pkgs, lib, ... }:
 {
   imports = [
+    # Import and activate home manager
+    #inputs.home-manager.nixosModules.home-manager
+
     # I get a weird infinite recursion bug if I use ${pkgs} instead
     "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
     ../../system/nix.nix
@@ -13,7 +16,10 @@
 #  programs.home-manager.enable = true;
 #  home-manager = {
 #    users.nixos = import ../../home-manager/iso.nix;
-#    #extraSpecialArgs = { inherit inputs; inherit outputs; };
+#    extraSpecialArgs = {
+#      inherit inputs;
+#      inherit 
+#    };
 #  };
 
   # Set the default user passwords
