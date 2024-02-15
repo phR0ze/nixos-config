@@ -13,12 +13,11 @@
     ../../system/nix.nix
   ];
 
-  programs.home-manager.enable = true;
-
   home-manager = {
     extraSpecialArgs = { inherit args; };
     users.nixos = { imports = [ ./home-manager/iso.nix ]; };
   };
+  #programs.home-manager.enable = true;
 
   # Set the default user passwords
   users.users.nixos.password = "nixos";
