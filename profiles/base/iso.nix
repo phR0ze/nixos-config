@@ -2,14 +2,14 @@
 # --------------------------------------------------------------------------------------------------
 # https://nixos.wiki/wiki/Creating_a_NixOS_live_CD
 # --------------------------------------------------------------------------------------------------
-{ inputs, nixpkgs, pkgs, lib, ... }:
+{ inputs, pkgs, lib, ... }:
 {
   imports = [
     # Import and activate home manager
     #inputs.home-manager.nixosModules.home-manager
 
     # I get a weird infinite recursion bug if I use ${pkgs} instead
-    "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+    "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
     ../../system/nix.nix
   ];
 
