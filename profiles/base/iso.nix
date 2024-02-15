@@ -6,13 +6,7 @@
 {
   imports = [
     # Import and activate home-manager
-    # this is a utility function 
-    #args.home-manager.nixosModules.home-manager
-    args.home-manager.nixosModules.home-manager {
-      home-manager.useUserPackages = true;
-      home-manager.extraSpecialArgs = { inherit args; };
-      home-manager.users.nixos = { imports = [ ../../home-manager/iso.nix ]; };
-    }
+    args.home-manager.nixosModules.home-manager
 
     # I get a weird infinite recursion bug if I use ${pkgs} instead
     "${args.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
@@ -21,7 +15,21 @@
 
   home-manager = {
     extraSpecialArgs = { inherit args; };
-    users.nixos = { imports = [ ./home-manager/iso.nix ]; };
+    users.nixos = {
+      home.file.".bash_profile".text = ''
+        if [ ! if clu ]; then
+          curl -sL -o clu https://raw.githubusercontent.com/phR0ze/nixos-config/main/clu
+        fi
+        chmod +x clu
+        sudo ./clu -f https://github.com/phR0ze/nixos-config
+      '';
+
+      home = {
+        username = "nixos";
+        homeDirectory = "/home/nixos";
+        stateVersion = args.systemSettings.stateVersion;
+      };
+    };
   };
   #programs.home-manager.enable = true;
 
