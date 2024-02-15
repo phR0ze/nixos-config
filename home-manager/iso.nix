@@ -1,18 +1,49 @@
-# iso configuration
+# home-manager iso configuration
 # --------------------------------------------------------------------------------------------------
-# https://nixos.wiki/wiki/Creating_a_NixOS_live_CD
-# --------------------------------------------------------------------------------------------------
-{ config, nixpkgs, pkgs, ... }:
+{ config, lib, systemSettings, ... }:
 {
-  imports = [
-    # I get a weird infinite recursion bug if I use ${pkgs} instead
-    "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-  ];
+  config = {
+    home.file.".bash_profile".text = ''
+      if [ ! if clu ]; then
+        curl -sL -o clu https://raw.githubusercontent.com/phR0ze/nixos-config/main/clu
+      fi
+      chmod +x clu
+      sudo ./clu -f https://github.com/phR0ze/nixos-config
+    '';
 
-  environment.systemPackages = with pkgs; [
-    git                 # Needed for clu installer automation
-    jq                  # Needed for clu installer automation
-  ];
+#    modules = {
+#      editors = {
+#        nvim.enable = true;
+#      };
+#
+#      shells = {
+#        fish.enable = true;
+#      };
+#
+#      terminals = {
+#        foot.enable = true;
+#      };
+#    };
+#
+#    my.settings = {
+#      host = "iso";
+#      default = {
+#        shell = "fish";
+#        terminal = "foot";
+#        browser = "firefox";
+#        editor = "nvim";
+#      };
+#      fonts.monospace = "FiraCode Nerd Font Mono";
+#    };
+#
+#    colorscheme = inputs.nix-colors.colorSchemes.catppuccin-mocha;
+
+    home = {
+      username = lib.mkDefault "nixos";
+      homeDirectory = lib.mkDefault "/home/nixos";
+      stateVersion = lib.mkDefault systemSettings.stateVersion;
+    };
+  };
 }
 
 # vim:set ts=2:sw=2:sts=2

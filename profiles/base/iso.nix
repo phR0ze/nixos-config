@@ -11,7 +11,7 @@
   ];
 
   networking.hostName = "iso";
-  #home-manager.users.nixos = import ./home.nix;
+  home-manager.users.nixos = import ../../home-manager/iso.nix;
 
   # Set the default user passwords
   users.users.nixos.password = "nixos";
