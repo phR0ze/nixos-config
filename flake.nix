@@ -128,6 +128,7 @@
         modules = [
           ./profiles/base/iso.nix
           home-manager.nixosModules.home-manager {
+            inherit extraSpecialArgs;
             home-manager.useUserPackages = true;
             home-manager.users.nixos = { imports = [ ./home-manager/iso.nix ]; };
           }
