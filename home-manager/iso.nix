@@ -1,6 +1,6 @@
 # home-manager iso configuration
 # --------------------------------------------------------------------------------------------------
-{ config, lib, ... }:
+{ args, config, lib, ... }:
 {
   config = {
     home.file.".bash_profile".text = ''
@@ -14,7 +14,7 @@
     home = {
       username = "nixos";
       homeDirectory = "/home/nixos";
-      stateVersion = systemSettings.stateVersion;
+      stateVersion = args.systemSettings.stateVersion;
     };
   };
 }
