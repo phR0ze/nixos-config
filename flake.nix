@@ -127,7 +127,8 @@
         inherit pkgs system specialArgs;
         modules = [
           ./profiles/base/iso.nix
-          home-manager.nixosModules.home-manager {
+          home-manager.nixosModules.home-manager
+          {
             home-manager.users.nixos = import ./home-manager/iso.nix
           }
         ];
