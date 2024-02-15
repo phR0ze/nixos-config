@@ -41,16 +41,26 @@ DEBUG=0
 SCRIPT=$(basename $0)
 PROJECT_DIR=$(readlink -f $(dirname $BASH_SOURCE[0]))
 
-# Print a repeating character separater
+# Print out a header
 # --------------------------------------------------------------------------------------------------
 # ### Params
-# - $1 char to use
+# - $1 char to use for the separation line
 # - $2 color to use
-separator()
+# - $3 header message
+# - $4 double header or not 1/0
+header()
 {
     local char=$1
     local color=$2
+    local msg=$3
+    local double=$4
 
+    # If the message has no color then colorize it
+    [[ "${msg}" != *"\e[1"* ]] && msg="${color}${msg}${none}"
+
+    echo
+    [ "x$double" == "x1" ] && echo -e ${color}$_{1..80}'\b'"${char}"${none}
+    echo -e ":: ${msg}"
     echo -e ${color}$_{1..80}'\b'"${char}"${none}
 }
 
@@ -165,8 +175,7 @@ getsel()
 # Partition disk and mount for install at ${ROOT_MOUNT}
 partition_and_mount_disk()
 {
-    echo -e "\n:: Partitioning and mounting destination disk ${cyan}${DESTDEV}${none}..."
-    separator '-' "${cyan}"
+    header '-' "${cyan}" "Partitioning and mounting destination disk ${cyan}${DESTDEV}${none}..."
 
     # Wipe, partition and format disk
     #---------------------------------------------------------------------------
@@ -272,8 +281,7 @@ config_system()
     # Generate the NixOS configuration files
     # This must be done after the disk partioning so that the system picks up the new partitions
     #-----------------------------------------------------------------------------------------------
-    echo -e "\n:: Generating NixOS configurations files at ${cyan}${NIXOS_CONFIG}${none}"
-    separator '-' "${cyan}"
+    header '-' "${cyan}" "Generating NixOS configurations files at ${cyan}${NIXOS_CONFIG}${none}"
     nixos-generate-config --root ${ROOT_MOUNT}
     check_status
 
@@ -576,11 +584,7 @@ installer()
 
     # Start install
     # ----------------------------------------------------------------------------------------------
-    echo
-    separator '-' "${cyan}"
-    echo -e ":: ${cyan}Starting installation${none}"
-    separator '-' "${cyan}"
-
+    header '-' "${cyan}" "Starting installation" 1
     echo -e ":: Options being used for installation"
     echo -e "   hostname=${cyan}${HOSTNAME}${none}"
     echo -e "   networking=${cyan}${NETIP}${none}"
@@ -608,26 +612,26 @@ installer()
 # https://discourse.nixos.org/t/nixos-reproducible-builds-minimal-installation-iso-successfully-independently-rebuilt/34756
 build_iso()
 {
+   header '-' "${cyan}" "Building ISO" 1
    nix build .#nixosConfigurations.iso.config.system.build.isoImage
 }
 
 
 # Main entry point
 # --------------------------------------------------------------------------------------------------
-header()
+title()
 {
     VERSION=0.0.1
     #VERSION=$(cat VERSION)
-    separator '=' "${cyan}"
-    echo -e "${cyan}Codified Likeness Utility - clu v${VERSION}${none}"
-    separator '=' "${cyan}"
+    header '=' "${cyan}" "Codified Likeness Utility - clu v${VERSION}" 1
     echo -e "${green}that is to say, build me a linux that i like${none}\n"
 }
 usage()
 {
-    header
+    title
     echo -e "Usage: ${cyan}./$(basename $0)${none} [options]\n"
     echo -e "Options:"
+    echo -e "  -b COMPONENT     Build the given component"
     echo -e "  -f FLAKE_URL     Build the configuration flake at this URL"
     echo -e "  -t TEST_FUNC     Execute the given function for testing purposes"
     echo -e "  -h               Display usage help\n"
@@ -652,15 +656,11 @@ while getopts ":b:f:t:h" opt; do
     esac
 done
 [ $(($OPTIND -1)) -eq 0 ] && usage
-header
+title
 
 # Invoke the testing function if given
 if [ ! -z ${TEST+x} ]; then
-    DEBUG=1
-    echo -e "${yellow}Testing function invoked${none}"
-    separator '-' "$yellow"
-    nixos-generate-config --dir .
-    'system.stateVersion = "23.11"'
+    header '-' "${cyan}" "Partitioning and mounting destination disk..."
     #eval $TEST
 fi
 
