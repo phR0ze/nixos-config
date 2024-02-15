@@ -2,7 +2,7 @@
 # --------------------------------------------------------------------------------------------------
 # https://nixos.wiki/wiki/Creating_a_NixOS_live_CD
 # --------------------------------------------------------------------------------------------------
-{ nixpkgs, pkgs, lib, ... }:
+{ home-manager, nixpkgs, pkgs, lib, ... }:
 {
   imports = [
     # I get a weird infinite recursion bug if I use ${pkgs} instead
