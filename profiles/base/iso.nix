@@ -10,7 +10,7 @@
     #args.home-manager.nixosModules.home-manager
     args.home-manager.nixosModules.home-manager {
       home-manager.useUserPackages = true;
-      home-manager.extraSpecialArgs = { inherit args };
+      home-manager.extraSpecialArgs = { inherit args; };
       home-manager.users.nixos = { imports = [ ../../home-manager/iso.nix ]; };
     }
 
