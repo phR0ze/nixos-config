@@ -127,9 +127,9 @@
         inherit pkgs system specialArgs;
         modules = [
           ./profiles/base/iso.nix
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.users.nixos = import ./home-manager/iso.nix
+          home-manager.nixosModules.home-manager {
+            home-manager.useUserPackages = true;
+            home-manager.users.nixos = { imports = [ ./home-manager/iso.nix ]; };
           }
         ];
       };

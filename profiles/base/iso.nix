@@ -2,7 +2,7 @@
 # --------------------------------------------------------------------------------------------------
 # https://nixos.wiki/wiki/Creating_a_NixOS_live_CD
 # --------------------------------------------------------------------------------------------------
-{ home-manager, nixpkgs, pkgs, lib, ... }:
+{ nixpkgs, pkgs, lib, ... }:
 {
   imports = [
     # I get a weird infinite recursion bug if I use ${pkgs} instead
@@ -10,11 +10,11 @@
     ../../system/nix.nix
   ];
 
-  programs.home-manager.enable = true;
-  home-manager = {
-    users.nixos = import ../../home-manager/iso.nix;
-    #extraSpecialArgs = { inherit inputs; inherit outputs; };
-  };
+#  programs.home-manager.enable = true;
+#  home-manager = {
+#    users.nixos = import ../../home-manager/iso.nix;
+#    #extraSpecialArgs = { inherit inputs; inherit outputs; };
+#  };
 
   # Set the default user passwords
   users.users.nixos.password = "nixos";
