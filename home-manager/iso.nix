@@ -5,7 +5,7 @@
 { config, nixpkgs, pkgs, ... }:
 {
   imports = [
-    # I get a weird infinit recursion bug if I use ${pkgs} instead
+    # I get a weird infinite recursion bug if I use ${pkgs} instead
     "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
   ];
 

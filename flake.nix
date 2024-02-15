@@ -12,6 +12,10 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11"; 
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable"; 
+
+    # Note the master branch in home manager equates to unstable in nixos
+    home-manager.url = "github:nix-community/home-manager/release-23.11";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   # ### Implicit arguments
@@ -27,8 +31,7 @@
   # Although it is nice to gather all implicit arguments together this means to use them without the 
   # do notation would require an 'inherit (inputs) nixpkgs' to bring them into scope. Another option 
   # is to just call them out explicitly as required named arguments which does this scoping for you.
-  outputs = { self, ... }@inputs: let
-    inherit (inputs) nixpkgs;
+  outputs = { self, nixpkgs, home-manager, ... }@inputs: let
 
     # System install settings
     # ----------------------------------------------------------------------------------------------
@@ -82,30 +85,32 @@
 #      config.allowUnfreePredicate = _: true;
 #    };
 
+    lib = nixpkgs.lib // home-manager.lib;
+    system = systemSettings.system;
+    pkgs = nixpkgs.legacyPackages.${system};
+    specialArgs = {
+      inherit nixpkgs;
+      inherit systemSettings;
+      inherit homeSettings;
+    };
+    extraSpecialArgs = {
+      inherit nixpkgs;
+      inherit systemSettings;
+      inherit homeSettings;
+    };
+    baseModules = [
+        #{ nixpkgs = { inherit pkgs; }; }
+    ];
+
   # Pass along configuration variables defined above
   # * [Special Args](https://github.com/nix-community/home-manager/issues/1022)
   # ------------------------------------------------------------------------------------------------
   in {
-    nixosConfigurations = let
-      system = systemSettings.system;
-      pkgs = nixpkgs.legacyPackages.${system};
-
-      # Shared variables defined above
-      specialArgs = {
-        inherit nixpkgs;
-        inherit systemSettings;
-        inherit homeSettings;
-      };
-
-      # Shared base modules configuration
-      baseModules = [
-          #{ nixpkgs = { inherit pkgs; }; }
-      ];
-    in {
+    nixosConfigurations = {
 
       # Define system configuration for an installation
       # Note this 'install' value is used in place of the hostname target in most flakes
-      install = nixpkgs.lib.nixosSystem {
+      install = lib.nixosSystem {
         inherit pkgs system specialArgs;
 
         # modules = base.modules ++ [ ];
@@ -117,11 +122,18 @@
 
       # Defines configuration for building an ISO
       # Starts from the minimal iso config and adds additional config
-      iso = nixpkgs.lib.nixosSystem {
+      iso = lib.nixosSystem {
         inherit pkgs system specialArgs;
         modules = [ ./iso.nix ];
       };
     };
+
+#    homeConfigurations = {
+#      iso = lib.homeManagerConfiguration {
+#        inherit pkgs system extraSpecialArgs;
+#        modules = [ ./home-manager/iso.nix ];
+#      };
+#    };
   };
 }
 
