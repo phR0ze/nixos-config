@@ -6,7 +6,13 @@
 {
   imports = [
     # Import and activate home-manager
-    args.home-manager.nixosModules.home-manager
+    # this is a utility function 
+    #args.home-manager.nixosModules.home-manager
+    args.home-manager.nixosModules.home-manager {
+      home-manager.useUserPackages = true;
+      home-manager.extraSpecialArgs = extraSpecialArgs;
+      home-manager.users.nixos = { imports = [ ../../home-manager/iso.nix ]; };
+    }
 
     # I get a weird infinite recursion bug if I use ${pkgs} instead
     "${args.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
