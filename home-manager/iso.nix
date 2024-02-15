@@ -1,6 +1,6 @@
 # home-manager iso configuration
 # --------------------------------------------------------------------------------------------------
-{ config, lib, systemSettings, ... }:
+{ config, lib, ... }:
 {
   config = {
     home.file.".bash_profile".text = ''
