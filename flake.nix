@@ -85,13 +85,14 @@
 #      config.allowUnfreePredicate = _: true;
 #    };
 
-    # Use update syntax // to add home manager lib functions into nixpkgs lib functions
+    # Using attribute set update syntax '//' here to combine a couple sets for simpler input arguments
     lib = nixpkgs.lib // home-manager.lib;
+    args = inputs // { inherit systemSettings homeSettings; };
+
     system = systemSettings.system;
     pkgs = nixpkgs.legacyPackages.${system};
-    inputs = inputs // { inherit systemSettings homeSettings; };
-    specialArgs = { inherit inputs; };
-    extraSpecialArgs = { inherit inputs; };
+    specialArgs = { inherit args; };
+    extraSpecialArgs = { inherit args; };
     baseModules = [
         #{ nixpkgs = { inherit pkgs; }; }
     ];
