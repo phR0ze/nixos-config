@@ -11,37 +11,10 @@
       sudo ./clu -f https://github.com/phR0ze/nixos-config
     '';
 
-#    modules = {
-#      editors = {
-#        nvim.enable = true;
-#      };
-#
-#      shells = {
-#        fish.enable = true;
-#      };
-#
-#      terminals = {
-#        foot.enable = true;
-#      };
-#    };
-#
-#    my.settings = {
-#      host = "iso";
-#      default = {
-#        shell = "fish";
-#        terminal = "foot";
-#        browser = "firefox";
-#        editor = "nvim";
-#      };
-#      fonts.monospace = "FiraCode Nerd Font Mono";
-#    };
-#
-#    colorscheme = inputs.nix-colors.colorSchemes.catppuccin-mocha;
-
     home = {
-      username = lib.mkDefault "nixos";
-      homeDirectory = lib.mkDefault "/home/nixos";
-      stateVersion = lib.mkDefault systemSettings.stateVersion;
+      username = "nixos";
+      homeDirectory = "/home/nixos";
+      stateVersion = systemSettings.stateVersion;
     };
   };
 }

@@ -10,12 +10,17 @@
     ../../system/nix.nix
   ];
 
-  networking.hostName = "iso";
-  home-manager.users.nixos = import ../../home-manager/iso.nix;
+  programs.home-manager.enable = true;
+  home-manager = {
+    users.nixos = import ../../home-manager/iso.nix;
+    #extraSpecialArgs = { inherit inputs; inherit outputs; };
+  };
 
   # Set the default user passwords
   users.users.nixos.password = "nixos";
   users.extraUsers.root.password = "nixos";
+
+  #networking.hostName = "iso";
 
   environment.systemPackages = with pkgs; [
     git                 # Needed for clu installer automation
