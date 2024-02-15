@@ -5,22 +5,20 @@
 { args, pkgs, lib, ... }:
 {
   imports = [
-    # Import and activate home manager
-    #inputs.home-manager.nixosModules.home-manager
+    # Import and activate home-manager
+    args.home-manager.nixosModules.home-manager
 
     # I get a weird infinite recursion bug if I use ${pkgs} instead
     "${args.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
     ../../system/nix.nix
   ];
 
-#  programs.home-manager.enable = true;
-#  home-manager = {
-#    users.nixos = import ../../home-manager/iso.nix;
-#    extraSpecialArgs = {
-#      inherit inputs;
-#      inherit 
-#    };
-#  };
+  programs.home-manager.enable = true;
+
+  home-manager = {
+    extraSpecialArgs = { inherit args; };
+    users.nixos = { imports = [ ./home-manager/iso.nix ]; };
+  };
 
   # Set the default user passwords
   users.users.nixos.password = "nixos";

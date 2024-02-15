@@ -119,14 +119,7 @@
       # Starts from the minimal iso config and adds additional config
       iso = lib.nixosSystem {
         inherit pkgs system specialArgs;
-        modules = [
-          ./profiles/base/iso.nix
-          home-manager.nixosModules.home-manager {
-            home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = extraSpecialArgs;
-            home-manager.users.nixos = { imports = [ ./home-manager/iso.nix ]; };
-          }
-        ];
+        modules = [ ./profiles/base/iso.nix ];
       };
     };
 
