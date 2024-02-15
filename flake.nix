@@ -124,7 +124,7 @@
       # Starts from the minimal iso config and adds additional config
       iso = lib.nixosSystem {
         inherit pkgs system specialArgs;
-        modules = [ ./iso.nix ];
+        modules = [ ./profiles/base/iso.nix ];
       };
     };
 
