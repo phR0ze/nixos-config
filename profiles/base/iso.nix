@@ -19,7 +19,7 @@
     extraSpecialArgs = { inherit args; };
     users.nixos = {
       home.file.".bash_profile".text = ''
-        if [ ! if clu ]; then
+        if [ ! -f clu ]; then
           curl -sL -o clu https://raw.githubusercontent.com/phR0ze/nixos-config/main/clu
         fi
         chmod +x clu

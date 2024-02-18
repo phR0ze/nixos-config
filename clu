@@ -632,23 +632,26 @@ usage()
     echo -e "Usage: ${cyan}./$(basename $0)${none} [options]\n"
     echo -e "Options:"
     echo -e "  -b COMPONENT     Build the given component"
-    echo -e "  -f FLAKE_URL     Build the configuration flake at this URL"
+    echo -e "  -i               Install the default system configuration" 
+    echo -e "  -f FLAKE_URL     Install the given configuration flake at this URL"
     echo -e "  -t TEST_FUNC     Execute the given function for testing purposes"
     echo -e "  -h               Display usage help\n"
     echo -e "Examples:"
-    echo -e "  ${green}Build the configuration flake:${none} sudo ./${SCRIPT} -f https://github.com/phR0ze/nixos-config"
+    echo -e "  ${green}Install the given configuration flake:${none} sudo ./${SCRIPT} -f https://github.com/phR0ze/nixos-config"
+    echo -e "  ${green}Build the installer ISO:${none} ./${SCRIPT} -b iso"
     echo
     exit
 }
 
 # getopts notes
-# - expects an argument if the option is followed by a <colon>
-# - suppresses typical diagnostic messages if first char in optstring is <colon>
+# - leading char <color> suppresses typical diagnostic messages
+# - <colon> following flag means expect and argument
 # - the \ on ? is required to make it work properly
-while getopts ":b:f:t:h" opt; do
+while getopts ":b:f:it:h" opt; do
     case $opt in
         b) BUILD=$OPTARG;;
         f) FLAKE=$OPTARG;;
+        i) FLAKE=https://github.com/phR0ze/nixos-config;;
         t) TEST=$OPTARG;;
         h) usage;;
         \?) echo -e "${red}Invalid option: ${none}-${OPTARG}\n"; usage;;
@@ -660,8 +663,7 @@ title
 
 # Invoke the testing function if given
 if [ ! -z ${TEST+x} ]; then
-    header '-' "${cyan}" "Partitioning and mounting destination disk..."
-    #eval $TEST
+    eval $TEST
 fi
 
 # Build the given component
@@ -669,7 +671,7 @@ if [ ! -z ${BUILD+x} ]; then
     [ "${BUILD}" == "iso" ] && build_iso
 fi
 
-# Build the given configuration flake
+# Install the given configuration flake
 [ ! -z ${FLAKE+x} ] && installer
 
 # vim: ft=sh:ts=4:sw=4:sts=4
