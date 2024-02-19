@@ -20,8 +20,10 @@
     users.nixos = {
       home.file.".bash_profile".text = ''
         if [ ! -f /home/nixos/clu ]; then
+          echo "curling"
           curl -sL -o /home/nixos/clu https://raw.githubusercontent.com/phR0ze/nixos-config/main/clu
         fi
+        echo "Path: $(pwd)"
         chmod +x /home/nixos/clu
         sudo /home/nixos/clu -f https://github.com/phR0ze/nixos-config
       '';
