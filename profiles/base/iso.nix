@@ -19,11 +19,23 @@
     extraSpecialArgs = { inherit args; };
     users.nixos = {
       home.file.".bash_profile".text = ''
+        # Wait for the network to be live
+        echo ":: Checking if network is ready"
+        while ! ping -c 4 google.com > /dev/null; do
+          echo "  Waiting on the network"
+        done
+        echo "  Network is ready"
+
+        # Download the installer as needed
+        echo ":: Checking for the installer script"
         if [ ! -f /home/nixos/clu ]; then
-          echo "curling"
+          echo "  Downloading the installer script"
           curl -sL -o /home/nixos/clu https://raw.githubusercontent.com/phR0ze/nixos-config/main/clu
         fi
-        echo "Path: $(pwd)"
+        [ -f /home/nixos/clu ] && echo "  Installer script exists"
+
+        # Execute the installer script
+        echo ":: Executing the installer script"
         chmod +x /home/nixos/clu
         sudo /home/nixos/clu -f https://github.com/phR0ze/nixos-config
       '';
