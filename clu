@@ -612,8 +612,16 @@ installer()
 # https://discourse.nixos.org/t/nixos-reproducible-builds-minimal-installation-iso-successfully-independently-rebuilt/34756
 build_iso()
 {
-   header '-' "${cyan}" "Building ISO" 1
-   nix build .#nixosConfigurations.iso.config.system.build.isoImage
+    header '-' "${cyan}" "Building ISO" 1
+
+    echo -e "\n${cyan}:: Stage iso.lock file:${none}"
+    if [ -f iso.lock ]; then
+        rm -f flake.lock
+        cp iso.lock flake.lock
+    fi
+
+    echo -e "\n${cyan}:: Triggering nix iso build:${none}"
+    nix build .#nixosConfigurations.iso.config.system.build.isoImage
 }
 
 
