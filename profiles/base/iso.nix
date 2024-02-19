@@ -19,14 +19,8 @@
     extraSpecialArgs = { inherit args; };
     users.nixos = {
       home.file.".bash_profile".text = ''
-        none="\e[m"
-        red="\e[1;31m"
-        cyan="\e[1;36m"
-        green="\e[1;32m"
-        yellow="\e[1;33m"
-
         # Wait for the network to be live
-        echo "$${cyan}:: Checking if network is ready$${none}"
+        echo ":: Checking if network is ready"
         while ! ping -c 4 google.com &>/dev/null; do
           echo "   Waiting on the network"
           sleep 1
@@ -34,7 +28,7 @@
         echo "   Network is ready"
 
         # Download the installer as needed
-        echo "$${cyan}:: Checking for the installer script$${none}"
+        echo ":: Checking for the installer script"
         if [ ! -f /home/nixos/clu ]; then
           echo "   Downloading the installer script"
           curl -sL -o /home/nixos/clu https://raw.githubusercontent.com/phR0ze/nixos-config/main/clu
@@ -42,7 +36,7 @@
         [ -f /home/nixos/clu ] && echo "   Installer script exists"
 
         # Execute the installer script
-        echo "$${cyan}:: Executing the installer script$${none}"
+        echo ":: Executing the installer script"
         chmod +x /home/nixos/clu
         sudo /home/nixos/clu -f https://github.com/phR0ze/nixos-config
       '';
