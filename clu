@@ -275,7 +275,7 @@ config_system()
     # Clone the flake
     #-----------------------------------------------------------------------------------------------
     NIXOS_CONFIG="${ROOT_MOUNT}/etc/nixos"
-    echo -e "\n:: Cloning flake locally ${cyan}${NIXOS_CONFIG}${none}"
+    header '-' "${cyan}" "Cloning flake locally at ${cyan}${NIXOS_CONFIG}${none}"
     git clone ${FLAKE} ${NIXOS_CONFIG}
 
     # Generate the NixOS configuration files
@@ -292,7 +292,7 @@ config_system()
 
     # Extract the current NIXOS version from teh generated configuration.nix file
     NIXOS_VER==$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${NIXOS_CONFIG}/configuration.nix")
-    echo -e "   NIXOS target version: ${cyan}${NIXOS_VER}${none}"
+    echo -e ":: NIXOS target version: ${cyan}${NIXOS_VER}${none}"
     check_status
     rm -f "${NIXOS_CONFIG}/configuration.nix" # clean up
 
