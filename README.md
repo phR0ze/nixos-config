@@ -3,9 +3,9 @@ A simpler approach to deploying a number of different pre-defined system profile
 using only a bootable NixOS image and network connectivity.
 
 Due to the number of different machines I maintain and how often I change their intended purpose I 
-find it essential to be able to take a new system from baremetal to a pre-defined, pre-customized 
-purposefully built system profile. NixOS's flakes and profiles provide a fantastic platform on which 
-to build this functionality .
+find it essential to be able to take a new system from baremetal to a pre-defined, purposefully built 
+system serving in it's intended function as effortlessly as possible. NixOS's flakes and profiles 
+provide a fantastic platform on which to build this functionality .
 
 ### Disclaimer
 Any tooling or documentation here comes with absolutely no guarantees or support of any kind. It is 

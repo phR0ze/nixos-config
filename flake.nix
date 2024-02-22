@@ -111,7 +111,8 @@
         # modules = base.modules ++ [ ];
         modules = [
           ./hardware-configuration.nix
-          (./. + "/profiles" + ("/" + systemSettings.profile + ".nix"))
+          ./profiles/base/iso.nix
+          #(./. + "/profiles" + ("/" + systemSettings.profile + ".nix"))
         ];
       };
 
