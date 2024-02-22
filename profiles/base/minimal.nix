@@ -2,7 +2,7 @@
 # * [NixOS minimal profile](https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/profiles/minimal.nix)
 # * [NixOS discourse on minimal OS](https://discourse.nixos.org/t/how-to-have-a-minimal-nixos/22652/3)
 #---------------------------------------------------------------------------------------------------
-{ lib, ... }: with lib;
+{ config, lib, ... }: with lib;
 {
   # Disable X11 by default
   environment.noXlibs = mkDefault true;
