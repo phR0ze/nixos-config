@@ -90,17 +90,19 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Build installer automation
-  * [ ] Inject clu as bootable ISO launch
-    * [ ] Clone config repo
-    * [ ] Launch `clu`
+* [x] Build installer automation
+  * [x] Inject clu as bootable ISO launch
+    * [x] Clone config repo
+    * [x] Launch `clu`
   * [ ] clu needs to present profiles for install
   * [ ] clu to update `flake.nix` with user selection
-  * [ ] install
+  * [x] install
 * [ ] Build out standard xfce desktop
   * [ ] 
 * [ ] Change the autologin welcome message
 * [ ] Change the kernel boot colors 
+* [ ] Default root password
+* [ ] Default user and password
 
 <!-- 
 vim: ts=2:sw=2:sts=2
