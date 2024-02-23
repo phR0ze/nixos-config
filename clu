@@ -292,7 +292,7 @@ config_system()
 
     # Extract the current NIXOS version from teh generated configuration.nix file
     NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${NIXOS_CONFIG}/configuration.nix")
-    echo -e ":: NIXOS target version: ${cyan}${NIXOS_VER}${none}"
+    echo -en ":: NIXOS target version: ${cyan}${NIXOS_VER}${none}..."
     check_status
     rm -f "${NIXOS_CONFIG}/configuration.nix" # clean up
 
