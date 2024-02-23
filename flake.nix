@@ -112,7 +112,6 @@
         modules = [
           ./hardware-configuration.nix
           (./. + "/profiles" + ("/" + systemSettings.profile + ".nix"))
-          "${nixpkgs}/nixos/modules/profiles/minimal.nix"
         ];
       };
 

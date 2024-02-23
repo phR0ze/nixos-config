@@ -9,14 +9,15 @@
 {
   imports = [
 #    ./minimal.nix
+    "${nixpkgs}/nixos/modules/profiles/minimal.nix"
     ../../system/boot/initrd.nix
-#    ../../system/shell/bash.nix
-#    ../../system/locale.nix
-#    ../../system/users.nix
-#    ../../system/security/sudo.nix
-#    ../../system/services/sshd.nix
-#    ../../system/networking.nix
-#    ../../system/nix.nix
+    ../../system/shell/bash.nix
+    ../../system/locale.nix
+    ../../system/users.nix
+    ../../system/security/sudo.nix
+    ../../system/services/sshd.nix
+    ../../system/networking.nix
+    ../../system/nix.nix
   ];
 
   # Set the NixOS version that this was installed with
