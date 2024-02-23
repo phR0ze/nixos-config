@@ -111,8 +111,9 @@
         # modules = base.modules ++ [ ];
         modules = [
           ./hardware-configuration.nix
-          ./profiles/base/iso.nix
           #(./. + "/profiles" + ("/" + systemSettings.profile + ".nix"))
+          "${nixpkgs}/nixos/modules/profiles/headless.nix"
+          "${nixpkgs}/nixos/modules/profiles/minimal.nix"
         ];
       };
 
