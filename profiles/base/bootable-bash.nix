@@ -9,7 +9,7 @@
 {
   imports = [
 #    ./minimal.nix
-    "${nixpkgs}/nixos/modules/profiles/minimal.nix"
+    "${args.nixpkgs}/nixos/modules/profiles/minimal.nix"
     ../../system/boot/initrd.nix
     ../../system/shell/bash.nix
     ../../system/locale.nix
