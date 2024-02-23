@@ -16,7 +16,7 @@
     ../../system/users.nix
     ../../system/security/sudo.nix
     ../../system/services/sshd.nix
-    ../../system/networking.nix
+#   ../../system/networking.nix
     ../../system/nix.nix
   ];
 
