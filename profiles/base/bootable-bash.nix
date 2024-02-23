@@ -1,9 +1,18 @@
 # Minimal bootable bash configuration
 #
 # ### Features
-# - bootable.nix
-# - bash.nix
-# - nix core configuration
+# - Size: 1030.3 MiB
+# - Configured by flake args
+#   - Grub EFI/MBR bootable
+#   - System/User Locale
+#   - Default user/admin
+#   - Hostname
+#   - Disable IPv5 networking
+# - Bash custom user configuration
+# - Passwordless access for Sudo for default user
+# - SSHD custom configuration
+# - Nix flake and commands configuration
+# - DHCP systemd-networkd networking
 #---------------------------------------------------------------------------------------------------
 { args, ... }:
 {
@@ -11,13 +20,13 @@
 #    ./minimal.nix
     "${args.nixpkgs}/nixos/modules/profiles/minimal.nix"
     ../../system/boot/initrd.nix
-    ../../system/shell/bash.nix
     ../../system/locale.nix
+    ../../system/shell/bash.nix
     ../../system/users.nix
     ../../system/security/sudo.nix
     ../../system/services/sshd.nix
-#   ../../system/networking.nix
     ../../system/nix.nix
+    ../../system/networking/base.nix
   ];
 
   # Set the NixOS version that this was installed with
