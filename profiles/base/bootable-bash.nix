@@ -5,22 +5,22 @@
 # - bash.nix
 # - nix core configuration
 #---------------------------------------------------------------------------------------------------
-{ systemSettings, ... }:
+{ args, ... }:
 {
   imports = [
-    ./minimal.nix
+#    ./minimal.nix
     ../../system/boot/initrd.nix
-    ../../system/shell/bash.nix
-    ../../system/locale.nix
-    ../../system/users.nix
-    ../../system/security/sudo.nix
-    ../../system/services/sshd.nix
-    ../../system/networking.nix
-    ../../system/nix.nix
+#    ../../system/shell/bash.nix
+#    ../../system/locale.nix
+#    ../../system/users.nix
+#    ../../system/security/sudo.nix
+#    ../../system/services/sshd.nix
+#    ../../system/networking.nix
+#    ../../system/nix.nix
   ];
 
   # Set the NixOS version that this was installed with
-  config.system.stateVersion = systemSettings.stateVersion;
+  config.system.stateVersion = args.systemSettings.stateVersion;
 }
 
 # vim:set ts=2:sw=2:sts=2
