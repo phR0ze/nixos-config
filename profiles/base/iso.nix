@@ -1,6 +1,9 @@
 # iso configuration
 # --------------------------------------------------------------------------------------------------
 # https://nixos.wiki/wiki/Creating_a_NixOS_live_CD
+#
+# ### Features
+# - Size: 986.0 MiB
 # --------------------------------------------------------------------------------------------------
 { args, pkgs, lib, ... }:
 {
@@ -28,17 +31,17 @@
         echo "   Network is ready"
 
         # Clone the installer repo as needed
-        echo ":: Checking for the flake repo"
-        if [ ! -f /home/nixos/clu ]; then
-          echo "   Downloading the installer flake repo"
-          git clone https://github.com/phR0ze/nixos-config /home/nixos
+        echo ":: Checking for the nixos-config repo"
+        if [ ! -d /home/nixos/nixos-config]; then
+          echo "   Downloading https://github.com/phR0ze/nixos-config"
+          git clone https://github.com/phR0ze/nixos-config /home/nixos/nixos-config
         fi
-        [ -f /home/nixos/clu ] && echo "   Installer script exists"
+        [ -f /home/nixos/nixos-config/clu ] && echo "   Installer script exists"
 
         # Execute the installer script
         echo ":: Executing the installer script"
-        chmod +x /home/nixos/clu
-        sudo /home/nixos/clu -i
+        chmod +x /home/nixos/nixos-config/clu
+        sudo /home/nixos/nixos-config/clu -i
       '';
 
       home = {

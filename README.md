@@ -14,6 +14,12 @@ or documentation here is strictly the responsiblity of the end user and not the 
 this project. This project is highly opinionated and primarily for my own use but your welcome to 
 fork it and build on my work.
 
+### Quick links
+* [Getting Started](#getting-started)
+  * [Install instructions](#install-instructions)
+  * [Update instructions](#update-instructions)
+* [Advanced use cases](#advanced-use-cases)
+
 ## Getting started
 ***clu***, a simple bash script, provides an install wizard to:
 
