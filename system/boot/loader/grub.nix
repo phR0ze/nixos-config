@@ -12,7 +12,7 @@
 
     # Configure or disable BIOS MBR boot support 
     # Will be set with automation to, e.g. '/dev/sda' (MBR), or 'nodev' (EFI)
-    grub.device = args.systemSettings.device;
+    grub.device = args.systemSettings.mbr;
   };
 }
 

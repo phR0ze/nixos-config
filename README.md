@@ -101,6 +101,8 @@ world though this already exists.
 * [ ] Change the kernel boot colors 
 
 ## Completed
+* [ ] Pass user set options
+* [ ] Pass automation set options
 * [ ] Warn user before destructive disk commands are run
 * [x] Enabling docs
 * [x] Build my own minimal.nix

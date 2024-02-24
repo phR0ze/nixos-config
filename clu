@@ -178,6 +178,27 @@ getsel()
     eval $_result=$result
 }
 
+# Replace the given value in the given file
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 type of replacement [str | bool]
+# - $2 value to search for
+# - $3 value to replace with
+# - $4 file to target
+replace()
+{
+    kind=$1
+    target=$2
+    value=$3
+    file=$4
+
+    if [ "x$kind" == "xbool"]; then
+        sed -i -e "s|\(^.*${target} = \).*\(;.*$\)|\1${value}\2|" "${file}"
+    elif [ "x$kind" == "xstr" ]; then
+        sed -i -e "s|\(^.*${target} = \"\).*\(\";.*$\)|\1${value}\2|" "${file}"
+    fi
+}
+
 # Partition disk and mount for install at ${ROOT_MOUNT}
 partition_and_mount_disk()
 {
@@ -302,43 +323,37 @@ config_system()
     check_status
     rm -f "${NIXOS_CONFIG}/configuration.nix" # clean up
 
-    # Configuring the root user
+    # Configuring user set values
     #-----------------------------------------------------------------------------------------------
-    # The pass here is intentially weird in the default case to be printable
+    replace str "stateVersion" "${NIXOS_VER}" "${NIXOS_CONFIG}/flake.nix"
+
+    # Configure new user and root user
     local pass=""
     [ "x$DEFAULT" == "xy" ] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
+    echo -e ":: Setting new user ${cyan}${USER_NAME}${none} and root user password${pass}..."
+    replace str "username" "${USER_NAME}" "${NIXOS_CONFIG}/flake.nix"
+    replace str "userpass" "${USER_PASS}" "${NIXOS_CONFIG}/flake.nix"
+    replace str "name" "${USER_NAME}" "${NIXOS_CONFIG}/flake.nix"
+    replace str "email" "${USER_EMAIL}" "${NIXOS_CONFIG}/flake.nix"
+    [ "x${AUTO_LOGIN}" == "x1" ] && autologin="true" || autologin="false"
+    replace bool "autologin" "${autologin}" "${NIXOS_CONFIG}/flake.nix"
+
+    # Configure boot device target
+    [ "x${EFI}" == "x1" ] && efi_str="true" || efi_str="false"
+    replace bool "efi" "${efi_str}" "${NIXOS_CONFIG}/flake.nix"
+
+    [ "x${EFI}" == "x1" ] && mbr_str="nodev" || mbr_str="${DESTDEV}"
+    replace str "mbr" "${mbr_str}" "${NIXOS_CONFIG}/flake.nix"
+
+    # Configure system settings
+    replace str "timezone" "${TIMEZONE}" "${NIXOS_CONFIG}/flake.nix"
+    replace str "hostname" "${HOSTNAME}" "${NIXOS_CONFIG}/flake.nix"
+    replace str "profile" "profile" "${NIXOS_CONFIG}/flake.nix"
 
     # Execute the NixOS install
     #-----------------------------------------------------------------------------------------------
     nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#install"
 
-    #echo -e "\n:: Configuring root user..."
-    #separator '-' "${cyan}"
-
-    # Note: the new pam rules require SHA512 encryption else first login will require reset
-    #echo -en ":: Setting root user password${pass}..."
-    #chroot ${ROOT_MOUNT} /bin/bash -c "echo 'root:${PASS}' | chpasswd -c SHA512"
-    #sed -i -e 's/^PermitRootLogin.*/PermitRootLogin yes/' "${CONFIG}"
-    #check_status
-
-#    echo -en ":: Copying skel configs to root user..."
-#    chroot ${ROOT_MOUNT} /bin/bash -c "shopt -s dotglob; cp -r /etc/skel/* /root"
-#    check_status
-#
-#    # Configure general system settings
-#    #---------------------------------------------------------------------------
-#    echo -e "\n:: Configuring general system settings..."
-#    separator '-' "${cyan}"
-#
-#    # Configure localization to US by default
-#    LOCALE="en_US"
-#    echo -en ":: Setting localization to ${cyan}${LOCALE}${none}..."
-#    echo "LANG=${LOCALE}.UTF-8" > ${ROOT_MOUNT}/etc/locale.conf
-#    echo "LANGUAGE=${LOCALE}.UTF-8" >> ${ROOT_MOUNT}/etc/locale.conf
-#    echo "${LOCALE}.UTF-8 UTF-8" > ${ROOT_MOUNT}/etc/locale.gen
-#    chroot ${ROOT_MOUNT} locale-gen &>/dev/null
-#    check_status
-#
 #    # Configure time and date
 #    #---------------------------------------------------------------------------
 #    if [ "x$TIMEDATE_SET" == "xy" ]; then
@@ -348,105 +363,9 @@ config_system()
 #        check_status
 #    fi
 #
-#    echo -en ":: Setting timezone to ${cyan}${TIMEZONE}${none}..."
-#    chroot ${ROOT_MOUNT} ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime &>/dev/null
-#    check_status
-#
 #    echo -en ":: Set hwclock to system clock ${cyan}${TIMEDATE}${none}..."
 #    chroot ${ROOT_MOUNT} hwclock --systohc &>/dev/null
 #    check_status
-#
-#    # Configure networking
-#    #---------------------------------------------------------------------------
-#    echo -e "\n:: Configuring networking out of box experience..."
-#    separator '-' "${cyan}"
-#
-#    echo -en ":: Setting hostname to ${cyan}${HOSTNAME}${none}..."
-#    echo $HOSTNAME > "${ROOT_MOUNT}/etc/hostname"
-#    check_status
-#
-#    if [ "x$ENABLE_BLUETOOTH" == "x1" ]; then
-#        echo -en ":: Enabling Bluetooth..."
-#        chroot ${ROOT_MOUNT} systemctl enable bluetooth &>/dev/null
-#        check_status
-#    fi
-#
-#    # Configure DHCP LAN always as a fall back with a lower priority than static
-#    netconf="${ROOT_MOUNT}/etc/NetworkManager/system-connections/dhcp"
-#    echo -en ":: Configuring ${cyan}dhcp${none} networking..."
-#    echo -e "[connection]\nid=Wired dhcp\nuuid=$(uuidgen)\ntype=ethernet\nautoconnect-priority=0\n" > $netconf
-#    echo -e "[ipv4]\nmethod=auto\n" >> $netconf
-#    echo -e "[ipv6]\nmethod=disabled" >> $netconf
-#    chmod 0600 $netconf
-#    check_status
-#
-#    # Configure static LAN if set
-#    if [ "x${NETIP}" != "xDHCP" ]; then
-#        netconf="${ROOT_MOUNT}/etc/NetworkManager/system-connections/static"
-#        echo -en ":: Configuring ${cyan}static${none} networking..."
-#        echo -e "[connection]\nid=Wired static\nuuid=$(uuidgen)\ntype=ethernet\nautoconnect-priority=1\n" > $netconf
-#        echo -e "[ipv4]\nmethod=manual\naddress=${NETIP}\ngateway=${GATEWAY}\ndns=${DNS1};${DNS2}\n" >> $netconf
-#        echo -e "[ipv6]\nmethod=disabled" >> $netconf
-#        chmod 0600 $netconf
-#        check_status
-#    fi
-#
-#    # Configure wireless
-#    netconf="${ROOT_MOUNT}/etc/systemd/network/30-wireless.network"
-#    echo -en ":: Configuring ${cyan}dhcp wireless${none} networking..."
-#    echo -e "[Match]\nName=wl*\n" > $netconf
-#    echo -e "[Network]\nDHCP=ipv4\nIPForward=kernel\n" >> $netconf
-#    echo -e "[DHCP]\nRouteMetric=20\nUseDomains=true" >> $netconf
-#    check_status
-#
-#    # Configure root access for sshd if default deployment
-#    if [ -e "${ROOT_MOUNT}/etc/ssh/sshd_config" ]; then
-#        if [ "x$DEFAULT" == "xy" ]; then
-#            echo -en ":: Enable sshd root access for ${cyan}auto default${none} deployment..."
-#            sed -i -e 's/^PermitRootLogin.*/PermitRootLogin yes/' "${ROOT_MOUNT}/etc/ssh/sshd_config"
-#            check_status
-#        fi
-#    fi
-#
-#    # Configuring the new user
-#    #---------------------------------------------------------------------------
-#    echo -e "\n:: Configuring new user ${cyan}${USER}${none}..."
-#    separator '-' "${cyan}"
-#
-#    echo -en ":: Creating user group ${cyan}${USER}${none}..."
-#    chroot ${ROOT_MOUNT} groupadd ${USER}
-#    check_status
-#
-#    # Filter groups down to just those that exist
-#    local groups=""
-#    for x in ${GROUPS//,/ }; do
-#        if [ $(grep -E "^$x:" ${ROOT_MOUNT}/etc/group) ]; then
-#            [ $groups ] && groups="${groups},${x}" || groups="${x}"
-#        fi
-#    done
-#
-#    echo -en ":: Creating user ${cyan}${USER}${none} with groups ${cyan}${groups}${none}..."
-#    chroot ${ROOT_MOUNT} useradd -m -g ${USER} -G ${groups} -s /bin/bash ${USER}
-#    check_status
-#
-#    # Note the new pam rules require SHA512 encryption else first login will require reset
-#    echo -en ":: Setting user password${pass}..."
-#    chroot ${ROOT_MOUNT} /bin/bash -c "echo '${USER}:${PASS}' | chpasswd -c SHA512"
-#    check_status
-#
-#    echo -en ":: Adding new user to sudoers list..."
-#    chroot ${ROOT_MOUNT} /bin/bash -c "echo '${USER} ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
-#    check_status
-#
-#    # Autologin if lxdm exists and parameter is set
-#    if [ -e "${ROOT_MOUNT}/etc/lxdm/lxdm.conf" ]; then
-#        if [ "x$AUTOLOGIN" == "x1" ]; then
-#            echo -en ":: Enable autologin for LXDM..."
-#            sed -i -e "s/^#\s*autologin=.*/autologin=${USER}/" "${ROOT_MOUNT}/etc/lxdm/lxdm.conf"
-#            check_status
-#            touch "${ROOT_MOUNT}/etc/lxdm/lxdm.conf_persist"
-#        fi
-#    fi
 }
 
 # Start the install wizard
@@ -460,8 +379,9 @@ installer()
     TIMEZONE='America/Boise'
     NETIP='DHCP'
     HOSTNAME='nixos'
-    USER='admin'
-    PASS='admin'
+    USER_NAME='admin'
+    USER_PASS='admin'
+    USER_EMAIL='nixos@nixos.org'
     DEFAULT_PASS='admin'
     ROOT_MOUNT='/mnt'
 
@@ -473,7 +393,7 @@ installer()
     echo -e "${cyan}:: Automatically deploy with defaults?${none}"
     getinput DEFAULT 'Use automatic mode with defaults' 'n'
     if [ "x$DEFAULT" == "xy" ]; then
-        AUTOLOGIN=1
+        AUTO_LOGIN=1
     fi
 
     # Drop out debug variables if in debug mode
@@ -570,20 +490,21 @@ installer()
     # ----------------------------------------------------------------------------------------------
     if [ "x$DEFAULT" != "xy" ]; then
         echo -e "\n${cyan}:: Create new user account:${none}"
-        getinput USER 'Enter new username' $USER
+        getinput USER_NAME 'Enter new user name' $USER_NAME
+        getinput USER_EMAIL 'Enter new user email' $USER_EMAIL
         while true; do
-            getinput PASS 'Enter new password' 'admin' 's'
-            getinput PASS2 'Enter password again' 'admin' 's'
-            [ "x$PASS" == "x$PASS2" ] && break
+            getinput USER_PASS 'Enter new password' 'admin' 's'
+            getinput USER_PASS2 'Enter password again' 'admin' 's'
+            [ "x$USER_PASS" == "x$USER_PASS2" ] && break
             echo -e "   ${red}Passwords don't match, please try again${none}"
         done
     fi
 
-    # Collect autologin choice from user
+    # Collect auto login choice from user
     # ----------------------------------------------------------------------------------------------
     if [ "x$DEFAULT" != "xy" ]; then
-        if [ "x$AUTOLOGIN" != "x1" ]; then
-            getinput AUTOLOGIN 'Enter autologin' 0
+        if [ "x$AUTO_LOGIN" != "x1" ]; then
+            getinput AUTO_LOGIN 'Do you want to auto login' 0
         fi
     fi
 
@@ -593,14 +514,15 @@ installer()
     echo -e ":: Options being used for installation"
     echo -e "   hostname=${cyan}${HOSTNAME}${none}"
     echo -e "   networking=${cyan}${NETIP}${none}"
-    echo -e "   user=${cyan}${USER}${none}"
-    if [ "x$DEFAULT" == "xy" ] || [ "x$DEFAULT_PASS" == "x$PASS" ]; then
-        echo -e "   pass=${cyan}${DEFAULT_PASS}${none}"
+    echo -e "   user_name=${cyan}${USER_NAME}${none}"
+    echo -e "   user_email=${cyan}${USER_EMAIL}${none}"
+    if [ "x$DEFAULT" == "xy" ] || [ "x$DEFAULT_PASS" == "x$USER_PASS" ]; then
+        echo -e "   user_pass=${cyan}${DEFAULT_PASS}${none}"
     else
-        echo -e "   pass=${cyan}********${none}"
+        echo -e "   user_pass=${cyan}********${none}"
     fi
     echo -e "   timezone=${cyan}${TIMEZONE}${none}"
-    echo -e "   autologin=${cyan}${AUTOLOGIN}${none}"
+    echo -e "   auto_login=${cyan}${AUTO_LOGIN}${none}"
     echo -e "   dest_dev=${cyan}${DESTDEV}${none}"
     echo -e "   SCSI=${cyan}${SCSI}${none}"
     echo -e "   EFI=${cyan}${EFI}${none}"
@@ -676,7 +598,6 @@ title
 
 # Invoke the testing function if given
 if [ ! -z ${TEST+x} ]; then
-    partition_and_mount_disk
     #eval $TEST
 fi
 
