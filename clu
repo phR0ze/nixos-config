@@ -300,17 +300,16 @@ config_system()
     # Setup the NixOS configuration files
     # This must be done after the disk partioning so that the system picks up the new partitions
     # ----------------------------------------------------------------------------------------------
-    header '-' "${cyan}" "Setup NixOS configurations files at ${cyan}${NIXOS_CONFIG}${none}"
+    header '-' "${cyan}" "Setup NixOS configurations files"
 
-    # Copy the cloned configuration to the newly partitioned drive
-    echo -en ":: Staging NIXOS configuration files at ${cyan}${NIXOS_CONFIG}${none}..."
-    df -h
-    ls -la ${SCRIPT_DIR}
-    ls -la ${NIXOS_CONFIG}
+    echo -en ":: Create the NixOS config dir ${cyan}${NIXOS_CONFIG}${none}..."
+    mkdir -p ${NIXOS_CONFIG}/etc/nixos
+    check_status
+
+    echo -en ":: Stage NIXOS configuration files at ${cyan}${NIXOS_CONFIG}${none}..."
     cp -r $SCRIPT_DIR/. ${NIXOS_CONFIG}
     check_status
 
-    # Generate the hardware-configuration.nix and configuration.nix
     echo -en ":: Generating NIXOS configuration defaults..."
     nixos-generate-config --root ${ROOT_MOUNT}
     check_status
