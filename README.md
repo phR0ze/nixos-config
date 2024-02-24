@@ -101,6 +101,7 @@ world though this already exists.
 * [ ] Change the kernel boot colors 
 
 ## Completed
+* [ ] Warn user before destructive disk commands are run
 * [x] Enabling docs
 * [x] Build my own minimal.nix
 * [x] Disable IPv6
