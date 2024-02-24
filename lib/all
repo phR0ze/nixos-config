@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# Import core functions
+source "${SCRIPT_DIR}/lib/build"
+source "${SCRIPT_DIR}/lib/import"
+
+# Import utilities
+source "${SCRIPT_DIR}/lib/log"
+source "${SCRIPT_DIR}/lib/utils"
+
+# vim: ft=sh:ts=4:sw=4:sts=4

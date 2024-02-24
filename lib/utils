@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+
+# Utility code
+# 
+# ## Features
+#
+# --------------------------------------------------------------------------------------------------
+none="\e[m"
+red="\e[1;31m"
+cyan="\e[1;36m"
+green="\e[1;32m"
+yellow="\e[1;33m"
+
+# Common exit code for debug logging
+utils::exit()
+{
+    log::vars
+    exit
+}
+
+# Check the status of the most recent operation
+utils::check_status()
+{
+    if [ $? -ne 0 ]; then
+        echo -e "${red}failed!${none}"
+        utils::exit
+    else
+        [ "$1" != "nomsg" ] && echo -e "${green}success!${none}"
+    fi
+}
+
+# Read user choice from command line
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 return variable name to be set
+# - $2 message to display to the user to prompt for read
+# - $3 default value to use if no value was read
+# - $4 if 's' don't echo result, if 'f' ignore automation and require user read
+#
+# Special commands:
+# Instead of answering the read query the user can use these special commands to invoke debugging
+# - "debug" will switch to debug mode
+# - "exit" will exit to shell
+utils::read()
+{
+    local _result=$1
+    local msg=$2
+    local result=$3
+    local multi=$4
+
+    # Notify user as directed
+    echo -en "   ${msg} (default=${cyan}${result}${none}): "
+
+    # Defaulting settings is true then add a newline to format nicely
+    [ "x$multi" != "xf" ] && [ "x$DEFAULT" == "xy" ] && echo ''
+
+    # Handle non default options 
+    if [ "x$multi" == "xf" ] || [ "x$DEFAULT" == "xn" ]; then
+        if [ "x$multi" == "xs" ]; then
+            read -s value
+            echo ''
+        else
+            read value
+        fi
+
+        # Handle debug user read
+        [[ "$value" == *"debug"* ]] && DEBUG=1 && value=""
+        [[ "$value" == *"exit"* ]] && utils::exit
+
+        # Handle normal user read
+        [ "x$value" != "x" ] && local result="$value"
+    fi
+
+    eval "$_result"="$result"
+}
+
+# Get the user's selection from an array of options
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 return variable name to be set
+# - $2 array of options to select from
+utils::select()
+{
+    local _result=$1
+    local options=$2
+    local result=''
+
+    # Array length + 1 since we are starting with 1 rather than 0
+    local out_of_bounds=$((${#a[@]}+1))
+
+    # Present options and retry if an invalid selection is given
+    while true; do
+        echo -en "   Enter your numbered selection (default=${cyan}1${none}): "
+        [ "x$DEFAULT" == "xy" ] && echo '' || read choice
+        [ "$choice" == "exit" ] && utils::exit
+        [ "x$choice" == "x" ] && choice=1
+        if [ $choice -gt 0 ] && [ $choice -le $out_of_bounds ]; then
+            choice=$((choice-1))
+            local result=${options[$choice]}
+            break
+        else
+            echo -e "   ${red}Invalid selection, please try again${none}"
+       fi
+    done
+
+    eval $_result=$result
+}
+
+# Replace the given value in the given file
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 type of replacement [str | bool]
+# - $2 value to search for
+# - $3 value to replace with
+# - $4 file to target
+utils::replace()
+{
+    local kind=$1
+    local target=$2
+    local value=$3
+    local file=$4
+
+    if [ "x$kind" == "xbool" ]; then
+        sed -i -e "s|\(^.*${target} = \).*\(;.*$\)|\1${value}\2|" "${file}"
+    elif [ "x$kind" == "xstr" ]; then
+        sed -i -e "s|\(^.*${target} = \"\).*\(\";.*$\)|\1${value}\2|" "${file}"
+    fi
+}
+
+# vim: ft=sh:ts=4:sw=4:sts=4
