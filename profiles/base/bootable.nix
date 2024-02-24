@@ -14,7 +14,7 @@
 # - Nix flake and commands configuration
 # - DHCP systemd-networkd networking
 #---------------------------------------------------------------------------------------------------
-{ config, lib, args, ... }: with lib;
+{ args, config, lib,  ... }: with lib;
 {
   imports = [
     ./minimal.nix
@@ -41,7 +41,7 @@
 
     # Set the NixOS version that this was installed with
     system.stateVersion = args.systemSettings.stateVersion;
-  }
+  };
 }
 
 # vim:set ts=2:sw=2:sts=2
