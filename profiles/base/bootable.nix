@@ -14,7 +14,7 @@
 # - Nix flake and commands configuration
 # - DHCP systemd-networkd networking
 #---------------------------------------------------------------------------------------------------
-{ args, config, lib, ... }: with lib;
+{ config, lib, args, ... }: with lib;
 {
   imports = [
     ./minimal.nix
@@ -39,7 +39,7 @@
   services.udisks2.enable = lib.mkOverride 500 true;
 
   # Set the NixOS version that this was installed with
-  config.system.stateVersion = args.systemSettings.stateVersion;
+  system.stateVersion = args.systemSettings.stateVersion;
 }
 
 # vim:set ts=2:sw=2:sts=2
