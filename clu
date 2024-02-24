@@ -598,6 +598,7 @@ title
 
 # Invoke the testing function if given
 if [ ! -z ${TEST+x} ]; then
+    echo foo
     #eval $TEST
 fi
 
