@@ -32,7 +32,7 @@
 
         # Clone the installer repo as needed
         echo ":: Checking for the nixos-config repo"
-        if [ ! -d /home/nixos/nixos-config]; then
+        if [ ! -d /home/nixos/nixos-config ]; then
           echo "   Downloading https://github.com/phR0ze/nixos-config"
           git clone https://github.com/phR0ze/nixos-config /home/nixos/nixos-config
         fi
