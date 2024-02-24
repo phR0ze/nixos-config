@@ -305,6 +305,8 @@ config_system()
     # Copy the cloned configuration to the newly partitioned drive
     echo -en ":: Staging NIXOS configuration files at ${cyan}${NIXOS_CONFIG}${none}..."
     df -h
+    ls -la ${SCRIPT_DIR}
+    ls -la ${NIXOS_CONFIG}
     cp -r $SCRIPT_DIR/. ${NIXOS_CONFIG}
     check_status
 
