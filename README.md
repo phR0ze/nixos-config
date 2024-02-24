@@ -19,6 +19,8 @@ fork it and build on my work.
   * [Install instructions](#install-instructions)
   * [Update instructions](#update-instructions)
 * [Advanced use cases](#advanced-use-cases)
+  * [Build the live ISO for installation](#build-the-live-iso-for-installation)
+* [Backlog](#backlog)
 
 ## Getting started
 ***clu***, a simple bash script, provides an install wizard to:
@@ -53,16 +55,17 @@ fork it and build on my work.
 
 3. Boot from the new USB
 
-4. Download the installer
+4. Clone this repo
    ```bash
-   $ curl -sL -o clu https://raw.githubusercontent.com/phR0ze/nixos-config/main/clu
+   $ git clone https://github.com/phR0ze/nixos-config
    ```
 
 5. Execute the installer
    ```bash
+   $ cd nixos-config
    $ chmod +x clu
    $ nix-shell -p git jq
-   $ sudo ./clu -f https://github.com/phR0ze/nixos-config
+   $ sudo ./clu -i
    ```
 
 ## Advanced use cases
@@ -81,7 +84,7 @@ world though this already exists.
    $ git clone https://github.com/phR0ze/nixos-config
    ```
 
-2. Modify the `flake.nix` file changing the `nixosConfigurations.iso` block as desired
+2. Modify the `profiles/base/iso.nix` as desired
 
 3. Commit or at the least stage your changes so Nix will see them
    ```bash
