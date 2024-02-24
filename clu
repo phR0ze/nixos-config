@@ -208,7 +208,7 @@ partition_and_mount_disk()
     [ "x${DESTROY}" != "xy" ] && [ "x${DESTROY}" != "xskip" ] && exit
     [ "x${DESTROY}" == "xskip" ] && return
 
-    echo -en ":: Destroying any magic strings and/or signatures on ${cyan}${DESTDEV}${none}..."
+    echo -en "\n:: Destroying any magic strings and/or signatures on ${cyan}${DESTDEV}${none}..."
     wipefs --all --force ${DESTDEV} &>/dev/null
     check_status
 
@@ -297,10 +297,15 @@ partition_and_mount_disk()
 
 config_system()
 {
-    # Generate the NixOS configuration files
+    # Setup the NixOS configuration files
     # This must be done after the disk partioning so that the system picks up the new partitions
     # ----------------------------------------------------------------------------------------------
-    header '-' "${cyan}" "Generating NixOS configurations files at ${cyan}${NIXOS_CONFIG}${none}"
+    header '-' "${cyan}" "Setup NixOS configurations files at ${cyan}${NIXOS_CONFIG}${none}"
+
+    # Copy the cloned configuration to the newly partitioned drive
+    cp -r $SCRIPT_DIR/. ${NIXOS_CONFIG}
+
+    # Generate the hardware-configuration.nix and configuration.nix
     nixos-generate-config --root ${ROOT_MOUNT}
     check_status
 
@@ -381,6 +386,7 @@ installer()
     DEFAULT_PASS='admin'
     ROOT_MOUNT='/mnt'
     PROFILE='base/bootable'
+    NIXOS_CONFIG="${ROOT_MOUNT}/etc/nixos"
 
     # Detect EFI supported system
     [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
@@ -399,21 +405,10 @@ installer()
     log_d "   In debug mode all text in yellow is debugging."
     debug_vars
 
-    # Clone the flake
-    # Supports passing in a NIXOS_CONFIG from the environment
-    # ----------------------------------------------------------------------------------------------
-    [ -z ${NIXOS_CONFIG+x} ] && NIXOS_CONFIG="${ROOT_MOUNT}/etc/nixos" || NIXOS_CONFIG=$(realpath $NIXOS_CONFIG)
-    if [ ! -d "${NIXOS_CONFIG}/.git" ]; then
-        [ -f "${NIXOS_CONFIG}/hardware-configuration.nix" ] && rm "${NIXOS_CONFIG}/hardware-configuration.nix"
-        [ -f "${NIXOS_CONFIG}/configuration.nix" ] && rm "${NIXOS_CONFIG}/configuration.nix"
-        git clone ${FLAKE} ${NIXOS_CONFIG} &>/dev/null
-        [ $? -ne 0 ] && echo "${red}:: Failed to clone git repo ${FLAKE}${none}" && exit
-    fi
-
     # Collect the profile selection from user
     # ----------------------------------------------------------------------------------------------
     PROFILES=()
-    local profiles_dir="${NIXOS_CONFIG}/profiles"
+    local profiles_dir="${SCRIPT_DIR}/profiles"
     local _profiles=($(echo $(find $profiles_dir -name "*.nix")))
     [ "x$DEFAULT" != "xy" ] && echo -e "\n${cyan}:: Select a deployment profile:${none}"
     local i=0
@@ -619,7 +614,7 @@ while getopts ":b:f:it:h" opt; do
     case $opt in
         b) BUILD=$OPTARG;;
         f) FLAKE=$OPTARG;;
-        i) FLAKE=https://github.com/phR0ze/nixos-config;;
+        i) INSTALL=1;;
         t) TEST=$OPTARG;;
         h) usage;;
         \?) echo -e "${red}Invalid option: ${none}-${OPTARG}\n"; usage;;
@@ -628,6 +623,9 @@ while getopts ":b:f:it:h" opt; do
 done
 [ $(($OPTIND -1)) -eq 0 ] && usage
 title
+
+# Global setup
+SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &>/dev/null && pwd)
 
 # Invoke the testing function if given
 if [ ! -z ${TEST+x} ]; then
@@ -641,6 +639,8 @@ if [ ! -z ${BUILD+x} ]; then
 fi
 
 # Install the given configuration flake
-[ ! -z ${FLAKE+x} ] && installer
+if [ ! -z ${INSTALL+x} ] || [ ! -z ${FLAKE+x} ]; then
+    installer
+fi
 
 # vim: ft=sh:ts=4:sw=4:sts=4
