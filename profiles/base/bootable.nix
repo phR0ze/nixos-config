@@ -1,6 +1,7 @@
 # Minimal bootable configuration
 #
 # ### Features
+# - Directly installable
 # - Size: 1511.2 MiB
 # - Configured by flake args
 #   - Grub EFI/MBR bootable
