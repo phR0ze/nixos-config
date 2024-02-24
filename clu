@@ -404,6 +404,7 @@ installer()
     # ----------------------------------------------------------------------------------------------
     [ -z ${NIXOS_CONFIG+x} ] && NIXOS_CONFIG="${ROOT_MOUNT}/etc/nixos" || NIXOS_CONFIG=$(realpath $NIXOS_CONFIG)
     if [ ! -d "${NIXOS_CONFIG}/.git" ]; then
+        [ -f "${NIXOS_CONFIG}/hardware-configuration.nix" ] && rm "${NIXOS_CONFIG}/hardware-configuration.nix"
         git clone ${FLAKE} ${NIXOS_CONFIG} &>/dev/null
         [ $? -ne 0 ] && echo "${red}:: Failed to clone git repo ${FLAKE}${none}" && exit
     fi
