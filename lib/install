@@ -121,7 +121,7 @@ install::config_system()
     utils::check_status
 
     echo -en ":: Generating NIXOS configuration defaults..."
-    nixos-generate-config --root ${ROOT_MOUNT}
+    nixos-generate-config --root ${ROOT_MOUNT} &>/dev/null
     utils::check_status
 
     # Modules must be at least staged for the flake to recognize them
