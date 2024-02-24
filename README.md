@@ -90,19 +90,26 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [x] Build installer automation
-  * [x] Inject clu as bootable ISO launch
-    * [x] Clone config repo
-    * [x] Launch `clu`
-  * [ ] clu needs to present profiles for install
-  * [ ] clu to update `flake.nix` with user selection
-  * [x] install
+
+## Sometime
+* [ ] Install neovim
+* [ ] Fix Bash prompt error
+* [ ] clu needs to present profiles for install
+* [ ] clu to update `flake.nix` with user selection
 * [ ] Build out standard xfce desktop
-  * [ ] 
 * [ ] Change the autologin welcome message
 * [ ] Change the kernel boot colors 
-* [ ] Default root password
-* [ ] Default user and password
+
+## Completed
+* [ ] Build my own minimal.nix
+* [ ] Disable IPv6
+* [x] Default root password
+* [x] Default user and password
+* [x] Build installer automation
+* [x] Inject clu as bootable ISO launch
+* [x] clu to clone config repo
+* [x] ISO automatically launchs `clu`
+* [x] clu installs the nixos configuration
 
 <!-- 
 vim: ts=2:sw=2:sts=2
