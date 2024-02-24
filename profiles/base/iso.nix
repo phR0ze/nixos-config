@@ -27,18 +27,18 @@
         done
         echo "   Network is ready"
 
-        # Download the installer as needed
-        echo ":: Checking for the installer script"
+        # Clone the installer repo as needed
+        echo ":: Checking for the flake repo"
         if [ ! -f /home/nixos/clu ]; then
-          echo "   Downloading the installer script"
-          curl -sL -o /home/nixos/clu https://raw.githubusercontent.com/phR0ze/nixos-config/main/clu
+          echo "   Downloading the installer flake repo"
+          git clone https://github.com/phR0ze/nixos-config /home/nixos
         fi
         [ -f /home/nixos/clu ] && echo "   Installer script exists"
 
         # Execute the installer script
         echo ":: Executing the installer script"
         chmod +x /home/nixos/clu
-        sudo /home/nixos/clu -f https://github.com/phR0ze/nixos-config
+        sudo /home/nixos/clu -i
       '';
 
       home = {
