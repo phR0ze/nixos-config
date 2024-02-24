@@ -166,7 +166,6 @@ getsel()
         if [ $choice -gt 0 ] && [ $choice -le $out_of_bounds ]; then
             choice=$((choice-1))
             local result=${options[$choice]}
-            echo "choice: $result"
             break
         else
             echo -e "   ${red}Invalid selection, please try again${none}"
@@ -414,7 +413,7 @@ installer()
     PROFILES=()
     local profiles_dir="${NIXOS_CONFIG}/profiles"
     local _profiles=($(echo $(find $profiles_dir -name "*.nix")))
-    echo -e "\n${cyan}:: Select a deployment profile:${none}"
+    [ "x$DEFAULT" != "xy" ] && echo -e "\n${cyan}:: Select a deployment profile:${none}"
     local i=0
     for j in "${!_profiles[@]}"; do # ! means loop over indices instead of values
         local x=${_profiles[$j]}
@@ -424,7 +423,7 @@ installer()
             x=${x//$profiles_dir\/}     # trim off the suffix dir
             x=${x//.nix}                # trim off the extension
             PROFILES+=($x)              # add to the final profiles list
-            echo -e "   $((i+1))) ${cyan}${PROFILES[$i]}${none}"
+            [ "x$DEFAULT" != "xy" ] && echo -e "   $((i+1))) ${cyan}${PROFILES[$i]}${none}"
             i=$((i+1))                  # increment i
         fi
     done
@@ -454,16 +453,16 @@ installer()
     DESTDEV=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[0]')
 
     # Print out the detected disks
-    echo -e "\n${cyan}:: Select a disk as your install destination:${none}"
+    [ "x$DEFAULT" != "xy" ] && echo -e "\n${cyan}:: Select a disk as your install destination:${none}"
     local i=0
     echo $DISKS_DETAILED | jq -rc '.[]' | while read x; do
         i=$((i+1))
         local disk="/dev/$(echo $x | jq -r '.name')"
         local size="$(echo $x | jq -r '.size')"
         local model="$(echo $x | jq -r '.model')"
-        echo -en "   ${i}) [${cyan}${disk}${none}](${cyan}${size}${none})"
+        [ "x$DEFAULT" != "xy" ] && echo -en "   ${i}) [${cyan}${disk}${none}](${cyan}${size}${none})"
         [ "$model" != "null" ] && echo -en " - ${model}"
-        echo ""
+        [ "x$DEFAULT" != "xy" ] && echo ""
     done
 
     # Get user choice
