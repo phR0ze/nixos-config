@@ -99,27 +99,33 @@ log_d()
 }
 
 # Retrieve input from user
-# Useful for making user selections
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 return variable name to be set
+# - $2 message to display to the user to prompt for input
+# - $3 default value to use if no value was input
+# - $4 if 's' don't echo result, if 'f' ignore automation and require user input
 #
 # Special commands:
+# Instead of answering the input query the user can use these special commands to invoke debugging
 # - "debug" will switch to debug mode
 # - "exit" will exit to shell
 getinput()
 {
-    local _result=$1                                # Return value target
-    local input=$2                                  # User input value to prompt for
-    local result=$3                                 # Default value to use if not set
-    local silent=$4                                 # Don't echo when set
+    local _result=$1
+    local msg=$2
+    local result=$3
+    local multi=$4
 
     # Notify user as directed
-    echo -en "   ${input} (default=${cyan}${result}${none}): "
+    echo -en "   ${msg} (default=${cyan}${result}${none}): "
 
-    # Defaulting settings is true then add a newline format nicely
-    [ "x$DEFAULT" == "xy" ] && echo ''
+    # Defaulting settings is true then add a newline to format nicely
+    [ "x$multi" != "xf" ] && [ "x$DEFAULT" == "xy" ] && echo ''
 
     # Handle non default options 
-    if [ "x$DEFAULT" == "xn" ]; then
-        if [ $silent ]; then
+    if [ "x$multi" == "xf" ] || [ "x$DEFAULT" == "xn" ]; then
+        if [ "x$multi" == "xs" ]; then
             read -s value
             echo ''
         else
@@ -179,9 +185,9 @@ partition_and_mount_disk()
 
     # Wipe, partition and format disk
     #---------------------------------------------------------------------------
-    echo -en ":: Disk ${cyan}${DESTDEV}${none} identified as destination disk..."
-    [ "x${DESTDEV}" != "x" ]
-    check_status
+    echo -e ":: ${red}WARNING this will DESTROY all data on disk:${none} '${cyan}${DESTDEV}${none}'"
+    getinput DESTROY 'Do you wish to continue?' 'n' 'f'
+    [ "x${DESTROY}" == "xy" ] || exit
 
     echo -en ":: Destroying any magic strings and/or signatures on ${cyan}${DESTDEV}${none}..."
     wipefs --all --force ${DESTDEV} &>/dev/null
@@ -447,6 +453,8 @@ config_system()
 # --------------------------------------------------------------------------------------------------
 installer()
 {
+    # Default installer values
+    # ----------------------------------------------------------------------------------------------
     SCSI=0
     DEFAULT='n'
     TIMEZONE='America/Boise'
@@ -564,8 +572,8 @@ installer()
         echo -e "\n${cyan}:: Create new user account:${none}"
         getinput USER 'Enter new username' $USER
         while true; do
-            getinput PASS 'Enter new password' 'admin' 1
-            getinput PASS2 'Enter password again' 'admin' 1
+            getinput PASS 'Enter new password' 'admin' 's'
+            getinput PASS2 'Enter password again' 'admin' 's'
             [ "x$PASS" == "x$PASS2" ] && break
             echo -e "   ${red}Passwords don't match, please try again${none}"
         done
@@ -668,7 +676,8 @@ title
 
 # Invoke the testing function if given
 if [ ! -z ${TEST+x} ]; then
-    eval $TEST
+    partition_and_mount_disk
+    #eval $TEST
 fi
 
 # Build the given component
