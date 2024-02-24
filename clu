@@ -598,8 +598,8 @@ title
 
 # Invoke the testing function if given
 if [ ! -z ${TEST+x} ]; then
+    header '-' "${yellow}" "Testing" 1
     echo foo
-    #eval $TEST
 fi
 
 # Build the given component
