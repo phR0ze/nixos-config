@@ -94,13 +94,13 @@ world though this already exists.
 ## Sometime
 * [ ] Install neovim
 * [ ] Fix Bash prompt error
-* [ ] clu needs to present profiles for install
 * [ ] clu to update `flake.nix` with user selection
 * [ ] Build out standard xfce desktop
 * [ ] Change the autologin welcome message
 * [ ] Change the kernel boot colors 
 
 ## Completed
+* [ ] Present and install user profile selection
 * [ ] Pass user set options
 * [ ] Pass automation set options
 * [ ] Warn user before destructive disk commands are run
