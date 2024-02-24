@@ -402,11 +402,9 @@ installer()
     # Supports passing in a NIXOS_CONFIG from the environment
     # ----------------------------------------------------------------------------------------------
     [ -z ${NIXOS_CONFIG+x} ] && NIXOS_CONFIG="${ROOT_MOUNT}/etc/nixos" || NIXOS_CONFIG=$(realpath $NIXOS_CONFIG)
-    echo -e "\n:: Cloning flake locally at ${cyan}${NIXOS_CONFIG}${none}"
-    if [ -d "${NIXOS_CONFIG}/.git" ]; then
-        echo -e "   Flake is already cloned locally skipping this step"
-    else
-        git clone ${FLAKE} ${NIXOS_CONFIG}
+    if [ ! -d "${NIXOS_CONFIG}/.git" ]; then
+        git clone ${FLAKE} ${NIXOS_CONFIG} &>/dev/null
+        [ $? -ne 0 ] && echo "${red}:: Failed to clone git repo ${FLAKE}${none}" && exit
     fi
 
     # Collect the profile selection from user
@@ -417,7 +415,7 @@ installer()
     echo -e "\n${cyan}:: Select a deployment profile:${none}"
     local i=0
     for j in "${!_profiles[@]}"; do # ! means loop over indices instead of values
-        x=${_profiles[$j]}
+        local x=${_profiles[$j]}
 
         # Check if the profile contains the "# - Directly installable" string
         if grep -q "# - Directly installable" ${x} ; then
