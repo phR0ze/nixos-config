@@ -30,16 +30,18 @@
 
   # Bootable systems imply a more general use case. Overriding the minimal.nix to include:
   # - docs, basic services
-  documentation.enable = lib.mkOverride 500 true;
-  documentation.doc.enable = lib.mkOverride 500 true;
-  documentation.info.enable = lib.mkOverride 500 true;
-  documentation.man.enable = lib.mkOverride 500 true;
-  documentation.nixos.enable = lib.mkOverride 500 true;
-  services.logrotate.enable = lib.mkOverride 500 true;
-  services.udisks2.enable = lib.mkOverride 500 true;
+  config = {
+    documentation.enable = lib.mkOverride 500 true;
+    documentation.doc.enable = lib.mkOverride 500 true;
+    documentation.info.enable = lib.mkOverride 500 true;
+    documentation.man.enable = lib.mkOverride 500 true;
+    documentation.nixos.enable = lib.mkOverride 500 true;
+    services.logrotate.enable = lib.mkOverride 500 true;
+    services.udisks2.enable = lib.mkOverride 500 true;
 
-  # Set the NixOS version that this was installed with
-  system.stateVersion = args.systemSettings.stateVersion;
+    # Set the NixOS version that this was installed with
+    system.stateVersion = args.systemSettings.stateVersion;
+  }
 }
 
 # vim:set ts=2:sw=2:sts=2
