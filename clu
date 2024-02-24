@@ -463,7 +463,7 @@ installer()
         local size="$(echo $x | jq -r '.size')"
         local model="$(echo $x | jq -r '.model')"
         [ "x$DEFAULT" != "xy" ] && echo -en "   ${i}) [${cyan}${disk}${none}](${cyan}${size}${none})"
-        [ "$model" != "null" ] && echo -en " - ${model}"
+        [ "x$DEFAULT" != "xy" ] && [ "$model" != "null" ] && echo -en " - ${model}"
         [ "x$DEFAULT" != "xy" ] && echo ""
     done
 
