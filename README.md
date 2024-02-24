@@ -93,7 +93,7 @@ world though this already exists.
 
 4. Now build the iso
    ```bash
-   $ nix build .#nixosConfigurations.iso.config.system.build.isoImage
+   $ ./clu -b iso
    ```
 
 5. The ISO will end up in `result/iso/`

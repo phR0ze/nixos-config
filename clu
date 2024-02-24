@@ -577,6 +577,11 @@ build_iso()
 
     echo -e "\n${cyan}:: Triggering nix iso build:${none}"
     nix build .#nixosConfigurations.iso.config.system.build.isoImage
+
+    echo -e "\n${cyan}:: Save iso.lock file:${none}"
+    if [ -f iso.lock ]; then
+        cp flake.lock iso.lock
+    fi
 }
 
 
