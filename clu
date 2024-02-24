@@ -541,6 +541,7 @@ installer()
 
     # Start install
     # ----------------------------------------------------------------------------------------------
+    echo
     header '-' "${cyan}" "Starting installation" 1
     echo -e ":: Options being used for installation"
     echo -e "   profile=${cyan}${PROFILE}${none}"
