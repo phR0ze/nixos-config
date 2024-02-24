@@ -303,9 +303,13 @@ config_system()
     header '-' "${cyan}" "Setup NixOS configurations files at ${cyan}${NIXOS_CONFIG}${none}"
 
     # Copy the cloned configuration to the newly partitioned drive
+    echo -en ":: Staging NIXOS configuration files at ${cyan}${NIXOS_CONFIG}${none}..."
+    df -h
     cp -r $SCRIPT_DIR/. ${NIXOS_CONFIG}
+    check_status
 
     # Generate the hardware-configuration.nix and configuration.nix
+    echo -en ":: Generating NIXOS configuration defaults..."
     nixos-generate-config --root ${ROOT_MOUNT}
     check_status
 
@@ -536,7 +540,6 @@ installer()
 
     # Start install
     # ----------------------------------------------------------------------------------------------
-    echo
     header '-' "${cyan}" "Starting installation" 1
     echo -e ":: Options being used for installation"
     echo -e "   profile=${cyan}${PROFILE}${none}"
