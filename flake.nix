@@ -40,16 +40,16 @@
 
       # Configuration overriden by user selections in the clu installer
       hostname = "nixos";             # hostname to use for the install
-      hardware = [ ];                 # pre-defined configuration for specific hardware in './hardware'
-      username = "nixos";             # initial admin user to create during install
-      userpass = "nixos";             # admin user password securely entered during boot
-      name = "nixos";                 # name to use for git and other app configurations
-      email = "nixos@nixos.org";      # email to use for git and other app configurations          
+      username = "admin";             # initial admin user to create during install
+      userpass = "admin";             # admin user password securely entered during boot
+      name = "admin";                 # name to use for git and other app configurations
+      email = "nixos@nixos.org";      # email to use for git and other app configurations
       profile = "base/bootable";      # pre-defined configurations in path './profiles' selection
+      autologin = false;              # automatically log the user in after boot when true
       
       # Configuration set via automation
-      efi = true;                     # system boot type
-      device = "nodev";               # destination disk for install
+      efi = true;                     # EFI system boot type
+      mbr = "nodev";                  # MBR system boot device
       system = "x86_64-linux";        # system architecture to use
       timezone = "America/Boise";     # time-zone selection
       locale = "en_US.UTF-8";         # locale selection
