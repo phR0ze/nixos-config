@@ -68,6 +68,27 @@ fork it and build on my work.
    $ sudo ./clu -i
    ```
 
+### Update instructions
+After installing your system you'll need to make changes from time to time. The `clu` automation will 
+have copied the original configuration to `/etc/nixos`.
+
+1. Change directory to the configuration folder
+   ```bash
+   $ cd /etc/nixos
+   ```
+
+2. Make changes as desired
+  
+3. Commit or stage your configuration changes
+   ```bash
+   $ git add .
+   ```
+
+4. Synchronize your system to the configuration changes
+   ```bash
+   $ sudo ./clu -s
+   ```
+
 ## Advanced use cases
 Most linux users, especially those coming from Arch Linux, will immediately be interested in how they 
 can extend and make this their own. Following best practices across the NixOS community I'm breaking 
