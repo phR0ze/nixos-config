@@ -1,4 +1,4 @@
-# Minimal bootable bash configuration
+# Minimal bootable configuration
 #
 # ### Features
 # - Size: 1030.3 MiB
@@ -14,11 +14,10 @@
 # - Nix flake and commands configuration
 # - DHCP systemd-networkd networking
 #---------------------------------------------------------------------------------------------------
-{ args, ... }:
+{ args, lib, ... }:
 {
   imports = [
     ./minimal.nix
-#"${args.nixpkgs}/nixos/modules/profiles/minimal.nix"
     ../../system/boot/initrd.nix
     ../../system/locale.nix
     ../../system/shell/bash.nix
@@ -28,6 +27,16 @@
     ../../system/nix.nix
     ../../system/networking/base.nix
   ];
+
+  # Bootable systems imply a more general use case. Overriding the minimal.nix to include:
+  # - docs, basic services
+  documentation.enable = lib.mkOverride 500 true;
+  documentation.doc.enable = lib.mkOverride 500 true;
+  documentation.info.enable = lib.mkOverride 500 true;
+  documentation.man.enable = lib.mkOverride 500 true;
+  documentation.nixos.enable = lib.mkOverride 500 true;
+  services.logrotate.enable = lib.mkOverride 500 true;
+  services.udisks2.enable = lib.mkOverride 500 true;
 
   # Set the NixOS version that this was installed with
   config.system.stateVersion = args.systemSettings.stateVersion;
