@@ -100,10 +100,10 @@ world though this already exists.
 * [ ] Change the kernel boot colors 
 
 ## Completed
-* [ ] Present and install user profile selection
-* [ ] Pass user set options
-* [ ] Pass automation set options
-* [ ] Warn user before destructive disk commands are run
+* [x] Present and install user profile selection
+* [x] Pass user set options
+* [x] Pass automation set options
+* [x] Warn user before destructive disk commands are run
 * [x] Enabling docs
 * [x] Build my own minimal.nix
 * [x] Disable IPv6
