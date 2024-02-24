@@ -45,7 +45,7 @@
       userpass = "nixos";             # admin user password securely entered during boot
       name = "nixos";                 # name to use for git and other app configurations
       email = "nixos@nixos.org";      # email to use for git and other app configurations          
-      profile = "base/bootable-bash"; # pre-defined configurations in path './profiles' selection
+      profile = "base/bootable";      # pre-defined configurations in path './profiles' selection
       
       # Configuration set via automation
       efi = true;                     # system boot type
