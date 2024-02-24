@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# Build code
+# 
+# ## Features
+#
+# --------------------------------------------------------------------------------------------------
+
+# Build a minimal iso
+# https://releases.nixos.org/
+# https://discourse.nixos.org/t/nixos-reproducible-builds-minimal-installation-iso-successfully-independently-rebuilt/34756
+build::iso()
+{
+    log::header '-' "${cyan}" "Building ISO" 1
+
+    echo -e "\n${cyan}:: Stage iso.lock file:${none}"
+    if [ -f iso.lock ]; then
+        rm -f flake.lock
+        cp iso.lock flake.lock
+    fi
+
+    echo -e "\n${cyan}:: Triggering nix iso build:${none}"
+    nix build .#nixosConfigurations.iso.config.system.build.isoImage
+
+    echo -e "\n${cyan}:: Save iso.lock file:${none}"
+    if [ -f iso.lock ]; then
+        cp flake.lock iso.lock
+    fi
+}
+
+# vim: ft=sh:ts=4:sw=4:sts=4
