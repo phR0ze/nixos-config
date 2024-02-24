@@ -101,8 +101,9 @@ world though this already exists.
 * [ ] Change the kernel boot colors 
 
 ## Completed
-* [ ] Build my own minimal.nix
-* [ ] Disable IPv6
+* [x] Enabling docs
+* [x] Build my own minimal.nix
+* [x] Disable IPv6
 * [x] Default root password
 * [x] Default user and password
 * [x] Build installer automation

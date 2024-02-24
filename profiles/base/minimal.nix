@@ -15,23 +15,23 @@
   xdg.mime.enable = mkDefault false;
   xdg.sounds.enable = mkDefault false;
 
-  # Disable all docs by default
-  documentation.enable = mkDefault false;
-  documentation.doc.enable = mkDefault false;
-  documentation.info.enable = mkDefault false;
-  documentation.man.enable = mkDefault false;
-  documentation.nixos.enable = mkDefault false;
+  # Keeping docs enabled
+  #documentation.enable = mkDefault false;
+  #documentation.doc.enable = mkDefault false;
+  #documentation.info.enable = mkDefault false;
+  #documentation.man.enable = mkDefault false;
+  #documentation.nixos.enable = mkDefault false;
 
   # Disable default packges like Perl by default
   environment.defaultPackages = mkDefault [ ];
 
   # Disable one offs that pull things in
-  #environment.stub-ld.enable = false; seems to fail during install
+  #environment.stub-ld.enable = false; # seems to fail during install
   programs.less.lessopen = mkDefault null;  # less pulls in Perl
   boot.enableContainers = mkDefault false;  # nixos-containers pulls in Perl
   programs.command-not-found.enable = mkDefault false;
-  #services.logrotate.enable = mkDefault false;
-  #services.udisks2.enable = mkDefault false;
+  #services.logrotate.enable = mkDefault false; # keeping essential tooling
+  #services.udisks2.enable = mkDefault false; # keeping essential tooling
 
   # Trim down the boot modules
   boot.initrd.includeDefaultModules = false;
