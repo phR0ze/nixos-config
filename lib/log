@@ -49,10 +49,18 @@ _log()
 
     if [ $_log_level -ge $level ]; then
         echo -e "${msg}"
-
-        # Exit with an error
-        [ $level -eq $_error ] && exit 1
     fi
+}
+
+# Log an error level then exit
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 the message to log
+log::fatal()
+{
+    local msg="$1"
+    log::error "${msg}"
+    exit 1
 }
 
 # Log an error and exit

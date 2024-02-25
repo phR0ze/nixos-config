@@ -80,9 +80,7 @@ case "$command" in
     install) install::run "$@" ;;
     test) test::run "$@" ;;
 
-    *) log::error "Invalid command: ${cyan}${command}${none}"
-        core::usage
-        exit ;;
+    *) log::error "Invalid command: ${cyan}${command}${none}"; core::usage ;;
 esac
 
 # vim: ft=sh:ts=4:sw=4:sts=4
