@@ -6,6 +6,13 @@
 #
 # --------------------------------------------------------------------------------------------------
 
+# Parse the build commands and execute
+build::run()
+{
+    core::title
+    log::header1 "Build command invoked"
+}
+ 
 # Build a minimal iso
 # https://releases.nixos.org/
 # https://discourse.nixos.org/t/nixos-reproducible-builds-minimal-installation-iso-successfully-independently-rebuilt/34756

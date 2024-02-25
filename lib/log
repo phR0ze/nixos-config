@@ -11,6 +11,80 @@ cyan="\e[1;36m"
 green="\e[1;32m"
 yellow="\e[1;33m"
 
+# Controls the logging level cut off
+# --------------------------------------------------------------------------------------------------
+# ### Features
+# - Reads user supplied runtime override e.g. LOG_LEVEL=debug sudo ./clu install
+# - error 0     non recoverable errors, log and exit
+# - warn  1     recoverable errors or issues   
+# - info  2     standard logging
+# - debug 3     verbose logging
+# --------------------------------------------------------------------------------------------------
+# e.g. "debug" means log: error, warn, info, debug
+# e.g. "warn" means log: error, warn
+# --------------------------------------------------------------------------------------------------
+[ -z ${LOG_LEVEL+x} ] && LOG_LEVEL="info"
+_error=0; _warn=1; _info=2; _debug=3;
+case $LOG_LEVEL in
+    error) _log_level=0 ;;
+    warn) _log_level=1 ;;
+    info) _log_level=2 ;;
+    debug) _log_level=3 ;;
+    *) echo -e "${red}Error:${none} LOG_LEVEL=${cyan}${LOG_LEVEL}${none} is invalid"; exit;;
+esac
+
+# Internal root logging function
+# --------------------------------------------------------------------------------------------------
+# ### Features
+# - indents 2 spaces
+# - logs at given level unless LOG_LEVEL cuts it off
+#
+# ### Params
+# - $1 the log level to log at
+# - $2 the message to log
+_log()
+{
+    local level="$1"
+    local msg="$2"
+
+    if [ $_log_level -ge $level ]; then
+        echo -e "${msg}"
+
+        # Exit with an error
+        [ $level -eq $_error ] && exit 1
+    fi
+}
+
+# Log an error and exit
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 the message to log
+log::error()
+{
+    local msg="$1"
+    _log $_error "${red}Error:${none} ${msg}"
+}
+
+# Log at info level with newline
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 the message to log
+log::ln()
+{
+    local msg="$1"
+    _log $_info "${msg}"
+}
+
+# Log 2 space indent at info level with newline
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 the message to log
+log::subln()
+{
+    local msg="$1"
+    _log $_info "  ${msg}"
+}
+
 # Print out a header
 # --------------------------------------------------------------------------------------------------
 # ### Params
@@ -28,10 +102,46 @@ log::header()
     # If the message has no color then colorize it
     [[ "${msg}" != *"\e[1"* ]] && msg="${color}${msg}${none}"
 
-    echo
-    [ "x$double" == "x1" ] && echo -e ${color}$_{1..80}'\b'"${char}"${none}
-    echo -e ":: ${msg}"
-    echo -e ${color}$_{1..80}'\b'"${char}"${none}
+    # Calculate the separator in advance as it doesn't seem to translate otherwise
+    separator=$(echo -e ${color}$_{1..80}'\b'"${char}"${none})
+
+    _log $_info ""
+    [ "x$double" == "x1" ] && _log $_info "$separator"
+    _log $_info ":: ${msg}"
+    _log $_info "$separator"
+}
+
+# Print out a double header with newline
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 msg
+log::header0()
+{
+    local msg=$1
+    log::header '-' "${cyan}" "${msg}" 1
+}
+
+# Print out a header1 with newline
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 msg
+log::header1()
+{
+    local msg=$1
+    log::header '-' "${cyan}" "${msg}"
+}
+
+# Print out a header2 with newline
+# --------------------------------------------------------------------------------------------------
+# ### Features
+# - :: prefixing of the message
+#
+# ### Params
+# - $1 msg
+log::header2()
+{
+    local msg=$1
+    _log $_info ":: ${msg}"
 }
 
 # Dump out debug variables

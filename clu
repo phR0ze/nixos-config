@@ -44,52 +44,45 @@ core::title()
 core::usage()
 {
     core::title
-    echo -e "Usage: ${cyan}./$(basename $0)${none} [options]\n"
-    echo -e "Options:"
-    echo -e "  -b COMPONENT     Build the given component"
-    echo -e "  -i               Install the default system configuration" 
-    echo -e "  -f FLAKE_URL     Install the given configuration flake at this URL"
-    echo -e "  -t TEST_FUNC     Execute the given function for testing purposes"
-    echo -e "  -h               Display usage help\n"
-    echo -e "Examples:"
-    echo -e "  ${green}Install the given configuration flake:${none} sudo ./${SCRIPT} -f https://github.com/phR0ze/nixos-config"
-    echo -e "  ${green}Build the installer ISO:${none} ./${SCRIPT} -b iso"
+    cat <<USAGE
+Usage:
+  ./clu [options] [COMMAND] [ARGS...]
+
+Options:
+  --debug           Debug mode with verbose output
+  -h, --help        Print out top level usage
+  -v, -verbose      Verbose output
+  --ver             Print version and exit
+
+Commands:
+  build             Build components
+  help              Get help for a command
+  install           Install system configuration
+  test              Testing function for development
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "${green}Install the default configuration:${none} sudo ./${SCRIPT} install"
+    log::subln "${green}Build the installer ISO:${none} ./${SCRIPT} build iso"
     echo
     exit
 }
 
-# getopts notes
-# - leading char <color> suppresses typical diagnostic messages
-# - <colon> following flag means expect and argument
-# - the \ on ? is required to make it work properly
-while getopts ":b:f:it:h" opt; do
-    case $opt in
-        b) BUILD=$OPTARG;;
-        f) FLAKE=$OPTARG;;
-        i) INSTALL=1;;
-        t) TEST=$OPTARG;;
-        h) core::usage;;
-        \?) echo -e "${red}Invalid option: ${none}-${OPTARG}\n"; core::usage;;
-        :) echo -e "${red}Argument is required for option: ${none}-${OPTARG}\n"; core::usage;;
-    esac
-done
-[ $(($OPTIND -1)) -eq 0 ] && core::usage
-core::title
-
-# Invoke the testing function if given
-if [ ! -z ${TEST+x} ]; then
-    log::header '-' "${yellow}" "Testing" 1
-    eval $TEST
+# Parse commands
+# --------------------------------------------------------------------------------------------------
+if [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]]; then
+    core::usage
 fi
 
-# Build the given component
-if [ ! -z ${BUILD+x} ]; then
-    [ "${BUILD}" == "iso" ] && build::iso
-fi
+command=$1; shift
+case "$command" in
+    build) build::run "$@" ;;
+    install) install::run "$@" ;;
+    test) test::run "$@" ;;
 
-# Install the given configuration flake
-if [ ! -z ${INSTALL+x} ] || [ ! -z ${FLAKE+x} ]; then
-    install::run
-fi
+    *) log::error "Invalid command: ${cyan}${command}${none}"
+        core::usage
+        exit ;;
+esac
 
 # vim: ft=sh:ts=4:sw=4:sts=4
