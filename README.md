@@ -65,7 +65,7 @@ fork it and build on my work.
    $ cd nixos-config
    $ chmod +x clu
    $ nix-shell -p git jq
-   $ sudo ./clu -i
+   $ sudo ./clu install
    ```
 
 ### Update instructions
@@ -86,7 +86,7 @@ have copied the original configuration to `/etc/nixos`.
 
 4. Synchronize your system to the configuration changes
    ```bash
-   $ sudo ./clu -s
+   $ sudo ./clu sync
    ```
 
 ## Advanced use cases
@@ -114,7 +114,7 @@ world though this already exists.
 
 4. Now build the iso
    ```bash
-   $ ./clu -b iso
+   $ ./clu build iso
    ```
 
 5. The ISO will end up in `result/iso/`
