@@ -41,7 +41,7 @@
         # Execute the installer script
         echo ":: Executing the installer script"
         chmod +x /home/nixos/nixos-config/clu
-        sudo /home/nixos/nixos-config/clu -i
+        sudo /home/nixos/nixos-config/clu install
       '';
 
       home = {
