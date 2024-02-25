@@ -9,7 +9,7 @@
 # Partition disk and mount for install at ${ROOT_MOUNT}
 install::prepare_disk()
 {
-    log::header '-' "${cyan}" "Partitioning and mounting destination disk ${cyan}${DESTDEV}${none}..."
+    log::header1 "Partitioning and mounting destination disk ${cyan}${DESTDEV}${none}..."
 
     # Wipe, partition and format disk
     # --------------------------------------------------------------------------
@@ -110,7 +110,7 @@ install::config_system()
     # Setup the NixOS configuration files
     # This must be done after the disk partioning so that the system picks up the new partitions
     # ----------------------------------------------------------------------------------------------
-    log::header '-' "${cyan}" "Setup NixOS configurations files"
+    log::header1 "Setup NixOS configurations files"
 
     echo -en ":: Create the NixOS config dir ${cyan}${NIXOS_CONFIG}${none}..."
     mkdir -p ${NIXOS_CONFIG}/etc/nixos
@@ -167,7 +167,7 @@ install::config_system()
 
     # Execute the NixOS install
     # ----------------------------------------------------------------------------------------------
-    log::header '-' "${cyan}" "Installing NixOS configuration" 1
+    log::header0 "Installing NixOS configuration"
     nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#install"
 
 #    # Configure time and date
@@ -188,6 +188,8 @@ install::config_system()
 # --------------------------------------------------------------------------------------------------
 install::run()
 {
+    core::title
+
     # Default installer values
     # ----------------------------------------------------------------------------------------------
     SCSI=0
@@ -351,7 +353,7 @@ install::run()
 
     # Start install
     # ----------------------------------------------------------------------------------------------
-    log::header '-' "${cyan}" "Starting installation" 1
+    log::header0 "Starting installation"
     echo -e ":: Options being used for installation"
     echo -e "   profile=${cyan}${PROFILE}${none}"
     echo -e "   hostname=${cyan}${HOSTNAME}${none}"
