@@ -15,7 +15,7 @@
 # - Nix flake and commands configuration
 # - DHCP systemd-networkd networking
 #---------------------------------------------------------------------------------------------------
-{ config, lib, args, ... }:
+{ config, lib, pkgs, args, ... }:
 {
   imports = [
     ./minimal.nix
