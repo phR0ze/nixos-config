@@ -1,9 +1,15 @@
 # Nix configuration
 #---------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+{ pkgs, args, ... }:
 {
   nix = {
     package = pkgs.nixFlakes;
+
+    # Sets up the NIX_PATH environment variable to use the flake nixpkgs for commands like nix-shell
+    nixPath = [
+      "nixpkgs=${args.nixpkgs.outPath}"
+    ];
+
     settings = {
       warn-dirty = false;
       trusted-users = ["root" "@wheel"];
