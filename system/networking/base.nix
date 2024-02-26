@@ -1,15 +1,15 @@
 # Base networking configuration
 #
 # ### Features
-# - DHCP systemd-networkd networking
 # - Disables IPv6
+# - DHCP systemd-networkd networking
 # - Configures CloudFlare DNS
 #---------------------------------------------------------------------------------------------------
 { args, ... }:
 {
   networking = {
-    hostName = args.systemSettings.hostname;  # define hostname
     enableIPv6 = false;                       # disable IPv6
+    hostName = args.systemSettings.hostname;  # define hostname
     nameservers = [ "1.1.1.1" "1.0.0.1" ];    # use the Cloudflare DNS
   };
 }

@@ -27,6 +27,7 @@
     ../../system/services/sshd.nix
     ../../system/nix.nix
     ../../system/networking/base.nix
+    ../../system/development/base.nix
   ];
 
   # Bootable systems imply a more general use case. Overriding the minimal.nix to include
@@ -55,13 +56,13 @@
     git                                      # Required for Flakes support
 
     # Some text editors.
-    (vim.customize {
-      name = "vim";
-      vimrcConfig.packages.default = {
-        start = [ pkgs.vimPlugins.vim-nix ];
-      };
-      vimrcConfig.customRC = "syntax on";
-    })
+#    (vim.customize {
+#      name = "vim";
+#      vimrcConfig.packages.default = {
+#        start = [ pkgs.vimPlugins.vim-nix ];
+#      };
+#      vimrcConfig.customRC = "syntax on";
+#    })
 
 #    # Some networking tools.
 #    pkgs.fuse
