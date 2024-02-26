@@ -15,7 +15,7 @@
 # - Nix flake and commands configuration
 # - DHCP systemd-networkd networking
 #---------------------------------------------------------------------------------------------------
-{ config, lib, args, ... }: with lib;
+{ config, lib, args, ... }:
 {
   imports = [
     ./minimal.nix
@@ -31,17 +31,14 @@
 
   # Bootable systems imply a more general use case. Overriding the minimal.nix to include
   # docs and basic services; however this adds a full 500 MiB to the installation.
-  config = {
-    documentation.enable = lib.mkOverride 500 true;
-    documentation.doc.enable = lib.mkOverride 500 true;
-    documentation.info.enable = lib.mkOverride 500 true;
-    documentation.man.enable = lib.mkOverride 500 true;
-    documentation.nixos.enable = lib.mkOverride 500 true;
+  documentation.enable = lib.mkOverride 500 true;
+  documentation.doc.enable = lib.mkOverride 500 true;
+  documentation.info.enable = lib.mkOverride 500 true;
+  documentation.man.enable = lib.mkOverride 500 true;
+  documentation.nixos.enable = lib.mkOverride 500 true;
 
-    # Set the NixOS version that this was installed with
-    system.stateVersion = args.systemSettings.stateVersion;
-  };
-
+  # Set the NixOS version that this was installed with
+  system.stateVersion = args.systemSettings.stateVersion;
 
   # Base system packages
   environment.systemPackages = [
