@@ -41,7 +41,7 @@
   system.stateVersion = args.systemSettings.stateVersion;
 
   # Base system packages
-  environment.systemPackages = [
+  environment.systemPackages = with pkgs; [
 #    pkgs.w3m-nographics # needed for the manual anyway
 #    pkgs.testdisk # useful for repairing boot problems
 #    pkgs.ms-sys # for writing Microsoft boot sectors / MBRs
@@ -52,10 +52,10 @@
 #    pkgs.ddrescue
 #    pkgs.ccrypt
 #    pkgs.cryptsetup # needed for dm-crypt volumes
-    pkgs.git                                      # Required for Flakes support
+    git                                      # Required for Flakes support
 
     # Some text editors.
-    (pkgs.vim.customize {
+    (vim.customize {
       name = "vim";
       vimrcConfig.packages.default = {
         start = [ pkgs.vimPlugins.vim-nix ];
