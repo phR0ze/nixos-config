@@ -23,7 +23,7 @@ fork it and build on my work.
 * [Backlog](#backlog)
 
 ## Getting started
-***clu***, a simple bash script, provides an install wizard to:
+***clu***, is a simple bash script providing an install wizard to:
 
 * Prompt you for a few simple customization selections
 * Automate the annoying tasks like
@@ -53,7 +53,10 @@ fork it and build on my work.
       $ sudo dd bs=4M if=latest-nixos-minimal-x86_64-linux.iso of=YOUR/DEVICE status=progress conv=fsync oflag=direct
       ```
 
-3. Boot from the new USB
+3. Boot from the new USB and start a nix shell
+   ```bash
+   $ nix-shell -p git jq
+   ```
 
 4. Clone this repo
    ```bash
@@ -64,7 +67,6 @@ fork it and build on my work.
    ```bash
    $ cd nixos-config
    $ chmod +x clu
-   $ nix-shell -p git jq
    $ sudo ./clu install
    ```
 
@@ -86,6 +88,12 @@ have copied the original configuration to `/etc/nixos`.
 
 4. Synchronize your system to the configuration changes
    ```bash
+   # Update flake.lock
+   $ nix flake update
+
+   # Apply updates default path is /etc/nixos
+   $ sudo nixos-rebuild switch --flake .#install
+
    $ sudo ./clu sync
    ```
 
@@ -122,6 +130,8 @@ world though this already exists.
 ## Backlog
 
 ## Sometime
+* [ ] `sudo nix-channel --list` is showing stuff
+* [ ] Remove `/etc/nixos/etc/nixos`
 * [ ] Install neovim
 * [ ] Fix Bash prompt error
 * [ ] clu to update `flake.nix` with user selection
