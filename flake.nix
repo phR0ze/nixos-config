@@ -104,8 +104,8 @@
     nixosConfigurations = {
 
       # Define system configuration for an installation
-      # Note this 'install' value is used in place of the hostname target in most flakes
-      install = lib.nixosSystem {
+      # Note this 'system' value is used in place of the hostname target in most flakes
+      system = lib.nixosSystem {
         inherit pkgs system specialArgs;
 
         # modules = base.modules ++ [ ];
