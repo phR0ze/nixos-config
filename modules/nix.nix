@@ -5,22 +5,40 @@
   nix = {
     package = pkgs.nixFlakes;
 
-    # Sets up the NIX_PATH environment variable to use the flake nixpkgs for commands like nix-shell
-    nixPath = [
-      "nixpkgs=${args.nixpkgs.outPath}"
-#      "nixos-config=path:/etc/nixos#install"
-    ];
+    # Sets up the NIX_PATH environment variable to use the flake nixpkgs for older nix2 commands
+    # e.g. nix-shell
+    nixPath = [ "nixpkgs=${args.nixpkgs.outPath}" ];
 
+    # Nix settings
+    # https://nixos.org/manual/nix/stable/command-ref/conf-file.html
     settings = {
+
+      # Don't warn about dirty Git/Mercurial trees
       warn-dirty = false;
+
+      # Users allowed to connect to the Nix daemon and thus make system changes
       trusted-users = ["root" "@wheel"];
-      experimental-features = [ "nix-command" "flakes" ]; # enable flake support
+
+      # Follow the XDG Base Directory Specification
+      use-xdg-base-directories = true;
+
+      # Automatically detect files in the store that have identical contents and replaces them with
+      # hard links to save disk space.
+      auto-optimise-store = lib.mkDefault true;
+
+      experimental-features = [
+        "nix-command"    # 2.0 cli
+        "flakes"         # flakes support
+        "repl-flake"     # 2.0 cli support for 'nix repl'
+      ];
     };
 
+    # Garbage collection settings
     gc = {
       automatic = true;
       dates = "weekly";
-      # Delete older generations too
+
+      # Delete older generations
       options = "--delete-older-than 2d";
     };
 
