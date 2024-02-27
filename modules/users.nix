@@ -3,15 +3,15 @@
 { args, ... }:
 {
   # Set the root password to the same as the admin user
-  users.extraUsers.root.password = args.systemSettings.userpass;
+  users.extraUsers.root.password = args.settings.userpass;
 
-  users.users.${args.systemSettings.username} = {
+  users.users.${args.settings.username} = {
     isNormalUser = true;
     extraGroups = [
       "wheel"                   # enables passwordless sudo for this user
       "networkmanager"          # enables ability for user to make network manager changes
     ];
-    password = args.systemSettings.userpass;  # temp password to change on first login
+    password = args.settings.userpass;  # temp password to change on first login
   };
 }
 

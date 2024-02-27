@@ -8,9 +8,9 @@
 { args, ... }:
 {
   networking = {
-    enableIPv6 = false;                       # disable IPv6
-    hostName = args.systemSettings.hostname;  # define hostname
-    nameservers = [ "1.1.1.1" "1.0.0.1" ];    # use the Cloudflare DNS
+    enableIPv6 = false;                    # disable IPv6
+    hostName = args.settings.hostname;     # define hostname
+    nameservers = [ "1.1.1.1" "1.0.0.1" ]; # use the Cloudflare DNS
   };
 }
 

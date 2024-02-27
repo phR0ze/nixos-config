@@ -33,9 +33,9 @@
   # is to just call them out explicitly as required named arguments which does this scoping for you.
   outputs = { self, nixpkgs, home-manager, ... }@inputs: let
 
-    # System install settings
+    # System settings
     # ----------------------------------------------------------------------------------------------
-    systemSettings = {
+    settings = {
       stateVersion = "23.11";
 
       # Configuration overriden by user selections in the clu installer
@@ -53,16 +53,11 @@
       system = "x86_64-linux";        # system architecture to use
       timezone = "America/Boise";     # time-zone selection
       locale = "en_US.UTF-8";         # locale selection
-    };
 
-    # User selected tooling and environment settings
-    # ----------------------------------------------------------------------------------------------
-    homeSettings = {
       #wmType = if (wm == "hyprland") then "wayland" else "x11";
       term = "alacritty";             # default terminal to use
       fontName = "Intel One Mono";    # default font name
       #fontPkg = pkgs.intel-one-mono;  # default font package
-      editor = "nvim";                # default editor
     };
 
     # Allow for package patches, overrides and additions
@@ -73,23 +68,23 @@
 #    nixpkgs.config.allowUnfree = true;
 
 #    pkgs = import inputs.nixpkgs {
-#      system = systemSettings.system;
+#      system = settings.system;
 #      config.allowUnfree = true;
 #      config.allowUnfreePredicate = _: true;
 #    };
 #
 #    # Add the ability to access unstable packages
 #    pkgs-unstable = import inputs.nixpkgs-unstable {
-#      system = systemSettings.system;
+#      system = settings.system;
 #      config.allowUnfree = true;
 #      config.allowUnfreePredicate = _: true;
 #    };
 
     # Using attribute set update syntax '//' here to combine a couple sets for simpler input arguments
     lib = nixpkgs.lib // home-manager.lib;
-    args = inputs // { inherit systemSettings homeSettings; };
+    args = inputs // { inherit settings; };
 
-    system = systemSettings.system;
+    system = settings.system;
     pkgs = nixpkgs.legacyPackages.${system};
     specialArgs = { inherit args; };
     extraSpecialArgs = { inherit args; };
@@ -111,7 +106,7 @@
         # modules = base.modules ++ [ ];
         modules = [
           ./hardware-configuration.nix
-          (./. + "/profiles" + ("/" + systemSettings.profile + ".nix"))
+          (./. + "/profiles" + ("/" + settings.profile + ".nix"))
         ];
       };
 

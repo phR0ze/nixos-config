@@ -8,7 +8,7 @@ fried and having to start all over.
 
 ## Pre-defined system profiles
 These are the pre-defined system profiles that can be used in the root `flake.nix` by setting the 
-`systemSettings.profile` variable e.g. `profile = "xfce/desktop";`. I've crafted the system profiles 
+`settings.profile` variable e.g. `profile = "xfce/desktop";`. I've crafted the system profiles 
 in such a way that most build on a prior one including more packages and configuration for their 
 specific use case.
 
