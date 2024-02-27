@@ -88,9 +88,6 @@
     pkgs = nixpkgs.legacyPackages.${system};
     specialArgs = { inherit args; };
     extraSpecialArgs = { inherit args; };
-    baseModules = [
-        #{ nixpkgs = { inherit pkgs; }; }
-    ];
 
   # Pass along configuration variables defined above
   # * [Special Args](https://github.com/nix-community/home-manager/issues/1022)
