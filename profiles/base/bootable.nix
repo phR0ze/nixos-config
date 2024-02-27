@@ -21,7 +21,7 @@
     ./minimal.nix
     ../../modules/boot/initrd.nix
     ../../modules/locale.nix
-    ../../modules/shell/bash.nix
+    ../../modules/terminal/base.nix
     ../../modules/users.nix
     ../../modules/security/sudo.nix
     ../../modules/services/sshd.nix
