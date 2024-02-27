@@ -95,12 +95,9 @@
   in {
     nixosConfigurations = {
 
-      # Define system configuration for an installation
-      # Note this 'system' value is used in place of the hostname target in most flakes
+      # Defines configuration for the current system
       system = lib.nixosSystem {
         inherit pkgs system specialArgs;
-
-        # modules = base.modules ++ [ ];
         modules = [
           ./hardware-configuration.nix
           (./. + "/profiles" + ("/" + settings.profile + ".nix"))
@@ -108,19 +105,11 @@
       };
 
       # Defines configuration for building an ISO
-      # Starts from the minimal iso config and adds additional config
       iso = lib.nixosSystem {
         inherit pkgs system specialArgs;
         modules = [ ./profiles/base/iso.nix ];
       };
     };
-
-#    homeConfigurations = {
-#      iso = lib.homeManagerConfiguration {
-#        inherit pkgs system extraSpecialArgs;
-#        modules = [ ./home-manager/iso.nix ];
-#      };
-#    };
   };
 }
 

@@ -1,4 +1,4 @@
-# Base terminal configuration
+# Base modules configuration
 #
 # ### Features
 # - bash
@@ -7,8 +7,10 @@
 { ... }:
 {
   imports = [
-    ./bash.nix
-    #./dircolors.nix
+    ./locale.nix
+    ./nix.nix
+    ./users.nix
+    ./sudo.nix
   ];
 }
 
