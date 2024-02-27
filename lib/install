@@ -168,7 +168,7 @@ install::config_system()
     # Execute the NixOS install
     # ----------------------------------------------------------------------------------------------
     log::header0 "Installing NixOS configuration"
-    nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#install"
+    nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#system"
 
 #    # Configure time and date
 #    # --------------------------------------------------------------------------
