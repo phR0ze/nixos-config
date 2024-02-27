@@ -8,7 +8,8 @@
 { args, pkgs, lib, ... }:
 {
   imports = [
-    # Import and activate home-manager
+    # Import and activate home-manager, this needs to be done before home manager options will be
+    # detected and handled by home-manager.
     args.home-manager.nixosModules.home-manager
 
     # I get a weird infinite recursion bug if I use ${pkgs} instead

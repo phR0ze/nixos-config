@@ -19,13 +19,10 @@
 {
   imports = [
     ./minimal.nix
+    ../../modules
     ../../modules/boot/initrd.nix
-    ../../modules/locale.nix
     ../../modules/terminal/base.nix
-    ../../modules/users.nix
-    ../../modules/security/sudo.nix
     ../../modules/services/sshd.nix
-    ../../modules/nix.nix
     ../../modules/networking/base.nix
     ../../modules/development/base.nix
   ];

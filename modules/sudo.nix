@@ -1,4 +1,7 @@
 # Sudo configuration
+#
+# ### Features
+# - Passwordless access for whell group
 #---------------------------------------------------------------------------------------------------
 { ... }:
 {
@@ -7,11 +10,6 @@
 
     # Configure passwordless sudo access for 'wheel' group
     wheelNeedsPassword = false;
-
-    # Non wheel groups can be modified with this syntax
-#    extraRules = [
-#      { commands = [{ command = "ALL"; options = [ "NOPASSWD" ];}]; groups = [ "wheel" ]; }
-#    ];
   };
 }
 
