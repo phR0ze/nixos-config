@@ -1,15 +1,11 @@
-# Dircolors configuration
+# Git configuration
 #---------------------------------------------------------------------------------------------------
 # This is a home-manager module
-# 
-# ### Requirements
-# - Required to be called from a home-manager context
 #---------------------------------------------------------------------------------------------------
-{ ... }:
+{ pkgs, args, ... }:
 {
-  programs.dircolors = {
+  programs.git = {
     enable = true;
-    enableBashIntegration = true;
   };
 }
 

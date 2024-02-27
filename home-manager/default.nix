@@ -1,9 +1,7 @@
 # Default home manager configuration
 #---------------------------------------------------------------------------------------------------
 # This or other configuration files in this directory are used as home-manager's entry points to
-# control any home-manager modules e.g. ../terminal/dircolors.nix. I'm clearly documenting in the
-# header of any home-manager modules i.e. nix files that are required to be called from home-manager
-# to handle home-manager specific options.
+# control any home-manager modules e.g. dircolors.nix
 #---------------------------------------------------------------------------------------------------
 { pkgs, args, ... }:
 {
@@ -24,16 +22,15 @@
     extraSpecialArgs = { inherit args; };
 
     # Defines modules to be used for all users except for root
-    sharedModules = [
-      ../terminal/dircolors.nix
-    ];
+    # sharedModules = [ ];
 
     # Define system user
     users.${args.settings.username} = { pkgs, args, ... }:
     {
-      #imports = [
-      #  ../terminal/dircolors.nix
-      #];
+      imports = [
+        ./dircolors.nix
+        ./git.nix
+      ];
     
       home = {
         username = "${args.settings.username}";
