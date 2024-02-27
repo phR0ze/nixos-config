@@ -1,8 +1,9 @@
 # Default home manager configuration
 #---------------------------------------------------------------------------------------------------
-# This or other 'home' configuration files in this directory are used as home-manager's entry points
-# to control any home-manager dependent configurations e.g. ../terminal/dircolors.nix. For nix files
-# that depend on home-manager I'll document them as requiring home-manager.
+# This or other configuration files in this directory are used as home-manager's entry points to
+# control any home-manager modules e.g. ../terminal/dircolors.nix. I'm clearly documenting in the
+# header of any home-manager modules i.e. nix files that are required to be called from home-manager
+# to handle home-manager specific options.
 #---------------------------------------------------------------------------------------------------
 { args, ... }:
 {
@@ -18,14 +19,18 @@
     # Define root user
 
     # Define system user
-    users.${args.settings.username} = import ./home.nix;
-    #users.${args.settings.username} = {
-    #  home = {
-    #    username = "${args.settings.username}";
-    #    homeDirectory = "/home/${args.settings.username}";
-    #    stateVersion = args.settings.stateVersion;
-    #  };
-    #};
+    users.${args.settings.username} = { args, ... }:
+    {
+      imports = [
+        ../terminal/dircolors.nix
+      ];
+    
+      home = {
+        username = "${args.settings.username}";
+        homeDirectory = "/home/${args.settings.username}";
+        stateVersion = args.settings.stateVersion;
+      };
+    };
   };
 }
 
