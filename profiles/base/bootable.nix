@@ -19,15 +19,15 @@
 {
   imports = [
     ./minimal.nix
-    ../../system/boot/initrd.nix
-    ../../system/locale.nix
-    ../../system/shell/bash.nix
-    ../../system/users.nix
-    ../../system/security/sudo.nix
-    ../../system/services/sshd.nix
-    ../../system/nix.nix
-    ../../system/networking/base.nix
-    ../../system/development/base.nix
+    ../../modules/boot/initrd.nix
+    ../../modules/locale.nix
+    ../../modules/shell/bash.nix
+    ../../modules/users.nix
+    ../../modules/security/sudo.nix
+    ../../modules/services/sshd.nix
+    ../../modules/nix.nix
+    ../../modules/networking/base.nix
+    ../../modules/development/base.nix
   ];
 
   # Bootable systems imply a more general use case. Overriding the minimal.nix to include
@@ -39,7 +39,7 @@
   documentation.nixos.enable = lib.mkOverride 500 true;
 
   # Set the NixOS version that this was installed with
-  system.stateVersion = args.systemSettings.stateVersion;
+  system.stateVersion = args.settings.stateVersion;
 
   # Base system packages
   environment.systemPackages = with pkgs; [

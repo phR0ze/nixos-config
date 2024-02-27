@@ -13,7 +13,7 @@
 
     # I get a weird infinite recursion bug if I use ${pkgs} instead
     "${args.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-    ../../system/nix.nix
+    ../../modules/nix.nix
   ];
 
   # Configure home-manager for ISO to have a script that is automatically run on login
@@ -47,7 +47,7 @@
       home = {
         username = "nixos";
         homeDirectory = "/home/nixos";
-        stateVersion = args.systemSettings.stateVersion;
+        stateVersion = args.settings.stateVersion;
       };
     };
   };
