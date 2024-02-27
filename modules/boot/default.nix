@@ -3,7 +3,7 @@
 { ... }:
 {
   imports = [
-    ./loader/grub.nix
+    ./grub.nix
   ];
 
   # Configure default kernel modules

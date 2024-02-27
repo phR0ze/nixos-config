@@ -1,4 +1,4 @@
-# Base networking configuration
+# Default networking configuration
 #
 # ### Features
 # - Disables IPv6

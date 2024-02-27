@@ -1,8 +1,4 @@
-# Base modules configuration
-#
-# ### Features
-# - bash
-# - dircolors
+# Default modules configuration
 #---------------------------------------------------------------------------------------------------
 { ... }:
 {
