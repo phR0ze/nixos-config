@@ -21,6 +21,7 @@
     ./minimal.nix
     ../../modules
     ../../modules/boot
+    ../../modules/home
     ../../modules/terminal
     ../../modules/networking
     ../../modules/development

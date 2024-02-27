@@ -1,6 +1,9 @@
 # Dircolors configuration
-#
-# ### Features
+#---------------------------------------------------------------------------------------------------
+# This is a home-manager module
+# 
+# ### Requirements
+# - Required to be called from a home-manager context
 #---------------------------------------------------------------------------------------------------
 { ... }:
 {

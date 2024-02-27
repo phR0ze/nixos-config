@@ -5,8 +5,8 @@
   imports = [
     ./locale.nix
     ./nix.nix
-    ./users.nix
     ./sudo.nix
+    ./users.nix
   ];
 }
 
