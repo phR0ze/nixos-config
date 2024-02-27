@@ -1,4 +1,4 @@
-# Base terminal configuration
+# Default terminal configuration
 #
 # ### Features
 # - bash

@@ -1,4 +1,4 @@
-# Base development configuration
+# Default development configuration
 #
 # ### Features
 # - NeoVim as default editor

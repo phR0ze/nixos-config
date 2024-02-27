@@ -20,11 +20,11 @@
   imports = [
     ./minimal.nix
     ../../modules
-    ../../modules/boot/initrd.nix
-    ../../modules/terminal/base.nix
+    ../../modules/boot
+    ../../modules/terminal
+    ../../modules/networking
+    ../../modules/development
     ../../modules/services/sshd.nix
-    ../../modules/networking/base.nix
-    ../../modules/development/base.nix
   ];
 
   # Bootable systems imply a more general use case. Overriding the minimal.nix to include
