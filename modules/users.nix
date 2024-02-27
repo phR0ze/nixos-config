@@ -1,36 +1,11 @@
 # User configuration
 #
 # ### Features
-# - Activate Home Manager for use in other modules
-# - Configure default users
+# - Configures users default groups
+# - Configures users default passwords
 #---------------------------------------------------------------------------------------------------
 { args, ... }:
 {
-  imports = [
-    args.home-manager.nixosModules.home-manager
-  ];
-
-  # Configure Home Manager
-  # ------------------------------------------------------------------------------------------------
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = false;
-
-    # Define root user
-
-    # Define system user
-    users.${args.settings.username} = {
-      home = {
-        username = "${args.settings.username}";
-        homeDirectory = "/home/${args.settings.username}";
-        stateVersion = args.settings.stateVersion;
-      };
-    };
-  };
-
-  # Configure general user settings
-  # ------------------------------------------------------------------------------------------------
-
   # Set the root password to the same as the admin user
   users.extraUsers.root.password = args.settings.userpass;
 
