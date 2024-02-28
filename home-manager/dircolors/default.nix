@@ -1,12 +1,17 @@
 # Dircolors configuration
 #---------------------------------------------------------------------------------------------------
 # This is a home-manager module
+#
+# ### Features
+# - using the universal dircolors from 
+#   https://github.com/seebi/dircolors-solarized/blob/master/dircolors.ansi-universal
 #---------------------------------------------------------------------------------------------------
 { ... }:
 {
   programs.dircolors = {
     enable = true;
     enableBashIntegration = true;
+    extraConfig = builtins.readFile ./LS_COLORS;
   };
 }
 
