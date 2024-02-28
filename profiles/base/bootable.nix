@@ -21,11 +21,11 @@
     ./minimal.nix
     ../../modules
     ../../modules/boot
-    ../../modules/home
     ../../modules/terminal
     ../../modules/networking
     ../../modules/development
     ../../modules/services/sshd.nix
+    ../../home-manager
   ];
 
   # Bootable systems imply a more general use case. Overriding the minimal.nix to include
