@@ -131,10 +131,11 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Prove out home-manager with dircolors
 * [ ] Customize neovim
 
 ## Sometime
+* [ ] Adding solarized dircolors theme
+* [ ] Clean up starship prompt to look better
 * [ ] Configure `git config --global user.name`
 * [ ] Configure `git config --global user.email`
 * [ ] Configure `git config --global --add safe.directory /etc/nixos`
@@ -145,8 +146,10 @@ world though this already exists.
 * [ ] Build out standard xfce desktop
 * [ ] Change the autologin welcome message
 * [ ] Change the kernel boot colors 
+* [ ] alias or clu feature `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
 
 ## Completed
+* [x] Add starship command prompt for all users
 * [x] Install neovim as default editor
 * [x] Add the flake nixpkgs to the `NIX_PATH`
 * [x] Install git and vim for basic usage
