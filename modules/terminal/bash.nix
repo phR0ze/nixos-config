@@ -1,7 +1,7 @@
 # Minimal bash configuration
 #
-# ### Features
-# - bash
+# ### Details
+# - These changes get saved in /etc/bashrc which is loaded by /etc/profile
 #---------------------------------------------------------------------------------------------------
 { ... }:
 let
@@ -23,9 +23,19 @@ let
 in
 {
   programs.bash = {
+    # Installs dircolors and adds `eval "$(/nix/store/.../coreutils-9.3/bin/dircolors -b)"`
     enableLsColors = true;
     enableCompletion = true;
+
+    # Adds these to the bottom of /etc/bashrc
     shellAliases = aliases;
+
+    # Enable starship
+    # promptInit = ''
+    #   eval "$(${pkgs.starship}/bin/starship init bash)"
+    # '';
+
+    # Adds in the middle of /etc/bashrc
     promptInit = ''
       if [ "$TERM" != "dumb" ]; then
         if [ "$TERM" == "xterm"]; then
@@ -37,6 +47,30 @@ in
         fi
       fi
     '';
+
+    shellInit = ''
+      complete -cf sudo                   # Setup bash tab completion for sudo
+      set -o vi                           # Set vi command prompt editing
+      umask 022                           # Default permissions for the files you create
+
+      shopt -s dotglob                    # Have * include .files as well
+      shopt -s extglob                    # Include extended globbing support
+      shopt -s histappend                 # Append to the history file, don't overwrite it
+      shopt -s checkwinsize               # Update window LINES/COLUMNS after ea. command if necessary
+
+      export HISTSIZE=10000               # Set history length
+      export HISTFILESIZE=${HISTSIZE}     # Set history file size
+      export HISTCONTROL=ignoreboth       # Ignore duplicates and lines starting with space
+      export EDITOR=vim                   # Set the editor to use
+      export VISUAL=vim                   # Set the editor to use
+      export KUBE_EDITOR=vim              # Set the editor to use for Kubernetes edit commands
+
+      export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+    '';
+
+    #loginShellInit = ''
+
+    #interactiveShellInit = ''
   };
 }
 
