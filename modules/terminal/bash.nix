@@ -19,8 +19,8 @@
 
     # Use green prompt for admin and red for user
     # Manually adding the starship configuration here to allow for more custom TERM options as the
-    # starship config's 'programs.starship.enable' simply checks for 'dumb' and that doesn't catch
-    # typical default linux terminals for virtual machines like Virtual Box.
+    # starship 'programs.starship' option simply checks for 'dumb' and that doesn't catch typical
+    # default linux terminals for virtual machines like Virtual Box.
     promptInit = ''
       PROMPT_COLOR="1;31m"
       ((UID)) && PROMPT_COLOR="1;32m"

@@ -3,9 +3,9 @@
 # ### Details
 # Purposefully not using the built in 'programs.starship' because when the initialization is added
 # to /etc/bashrc it only checks for the 'dumb' TERM and misses typical default linux terminals for
-# virtual machines like Virtual Box and looks lame because they don't have modern support. Despite
-# disabling here the 'settings' option below ensures the package is installed and the configuration
-# is saved and can be accessed with '${pkgs.starship}/bin/starship init bash'
+# virtual machines like Virtual Box and looks lame because they don't have modern terminal support.
+# Instead configuration is done directly in the bash.nix module using the nix syntax
+# '${pkgs.starship}/bin/starship init bash'
 #---------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
