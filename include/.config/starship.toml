@@ -1,6 +1,7 @@
 format = """
 $container\
 $username\
+$hostname\
 [](fg:#0488D3 bg:#606365)\
 $directory\
 [](fg:#606365 bg:#1c638d)\
@@ -23,6 +24,13 @@ style_user = "bg:#0488D3 fg:#FFFFFF"
 style_root = "bg:#d31f04 fg:#FFFFFF"
 format = '[ $user ]($style)'
 show_always = true
+disabled = false
+
+[hostname]
+ssh_only = true
+style = "bg:#0488D3 fg:#FFFFFF"
+format = "[@$hostname]($style)"
+trim_at = "."
 disabled = false
 
 [directory]
