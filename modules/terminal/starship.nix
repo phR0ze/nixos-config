@@ -6,8 +6,12 @@
 { lib, ... }:
 {
   programs.starship = {
-    enable = true;
-    interactiveOnly = true;
+    # Purposefully diabling as the default starship config the is added to /etc/bashrc to source
+    # starship only checks for the 'dumb' TERM and misses typical default linux terminals for
+    # virtual machines like Virtual Box and looks lame because they don't have modern support.
+    # Despite disabling here the 'settings' option below ensures the package is installed and the
+    # configuration is saved and can be accessed with '${pkgs.starship}/bin/starship init bash'
+    enable = false;
 
     # Gets stored as a /nix/store package and referred to with the $STARSHIP_CONFIG env variable
     settings = {

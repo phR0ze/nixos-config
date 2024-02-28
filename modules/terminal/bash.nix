@@ -3,7 +3,7 @@
 # ### Details
 # - These changes get saved in /etc/bashrc which is loaded by /etc/profile
 #---------------------------------------------------------------------------------------------------
-{ ... }:
+{ pkgs, ... }:
 let
   aliases = {
     # git aliases
@@ -31,11 +31,17 @@ in
     shellAliases = aliases;
 
     # Use green prompt for admin and red for user
-    # This will get overriden by the starship configuration anyway
+    # Manually adding the starship configuration here to allow for more custom TERM options as the
+    # starship config's 'programs.starship.enable' simply checks for 'dumb' and that doesn't catch
+    # typical default linux terminals for virtual machines like Virtual Box.
     promptInit = ''
       PROMPT_COLOR="1;31m"
       ((UID)) && PROMPT_COLOR="1;32m"
       PS1="\n\[\033[$PROMPT_COLOR\][\[\e]0;\u@\h: \w\a\]\u@\h:\w]\\$\[\033[0m\] "
+
+      if [[ "$TERM" != "dumb" && "$TERM" != "linux" ]]; then
+        eval "$(${pkgs.starship}/bin/starship init bash)"
+      fi
     '';
 
     # Adds this to /etc/profile for all shells
