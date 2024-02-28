@@ -7,7 +7,7 @@
 # disabling here the 'settings' option below ensures the package is installed and the configuration
 # is saved and can be accessed with '${pkgs.starship}/bin/starship init bash'
 #---------------------------------------------------------------------------------------------------
-{ ... }:
+{ pkgs, ... }:
 {
   environment.systemPackages = with pkgs; [
     starship
