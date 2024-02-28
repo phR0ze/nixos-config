@@ -28,7 +28,7 @@
     users.${args.settings.username} = { pkgs, args, ... }:
     {
       imports = [
-        ./dircolors.nix
+        ../dircolors
         ./git.nix
       ];
     
