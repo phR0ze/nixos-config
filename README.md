@@ -4,14 +4,14 @@ using only a bootable NixOS image and network connectivity.
 
 Due to the number of different machines I maintain and how often I change their intended purpose I 
 find it essential to be able to take a new system from baremetal to a pre-defined, purposefully built 
-system serving in it's intended function as effortlessly as possible. NixOS's flakes and profiles 
-provide a fantastic platform on which to build this functionality .
+system serving in it's intended function as effortlessly as possible. NixOS's Nix and flakes 
+integration provides a fantastic platform on which to build this functionality.
 
 ### Disclaimer
 Any tooling or documentation here comes with absolutely no guarantees or support of any kind. It is 
 to be used at your own risk. Any damages, issues, losses or problems caused by the use of any tooling 
 or documentation here is strictly the responsiblity of the end user and not the developer/creator of 
-this project. This project is highly opinionated and primarily for my own use but your welcome to 
+this project. This project is highly opinionated and primarily for personal use but your welcome to 
 fork it and build on my work.
 
 ### Quick links
@@ -29,8 +29,8 @@ fork it and build on my work.
 * Automate the annoying tasks like
   * disk paritioning and mounting
   * generation of nixos hardware configuration
-  * transfering your customizations to the underlying nix flake
-  * installing your complete system via nix flakes
+  * transfering install time customizations to the underlying nix flake
+  * triggering the install of the complete system via nix flakes
 
 ### Install instructions
 
@@ -92,7 +92,7 @@ have copied the original configuration to `/etc/nixos`.
    $ nix flake update
 
    # Apply updates default path is /etc/nixos
-   $ sudo nixos-rebuild switch --flake .#install
+   $ sudo nixos-rebuild switch --flake path:/etc/nixos#system
 
    $ sudo ./clu sync
    ```
@@ -113,7 +113,10 @@ world though this already exists.
    $ git clone https://github.com/phR0ze/nixos-config
    ```
 
-2. Modify the `profiles/base/iso.nix` as desired
+2. Modify the ISO profile as desired
+   ```bash
+   $ vim profiles/base/iso.nix
+   ```
 
 3. Commit or at the least stage your changes so Nix will see them
    ```bash
@@ -128,11 +131,15 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
+* [ ] Prove out home-manager with dircolors
+* [ ] Customize neovim
 
 ## Sometime
+* [ ] Configure `git config --global user.name`
+* [ ] Configure `git config --global user.email`
+* [ ] Configure `git config --global --add safe.directory /etc/nixos`
 * [ ] `sudo nix-channel --list` is showing stuff
 * [ ] Remove `/etc/nixos/etc/nixos`
-* [ ] Install neovim
 * [ ] Fix Bash prompt error
 * [ ] clu to update `flake.nix` with user selection
 * [ ] Build out standard xfce desktop
@@ -140,6 +147,9 @@ world though this already exists.
 * [ ] Change the kernel boot colors 
 
 ## Completed
+* [x] Install neovim as default editor
+* [x] Add the flake nixpkgs to the `NIX_PATH`
+* [x] Install git and vim for basic usage
 * [x] Present and install user profile selection
 * [x] Pass user set options
 * [x] Pass automation set options
