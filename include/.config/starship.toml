@@ -40,6 +40,7 @@ when = '''test "$USER" != "root"'''
 format = "[@$output ](fg:color_white bg:color_light_blue)"
 
 [custom.root_hostname]
+command = "uname -n"
 when = '''test "$USER" = "root"'''
 format = "[@$output ](fg:color_white bg:color_light_red)"
 
