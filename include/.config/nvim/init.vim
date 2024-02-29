@@ -79,30 +79,30 @@ augroup GeneralSettings
   "endfunction
 augroup END
 
-augroup PluginInstall
-  autocmd!
-  call plug#begin('~/.config/nvim/plugins')   " Set the default location to store/load plugins from
+"augroup PluginInstall
+"  autocmd!
+"  call plug#begin('~/.config/nvim/plugins')   " Set the default location to store/load plugins from
 
   " Interface
-  Plug 'scrooloose/nerdtree'                  " File explorer sidebar
-  Plug 'vim-airline/vim-airline'              " Awesome status bar at bottom with git support
-  Plug 'vim-airline/vim-airline-themes'       " Vim Airline themes
-  Plug 'ryanoasis/vim-devicons'               " Sweet folder/file icons for nerd tree
+"  Plug 'scrooloose/nerdtree'                  " File explorer sidebar
+"  Plug 'vim-airline/vim-airline'              " Awesome status bar at bottom with git support
+"  Plug 'vim-airline/vim-airline-themes'       " Vim Airline themes
+"  Plug 'ryanoasis/vim-devicons'               " Sweet folder/file icons for nerd tree
 
   " ColorSchemes
-  Plug 'ajmwagar/vim-deus'                    " deus
-  Plug 'vim-scripts/CycleColor'               " Color scheme cycler
-  Plug 'YorickPeterse/happy_hacking.vim'      " happy_hacking
-  Plug 'w0ng/vim-hybrid'                      " hybrid
-  Plug 'kristijanhusak/vim-hybrid-material'   " hybrid_material
-  Plug 'nanotech/jellybeans.vim'              " jellybeans
-  Plug 'dikiaap/minimalist'                   " minimalist
-  Plug 'marcopaganini/termschool-vim-theme'   " termschool
-
-  " Syntax highlighting
-  Plug 'stephpy/vim-yaml'                     " yaml
-  Plug 'hail2u/vim-css3-syntax'               " css3
-  Plug 'kurayama/systemd-vim-syntax'          " systemd
+  "Plug 'ajmwagar/vim-deus'                    " deus
+"  Plug 'vim-scripts/CycleColor'               " Color scheme cycler
+"  Plug 'YorickPeterse/happy_hacking.vim'      " happy_hacking
+"  Plug 'w0ng/vim-hybrid'                      " hybrid
+"  Plug 'kristijanhusak/vim-hybrid-material'   " hybrid_material
+"  Plug 'nanotech/jellybeans.vim'              " jellybeans
+"  Plug 'dikiaap/minimalist'                   " minimalist
+"  Plug 'marcopaganini/termschool-vim-theme'   " termschool
+"
+"  " Syntax highlighting
+"  Plug 'stephpy/vim-yaml'                     " yaml
+"  Plug 'hail2u/vim-css3-syntax'               " css3
+"  Plug 'kurayama/systemd-vim-syntax'          " systemd
 
 "  " Utilities
 "  Plug 'aserebryakov/vim-todo-lists'        " Manage TODOs
@@ -186,10 +186,10 @@ augroup PluginInstall
 "  "Plug 'ngmy/vim-rubocop'
 "
   " Colorize last to ensure overriding
-  Plug 'phR0ze/vim-colorize'                  " Colorize various plugins
+"  Plug 'phR0ze/vim-colorize'                  " Colorize various plugins
 
-  call plug#end()                             " Now initialize the plugin system
-augroup END
+"  call plug#end()                             " Now initialize the plugin system
+"augroup END
 
 " Filetype settings
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
