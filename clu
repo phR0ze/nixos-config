@@ -38,7 +38,7 @@ core::title()
     VERSION=0.0.1
     #VERSION=$(cat VERSION)
     log::header '=' "${cyan}" "Codified Likeness Utility - clu v${VERSION}" 1
-    echo -e "${green}that is to say, build me a linux that i like${none}\n"
+    echo -e "${green}that is to say, build me a linux that i like${none}"
 }
 
 core::usage()
