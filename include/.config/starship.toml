@@ -1,15 +1,12 @@
-# Example:
-# https://github.com/mickimnet/myth-prompt-themes/blob/main/colorful/pointed/starship/left_only/starship.toml
-[palettes.cyber]
-color_light_gray = "#606365"
-color_light_blue = "#0488D3"
-color_dark_blue = "#1c638d"
-color_light_red = "#d31f04"
+add_newline = false
+command_timeout = 10000
+palette = "cyber"
 
 format = """
 $container\
-$hostname\
 $username\
+${custom.user_hostname}\
+${custom.root_hostname}\
 ${custom.user_arrow}\
 ${custom.root_arrow}\
 $directory\
@@ -19,27 +16,32 @@ $git_status\
 [ ](fg:color_dark_blue)\
 """
 
-add_newline = false
-command_timeout = 10000
-palette = "cyber"
+[palettes.cyber]
+color_light_gray = "#606365"
+color_light_blue = "#0488D3"
+color_dark_blue = "#1c638d"
+color_light_red = "#d31f04"
+color_white = "#ffffff"
 
 [container]
 style = "bg:#0488D3"
 format = '[ $name ]($style)'
 
-[hostname]
-ssh_only = true
-style = "bg:#0488D3"
-format = "[ @$hostname ]($style)"
-trim_at = "."
-disabled = false
-
 [username]
-style_user = "bg:color_light_blue"
-style_root = "bg:color_light_red"
-format = "[ $user ]($style)"
+style_user = "fg:color_white bg:color_light_blue"
+style_root = "fg:color_white bg:color_light_red"
+format = "[ $user]($style)"
 show_always = true
 disabled = false
+
+[custom.user_hostname]
+command = "uname -n"
+when = '''test "$USER" != "root"'''
+format = "[@$output ](fg:color_white bg:color_light_blue)"
+
+[custom.root_hostname]
+when = '''test "$USER" = "root"'''
+format = "[@$output ](fg:color_white bg:color_light_red)"
 
 [custom.user_arrow]
 when = '''test "$USER" != "root"'''
@@ -50,17 +52,17 @@ when = '''test "$USER" = "root"'''
 format = "[](fg:color_light_red bg:color_light_gray)"
 
 [directory]
-format = "[ $path ](bg:color_light_gray)"
+format = "[ $path ](fg:color_white bg:color_light_gray)"
 truncation_length = 3
 truncation_symbol = "…/"
 truncate_to_repo = false
 
 [git_branch]
 symbol = ""
-format = '[ $symbol $branch ](bg:color_dark_blue)'
+format = '[ $symbol $branch ](fg:color_white bg:color_dark_blue)'
 
 [git_status]
 ahead = '⇡ ${count}'
 behind = '⇣ ${count}'
 diverged = '⇕⇡${ahead_count}⇣${behind_count}'
-format = '[$all_status$ahead_behind ](bg:color_dark_blue)'
+format = '[$all_status$ahead_behind ](fg:color_white bg:color_dark_blue)'
