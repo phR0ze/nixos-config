@@ -2,13 +2,13 @@ format = """
 $container\
 $username\
 $hostname\
-[](fg:#0488D3 bg:#606365)\
 $directory\
 [](fg:#606365 bg:#1c638d)\
 $git_branch\
 $git_status\
 [ ](fg:#1c638d)\
 """
+#[](fg:#0488D3 bg:#606365)\
 
 add_newline = false
 command_timeout = 10000
@@ -22,7 +22,7 @@ format = '[ $name ]($style)'
 style_user = "bg:#0488D3 fg:#FFFFFF"
 # red background for root user
 style_root = "bg:#d31f04 fg:#FFFFFF"
-format = '[ $user ]($style)'
+format = '[ $user ]($style)'
 show_always = true
 disabled = false
 
@@ -34,7 +34,7 @@ trim_at = "."
 disabled = false
 
 [directory]
-style = "bg:#606365"
+style = "fg:#FFFFFF bg:#606365"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
