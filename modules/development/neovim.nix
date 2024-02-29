@@ -2,22 +2,35 @@
 #---------------------------------------------------------------------------------------------------
 { pkgs, lib, args, ... }:
 {
-  environment.systemPackages = with pkgs; [
-    vimPlugins.nerdtree                 # 
-    vimPlugins.vim-airline
-    vimPlugins.vim-airline-themes
-    vimPlugins.vim-deus
-  ];
-
   programs.neovim = {
     enable = true;
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;
     configure = {
-      customRC = ${
-        pkgs.writeText "init.vim"
-        (lib.fileContents ../../include/.config/nvim/init.vim)
+
+      # Load the neovim static dotfile from includes
+      customRC = builtins.readFile ../../include/.config/nvim/init.vim;
+
+      # Build an aggregate package with all plugins
+      packages.aggregatePlugins = with pkgs.vimPlugins; {
+
+        # Plugins loaded on boot
+        start = [
+
+          # Interface
+          nerdtree              # File explorer sidebar
+          vim-airline           # Awesome status bar at bottom with git support
+          vim-airline-themes    # Vim Airline themes
+          vim-devicons          # Sweet folder/file icons for nerd tree
+
+          # Color Schemes
+          vim-deus              # Deus color scheme
+        ];
+
+        # Plugins installed but not loaded on boot
+        # Manually load by calling `:packadd $plugin-name`
+        opt = [ ];
       };
     };
   };
