@@ -4,11 +4,13 @@ palette = "cyber"
 
 format = """
 $container\
-$username\
-${custom.user_hostname}\
-${custom.root_hostname}\
-${custom.user_arrow}\
-${custom.root_arrow}\
+${custom.user_name}\
+${custom.user_root}\
+${custom.user_ssh}\
+${custom.hostname_user}\
+${custom.hostname_root}\
+${custom.arrow_user}\
+${custom.arrow_root}\
 $directory\
 [](fg:color_light_gray bg:color_dark_blue)\
 $git_branch\
@@ -21,34 +23,53 @@ color_light_gray = "#606365"
 color_light_blue = "#0488D3"
 color_dark_blue = "#1c638d"
 color_light_red = "#d31f04"
+color_light_orange = "#ffa500"
 color_white = "#ffffff"
 
 [container]
 style = "bg:#0488D3"
 format = '[ $name ]($style)'
 
-[username]
-style_user = "fg:color_white bg:color_light_blue"
-style_root = "fg:color_white bg:color_light_red"
-format = "[ $user]($style)"
-show_always = true
-disabled = false
+# Non ssh user and not root
+[custom.user_name]
+command = "echo $USER"
+when = '[[ ! -n "$SSH_CONNECTION" && "$USER" != "root" ]]'
+shell = ["bash", "--noprofile", "--norc"]
+format = "[ $output ](fg:color_white bg:color_light_blue)"
 
-[custom.user_hostname]
+# Non ssh user and root
+[custom.user_root]
+when = '[[ ! -n "$SSH_CONNECTION" && "$USER" == "root" ]]'
+shell = ["bash", "--noprofile", "--norc"]
+format = "[ root ](fg:color_white bg:color_light_red)"
+
+# Any ssh user
+[custom.user_ssh]
+command = "echo $USER"
+when = '[[ -n "$SSH_CONNECTION" ]]'
+shell = ["bash", "--noprofile", "--norc"]
+format = "[ $output ](fg:color_white bg:color_light_orange)"
+
+[custom.hostname_user]
 command = "uname -n"
 when = '''test "$USER" != "root"'''
 format = "[@$output ](fg:color_white bg:color_light_blue)"
 
-[custom.root_hostname]
+[custom.hostname_root]
 command = "uname -n"
 when = '''test "$USER" = "root"'''
 format = "[@$output ](fg:color_white bg:color_light_red)"
 
-[custom.user_arrow]
+[custom.hostname_ssh]
+command = "uname -n"
+when = '''test "$USER" != "root"'''
+format = "[@$output ](fg:color_white bg:color_light_blue)"
+
+[custom.arrow_user]
 when = '''test "$USER" != "root"'''
 format = "[](fg:color_light_blue bg:color_light_gray)"
 
-[custom.root_arrow]
+[custom.arrow_root]
 when = '''test "$USER" = "root"'''
 format = "[](fg:color_light_red bg:color_light_gray)"
 
