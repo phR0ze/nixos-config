@@ -13,7 +13,7 @@
         defaultBranch = "main";
       };
       safe = {
-	      directory = "/etc/nixos";
+        directory = "/etc/nixos";
       };
     };
   };
