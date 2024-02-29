@@ -6,7 +6,7 @@
 { config, lib, args, ... }:
 {
   imports = [
-    ../base/bootable.nix
+    ../cli
   ];
 
   services.xserver = {

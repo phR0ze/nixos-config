@@ -1,4 +1,4 @@
-# Minimal bootable configuration
+# Minimal base bootable configuration
 #
 # ### Features
 # - Directly installable
