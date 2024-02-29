@@ -12,11 +12,25 @@
   services.xserver = {
     enable = true;
     desktopManager = {
-      xterm.enable = false;
       xfce.enable = true;
+      xterm.enable = false;
     };
-    displayManager.defaultSession = "xfce";
+    displayManager = {
+      lightdm.enable = true;
+      defaultSession = "xfce";
+
+      # Conditionally autologin based on install settings
+      autoLogin = {
+        enable = args.settings.autologin;
+        user = args.settings.username;
+      };
+    };
   }; 
+
+  programs.thunar.plugins = with pkgs.xfce; [
+    thunar-volman
+    thunar-archive-plugin
+  ];
 }
 
 # vim:set ts=2:sw=2:sts=2
