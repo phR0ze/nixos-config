@@ -68,7 +68,7 @@ format = "[@$output ](fg:color_white bg:color_light_red)"
 command = "uname -n"
 when = '[[ -n "$SSH_CONNECTION" ]]'
 shell = ["bash", "--noprofile", "--norc"]
-format = "[@$output ](fg:color_white bg:color_light_blue)"
+format = "[@$output ](fg:color_white bg:color_light_orange)"
 
 [custom.arrow_user]
 when = '[[ ! -n "$SSH_CONNECTION" && "$USER" != "root" ]]'
