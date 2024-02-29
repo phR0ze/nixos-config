@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# Update the system
+# 
+# ## Features
+#
+# --------------------------------------------------------------------------------------------------
+
+# Usage for the update command and its sub commands
+# --------------------------------------------------------------------------------------------------
+update::usage()
+{
+    cat <<USAGE
+Usage:
+  update [options] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out top level usage
+
+Commands:
+  system            Update the system with the configuration changes
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "${green}Update the system:${none} ./${SCRIPT} update system"
+    echo
+    exit
+}
+
+
+# Parse the update commands and execute
+# --------------------------------------------------------------------------------------------------
+update::run()
+{
+    # Handle arguments
+    if [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]]; then
+        update::usage
+    fi
+
+    # Parse the update commnand
+    local command=$1; shift
+    case "$command" in
+        system) update::system "$@" ;;
+
+        *) log::error "Invalid update command: ${cyan}${command}${none}"; update::usage ;;
+    esac
+}
+ 
+# Update the system with the system configuration changes
+# --------------------------------------------------------------------------------------------------
+update::system()
+{
+    core::title
+    log::header0 "Update system"
+
+    nixos-rebuild switch --flake "path:/etc/nixos#system"
+}
+
+# vim: ft=sh:ts=4:sw=4:sts=4
