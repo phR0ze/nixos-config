@@ -39,11 +39,13 @@
       stateVersion = "23.11";
 
       # Configuration overriden by user selections in the clu installer
-      hostname = "nixos";             # hostname to use for the install
+      name = "admin";                 # user name to use for general purposes
+      email = "nixos@nixos.org";      # email to use for general configuration
       username = "admin";             # initial admin user to create during install
       userpass = "admin";             # admin user password securely entered during boot
-      name = "admin";                 # name to use for git and other app configurations
-      email = "nixos@nixos.org";      # email to use for git and other app configurations
+      git_user = "admin";             # username to use for github, gitlab or other git tools
+      git_email = "nixos@nixos.org";  # email to use for github, gitlab or other git tools
+      hostname = "nixos";             # hostname to use for the install
       profile = "base/bootable";      # pre-defined configurations in path './profiles' selection
       autologin = false;              # automatically log the user in after boot when true
       

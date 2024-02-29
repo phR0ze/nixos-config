@@ -29,7 +29,6 @@
     {
       imports = [
         ./dircolors
-        ./git.nix
       ];
     
       home = {
