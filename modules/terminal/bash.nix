@@ -17,15 +17,17 @@
       shopt -s extglob                    # Include extended globbing support
     '';
 
-    # Use green prompt for admin and red for user
-    # Manually adding the starship configuration here to allow for more custom TERM options as the
-    # starship 'programs.starship' option simply checks for 'dumb' and that doesn't catch typical
-    # default linux terminals for virtual machines like Virtual Box.
+    # Bash prompt
+    # - Using green prompt for admin and red for user in dumb TERM cases
+    # - Using starship configuration for smart TERMs. The 'programs.starship' option only checks for 
+    #   'dumb' TERM so manually handling this myself here for more flexibility.
     promptInit = ''
+      # Dumb term default
       PROMPT_COLOR="1;31m"
       ((UID)) && PROMPT_COLOR="1;32m"
       PS1="\n\[\033[$PROMPT_COLOR\][\[\e]0;\u@\h: \w\a\]\u@\h:\w]\\$\[\033[0m\] "
 
+      # Smart term starship
       if [[ "$TERM" != "dumb" && "$TERM" != "linux" ]]; then
         export STARSHIP_CONFIG=${
           pkgs.writeText "starship.toml"

@@ -131,14 +131,13 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Add terminal nerd fonts
-* [ ] Clean up starship prompt to look better
+* [ ] Add vim-colorize plugin
 
 ## Sometime
+* [ ] Add terminal nerd fonts
 * [ ] Configure `git config --global user.name`
 * [ ] Configure `git config --global user.email`
 * [ ] Configure `git config --global --add safe.directory /etc/nixos`
-* [ ] Add vim-colorize plugin
 * [ ] Change nix flake symbol to blue in colorizer
 * [ ] Adding solarized dircolors theme
 * [ ] `sudo nix-channel --list` is showing stuff
@@ -150,6 +149,7 @@ world though this already exists.
 * [ ] alias or clu feature `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
 
 ## Completed
+* [x] Clean up starship prompt to look better
 * [x] Customize neovim
 * [x] Add starship command prompt for all users
 * [x] Install neovim as default editor
