@@ -1,11 +1,9 @@
 # Default development configuration
-#
-# ### Features
-# - NeoVim as default editor
 #---------------------------------------------------------------------------------------------------
 { ... }:
 {
   imports = [
+    ./git.nix
     ./neovim.nix
   ];
 }
