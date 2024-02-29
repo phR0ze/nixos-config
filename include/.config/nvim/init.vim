@@ -57,6 +57,8 @@ augroup GeneralSettings
   set softtabstop=2             " How many columns a tab counts for, only used when expandtab is not set
   set expandtab                 " Hitting tab in insert mode will produce the appropriate number of spaces
   set cindent                   " Enables automatic C program indenting
+  set cinkeys-=0#               " Solve for having # indented intuitively
+  set indentkeys-=0#            " Solve for having # indented intuitively
   set autoindent                " Enables automatic C program indenting
   set smartindent               " Indents according to blocks of code, 'nosmartindent'
 
