@@ -202,7 +202,7 @@ install::run()
     USER_EMAIL='nixos@nixos.org'
     DEFAULT_PASS='admin'
     ROOT_MOUNT='/mnt'
-    PROFILE='base/bootable'
+    PROFILE='cli/default'
     NIXOS_CONFIG="${ROOT_MOUNT}/etc/nixos"
 
     # Detect EFI supported system
