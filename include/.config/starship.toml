@@ -66,7 +66,7 @@ format = "[@$output ](fg:color_white bg:color_light_red)"
 
 [custom.hostname_ssh]
 command = "uname -n"
-when = '''test "$USER" != "root"'''
+when = '[[ -n "$SSH_CONNECTION" ]]'
 shell = ["bash", "--noprofile", "--norc"]
 format = "[@$output ](fg:color_white bg:color_light_blue)"
 
