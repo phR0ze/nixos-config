@@ -9,8 +9,10 @@ ${custom.user_root}\
 ${custom.user_ssh}\
 ${custom.hostname_user}\
 ${custom.hostname_root}\
+${custom.hostname_ssh}\
 ${custom.arrow_user}\
 ${custom.arrow_root}\
+${custom.arrow_ssh}\
 $directory\
 [](fg:color_light_gray bg:color_dark_blue)\
 $git_branch\
@@ -23,7 +25,7 @@ color_light_gray = "#606365"
 color_light_blue = "#0488D3"
 color_dark_blue = "#1c638d"
 color_light_red = "#d31f04"
-color_light_orange = "#ffa500"
+color_light_orange = "#ff7b00"
 color_white = "#ffffff"
 
 [container]
@@ -52,26 +54,36 @@ format = "[ $output](fg:color_white bg:color_light_orange)"
 
 [custom.hostname_user]
 command = "uname -n"
-when = '''test "$USER" != "root"'''
+when = '[[ ! -n "$SSH_CONNECTION" && "$USER" != "root" ]]'
+shell = ["bash", "--noprofile", "--norc"]
 format = "[@$output ](fg:color_white bg:color_light_blue)"
 
 [custom.hostname_root]
 command = "uname -n"
-when = '''test "$USER" = "root"'''
+when = '[[ ! -n "$SSH_CONNECTION" && "$USER" == "root" ]]'
+shell = ["bash", "--noprofile", "--norc"]
 format = "[@$output ](fg:color_white bg:color_light_red)"
 
 [custom.hostname_ssh]
 command = "uname -n"
 when = '''test "$USER" != "root"'''
+shell = ["bash", "--noprofile", "--norc"]
 format = "[@$output ](fg:color_white bg:color_light_blue)"
 
 [custom.arrow_user]
-when = '''test "$USER" != "root"'''
+when = '[[ ! -n "$SSH_CONNECTION" && "$USER" != "root" ]]'
+shell = ["bash", "--noprofile", "--norc"]
 format = "[](fg:color_light_blue bg:color_light_gray)"
 
 [custom.arrow_root]
-when = '''test "$USER" = "root"'''
+when = '[[ ! -n "$SSH_CONNECTION" && "$USER" == "root" ]]'
+shell = ["bash", "--noprofile", "--norc"]
 format = "[](fg:color_light_red bg:color_light_gray)"
+
+[custom.arrow_ssh]
+when = '[[ -n "$SSH_CONNECTION" ]]'
+shell = ["bash", "--noprofile", "--norc"]
+format = "[](fg:color_light_orange bg:color_light_gray)"
 
 [directory]
 format = "[ $path ](fg:color_white bg:color_light_gray)"
