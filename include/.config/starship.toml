@@ -1,14 +1,14 @@
 format = """
 $container\
-$username\
 $hostname\
+$username\
+[](fg:#0488D3 bg:#606365)\
 $directory\
 [](fg:#606365 bg:#1c638d)\
 $git_branch\
 $git_status\
 [ ](fg:#1c638d)\
 """
-#[](fg:#0488D3 bg:#606365)\
 
 add_newline = false
 command_timeout = 10000
@@ -17,20 +17,20 @@ command_timeout = 10000
 style = "bg:#0488D3 fg:#FFFFFF"
 format = '[ $name ]($style)'
 
-[username]
-# cyber blue background for user
-style_user = "bg:#0488D3 fg:#FFFFFF"
-# red background for root user
-style_root = "bg:#d31f04 fg:#FFFFFF"
-format = '[ $user ]($style)'
-show_always = true
-disabled = false
-
 [hostname]
 ssh_only = true
 style = "bg:#0488D3 fg:#FFFFFF"
-format = "[@$hostname]($style)"
+format = "[ @$hostname ]($style)"
 trim_at = "."
+disabled = false
+
+[username]
+# cyber blue background for user
+style_user = "bg:#0488D3"
+# red background for root user
+style_root = "bg:#d31f04"
+format = "[ $user ]($style)"
+show_always = true
 disabled = false
 
 [directory]
