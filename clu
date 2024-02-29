@@ -59,6 +59,7 @@ Commands:
   help              Get help for a command
   install           Install system configuration
   test              Testing function for development
+  update            Update the system with any changed configuration
 USAGE
 
     log::ln "\nExamples:"
@@ -79,6 +80,7 @@ case "$command" in
     build) build::run "$@" ;;
     install) install::run "$@" ;;
     test) test::run "$@" ;;
+    update) update::run "$@" ;;
 
     *) log::error "Invalid command: ${cyan}${command}${none}"; core::usage ;;
 esac
