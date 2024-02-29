@@ -23,7 +23,10 @@
 " https://github.com/EricFalkenberg/dotfiles/blob/master/.vimrc
 " https://github.com/zeorin/dotfiles/blob/e01cebf/.vimrc#L864-L900
 " https://github.com/ryanoasis/vim-devicons/issues/158
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"
+" NixOS available plugins
+" https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/vim/plugins/generated.nix
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 augroup GeneralSettings
   autocmd!
   set title                     " Sets the window title to your current buffer name
@@ -79,6 +82,8 @@ augroup GeneralSettings
   "endfunction
 augroup END
 
+" NixOS takes care of plugin installation in a system wide way that is easier than managing
+" plugins directly via vim plugin managers.
 "augroup PluginInstall
 "  autocmd!
 "  call plug#begin('~/.config/nvim/plugins')   " Set the default location to store/load plugins from
