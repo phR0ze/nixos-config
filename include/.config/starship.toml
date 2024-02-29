@@ -35,20 +35,20 @@ format = '[ $name ]($style)'
 command = "echo $USER"
 when = '[[ ! -n "$SSH_CONNECTION" && "$USER" != "root" ]]'
 shell = ["bash", "--noprofile", "--norc"]
-format = "[ $output ](fg:color_white bg:color_light_blue)"
+format = "[ $output](fg:color_white bg:color_light_blue)"
 
 # Non ssh user and root
 [custom.user_root]
 when = '[[ ! -n "$SSH_CONNECTION" && "$USER" == "root" ]]'
 shell = ["bash", "--noprofile", "--norc"]
-format = "[ root ](fg:color_white bg:color_light_red)"
+format = "[ root](fg:color_white bg:color_light_red)"
 
 # Any ssh user
 [custom.user_ssh]
 command = "echo $USER"
 when = '[[ -n "$SSH_CONNECTION" ]]'
 shell = ["bash", "--noprofile", "--norc"]
-format = "[ $output ](fg:color_white bg:color_light_orange)"
+format = "[ $output](fg:color_white bg:color_light_orange)"
 
 [custom.hostname_user]
 command = "uname -n"
