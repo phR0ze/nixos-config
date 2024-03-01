@@ -10,5 +10,3 @@ source "${SCRIPT_DIR}/lib/update"
 # Import utilities
 source "${SCRIPT_DIR}/lib/log"
 source "${SCRIPT_DIR}/lib/utils"
-
-# vim: ft=sh:ts=4:sw=4:sts=4

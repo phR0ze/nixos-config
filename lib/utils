@@ -126,5 +126,3 @@ utils::replace()
         sed -i -e "s|\(^.*${target} = \"\).*\(\";.*$\)|\1${value}\2|" "${file}"
     fi
 }
-
-# vim: ft=sh:ts=4:sw=4:sts=4

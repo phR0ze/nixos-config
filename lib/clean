@@ -4,7 +4,7 @@
 # --------------------------------------------------------------------------------------------------
 clean::usage()
 {
-  cat <<USAGE
+    cat <<USAGE
 Usage:
   clean [options] [COMMAND] [ARGS...]
 
@@ -15,10 +15,10 @@ Commands:
   store             Clean the nix store
 USAGE
 
-  log::ln "\nExamples:"
-  log::subln "Clean nix store: ${green}./${SCRIPT} clean store${none}"
-  echo
-  exit
+    log::ln "\nExamples:"
+    log::subln "Clean nix store: ${green}./${SCRIPT} clean store${none}"
+    echo
+    exit
 }
 
 
@@ -26,14 +26,12 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 clean::run()
 {
-  [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && clean::usage
+    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && clean::usage
 
-  # Parse the clean commnand
-  local command=$1; shift
-  case "$command" in
-    store) nix-store --gc ;;
-    *) log::error "Invalid clean command: ${cyan}${command}${none}"; clean::usage ;;
-  esac
+    # Parse the clean commnand
+    local command=$1; shift
+    case "$command" in
+        store) nix-store --gc ;;
+        *) log::error "Invalid clean command: ${cyan}${command}${none}"; clean::usage ;;
+    esac
 }
- 
-# vim: ft=sh:ts=4:sw=4:sts=4
