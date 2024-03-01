@@ -3,6 +3,7 @@
 # Import core functions
 source "${SCRIPT_DIR}/lib/build"
 source "${SCRIPT_DIR}/lib/install"
+source "${SCRIPT_DIR}/lib/pkgs"
 source "${SCRIPT_DIR}/lib/update"
 
 # Import utilities

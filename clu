@@ -51,6 +51,7 @@ Usage:
 Options:
   --debug           Debug mode with verbose output
   -h, --help        Print out top level usage
+  -q, --quiet       Don't print out anything but the specific output data
   -v, -verbose      Verbose output
   --ver             Print version and exit
 
@@ -58,6 +59,7 @@ Commands:
   build             Build components
   help              Get help for a command
   install           Install system configuration
+  pkgs              Package management commands
   test              Testing function for development
   update            Update the system with any changed configuration
 USAGE
@@ -71,14 +73,22 @@ USAGE
 
 # Parse commands
 # --------------------------------------------------------------------------------------------------
-if [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]]; then
-    core::usage
+[[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && core::usage
+
+# Handle programmatic output mode
+QUIET=0
+if [[ $1 == "-q" || $1 == "--quiet" ]]; then
+    QUIET=1
+    LOG_LEVEL="error"
+    _log_level=$_error
+    shift
 fi
 
 command=$1; shift
 case "$command" in
     build) build::run "$@" ;;
     install) install::run "$@" ;;
+    pkgs) pkgs::run "$@" ;;
     test) test::run "$@" ;;
     update) update::run "$@" ;;
 

@@ -83,6 +83,16 @@ log::ln()
     _log $_info "${msg}"
 }
 
+# Log at debug level with newline
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 the message to log
+log::ln_d()
+{
+    local msg="$1"
+    _log $_debug "${msg}"
+}
+
 # Log 2 space indent at info level with newline
 # --------------------------------------------------------------------------------------------------
 # ### Params

@@ -7,6 +7,7 @@
 {
   imports = [
     ./bash.nix
+#    ./dircolors.nix
     ./starship.nix
   ];
 }

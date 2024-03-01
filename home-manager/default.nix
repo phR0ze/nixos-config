@@ -27,9 +27,9 @@
     # Define system user
     users.${args.settings.username} = { pkgs, args, ... }:
     {
-      imports = [
-        ./dircolors
-      ];
+#      imports = [
+#        ./dircolors
+#      ];
     
       home = {
         username = "${args.settings.username}";
