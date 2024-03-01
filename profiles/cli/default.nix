@@ -31,30 +31,35 @@
   environment.systemPackages = with pkgs; [
 
     # Networking utilities
-    git
-    wget
+    git                           # The fast distributed version control system
+    wget                          # Retrieve files using HTTP, HTTPS, and FTP
 
     # System utilities
-    efibootmgr
-    efivar
-    #'cdrtools'                  # isoinfo, mkisofs
-    ddrescue
-    #'dos2unix'                  # Text file format converter
+    efibootmgr                    # EFI Boot Manager
+    efivar                        # Tools to manipulate EFI variables
+    #cdrtools                      # ISO tools e.g. isoinfo, mkisofs
+    ddrescue                      # GNU ddrescue, a data recovery tool
+    #dos2unix                      # Text file format converter
+    #fwupd                         # Firmware update tool
+    #gptfdisk                      # Disk tools e.g. sgdisk, gdisk, cgdisk
     #'intel-ucode'               # required for Intel Microcode update files to boot
-    inxi
-    #'linux-firmware'            # Fills in missing drivers for initramfs builds
-    logrotate
+    inxi                          # CLI system information tool
+    #libisoburn                    # xorriso ISO creation tools
+    #linux-firmware                # Provides a collection of hardware drivers
+    logrotate                     # Rotates and compresses system logs
     #'mkinitcpio-vt-colors'      # vt-colors, mkintcpio, find, xargs, gawk, grep
-    psmisc
-    smartmontools
-    tmux
-    usbutils
-    yq
+    psmisc                        # Proc filesystem utilities e.g. killall
+    smartmontools                 # Monitoring tools for hard drives
+    #squashfsTools                 # mksquashfs, unsquashfs
+    #testdisk                      # Checks and undeletes partitions + photorec
+    tmux                          # Terminal multiplexer
+    usbutils                      # Tools for working with USB devices e.g. lsusb
+    yq                            # Command line YAML/XML/TOML processor
 
     # Compression utilities
-    unrar
-    unzip
-    zip
+    unrar                         # Unfree utility to uncompress RAR archives
+    unzip                         # Uncompress Zip archives
+    zip                           # Create zip archives
   ];
 
   # Bootable systems imply a more general use case. Overriding the minimal.nix to include
