@@ -41,46 +41,28 @@
 
   # Base system packages
   environment.systemPackages = with pkgs; [
-#    pkgs.w3m-nographics # needed for the manual anyway
-#    pkgs.testdisk # useful for repairing boot problems
-#    pkgs.ms-sys # for writing Microsoft boot sectors / MBRs
-#    pkgs.efibootmgr
-#    pkgs.efivar
-#    pkgs.parted
-#    pkgs.gptfdisk
-#    pkgs.ddrescue
-#    pkgs.ccrypt
-#    pkgs.cryptsetup # needed for dm-crypt volumes
-    git                                      # Required for Flakes support
 
-    # Some text editors.
-#    (vim.customize {
-#      name = "vim";
-#      vimrcConfig.packages.default = {
-#        start = [ pkgs.vimPlugins.vim-nix ];
-#      };
-#      vimrcConfig.customRC = "syntax on";
-#    })
+    # Networking utilities
+    git
+    wget
 
-#    # Some networking tools.
-#    pkgs.fuse
-#    pkgs.fuse3
-#    pkgs.sshfs-fuse
-#    pkgs.socat
-#    pkgs.screen
-#    pkgs.tcpdump
-#
-#    # Hardware-related tools.
-#    pkgs.sdparm
-#    pkgs.hdparm
-#    pkgs.smartmontools # for diagnosing hard disks
-#    pkgs.pciutils
-#    pkgs.usbutils
-#    pkgs.nvme-cli
-#
-#    # Some compression/archiver tools.
-#    pkgs.unzip
-#    pkgs.zip
+    # System utilities
+    efibootmgr
+    efivar
+    ddrescue
+    inxi
+    logrotate
+    psmisc
+    smartmontools
+    tmux
+    usbutils
+    yq
+
+    # Compression utilities
+    rar
+    unrar
+    unzip
+    zip
   ];
 }
 

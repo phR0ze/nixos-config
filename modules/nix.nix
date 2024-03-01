@@ -11,6 +11,7 @@
 
     # Nix settings
     # https://nixos.org/manual/nix/stable/command-ref/conf-file.html
+    # ----------------------------------------------------------------------------------------------
     settings = {
 
       # Don't warn about dirty Git/Mercurial trees
@@ -32,8 +33,10 @@
         "repl-flake"     # 2.0 cli support for 'nix repl'
       ];
     };
+    extraOptions = "experimental-features = nix-command flakes";
 
     # Garbage collection settings
+    # ----------------------------------------------------------------------------------------------
     gc = {
       automatic = true;
       dates = "weekly";
@@ -41,11 +44,10 @@
       # Delete older generations
       options = "--delete-older-than 2d";
     };
-
-    extraOptions = "experimental-features = nix-command flakes";
   };
 
   # Write the current set of packages out to /etc/packages
+  # ------------------------------------------------------------------------------------------------
   environment.etc."packages".text =
   let
     packages = builtins.map (p: p.name) config.environment.systemPackages;
