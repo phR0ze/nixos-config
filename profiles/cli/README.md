@@ -79,7 +79,6 @@ Default package list for 23.11 base
 | `patch-2.7.6`               |                                   |
 | `procps-3.3.17`             |                                   |
 | `psmisc`                    | Proc filesystem utilities e.g. killall        |
-| `rar`                       | Create RAR archives                           |
 | `shadow-4.14.2`             |                                   |
 | `smartmontools`             | Monitoring tools for hard drives              |
 | `starship-1.17.1`           |                                   |
