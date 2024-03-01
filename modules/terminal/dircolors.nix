@@ -1,6 +1,5 @@
 # Dircolors configuration
 #---------------------------------------------------------------------------------------------------
-# This is a home-manager module
 #
 # ### Features
 # - using the universal dircolors from 

@@ -52,6 +52,13 @@
       export KUBE_EDITOR=vim              # Set the editor to use for Kubernetes edit commands
 
       export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+
+      # Configure dircolors which is installed with 'coreutils-full'
+      DIR_COLORS=${
+        pkgs.writeText ".dircolors"
+        (lib.fileContents ../../include/.dircolors)
+      }
+      eval "$(dircolors -b $DIR_COLORS)"
     '';
 
     # Adds this to the /etc/profile as well

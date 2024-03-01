@@ -52,9 +52,9 @@ augroup GeneralSettings
   set ruler                     " Shows current position (row and column) at the bottom of srceen
 
   " Set tabbing/indenting
-  set tabstop=4                 " How many columns a tab counts for
-  set shiftwidth=4              " Specifies how many columns text is indented with the rindent operations << and >>
-  set softtabstop=4             " How many columns a tab counts for, only used when expandtab is not set
+  set tabstop=2                 " How many columns a tab counts for
+  set shiftwidth=2              " Specifies how many columns text is indented with the rindent operations << and >>
+  set softtabstop=2             " How many columns a tab counts for, only used when expandtab is not set
   set expandtab                 " Hitting tab in insert mode will produce the appropriate number of spaces
   set cindent                   " Enables automatic C program indenting
   set cinkeys-=0#               " Solve for having # indented intuitively
