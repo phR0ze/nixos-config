@@ -41,7 +41,7 @@
     ddrescue                      # GNU ddrescue, a data recovery tool
     dos2unix                      # Text file format converter
     #fwupd                         # Firmware update tool
-    #gptfdisk                      # Disk tools e.g. sgdisk, gdisk, cgdisk
+    gptfdisk                      # Disk tools e.g. sgdisk, gdisk, cgdisk
     #'intel-ucode'               # required for Intel Microcode update files to boot
     inxi                          # CLI system information tool
     #libisoburn                    # xorriso ISO creation tools
