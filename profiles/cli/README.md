@@ -45,6 +45,7 @@ Default package list for 23.11 base
 | `iproute2-6.5.0`            | TCP/IP networking utilities                   | default |
 | `iptables-1.8.10`           | IP packet filtering                           | default |
 | `iputils-20221126`          | IP utilties e.g. ping                         | deafult |
+| `jq`                        | Command line JSON processor, depof: kubectl   | `pkgs`  |
 | `kbd-2.6.3`                 | Keyboard tools and keyboard maps              | default |
 | `kexec-tools-2.0.26`        | Tools related to the kexec feature            | default |
 | `kmod-31`                   | Linux kernel management tools                 | default |

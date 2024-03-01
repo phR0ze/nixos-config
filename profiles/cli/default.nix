@@ -45,6 +45,7 @@
     gptfdisk                      # Disk tools e.g. sgdisk, gdisk, cgdisk
     #'intel-ucode'               # required for Intel Microcode update files to boot
     inxi                          # CLI system information tool
+    jq                            # Command line JSON processor, depof: kubectl
     libisoburn                    # xorriso ISO creation tools
     linux-firmware                # Provides a collection of hardware drivers
     logrotate                     # Rotates and compresses system logs
