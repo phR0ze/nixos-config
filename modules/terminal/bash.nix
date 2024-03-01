@@ -6,8 +6,7 @@
 { config, lib, pkgs, ... }:
 {
   programs.bash = {
-    # Installs dircolors and adds `eval "$(/nix/store/.../coreutils-9.3/bin/dircolors -b)"`
-    enableLsColors = true;
+    enableLsColors = false;  # doesn't allow for customization so manually adding below
     enableCompletion = true;
 
     # Adds this to /etc/profile for all shells
@@ -52,13 +51,12 @@
       export KUBE_EDITOR=vim              # Set the editor to use for Kubernetes edit commands
 
       export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+    '';
 
+    # Adds to /etc/bashrc lower down
+    promptPluginInit = ''
       # Configure dircolors which is installed with 'coreutils-full'
-      DIR_COLORS=${
-        pkgs.writeText ".dircolors"
-        (lib.fileContents ../../include/.dircolors)
-      }
-      eval "$(dircolors -b $DIR_COLORS)"
+      eval "$(dircolors -b ${pkgs.writeText ".dircolors" (lib.fileContents ../../include/.dircolors)})"
     '';
 
     # Adds this to the /etc/profile as well
