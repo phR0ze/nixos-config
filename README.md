@@ -115,7 +115,7 @@ world though this already exists.
 
 2. Modify the ISO profile as desired
    ```bash
-   $ vim profiles/base/iso.nix
+   $ vim profiles/iso.nix
    ```
 
 3. Commit or at the least stage your changes so Nix will see them
@@ -131,15 +131,15 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Add vim-colorize plugin
+* [ ] Port cyberlinux cli packages over
 
 ## Sometime
+* [ ] Add vim-colorize plugin
 * [ ] Add terminal nerd fonts
 * [ ] Configure `git config --global user.name`
 * [ ] Configure `git config --global user.email`
 * [ ] Configure `git config --global --add safe.directory /etc/nixos`
 * [ ] Change nix flake symbol to blue in colorizer
-* [ ] Adding solarized dircolors theme
 * [ ] `sudo nix-channel --list` is showing stuff
 * [ ] Remove `/etc/nixos/etc/nixos`
 * [ ] clu to update `flake.nix` with user selection
@@ -149,6 +149,8 @@ world though this already exists.
 * [ ] alias or clu feature `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
 
 ## Completed
+* [x] Fix dircolors
+* [x] Adding solarized dircolors theme
 * [x] Clean up starship prompt to look better
 * [x] Customize neovim
 * [x] Add starship command prompt for all users
