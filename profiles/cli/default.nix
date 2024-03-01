@@ -58,6 +58,7 @@
     yq                            # Command line YAML/XML/TOML processor
 
     # Compression utilities
+    p7zip                         # Comman-line file archiver for 7zip format, depof: thunar
     unrar                         # Unfree utility to uncompress RAR archives
     unzip                         # Uncompress Zip archives
     zip                           # Create zip archives

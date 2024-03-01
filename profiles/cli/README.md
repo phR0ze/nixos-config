@@ -64,7 +64,7 @@ Default package list for 23.11 base
 | `ncurses-6.4`               | Free emulation of curses                      | default |
 | `neovim-0.9.4`              | Vim fork for extensibility and agility        | `option`|
 | `net-tools-2.10`            | Network subsystem tools e.g. hostname         | default |
-| `nfs-utils`                 | Support programs for Network File Systems     | default |
+| `nfs-utils`                 | Support programs for Network File Systems     | `pkgs`  |
 | `nix-2.18.1`                | Nix package manager                           | default |
 | `nix-index`                 | Nix files databse for nixpkgs: nix-locate     | `pkgs`  |
 | `nix-bash-completions-0.6.8`|                                               | default |
@@ -82,6 +82,7 @@ Default package list for 23.11 base
 | `nixos-version`             |                                               | default |
 | `openresolv-3.13.2`         |                                               | default |
 | `openssh-9.6p1`             |                                               | default |
+| `p7zip`                     | File archiver for 7zip format, depof: thunar  | `pkgs`  |
 | `patch-2.7.6`               |                                               | default |
 | `procps-3.3.17`             | System utilities e.g sysctl, free, pkill, ps  | default |
 | `psmisc`                    | Proc filesystem utilities e.g. killall        | `pkgs`  |
