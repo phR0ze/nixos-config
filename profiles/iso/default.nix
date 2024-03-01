@@ -52,14 +52,12 @@
       };
     };
   };
-  #programs.home-manager.enable = true;
 
   # Set the default user passwords
   users.users.nixos.password = "nixos";
   users.extraUsers.root.password = "nixos";
 
   #networking.hostName = "iso";
-
   environment.systemPackages = with pkgs; [
     git                 # Needed for clu installer automation
     jq                  # Needed for clu installer automation
