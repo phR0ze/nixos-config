@@ -46,7 +46,7 @@
       git_user = "admin";             # username to use for github, gitlab or other git tools
       git_email = "nixos@nixos.org";  # email to use for github, gitlab or other git tools
       hostname = "nixos";             # hostname to use for the install
-      profile = "x11/default";        # pre-defined configurations in path './profiles' selection
+      profile = "wayland/default";        # pre-defined configurations in path './profiles' selection
       autologin = false;              # automatically log the user in after boot when true
       
       # Configuration set via automation

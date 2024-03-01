@@ -1,7 +1,8 @@
-# X11 profiles
+# Wayland profiles
+I'm going to start with Wayland as my base
 
 ## default.nix
-Minimal desktop independent X11 configuration
+Minimal desktop independent wayland configuration
 
 ### default packages
 Default package list for 23.11 base
