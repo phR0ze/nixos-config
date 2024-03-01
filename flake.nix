@@ -67,14 +67,12 @@
     # * [lookup-paths](https://nix.dev/tutorials/nix-language.html#lookup-paths)
     # * [Override nixpkgs](https://discourse.nixos.org/t/allowunfree-predicate-does-not-apply-to-self-packages/21734/6)
     # ----------------------------------------------------------------------------------------------
-#    nixpkgs.config.allowUnfree = true;
+    pkgs = import inputs.nixpkgs {
+      system = settings.system;
+      config.allowUnfree = true;
+      config.allowUnfreePredicate = _: true;
+    };
 
-#    pkgs = import inputs.nixpkgs {
-#      system = settings.system;
-#      config.allowUnfree = true;
-#      config.allowUnfreePredicate = _: true;
-#    };
-#
 #    # Add the ability to access unstable packages
 #    pkgs-unstable = import inputs.nixpkgs-unstable {
 #      system = settings.system;
@@ -83,13 +81,9 @@
 #    };
 
     # Using attribute set update syntax '//' here to combine a couple sets for simpler input arguments
-    lib = nixpkgs.lib // home-manager.lib;
     args = inputs // { inherit settings; };
-
     system = settings.system;
-    pkgs = nixpkgs.legacyPackages.${system};
     specialArgs = { inherit args; };
-    extraSpecialArgs = { inherit args; };
     
   # Pass along configuration variables defined above
   # * [Special Args](https://github.com/nix-community/home-manager/issues/1022)
@@ -98,7 +92,7 @@
     nixosConfigurations = {
 
       # Defines configuration for the current system
-      system = lib.nixosSystem {
+      system = nixpkgs.lib.nixosSystem {
         inherit pkgs system specialArgs;
         modules = [
           ./hardware-configuration.nix
@@ -107,7 +101,7 @@
       };
 
       # Defines configuration for building an ISO
-      iso = lib.nixosSystem {
+      iso = nixpkgs.lib.nixosSystem {
         inherit pkgs system specialArgs;
         modules = [ ./profiles/iso/default.nix ];
       };
