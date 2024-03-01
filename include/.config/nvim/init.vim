@@ -199,13 +199,19 @@ augroup END
 "augroup END
 
 " Filetype settings
+" To determine the current filetype run ':verbose set filetype?'
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 augroup FiletypeSettings
   autocmd!
   au FileType make setl noexpandtab
-  au FileType vim setl foldmethod=marker
+  au FileType html setl ts=2 sw=2 sts=2
+  au FileType ruby setl ts=2 sw=2 sts=2
   au FileType yaml setl ts=2 sw=2 sts=2
-  au BufRead,BufNewFile *.menu set filetype=xml
+  au FileType sh setl ts=4 sw=4 sts=4
+  au FileType markdown setl ts=2 sw=2 sts=2
+  au FileType vim setl foldmethod=marker
+  au BufNewFile,BufRead *.menu set filetype=xml
+  "au BufNewFile,BufRead *.markdown,*.mdown,*.mkd,*.mkdn,*.mdwn,*.md setf markdown
 augroup END
 
 " DevIcons Settings
