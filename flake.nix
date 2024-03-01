@@ -39,7 +39,7 @@
       stateVersion = "23.11";
 
       # Configuration overriden by user selections in the clu installer
-      name = "admin";                 # user name to use for general purposes
+      fullname = "admin";             # user's full name to use for general purposes
       email = "nixos@nixos.org";      # email to use for general configuration
       username = "admin";             # initial admin user to create during install
       userpass = "admin";             # admin user password securely entered during boot
