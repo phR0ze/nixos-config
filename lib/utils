@@ -117,12 +117,13 @@ utils::read()
 utils::select()
 {
     local _result=$1
-    local options=$2
+    shift # Remove the first argument
+    local options=($@)
     local result=''
-    log::ln_d "Selections: $options"
+    log::ln_d "Selections: ${options[@]}"
 
     # Array length + 1 since we are starting with 1 rather than 0
-    local out_of_bounds=$((${#a[@]}+1))
+    local out_of_bounds=$((${#options[@]}+1))
     log::ln_d "Select out of bounds: $out_of_bounds"
 
     # Present options and retry if an invalid selection is given
