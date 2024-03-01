@@ -28,18 +28,6 @@
     ../../home-manager
   ];
 
-  # Bootable systems imply a more general use case. Overriding the minimal.nix to include
-  # docs and basic services; however this adds a full 500 MiB to the installation.
-  documentation.enable = lib.mkOverride 500 true;
-  documentation.doc.enable = lib.mkOverride 500 true;
-  documentation.info.enable = lib.mkOverride 500 true;
-  documentation.man.enable = lib.mkOverride 500 true;
-  documentation.nixos.enable = lib.mkOverride 500 true;
-
-  # Set the NixOS version that this was installed with
-  system.stateVersion = args.settings.stateVersion;
-
-  # Base system packages
   environment.systemPackages = with pkgs; [
 
     # Networking utilities
@@ -63,6 +51,17 @@
     unzip
     zip
   ];
+
+  # Bootable systems imply a more general use case. Overriding the minimal.nix to include
+  # docs and basic services; however this adds a full 500 MiB to the installation.
+  documentation.enable = lib.mkOverride 500 true;
+  documentation.doc.enable = lib.mkOverride 500 true;
+  documentation.info.enable = lib.mkOverride 500 true;
+  documentation.man.enable = lib.mkOverride 500 true;
+  documentation.nixos.enable = lib.mkOverride 500 true;
+
+  # Set the NixOS version that this was installed with
+  system.stateVersion = args.settings.stateVersion;
 }
 
 # vim:set ts=2:sw=2:sts=2
