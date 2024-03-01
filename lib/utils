@@ -119,9 +119,11 @@ utils::select()
     local _result=$1
     local options=$2
     local result=''
+    log::ln_d "Selections: $options"
 
     # Array length + 1 since we are starting with 1 rather than 0
     local out_of_bounds=$((${#a[@]}+1))
+    log::ln_d "Select out of bounds: $out_of_bounds"
 
     # Present options and retry if an invalid selection is given
     while true; do
@@ -129,13 +131,15 @@ utils::select()
         [ "x$DEFAULT" == "xy" ] && echo '' || read choice
         [ "$choice" == "exit" ] && utils::exit
         [ "x$choice" == "x" ] && choice=1
-        if [ $choice -gt 0 ] && [ $choice -le $out_of_bounds ]; then
+        log::ln_d "Choice: $choice"
+        if [[ $choice > 0 && $choice < $out_of_bounds ]]; then
             choice=$((choice-1))
             local result=${options[$choice]}
+            log::ln_d "Selection: index=$choice, value=${result}"
             break
         else
             echo -e "   ${red}Invalid selection, please try again${none}"
-       fi
+        fi
     done
 
     eval $_result=$result
