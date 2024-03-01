@@ -44,7 +44,7 @@
     gptfdisk                      # Disk tools e.g. sgdisk, gdisk, cgdisk
     #'intel-ucode'               # required for Intel Microcode update files to boot
     inxi                          # CLI system information tool
-    #libisoburn                    # xorriso ISO creation tools
+    libisoburn                    # xorriso ISO creation tools
     #linux-firmware                # Provides a collection of hardware drivers
     logrotate                     # Rotates and compresses system logs
     #'mkinitcpio-vt-colors'      # vt-colors, mkintcpio, find, xargs, gawk, grep
