@@ -59,7 +59,6 @@
     yq
 
     # Compression utilities
-    rar
     unrar
     unzip
     zip
