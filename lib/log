@@ -52,7 +52,8 @@ esac
 _log()
 {
     local level="$1"
-    local msg="$2"
+    shift
+    local msg="$@"
 
     if [ $_log_level -ge $level ]; then
         echo -e "${msg}"
@@ -62,10 +63,10 @@ _log()
 # Log an error level then exit
 # --------------------------------------------------------------------------------------------------
 # ### Params
-# - $1 the message to log
+# - $@ the message to log
 log::fatal()
 {
-    local msg="$1"
+    local msg="$@"
     log::error "${msg}"
     exit 1
 }
@@ -73,20 +74,20 @@ log::fatal()
 # Log an error and exit
 # --------------------------------------------------------------------------------------------------
 # ### Params
-# - $1 the message to log
+# - $@ the message to log
 log::error()
 {
-    local msg="$1"
+    local msg="$@"
     _log $_error "${red}Error:${none} ${msg}"
 }
 
 # Log at info level with newline
 # --------------------------------------------------------------------------------------------------
 # ### Params
-# - $1 the message to log
+# - $@ the message to log
 log::ln()
 {
-    local msg="$1"
+    local msg="$@"
     _log $_info "${msg}"
 }
 
@@ -94,20 +95,20 @@ log::ln()
 # - Adds a violet >> to distinguish debug lines
 # --------------------------------------------------------------------------------------------------
 # ### Params
-# - $1 the message to log
+# - $@ the message to log
 log::ln_d()
 {
-    local msg="$1"
+    local msg="$@"
     _log $_debug "${violet}>>${none} ${msg}"
 }
 
 # Log 2 space indent at info level with newline
 # --------------------------------------------------------------------------------------------------
 # ### Params
-# - $1 the message to log
+# - $@ the message to log
 log::subln()
 {
-    local msg="$1"
+    local msg="$@"
     _log $_info "  ${msg}"
 }
 
@@ -173,15 +174,5 @@ log::header2()
 # Dump out debug variables
 log::vars()
 {
-    log::d ">> Debug variables"
-}
-
-# Takes the value in $1 and prints it out if in debug mode
-log::d()
-{
-    local msg=$1
-
-    if [ "x${DEBUG}" == "x1" ]; then
-        echo -e "${yellow}$msg${none}"
-    fi
+    log::ln_d "Debug variables"
 }

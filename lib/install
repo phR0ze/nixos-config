@@ -226,8 +226,8 @@ install::run()
 
     # Drop out debug variables if in debug mode
     # ----------------------------------------------------------------------------------------------
-    log::d ">> Entering debug mode"
-    log::d "   In debug mode all text in yellow is debugging."
+    log::ln_d "Entering debug mode"
+    log::ln_d "Debug lins are prefixed with violet ${violet}>>${none}"
     log::vars
 
     # Collect the profile selection from user
@@ -250,7 +250,7 @@ install::run()
         fi
     done
     if [ "x$DEFAULT" != "xy" ]; then
-        utils::select PROFILE $PROFILES
+        utils::select PROFILE "${PROFILES[@]}"
     fi
 
     # Collect install destination choice from user
@@ -292,7 +292,7 @@ install::run()
         utils::select DESTDEV $DISKS
     fi
 
-    [ "x${DEBUG}" == "x1" ] && log::d "User selected: $DESTDEV"
+    [ "x${DEBUG}" == "x1" ] && log::ln_d "User selected: $DESTDEV"
 
     # Determine the storage drive partition pattern.
     # ----------------------------------------------------------------------------------------------
