@@ -13,7 +13,7 @@
     ../../modules/nix.nix
   ];
 
-  # Configure /etc/bashrc to launchr our installer automation 'clu'
+  # Configure /etc/bashrc to launch our installer automation 'clu'
   programs.bash.promptPluginInit = ''
     # Wait for the network to be live
     echo ":: Checking if network is ready"
