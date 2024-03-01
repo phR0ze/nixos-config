@@ -51,7 +51,7 @@
     psmisc                        # Proc filesystem utilities e.g. killall
     smartmontools                 # Monitoring tools for hard drives
     #squashfsTools                 # mksquashfs, unsquashfs
-    #testdisk                      # Checks and undeletes partitions + photorec
+    testdisk                      # Checks and undeletes partitions + photorec
     tmux                          # Terminal multiplexer
     usbutils                      # Tools for working with USB devices e.g. lsusb
     yq                            # Command line YAML/XML/TOML processor
