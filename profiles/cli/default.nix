@@ -32,6 +32,7 @@
 
     # Networking utilities
     git                           # The fast distributed version control system
+    nfs-utils                     # Support programs for Network File Systems
     wget                          # Retrieve files using HTTP, HTTPS, and FTP
 
     # System utilities
