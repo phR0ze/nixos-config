@@ -40,7 +40,7 @@
     cdrtools                      # ISO tools e.g. isoinfo, mkisofs
     ddrescue                      # GNU ddrescue, a data recovery tool
     dos2unix                      # Text file format converter
-    #fwupd                         # Firmware update tool
+    #fwupd                         # Firmware update tool (NixOS requires building this?????)
     gptfdisk                      # Disk tools e.g. sgdisk, gdisk, cgdisk
     #'intel-ucode'               # required for Intel Microcode update files to boot
     inxi                          # CLI system information tool
@@ -50,7 +50,7 @@
     #'mkinitcpio-vt-colors'      # vt-colors, mkintcpio, find, xargs, gawk, grep
     psmisc                        # Proc filesystem utilities e.g. killall
     smartmontools                 # Monitoring tools for hard drives
-    #squashfsTools                 # mksquashfs, unsquashfs
+    squashfsTools                 # mksquashfs, unsquashfs
     testdisk                      # Checks and undeletes partitions + photorec
     tmux                          # Terminal multiplexer
     usbutils                      # Tools for working with USB devices e.g. lsusb
