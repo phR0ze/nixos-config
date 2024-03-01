@@ -39,7 +39,7 @@
     efivar                        # Tools to manipulate EFI variables
     #cdrtools                      # ISO tools e.g. isoinfo, mkisofs
     ddrescue                      # GNU ddrescue, a data recovery tool
-    #dos2unix                      # Text file format converter
+    dos2unix                      # Text file format converter
     #fwupd                         # Firmware update tool
     #gptfdisk                      # Disk tools e.g. sgdisk, gdisk, cgdisk
     #'intel-ucode'               # required for Intel Microcode update files to boot
