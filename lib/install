@@ -289,7 +289,7 @@ install::run()
 
     # Get user choice
     if [ "x$DEFAULT" != "xy" ]; then
-        utils::select DESTDEV $DISKS
+        utils::select DESTDEV "${DISKS[@]}"
     fi
 
     [ "x${DEBUG}" == "x1" ] && log::ln_d "User selected: $DESTDEV"
