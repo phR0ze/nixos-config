@@ -46,7 +46,7 @@ update::run()
 update::system()
 {
     core::title
-    log::header0 "Update system"
+    log::header0 "Update NixOS system"
 
     nixos-rebuild switch --flake "path:/etc/nixos#system"
 }
