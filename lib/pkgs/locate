@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+# --------------------------------------------------------------------------------------------------
+# Package locate commands
+# --------------------------------------------------------------------------------------------------
+
+# Usage specific to the locate sub-command
+# --------------------------------------------------------------------------------------------------
+pkgs::locate::usage()
+{
+    cat <<USAGE
+Usage:
+  locate [OPTIONS] <PATTERN>
+
+Options:
+  -d, --db <DATABASE>      Directory where the index is stored [env: NIX_INDEX_DATABASE=] [default: /root/.cache/nix-index/]
+  -r, --regex              Treat PATTERN as regex instead of literal text. Also applies to NAME
+  -p, --package <PACKAGE>  Only print matches from packages whose name matches PACKAGE
+      --hash <HASH>        Only print matches from the package that has the given HASH
+      --top-level          Only print matches from packages that show up in 'nix-env -qa'
+  -t, --type <TYPE>        Only print matches for files that have this type. If the option is given multiple times, a file will be printed if it has any of the given types. [options: (r)egular file, e(x)cutable, (d)irectory, (s)ymlink] [possible values: r, x, d, s]
+      --no-group           Disables grouping of paths with the same matching part. By default, a path will only be printed if the pattern matches some part of the last component of the path. For example, the pattern 'a/foo' would match all of 'a/foo', 'a/foo/some_file' and 'a/foo/another_file;, but only the first match will be printed. This option disables that behavior and prints all matches
+      --color <COLOR>      Whether to use colors in output. If auto, only use colors if outputting to a terminal [default: auto] [possible values: always, never, auto]
+  -w, --whole-name         Only print matches for files or directories whose basename matches PATTERN exactly. This means that the pattern 'bin/foo' will only match a file called 'bin/foo' or 'xx/bin/foo' but not 'bin/foobar'
+      --at-root            Treat PATTERN as an absolute file path, so it only matches starting from the root of a package. This means that the pattern '/bin/foo' only matches a file called '/bin/foo' or '/bin/foobar' but not '/libexec/bin/foo'
+      --minimal            Only print attribute names of found files or directories. Other details such as size or store path are omitted. This is useful for scripts that use the output of nix-locate
+  -h, --help               Print help
+  -V, --version            Print version
+ 
+Arguments:
+  <PATTERN>                Pattern for which to search
+USAGE
+
+    log::ln "\n${yellow}Limitations:${none}"
+    log::subln "This tools can only find packages which are built by hydra"
+
+    log::ln "\n${green}Examples:${none}"
+    log::subln "Find all packages containing bin/firefox: ${green}./${SCRIPT} pkgs locate bin/firefox${none}"
+    echo
+    exit
+
+# Before using this tool, you first need to generate a nix-index database.
+# Use the `nix-index` tool to do that.
+}
+
+# Parse list sub commands
+# --------------------------------------------------------------------------------------------------
+pkgs::locate::run()
+{
+    # Check if usage help is needed
+    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && pkgs::locate::usage
+
+    # Pass on the command to the weekly updated github nix-index-database
+    # https://github.com/nix-community/nix-index-database
+    # This is nice as I don't need to install 'nix-index' and download a and build a 2 GB index
+    nix run github:mic92/nix-index-database "$@"
+}

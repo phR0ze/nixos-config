@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# --------------------------------------------------------------------------------------------------
+# Package management commands
+# --------------------------------------------------------------------------------------------------
+source "${SCRIPT_DIR}/lib/pkgs/locate"
+source "${SCRIPT_DIR}/lib/pkgs/list"
+
+# Usage for the pkgs command and its sub commands
+# --------------------------------------------------------------------------------------------------
+pkgs::usage()
+{
+    cat <<USAGE
+Usage:
+  pkgs [OPTIONS] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out top level usage
+
+Commands:
+  locate            Locate a package that contains your target
+  ll                List different packge details (newline delimited)
+  ls                List different packge details (space delimited)
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "List binary's package: ${green}./${SCRIPT} pkgs ll pkg dircolors${none}"
+    echo
+    exit
+}
+
+
+# Parse the pkgs commands and execute
+# --------------------------------------------------------------------------------------------------
+pkgs::run()
+{
+    # Handle arguments
+    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && pkgs::usage
+
+    # Parse the pkgs commnand
+    local command=$1; shift
+    case "$command" in
+        locate) pkgs::locate::run $@ ;;
+        ll) pkgs::list::run "ll" $@ ;;
+        ls) pkgs::list::run "ls" $@ ;;
+        *) log::error "Invalid pkgs command: ${cyan}${command}${none}"; pkgs::usage ;;
+    esac
+}
