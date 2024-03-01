@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# Usage for the clean command and its sub commands
+# --------------------------------------------------------------------------------------------------
+clean::usage()
+{
+  cat <<USAGE
+Usage:
+  clean [options] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out top level usage
+
+Commands:
+  store             Clean the nix store
+USAGE
+
+  log::ln "\nExamples:"
+  log::subln "Clean nix store: ${green}./${SCRIPT} clean store${none}"
+  echo
+  exit
+}
+
+
+# Parse the clean commands and execute
+# --------------------------------------------------------------------------------------------------
+clean::run()
+{
+  [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && clean::usage
+
+  # Parse the clean commnand
+  local command=$1; shift
+  case "$command" in
+    store) nix-store --gc ;;
+    *) log::error "Invalid clean command: ${cyan}${command}${none}"; clean::usage ;;
+  esac
+}
+ 
+# vim: ft=sh:ts=4:sw=4:sts=4

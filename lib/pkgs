@@ -10,7 +10,7 @@
 # --------------------------------------------------------------------------------------------------
 pkgs::usage()
 {
-    cat <<USAGE
+  cat <<USAGE
 Usage:
   pkgs [options] [COMMAND] [ARGS...]
 
@@ -23,7 +23,7 @@ Commands:
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "${green}List binary's package:${none} ./${SCRIPT} pkgs ll pkg dircolors"
+    log::subln "List binary's package: ${green}./${SCRIPT} pkgs ll pkg dircolors${none}"
     echo
     exit
 }
@@ -61,7 +61,7 @@ Commands:
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "${green}List binary's package:${none} ./${SCRIPT} pkgs ll pkg dircolors"
+    log::subln "List binary's package: ${green}./${SCRIPT} pkgs ll pkg dircolors${none}"
     echo
     exit
 }

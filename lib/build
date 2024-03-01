@@ -10,7 +10,7 @@
 # --------------------------------------------------------------------------------------------------
 build::usage()
 {
-    cat <<USAGE
+  cat <<USAGE
 Usage:
   build [options] [COMMAND] [ARGS...]
 
@@ -21,10 +21,10 @@ Commands:
   iso               Build the installable ISO
 USAGE
 
-    log::ln "\nExamples:"
-    log::subln "${green}Build the installer ISO:${none} ./${SCRIPT} build iso"
-    echo
-    exit
+  log::ln "\nExamples:"
+  log::subln "Build the installer ISO: ${green}./${SCRIPT} build iso${none}"
+  echo
+  exit
 }
 
 
@@ -32,18 +32,13 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 build::run()
 {
-    # Handle arguments
-    if [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]]; then
-        build::usage
-    fi
+  [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && build::usage
 
-    # Parse the build commnand
-    local command=$1; shift
-    case "$command" in
-        iso) build::iso "$@" ;;
-
-        *) log::error "Invalid build command: ${cyan}${command}${none}"; build::usage ;;
-    esac
+  local command=$1; shift
+  case "$command" in
+    iso) build::iso "$@" ;;
+    *) log::error "Invalid build command: ${cyan}${command}${none}"; build::usage ;;
+  esac
 }
  
 # Build a minimal iso
@@ -53,22 +48,22 @@ build::run()
 # --------------------------------------------------------------------------------------------------
 build::iso()
 {
-    core::title
-    log::header0 "Building ISO"
+  core::title
+  log::header0 "Building ISO"
 
-    echo -e "\n${cyan}:: Stage iso.lock file:${none}"
-    if [ -f iso.lock ]; then
-        rm -f flake.lock
-        cp iso.lock flake.lock
-    fi
+  echo -e "\n${cyan}:: Stage iso.lock file:${none}"
+  if [ -f iso.lock ]; then
+    rm -f flake.lock
+    cp iso.lock flake.lock
+  fi
 
-    echo -e "\n${cyan}:: Triggering nix iso build:${none}"
-    nix build .#nixosConfigurations.iso.config.system.build.isoImage
+  echo -e "\n${cyan}:: Triggering nix iso build:${none}"
+  nix build .#nixosConfigurations.iso.config.system.build.isoImage
 
-    echo -e "\n${cyan}:: Save iso.lock file:${none}"
-    if [ -f iso.lock ]; then
-        cp flake.lock iso.lock
-    fi
+  echo -e "\n${cyan}:: Save iso.lock file:${none}"
+  if [ -f iso.lock ]; then
+    cp flake.lock iso.lock
+  fi
 }
 
 # vim: ft=sh:ts=4:sw=4:sts=4

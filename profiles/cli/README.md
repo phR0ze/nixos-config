@@ -11,6 +11,7 @@ Default package list for 23.11 base
 | `acl-2.3.1`                  |                                   |
 | `attr-2.5.1`                 |                                   |
 | `bash-interactive-5.2-p15`   | GNU Bourne-Again Shell                         |
+| `bash-completion-2.11`       | Bash tab completion                            | 
 | `bcache-tools-1.0.7`         |                                   |
 | `bind-9.18.24`               |                                   |
 | `bzip2-1.0.8`                |                                   |
@@ -83,6 +84,3 @@ Default package list for 23.11 base
 | `xz-5.4.4`                   |                                   |
 | `zstd-1.5.5`                 |                                   |
 
-<!-- 
-vim: ts=2:sw=2:sts=2
--->
