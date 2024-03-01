@@ -12,5 +12,3 @@ test::run()
     core::title
     log::header1 "Test command invoked"
 }
- 
-# vim: ft=sh:ts=4:sw=4:sts=4

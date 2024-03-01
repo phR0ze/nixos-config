@@ -22,7 +22,7 @@ Commands:
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "${green}Update the system:${none} ./${SCRIPT} update system"
+    log::subln "Update the system: ${green}./${SCRIPT} update system${none}"
     echo
     exit
 }
@@ -32,16 +32,11 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 update::run()
 {
-    # Handle arguments
-    if [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]]; then
-        update::usage
-    fi
+    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && update::usage
 
-    # Parse the update commnand
     local command=$1; shift
     case "$command" in
         system) update::system "$@" ;;
-
         *) log::error "Invalid update command: ${cyan}${command}${none}"; update::usage ;;
     esac
 }
@@ -55,5 +50,3 @@ update::system()
 
     nixos-rebuild switch --flake "path:/etc/nixos#system"
 }
-
-# vim: ft=sh:ts=4:sw=4:sts=4

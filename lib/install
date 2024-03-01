@@ -377,7 +377,3 @@ install::run()
     # Take user selections and apply to NixOS configuration
     install::config_system
 }
-
-
-
-# vim: ft=sh:ts=4:sw=4:sts=4

@@ -35,16 +35,16 @@ source "${SCRIPT_DIR}/lib/all"
 
 core::title()
 {
-  VERSION=0.0.1
-  #VERSION=$(cat VERSION)
-  log::header '=' "${cyan}" "Codified Likeness Utility - clu v${VERSION}" 1
-  echo -e "${green}that is to say, build me a linux that i like${none}"
+    VERSION=0.0.1
+    #VERSION=$(cat VERSION)
+    log::header '=' "${cyan}" "Codified Likeness Utility - clu v${VERSION}" 1
+    echo -e "${green}that is to say, build me a linux that i like${none}"
 }
 
 core::usage()
 {
-  core::title
-  cat <<USAGE
+    core::title
+    cat <<USAGE
 Usage:
   ./clu [options] [COMMAND] [ARGS...]
 
@@ -65,11 +65,11 @@ Commands:
   update            Update the system with any changed configuration
 USAGE
 
-  log::ln "\nExamples:"
-  log::subln "${green}Install the default configuration:${none} sudo ./${SCRIPT} install"
-  log::subln "${green}Build the installer ISO:${none} ./${SCRIPT} build iso"
-  echo
-  exit
+    log::ln "\nExamples:"
+    log::subln "${green}Install the default configuration:${none} sudo ./${SCRIPT} install"
+    log::subln "${green}Build the installer ISO:${none} ./${SCRIPT} build iso"
+    echo
+    exit
 }
 
 # Parse commands
@@ -79,21 +79,19 @@ USAGE
 # Handle programmatic output mode
 QUIET=0
 if [[ $1 == "-q" || $1 == "--quiet" ]]; then
-  QUIET=1
-  LOG_LEVEL="error"
-  _log_level=$_error
-  shift
+    QUIET=1
+    LOG_LEVEL="error"
+    _log_level=$_error
+    shift
 fi
 
 command=$1; shift
 case "$command" in
-  build) build::run "$@" ;;
-  clean) clean::run "$@" ;;
-  install) install::run "$@" ;;
-  pkgs) pkgs::run "$@" ;;
-  test) test::run "$@" ;;
-  update) update::run "$@" ;;
-  *) log::error "Invalid command: ${cyan}${command}${none}"; core::usage ;;
+    build) build::run "$@" ;;
+    clean) clean::run "$@" ;;
+    install) install::run "$@" ;;
+    pkgs) pkgs::run "$@" ;;
+    test) test::run "$@" ;;
+    update) update::run "$@" ;;
+    *) log::error "Invalid command: ${cyan}${command}${none}"; core::usage ;;
 esac
-
-# vim: ft=sh:ts=4:sw=4:sts=4
