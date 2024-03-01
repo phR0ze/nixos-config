@@ -15,6 +15,7 @@ Default package list for 23.11 base
 | `bcache-tools-1.0.7`        | Linux block layer cache utils                 | default |
 | `bind-9.18.24`              | Portable implementation of the DNS protocol   | default |
 | `bzip2-1.0.8`               | A high-quality data compression program       | default |
+| `cdrtools`                  | ISO tools e.g. isoinfo, mkisofs               | `pkgs`  |
 | `coreutils-full-9.3`        | Linux utilities e.g cat, cp, df, ln, ls, mv   | default |
 | `cpio-2.14`                 | Work with cpio or tar archives                | default |
 | `curl-8.4.0`                | Networking data transfor with URLS            | default |
@@ -22,12 +23,15 @@ Default package list for 23.11 base
 | `ddrescue`                  | GNU ddrescue, a data recovery tool            | `pkgs`  |
 | `dhcpcd-9.4.1`              | Client for Dynamic Host Configuration Protocol| default |
 | `diffutils-3.10`            | Patch file utility programs: diff, cmp        | default |
+| `dos2unix`                  | Text file format converter                    | `pkgs`  |
 | `dosfstools-4.2`            | mkfs.fat, mkfs.vfat, fsck.fat, fsck.vfat      | default |
 | `e2fsprogs-1.47.0`          | Utilities for ex2/ex3/ex4 filesystems         | default |
 | `efibootmgr-18`             | EFI Boot Manager                              | `option`|
 | `efivar`                    | Tools to manipulate EFI variables             | `pkgs`  |
 | `findutils-4.9.0`           | Find utils, find, xargs                       | default |
 | `fuse-3.16.2`               | Library for filesystems in user space         | default |
+| `fwupd`                     | Firmware update tool                          | `pkgs`  |
+| `gptfdisk`                  | Disk tools e.g. sgdisk, gdisk, cgdisk         | `pkgs`  |
 | `gawk-5.2.2`                | GNU awk                                       | default |
 | `git-2.42.0`                | The fast distributed version control system   | `pkgs`  |
 | `glibc-2.38-44`             | The GNU C Library                             | default |
@@ -46,7 +50,9 @@ Default package list for 23.11 base
 | `kmod-31`                   | Linux kernel management tools                 | default |
 | `less-643`                  | A more advanced file pager than 'more'        | default |
 | `libcap-2.69`               | POSIX capabilities library                    | default |
+| `libisoburn`                | xorriso ISO creation tools                    | `pkgs`  |
 | `libressl-3.8.2`            | More secure fork of OpenSSL                   | default |
+| `linux-firmware`            | Provides a collection of hardware drivers     | `pkgs`  |
 | `linux-headers-6.5`         | Header files for Linux kernel                 | default |
 | `linux-pam-1.5.2`           | Pluggable authentication module for user auth | default |
 | `logrotate`                 | Rotates and compresses system logs            | `pkgs`  |
@@ -80,13 +86,16 @@ Default package list for 23.11 base
 | `psmisc`                    | Proc filesystem utilities e.g. killall        | `pkgs`  |
 | `shadow-4.14.2`             | Auth tooling e.g. passwod, su                 | default |
 | `smartmontools`             | Monitoring tools for hard drives              | `pkgs`  |
+| `squashfsTools`             | mksquashfs, unsquashfs                        | `pkgs`  |
 | `starship-1.17.1`           | Colorful customizable info shell prompt       | `pkgs`  |
 | `sudo-1.9.15p2`             | Gives certain users abilit to run as root     | default |
 | `systemd-254.6`             | A system and service manager for Linux        | default |
+| `testdisk`                  | Checks and undeletes partitions + photorec    | default |
 | `texinfo-interactive-7.0.3` | GNU documentation system                      | default |
 | `time-1.9`                  | Track system resources used for a program     | default |
 | `tmux`                      | Terminal multiplexer                          | `pkgs`  |
 | `unrar`                     | Uncompress RAR archives                       | `pkgs`  |
+| `unzip`                     | Uncompress Zip archives                       | `pkgs`  |
 | `usbutils`                  | Tools for working with USB devices e.g. lsusb | `pkgs`  |
 | `util-linux-2.39.2`         | Linux system utilities                        | default |
 | `uzip`                      | An extraction utility for zip archives        | `pkgs`  |
