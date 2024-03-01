@@ -1,4 +1,4 @@
-# Minimal desktop independent X11 configuration
+# Minimal wayland configuration
 #
 # ### Features
 # -
@@ -8,6 +8,8 @@
   imports = [
     ../cli
   ];
+
+  #services.xserver.displayManager.startx.enable = true;
 
   environment.systemPackages = with pkgs; [
 
