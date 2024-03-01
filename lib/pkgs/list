@@ -1,57 +1,16 @@
 #!/usr/bin/env bash
 
-# Package management commands
-# 
-# ## Features
-#
 # --------------------------------------------------------------------------------------------------
-
-# Usage for the pkgs command and its sub commands
+# Package list commands
 # --------------------------------------------------------------------------------------------------
-pkgs::usage()
-{
-    cat <<USAGE
-Usage:
-  pkgs [options] [COMMAND] [ARGS...]
-
-Options:
-  -h, --help        Print out top level usage
-
-Commands:
-  ll                List different packge details (newline delimited)
-  ls                List different packge details (space delimited)
-USAGE
-
-    log::ln "\nExamples:"
-    log::subln "List binary's package: ${green}./${SCRIPT} pkgs ll pkg dircolors${none}"
-    echo
-    exit
-}
-
-
-# Parse the pkgs commands and execute
-# --------------------------------------------------------------------------------------------------
-pkgs::run()
-{
-    # Handle arguments
-    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && pkgs::usage
-
-    # Parse the pkgs commnand
-    local command=$1; shift
-    case "$command" in
-        ll) pkgs::list "ll" $@ ;;
-        ls) pkgs::list "ls" $@ ;;
-        *) log::error "Invalid pkgs command: ${cyan}${command}${none}"; pkgs::usage ;;
-    esac
-}
 
 # Usage specific to the list sub-command
 # --------------------------------------------------------------------------------------------------
-list::usage()
+pkgs::list::usage()
 {
     cat <<USAGE
 Usage:
-  ll [options] [COMMAND] [ARGS...]
+  ll [OPTIONS] [COMMAND] [ARGS...]
 
 Options:
   -h, --help        Print out top level usage
@@ -67,27 +26,26 @@ USAGE
     exit
 }
 
-
 # Parse list sub commands
 # --------------------------------------------------------------------------------------------------
-pkgs::list()
+pkgs::list::run()
 {
     local cmd="$1"; shift
     #[ "$cmd" == "ls" ] && echo space
     #[ "$cmd" == "ll" ] && echo newline
-    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && list::usage
+    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && pkgs::list::usage
 
     local command=$1; shift
     case "$command" in
-        all) list::all ;;
-        pkg) list::pkg "$@" ;;
-        *) log::error "Invalid pkgs command: ${cyan}${command}${none}"; list::usage ;;
+        all) pkgs::list::all ;;
+        pkg) pkgs::list::pkg "$@" ;;
+        *) log::error "Invalid pkgs command: ${cyan}${command}${none}"; pkgs::list::usage ;;
     esac
 }
 
 # List out all local packages
 # --------------------------------------------------------------------------------------------------
-list::all()
+pkgs::list::all()
 {
     # TODO: Slow and maybe not the best way to do this
     for x in /nix/store/*; do
@@ -105,9 +63,9 @@ list::all()
 # ### Args
 # - $1 is the target to lookup
 # --------------------------------------------------------------------------------------------------
-list::pkg()
+pkgs::list::pkg()
 {
-    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && list::usage
+    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && pkgs::list::usage
 
     local target="$1"
     local bin_path=$(which "$target" 2>/dev/null)

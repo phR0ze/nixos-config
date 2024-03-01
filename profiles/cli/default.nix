@@ -37,9 +37,14 @@
     # System utilities
     efibootmgr
     efivar
+    #'cdrtools'                  # isoinfo, mkisofs
     ddrescue
+    #'dos2unix'                  # Text file format converter
+    #'intel-ucode'               # required for Intel Microcode update files to boot
     inxi
+    #'linux-firmware'            # Fills in missing drivers for initramfs builds
     logrotate
+    #'mkinitcpio-vt-colors'      # vt-colors, mkintcpio, find, xargs, gawk, grep
     psmisc
     smartmontools
     tmux

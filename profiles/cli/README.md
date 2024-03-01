@@ -58,7 +58,8 @@ Default package list for 23.11 base
 | `ncurses-6.4`               | Free emulation of curses                      | default |
 | `neovim-0.9.4`              | Vim fork for extensibility and agility        | `option`|
 | `net-tools-2.10`            | Network subsystem tools e.g. hostname         | default |
-| `nix-2.18.1`                |                                               | default |
+| `nix-2.18.1`                | Nix package manager                           | default |
+| `nix-index`                 | Nix files databse for nixpkgs: nix-locate     | `pkgs`  |
 | `nix-bash-completions-0.6.8`|                                               | default |
 | `nix-info`                  |                                               | default |
 | `nixos-build-vms`           |                                               | default |

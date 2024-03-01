@@ -6,7 +6,7 @@ clean::usage()
 {
     cat <<USAGE
 Usage:
-  clean [options] [COMMAND] [ARGS...]
+  clean [OPTIONS] [COMMAND] [ARGS...]
 
 Options:
   -h, --help        Print out top level usage
