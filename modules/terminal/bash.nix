@@ -6,7 +6,11 @@
 { config, lib, pkgs, ... }:
 {
   programs.bash = {
-    enableLsColors = false;  # doesn't allow for customization so manually adding below
+
+    # Configures 'dircolors -b' but doesn't allow for a custom config so manually doing this below.
+    enableLsColors = false;
+
+    # Installs 'bash_completion' package and configures it in '/etc/bashrc'.
     enableCompletion = true;
 
     # Adds this to /etc/profile for all shells
