@@ -90,7 +90,7 @@
     pkgs = nixpkgs.legacyPackages.${system};
     specialArgs = { inherit args; };
     extraSpecialArgs = { inherit args; };
-
+    
   # Pass along configuration variables defined above
   # * [Special Args](https://github.com/nix-community/home-manager/issues/1022)
   # ------------------------------------------------------------------------------------------------
@@ -114,5 +114,3 @@
     };
   };
 }
-
-# vim:set ts=2:sw=2:sts=2

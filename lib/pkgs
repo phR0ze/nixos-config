@@ -61,6 +61,7 @@ Commands:
 USAGE
 
     log::ln "\nExamples:"
+    log::subln "List all local packages: ${green}./${SCRIPT} pkgs ll all${none}"
     log::subln "List binary's package: ${green}./${SCRIPT} pkgs ll pkg dircolors${none}"
     echo
     exit
@@ -78,9 +79,24 @@ pkgs::list()
 
     local command=$1; shift
     case "$command" in
+        all) list::all ;;
         pkg) list::pkg "$@" ;;
         *) log::error "Invalid pkgs command: ${cyan}${command}${none}"; list::usage ;;
     esac
+}
+
+# List out all local packages
+# --------------------------------------------------------------------------------------------------
+list::all()
+{
+    # TODO: Slow and maybe not the best way to do this
+    for x in /nix/store/*; do
+        local name=$(basename $x .drv)
+        if [ "${x}" != "${name}" ]; then
+            name="${name#*-}"
+            echo "$name"
+        fi
+    done
 }
 
 # List out the package the binary belongs to
