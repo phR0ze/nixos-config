@@ -47,9 +47,9 @@
 #    thunar-volman
 #    thunar-archive-plugin
 #  ];
-  #environment.systemPackages = with pkgs; [
-  #  gtk+-3.0
-  #];
+  environment.systemPackages = with pkgs; [
+    #minecraft
+  ];
 
     #config = lib.mkAfter ''
     #'';
