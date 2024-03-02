@@ -16,7 +16,10 @@
       xterm.enable = false;
     };
     displayManager = {
-      lightdm.enable = true;
+      lightdm = {
+        enable = true;
+        autoSuspend = false;
+      };
       defaultSession = "xfce";
 
       # Conditionally autologin based on install settings

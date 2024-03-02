@@ -15,14 +15,6 @@
     ];
     driSupport32Bit = true;
   };
-  environment.systemPackages = with pkgs; [
-    nixFlakes
-    vaapiIntel
-    vaapi-intel-hybrid
-    libva-full
-    libva-utils
-    intel-media-driver
-  ];
 
   services.journald.extraConfig = "MaxRetentionSec=1week";
   programs.adb.enable = true;
@@ -58,25 +50,12 @@
 
   services.dbus.packages = [ pkgs.blueman pkgs.foliate ];
 
-  sound.enable = true;
-  hardware.pulseaudio = {
-    enable = true;
-    daemon.config = { flat-volumes = "no"; };
-  };
-
   console = {
     earlySetup = true;
     font = "sun12x22";
     colors = theme.colors16;
   };
 
-  services.xserver.libinput = {
-    enable = true;
-    touchpad = {
-      tappingDragLock = false;
-      naturalScrolling = true;
-    };
-  };
   systemd.user.services.xinput-config = {
     description = "configure xinput for xps";
     wantedBy = [ "graphical-session.target" ];
@@ -95,27 +74,5 @@
   services.printing.drivers = [ pkgs.brlaser pkgs.mfcl2740dwlpr pkgs.mfcl2740dwcupswrapper ];
   services.avahi.enable = true;
   services.avahi.nssmdns = true;
-
-  /* Default Fonts */
-
-  fonts = {
-    fontDir.enable = true;
-    fonts = with pkgs;[
-      corefonts
-      inconsolata
-      terminus_font
-      dejavu_fonts
-      ubuntu_font_family
-      source-code-pro
-      source-sans-pro
-      source-serif-pro
-      roboto-mono
-      roboto
-      overpass
-      libre-baskerville
-      font-awesome
-      julia-mono
-    ];
-  };
 
 }

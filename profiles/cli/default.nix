@@ -28,6 +28,18 @@
     ../../home-manager
   ];
 
+
+  # Installs a number of firmware packages
+  # linux-firmware, intel2200BGFirmware, rtl8192su-firmware, rt5677-firmware, rtl8761b-firmware
+  # rtw88-firmware, zd1211fw, alsa-firmware, sof-firmware, libreelec-dvb-firmware,
+  # broadcom-bt-firmware, b43Firmware_5_1_138, b43Firmware_6_30_163_46, xow_dongle-firmware
+  #hardware.enableAllFirmware = true;
+  hardware.firmware = with pkgs; [
+    linux-firmware
+    alsa-firmware
+  ];
+
+  # Install useful system packages
   environment.systemPackages = with pkgs; [
 
     # Networking utilities
@@ -47,7 +59,6 @@
     inxi                          # CLI system information tool
     jq                            # Command line JSON processor, depof: kubectl
     libisoburn                    # xorriso ISO creation tools
-    linux-firmware                # Provides a collection of hardware drivers
     logrotate                     # Rotates and compresses system logs
     #'mkinitcpio-vt-colors'      # vt-colors, mkintcpio, find, xargs, gawk, grep
     psmisc                        # Proc filesystem utilities e.g. killall
