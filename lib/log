@@ -112,63 +112,61 @@ log::subln()
     _log $_info "  ${msg}"
 }
 
-# Print out a header
+# Internal function to print out a header
 # --------------------------------------------------------------------------------------------------
 # ### Params
-# - $1 char to use for the separation line
-# - $2 color to use
-# - $3 header message
-# - $4 double header or not 1/0
+# - $1 color to use
+# - $2 header message
+# - $3 header kind: 0 (no separator), 1 (single separator), 2 (double separator)
+# - $4 char to use for the separation line
 log::header()
 {
-    local char=$1
-    local color=$2
-    local msg=$3
-    local double=$4
+    local color=$1
+    local msg=$2
+    local kind=$3
+    local char=$4
+    local separator=""
 
     # If the message has no color then colorize it
     [[ "${msg}" != *"\e[1"* ]] && msg="${color}${msg}${none}"
 
     # Calculate the separator in advance as it doesn't seem to translate otherwise
-    separator=$(echo -e ${color}$_{1..80}'\b'"${char}"${none})
+    [[ $kind > 0 && "$char" != "" ]] && separator=$(echo -e ${color}$_{1..80}'\b'"${char}"${none})
 
     _log $_info ""
-    [ "x$double" == "x1" ] && _log $_info "$separator"
-    _log $_info ":: ${msg}"
-    _log $_info "$separator"
+    [[ $kind > 1 ]] && _log $_info "$separator"
+    _log $_info "${color}::${none} ${msg}"
+    [[ $kind > 0 ]] && _log $_info "$separator"
 }
 
 # Print out a double header with newline
 # --------------------------------------------------------------------------------------------------
 # ### Params
 # - $1 msg
-log::header0()
+log::header2()
 {
     local msg=$1
-    log::header '-' "${cyan}" "${msg}" 1
+    log::header "${cyan}" "${msg}" '-' 2
 }
 
-# Print out a header1 with newline
+# Print out a single header with newline
 # --------------------------------------------------------------------------------------------------
 # ### Params
 # - $1 msg
 log::header1()
 {
     local msg=$1
-    log::header '-' "${cyan}" "${msg}"
+    log::header "${cyan}" "${msg}" '-' 1
 }
 
-# Print out a header2 with newline
+# Print out a sub header
 # --------------------------------------------------------------------------------------------------
-# ### Features
-# - :: prefixing of the message
-#
 # ### Params
 # - $1 msg
-log::header2()
+log::header0()
 {
     local msg=$1
-    _log $_info ":: ${msg}"
+    log::header "${cyan}" "${msg}"
 }
 
 # Dump out debug variables
