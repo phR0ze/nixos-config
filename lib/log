@@ -112,6 +112,16 @@ log::subln()
     _log $_info "  ${msg}"
 }
 
+# Log 3 space indent at info level with newline
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $@ the message to log
+log::subln3()
+{
+    local msg="$@"
+    _log $_info "   ${msg}"
+}
+
 # Internal function to print out a header
 # --------------------------------------------------------------------------------------------------
 # ### Params
