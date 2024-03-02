@@ -12,10 +12,6 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; 
     #nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
-    prismlauncher = {
-      url = "github:phR0ze/PrismLauncher";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   # ### Implicit arguments
@@ -31,7 +27,7 @@
   # Although it is nice to gather all implicit arguments together this means to use them without the 
   # do notation would require an 'inherit (inputs) nixpkgs' to bring them into scope. Another option 
   # is to just call them out explicitly as required named arguments which does this scoping for you.
-  outputs = { self, nixpkgs, prismlauncher, ... }@inputs: let
+  outputs = { self, nixpkgs, ... }@inputs: let
 
     # Updatable system settings
     # ----------------------------------------------------------------------------------------------

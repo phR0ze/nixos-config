@@ -49,7 +49,7 @@
 #  ];
   environment.systemPackages = with pkgs; [
     jdk17
-    args.prismlauncher.packages.${pkgs.system}.prismlauncher
+    prismlauncher
   ];
 
     #config = lib.mkAfter ''
