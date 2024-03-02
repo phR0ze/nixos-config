@@ -48,7 +48,7 @@
 #    thunar-archive-plugin
 #  ];
   environment.systemPackages = with pkgs; [
-    #minecraft
+    prismlauncher
   ];
 
     #config = lib.mkAfter ''

@@ -61,6 +61,7 @@
     squashfsTools                 # mksquashfs, unsquashfs
     testdisk                      # Checks and undeletes partitions + photorec
     tmux                          # Terminal multiplexer
+    tree                          # Simple dir listing app in tree form
     usbutils                      # Tools for working with USB devices e.g. lsusb
     yq                            # Command line YAML/XML/TOML processor
 
