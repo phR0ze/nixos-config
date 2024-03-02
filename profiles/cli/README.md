@@ -53,7 +53,7 @@ Default package list for 23.11 base
 | `libcap-2.69`               | POSIX capabilities library                    | default |
 | `libisoburn`                | xorriso ISO creation tools                    | `pkgs`  |
 | `libressl-3.8.2`            | More secure fork of OpenSSL                   | default |
-| `linux-firmware`            | Provides a collection of hardware drivers     | `pkgs`  |
+| `linux-firmware`            | Provides a collection of hardware drivers     | `option`|
 | `linux-headers-6.5`         | Header files for Linux kernel                 | default |
 | `linux-pam-1.5.2`           | Pluggable authentication module for user auth | default |
 | `logrotate`                 | Rotates and compresses system logs            | `pkgs`  |
