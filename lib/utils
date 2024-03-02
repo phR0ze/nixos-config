@@ -103,10 +103,11 @@ utils::read()
         [[ "$value" == *"exit"* ]] && utils::exit
 
         # Handle normal user read
-        [ "x$value" != "x" ] && local result="$value"
+        [ "x$value" != "x" ] && result="$value"
     fi
 
-    eval "$_result"="$result"
+    # Needs the single quotes to tell it not to treat it as a command
+    eval "$_result"="'$result'"
 }
 
 # Get the user's selection from an array of options
@@ -143,7 +144,8 @@ utils::select()
         fi
     done
 
-    eval $_result=$result
+    # Needs the single quotes to tell it not to treat it as a command
+    eval "$_result"="'$result'"
 }
 
 # Replace the given value in the given file
