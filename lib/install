@@ -170,7 +170,7 @@ install::config_system()
 
     # Execute the NixOS install
     # ----------------------------------------------------------------------------------------------
-    log::header0 "Installing NixOS configuration"
+    log::header1 "Installing NixOS configuration"
     nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#system"
 
 #    # Configure time and date
@@ -218,7 +218,7 @@ install::run()
 
     # Determine if this is a default deployment
     # ----------------------------------------------------------------------------------------------
-    echo -e "${cyan}:: Automatically deploy with defaults?${none}"
+    log::header0 "\nAutomatically deploy with defaults?"
     utils::read DEFAULT 'Use automatic mode with defaults' 'n'
     if [ "x$DEFAULT" == "xy" ]; then
         AUTO_LOGIN=1
@@ -235,7 +235,7 @@ install::run()
     PROFILES=()
     local profiles_dir="${SCRIPT_DIR}/profiles"
     local _profiles=($(echo $(find $profiles_dir -name "*.nix")))
-    [ "x$DEFAULT" != "xy" ] && echo -e "\n${cyan}:: Select a deployment profile:${none}"
+    [ "x$DEFAULT" != "xy" ] && log::header0 "\nSelect a deployment profile:"
     local i=0
     for j in "${!_profiles[@]}"; do # ! means loop over indices instead of values
         local x=${_profiles[$j]}
@@ -275,7 +275,7 @@ install::run()
     DESTDEV=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[0]')
 
     # Print out the detected disks
-    [ "x$DEFAULT" != "xy" ] && echo -e "\n${cyan}:: Select a disk as your install destination:${none}"
+    [ "x$DEFAULT" != "xy" ] && log::header0 "\nSelect a disk as your install destination:"
     local i=0
     echo $DISKS_DETAILED | jq -rc '.[]' | while read x; do
         i=$((i+1))
@@ -313,7 +313,7 @@ install::run()
     # Collect networking choices from user
     # ----------------------------------------------------------------------------------------------
     if [ "x$DEFAULT" != "xy" ]; then
-        echo -e "\n${cyan}:: Configure networking:${none}"
+        log::header0 "\nConfigure networking:"
         utils::read HOSTNAME 'Enter hostname' $HOSTNAME
         utils::read NETIP 'Enter static IP, e.g. 192.168.1.2/24' 'DHCP'
         if [ "x${NETIP}" != "xDHCP" ]; then
@@ -325,7 +325,7 @@ install::run()
     # Collect time and date choices from user
     # ----------------------------------------------------------------------------------------------
     if [ "x$DEFAULT" != "xy" ]; then
-        echo -e "\n${cyan}:: Configure time and date:${none}"
+        log::header0 "\nConfigure time and date:"
         utils::read TIMEZONE 'Enter timezone' "$TIMEZONE"
         utils::read TIMEDATE_SET "Change time ${cyan}$(date --iso-8601=seconds) UTC${none}" 'n'
         if [ "x$TIMEDATE_SET" == "xy" ]; then
@@ -340,7 +340,7 @@ install::run()
     # Collect new user account choices from user
     # ----------------------------------------------------------------------------------------------
     if [ "x$DEFAULT" != "xy" ]; then
-        echo -e "\n${cyan}:: Create new user account:${none}"
+        log::header0 "\nCreate new user account:"
         log::subln "Account includes: user & email, git user & email and full name\n"
         log::subln "${cyan}:: Create new user account:${none}"
         utils::read USER_NAME 'Enter new user name' $USER_NAME
@@ -366,23 +366,23 @@ install::run()
 
     # Start install
     # ----------------------------------------------------------------------------------------------
-    log::header0 "Starting installation"
-    echo -e ":: Options being used for installation"
-    echo -e "   profile=${cyan}${PROFILE}${none}"
-    echo -e "   hostname=${cyan}${HOSTNAME}${none}"
-    echo -e "   networking=${cyan}${NETIP}${none}"
-    echo -e "   user_name=${cyan}${USER_NAME}${none}"
-    echo -e "   user_email=${cyan}${USER_EMAIL}${none}"
+    log::header1 "Starting installation"
+    log::header0 "Options being used for installation"
+    log::subln "profile=${cyan}${PROFILE}${none}"
+    log::subln "hostname=${cyan}${HOSTNAME}${none}"
+    log::subln "networking=${cyan}${NETIP}${none}"
+    log::subln "user_name=${cyan}${USER_NAME}${none}"
+    log::subln "user_email=${cyan}${USER_EMAIL}${none}"
     if [ "x$DEFAULT" == "xy" ] || [ "x$DEFAULT_PASS" == "x$USER_PASS" ]; then
-        echo -e "   user_pass=${cyan}${DEFAULT_PASS}${none}"
+        log::subln "user_pass=${cyan}${DEFAULT_PASS}${none}"
     else
-        echo -e "   user_pass=${cyan}********${none}"
+        log::subln "user_pass=${cyan}********${none}"
     fi
-    echo -e "   timezone=${cyan}${TIMEZONE}${none}"
-    echo -e "   auto_login=${cyan}${AUTO_LOGIN}${none}"
-    echo -e "   dest_dev=${cyan}${DESTDEV}${none}"
-    echo -e "   SCSI=${cyan}${SCSI}${none}"
-    echo -e "   EFI=${cyan}${EFI}${none}"
+    log::subln "timezone=${cyan}${TIMEZONE}${none}"
+    log::subln "auto_login=${cyan}${AUTO_LOGIN}${none}"
+    log::subln "dest_dev=${cyan}${DESTDEV}${none}"
+    log::subln "SCSI=${cyan}${SCSI}${none}"
+    log::subln "EFI=${cyan}${EFI}${none}"
 
     # Partition the target disk and mount it for deployment
     install::prepare_disk
