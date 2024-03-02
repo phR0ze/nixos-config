@@ -146,7 +146,7 @@ log::header()
 log::header2()
 {
     local msg=$1
-    log::header "${cyan}" "${msg}" '-' 2
+    log::header "${cyan}" "${msg}" 2 '-'
 }
 
 # Print out a single header with newline
@@ -156,7 +156,7 @@ log::header2()
 log::header1()
 {
     local msg=$1
-    log::header "${cyan}" "${msg}" '-' 1
+    log::header "${cyan}" "${msg}" 1 '-'
 }
 
 # Print out a sub header
@@ -166,7 +166,7 @@ log::header1()
 log::header0()
 {
     local msg=$1
-    log::header "${cyan}" "${msg}"
+    log::header "${cyan}" "${msg}" 0
 }
 
 # Dump out debug variables
