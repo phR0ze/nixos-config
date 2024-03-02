@@ -29,11 +29,8 @@
   ];
 
 
-  # Installs a number of firmware packages
-  # linux-firmware, intel2200BGFirmware, rtl8192su-firmware, rt5677-firmware, rtl8761b-firmware
-  # rtw88-firmware, zd1211fw, alsa-firmware, sof-firmware, libreelec-dvb-firmware,
-  # broadcom-bt-firmware, b43Firmware_5_1_138, b43Firmware_6_30_163_46, xow_dongle-firmware
-  #hardware.enableAllFirmware = true;
+  # Install hardware firmware
+  # https://github.com/NixOS/nixpkgs/blob/release-23.11/nixos/modules/hardware/all-firmware.nix
   hardware.firmware = with pkgs; [
     linux-firmware
     alsa-firmware
