@@ -25,7 +25,6 @@
     ../../modules/networking
     ../../modules/development
     ../../modules/services/sshd.nix
-    ../../home-manager
   ];
 
 

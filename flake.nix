@@ -10,12 +10,13 @@
   # After inputs are resolved they are passed to the outputs function and map to the explicit and 
   # implicit arguments as defined by the outputs function.
   inputs = {
+    #nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; 
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11"; 
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable"; 
+    #nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable"; 
 
     # Note the master branch in home manager equates to unstable in nixos
-    home-manager.url = "github:nix-community/home-manager/release-23.11";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    #home-manager.url = "github:nix-community/home-manager/release-23.11";
+    #home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   # ### Implicit arguments
@@ -31,9 +32,9 @@
   # Although it is nice to gather all implicit arguments together this means to use them without the 
   # do notation would require an 'inherit (inputs) nixpkgs' to bring them into scope. Another option 
   # is to just call them out explicitly as required named arguments which does this scoping for you.
-  outputs = { self, nixpkgs, home-manager, ... }@inputs: let
+  outputs = { self, nixpkgs, ... }@inputs: let
 
-    # System settings
+    # Updatable system settings
     # ----------------------------------------------------------------------------------------------
     settings = {
       stateVersion = "23.11";
@@ -85,9 +86,6 @@
     system = settings.system;
     specialArgs = { inherit args; };
     
-  # Pass along configuration variables defined above
-  # * [Special Args](https://github.com/nix-community/home-manager/issues/1022)
-  # ------------------------------------------------------------------------------------------------
   in {
     nixosConfigurations = {
 
