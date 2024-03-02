@@ -2,7 +2,7 @@
 #
 # ### Features
 # - Directly installable
-# - Size: 1511.2 MiB
+# - Size: 2433.7 MiB
 # - Configured by flake args
 #   - Grub EFI/MBR bootable
 #   - System/User Locale
