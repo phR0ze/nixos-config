@@ -341,8 +341,8 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     if [ "x$DEFAULT" != "xy" ]; then
         log::header0 "Create new user account:"
-        log::subln "Account includes: user & email, git user & email and full name\n"
-        log::subln "${cyan}:: Create new user account:${none}"
+        log::subln3 "Account includes: user & email, git user & email and full name\n"
+        log::subln3 "${cyan}:: Create new user account:${none}"
         utils::read USER_NAME 'Enter new user name' $USER_NAME
         utils::read USER_EMAIL 'Enter new user email' $USER_EMAIL
         while true; do
@@ -368,24 +368,24 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
-    log::subln "profile=${cyan}${PROFILE}${none}"
-    log::subln "hostname=${cyan}${HOSTNAME}${none}"
-    log::subln "networking=${cyan}${NETIP}${none}"
-    log::subln "user_name=${cyan}${USER_NAME}${none}"
-    log::subln "user_email=${cyan}${USER_EMAIL}${none}"
+    log::subln3 "profile=${cyan}${PROFILE}${none}"
+    log::subln3 "hostname=${cyan}${HOSTNAME}${none}"
+    log::subln3 "networking=${cyan}${NETIP}${none}"
+    log::subln3 "user_name=${cyan}${USER_NAME}${none}"
+    log::subln3 "user_email=${cyan}${USER_EMAIL}${none}"
     if [ "x$DEFAULT" == "xy" ] || [ "x$DEFAULT_PASS" == "x$USER_PASS" ]; then
-        log::subln "user_pass=${cyan}${DEFAULT_PASS}${none}"
+        log::subln3 "user_pass=${cyan}${DEFAULT_PASS}${none}"
     else
-        log::subln "user_pass=${cyan}********${none}"
+        log::subln3 "user_pass=${cyan}********${none}"
     fi
-    log::subln "git_user=${cyan}${GIT_USER}${none}"
-    log::subln "git_email=${cyan}${GIT_EMAIL}${none}"
-    log::subln "full_name=${cyan}${FULL_NAME}${none}"
-    log::subln "timezone=${cyan}${TIMEZONE}${none}"
-    log::subln "auto_login=${cyan}${AUTO_LOGIN}${none}"
-    log::subln "dest_dev=${cyan}${DESTDEV}${none}"
-    log::subln "SCSI=${cyan}${SCSI}${none}"
-    log::subln "EFI=${cyan}${EFI}${none}"
+    log::subln3 "git_user=${cyan}${GIT_USER}${none}"
+    log::subln3 "git_email=${cyan}${GIT_EMAIL}${none}"
+    log::subln3 "full_name=${cyan}${FULL_NAME}${none}"
+    log::subln3 "timezone=${cyan}${TIMEZONE}${none}"
+    log::subln3 "auto_login=${cyan}${AUTO_LOGIN}${none}"
+    log::subln3 "dest_dev=${cyan}${DESTDEV}${none}"
+    log::subln3 "SCSI=${cyan}${SCSI}${none}"
+    log::subln3 "EFI=${cyan}${EFI}${none}"
 
     # Partition the target disk and mount it for deployment
     install::prepare_disk
