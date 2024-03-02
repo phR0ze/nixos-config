@@ -342,7 +342,6 @@ install::run()
     if [ "x$DEFAULT" != "xy" ]; then
         log::header0 "Create new user account:"
         log::subln3 "Account includes: user & email, git user & email and full name\n"
-        log::subln3 "${cyan}:: Create new user account:${none}"
         utils::read USER_NAME 'Enter new user name' $USER_NAME
         utils::read USER_EMAIL 'Enter new user email' $USER_EMAIL
         while true; do
