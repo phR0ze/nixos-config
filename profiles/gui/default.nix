@@ -1,23 +1,12 @@
-# Minimal base bootable configuration
+# Minimal guid base configuration
 #
 # ### Features
-# - Directly installable
-# - Size: 2433.7 MiB
-# - Configured by flake args
-#   - Grub EFI/MBR bootable
-#   - System/User Locale
-#   - Default user/admin
-#   - Hostname
-#   - Disable IPv5 networking
-# - Bash custom user configuration
-# - Passwordless access for Sudo for default user
-# - SSHD custom configuration
-# - Nix flake and commands configuration
-# - DHCP systemd-networkd networking
+# - Replicating
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }:
 {
   imports = [
+    ./minimal.nix
     ../../modules
     ../../modules/boot
     ../../modules/terminal
@@ -70,6 +59,14 @@
     unzip                         # Uncompress Zip archives
     zip                           # Create zip archives
   ];
+
+  # Bootable systems imply a more general use case. Overriding the minimal.nix to include
+  # docs and basic services; however this adds a full 500 MiB to the installation.
+  documentation.enable = lib.mkOverride 500 true;
+  documentation.doc.enable = lib.mkOverride 500 true;
+  documentation.info.enable = lib.mkOverride 500 true;
+  documentation.man.enable = lib.mkOverride 500 true;
+  documentation.nixos.enable = lib.mkOverride 500 true;
 
   # Set the NixOS version that this was installed with
   system.stateVersion = args.settings.stateVersion;

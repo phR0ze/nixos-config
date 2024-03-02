@@ -1,7 +1,7 @@
 # XFCE base configuration
 #
 # ### Features
-# - Size: 8119.5 MiB
+# - Directly installable
 #---------------------------------------------------------------------------------------------------
 { pkgs, args, ... }:
 {
