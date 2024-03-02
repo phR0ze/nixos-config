@@ -49,13 +49,13 @@
   # Write the current set of packages out to /etc/packages
   # Only catches just the packages in the flake and not it's dependencies. Not a great solution
   # ------------------------------------------------------------------------------------------------
-#  environment.etc."packages".text =
-#  let
-#    packages = builtins.map (p: p.name) config.environment.systemPackages;
-#    sortedUnique = builtins.sort builtins.lessThan (lib.unique packages);
-#    formatted = builtins.concatStringsSep "\n" sortedUnique;
-#  in
-#    formatted;
+  environment.etc."packages".text =
+  let
+    packages = builtins.map (p: p.name) config.environment.systemPackages;
+    sortedUnique = builtins.sort builtins.lessThan (lib.unique packages);
+    formatted = builtins.concatStringsSep "\n" sortedUnique;
+  in
+    formatted;
 }
 
 # vim:set ts=2:sw=2:sts=2
