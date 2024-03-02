@@ -10,14 +10,19 @@
   ];
 
   #hardware.pulseaudio.enable = true;
-#  services.xserver = {
-#    enable = true;
-#    desktopManager = {
-#      xterm.enable = false;
-#      xfce.enable = true;
-#    };
-#    displayManager.defaultSession = "xfce";
-#  };
+  services.xserver = {
+    enable = true;
+    desktopManager = {
+      #xterm.enable = false;
+      xfce.enable = true;
+    };
+    displayManager = {
+      lightdm.enable = true;
+      #defaultSession = "xfce";
+    };
+  };
+  # plata-theme
+  # arc-icon-theme
 
 #  services.xserver = {
 #    enable = true;
