@@ -48,7 +48,8 @@
 #    thunar-archive-plugin
 #  ];
   environment.systemPackages = with pkgs; [
-    prismlauncher
+    jdk17
+    args.prismlauncher.packages.${pkgs.system}.prismlauncher
   ];
 
     #config = lib.mkAfter ''
