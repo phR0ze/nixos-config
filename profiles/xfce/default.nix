@@ -3,7 +3,7 @@
 # ### Features
 # - Size: 8119.5 MiB
 #---------------------------------------------------------------------------------------------------
-{ config, lib, args, ... }:
+{ pkgs, args, ... }:
 {
   imports = [
     ../cli
@@ -13,14 +13,12 @@
     enable = true;
     desktopManager = {
       xfce.enable = true;
+      xfce.enableXfwm = true;
       xterm.enable = false;
     };
     displayManager = {
-      lightdm = {
-        enable = true;
-        autoSuspend = false;
-      };
       defaultSession = "xfce";
+      #lightdm.enable = true;
 
       # Conditionally autologin based on install settings
       autoLogin = {
@@ -30,10 +28,13 @@
     };
   }; 
 
-  programs.thunar.plugins = with pkgs.xfce; [
-    thunar-volman
-    thunar-archive-plugin
-  ];
+#  programs.thunar.plugins = with pkgs.xfce; [
+#    thunar-volman
+#    thunar-archive-plugin
+#  ];
+#    environment.systemPackages = with pkgs; [
+#      ffmpeg
+#    ];
 }
 
 # vim:set ts=2:sw=2:sts=2
