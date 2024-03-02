@@ -10,13 +10,8 @@
   # After inputs are resolved they are passed to the outputs function and map to the explicit and 
   # implicit arguments as defined by the outputs function.
   inputs = {
-    #nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; 
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11"; 
-    #nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable"; 
-
-    # Note the master branch in home manager equates to unstable in nixos
-    #home-manager.url = "github:nix-community/home-manager/release-23.11";
-    #home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; 
+    #nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
   };
 
   # ### Implicit arguments
