@@ -378,6 +378,9 @@ install::run()
     else
         log::subln "user_pass=${cyan}********${none}"
     fi
+    log::subln "git_user=${cyan}${GIT_USER}${none}"
+    log::subln "git_email=${cyan}${GIT_EMAIL}${none}"
+    log::subln "full_name=${cyan}${FULL_NAME}${none}"
     log::subln "timezone=${cyan}${TIMEZONE}${none}"
     log::subln "auto_login=${cyan}${AUTO_LOGIN}${none}"
     log::subln "dest_dev=${cyan}${DESTDEV}${none}"
