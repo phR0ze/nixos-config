@@ -55,6 +55,7 @@
     jq                            # Command line JSON processor, depof: kubectl
     libisoburn                    # xorriso ISO creation tools
     logrotate                     # Rotates and compresses system logs
+    nix-prefetch                  # Utility to fetch git source to compute hashes
     #'mkinitcpio-vt-colors'      # vt-colors, mkintcpio, find, xargs, gawk, grep
     psmisc                        # Proc filesystem utilities e.g. killall
     smartmontools                 # Monitoring tools for hard drives

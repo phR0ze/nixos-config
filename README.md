@@ -134,6 +134,7 @@ world though this already exists.
 * [ ] Port cyberlinux cli packages over
 
 ## Sometime
+* [ ] Add `nix-prefetch fetchFromGitHub --owner hrsh7th --repo nvim-cmp --rev 768548bf4980fd6d635193a9320545bb46fcb6d8`
 * [ ] Add vim-colorize plugin
 * [ ] Add terminal nerd fonts
 * [ ] Configure `git config --global user.name`
