@@ -25,7 +25,7 @@
   #
   # ### Explicit arguments
   # Although it is nice to gather all implicit arguments together this means to use them without the 
-  # do notation would require an 'inherit (inputs) nixpkgs' to bring them into scope. Another option 
+  # dot notation would require an 'inherit (inputs) nixpkgs' to bring them into scope. Another option 
   # is to just call them out explicitly as required named arguments which does this scoping for you.
   outputs = { self, nixpkgs, ... }@inputs: let
 
@@ -63,18 +63,20 @@
     # * [lookup-paths](https://nix.dev/tutorials/nix-language.html#lookup-paths)
     # * [Override nixpkgs](https://discourse.nixos.org/t/allowunfree-predicate-does-not-apply-to-self-packages/21734/6)
     # ----------------------------------------------------------------------------------------------
-    pkgs = import inputs.nixpkgs {
+    pkgs = import nixpkgs {
       system = settings.system;
       config.allowUnfree = true;
       config.allowUnfreePredicate = _: true;
+#      overlays = [
+#        (final: prev: {
+#          prismlauncher = prev.prismlauncher.overrideAttrs (o: {
+#            patches = (o.patches or [ ]) ++ [
+#              ./patches/prismlauncher/offline.patch
+#            ];
+#          });
+#        })
+#      ];
     };
-
-#    # Add the ability to access unstable packages
-#    pkgs-unstable = import inputs.nixpkgs-unstable {
-#      system = settings.system;
-#      config.allowUnfree = true;
-#      config.allowUnfreePredicate = _: true;
-#    };
 
     # Using attribute set update syntax '//' here to combine a couple sets for simpler input arguments
     args = inputs // { inherit settings; };

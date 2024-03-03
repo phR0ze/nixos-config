@@ -49,7 +49,11 @@
 #  ];
   environment.systemPackages = with pkgs; [
     jdk17
-    prismlauncher
+    (prismlauncher.override (prev: {
+      prismlauncher-unwrapped = prev.prismlauncher-unwrapped.overrideAttrs (o: {
+        patches = (o.patches or [ ]) ++ [ ../../patches/prismlauncher/offline.patch ];
+      });
+    }))
   ];
 
     #config = lib.mkAfter ''
