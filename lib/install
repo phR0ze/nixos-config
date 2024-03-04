@@ -216,6 +216,27 @@ install::run()
     # Detect EFI supported system
     [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
 
+    # Collect the profile selection from user
+    # ----------------------------------------------------------------------------------------------
+    PROFILES=()
+    local profiles_dir="${SCRIPT_DIR}/profiles"
+    local _profiles=($(echo $(find $profiles_dir -name "*.nix")))
+    log::header0 "Select a deployment profile:"
+    local i=0
+    for j in "${!_profiles[@]}"; do # ! means loop over indices instead of values
+        local x=${_profiles[$j]}
+
+        # Check if the profile contains the "# - Directly installable" string
+        if grep -q "# - Directly installable" ${x} ; then
+            x=${x//$profiles_dir\/}     # trim off the suffix dir
+            x=${x//.nix}                # trim off the extension
+            PROFILES+=($x)              # add to the final profiles list
+            echo -e "   $((i+1))) ${cyan}${PROFILES[$i]}${none}"
+            i=$((i+1))                  # increment i
+        fi
+    done
+    utils::select PROFILE "${PROFILES[@]}"
+
     # Determine if this is a default deployment
     # ----------------------------------------------------------------------------------------------
     log::header0 "Automatically deploy with defaults?"
@@ -229,29 +250,6 @@ install::run()
     log::ln_d "Entering debug mode"
     log::ln_d "Debug lins are prefixed with violet ${violet}>>${none}"
     log::vars
-
-    # Collect the profile selection from user
-    # ----------------------------------------------------------------------------------------------
-    PROFILES=()
-    local profiles_dir="${SCRIPT_DIR}/profiles"
-    local _profiles=($(echo $(find $profiles_dir -name "*.nix")))
-    [ "x$DEFAULT" != "xy" ] && log::header0 "Select a deployment profile:"
-    local i=0
-    for j in "${!_profiles[@]}"; do # ! means loop over indices instead of values
-        local x=${_profiles[$j]}
-
-        # Check if the profile contains the "# - Directly installable" string
-        if grep -q "# - Directly installable" ${x} ; then
-            x=${x//$profiles_dir\/}     # trim off the suffix dir
-            x=${x//.nix}                # trim off the extension
-            PROFILES+=($x)              # add to the final profiles list
-            [ "x$DEFAULT" != "xy" ] && echo -e "   $((i+1))) ${cyan}${PROFILES[$i]}${none}"
-            i=$((i+1))                  # increment i
-        fi
-    done
-    if [ "x$DEFAULT" != "xy" ]; then
-        utils::select PROFILE "${PROFILES[@]}"
-    fi
 
     # Collect install destination choice from user
     # ----------------------------------------------------------------------------------------------
