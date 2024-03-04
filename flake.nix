@@ -43,7 +43,7 @@
       git_email = "nixos@nixos.org";  # email to use for github, gitlab or other git tools
       hostname = "nixos";             # hostname to use for the install
       profile = "xfce/default";        # pre-defined configurations in path './profiles' selection
-      autologin = false;              # automatically log the user in after boot when true
+      autologin = true;              # automatically log the user in after boot when true
       
       # Configuration set via automation
       efi = true;                     # EFI system boot type
