@@ -13,6 +13,7 @@ Options:
 
 Commands:
   store             Clean the nix store
+  generations       Clean everything but current generation from nix store
 USAGE
 
     log::ln "\nExamples:"
@@ -31,7 +32,19 @@ clean::run()
     # Parse the clean commnand
     local command=$1; shift
     case "$command" in
-        store) nix-store --gc ;;
+        all) clean::store -d ;;
+        store) clean::store ;;
         *) log::error "Invalid clean command: ${cyan}${command}${none}"; clean::usage ;;
     esac
+}
+
+# Clean up nix store
+# --------------------------------------------------------------------------------------------------
+clean::store()
+{
+    # First clean up all older generations
+    [[ $1 == "-d" ]] && nix-collect-garbage -d
+
+    # Now clean the nix store
+    nix-store --gc
 }
