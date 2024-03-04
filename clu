@@ -60,6 +60,7 @@ Commands:
   clean             Clean various system components
   help              Get help for a command
   install           Install system configuration
+  manage            Manage the clu repo
   pkgs              Package management commands
   test              Testing function for development
   update            Update the system with any changed configuration
@@ -90,6 +91,7 @@ case "$command" in
     build) build::run "$@" ;;
     clean) clean::run "$@" ;;
     install) install::run "$@" ;;
+    manage) manage::run "$@" ;;
     pkgs) pkgs::run "$@" ;;
     test) test::run "$@" ;;
     update) update::run "$@" ;;
