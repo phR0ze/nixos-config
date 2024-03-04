@@ -131,7 +131,6 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Port cyberlinux cli packages over
 
 ## Sometime
 * [ ] Add `nix-prefetch fetchFromGitHub --owner hrsh7th --repo nvim-cmp --rev 768548bf4980fd6d635193a9320545bb46fcb6d8`
@@ -145,11 +144,13 @@ world though this already exists.
 * [ ] Remove `/etc/nixos/etc/nixos`
 * [ ] clu to update `flake.nix` with user selection
 * [ ] Build out standard xfce desktop
-* [ ] Change the autologin welcome message
+* [ ] Change the tty autologin welcome message
 * [ ] Change the kernel boot colors 
 * [ ] alias or clu feature `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
 
 ## Completed
+* [x] Xfce base with autologin
+* [x] Port cyberlinux cli packages over
 * [x] Fix dircolors
 * [x] Adding solarized dircolors theme
 * [x] Clean up starship prompt to look better
