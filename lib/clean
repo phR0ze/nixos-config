@@ -12,11 +12,12 @@ Options:
   -h, --help        Print out top level usage
 
 Commands:
+  all               Clean everything
   store             Clean the nix store
-  generations       Clean everything but current generation from nix store
 USAGE
 
     log::ln "\nExamples:"
+    log::subln "Clean nix store: ${green}./${SCRIPT} clean all${none}"
     log::subln "Clean nix store: ${green}./${SCRIPT} clean store${none}"
     echo
     exit

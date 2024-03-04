@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# Usage for the manage command and its sub commands
+# --------------------------------------------------------------------------------------------------
+manage::usage()
+{
+    cat <<USAGE
+Usage:
+  manage [OPTIONS] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out top level usage
+
+Commands:
+  repo              Convert the target repo into a git@github.com:USER repo
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "manage nix store: ${green}./${SCRIPT} manage all${none}"
+    echo
+    exit
+}
+
+
+# Parse the manage commands and execute
+# --------------------------------------------------------------------------------------------------
+manage::run()
+{
+    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && manage::usage
+
+    # Parse the manage commnand
+    local command=$1; shift
+    case "$command" in
+        repo) manage::repo ;;
+        *) log::error "Invalid manage command: ${cyan}${command}${none}"; manage::usage ;;
+    esac
+}
+
+# manage up nix store
+# --------------------------------------------------------------------------------------------------
+manage::repo()
+{
+    local remote=$(git remote)
+    local url=$(git config --get remote.${remote}.url)
+    if [[ "$url" =~ .*/(.*)/(.*) ]]; then 
+        local owner="${BASH_REMATCH[1]}"
+        local repo="${BASH_REMATCH[2]}"
+        git remote set-url ${remote} "git@github.com:${owner}/${repo}"
+    else
+        log::error "Unable to parse the remote URL: ${cyan}${remote}${none}"
+    fi
+}
