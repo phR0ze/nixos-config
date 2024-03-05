@@ -6,12 +6,14 @@ palette = "cyber"
 
 format = """
 $container\
-${custom.user_name}\
+${custom.user_normal}\
 ${custom.user_root}\
 ${custom.user_ssh}\
-${custom.hostname_user}\
+${custom.user_dev}\
+${custom.hostname_normal}\
 ${custom.hostname_root}\
 ${custom.hostname_ssh}\
+${custom.hostname_dev}\
 ${custom.arrow_user}\
 ${custom.arrow_root}\
 ${custom.arrow_ssh}\
@@ -28,6 +30,7 @@ color_light_blue = "#0488D3"
 color_dark_blue = "#1c638d"
 color_light_red = "#d31f04"
 color_light_orange = "#ff7b00"
+color_light_yellow = "#ffef00"
 color_white = "#ffffff"
 
 [container]
@@ -35,42 +38,53 @@ style = "bg:#0488D3"
 format = '[ $name ]($style)'
 
 # Non ssh user and not root
-[custom.user_name]
+[custom.user_normal]
 command = "echo $USER"
-when = '[[ ! -n "$SSH_CONNECTION" && "$USER" != "root" ]]'
+when = '[[ ! -n "$IN_NIX_SHELL" && ! -n "$SSH_CONNECTION" && "$USER" != "root" ]]'
 shell = ["bash", "--noprofile", "--norc"]
 format = "[ $output](fg:color_white bg:color_light_blue)"
 
 # Non ssh user and root
 [custom.user_root]
-when = '[[ ! -n "$SSH_CONNECTION" && "$USER" == "root" ]]'
+when = '[[ ! -n "$IN_NIX_SHELL" && ! -n "$SSH_CONNECTION" && "$USER" == "root" ]]'
 shell = ["bash", "--noprofile", "--norc"]
 format = "[ root](fg:color_white bg:color_light_red)"
 
 # Any ssh user
 [custom.user_ssh]
 command = "echo $USER"
-when = '[[ -n "$SSH_CONNECTION" ]]'
+when = '[[ ! -n "$IN_NIX_SHELL" && -n "$SSH_CONNECTION" ]]'
 shell = ["bash", "--noprofile", "--norc"]
 format = "[ $output](fg:color_white bg:color_light_orange)"
 
-[custom.hostname_user]
+# Nix dev shell
+[custom.user_dev]
+when = '[[ -n "$IN_NIX_SHELL" ]]'
+format = "[ nix-shell](fg:color_white bg:color_light_yellow)"
+
+[custom.hostname_normal]
 command = "uname -n"
-when = '[[ ! -n "$SSH_CONNECTION" && "$USER" != "root" ]]'
+when = '[[ ! -n "$IN_NIX_SHELL" && ! -n "$SSH_CONNECTION" && "$USER" != "root" ]]'
 shell = ["bash", "--noprofile", "--norc"]
 format = "[@$output ](fg:color_white bg:color_light_blue)"
 
 [custom.hostname_root]
 command = "uname -n"
-when = '[[ ! -n "$SSH_CONNECTION" && "$USER" == "root" ]]'
+when = '[[ ! -n "$IN_NIX_SHELL" && ! -n "$SSH_CONNECTION" && "$USER" == "root" ]]'
 shell = ["bash", "--noprofile", "--norc"]
 format = "[@$output ](fg:color_white bg:color_light_red)"
 
 [custom.hostname_ssh]
 command = "uname -n"
-when = '[[ -n "$SSH_CONNECTION" ]]'
+when = '[[ ! -n "$IN_NIX_SHELL" && -n "$SSH_CONNECTION" ]]'
 shell = ["bash", "--noprofile", "--norc"]
 format = "[@$output ](fg:color_white bg:color_light_orange)"
+
+[custom.hostname_dev]
+command = "echo $pname"
+when = '[[ -n "$IN_NIX_SHELL" ]]'
+shell = ["bash", "--noprofile", "--norc"]
+format = "[@$output ](fg:color_white bg:color_light_yellow)"
 
 [custom.arrow_user]
 when = '[[ ! -n "$SSH_CONNECTION" && "$USER" != "root" ]]'
