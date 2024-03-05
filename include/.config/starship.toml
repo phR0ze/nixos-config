@@ -31,7 +31,7 @@ color_light_blue = "#0488D3"
 color_dark_blue = "#1c638d"
 color_light_red = "#d31f04"
 color_light_orange = "#ff7b00"
-color_light_yellow = "#ffc40c"
+color_light_yellow = "#daa520"
 color_white = "#ffffff"
 
 [container]
