@@ -67,15 +67,16 @@
       system = settings.system;
       config.allowUnfree = true;
       config.allowUnfreePredicate = _: true;
-#      overlays = [
-#        (final: prev: {
-#          prismlauncher = prev.prismlauncher.overrideAttrs (o: {
-#            patches = (o.patches or [ ]) ++ [
-#              ./patches/prismlauncher/offline.patch
-#            ];
-#          });
-#        })
-#      ];
+
+      overlays = [
+        (final: prev: {
+          prismlauncher = prev.prismlauncher.override (p: {
+            prismlauncher-unwrapped = p.prismlauncher-unwrapped.overrideAttrs (o: {
+              patches = (o.patches or [ ]) ++ [ ./patches/prismlauncher/offline.patch ];
+            });
+          });
+        })
+      ];
     };
 
     # Using attribute set update syntax '//' here to combine a couple sets for simpler input arguments
