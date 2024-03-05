@@ -13,7 +13,6 @@ ${custom.user_dev}\
 ${custom.hostname_normal}\
 ${custom.hostname_root}\
 ${custom.hostname_ssh}\
-${custom.hostname_dev}\
 ${custom.arrow_normal}\
 ${custom.arrow_root}\
 ${custom.arrow_ssh}\
@@ -61,7 +60,7 @@ format = "[ $output](fg:color_white bg:color_light_orange)"
 # Nix dev shell
 [custom.user_dev]
 when = '[[ -n "$IN_NIX_SHELL" ]]'
-format = "[ nix-shell](fg:color_white bg:color_light_yellow)"
+format = "[ nix-shell ](fg:color_white bg:color_light_yellow)"
 
 [custom.hostname_normal]
 command = "uname -n"
@@ -80,12 +79,6 @@ command = "uname -n"
 when = '[[ ! -n "$IN_NIX_SHELL" && -n "$SSH_CONNECTION" ]]'
 shell = ["bash", "--noprofile", "--norc"]
 format = "[@$output ](fg:color_white bg:color_light_orange)"
-
-[custom.hostname_dev]
-command = "echo $pname"
-when = '[[ -n "$IN_NIX_SHELL" ]]'
-shell = ["bash", "--noprofile", "--norc"]
-format = "[@$output ](fg:color_white bg:color_light_yellow)"
 
 [custom.arrow_normal]
 when = '[[ ! -n "$IN_NIX_SHELL" && ! -n "$SSH_CONNECTION" && "$USER" != "root" ]]'
