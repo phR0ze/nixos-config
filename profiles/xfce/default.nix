@@ -80,6 +80,27 @@
       });
     }))
 
+#  systemd.user.services.dropbox = {
+#    description = "Dropbox";
+#    wantedBy = [ "default.target" ];
+#    environment = {
+#      QT_PLUGIN_PATH = "/run/current-system/sw/"
+#        + pkgs.qt5.qtbase.qtPluginPrefix;
+#      QML2_IMPORT_PATH = "/run/current-system/sw/"
+#        + pkgs.qt5.qtbase.qtQmlPrefix;
+#    };
+#    serviceConfig = {
+#      ExecStart = "${pkgs.dropbox.out}/bin/dropbox";
+#      ExecReload = "${pkgs.coreutils.out}/bin/kill -HUP $MAINPID";
+#      KillMode = "control-group"; # upstream recommends process
+#      Restart = "on-failure";
+#      RestartSec = "3";
+#      PrivateTmp = true;
+#      ProtectSystem = "full";
+#      Nice = 10;
+#    };
+#  };
+
 #  xdg.portal = {
 #    enable = true;
 #    wlr.enable = true;
