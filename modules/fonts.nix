@@ -5,11 +5,11 @@
 #---------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
-  console = {
-    earlySetup = true;
-    font = "ter-v24n";
-    packages = with pkgs; [ terminus_font ];
-  };
+#  console = {
+#    earlySetup = true;
+#    font = "ter-v24n";
+#    packages = with pkgs; [ terminus_font ];
+#  };
 
   fonts = {
     fontDir.enable = true;          # Create shared font dir /run/current-system/sw/share/X11/fonts
@@ -28,12 +28,10 @@
       font-awesome                  # Font Awesome OTF font
       inconsolata-nerdfont          # A monospace font for both screen and print
       liberation_ttf                # Font replacements for Times New Roman, Arial and Courier New
-      libre-baskerville
-      julia-mono
-      ubuntu_font_family
+      ubuntu_font_family            # Ubuntu font family
       source-code-pro               # Monospaced font family for coding environments
-      source-sans-pro               # 
-      source-serif-pro
+      source-sans-pro               # Sans variant of source pro fonts
+      source-serif-pro              # Serif variant of source pro fonts
       roboto-mono                   # Google Roboto Mono fonts
       roboto                        # Google Roboto family of fonts
       terminus-nerdfont             # A clean fixed width font

@@ -8,6 +8,7 @@
 {
   imports = [
     ../cli
+    ../../modules/fonts.nix
     ../../modules/networking/network-manager.nix
   ];
 
