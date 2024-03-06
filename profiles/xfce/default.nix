@@ -89,7 +89,7 @@
   
   # General applications
   # ------------------------------------------------------------------------------------------------
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = with pkgs.xfce // pkgs; [
     gnome.gnome-themes-extra          # Xfce default,
     gnome.adwaita-icon-theme          # Xfce default,
     hicolor-icon-theme                # Xfce default,
