@@ -71,10 +71,11 @@
   environment.xfce.excludePackages = [
   ];
 
-  # Default xfce dbus services
+  # Other services
   services.gvfs.enable = true;
   services.tumbler.enable = true;
   services.printing.enable = true;
+  services.timesyncd.enable = true;
 
   # plata-theme
   # arc-icon-theme
