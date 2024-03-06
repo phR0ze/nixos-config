@@ -8,12 +8,13 @@
   # xdg-user-dirs-update will run early in the login phase to create them
   # ~/.config/user-dirs.dirs
   environment.etc."xdg/user-dirs.defaults".text = ''
-    XDG_DESKTOP_DIR="$HOME/Desktop"
-    XDG_DOCUMENTS_DIR="$HOME/Documents"
-    XDG_DOWNLOAD_DIR="$HOME/Downloads"
-    XDG_MUSIC_DIR="$HOME/Music"
-    XDG_PICTURES_DIR="$HOME/Pictures"
-    XDG_VIDEOS_DIR="$HOME/Videos"
+    DOWNLOAD=Downloads
+    DOCUMENTS=Documents
+    PROJECTS=Projects
+    SCRIPTS=bin
+    MUSIC=Media/music
+    PICTURES=Media/pictures
+    VIDEOS=Media/videos
   '';
 
   environment.systemPackages = with pkgs; [
