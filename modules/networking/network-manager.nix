@@ -15,6 +15,7 @@
         "interface-name:docker*"
         "interface-name:vboxnet*"
         "interface-name:vmnet*"
+      ];
     };
   };
 
