@@ -49,7 +49,7 @@
 #    thunar-archive-plugin
 #  ];
   environment.systemPackages = with pkgs; [
-   # jdk17
+    jdk17
    # prismlauncher
 #    (prismlauncher.override (prev: {
 #      prismlauncher-unwrapped = prev.prismlauncher-unwrapped.overrideAttrs (o: {
