@@ -51,11 +51,13 @@
   programs.thunar.plugins = with pkgs.xfce; [
     thunar-volman
     thunar-archive-plugin
+    thunar-media-tags-plugin
   ];
 
   # General applications
   # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
+    galculator                      # Simple calculator
     jdk17
 
     # Patch prismlauncher for offline mode
@@ -82,9 +84,6 @@
   # Enable bluetooth
   # hardware.bluetooth.enable = true;
   # services.blueman.enable = true;
-
-  # Docker configuration
-  # virtualisation.docker.enable = true;
 
 
 
