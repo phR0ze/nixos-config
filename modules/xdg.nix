@@ -12,9 +12,9 @@
     DOCUMENTS=Documents
     PROJECTS=Projects
     SCRIPTS=bin
-    MUSIC=Media/music
-    PICTURES=Media/pictures
-    VIDEOS=Media/videos
+    MUSIC=Music
+    PICTURES=Pictures
+    VIDEO=Video
   '';
 
   environment.systemPackages = with pkgs; [
