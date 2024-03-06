@@ -10,6 +10,8 @@
     ../cli
   ];
 
+  # XFCE configuration
+  # ------------------------------------------------------------------------------------------------
   services.xserver = {
     enable = true;
     desktopManager = {
@@ -32,7 +34,6 @@
   # Configure sound
   # https://nixos.wiki/wiki/PulseAudio
   # ------------------------------------------------------------------------------------------------
-  sound.enable = true;
   hardware.pulseaudio = {
 		enable = true;
     support32Bit = true;            # Provide sound for 32bit application
@@ -44,17 +45,35 @@
   # plata-theme
   # arc-icon-theme
 
-#  programs.thunar.plugins = with pkgs.xfce; [
-#    thunar-volman
-#    thunar-archive-plugin
-#  ];
+  # Thunar configuration
+  # ------------------------------------------------------------------------------------------------
+  programs.thunar.plugins = with pkgs.xfce; [
+    thunar-volman
+    thunar-archive-plugin
+  ];
+
+  # Networking configuration
+  # ------------------------------------------------------------------------------------------------
+  networking.networkmanager.enable = true;
+
+  # General applications
+  # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
     jdk17
+
+    # Patch prismlauncher for offline mode
     (prismlauncher.override (prev: {
       prismlauncher-unwrapped = prev.prismlauncher-unwrapped.overrideAttrs (o: {
         patches = (o.patches or [ ]) ++ [ ../../patches/prismlauncher/offline.patch ];
       });
     }))
+#    pavucontrol                   # PulseAudio Volume Control
+#    vaapiIntel
+#    vaapi-intel-hybrid
+#    libva-full
+#    libva-utils
+#    intel-media-driver
+#  ];
   ];
 
     #config = lib.mkAfter ''
@@ -119,15 +138,6 @@
 #      julia-mono
 #    ];
 #  };
-#
-#  environment.systemPackages = with pkgs; [
-#    pavucontrol                   # PulseAudio Volume Control
-#    vaapiIntel
-#    vaapi-intel-hybrid
-#    libva-full
-#    libva-utils
-#    intel-media-driver
-#  ];
 
 }
 
