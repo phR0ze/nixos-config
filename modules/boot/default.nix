@@ -19,8 +19,17 @@
     "fs.inotify.max_user_instances" = 524288;   # Increase the number of user instances to max
   };
 
+  # Blacklisted modules
+  boot.blacklistedKernelModules = [
+    "pcspkr"
+   # "nouveau"                                  # Uncomment to disable particular video drivers
+   # "nvidia"                                   # Uncomment to disable particular video drivers
+  ];
+
   # Configure default kernel modules
-  #boot.initrd.kernelModules = [ "ext4" ... ];
+  #boot.initrd.kernelModules = [
+  #  "i915"
+  #];
 }
 
 # vim:set ts=2:sw=2:sts=2

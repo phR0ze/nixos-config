@@ -27,6 +27,13 @@
       # hard links to save disk space.
       auto-optimise-store = lib.mkDefault true;
 
+      # Add custom binary caches
+      #substituters = lib.mkBefore [ "https.mirrors.somesite.com/nix-channels/store" ]
+#      substituters = [
+#        "https://nix-community.cachix.org/"
+#        "https://cache.nixos.org/"
+#      ];
+
       experimental-features = [
         "nix-command"    # 2.0 cli
         "flakes"         # flakes support
