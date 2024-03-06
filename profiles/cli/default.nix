@@ -18,11 +18,17 @@
 { config, lib, pkgs, args, ... }:
 {
   imports = [
-    ../../modules
-    ../../modules/boot
-    ../../modules/terminal
-    ../../modules/networking
-    ../../modules/development
+    ../../modules/locale.nix
+    ../../modules/nix.nix
+    ../../modules/sudo.nix
+    ../../modules/users.nix
+    ../../modules/boot/grub.nix
+    ../../modules/boot/kernel.nix
+    ../../modules/terminal/bash.nix
+    ../../modules/terminal/starship.nix
+    ../../modules/networking/base.nix
+    ../../modules/development/git.nix
+    ../../modules/development/neovim.nix
     ../../modules/services/sshd.nix
   ];
 

@@ -10,6 +10,7 @@
     ../cli
     ../../modules/xdg.nix
     ../../modules/fonts.nix
+    ../../modules/services/xserver.nix
     ../../modules/networking/network-manager.nix
   ];
 
@@ -40,32 +41,14 @@
   # XFCE configuration
   # ------------------------------------------------------------------------------------------------
   services.xserver = {
-    enable = true;
     desktopManager = {
       xfce.enable = true;
       xfce.enableXfwm = true;
-      xterm.enable = false;
     };
     displayManager = {
-      lightdm.enable = true;
       defaultSession = "xfce";
-
-      # Conditionally autologin based on install settings
-      autoLogin = {
-        enable = args.settings.autologin;
-        user = args.settings.username;
-      };
     };
 
-    # Xfce uses libinput in its settings manager
-    libinput = {
-      enable = true;
-##      touchpad = {
-##        accelSpeed = "0.7";
-##        tappingDragLock = false;
-##        naturalScrolling = true;
-##      };
-    };
   };
 
   environment.xfce.excludePackages = [

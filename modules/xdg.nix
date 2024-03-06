@@ -1,6 +1,7 @@
 # XDG configuration
 #
 # ### Details
+# - requires a GUI desktop environment
 #---------------------------------------------------------------------------------------------------
 { pkgs, args, ... }:
 {

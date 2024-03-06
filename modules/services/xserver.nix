@@ -1,15 +1,31 @@
 # Xserver configuration
 #---------------------------------------------------------------------------------------------------
-{ ... }:
+{ args, ... }:
 {
   services.xserver = {
     enable = true;
-    xkb.layout = "us";
     desktopManager = {
-      xfce.enable = true;
       xterm.enable = false;
     };
-    displayManager.defaultSession = "xfce";
+    displayManager = {
+      lightdm.enable = true;
+
+      # Conditionally autologin based on install settings
+      autoLogin = {
+        enable = args.settings.autologin;
+        user = args.settings.username;
+      }; 
+    };
+
+    # Arch Linux recommends libinput and Xfce uses it in its settings manager
+    libinput = {
+      enable = true;
+##      touchpad = {
+##        accelSpeed = "0.7";
+##        tappingDragLock = false;
+##        naturalScrolling = true;
+##      };
+    };
   };
 }
 

@@ -2,10 +2,6 @@
 # --------------------------------------------------------------------------------------------------
 { ... }:
 {
-  imports = [
-    ./grub.nix
-  ];
-
   # Runtime parameters for the kernel as set by sysctl
   boot.kernel.sysctl = {
     "vm.swappiness" = 1;                        # Minimal amount of swapping without disabling entirely
