@@ -1,14 +1,12 @@
-# Default terminal configuration
+# Starship configuration
 #
-# ### Features
-# - bash
+# ### Details
 #---------------------------------------------------------------------------------------------------
-{ ... }:
+{ pkgs, ... }:
 {
-  imports = [
-    ./bash.nix
-    ./starship.nix
-  ];
+#  console = {
+#    font = "lat9w-16";
+#  };
 }
 
 # vim:set ts=2:sw=2:sts=2
