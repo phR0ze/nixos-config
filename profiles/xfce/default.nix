@@ -42,6 +42,16 @@
 		package = pkgs.pulseaudioFull;  # Provides JACK and Bluetooth support
     #extraConfig = "load-module module-combine-sink";
     #extraConfig = "unload-module module-suspend-on-idle";
+#    extraConfig = ''
+#      load-module module-udev-detect ignore_dB=1
+#      load-module module-detect
+#      load-module module-alsa-card device_id="sofhdadsp" tsched=0
+#      load-module module-alsa-source device_id="sofhdadsp"
+#      load-module module-alsa-sink device_id="sofhdadsp"
+#      set-card-profile alsa_card.sofhdadsp output:analog-stereo+input:analog-stereo
+#      set-default-sink alsa_output.sofhdadsp.analog-stereo
+#      options snd_hda_intel power_save=0
+#    '';
   };
 
   # plata-theme
@@ -60,6 +70,8 @@
   environment.systemPackages = with pkgs; [
     galculator                      # Simple calculator
     jdk17
+    #zoom-us                         # Video conferencing application
+    #pavucontrol                     
 
     # Patch prismlauncher for offline mode
     (prismlauncher.override (prev: {
@@ -67,6 +79,46 @@
         patches = (o.patches or [ ]) ++ [ ../../patches/prismlauncher/offline.patch ];
       });
     }))
+
+#  xdg.portal = {
+#    enable = true;
+#    wlr.enable = true;
+#    extraPortals = with pkgs; [
+#      xdg-desktop-portal-gtk
+#      xdg-desktop-portal-wlr
+#    ];
+#  };
+
+#  systemd.services.suspend-on-low-battery =
+#    let
+#      battery-level-sufficient = pkgs.writeShellScriptBin
+#        "battery-level-sufficient" ''
+#        test "$(cat /sys/class/power_supply/BAT0/status)" != Discharging \
+#          || test "$(cat /sys/class/power_supply/BAT0/capacity)" -ge 5
+#      '';
+#    in
+#      {
+#        serviceConfig = { Type = "oneshot"; };
+#        onFailure = [ "suspend.target" ];
+#        script = "${lib.getExe battery-level-sufficient}";
+#      };
+
+#  powerManagement = {
+#    powertop.enable = true;
+#    cpuFreqGovernor = "performance";
+#  };
+
+#  hardware.opengl = {
+#    enable = true;
+#    extraPackages = with pkgs; [ intel-media-driver vaapiVdpau libvdpau-va-gl ];
+#  };
+#
+#  environment.variables = {
+#    VDPAU_DRIVER = "va_gl";
+#    LIBVA_DRIVER_NAME = "iHD";
+#    MOZ_DISABLE_RDD_SANDBOX = "1";
+#  };
+
 #    pavucontrol                   # PulseAudio Volume Control
 #    vaapiIntel
 #    vaapi-intel-hybrid

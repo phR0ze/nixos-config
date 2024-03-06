@@ -5,6 +5,8 @@
 { args, ... }:
 {
   networking = {
+   # useDHCP = false;
+   # interfaces = { wlp0s20f3.useDHCP = true; };
     networkmanager.enable = true;
   };
 
