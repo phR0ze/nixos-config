@@ -94,7 +94,6 @@
     gnome.adwaita-icon-theme          # Xfce default,
     hicolor-icon-theme                # Xfce default,
     tango-icon-theme                  # Xfce default,
-    xfce4-icon-theme                  # Xfce default,
     desktop-file-utils                # Xfce default,
     shared-mime-info                  # Xfce default, for update-mime-database
     polkit_gnome                      # Xfce default, polkit authentication agent
@@ -102,10 +101,7 @@
     parole                            # Xfce default, simple media player
     ristretto                         # Xfce default, simple picture viewer
     xfce4-appfinder                   # Xfce default
-    xfce4-notifyd                     # Xfce default
     xfce4-screenshooter               # Xfce default
-    xfce4-session                     # Xfce default
-    xfce4-settings                    # Xfce default
     xfce4-taskmanager                 # Xfce default
     xfce4-terminal                    # Xfce default
 
