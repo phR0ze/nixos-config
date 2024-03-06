@@ -1,7 +1,7 @@
 # Font configuration
 #
 # ### Details
-# - Requires a GUI profile e.g. XFCE
+# - requires a GUI desktop environment
 #---------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
