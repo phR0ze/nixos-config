@@ -8,6 +8,7 @@
 {
   imports = [
     ../cli
+    ../../modules/networking/network-manager.nix
   ];
 
   # XFCE configuration
@@ -52,10 +53,6 @@
     thunar-archive-plugin
   ];
 
-  # Networking configuration
-  # ------------------------------------------------------------------------------------------------
-  networking.networkmanager.enable = true;
-
   # General applications
   # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
@@ -75,6 +72,28 @@
 #    intel-media-driver
 #  ];
   ];
+
+  # Optional
+  # ------------------------------------------------------------------------------------------------
+
+  # Enable SANE scanners
+  # hardware.sane.enable = true; 
+
+  # Enable bluetooth
+  # hardware.bluetooth.enable = true;
+  # services.blueman.enable = true;
+
+  # Docker configuration
+  # virtualisation.docker.enable = true;
+
+
+
+
+
+
+
+
+
 
     #config = lib.mkAfter ''
     #'';
@@ -104,8 +123,6 @@
     #  "nvidiaLegacy390"
     #  "amdgpu-pro"
     #];
-
-  #hardware.bluetooth.enable = true;
 
   # ??
 #  security.polkit = {
