@@ -21,6 +21,7 @@
       trusted-users = ["root" "@wheel"];
 
       # Follow the XDG Base Directory Specification
+      # https://nixos.org/manual/nix/stable/command-ref/nix-channel.html#xdg-base-directories
       use-xdg-base-directories = true;
 
       # Automatically detect files in the store that have identical contents and replaces them with
