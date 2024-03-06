@@ -8,30 +8,10 @@
 {
   imports = [
     ../cli
+    ../../modules/xdg.nix
     ../../modules/fonts.nix
     ../../modules/networking/network-manager.nix
   ];
-
-  # XFCE configuration
-  # ------------------------------------------------------------------------------------------------
-  services.xserver = {
-    enable = true;
-    desktopManager = {
-      xfce.enable = true;
-      xfce.enableXfwm = true;
-      xterm.enable = false;
-    };
-    displayManager = {
-      lightdm.enable = true;
-      defaultSession = "xfce";
-
-      # Conditionally autologin based on install settings
-      autoLogin = {
-        enable = args.settings.autologin;
-        user = args.settings.username;
-      };
-    };
-  };
 
   # Configure sound
   # https://nixos.wiki/wiki/PulseAudio
@@ -54,6 +34,48 @@
 #    '';
   };
 
+  # Installs xfce4-power-manager
+  powerManagement.enable = true;
+
+  # XFCE configuration
+  # ------------------------------------------------------------------------------------------------
+  services.xserver = {
+    enable = true;
+    desktopManager = {
+      xfce.enable = true;
+      xfce.enableXfwm = true;
+      xterm.enable = false;
+    };
+    displayManager = {
+      lightdm.enable = true;
+      defaultSession = "xfce";
+
+      # Conditionally autologin based on install settings
+      autoLogin = {
+        enable = args.settings.autologin;
+        user = args.settings.username;
+      };
+    };
+
+    # Xfce uses libinput in its settings manager
+    libinput = {
+      enable = true;
+##      touchpad = {
+##        accelSpeed = "0.7";
+##        tappingDragLock = false;
+##        naturalScrolling = true;
+##      };
+    };
+  };
+
+  environment.xfce.excludePackages = [
+  ];
+
+  # Default xfce dbus services
+  services.gvfs.enable = true;
+  services.tumbler.enable = true;
+  services.printing.enable = true;
+
   # plata-theme
   # arc-icon-theme
 
@@ -64,11 +86,30 @@
     thunar-archive-plugin
     thunar-media-tags-plugin
   ];
-
+  
   # General applications
   # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
-    galculator                      # Simple calculator
+    gnome.gnome-themes-extra          # Xfce default,
+    gnome.adwaita-icon-theme          # Xfce default,
+    hicolor-icon-theme                # Xfce default,
+    tango-icon-theme                  # Xfce default,
+    xfce4-icon-theme                  # Xfce default,
+    desktop-file-utils                # Xfce default,
+    shared-mime-info                  # Xfce default, for update-mime-database
+    polkit_gnome                      # Xfce default, polkit authentication agent
+    mousepad                          # Xfce default, simple text editor
+    parole                            # Xfce default, simple media player
+    ristretto                         # Xfce default, simple picture viewer
+    xfce4-appfinder                   # Xfce default
+    xfce4-notifyd                     # Xfce default
+    xfce4-screenshooter               # Xfce default
+    xfce4-session                     # Xfce default
+    xfce4-settings                    # Xfce default
+    xfce4-taskmanager                 # Xfce default
+    xfce4-terminal                    # Xfce default
+
+    galculator                        # Simple calculator
     jdk17
     #zoom-us                         # Video conferencing application
     #pavucontrol                     
@@ -101,15 +142,6 @@
 #    };
 #  };
 
-#  xdg.portal = {
-#    enable = true;
-#    wlr.enable = true;
-#    extraPortals = with pkgs; [
-#      xdg-desktop-portal-gtk
-#      xdg-desktop-portal-wlr
-#    ];
-#  };
-
 #  systemd.services.suspend-on-low-battery =
 #    let
 #      battery-level-sufficient = pkgs.writeShellScriptBin
@@ -123,11 +155,6 @@
 #        onFailure = [ "suspend.target" ];
 #        script = "${lib.getExe battery-level-sufficient}";
 #      };
-
-#  powerManagement = {
-#    powertop.enable = true;
-#    cpuFreqGovernor = "performance";
-#  };
 
 #  hardware.opengl = {
 #    enable = true;
@@ -175,16 +202,6 @@
     #resolutions = [
     #  { x = 1920; y = 1080; }
     #];
-
-    # Arch Linux recommends libinput be enabled
-#    libinput = {
-#      enable = true;
-##      touchpad = {
-##        accelSpeed = "0.7";
-##        tappingDragLock = false;
-##        naturalScrolling = true;
-##      };
-#    };
 
 
     # Video drivers to be tried in order until one that supports your card is found
