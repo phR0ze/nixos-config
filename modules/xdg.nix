@@ -2,7 +2,7 @@
 #
 # ### Details
 #---------------------------------------------------------------------------------------------------
-{ args, ... }:
+{ pkgs, args, ... }:
 {
   # Define which well known directories to create
   # xdg-user-dirs-update will run early in the login phase to create them
