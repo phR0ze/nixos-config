@@ -7,11 +7,7 @@
 { pkgs, args, ... }:
 {
   imports = [
-    ../cli
-    ../../modules/xdg.nix
-    ../../modules/fonts.nix
-    ../../modules/services/xserver.nix
-    ../../modules/networking/network-manager.nix
+    ../gui/x11.nix
   ];
 
   # Configure sound
