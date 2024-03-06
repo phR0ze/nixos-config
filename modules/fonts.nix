@@ -5,8 +5,9 @@
 #---------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
+  # Virtual console font will be chosen by the kernel
+  # Default is 8x16 and Terminus 32 bold for larger resolutions
 #  console = {
-#    earlySetup = true;
 #    font = "ter-v24n";
 #    packages = with pkgs; [ terminus_font ];
 #  };
