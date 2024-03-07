@@ -131,25 +131,24 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Fix nerd fonts in shell
+* [ ] Build out standard xfce desktop
 
 ## Sometime
 * [ ] Add `nix-prefetch fetchFromGitHub --owner hrsh7th --repo nvim-cmp --rev 768548bf4980fd6d635193a9320545bb46fcb6d8`
 * [ ] Add vim-colorize plugin
-* [ ] Add terminal nerd fonts
 * [ ] Configure `git config --global user.name`
 * [ ] Configure `git config --global user.email`
 * [ ] Configure `git config --global --add safe.directory /etc/nixos`
-* [ ] Change nix flake symbol to blue in colorizer
+* [ ] Change nix flake symbol to blue in vim colorizer plugin
 * [ ] `sudo nix-channel --list` is showing stuff
 * [ ] Remove `/etc/nixos/etc/nixos`
 * [ ] clu to update `flake.nix` with user selection
-* [ ] Build out standard xfce desktop
 * [ ] Change the tty autologin welcome message
 * [ ] Change the kernel boot colors 
-* [ ] alias or clu feature `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
 
 ## Completed
+* [x] ./clu clean store `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
+* [x] Fix nerd fonts in shell
 * [x] Xfce base with autologin
 * [x] Port cyberlinux cli packages over
 * [x] Fix dircolors
