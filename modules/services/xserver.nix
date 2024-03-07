@@ -65,6 +65,12 @@
     UserStopDelaySec=0
   '';
 
+  # Journald configuration
+  # ------------------------------------------------------------------------------------------------
+  services.journald.extraConfig = ''
+    SystemMaxUse=256M
+  '';
+
   # Printing configuration
   # ------------------------------------------------------------------------------------------------
   services.printing = {
