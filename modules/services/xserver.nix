@@ -8,7 +8,15 @@
       xterm.enable = false;
     };
     displayManager = {
-      lightdm.enable = true;
+      lightdm = {
+        enable = true;
+        #background = "";
+        # enso, mini, tiny, slick, mobile, gtk, pantheon
+        greeters.slick = {
+          enable = true;
+          theme.name = "Zukitre-dark";
+        };
+      };
 
       # Conditionally autologin based on install settings
       autoLogin = {
