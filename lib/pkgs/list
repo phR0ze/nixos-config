@@ -97,14 +97,17 @@ pkgs::list::by_name()
     [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && pkgs::list::usage
 
     local target="$1"
-    local dir=$(find /nix/store -maxdepth 1 -type d -iname "*${target}*" 2>/dev/null)
-    if [ "x$dir" != "x" ]; then
-        local pkg="${dir#*-}"         # trim prefix to leave pkg name
-        local prefix="${dir%${pkg}}"  # now trim pkg name suffix to leave prefix
+    local dirs=($(find /nix/store -maxdepth 1 -type d -iname "*${target}*" 2>/dev/null))
+    if [[ ${#dirs[@]} > 0 ]]; then                      # we found more than 0 occurances
+        for i in "${!dirs[@]}"; do                      # loop over the array using index
+            local pkg="${dirs[$i]#*-}"                  # trim prefix to leave pkg name
+            local prefix="${dirs[$i]%${pkg}}"           # now trim pkg name suffix to leave prefix
 
-        [ $QUIET -eq 1 ] && echo -e "${pkg}"
-        log::ln "Package:     ${cyan}${pkg}${none}"
-        log::ln "Nix Path:    ${prefix}${cyan}${pkg}${none}"
+            [ $QUIET -eq 1 ] && echo -e "${pkg}"
+            log::ln "Package:   ${cyan}${pkg}${none}"
+            log::ln "Nix Store: ${prefix}${cyan}${pkg}${none}"
+            [[ $((${i}+1)) < ${#dirs[@]} ]] && echo ""  # print a newline separator not the end of the loop
+        done
     else
         log::error "Unable to find target: ${cyan}${target}${none}"
     fi
