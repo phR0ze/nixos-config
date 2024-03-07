@@ -107,7 +107,14 @@
   services.timesyncd.enable = true;
 
   environment.systemPackages = with pkgs; [
+
+    # System
     desktop-file-utils                  # Command line utilities for working with desktop entries
+    filelight                           # View disk usage information
+#    gnome-dconf-editor                 # General configuration manager that replaces gconf
+    i3lock-color                        # Simple lightweight screen locker
+    paprefs                             # Pulse audio server preferences for simultaneous output
+    sof-firmware                        # Sound Open Firmware required for Dell XPS 13 9310
   ];
 
   # plata-theme
