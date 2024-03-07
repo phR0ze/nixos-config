@@ -1,7 +1,6 @@
 # Minimal wayland configuration
 #
 # ### Features
-# - Directly installable
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }:
 {

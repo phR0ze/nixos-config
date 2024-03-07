@@ -1,9 +1,8 @@
 # Minimal desktop independent X11 configuration
 #
 # ### Features
-# - Directly installable
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }:
+{ ... }:
 {
   imports = [
     ../cli
