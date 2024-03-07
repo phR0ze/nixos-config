@@ -12,11 +12,8 @@
     # Enable experimental features
     extraOptions = "experimental-features = nix-command flakes";
 
-    # Nix registry configuration
-    # ----------------------------------------------------------------------------------------------
-    registry = {
-      nixpkgs.flake = args.nixpkgs;
-    };
+    # Make nix search run faster by adding the default nixpkgs to the registry
+    registry.nixpkgs.flake = args.nixpkgs;
 
     # Nix settings
     # https://nixos.org/manual/nix/stable/command-ref/conf-file.html
