@@ -16,10 +16,13 @@ Options:
   -h, --help        Print out top level usage
 
 Commands:
+  all               List out all installed packages
   pkg BINARY        List detail about the package the target belongs to
+  PACKAGE           List out the package if installed
 USAGE
 
     log::ln "\nExamples:"
+    log::subln "List installed package by name: ${green}./${SCRIPT} pkgs ll tumbler${none}"
     log::subln "List all installed packages: ${green}./${SCRIPT} pkgs ll all${none}"
     log::subln "List binary's installed package: ${green}./${SCRIPT} pkgs ll pkg dircolors${none}"
     echo
@@ -38,8 +41,8 @@ pkgs::list::run()
     local command=$1; shift
     case "$command" in
         all) pkgs::list::all ;;
-        pkg) pkgs::list::pkg "$@" ;;
-        *) log::error "Invalid pkgs command: ${cyan}${command}${none}"; pkgs::list::usage ;;
+        pkg) pkgs::list::by_bin "$@" ;;
+        *) pkgs::list::by_name "$command" ;;
     esac
 }
 
@@ -63,7 +66,7 @@ pkgs::list::all()
 # ### Args
 # - $1 is the target to lookup
 # --------------------------------------------------------------------------------------------------
-pkgs::list::pkg()
+pkgs::list::by_bin()
 {
     [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && pkgs::list::usage
 
@@ -79,6 +82,28 @@ pkgs::list::pkg()
         log::ln "Package:     ${cyan}${pkg}${none}"
         log::ln "Link name:   $dir/${cyan}${target}${none}"
         log::ln "Link target: ${link}/${cyan}${target}${none}"
+    else
+        log::error "Unable to find target: ${cyan}${target}${none}"
+    fi
+}
+
+# List out the package by name
+#
+# ### Args
+# - $1 is the target to lookup
+# --------------------------------------------------------------------------------------------------
+pkgs::list::by_name()
+{
+    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && pkgs::list::usage
+
+    local target="$1"
+    local dir=$(find /nix/store -maxdepth 1 -type d -iname "*${target}*" 2>/dev/null)
+    if [ "x$dir" != "x" ]; then
+        local pkg="${pkg_dir#*-}"
+
+        [ $QUIET -eq 1 ] && echo -e "${pkg}"
+        log::ln "Package:     ${cyan}${pkg}${none}"
+        log::ln "Nix Path:    ${cyan}${dir}${none}"
     else
         log::error "Unable to find target: ${cyan}${target}${none}"
     fi
