@@ -98,12 +98,17 @@
     # drivers = [ pkgs.gutenprint ];
   };
 
-  # Other services
+  # Other programs and services
   # ------------------------------------------------------------------------------------------------
+  programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
+
   services.fwupd.enable = true;         # Firmware update tool for BIOS, etc...
   services.gvfs.enable = true;          # GVfs virtual filesystem
-  services.tumbler.enable = true;
   services.timesyncd.enable = true;
+
+  environment.systemPackages = with pkgs; [
+    desktop-file-utils                  # Command line utilities for working with desktop entries
+  ];
 
   # plata-theme
   # arc-icon-theme

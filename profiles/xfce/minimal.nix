@@ -27,6 +27,9 @@
 
   };
 
+  # Additional xfce specific services
+  services.tumbler.enable = true;     # tumbler uses ffmpegthumbnailer
+
   environment.xfce.excludePackages = [
   ];
 
