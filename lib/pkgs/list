@@ -20,8 +20,8 @@ Commands:
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "List all local packages: ${green}./${SCRIPT} pkgs ll all${none}"
-    log::subln "List binary's package: ${green}./${SCRIPT} pkgs ll pkg dircolors${none}"
+    log::subln "List all installed packages: ${green}./${SCRIPT} pkgs ll all${none}"
+    log::subln "List binary's installed package: ${green}./${SCRIPT} pkgs ll pkg dircolors${none}"
     echo
     exit
 }
