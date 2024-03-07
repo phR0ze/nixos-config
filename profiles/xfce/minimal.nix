@@ -41,6 +41,7 @@
   # General applications
   # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs.xfce // pkgs; [
+    galculator                        # Simple calculator
     gnome.gnome-themes-extra          # Xfce default,
     gnome.adwaita-icon-theme          # Xfce default,
     hicolor-icon-theme                # Xfce default,
@@ -56,7 +57,5 @@
     xfce4-screenshooter               # Xfce default
     xfce4-taskmanager                 # Xfce default
     xfce4-terminal                    # Xfce default
-
-    galculator                        # Simple calculator
   ];
 }
