@@ -99,11 +99,12 @@ pkgs::list::by_name()
     local target="$1"
     local dir=$(find /nix/store -maxdepth 1 -type d -iname "*${target}*" 2>/dev/null)
     if [ "x$dir" != "x" ]; then
-        local pkg="${pkg_dir#*-}"
+        local pkg="${dir#*-}"         # trim prefix to leave pkg name
+        local prefix="${dir%${pkg}}"  # now trim pkg name suffix to leave prefix
 
         [ $QUIET -eq 1 ] && echo -e "${pkg}"
         log::ln "Package:     ${cyan}${pkg}${none}"
-        log::ln "Nix Path:    ${cyan}${dir}${none}"
+        log::ln "Nix Path:    ${prefix}${cyan}${pkg}${none}"
     else
         log::error "Unable to find target: ${cyan}${target}${none}"
     fi
