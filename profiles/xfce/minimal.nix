@@ -4,10 +4,10 @@
 # - Directly installable
 # - Size: 4504.7 MiB
 # --------------------------------------------------------------------------------------------------
-{ pkgs, args, ... }:
+{ pkgs, ... }:
 {
   imports = [
-    ../gui/x11.nix
+    ../x11/minimal.nix
   ];
 
   # Installs xfce4-power-manager
