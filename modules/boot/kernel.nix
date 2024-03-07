@@ -1,7 +1,14 @@
 # Configure boot
 # --------------------------------------------------------------------------------------------------
-{ ... }:
+{ pkgs, ... }:
 {
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  # Kernel parameters
+  #boot.kernelParams = [
+   # "acpi_backlight=vendor"
+  #];
+
   # Runtime parameters for the kernel as set by sysctl
   boot.kernel.sysctl = {
     "vm.swappiness" = 1;                        # Minimal amount of swapping without disabling entirely
@@ -22,9 +29,15 @@
    # "nvidia"                                   # Uncomment to disable particular video drivers
   ];
 
-  # Configure default kernel modules
+  # Kernel modules to be loaded in the second stage of the boot process
+  #boot.kernelModules = [
+    #"i915"
+    #"kvm"
+    #"kvm-intel"
+  #];
+
+  # Kernel modules to be always loaded by initrd
   #boot.initrd.kernelModules = [
-  #  "i915"
   #];
 }
 

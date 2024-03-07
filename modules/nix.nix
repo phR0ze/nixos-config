@@ -9,6 +9,15 @@
     # e.g. nix-shell
     nixPath = [ "nixpkgs=${args.nixpkgs.outPath}" ];
 
+    # Enable experimental features
+    extraOptions = "experimental-features = nix-command flakes";
+
+    # Nix registry configuration
+    # ----------------------------------------------------------------------------------------------
+    registry = {
+      nixpkgs.flake = args.nixpkgs;
+    };
+
     # Nix settings
     # https://nixos.org/manual/nix/stable/command-ref/conf-file.html
     # ----------------------------------------------------------------------------------------------
@@ -41,7 +50,6 @@
         "repl-flake"     # 2.0 cli support for 'nix repl'
       ];
     };
-    extraOptions = "experimental-features = nix-command flakes";
 
     # Garbage collection settings
     # ----------------------------------------------------------------------------------------------
