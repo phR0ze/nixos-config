@@ -57,7 +57,7 @@
     pavucontrol                       # Xfce default, pulse audio controller
     ristretto                         # Xfce default, simple picture viewer
     xfce4-appfinder                   # Xfce default
-    xfce4-screenshooter               # Xfce default
+    xfce4-screenshooter               # Xfce default, plugin that makes screenshots for Xfce
     xfce4-taskmanager                 # Xfce default
     xfce4-terminal                    # Xfce default
   ];

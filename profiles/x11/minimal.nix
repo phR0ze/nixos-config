@@ -174,13 +174,6 @@
 #    intel-media-driver
 #  ];
 
-  # Optional
-  # ------------------------------------------------------------------------------------------------
-
-  # Enable SANE scanners
-  # hardware.sane.enable = true; 
-
-
     #config = lib.mkAfter ''
     #'';
 
