@@ -1,7 +1,7 @@
 # Minimal base bootable configuration
 #
 # ### Features
-# - Directly installable
+# - Directly installable: fully functional cli environment
 # - Size: 2433.7 MiB
 # - Configured by flake args
 #   - Grub EFI/MBR bootable
