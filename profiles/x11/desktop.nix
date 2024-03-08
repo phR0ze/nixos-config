@@ -43,6 +43,10 @@
     geany                               # Fast and lightweight IDE
     keepassxc                           # Offline password manager with many features
 
+    # Development
+    android-tools                       # Android platform tools
+    android-udev-rules                  # Android udev rules list aimed to be the most comprehensive on the net
+
     # Utilities
 
     # Not available in NixOS
