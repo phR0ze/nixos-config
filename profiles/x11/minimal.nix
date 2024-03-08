@@ -6,6 +6,8 @@
 {
   imports = [
     ../cli
+    ../../modules/hardware/firmware.nix
+    ../../modules/hardware/opengl.nix
     ../../modules/xdg.nix
     ../../modules/fonts.nix
     ../../modules/networking/network-manager.nix
@@ -15,9 +17,11 @@
   #-------------------------------------------------------------------------------------------------
   services.xserver = {
     enable = true;
+
     desktopManager = {
       xterm.enable = false;
     };
+
     displayManager = {
       lightdm = {
         enable = true;
@@ -114,7 +118,6 @@
 #    gnome-dconf-editor                 # General configuration manager that replaces gconf
     i3lock-color                        # Simple lightweight screen locker
     paprefs                             # Pulse audio server preferences for simultaneous output
-    sof-firmware                        # Sound Open Firmware required for Dell XPS 13 9310
   ];
 
   # plata-theme
@@ -155,44 +158,7 @@
 #        script = "${lib.getExe battery-level-sufficient}";
 #      };
 
-#  hardware.opengl = {
-#    enable = true;
-#    extraPackages = with pkgs; [ intel-media-driver vaapiVdpau libvdpau-va-gl ];
-#  };
 #
-#  environment.variables = {
-#    VDPAU_DRIVER = "va_gl";
-#    LIBVA_DRIVER_NAME = "iHD";
-#    MOZ_DISABLE_RDD_SANDBOX = "1";
-#  };
-
-#    pavucontrol                   # PulseAudio Volume Control
-#    vaapiIntel
-#    vaapi-intel-hybrid
-#    libva-full
-#    libva-utils
-#    intel-media-driver
-#  ];
-
-    #config = lib.mkAfter ''
-    #'';
-
-    # The first element is used as the default resolution
-    #resolutions = [
-    #  { x = 1920; y = 1080; }
-    #];
-
-
-    # Video drivers to be tried in order until one that supports your card is found
-    # Default: modesetting, fbdev
-    #videoDrivers = [
-    #  "modesetting"
-    #  "fbdev"
-    #  "nvidia"
-    #  "nvidiaLegacy390"
-    #  "amdgpu-pro"
-    #];
-
   # ??
 #  security.polkit = {
 #		enable = true;
@@ -205,4 +171,5 @@
 #		'';
 #	};
 #
+
 }
