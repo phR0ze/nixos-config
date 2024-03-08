@@ -4,21 +4,8 @@
 
   # https://github.com/aaronjanse/dotfiles/blob/master/configuration.nix 
   # ------------------------------------------------------------------------------------------------
-  hardware.enableRedistributableFirmware = true;
-  hardware.opengl = {
-    enable = true;
-    extraPackages = with pkgs; [
-      intel-media-driver # LIBVA_DRIVER_NAME=iHD
-      vaapiIntel # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
-      vaapiVdpau
-      libvdpau-va-gl
-    ];
-    driSupport32Bit = true;
-  };
-
   services.journald.extraConfig = "MaxRetentionSec=1week";
   programs.adb.enable = true;
-  users.defaultUserShell = pkgs.fish;
   environment.variables.EDITOR = "${pkgs.kakoune}/bin/kak";
   
   networking = {
@@ -44,11 +31,6 @@
       "127.0.0.1" = [ "localhost.dev" "local.metaculus.com" ];
     };
   };
- 
-  hardware.bluetooth.enable = true;
-  services.blueman.enable = true; 
-
-  services.dbus.packages = [ pkgs.blueman pkgs.foliate ];
 
   console = {
     earlySetup = true;

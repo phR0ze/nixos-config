@@ -131,9 +131,10 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Build out standard xfce desktop
+* [ ] Working on 3D graphics support
 
 ## Sometime
+* [ ] Build out standard xfce desktop
 * [ ] Add `nix-prefetch fetchFromGitHub --owner hrsh7th --repo nvim-cmp --rev 768548bf4980fd6d635193a9320545bb46fcb6d8`
 * [ ] Add vim-colorize plugin
 * [ ] Configure `git config --global user.name`
