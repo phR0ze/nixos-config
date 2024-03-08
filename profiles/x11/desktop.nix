@@ -31,10 +31,12 @@
     # Media
     audacious                           # Lightweight advanced audio player
     audacious-plugins                   # Additional codecs support for audacious
+    gnome.cheese                        # Take photos and videos with your webcam, with fun graphical effects
     dvdbackup                           # Command line tool for ripping DVDs
+    gimp                                # Excellent image editor
+    flac                                # Free lossless audio codec
     libdvdcss                           # DVD decrypting media codec support
     lxdvdrip                            # Command line tool for ripping, shrinking and burning DVDs 
-    flac                                # Free lossless audio codec
     handbrake                           # Video encoding tool for mp4/mkv
     lame                                # High quality MPEG layer III audio encoder
     mkvtoolnix                          # Cross-platform tools for Matroska
@@ -47,18 +49,20 @@
     steam                               # Digital distribution platform from Valve
 
     # Office
-    aspell                              # Spell checker for many languages, but no longer maintained
-    aspellDicts.en                      # Aspell dictionary for English
     hunspell                            # LibreOffice spell checker and actively maintained
+    hunspellDicts.en_US                 # LibreOffice spell checker and actively maintained
     geany                               # Fast and lightweight IDE
     keepassxc                           # Offline password manager with many features
-    veracrypt                           # Free Open-Source filesystem encryption
+    libreoffice-fresh                   # Comprehensive, professional-quality productivity suite
 
     # Development
     android-tools                       # Android platform tools
     android-udev-rules                  # Android udev rules list aimed to be the most comprehensive on the net
 
     # Utilities
+    conky                               # Advanced, highly configurable system monitor
+    light                               # Control backlights for screen and keyboard
+    veracrypt                           # Free Open-Source filesystem encryption
 
     # Not available in NixOS
 #    arcologout                         # Simple clean logout overlay from
@@ -66,6 +70,7 @@
 #    winff                              # GUI for ffmpeg, repo: cyberlinux
 #    wmctl                              # Rust X11 automation
 #    xnviewmp                           # A digital photo organizer, repo: cyberlinux
+#'tiny-media-manager'        # Cross platform media manager, repo: cyberlinux
 
     # Patch prismlauncher for offline mode
     (prismlauncher.override (prev: {
