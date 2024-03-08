@@ -146,6 +146,7 @@ world though this already exists.
 * [ ] clu to update `flake.nix` with user selection
 * [ ] Change the tty autologin welcome message
 * [ ] Change the kernel boot colors 
+* [ ] Evaluate [dofiles option](https://github.com/benetis/dotfiles-1/blob/master/nixos-config/modules/dotfiles.nix)
 
 ## Completed
 * [x] ./clu clean store `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`

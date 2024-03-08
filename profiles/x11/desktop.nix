@@ -40,7 +40,13 @@
     x264                                # Open Source H264/AVC video encoder, depof: smplayer
     yt-dlp                              # Command-line tool to download videos from YouTube.com and other sites
 
+    # Game
+    steam                               # Digital distribution platform from Valve
+
     # Office
+    aspell                              # Spell checker for many languages, but no longer maintained
+    aspellDicts.en                      # Aspell dictionary for English
+    hunspell                            # LibreOffice spell checker and actively maintained
     geany                               # Fast and lightweight IDE
     keepassxc                           # Offline password manager with many features
 

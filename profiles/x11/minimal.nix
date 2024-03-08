@@ -55,7 +55,8 @@
   };
 
   # Logind configuration
-  # On logout and shutdown kill all users process immediately for fast shutdown
+  # - Defaults were changed here https://github.com/NixOS/nixpkgs/pull/16021
+  # - Want shutdown to kill all users process immediately for fast shutdown
   # ------------------------------------------------------------------------------------------------
   services.logind.extraConfig = ''
     KillUserProcesses=yes
