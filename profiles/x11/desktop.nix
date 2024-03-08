@@ -22,6 +22,7 @@
     freerdp                             # RDP client plugin for remmina
     networkmanager-openvpn              # NetworkManager VPN plugin for OpenVPN
     openvpn                             # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
+    qbittorrent                         # Freatureful free BitTorrent client
     remmina                             # Nice remoting UI for RDP and other protocols
     vopono                              # Run applications through VPN connections in network namespaces
     update-systemd-resolved             # OpenVPN systemd-resolved updater
@@ -34,7 +35,9 @@
     libdvdcss                           # DVD decrypting media codec support
     lxdvdrip                            # Command line tool for ripping, shrinking and burning DVDs 
     flac                                # Free lossless audio codec
+    handbrake                           # Video encoding tool for mp4/mkv
     lame                                # High quality MPEG layer III audio encoder
+    mkvtoolnix                          # Cross-platform tools for Matroska
     smplayer                            # UI wrapper around mplayer with click to pause
     vlc                                 # Multi-platform MPEG, VCD/DVD, and DivX player
     x264                                # Open Source H264/AVC video encoder, depof: smplayer
@@ -49,6 +52,7 @@
     hunspell                            # LibreOffice spell checker and actively maintained
     geany                               # Fast and lightweight IDE
     keepassxc                           # Offline password manager with many features
+    veracrypt                           # Free Open-Source filesystem encryption
 
     # Development
     android-tools                       # Android platform tools
