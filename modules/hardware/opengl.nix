@@ -10,7 +10,7 @@
 { pkgs, ... }:
 {
   hardware.opengl = {
-    enable = true;
+    enable = true;                      # Installs mesa, mesa_drivers, mesa-demos
 
     # Set by default see
     # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/hardware/opengl.nix
@@ -35,11 +35,11 @@
     #];
   };
 
-#  environment.systemPackages = with pkgs; [
-#    mesa                                # Open-source 3D graphics library
-#    mesa_drivers                        # An open source 3D graphics library
-#    mesa-demos                          # Collection of demos and test programs for OpenGL and Mesa
-#  ];
+  environment.systemPackages = with pkgs; [
+    mesa                                # Open-source 3D graphics library
+    mesa_drivers                        # An open source 3D graphics library
+    mesa-demos                          # Collection of demos and test programs for OpenGL and Mesa
+  ];
 
 #  environment.variables = {
 #    VDPAU_DRIVER = "va_gl";
