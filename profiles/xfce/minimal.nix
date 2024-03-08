@@ -1,7 +1,7 @@
 # XFCE minimal configuration
 #
 # ### Features
-# - Directly installable
+# - Directly installable: cli/default with bare minimal xfce environment
 # - Size: 4504.7 MiB
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
