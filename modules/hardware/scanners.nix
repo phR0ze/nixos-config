@@ -1,4 +1,4 @@
-# XDG configuration
+# Scanner configuration
 #
 # ### Details
 # - https://nixos.wiki/wiki/Scanners

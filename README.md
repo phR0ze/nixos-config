@@ -131,7 +131,7 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Working on 3D graphics support
+* [ ] Choose default resolution for system
 
 ## Sometime
 * [ ] Build out standard xfce desktop

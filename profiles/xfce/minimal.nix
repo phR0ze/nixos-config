@@ -50,7 +50,6 @@
     shared-mime-info                  # Xfce default, for update-mime-database
     polkit_gnome                      # Xfce default, polkit authentication agent
     parole                            # Xfce default, simple media player
-    pavucontrol                       # Xfce default, pulse audio controller
     ristretto                         # Xfce default, simple picture viewer
     xfce4-appfinder                   # Xfce default
     xfce4-screenshooter               # Xfce default, plugin that makes screenshots for Xfce

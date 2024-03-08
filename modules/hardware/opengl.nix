@@ -21,7 +21,7 @@
     package = pkgs.mesa.drivers;        # OpenGL implementation aliased with 'mesa_drivers'
     package32 = pkgs.pkgsi686Linux.mesa.drivers;  # OpenGL implementation aliased with 'mesa_drivers'
 
-    #setLdLibraryPath = true;           # Drivers using dispatch libraries like libglvnd should not set this
+    #setLdLibraryPath = true;           # Drivers using libglvnd dispatch should not set this
 
     # Additional drivers e.g. VA-API/VDPAU
     extraPackages = with pkgs; [
@@ -32,6 +32,7 @@
 #    vaapi-intel-hybrid
 #    libva-full
 #    libva-utils
+     #libglvnd                          # GL Vendor Neutral dispatch library
     ];
     #extraPackages32 = with pkgs; [
     #];
@@ -47,7 +48,7 @@
   ];
 
   # Video drivers to be tried in order until one that supports your card is found
-  # - this is controlled by the different package enable options
+  # - this is usually controlled by the different video package enable options
   # - default: modesetting, fbdev
   #-------------------------------------------------------------------------------------------------
   #services.xserver.videoDrivers = [
@@ -69,12 +70,6 @@
 
     #config = lib.mkAfter ''
     #'';
-
-    # The first element is used as the default resolution
-    #resolutions = [
-    #  { x = 1920; y = 1080; }
-    #];
-
 
   # Intel iHD video configuration
   # - https://nixos.wiki/wiki/Accelerated_Video_Playback
