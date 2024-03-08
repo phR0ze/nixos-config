@@ -9,6 +9,8 @@
 #---------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
+  # OpenGL configuration
+  #-------------------------------------------------------------------------------------------------
   hardware.opengl = {
     enable = true;                      # Installs mesa, mesa_drivers, mesa-demos
 
@@ -35,11 +37,29 @@
     #];
   };
 
+  # Supporting system packages
+  #-------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
     mesa                                # Open-source 3D graphics library
     mesa_drivers                        # An open source 3D graphics library
     mesa-demos                          # Collection of demos and test programs for OpenGL and Mesa
+    libva-utils                         # A collection of utilities and examples for VA-API e.g. vainfo
   ];
+
+  # Video drivers to be tried in order until one that supports your card is found
+  # - this is controlled by the different package enable options
+  # - default: modesetting, fbdev
+  #-------------------------------------------------------------------------------------------------
+  #services.xserver.videoDrivers = [
+    #"virtualbox"                        # VirtualBox graphics driver
+    #"modesetting"
+    #"fbdev"
+    #"nvidia"
+    #"nvidiaLegacy390"
+    #"amdgpu"                            # Free AMD driver
+    #"amdgpu-pro"                        # Proprietary AMD driver
+  #];
+
 
 #  environment.variables = {
 #    VDPAU_DRIVER = "va_gl";
@@ -55,16 +75,6 @@
     #  { x = 1920; y = 1080; }
     #];
 
-
-    # Video drivers to be tried in order until one that supports your card is found
-    # Default: modesetting, fbdev
-    #videoDrivers = [
-    #  "modesetting"
-    #  "fbdev"
-    #  "nvidia"
-    #  "nvidiaLegacy390"
-    #  "amdgpu-pro"
-    #];
 
   # Intel iHD video configuration
   # - https://nixos.wiki/wiki/Accelerated_Video_Playback
@@ -83,8 +93,6 @@
 #  };
 #  environment.sessionVariables = { LIBVA_DRIVER_NAME = "iHD"; }; # Force intel-media-driver
 #  hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ intel-vaapi-driver ];
-
-
 
   # AMD configuration
   # - https://nixos.wiki/wiki/AMD_GPU
@@ -115,6 +123,4 @@
 #    package = config.boot.kernelPackages.nvidiaPackages.latest;
 #  };
   #services.xserver.videoDrivers = [ "nvidia" ];
-
-
 }
