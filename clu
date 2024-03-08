@@ -79,8 +79,9 @@ USAGE
 
 # Handle debug mode
 if [[ $1 == "--debug" ]]; then
-  LOG_LEVEL="debug"; 
-  _log_level=$_debug
+    LOG_LEVEL="debug"
+    _log_level=$_debug
+    shift
 fi
 
 # Handle programmatic output mode
