@@ -19,7 +19,8 @@
   '';
 
   environment.systemPackages = with pkgs; [
-    xdg-user-dirs                   # Update XDG user dirs during login
+    xdg-user-dirs                       # Update XDG user dirs during login
+    xdg-utils                           # Desktop integration utilities
   ];
 
   xdg = {
