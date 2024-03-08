@@ -58,7 +58,7 @@
     xfce4-terminal                    # Xfce default
   ];
 
-  environment.xfce.excludePackages = [
+  environment.xfce.excludePackages = with pkgs.xfce // pkgs; [
     mousepad                          # Xfce default, simple text editor
   ];
 }
