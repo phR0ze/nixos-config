@@ -89,13 +89,7 @@
     # Themes and icons
     arc-theme                           # Flat theme with transparent elements for GTK 3 and GTK 2
     arc-kde-theme                       # A port of the arc theme for Plasma
-    arc-icon-theme                      # Arc icon theme
     paper-icon-theme                    # Modern icon theme designed around bold colors
-    plata-theme                         # GTK theme base don Material Design Refresh
-    pop-gtk-theme                       # System76 Pop GTK+ Theme
-    pop-icon-theme                      # Icon them for Pop!_OS with semi-flat design
-    numix-gtk-theme                     # Modern flat theme for Xfce
-    numix-icon-theme                    # Numix icons
     numix-cursor-theme                  # Numix cursor theme
   ];
 }
