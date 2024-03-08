@@ -13,9 +13,10 @@
 #  };
 
   fonts = {
+    fontconfig.enable = true;
     fontDir.enable = true;          # Create shared font dir /run/current-system/sw/share/X11/fonts
-    packages = with pkgs; [
 
+    packages = with pkgs; [
       (nerdfonts.override {
         fonts = [
           "Hack"                    # Hand groomed/optically balanced typeface based on Bitstream Vera Mono
