@@ -41,6 +41,7 @@
 
     # Office
     geany                               # Fast and lightweight IDE
+    keepassxc                           # Offline password manager with many features
 
     # Utilities
 
