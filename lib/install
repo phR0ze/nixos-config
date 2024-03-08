@@ -232,7 +232,10 @@ install::run()
             desc="${desc#*: }"                # grab the suffixed description of the install option
             x=${x//$profiles_dir\/}           # trim off the suffix dir
             x=${x//.nix}                      # trim off the extension
+            log::ln_d "profile: $x"
+            log::ln_d "profile desc: $desc" 
             utils::pad_suffix _1 "$x" " " 30  # pad to 30 characters
+            log::ln_d "padded result: $_1" 
             PROFILES+=($x)                    # add to the final profiles list
             echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
             i=$((i+1))                  # increment i

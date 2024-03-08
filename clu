@@ -77,6 +77,12 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && core::usage
 
+# Handle debug mode
+if [[ $1 == "--debug" ]]; then
+  LOG_LEVEL="debug"; 
+  _log_level=$_debug
+fi
+
 # Handle programmatic output mode
 QUIET=0
 if [[ $1 == "-q" || $1 == "--quiet" ]]; then
@@ -93,8 +99,7 @@ case "$command" in
     install) install::run "$@" ;;
     manage) manage::run "$@" ;;
     pkgs) pkgs::run "$@" ;;
-    test) utils::pad_suffix FOO "this is a test" " " "60"; echo $FOO ;;
-    #test) test::run "$@" ;;
+    test) test::run "$@" ;;
     update) update::run "$@" ;;
     *) log::error "Invalid command: ${cyan}${command}${none}"; core::usage ;;
 esac
