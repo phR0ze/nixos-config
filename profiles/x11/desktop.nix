@@ -5,7 +5,7 @@
 { pkgs, args, ... }:
 {
   imports = [
-    ../../modules/hardware/scanners.nix
+    #../../modules/hardware/scanners.nix
   ];
 
   # Additional programs
