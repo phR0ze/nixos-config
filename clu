@@ -93,7 +93,8 @@ case "$command" in
     install) install::run "$@" ;;
     manage) manage::run "$@" ;;
     pkgs) pkgs::run "$@" ;;
-    test) test::run "$@" ;;
+    test) utils::pad_suffix FOO "this is a test" " " "60"; echo $FOO ;;
+    #test) test::run "$@" ;;
     update) update::run "$@" ;;
     *) log::error "Invalid command: ${cyan}${command}${none}"; core::usage ;;
 esac
