@@ -148,6 +148,30 @@ utils::select()
     eval "$_result"="'$result'"
 }
 
+# Add padding to the given string
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 return variable name to be set
+# - $2 string to pad
+# - $3 pad char to use
+# - $4 pad length including string length
+utils::pad_suffix()
+{
+    local _result="$1"
+    local str="$2"
+    local char="$3"
+    local len=$4
+
+    local i=$len
+    while ((i-- > 0)); do
+      str+="$char"
+    done
+    str="${str:0:${len}}"
+
+    # Needs the single quotes to tell it not to treat it as a command
+    eval "$_result"="'$str'"
+}
+
 # Replace the given value in the given file
 # --------------------------------------------------------------------------------------------------
 # ### Params
