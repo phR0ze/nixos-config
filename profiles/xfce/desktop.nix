@@ -1,7 +1,7 @@
 # XFCE full desktop configuration
 #
 # ### Features
-# - Directly installable
+# - Directly installable: full general purpose desktop environment
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
