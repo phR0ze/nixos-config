@@ -227,15 +227,12 @@ install::run()
         local x=${_profiles[$j]}
 
         # Check if the profile contains the "# - Directly installable" string
-        local desc=$(grep -q "# - Directly installable" ${x} 2>/dev/null)
+        local desc=$(grep "# - Directly installable" ${x} 2>/dev/null)
         if [[ "x${desc}" != "x" ]]; then
             desc="${desc#*: }"                # grab the suffixed description of the install option
             x=${x//$profiles_dir\/}           # trim off the suffix dir
             x=${x//.nix}                      # trim off the extension
-            log::ln_d "profile: $x"
-            log::ln_d "profile desc: $desc" 
-            utils::pad_suffix _1 "$x" " " 30  # pad to 30 characters
-            log::ln_d "padded result: $_1" 
+            utils::pad_suffix _1 "$x" " " 20  # pad to 30 characters
             PROFILES+=($x)                    # add to the final profiles list
             echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
             i=$((i+1))                  # increment i
