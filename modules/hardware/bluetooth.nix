@@ -4,9 +4,9 @@
 #---------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
-#  hardware.bluetooth = {
-#    enable = true;
-#    powerOnBoot = true;
-#  };
-  # services.blueman.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    #powerOnBoot = false;      # Have to manually start with this set
+  };
+  services.blueman.enable = true;
 }
