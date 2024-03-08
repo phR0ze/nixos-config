@@ -38,6 +38,7 @@
     smplayer                            # UI wrapper around mplayer with click to pause
     vlc                                 # Multi-platform MPEG, VCD/DVD, and DivX player
     x264                                # Open Source H264/AVC video encoder, depof: smplayer
+    yt-dlp                              # Command-line tool to download videos from YouTube.com and other sites
 
     # Office
     geany                               # Fast and lightweight IDE

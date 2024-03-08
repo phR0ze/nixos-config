@@ -1,6 +1,57 @@
 { lib, pkgs, ... }
 {
-  # Stopped on Bs
+  # plata-theme
+  # arc-icon-theme
+
+#  systemd.user.services.dropbox = {
+#    description = "Dropbox";
+#    wantedBy = [ "default.target" ];
+#    environment = {
+#      QT_PLUGIN_PATH = "/run/current-system/sw/"
+#        + pkgs.qt5.qtbase.qtPluginPrefix;
+#      QML2_IMPORT_PATH = "/run/current-system/sw/"
+#        + pkgs.qt5.qtbase.qtQmlPrefix;
+#    };
+#    serviceConfig = {
+#      ExecStart = "${pkgs.dropbox.out}/bin/dropbox";
+#      ExecReload = "${pkgs.coreutils.out}/bin/kill -HUP $MAINPID";
+#      KillMode = "control-group"; # upstream recommends process
+#      Restart = "on-failure";
+#      RestartSec = "3";
+#      PrivateTmp = true;
+#      ProtectSystem = "full";
+#      Nice = 10;
+#    };
+#  };
+
+#  systemd.services.suspend-on-low-battery =
+#    let
+#      battery-level-sufficient = pkgs.writeShellScriptBin
+#        "battery-level-sufficient" ''
+#        test "$(cat /sys/class/power_supply/BAT0/status)" != Discharging \
+#          || test "$(cat /sys/class/power_supply/BAT0/capacity)" -ge 5
+#      '';
+#    in
+#      {
+#        serviceConfig = { Type = "oneshot"; };
+#        onFailure = [ "suspend.target" ];
+#        script = "${lib.getExe battery-level-sufficient}";
+#      };
+
+#
+  # ??
+#  security.polkit = {
+#		enable = true;
+#		extraConfig = ''
+#			polkit.addRule(function(action, subject) {
+#				if (subject.isInGroup("wheel")) {
+#					return polkit.Result.YES;
+#				}
+#			});
+#		'';
+#	};
+#
+
 
   # https://github.com/aaronjanse/dotfiles/blob/master/configuration.nix 
   # ------------------------------------------------------------------------------------------------
@@ -48,13 +99,4 @@
       ${pkgs.xorg.xinput}/bin/xinput set-prop "SysPS/2 Synaptics TouchPad" "libinput Disable While Typing Enabled" 0 || true
     '';
   };
-
-  
-  /* Printing */
-
-  services.printing.enable = true;
-  services.printing.drivers = [ pkgs.brlaser pkgs.mfcl2740dwlpr pkgs.mfcl2740dwcupswrapper ];
-  services.avahi.enable = true;
-  services.avahi.nssmdns = true;
-
 }
