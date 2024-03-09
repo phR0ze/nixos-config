@@ -30,11 +30,13 @@ let
 
 in
 {
-  options.apps.galculator = with types; {
-    enable = mkBoolOpt false "Whether or not to enable galculator.";
+  options = {
+    apps.galculator = {
+      enable = mkEnableOption (lib.mdDoc "Whether or not to enable galculator");
+    };
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [ galculator ];
+    environment.systemPackages = [ pkgs.galculator ];
   };
 }
