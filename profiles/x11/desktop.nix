@@ -12,12 +12,14 @@
 
   # Additional programs
   programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
+  programs.steam.enable = true;         # Digital distribution platform from Valve
 
   environment.systemPackages = with pkgs; [
 
     # Networking
     freerdp                             # RDP client plugin for remmina
     networkmanager-openvpn              # NetworkManager VPN plugin for OpenVPN
+    nfs-utils                           # Linux user-space NFS utilities
     openvpn                             # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
     qbittorrent                         # Freatureful free BitTorrent client
     remmina                             # Nice remoting UI for RDP and other protocols
@@ -43,10 +45,10 @@
     yt-dlp                              # Command-line tool to download videos from YouTube.com and other sites
 
     # Game
-    steam                               # Digital distribution platform from Valve
-    wine
-    winetricks
-    wineWowPackages.unstable
+    lutris                              # Open Source gaming platform for GNU/Linux
+    wine                                # An Open Source implementation of the Windows API on top of X, OpenGL, and Unix
+    winetricks                          # A script to install DLLs needed to work around problems in Wine
+    protontricks                        # A simple wrapper for running Winetricks commands for Proton-enabled games
 
     # Office
     hunspell                            # LibreOffice spell checker and actively maintained
@@ -62,6 +64,7 @@
     # Utilities
     awf                                 # A widget factory for viewing theme changes
     conky                               # Advanced, highly configurable system monitor
+    exiftool                            # A tool to read, write and edit EXIF meta information
     gnome-multi-writer                  # Tool for writing an ISO file to multiple USB devices at once
     light                               # Control backlights for screen and keyboard
     veracrypt                           # Free Open-Source filesystem encryption

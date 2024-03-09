@@ -29,6 +29,11 @@
    # "nvidia"                                   # Uncomment to disable particular video drivers
   ];
 
+#  boot.plymout - {
+#    enable = true;
+#    theme = "breeze";
+#  };
+
   # Kernel modules to be loaded in the second stage of the boot process
   #boot.kernelModules = [
     #"i915"
