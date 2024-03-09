@@ -28,4 +28,5 @@
 #    # Have to turn explicitly turn this off so PAM can do it on first login
 #    createHome = false;
 #  };
+  apps.galculator.enable = true;
 }
