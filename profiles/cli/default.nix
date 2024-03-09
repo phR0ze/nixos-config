@@ -26,7 +26,7 @@
     ../../modules/boot/kernel.nix
     ../../modules/terminal/bash.nix
     ../../modules/terminal/starship.nix
-    ../../modules/networking/base.nix
+    ../../modules/network/base.nix
     ../../modules/development/git.nix
     ../../modules/development/neovim.nix
     ../../modules/services/sshd.nix
