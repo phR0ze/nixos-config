@@ -12,7 +12,7 @@
 
     # Host configuration
     host.enable = true;
-    host.enableExtensionPack = true;
+    #host.enableExtensionPack = true;
   };
 
   # Add user to the vboxusers group
