@@ -83,6 +83,12 @@
     # Network
     filezilla                           # Network/Transfer
 
+    # Media
+    audacious                           # Lightweight advanced audio player
+    audacious-plugins                   # Additional codecs support for audacious
+    smplayer                            # UI wrapper around mplayer with click to pause
+    vlc                                 # Multi-platform MPEG, VCD/DVD, and DivX player
+
     # System
     desktop-file-utils                  # Command line utilities for working with desktop entries
     filelight                           # View disk usage information
