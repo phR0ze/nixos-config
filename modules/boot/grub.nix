@@ -18,5 +18,3 @@
     grub.device = args.settings.mbr;
   };
 }
-
-# vim:set ts=2:sw=2:sts=2

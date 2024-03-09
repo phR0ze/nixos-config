@@ -1,9 +1,7 @@
-# SSHD configuration
+# XFCE configuration
+#
+# ### Details
 #---------------------------------------------------------------------------------------------------
 { ... }:
 {
-  services.openssh = {
-    enable = true;
-    settings.PermitRootLogin = "no";
-  };
 }
