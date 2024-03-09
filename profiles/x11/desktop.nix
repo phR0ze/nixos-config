@@ -23,6 +23,7 @@
     openvpn                             # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
     qbittorrent                         # Freatureful free BitTorrent client
     remmina                             # Nice remoting UI for RDP and other protocols
+    #tdesktop                            # Telegram Desktop messaging app
     vopono                              # Run applications through VPN connections in network namespaces
     update-systemd-resolved             # OpenVPN systemd-resolved updater
     zoom-us                             # Video conferencing application
@@ -39,12 +40,14 @@
     handbrake                           # Video encoding tool for mp4/mkv
     lame                                # High quality MPEG layer III audio encoder
     mkvtoolnix                          # Cross-platform tools for Matroska
+    #obs-studio                          # Free and open source software for video recording and live streaming
     smplayer                            # UI wrapper around mplayer with click to pause
     vlc                                 # Multi-platform MPEG, VCD/DVD, and DivX player
     x264                                # Open Source H264/AVC video encoder, depof: smplayer
     yt-dlp                              # Command-line tool to download videos from YouTube.com and other sites
 
     # Game
+    #cartridges                          # A GTK4 + Libadwaita game launcher
     lutris                              # Open Source gaming platform for GNU/Linux
     wine                                # An Open Source implementation of the Windows API on top of X, OpenGL, and Unix
     winetricks                          # A script to install DLLs needed to work around problems in Wine
