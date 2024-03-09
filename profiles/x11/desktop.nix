@@ -6,6 +6,7 @@
 {
   imports = [
     #../../modules/hardware/scanners.nix
+    ../../modules/development/vscode.nix
     ../../modules/virtualization/virtualbox.nix
   ];
 
