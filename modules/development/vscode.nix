@@ -3,7 +3,7 @@
 # ### Details
 # - using the unbranded VSCodium
 #---------------------------------------------------------------------------------------------------
-{ args, ... }:
+{ pkgs, args, ... }:
 {
   environment.systemPackages = with pkgs; [
     (vscode-with-extensions.override {
