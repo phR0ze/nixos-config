@@ -7,8 +7,8 @@
   virtualisation.virtualbox = {
 
     # Guest configuration
-    guest.enable = true;
-    guest.x11 = true;
+    #guest.enable = true;
+    #guest.x11 = true;
 
     # Host configuration
     host.enable = true;

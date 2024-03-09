@@ -6,15 +6,13 @@
 {
   imports = [
     #../../modules/hardware/scanners.nix
+    ../../modules/virtualization/virtualbox.nix
   ];
 
   # Additional programs
   programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
 
   environment.systemPackages = with pkgs; [
-
-    # System
-    jdk17                               # Needed for: minecraft
 
     # Networking
     firefox                             # Standalone web browser from mozilla.org 
@@ -60,9 +58,15 @@
     android-udev-rules                  # Android udev rules list aimed to be the most comprehensive on the net
 
     # Utilities
+    awf                                 # A widget factory for viewing theme changes
     conky                               # Advanced, highly configurable system monitor
+    gnome-multi-writer                  # Tool for writing an ISO file to multiple USB devices at once
     light                               # Control backlights for screen and keyboard
     veracrypt                           # Free Open-Source filesystem encryption
+
+    # System
+    jdk17                               # Needed for: minecraft
+
 
     # Not available in NixOS
 #    arcologout                         # Simple clean logout overlay from
