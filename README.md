@@ -131,10 +131,11 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Choose default resolution for system
+* [ ] Move launcher to top
+* [ ] Move app panel to bottom
 
 ## Sometime
-* [ ] Build out standard xfce desktop
+* [ ] Choose default resolution for system
 * [ ] Add `nix-prefetch fetchFromGitHub --owner hrsh7th --repo nvim-cmp --rev 768548bf4980fd6d635193a9320545bb46fcb6d8`
 * [ ] Add vim-colorize plugin
 * [ ] Configure `git config --global user.name`
@@ -149,6 +150,7 @@ world though this already exists.
 * [ ] Evaluate [dofiles option](https://github.com/benetis/dotfiles-1/blob/master/nixos-config/modules/dotfiles.nix)
 
 ## Completed
+* [x] Build out standard xfce desktop
 * [x] ./clu clean store `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
 * [x] Fix nerd fonts in shell
 * [x] Xfce base with autologin
