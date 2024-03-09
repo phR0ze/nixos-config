@@ -2,7 +2,7 @@
 #
 # ### Features
 #---------------------------------------------------------------------------------------------------
-{ config, pkgs, args, ... }: with lib;
+{ options, config, lib, pkgs, args, ... }: with lib;
 
   # ### Home Manager
   # Home Manager's solution is to use a JSON payload and live xfconf-query calls after the system is
