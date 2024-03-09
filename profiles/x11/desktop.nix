@@ -16,7 +16,8 @@
 
   environment.systemPackages = with pkgs; [
 
-    # Networking
+    # Network
+    barrier                             # Share a single mouse and keyboard between multiple computers
     freerdp                             # RDP client plugin for remmina
     networkmanager-openvpn              # NetworkManager VPN plugin for OpenVPN
     nfs-utils                           # Linux user-space NFS utilities
@@ -29,20 +30,25 @@
     zoom-us                             # Video conferencing application
 
     # Media
-    audacious                           # Lightweight advanced audio player
-    audacious-plugins                   # Additional codecs support for audacious
+    asunder                             # A lean and friendly audio CD ripper and encoder
+    audacity                            # Audio editor - cross platform, tried and tested
+    brasero                             # Burning tool, alt: k3b, xfburn
+    devede                              # A program to create VideoDVDs and CDs
     gnome.cheese                        # Take photos and videos with your webcam, with fun graphical effects
     dvdbackup                           # Command line tool for ripping DVDs
     gimp                                # Excellent image editor
     flac                                # Free lossless audio codec
+    kodi                                # A software media player and entertainment hub for digital media
+    kolourpaint                         # Paint application that saves jpg in format for GFXBoot
     libdvdcss                           # DVD decrypting media codec support
+    losslesscut-bin                     # Crossplatform GUI tool for lossless trimming/cuttong of video/audio files
     lxdvdrip                            # Command line tool for ripping, shrinking and burning DVDs 
     handbrake                           # Video encoding tool for mp4/mkv
     lame                                # High quality MPEG layer III audio encoder
     mkvtoolnix                          # Cross-platform tools for Matroska
+    openshot-qt                         # Simple powerful Video Editor, alt: pitivi, kdenlive
     #obs-studio                          # Free and open source software for video recording and live streaming
-    smplayer                            # UI wrapper around mplayer with click to pause
-    vlc                                 # Multi-platform MPEG, VCD/DVD, and DivX player
+    simplescreenrecorder                # Awesome screen recorder
     x264                                # Open Source H264/AVC video encoder, depof: smplayer
     yt-dlp                              # Command-line tool to download videos from YouTube.com and other sites
 
@@ -59,6 +65,7 @@
     geany                               # Fast and lightweight IDE
     keepassxc                           # Offline password manager with many features
     libreoffice-fresh                   # Comprehensive, professional-quality productivity suite
+    scribus                             # Open Source Desktop Publishing
 
     # Development
     android-tools                       # Android platform tools
@@ -69,6 +76,7 @@
     conky                               # Advanced, highly configurable system monitor
     exiftool                            # A tool to read, write and edit EXIF meta information
     gnome-multi-writer                  # Tool for writing an ISO file to multiple USB devices at once
+    hardinfo                            # A system information and benchmark tool
     light                               # Control backlights for screen and keyboard
     veracrypt                           # Free Open-Source filesystem encryption
 
