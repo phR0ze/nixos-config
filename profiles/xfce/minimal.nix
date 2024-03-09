@@ -42,15 +42,12 @@
   # General applications
   # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs.xfce // pkgs; [
-    galculator                        # Simple calculator
     gnome.gnome-themes-extra          # Xfce default,
     gnome.adwaita-icon-theme          # Xfce default,
     hicolor-icon-theme                # Xfce default,
-    tango-icon-theme                  # Xfce default,
     desktop-file-utils                # Xfce default,
     shared-mime-info                  # Xfce default, for update-mime-database
     polkit_gnome                      # Xfce default, polkit authentication agent
-    parole                            # Xfce default, simple media player
     ristretto                         # Xfce default, simple picture viewer
     xfce4-appfinder                   # Xfce default
     xfce4-screenshooter               # Xfce default, plugin that makes screenshots for Xfce
@@ -59,6 +56,8 @@
   ];
 
   environment.xfce.excludePackages = with pkgs.xfce // pkgs; [
+    tango-icon-theme                  # Xfce default,
     mousepad                          # Xfce default, simple text editor
+    parole                            # Xfce default, simple media player
   ];
 }

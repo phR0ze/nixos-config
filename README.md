@@ -131,10 +131,11 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Move launcher to top
-* [ ] Move app panel to bottom
+* [ ] Build new option `home.file`
 
 ## Sometime
+* [ ] Move launcher to top
+* [ ] Move app panel to bottom
 * [ ] Choose default resolution for system
 * [ ] Add `nix-prefetch fetchFromGitHub --owner hrsh7th --repo nvim-cmp --rev 768548bf4980fd6d635193a9320545bb46fcb6d8`
 * [ ] Add vim-colorize plugin

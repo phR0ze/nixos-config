@@ -101,5 +101,8 @@
     arc-kde-theme                       # A port of the arc theme for Plasma
     paper-icon-theme                    # Modern icon theme designed around bold colors
     numix-cursor-theme                  # Numix cursor theme
+
+    # Utilities
+    #galculator                        # Simple calculator
   ];
 }
