@@ -18,5 +18,3 @@
   # Add user to the vboxusers group
   users.extraGroups.vboxusers.members = [ args.settings.username ];
 }
- 
-# vim:set ts=2:sw=2:sts=2
