@@ -1,6 +1,7 @@
 # Visual Studio Code configuration
 #
 # ### Details
+# - https://nixos.wiki/wiki/VSCodium
 # - using the unbranded VSCodium
 #---------------------------------------------------------------------------------------------------
 { pkgs, args, ... }:

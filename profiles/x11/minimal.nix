@@ -13,7 +13,8 @@
     ../../modules/hardware/opengl.nix
     ../../modules/xdg.nix
     ../../modules/fonts.nix
-    ../../modules/networking/network-manager.nix
+    ../../modules/network/firefox.nix
+    ../../modules/network/network-manager.nix
   ];
 
   # Xserver configuration
@@ -78,6 +79,9 @@
   services.timesyncd.enable = true;
 
   environment.systemPackages = with pkgs; [
+
+    # Network
+    filezilla                           # Network/Transfer
 
     # System
     desktop-file-utils                  # Command line utilities for working with desktop entries

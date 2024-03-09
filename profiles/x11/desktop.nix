@@ -16,8 +16,6 @@
   environment.systemPackages = with pkgs; [
 
     # Networking
-    firefox                             # Standalone web browser from mozilla.org 
-    filezilla                           # Network/Transfer
     freerdp                             # RDP client plugin for remmina
     networkmanager-openvpn              # NetworkManager VPN plugin for OpenVPN
     openvpn                             # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
@@ -46,6 +44,9 @@
 
     # Game
     steam                               # Digital distribution platform from Valve
+    wine
+    winetricks
+    wineWowPackages.unstable
 
     # Office
     hunspell                            # LibreOffice spell checker and actively maintained
