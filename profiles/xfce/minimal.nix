@@ -8,6 +8,7 @@
 {
   imports = [
     ../x11/minimal.nix
+    ../../modules/desktop/xfce.nix
   ];
 
   # Installs xfce4-power-manager
