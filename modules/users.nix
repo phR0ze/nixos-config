@@ -6,6 +6,10 @@
 #---------------------------------------------------------------------------------------------------
 { args, ... }:
 {
+  imports = [
+    ./home.nix
+  ];
+
   # Set the root password to the same as the admin user
   users.extraUsers.root.password = args.settings.userpass;
 

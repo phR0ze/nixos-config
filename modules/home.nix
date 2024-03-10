@@ -108,6 +108,7 @@ in
         Set of files to be linked in {file}`/etc`.
       '';
 
+      # 'attrsOf (submodule' allows multiple named definitions of the submodule option set
       type = with types; attrsOf (submodule (
         { name, config, options, ... }: {
           options = {
