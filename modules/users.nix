@@ -28,5 +28,7 @@
 #    # Have to turn explicitly turn this off so PAM can do it on first login
 #    createHome = false;
 #  };
-  apps.galculator.enable = true;
+  environment.home."foobar".text = ''
+    this is a test
+  ''; 
 }
