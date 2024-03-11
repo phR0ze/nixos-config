@@ -31,7 +31,7 @@
 #  environment.home."foobar".text = ''
 #    this is a test
 #  ''; 
-  apps = [
-    { foo = 1; bar = "one"; }
-  ];
+  #apps = [
+  #  { foo = 1; bar = "one"; }
+  #];
 }
