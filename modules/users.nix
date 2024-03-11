@@ -4,7 +4,7 @@
 # - Configures users default groups
 # - Configures users default passwords
 #---------------------------------------------------------------------------------------------------
-{ args, ... }: with args.opts;
+{ args, opts, ... }: with opts;
 {
   # Set the root password to the same as the admin user
   users.extraUsers.root.password = args.settings.userpass;
