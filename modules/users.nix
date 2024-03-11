@@ -6,9 +6,9 @@
 #---------------------------------------------------------------------------------------------------
 { args, ... }:
 {
-  imports = [
-    ./home.nix
-  ];
+#  imports = [
+#    ./home.nix
+#  ];
 
   # Set the root password to the same as the admin user
   users.extraUsers.root.password = args.settings.userpass;
@@ -32,7 +32,7 @@
 #    # Have to turn explicitly turn this off so PAM can do it on first login
 #    createHome = false;
 #  };
-  environment.home."foobar".text = ''
-    this is a test
-  ''; 
+#  environment.home."foobar".text = ''
+#    this is a test
+#  ''; 
 }
