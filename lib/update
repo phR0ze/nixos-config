@@ -16,6 +16,7 @@ Usage:
 
 Options:
   -h, --help        Print out top level usage
+  --repair          Check every path during update and rebuild it if corrupt
 
 Commands:
   system            Update the system with the configuration changes
@@ -48,5 +49,5 @@ update::system()
     core::title
     log::header1 "Update NixOS system"
 
-    nixos-rebuild switch --flake "path:/etc/nixos#system"
+    nixos-rebuild switch --flake "path:/etc/nixos#system" $@
 }

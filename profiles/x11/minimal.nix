@@ -55,6 +55,32 @@
     };
   };
 
+  # GTK/Qt themese
+  # - https://nixos.org/manual/nixos/unstable/#sec-x11-gtk-and-qt-themes
+  # ------------------------------------------------------------------------------------------------
+  #qt.enable = true;
+  #qt.platformTheme = "gtk2";
+  #qt.style = "gtk2";
+
+  # GTK gsettings
+  # ------------------------------------------------------------------------------------------------
+#  services.xserver.desktopManager.gnome = {
+#    extraGSettingsOverrides = ''
+#      # Change default background
+#      [org.gnome.desktop.background]
+#      picture-uri='file://${pkgs.nixos-artwork.wallpapers.mosaic-blue.gnomeFilePath}'
+#
+#      # Favorite apps in gnome-shell
+#      [org.gnome.shell]
+#      favorite-apps=['org.gnome.Console.desktop', 'org.gnome.Nautilus.desktop']
+#    '';
+#
+#    extraGSettingsOverridePackages = [
+#      pkgs.gsettings-desktop-schemas # for org.gnome.desktop
+#      pkgs.gnome.gnome-shell # for org.gnome.shell
+#    ];
+#  };
+
   # Logind configuration
   # - Defaults were changed here https://github.com/NixOS/nixpkgs/pull/16021
   # - Want shutdown to kill all users process immediately for fast shutdown
