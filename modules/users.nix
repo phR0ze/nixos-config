@@ -4,8 +4,12 @@
 # - Configures users default groups
 # - Configures users default passwords
 #---------------------------------------------------------------------------------------------------
-{ args, opts, ... }: with opts;
+{ args, ... }:
 {
+  imports = [
+    ./opts.nix
+  ];
+
   # Set the root password to the same as the admin user
   users.extraUsers.root.password = args.settings.userpass;
 
@@ -31,7 +35,7 @@
 #  environment.home."foobar".text = ''
 #    this is a test
 #  ''; 
-  #apps = [
-  #  { foo = 1; bar = "one"; }
-  #];
+  apps = [
+    { foo = 1; bar = "one"; }
+  ];
 }
