@@ -32,6 +32,8 @@ let
 
   #cfg = config.apps.galculator;
   #homedir = config.users.users.${args.settings.username}.home;
+in
+{
   options.apps = mkOption {
     description = "submodule example";
     type = with types; attrsOf (submodule {
@@ -45,7 +47,4 @@ let
       };
     });
   };
-
-in
-{
 }
