@@ -4,12 +4,8 @@
 # - Configures users default groups
 # - Configures users default passwords
 #---------------------------------------------------------------------------------------------------
-{ args, ... }:
+{ args, ... }: with args.opts;
 {
-  imports = [
-    ./home.nix
-  ];
-
   # Set the root password to the same as the admin user
   users.extraUsers.root.password = args.settings.userpass;
 
