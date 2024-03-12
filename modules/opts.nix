@@ -69,4 +69,3 @@
 #        stringAfter [ "etc" "users" "groups" ] config.system.build.etcActivationCommands;
 #    };
   }
-}
