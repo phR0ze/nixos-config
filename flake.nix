@@ -27,10 +27,15 @@
   # Although it is nice to gather all implicit arguments together this means to use them without the 
   # dot notation would require an 'inherit (inputs) nixpkgs' to bring them into scope. Another option 
   # is to just call them out explicitly as required named arguments which does this scoping for you.
-  outputs = { self, nixpkgs, ... }@inputs: let
+  outputs = { self, lib, nixpkgs, ... }@inputs: let
 
-    # Updatable system settings
+    # Updatable system options
     # ----------------------------------------------------------------------------------------------
+    options = {
+      my = {
+        foo = lib.mkOptionStr "bar";
+      };
+    };
     settings = {
       stateVersion = "23.11";
 

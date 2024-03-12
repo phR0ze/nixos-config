@@ -34,36 +34,38 @@
 #    });
 #  };
 #}
-  let
-    # Files activation script
-    activationScript = ''
-      # Ensure xdg environment vars are set
-      XDG_CONFIG_HOME=''${XDG_CONFIG_HOME:-$HOME/.config}
-      XDG_CACHE_HOME=''${XDG_CACHE_HOME:-$HOME/.cache}
-      XDG_DATA_HOME=''${XDG_DATA_HOME:-$HOME/.local/share}
-      XDG_STATE_HOME=''${XDG_STATE_HOME:-$HOME/.local/state}
+let
+  
 
-      echo "this is a test" > ''${XDG_CONFIG_HOME}/foobar
+  # Files activation script
+  activationScript = ''
+    # Ensure xdg environment vars are set
+    XDG_CONFIG_HOME=''${XDG_CONFIG_HOME:-$HOME/.config}
+    XDG_CACHE_HOME=''${XDG_CACHE_HOME:-$HOME/.cache}
+    XDG_DATA_HOME=''${XDG_DATA_HOME:-$HOME/.local/share}
+    XDG_STATE_HOME=''${XDG_STATE_HOME:-$HOME/.local/state}
 
-      # xdg-desktop-settings generates this empty file but
-      #rm -fv ''${XDG_CONFIG_HOME}/menus/applications-merged/xdg-desktop-menu-dummy.menu
+    echo "''${options.my.foo} this is a test" > ''${XDG_CONFIG_HOME}/foobar
 
-      #trolltech_conf="''${XDG_CONFIG_HOME}/Trolltech.conf"
-      #if [ -e "$trolltech_conf" ]; then
-      #  ${getBin pkgs.gnused}/bin/sed -i "$trolltech_conf" -e '/nix\\store\|nix\/store/ d'
-      #fi
-    '';
-  in
-  {
-    # User activation scripts
-    # ----------------------------------------------------------------------------------------------
-    # system.userActivationScripts are executed by a systemd user service when a nixos-rebuild switch 
-    # is run and likewise every boot since each boot activates the system anew.
-    # 
-    # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/activation/activation-script.nix#L145
-    config.system.userActivationScripts.files = activationScript;
+    # xdg-desktop-settings generates this empty file but
+    #rm -fv ''${XDG_CONFIG_HOME}/menus/applications-merged/xdg-desktop-menu-dummy.menu
+
+    #trolltech_conf="''${XDG_CONFIG_HOME}/Trolltech.conf"
+    #if [ -e "$trolltech_conf" ]; then
+    #  ${getBin pkgs.gnused}/bin/sed -i "$trolltech_conf" -e '/nix\\store\|nix\/store/ d'
+    #fi
+  '';
+in
+{
+  # User activation scripts
+  # ----------------------------------------------------------------------------------------------
+  # system.userActivationScripts are executed by a systemd user service when a nixos-rebuild switch 
+  # is run and likewise every boot since each boot activates the system anew.
+  # 
+  # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/activation/activation-script.nix#L145
+  config.system.userActivationScripts.files = activationScript;
 #    config = {
 #      system.activationScripts.files =
 #        stringAfter [ "etc" "users" "groups" ] config.system.build.etcActivationCommands;
 #    };
-  }
+}
