@@ -35,7 +35,7 @@
 #  };
 #}
 let
-  
+  inherit (lib) stringAfter;
 
   # Files activation script
   # 1. Check to if the file exists and if so delete it
@@ -70,8 +70,6 @@ in
   # 
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/activation/activation-script.nix#L145
   #config.system.userActivationScripts.files = activationScript;
-  config = {
-    system.activationScripts.files =
-      stringAfter [ "etc" "users" "groups" ] activationScript;
-  };
+  config.system.activationScripts.files =
+    stringAfter [ "etc" "users" "groups" ] activationScript;
 }
