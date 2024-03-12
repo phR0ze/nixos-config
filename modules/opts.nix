@@ -3,7 +3,6 @@
 # ### Features
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib;
-{
   # We can leverage the write builders to create files in the user's home directory
   # https://nixos.org/manual/nixpkgs/stable/#trivial-builder-writeText
 
@@ -36,7 +35,6 @@
 #  };
 #}
   let
-
     # Files activation script
     activationScript = ''
       # Ensure xdg environment vars are set
