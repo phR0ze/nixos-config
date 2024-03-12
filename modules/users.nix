@@ -4,7 +4,7 @@
 # - Configures users default groups
 # - Configures users default passwords
 #---------------------------------------------------------------------------------------------------
-{ args, ... }:
+{ pkgs, args, ... }:
 {
   imports = [
     ./opts.nix
@@ -35,7 +35,43 @@
 #  environment.home."foobar".text = ''
 #    this is a test
 #  ''; 
-  apps = [
-    { foo = 1; bar = "one"; }
-  ];
+ # apps = [
+ #   { foo = 1; bar = "one"; }
+ # ];
+
+  # Using writeTextFile functions to create files in nix store
+  # https://nixos.org/manual/nixpkgs/unstable/#trivial-builder-text-writing
+#  pkgs.writeTextFile {
+#    name = "foobar";
+#    text = ''
+#      contents of the file
+#    '';
+  let
+    foobar = pkgs.writeShellScriptBin "foobar" ''
+      echo "foobar all day long"
+    '';
+  in {
+    environment.systemPackages = [ foobar ];
+  }
+  # Using 
+
+#let
+#  clamavUserScanner = pkgs.writeTextFile {
+#    name = "clamav-user-scanner";
+#    executable = true;
+#    destination = "/bin/clamav-user-scanner.sh";
+#    text = ''
+#      # Script here...
+#    '';
+#in {
+#  # ...
+#  systemd.user.services.clamav-scan-weekly = {
+#    description = "Perform a full scan of the user's home directory for viruses";
+#    serviceConfig = {
+#      Type = "oneshot";
+#      ExecStart = "${clamavUserScanner}/bin/clamav-user-scanner.sh \"%h\"";
+#    };
+#  };
+#  # ...
+#}
 }

@@ -81,8 +81,11 @@
 
     # Using attribute set update syntax '//' here to combine a couple sets for simpler input arguments
     args = inputs // { inherit settings; };
+    #opts = import modules/opts.nix {
+      #{ options, config, lib, pkgs, args, ... }: with lib;
+    #};
     system = settings.system;
-    specialArgs = { inherit args; };
+    specialArgs = { inherit args opts; };
     
   in {
     nixosConfigurations = {
