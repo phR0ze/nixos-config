@@ -45,7 +45,9 @@ let
     XDG_DATA_HOME=''${XDG_DATA_HOME:-$HOME/.local/share}
     XDG_STATE_HOME=''${XDG_STATE_HOME:-$HOME/.local/state}
 
-    echo "''${options.my.foo} this is a test" > ''${XDG_CONFIG_HOME}/foobar
+    rm -f ''${XDG_CONFIG_HOME}/foobar
+    cp -a ${../include} ''${XDG_CONFIG_HOME}/foobar
+    #echo "this is a test 2" > ''${XDG_CONFIG_HOME}/foobar
 
     # xdg-desktop-settings generates this empty file but
     #rm -fv ''${XDG_CONFIG_HOME}/menus/applications-merged/xdg-desktop-menu-dummy.menu
