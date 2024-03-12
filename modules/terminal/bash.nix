@@ -66,7 +66,7 @@
     # Adds to /etc/bashrc lower down
     promptPluginInit = ''
       # Configure dircolors which is installed with 'coreutils-full'
-      eval "$(dircolors -b ${pkgs.writeText ".dircolors" (lib.fileContents ../../include/.dircolors)})"
+      eval "$(dircolors -b ${pkgs.writeText ".dircolors" (lib.fileContents ../../include/home/.dircolors)})"
     '';
 
     # Adds this to the /etc/profile as well
