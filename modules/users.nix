@@ -7,7 +7,7 @@
 { pkgs, args, ... }:
 {
   imports = [
-    ./opts.nix
+    ./files.nix
   ];
 
   # Set the root password to the same as the admin user
@@ -22,11 +22,10 @@
     password = args.settings.userpass;  # temp password to change on first login
   };
 
-#  # Initialize user home from /etc/skel on first login
-#  # ------------------------------------------------------------------------------------------------
-#  environment.etc = [
-#    { source = ./software/config/vimrc; target = "skel/.vimrc"; }
-#  ];
+  # Initialize user home from /etc/skel on first login
+  # ------------------------------------------------------------------------------------------------
+  files."/root/foobar".text = "this is a foobar test";
+
 #  security.pam.services.login.makeHomeDir = true;
 #  users.extraUsers."me" = {
 #    # Have to turn explicitly turn this off so PAM can do it on first login
