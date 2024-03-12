@@ -85,7 +85,7 @@
       #{ options, config, lib, pkgs, args, ... }: with lib;
     #};
     system = settings.system;
-    specialArgs = { inherit args opts; };
+    specialArgs = { inherit args; };
     
   in {
     nixosConfigurations = {
