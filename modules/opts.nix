@@ -35,21 +35,19 @@
 #  };
 #}
 let
-  inherit (lib) stringAfter;
+  #inherit (lib) stringAfter;
 
   # Files activation script
+  # - $HOME is not a valid value when executing with `system.activationScripts`
   # 1. Check to if the file exists and if so delete it
   # 2. Copy over the new file
   activationScript = ''
     # Ensure xdg environment vars are set
-    XDG_CONFIG_HOME=''${XDG_CONFIG_HOME:-$HOME/.config}
-    XDG_CACHE_HOME=''${XDG_CACHE_HOME:-$HOME/.cache}
-    XDG_DATA_HOME=''${XDG_DATA_HOME:-$HOME/.local/share}
-    XDG_STATE_HOME=''${XDG_STATE_HOME:-$HOME/.local/state}
+    configs=/home/${args.settings.username}/.config
 
-    rm -rf ''${XDG_CONFIG_HOME}/foobar
-    cp -a ${../include/home} ''${XDG_CONFIG_HOME}/foobar
-    #echo "this is a test 2" > ''${XDG_CONFIG_HOME}/foobar
+    rm -rf ''${configs}/foobar
+    cp -a ${../include/home} ''${configs}/foobar
+    #echo "this is a test 2" > ''${configs}/foobar
 
     # xdg-desktop-settings generates this empty file but
     #rm -fv ''${XDG_CONFIG_HOME}/menus/applications-merged/xdg-desktop-menu-dummy.menu
@@ -70,6 +68,7 @@ in
   # 
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/activation/activation-script.nix#L145
   #config.system.userActivationScripts.files = activationScript;
+
   config.system.activationScripts.files =
     stringAfter [ "etc" "users" "groups" ] activationScript;
 }
