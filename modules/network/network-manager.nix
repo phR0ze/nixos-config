@@ -19,6 +19,12 @@
     };
   };
 
+  # Set custom IP address
+  #environment.etc."NetworkManager/system-connections/my-network.nmconnection" = {
+  #  mode = "0600";
+  #  source = ./files/my-network.nmconnection;
+  #};
+
   # Enables ability for user to make network manager changes
   users.users.${args.settings.username} = {
     extraGroups = [ "networkmanager" ];
