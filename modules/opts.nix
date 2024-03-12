@@ -29,22 +29,30 @@
 # Writing NixOS Modules
 # https://nixos.org/manual/nixos/unstable/#sec-writing-modules
 let
-
-  #cfg = config.apps.galculator;
-  #homedir = config.users.users.${args.settings.username}.home;
-in
-{
-  options.apps = mkOption {
-    description = "submodule example";
-    type = with types; attrsOf (submodule {
-      options = {
-        foo = mkOption {
-          type = int;
-        };
-        bar = mkOption {
-          type = str;
-        };
-      };
-    });
-  };
+  foobar = pkgs.writeShellScriptBin "foobar" ''
+    echo "foobar all day long"
+  '';
+in {
+  environment.systemPackages = [ foobar ];
 }
+
+#let
+#
+#  #cfg = config.apps.galculator;
+#  #homedir = config.users.users.${args.settings.username}.home;
+#in
+#{
+#  options.apps = mkOption {
+#    description = "submodule example";
+#    type = with types; attrsOf (submodule {
+#      options = {
+#        foo = mkOption {
+#          type = int;
+#        };
+#        bar = mkOption {
+#          type = str;
+#        };
+#      };
+#    });
+#  };
+#}

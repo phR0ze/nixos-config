@@ -46,13 +46,6 @@
 #    text = ''
 #      contents of the file
 #    '';
-  let
-    foobar = pkgs.writeShellScriptBin "foobar" ''
-      echo "foobar all day long"
-    '';
-  in {
-    environment.systemPackages = [ foobar ];
-  }
   # Using 
 
 #let
