@@ -40,7 +40,7 @@
       if [[ "$TERM" != "dumb" && "$TERM" != "linux" ]]; then
         export STARSHIP_CONFIG=${
           pkgs.writeText "starship.toml"
-          (lib.fileContents ../../include/.config/starship.toml)
+          (lib.fileContents ../../include/home/.config/starship.toml)
         }
         eval "$(${pkgs.starship}/bin/starship init bash)"
       fi

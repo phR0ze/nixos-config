@@ -38,6 +38,8 @@ let
   
 
   # Files activation script
+  # 1. Check to if the file exists and if so delete it
+  # 2. Copy over the new file
   activationScript = ''
     # Ensure xdg environment vars are set
     XDG_CONFIG_HOME=''${XDG_CONFIG_HOME:-$HOME/.config}
@@ -45,8 +47,8 @@ let
     XDG_DATA_HOME=''${XDG_DATA_HOME:-$HOME/.local/share}
     XDG_STATE_HOME=''${XDG_STATE_HOME:-$HOME/.local/state}
 
-    rm -f ''${XDG_CONFIG_HOME}/foobar
-    cp -a ${../include} ''${XDG_CONFIG_HOME}/foobar
+    rm -rf ''${XDG_CONFIG_HOME}/foobar
+    cp -a ${../include/home} ''${XDG_CONFIG_HOME}/foobar
     #echo "this is a test 2" > ''${XDG_CONFIG_HOME}/foobar
 
     # xdg-desktop-settings generates this empty file but
@@ -59,15 +61,17 @@ let
   '';
 in
 {
+  options.files
+
   # User activation scripts
   # ----------------------------------------------------------------------------------------------
   # system.userActivationScripts are executed by a systemd user service when a nixos-rebuild switch 
   # is run and likewise every boot since each boot activates the system anew.
   # 
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/activation/activation-script.nix#L145
-  config.system.userActivationScripts.files = activationScript;
-#    config = {
-#      system.activationScripts.files =
-#        stringAfter [ "etc" "users" "groups" ] config.system.build.etcActivationCommands;
-#    };
+  #config.system.userActivationScripts.files = activationScript;
+  config = {
+    system.activationScripts.files =
+      stringAfter [ "etc" "users" "groups" ] activationScript;
+  };
 }

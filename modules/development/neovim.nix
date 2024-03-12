@@ -10,7 +10,7 @@
     configure = {
 
       # Load the neovim static dotfile from includes
-      customRC = builtins.readFile ../../include/.config/nvim/init.vim;
+      customRC = builtins.readFile ../../include/home/.config/nvim/init.vim;
 
       # Build an aggregate package with all plugins
       packages.aggregatePlugins = with pkgs.vimPlugins; {
