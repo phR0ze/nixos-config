@@ -24,6 +24,9 @@
 
     desktopManager = {
       xterm.enable = false;
+
+      # Controls how the ~/.background-image is used as a background
+      wallpaper.mode = "fill";
     };
 
     displayManager = {
