@@ -78,17 +78,21 @@ let
   filesActivationScript = pkgs.runCommandLocal "files" {} ''
     # Configure an immediate fail if something goes badly
     set -euo pipefail
-    echo "setting up custom files"
 
     makeFileEntry() {
       src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
       dest="$2"       # Destination path to deploy to e.g. '/root/foobar'
 
+      # Fail if the given destination path isn't absolute
+      [[ ''${dest:0:1} != "/" ]] && exit 1
+
       # Trim off root slash if it exists
       [[ ''${dest:0:1} == "/" ]] && dest="''${dest:1}"
 
-      # Link the source into the files derivation at the destination path
+      # Create any directories that are needed
       mkdir -p "$out/$(dirname "$dest")"        # Create the destination directory
+
+      # Link the source into the files derivation at the destination path
       ln -s "$src" "$out/$dest"
 
 #      mkdir -p "$out/$(dirname "$dest")"        # Create the destination directory

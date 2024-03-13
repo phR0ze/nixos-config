@@ -20,8 +20,9 @@
 
   # Initialize user home from /etc/skel on first login
   # ------------------------------------------------------------------------------------------------
-  files."/root/foobar1".text = "this is a test";
-  files."/root/.dircolors".source = ../include/home/.dircolors;
+  files."root/foobar1".text = "this is a test";
+  #files."/root/foobar1".text = "this is a test";
+  #files."/root/.dircolors".source = ../include/home/.dircolors;
 
 #  security.pam.services.login.makeHomeDir = true;
 #  users.extraUsers."me" = {
