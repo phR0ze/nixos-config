@@ -82,6 +82,7 @@
       gf = "vim `git diff --name-only --diff-filter=M | uniq`";
   
       # misc aliases
+      tree = "tree -a";
       ip = "ip -c";
       ls = "ls -h --group-directories-first --color=auto";
       ll = "ls -lah --group-directories-first --color=auto";

@@ -77,8 +77,10 @@ let
   # ------------------------------------------------------------------------------------------------
   filesActivationScript = pkgs.runCommandLocal "files" {} ''
     set -euo pipefail # Configure an immediate fail if something goes badly
+    mkdir -p "$out"   # Creates the root package directory
+    echo "Logging test" >&2
 
-    makeFileEntry() {
+    linkfiles() {
       src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
       dest="$2"       # Destination path to deploy to e.g. '/root/foobar'
 
@@ -106,12 +108,11 @@ let
 #      fi
     }
 
-    # Convert the files derivations into a list of calls to makeFileEntry by taking all the files 
+    # Convert the files derivations into a list of calls to linkfiles by taking all the files 
     # derivations escaping the arguments and adding them line by line to this ouput bash script.
-    # e.g. 'makeFileEntry' '/nix/store/<hash>-files-root-foobar' '/root/foobar'
-    mkdir -p "$out"
+    # e.g. 'linkfiles' '/nix/store/<hash>-files-root-foobar' '/root/foobar'
     ${concatMapStringsSep "\n" (entry: escapeShellArgs [
-      "makeFileEntry"
+      "linkfiles"
       # Simply referencing the source file here will suck it into the /nix/store
       "${entry.source}"
       entry.dest
@@ -141,6 +142,16 @@ in
         # Single file example with indirect source file
         files."/root/.dircolors".source = pkgs.writeText "root-.dircolors"
           (lib.fileContents ../include/home/.dircolors);
+
+        # Multi file example
+        files = {
+          "/etc/asound.conf".text = "autospawn=no";
+
+          "/root/.dircolors".source = pkgs.writeText "root-.dircolors"
+            (lib.fileContents ../include/home/.dircolors);
+
+          "/etc/openal/alsoft.conf".source = writeText "alsoft.conf" "drivers=pulse";
+        };
       '';
       type = with types; attrsOf (submodule (
         { name, config, options, ... }: {
