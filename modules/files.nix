@@ -71,7 +71,7 @@ let
       dest="$2"       # Destination path to deploy to e.g. '/root/foobar'
 
       # Trim off root slash if it exists
-      [[ ''${str:0:1} == "/" ]] && dest="''${dest:1}"
+      [[ ''${dest:0:1} == "/" ]] && dest="''${dest:1}"
 
       # Link the source into the files derivation at the destination path
       mkdir -p "$out/$(dirname "$dest")"        # Create the destination directory
