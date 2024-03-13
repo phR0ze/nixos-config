@@ -193,8 +193,8 @@ in
             source = mkMerge [
               (mkIf (config.text != null) (
                 let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-                in mkDerivedConfig options.text (pkgs.writeText name'));
-              )
+                in mkDerivedConfig options.text (pkgs.writeText name')
+              ))
             ];
           };
         }
