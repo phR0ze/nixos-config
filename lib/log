@@ -18,38 +18,6 @@ magenta="\e[1;35m"
 aqua="\e[36m"
 cyan="\e[1;36m"
 
-# Usage for the log command and its sub commands
-# --------------------------------------------------------------------------------------------------
-log::usage()
-{
-    cat <<USAGE
-Usage:
-  log [OPTIONS] [COMMAND] [ARGS...]
-
-Options:
-  -h, --help        Print out top level usage
-
-Arguments:
-  NIX-PKG           Read the derivation build log for the given package path
-USAGE
-
-    log::ln "\nExamples:"
-    log::subln "Show build log: ${green}./${SCRIPT} log /nix/store/k3f9r2rmi762jwvwidq4k2794q9j5l7n-files${none}"
-    echo
-    exit
-}
-
-
-# Parse the log commands and execute
-# --------------------------------------------------------------------------------------------------
-log::run()
-{
-    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && log::usage
-
-    # Log the derivation build log for the given package
-    nix-store --read-log "$@"
-}
-
 # Controls the logging level cut off
 # --------------------------------------------------------------------------------------------------
 # ### Features

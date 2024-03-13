@@ -60,7 +60,7 @@ Commands:
   clean             Clean various system components
   help              Get help for a command
   install           Install system configuration
-  log               Print out logging for various components
+  logs              Print out logging for various components
   manage            Manage the clu repo
   pkgs              Package management commands
   test              Testing function for development
@@ -99,7 +99,7 @@ case "$command" in
     build) build::run "$@" ;;
     clean) clean::run "$@" ;;
     install) install::run "$@" ;;
-    log) log::run "$@" ;;
+    logs) logs::run "$@" ;;
     manage) manage::run "$@" ;;
     pkgs) pkgs::run "$@" ;;
     test) test::run "$@" ;;
