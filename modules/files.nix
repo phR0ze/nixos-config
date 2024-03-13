@@ -31,55 +31,7 @@ let
     # Add startup applications?
     # cp -a ${../include/home/.config/autostart} ''${XDG_CONFIG_HOME}
     #ln -sf ${pkgs.something}/share/applications/something.desktop ''${XDG_CONFIG_HOME}/autostart
-  '';
 
-  # Files activation script using system.activationScript
-  # ------------------------------------------------------------------------------------------------
-  # - $HOME is not a valid value
-  # - operation is run as the root user
-  # - files and directories are owned by root by default
-  activationScript = ''
-    # Configure an immediate fail if something goes badly
-    set -euo pipefail
-
-#    makeFileEntry() {
-#      src="$1"        # Source files to copy in
-#      dest="$2"       # Destination path to deploy the file(s) to
-#      mode="$3"       # Optional mode to use for the destination file(s)
-#      user="$4"       # Optional user to use for the destination file(s)
-#      group="$5"      # Optional group to use for the destination file(s)
-#
-#      # Globbing means the destination is a directory
-#      if [[ "$src" = *'*'* ]]; then
-#        exit 1 # not supported as of yet
-#        mkdir -p "$out/$dest"                     # Create the destination directory
-#        for fn in $src; do
-#          ln -s "$fn" "$out/etc/$dest/"
-#        done
-#
-#      # ?
-#      else
-#        mkdir -p "$out/$(dirname "$dest")"        # Create the destination directory
-#        if ! [ -e "$out/$dest" ]; then
-#          ln -s "$src" "$out/$dest"               # Link the source to the destination if it doesn't exist
-#        else
-#          echo "duplicate entry $dest -> $src"
-#          if [ "$(readlink "$out/etc/$dest")" != "$src" ]; then
-#            echo "mismatched duplicate entry $(readlink "$out/etc/$dest") <-> $src"
-#            ret=1
-#
-#            continue
-#          fi
-#        fi
-#
-#        if [ "$mode" != symlink ]; then
-#          echo "$mode" > "$out/etc/$dest.mode"
-#          echo "$user" > "$out/etc/$dest.uid"
-#          echo "$group" > "$out/etc/$dest.gid"
-#        fi
-#      fi
-#    }
-#
     # ----------------------------------------------------------------------------------------------
     # Ensure xdg environment vars are set
     #configs=/home/${args.settings.username}/.config
@@ -95,6 +47,54 @@ let
     #if [ -e "$trolltech_conf" ]; then
     #  ${getBin pkgs.gnused}/bin/sed -i "$trolltech_conf" -e '/nix\\store\|nix\/store/ d'
     #fi
+
+  '';
+
+  # Files activation script using system.activationScript
+  # ------------------------------------------------------------------------------------------------
+  # - $HOME is not a valid value
+  # - operation is run as the root user
+  # - files and directories are owned by root by default
+  files' = filter (f: f.enable) (attrValues config.files);
+  activationScript = ''
+    # Configure an immediate fail if something goes badly
+    set -euo pipefail
+    echo "setting up custom files"
+
+    makeFileEntry() {
+      echo "makeFileEntry: $@"
+      src="$1"        # Source files to copy in
+      dest="$2"       # Destination path to deploy the file(s) to
+      mode="$3"       # Optional mode to use for the destination file(s)
+      user="$4"       # Optional user to use for the destination file(s)
+      group="$5"      # Optional group to use for the destination file(s)
+
+#      mkdir -p "$out/$(dirname "$dest")"        # Create the destination directory
+#      if ! [ -e "$out/$dest" ]; then
+#        ln -s "$src" "$out/$dest"               # Link the source to the destination if it doesn't exist
+#      else
+#        echo "duplicate entry $dest -> $src"
+#        if [ "$(readlink "$out/etc/$dest")" != "$src" ]; then
+#          echo "mismatched duplicate entry $(readlink "$out/etc/$dest") <-> $src"
+#          ret=1
+#
+#          continue
+#        fi
+#      fi
+    }
+
+    # Convert the files derivations into a list of calls to makeFileEntry by taking all the files 
+    # derivations escaping the arguments and adding them line by line to this ouput bash script.
+    mkdir -p "$out"
+    ${concatMapStringsSep "\n" (entry: escapeShellArgs [
+      "makeFileEntry"
+      # Force local source paths to be added to the store
+      "${entry.source}"
+      entry.target
+      entry.mode
+      entry.user
+      entry.group
+    ]) files'}
   '';
 in
 {
@@ -110,6 +110,13 @@ in
       type = with types; attrsOf (submodule (
         { name, config, options, ... }: {
           options = {
+
+            enable = mkOption {
+              type = types.bool;
+              default = true;
+              description = lib.mdDoc "Whether the file should be generated at the destination path.";
+            };
+
             dest = mkOption {
               type = types.str;
               description = lib.mdDoc "Absolute destination path. Defaults to the attribute name.";
