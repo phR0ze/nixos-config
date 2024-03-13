@@ -6,11 +6,26 @@
 # repo. I specifically chose not to use Home Manager to keep this simple and avoid the complexity of 
 # that solution.
 #
-# ### Details
+# ### Features
 # - provides the ability to install system files as root
 # - provides the ability to install user files for target user as well as root
 # - gets run on boot and on nixos-rebuild switch so be careful what is included here
 # - files being deployed will overwrite the original files without any safe guards or checking
+#
+# ### Details
+# This option follows a similar pattern as the environment.etc option. The pattern consists of three 
+# different components.
+#  1. The option is defined here in this file
+#  2. The option is imported into your project at the top level making it available everywhere
+#  3. The option is invoked e.g. files."/root/foobar1".text = "this is a foobar1 test";
+#  4. During nixos-rebuild switch the activationScripts get run
+#  5. The option's config.system.activationScripts.files configuration is invoked
+#  6. This in turn invokes the filesActivationScript via the reference
+#  7. The files aggregate attribute set adds them to the /nix/store and links them in the parent package
+#  8. The parent filesActivationScript package is then added to the /nix/store
+#  9. Finally the original config.system.activationScripts.files payload is executed with the 
+#     filesActivationScript called 'files' as a parameter
+# 10. The activation script payload then uses the files package to install the files into your system
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib;
 let
@@ -114,6 +129,13 @@ in
       description = lib.mdDoc ''
         Set of files to deploy in the target system.
         - destination paths must be absolute paths e.g. /root/foo
+      '';
+      example = ''
+        # Single file example with inline content
+        files."/root/.dircolors".text = "this is a test";
+
+        # Single file example with source file content
+        files."/root/.dircolors".source = ../include/home/.dircolors;
       '';
       type = with types; attrsOf (submodule (
         { name, config, options, ... }: {
