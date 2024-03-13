@@ -24,7 +24,7 @@
 
   # Initialize user home from /etc/skel on first login
   # ------------------------------------------------------------------------------------------------
-  files."/root/foobar".text = "this is a foobar test";
+  files."/root/foobar1".text = "this is a foobar1 test";
 
 #  security.pam.services.login.makeHomeDir = true;
 #  users.extraUsers."me" = {
