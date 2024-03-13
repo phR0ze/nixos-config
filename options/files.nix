@@ -178,7 +178,8 @@ in
             };
 
             source = mkOption {
-              type = types.path;
+              #type = types.path;
+              type = types.str;
               description = lib.mdDoc "Path of the raw local file e.g. ../include/root/.dircolors";
             };
           };
