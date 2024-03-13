@@ -70,8 +70,12 @@ let
       src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
       dest="$2"       # Destination path to deploy to e.g. '/root/foobar'
 
+      # Trim off root slash if it exists
+      [[ ''${str:0:1} == "/" ]] && dest="''${dest:1}"
+
       # Link the source into the files derivation at the destination path
-      ln -s "$src" "$out/''${dest:1}"
+      mkdir -p "$out/$(dirname "$dest")"        # Create the destination directory
+      ln -s "$src" "$out/$dest"
 
 #      mkdir -p "$out/$(dirname "$dest")"        # Create the destination directory
 #      if ! [ -e "$out/$dest" ]; then
