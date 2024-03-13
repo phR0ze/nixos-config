@@ -3,6 +3,6 @@
 { ... }:
 {
   imports = [
-    ./files.nix
+    ./fs
   ];
 }
