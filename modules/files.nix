@@ -50,13 +50,19 @@ let
 
   '';
 
-  # Files activation script using system.activationScript
-  # ------------------------------------------------------------------------------------------------
+  # Filter the files calls down to just those that are enabled
+  files' = filter (f: f.enable) (attrValues config.files);
+
+  # Using runCommand to build a derivation that bundles are target files into a /nix/store package 
+  # that we can then use during the activation later on to deploy the files to their indicated 
+  # destination paths.
   # - $HOME is not a valid value
   # - operation is run as the root user
   # - files and directories are owned by root by default
-  files' = filter (f: f.enable) (attrValues config.files);
-  filesActivationScript = pkgs.runCommandLocal "files" ''
+  # ------------------------------------------------------------------------------------------------
+  filesActivationScript = pkgs.runCommandLocal "files" {
+    passthru.targets = map (x: x.dest) files';
+  } /* sh */ ''
     # Configure an immediate fail if something goes badly
     set -euo pipefail
     echo "setting up custom files"
