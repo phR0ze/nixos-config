@@ -53,7 +53,7 @@ let
   # Filter the files calls down to just those that are enabled
   files' = filter (f: f.enable) (attrValues config.files);
 
-  # Using runCommand to build a derivation that bundles are target files into a /nix/store package 
+  # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
   # that we can then use during the activation later on to deploy the files to their indicated 
   # destination paths.
   # - $HOME is not a valid value
@@ -61,7 +61,6 @@ let
   # - files and directories are owned by root by default
   # ------------------------------------------------------------------------------------------------
   filesActivationScript = pkgs.runCommandLocal "files" {
-    passthru.targets = map (x: x.dest) files';
   } /* sh */ ''
     # Configure an immediate fail if something goes badly
     set -euo pipefail
@@ -71,9 +70,9 @@ let
       echo "makeFileEntry: $@"
       src="$1"        # Source files to copy in
       dest="$2"       # Destination path to deploy the file(s) to
-      mode="$3"       # Optional mode to use for the destination file(s)
-      user="$4"       # Optional user to use for the destination file(s)
-      group="$5"      # Optional group to use for the destination file(s)
+      #mode="$3"       # Optional mode to use for the destination file(s)
+      #user="$4"       # Optional user to use for the destination file(s)
+      #group="$5"      # Optional group to use for the destination file(s)
 
 #      mkdir -p "$out/$(dirname "$dest")"        # Create the destination directory
 #      if ! [ -e "$out/$dest" ]; then
@@ -165,9 +164,12 @@ in
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/activation/activation-script.nix
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/etc/etc-activation.nix
 
-  # Adds a bash snippet to /nix/store/<hash>-nixos-system-nixos-24.05.20240229.1536926/activate
+  # Adds a bash snippet to /nix/store/<hash>-nixos-system-nixos-24.05.20240229.1536926/activate.
+  # By referencing the ${filesActivationScript} we trigger the derivation to be built and stored in 
+  # the /nix/store which can then be used as an input variable for the actual deployment of files to 
+  # their destination paths.
   config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] ''
-    echo "files payload: ${filesActivationScript}"
+    echo "Deploy the files payload: ${filesActivationScript}"
   '';
 
   #config.system.userActivationScripts.files = userActivationScript;
