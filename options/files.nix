@@ -87,7 +87,7 @@ let
       dest="''${dest:1}"                    # Trim off the / prefix
 
       # Create any directories that are needed
-      [[ ''${dir} != "/" ]] && mkdir -p "$out/$dir)"
+      [[ ''${dir} != "/" ]] && mkdir -p "$out/$dir"
 
       # Link the source into the files derivation at the destination path
       ln -s "$src" "$out/$dest"
