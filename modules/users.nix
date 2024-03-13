@@ -23,6 +23,16 @@
   fs.all."root/foobar1".text = "this is a test";
   fs.all."root/.dircolors".text = builtins.readFile ../include/home/.dircolors;
 
+#  config.foo = mkMerge [
+#    (mkIf atHome {
+#      option1 = something1;
+#      option2 = something2;
+#    })
+#    (mkIf !atHome {
+#      option3 = somethin3;
+#    })
+#  ];
+
 #  security.pam.services.login.makeHomeDir = true;
 #  users.extraUsers."me" = {
 #    # Have to turn explicitly turn this off so PAM can do it on first login
