@@ -178,9 +178,11 @@ in
             };
 
             source = mkOption {
-              #type = types.path;
-              type = types.str;
-              description = lib.mdDoc "Path of the raw local file e.g. ../include/root/.dircolors";
+              type = types.path;
+              description = lib.mdDoc ''
+                Path of the source file in the nix store e.g pkgs.writeText "root-.dircolors"
+                  (lib.fileContents ../include/home/.dircolors);
+              '';
             };
           };
 
@@ -190,19 +192,11 @@ in
             # Default the destination name to the attribute name
             dest = mkDefault name;
 
-            # Create a nix store package out of:
-            # 1. the raw text if it's set
-            # 2. the source path of a local file or directory otherwise
-            source = mkMerge [
-              (mkIf (config.text != null) (
-                let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-                in mkDerivedConfig options.text (pkgs.writeText name')
-              ))
-              (mkIf (config.text == null) (
-                let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-                in mkDerivedConfig (builtins.readFile options.source) (pkgs.writeText name')
-              ))
-            ];
+            # Create a nix store package out of the raw text if it's set
+            source = mkIf (config.text != null) (
+              let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
+              in mkDerivedConfig options.text (pkgs.writeText name')
+            );
           };
         }
       ));
