@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# Usage for the log command and its sub commands
+# --------------------------------------------------------------------------------------------------
+logs::usage()
+{
+    cat <<USAGE
+Usage:
+  logs [OPTIONS] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out top level usage
+
+Arguments:
+  NIX-PKG           Read the derivation build log for the given package path
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "Show build log: ${green}./${SCRIPT} logs /nix/store/k3f9r2rmi762jwvwidq4k2794q9j5l7n-files${none}"
+    echo
+    exit
+}
+
+
+# Parse the logs commands and execute
+# --------------------------------------------------------------------------------------------------
+logs::run()
+{
+    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && logs::usage
+
+    # Log the derivation build log for the given package
+    nix-store --read-log "$@"
+}
