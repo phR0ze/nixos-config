@@ -78,20 +78,20 @@ let
   filesActivationScript = pkgs.runCommandLocal "files" {} ''
     set -euo pipefail # Configure an immediate fail if something goes badly
     mkdir -p "$out"   # Creates the root package directory
-    echo "Logging test" >&2
 
     linkfiles() {
-      src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
-      dest="$2"       # Destination path to deploy to e.g. '/root/foobar'
+      local src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
+      local dest="$2"       # Destination path to deploy to e.g. '/root/foobar'
 
       [[ ''${dest:0:1} != "/" ]] && exit 1  # Fail if the given destination path isn't absolute
-      dir="$(dirname "$dest")"              # Get the dir name
+      local dir="$(dirname "$dest")"        # Get the dir name
       dest="''${dest:1}"                    # Trim off the / prefix
 
       # Create any directories that are needed
       [[ ''${dir} != "/" ]] && mkdir -p "$out/$dir"
 
       # Link the source into the files derivation at the destination path
+      echo "Linking: $out/$dest -> $src"
       ln -s "$src" "$out/$dest"
 
 #      mkdir -p "$out/$(dirname "$dest")"        # Create the destination directory
