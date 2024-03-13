@@ -81,11 +81,10 @@ let
 
     linkfiles() {
       local src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
-      local dest="$2"       # Destination path to deploy to e.g. '/root/foobar'
+      local dest="$2"       # Destination path to deploy to e.g. 'root/foobar'
 
-      [[ ''${dest:0:1} != "/" ]] && exit 1  # Fail if the given destination path isn't absolute
-      local dir="$(dirname "$dest")"        # Get the dir name
-      dest="''${dest:1}"                    # Trim off the / prefix
+      [[ ''${dest:0:1} == "/" ]] && exit 1  # Fail if the given destination path isn't relative
+      local dir="$(dirname "/$dest")"       # Get the dir name
 
       # Create any directories that are needed
       [[ ''${dir} != "/" ]] && mkdir -p "$out/$dir"
@@ -130,7 +129,7 @@ in
     files = mkOption {
       description = lib.mdDoc ''
         Set of files to deploy in the target system.
-        - destination paths must be absolute paths e.g. /root/foo
+        - destination paths must be relative to the root e.g. etc/foo
       '';
       example = ''
         # Single file example with inline content
