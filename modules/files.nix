@@ -85,10 +85,11 @@ let
 
     # Convert the files derivations into a list of calls to makeFileEntry by taking all the files 
     # derivations escaping the arguments and adding them line by line to this ouput bash script.
+    # e.g. 'makeFileEntry' '/nix/store/<hash>-files-root-foobar' '/root/foobar'
     mkdir -p "$out"
     ${concatMapStringsSep "\n" (entry: escapeShellArgs [
       "makeFileEntry"
-      # Force local source paths to be added to the store
+      # Simply referencing the source file here will suck it into the /nix/store
       "${entry.source}"
       entry.dest
       #entry.mode
@@ -157,7 +158,10 @@ in
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/activation/activation-script.nix
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/etc/etc-activation.nix
 
-  config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] activationScript;
+  # Adds a bash snippet to /nix/store/<hash>-nixos-system-nixos-24.05.20240229.1536926/activate
+  config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] ''
+    echo "files payload: ${activationScript}"
+  '';
 
   #config.system.userActivationScripts.files = userActivationScript;
 }
