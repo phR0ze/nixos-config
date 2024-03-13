@@ -56,7 +56,7 @@ let
   # - operation is run as the root user
   # - files and directories are owned by root by default
   files' = filter (f: f.enable) (attrValues config.files);
-  activationScript = ''
+  files = pkgs.runCommandLocal "files" ''
     # Configure an immediate fail if something goes badly
     set -euo pipefail
     echo "setting up custom files"
@@ -155,12 +155,13 @@ in
 
   # Activation scripts
   # ----------------------------------------------------------------------------------------------
+  # - you can find the activation script in `ll -d /nix/store/*-nixos-system-nixos*/activate`
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/activation/activation-script.nix
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/etc/etc-activation.nix
 
   # Adds a bash snippet to /nix/store/<hash>-nixos-system-nixos-24.05.20240229.1536926/activate
   config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] ''
-    echo "files payload: ${activationScript}"
+    echo "files payload: ${files}"
   '';
 
   #config.system.userActivationScripts.files = userActivationScript;
