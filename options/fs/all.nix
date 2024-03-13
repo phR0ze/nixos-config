@@ -31,7 +31,7 @@
 let
 
   # Filter the files calls down to just those that are enabled
-  allfiles' = filter (f: f.enable) (attrValues config.files);
+  allfiles' = filter (f: f.enable) (attrValues config.fs.all);
 
   # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
   # that we can then use during the activation later on to deploy the files to their indicated 
