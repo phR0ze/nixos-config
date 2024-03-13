@@ -18,6 +18,7 @@
 { config, lib, pkgs, args, ... }:
 {
   imports = [
+    ../../options
     ../../modules/locale.nix
     ../../modules/nix.nix
     ../../modules/sudo.nix
