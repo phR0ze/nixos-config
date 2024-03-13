@@ -18,6 +18,4 @@
 #      Defaults env_keep += "ftp_proxy FTP_PROXY"
 #    '';
   };
-
-  files."/root/foobar2".text = "this is a foobar2 test";
 }
