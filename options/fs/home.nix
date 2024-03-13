@@ -7,8 +7,7 @@
 # that solution.
 #
 # ### Features
-# - provides the ability to install system files as root
-# - provides the ability to install user files for target user as well as root
+# - provides the ability to install user files for target user
 # - gets run on boot and on nixos-rebuild switch so be careful what is included here
 # - files being deployed will overwrite the original files without any safe guards or checking
 #
@@ -20,21 +19,25 @@
 #  3. The option is invoked e.g. files."/root/foobar1".text = "this is a foobar1 test";
 #  4. During nixos-rebuild switch the activationScripts get run
 #  5. The option's config.system.activationScripts.files configuration is invoked
-#  6. This in turn invokes the filesActivationScript via the reference
+#  6. This in turn invokes the allFilesActivationScript via the reference
 #  7. The files aggregate attribute set adds them to the /nix/store and links them in the parent package
-#  8. The parent filesActivationScript package is then added to the /nix/store
+#  8. The parent allFilesActivationScript package is then added to the /nix/store
 #  9. Finally the original config.system.activationScripts.files payload is executed with the 
-#     filesActivationScript called 'files' as a parameter
+#     allFilesActivationScript called 'allfiles' as a parameter
 # 10. The activation script payload then uses the files package to install the files into your system
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib;
 let
+  # Filter the files calls down to just those that are enabled
+  homefiles' = filter (f: f.enable) (attrValues config.fs.home);
+
   # User files activation script using system.userActivationScript
   # ------------------------------------------------------------------------------------------------
   # - $HOME is available
   # - operation is run as the logged in user
   # - files and directories are owned by the logged in user
-  userActivationScript = ''
+  # ------------------------------------------------------------------------------------------------
+  userFilesActivationScript = ''
     # Ensure xdg environment vars are set
     XDG_CONFIG_HOME=''${XDG_CONFIG_HOME:-$HOME/.config}
     XDG_CACHE_HOME=''${XDG_CACHE_HOME:-$HOME/.cache}
@@ -63,9 +66,6 @@ let
 
   '';
 
-  # Filter the files calls down to just those that are enabled
-  files' = filter (f: f.enable) (attrValues config.files);
-
   # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
   # that we can then use during the activation later on to deploy the files to their indicated 
   # destination paths.
@@ -73,7 +73,7 @@ let
   # - operation is run as the root user
   # - files and directories are owned by root by default
   # ------------------------------------------------------------------------------------------------
-  filesActivationScript = pkgs.runCommandLocal "files" {} ''
+  allFilesActivationScript = pkgs.runCommandLocal "files" {} ''
     set -euo pipefail # Configure an immediate fail if something goes badly
     mkdir -p "$out"   # Creates the root package directory
 
@@ -116,15 +116,15 @@ let
       #entry.mode
       #entry.user
       #entry.group
-    ]) files'}
+    ]) allfiles'}
   '';
 in
 {
   options = {
 
-    # files option
+    # all files option
     # ----------------------------------------------------------------------------------------------
-    files = mkOption {
+    fs.all = mkOption {
       description = lib.mdDoc ''
         Set of files to deploy in the target system.
         - destination paths must be relative to the root e.g. etc/foo
@@ -207,12 +207,11 @@ in
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/etc/etc-activation.nix
 
   # Adds a bash snippet to /nix/store/<hash>-nixos-system-nixos-24.05.20240229.1536926/activate.
-  # By referencing the ${filesActivationScript} we trigger the derivation to be built and stored in 
+  # By referencing the ${allFilesActivationScript} we trigger the derivation to be built and stored in 
   # the /nix/store which can then be used as an input variable for the actual deployment of files to 
   # their destination paths.
   config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] ''
-    echo "deploying files: ${filesActivationScript}"
+    echo "deploying files: ${allFilesActivationScript}"
   '';
-
   #config.system.userActivationScripts.files = userActivationScript;
 }
