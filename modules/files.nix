@@ -90,10 +90,10 @@ let
       "makeFileEntry"
       # Force local source paths to be added to the store
       "${entry.source}"
-      entry.target
-      entry.mode
-      entry.user
-      entry.group
+      entry.dest
+      #entry.mode
+      #entry.user
+      #entry.group
     ]) files'}
   '';
 in
