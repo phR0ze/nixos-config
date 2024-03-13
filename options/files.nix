@@ -139,6 +139,9 @@ in
         # Single file example with source file content
         files."/root/.dircolors".source = ../include/home/.dircolors;
 
+        # Single file example reading content from local file
+        files."/root/.dircolors".text = builtins.readFile ../include/home/.dircolors;
+
         # Single file example with indirect source file
         files."/root/.dircolors".source = pkgs.writeText "root-.dircolors"
           (lib.fileContents ../include/home/.dircolors);
@@ -176,7 +179,7 @@ in
 
             source = mkOption {
               type = types.path;
-              description = lib.mdDoc "Path of the source file.";
+              description = lib.mdDoc "Path of the raw local file e.g. ../include/root/.dircolors";
             };
           };
 
@@ -187,11 +190,12 @@ in
             dest = mkDefault name;
 
             # Create a nix store package out of the raw text if it exists
-            # Generate a new nix store package name from the given name
-            source = mkIf (config.text != null) (
-              let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-              in mkDerivedConfig options.text (pkgs.writeText name')
-            );
+            source = mkMerge [
+              (mkIf (config.text != null) (
+                let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
+                in mkDerivedConfig options.text (pkgs.writeText name'));
+              )
+            ];
           };
         }
       ));
