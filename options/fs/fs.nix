@@ -15,7 +15,7 @@
 { options, lib, ... }: with lib;
 {
   options = {
-    files = mkOption {
+    fs = mkOption {
       default = {};
     };
   };
