@@ -199,7 +199,7 @@ in
               ))
               (mkIf (config.text == null) (
                 let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-                in mkDerivedConfig builtins.readFile options.source (pkgs.writeText name')
+                in mkDerivedConfig (builtins.readFile options.source) (pkgs.writeText name')
               ))
             ];
           };
