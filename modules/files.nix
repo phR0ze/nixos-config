@@ -67,12 +67,11 @@ let
     echo "setting up custom files"
 
     makeFileEntry() {
-      echo "makeFileEntry: $@"
-      src="$1"        # Source files to copy in
-      dest="$2"       # Destination path to deploy the file(s) to
-      #mode="$3"       # Optional mode to use for the destination file(s)
-      #user="$4"       # Optional user to use for the destination file(s)
-      #group="$5"      # Optional group to use for the destination file(s)
+      src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
+      dest="$2"       # Destination path to deploy to e.g. '/root/foobar'
+
+      # Link the source into the files derivation at the destination path
+      ln -s "$src" "$out/''${dest:1}"
 
 #      mkdir -p "$out/$(dirname "$dest")"        # Create the destination directory
 #      if ! [ -e "$out/$dest" ]; then
@@ -169,7 +168,7 @@ in
   # the /nix/store which can then be used as an input variable for the actual deployment of files to 
   # their destination paths.
   config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] ''
-    echo "Deploy the files payload: ${filesActivationScript}"
+    echo "deploying files: ${filesActivationScript}"
   '';
 
   #config.system.userActivationScripts.files = userActivationScript;
