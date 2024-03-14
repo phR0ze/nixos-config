@@ -216,9 +216,10 @@ in
             dest = mkDefault name;
 
             # Create a nix store package out of the raw text if it's set
-            source = mkIf (config.text != null) (
+            source = mkIf (config.text != null || config.kind == "dir") (
               let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-              in mkDerivedConfig options.text (pkgs.writeText name')
+              in mkDerivedConfig "foobar" (pkgs.writeText name')
+              #in mkDerivedConfig options.text (pkgs.writeText name')
             );
           };
         }
