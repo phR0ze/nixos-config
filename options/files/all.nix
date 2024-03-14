@@ -47,9 +47,10 @@ let
       local src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
       local dst="$2"        # Destination path to deploy to e.g. 'root/foobar'
       local kind="$3"       # Kind of file being created [ link | file ]
-      local mode="$4"       # Mode to use for file and/or directories
-      local user="$5"       # Owner to use for file if mode is not 'symlink'
-      local group="$6"      # Group to use for file if mode is not 'symlink'
+      local dirmode="$4"    # Mode to use for directories
+      local filemode="$5"   # Mode to use for files
+      local user="$6"       # Owner to use for file and/or directories
+      local group="$7"      # Group to use for file and/or directories
 
       [[ ''${dst:0:1} == "/" ]] && exit 1  # Fail if the given destination path isn't relative
       local dir="$(dirname "/$dst")"       # Get the dir name
@@ -69,7 +70,8 @@ let
         meta="$out/dst.file"
       fi
       echo "Metadata: $meta"
-      echo "$mode" >> "$meta"
+      echo "$dirmode" >> "$meta"
+      echo "$filemode" >> "$meta"
       echo "$user" >> "$meta"
       echo "$group" >> "$meta"
     }
@@ -83,7 +85,8 @@ let
       "${entry.source}"
       entry.dest
       entry.kind
-      entry.mode
+      entry.dirmode
+      entry.filemode
       entry.user
       entry.group
     ]) allfiles'}
@@ -168,14 +171,18 @@ in
               '';
             };
 
-            mode = mkOption {
+            dirmode = mkOption {
               type = types.str;
               default = "0755";
-              example = "0600";
-              description = lib.mdDoc ''
-                Mode of file being created and/or the directories. When used to specify the file mode 
-                any directories being created will use the default 0755 mode for directories.
-              '';
+              example = "0700";
+              description = lib.mdDoc "Mode of any directories being created";
+            };
+
+            filemode = mkOption {
+              type = types.str;
+              default = "0600";
+              example = "0777";
+              description = lib.mdDoc "Mode of any files being created";
             };
 
             user = mkOption {
