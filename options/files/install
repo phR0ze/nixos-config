@@ -11,6 +11,8 @@ shopt -s extglob            # enable extended globbing
 #   ./options/files/install /nix/store/apzmd7w7kl9nhx66sxiagn9dv09v01m8-files /nix
 #
 # ### Features
+# - support owning directories with their own permissions '<dir>/.dir'
+# - removes old 'owned' directories i.e. those that were specifically added with the '<dir>/.dir'
 # - single base '/nix/files' link redirect that allows for a pseudo atomic switching
 # - skips creating correct links that already exist
 # - copies over files with mode, user and group
@@ -24,13 +26,11 @@ shopt -s extglob            # enable extended globbing
 #
 # ### Backlog
 #
-# - support directories
-# - change directory permissions
-# - remove old directories
-#
 # ### Testing
-# run tests with the following where temp is a directory full of files representing the store path
+# - run tests with the following where temp is a directory full of files representing the store path
 #   ./options/files/install temp .
+# - you can quickly delete all installed files by just pointing at an empty directory as your source
+#   mkdir test; ./options/files/install test .
 # --------------------------------------------------------------------------------------------------
 
 src="$(realpath "$1")"    # the /nix/store path with all the files that need installed
@@ -165,8 +165,8 @@ clean() {
 
     # Remove the file if it no longer exists
     if [[ "$exists" != true ]]; then
-      echo "  removed: $x"
-      rm -f "$x"
+      echo " removing: $x"
+      [[ -d "$x" ]] && rm -rf "$x" || rm -f "$x"
     fi
   done
 }
