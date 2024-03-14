@@ -55,20 +55,7 @@ let
 
       # Link the source into the files derivation at the destination path
       echo "Linking: $out/$dest -> $src"
-      ln -s "$src" "$out/$dest"
-
-#      mkdir -p "$out/$(dirname "$dest")"        # Create the destination directory
-#      if ! [ -e "$out/$dest" ]; then
-#        ln -s "$src" "$out/$dest"               # Link the source to the destination if it doesn't exist
-#      else
-#        echo "duplicate entry $dest -> $src"
-#        if [ "$(readlink "$out/etc/$dest")" != "$src" ]; then
-#          echo "mismatched duplicate entry $(readlink "$out/etc/$dest") <-> $src"
-#          ret=1
-#
-#          continue
-#        fi
-#      fi
+      ln -sf "$src" "$out/$dest"
     }
 
     # Convert the files derivations into a list of calls to linkfiles by taking all the files 
