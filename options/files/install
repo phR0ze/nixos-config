@@ -62,7 +62,7 @@ copy() {
   # - is more performant as it does this operation in one go
   # - overwrites the existing target if it exists
   # - resolves link indirection recursively to find original source
-  echo "copying: $source -> $target"
+  echo "  copying: $source -> $target"
   install -m $mode -o $user -g $group "$source" "$target"
   echo "$target" >> "$log"
 }
@@ -80,10 +80,10 @@ link() {
   local _path="$(readlink "$target")"
   if [[ "$_src" != "$_path" ]]; then
     rm -f "$target"                       # cleaner to just ensure it doesn't exist
-    echo "linking: $_src -> $target"
+    echo "  linking: $_src -> $target"
     ln -sf "$_src" "$target"
   else
-    echo "correct: $_src -> $target"
+    echo "  correct: $_src -> $target"
   fi
 
   # Regardless of updating the link we depend on it
@@ -109,7 +109,7 @@ clean() {
 
     # Remove the file if it no longer exists
     if [[ "$exists" != true ]]; then
-      echo "removing: $x"
+      echo "  removed: $x"
       rm -f "$x"
     fi
   done
