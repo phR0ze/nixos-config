@@ -4,17 +4,35 @@ shopt -s extglob            # enable extended globbing
 
 # --------------------------------------------------------------------------------------------------
 # Install the indicated files to the system
-# 1. for every file in the src store create a corresponding symlink in /nix/files
-# 2.
-# 3.
-# 4.
-# 5. Update /nix/files.old
+#
+# Usage:
+#   ./options/files/install STORE_PATH NIX_PATH
+# Example:
+#   ./options/files/install /nix/store/apzmd7w7kl9nhx66sxiagn9dv09v01m8-files /nix
+#
+# ### Features
+# - single base '/nix/files' link redirect that allows for a pseudo atomic switching
+# - skips creating correct links that already exist
+# - copies over files with mode, user and group
+# - sanitizes '<file>.copy' metadata file to trim whitespace
+# - supports levels of link indirection
+# - supports spaces in file names
+# - supports .dotfiles i.e. files prefixed with .
+# - removes any files that don't exist in the new files
+#
+# ### Backlog
+# - support directories
+#
+# ### Testing
+# run tests with the following where temp is a directory full of files representing the store path
+#   ./options/files/install temp .
 # --------------------------------------------------------------------------------------------------
+
 src="$(realpath "$1")"    # the /nix/store path with all the files that need installed
-dst="$2"                  # destination directory for tracking e.g. /nix
+dst="$(realpath "$2")"    # destination directory for tracking e.g. /nix
 files="$dst/files"        # link to current files store path
 log="$dst/files.log"      # file tracking all files copied or linked
-tmp="$dst/files.tmp"      # old file tracking all files copied or linked
+tmplog="$dst/files.tmp"   # old file tracking all files copied or linked
 
 # Trim leading and trailing whitespace
 trimspace() {
@@ -46,21 +64,60 @@ copy() {
   # - resolves link indirection recursively to find original source
   echo "copying: $source -> $target"
   install -m $mode -o $user -g $group "$source" "$target"
-  echo "copied $target" >> "$log"
+  echo "$target" >> "$log"
 }
 
 # Link the given source store path to the implicated destination
 link() {
-  local source="${1}"                     # source store file path
+  local _src="${1}"                       # source store file path
   local target="${1#"$src"}"              # trim off the store path prefix
 
-  echo "linking: $source -> $target"
-  ln -sf "$source" "$target"
-  echo "linked $target" >> "$log"
+  # Update source to use the intermediate files path which is linked back to the source store path. 
+  # In this way we can switch all links at once when we update the 'files' link.
+  _src="${files}${target}"
+
+  # Update link it doesn't exist or is incorrect
+  local _path="$(readlink "$target")"
+  if [[ "$_src" != "$_path" ]]; then
+    rm -f "$target"                       # cleaner to just ensure it doesn't exist
+    echo "linking: $_src -> $target"
+    ln -sf "$_src" "$target"
+  else
+    echo "correct: $_src -> $target"
+  fi
+
+  # Regardless of updating the link we depend on it
+  echo "$target" >> "$log"
+}
+
+# Clean up any files left over from the previous install
+clean() {
+  readarray -t oldfiles < "$tmplog"       # read in all the old files
+  readarray -t newfiles < "$log"          # read in all the new files
+
+  # Nested loop to check if any oldfiles no longer exist
+  for x in "${oldfiles[@]}"; do
+
+    # Search the new files
+    exists=false
+    for y in "${newfiles[@]}"; do
+      if [[ "$x" == "$y" ]]; then
+        exists=true
+        break
+      fi
+    done
+
+    # Remove the file if it no longer exists
+    if [[ "$exists" != true ]]; then
+      echo "removing: $x"
+      rm -f "$x"
+    fi
+  done
 }
 
 # Save off the existing tracking files
-mv "$log" "$tmp"
+[[ ! -e "$log" ]] && touch "$log"
+mv "$log" "$tmplog"
 
 # Process all links from the source store path
 echo "installing files from ${src}"
@@ -76,5 +133,14 @@ find "$src" -type l | while read x; do  # handles spaces in results
   fi
 done
 
+# Clean up any files that no longer exist
+clean
+rm -f "$tmplog"
+
 # Update the source store path
-#ln -sf "$src" "$curr"
+if [[ ! -e "$files" ]]; then
+  ln -sf "$src" "$files"
+elif [[ "$files" != "$src" ]]; then
+  rm -f "$files"
+  ln -sf "$src" "$files"
+fi
