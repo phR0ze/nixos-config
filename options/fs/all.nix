@@ -169,6 +169,6 @@ in
   # the /nix/store which can then be used as an input variable for the actual deployment of files to 
   # their destination paths.
   config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] ''
-    ${allFilesInstallScript} ${allFilesPackage}
+    ${allFilesInstallScript} ${allFilesPackage} "/nix"
   '';
 }

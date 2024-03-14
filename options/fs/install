@@ -1,12 +1,29 @@
 #!/usr/bin/env bash
+set -euo pipefail           # configure an immediate fail if something goes badly
 
 # --------------------------------------------------------------------------------------------------
 # Install the indicated files to the system
+# 1. for every file in the src package create a corresponding symlink in /nix/files
+# 2.
+# 3.
+# 4.
+# 5. Update /nix/files.old
 # --------------------------------------------------------------------------------------------------
-set -euo pipefail   # configure an immediate fail if something goes badly
-files="$1"          # the /nix/store package with all the files that need installed
+src="$1"                    # the /nix/store package with all the files that need installed
+dst="$2"                    # destination directory for tracking e.g. /nix
+curr="$dst/files"           # link to current files package
+prev="$dst/files.tmp"       # link to the previous package
+copied="$dst/files.copied"  # file tracking all files that were copied in
+linked="$dst/files.linked"  # file tracking all files that were linked
 
-# Main entry point
-# --------------------------------------------------------------------------------------------------
-echo "installing files ${files}"
-find ${files}
+echo "installing files ${src}"
+
+# Save off the current link then update it
+mv "$curr" "$prev"
+ln -sf "$src" "$curr"
+
+# Create links or copy for all source files
+find "$src" -type l | while read x; do  # handles spaces in results
+  local target="${x#"$src"}"            # trim off the source prefix path
+  echo "  $target"
+done
