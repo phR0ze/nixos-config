@@ -24,6 +24,6 @@ echo "installing files ${src}"
 
 # Create links or copy for all source files
 find "$src" -type l | while read x; do  # handles spaces in results
-  local target="${x#"$src"}"            # trim off the source prefix path
+  target="${x#"$src"}"                  # trim off the source prefix path
   echo "  $target"
 done
