@@ -21,7 +21,7 @@
   # Initialize user home from /etc/skel on first login
   # ------------------------------------------------------------------------------------------------
   fs.all."root/foobar1" = {
-    enable = false;
+    enable = true;
     text = "this is a test";
   };
   fs.all."root/.dircolors".text = builtins.readFile ../include/home/.dircolors;
