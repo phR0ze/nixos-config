@@ -30,7 +30,7 @@
 let
 
   # Filter the files calls down to just those that are enabled
-  allfiles' = filter (f: f.enable) (attrValues config.fs.all);
+  allfiles' = filter (f: f.enable) (attrValues config.files.all);
 
   # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
   # that we can then use during the activation later on to deploy the files to their indicated 
@@ -82,7 +82,7 @@ in
 
     # all files option
     # ----------------------------------------------------------------------------------------------
-    fs.all = mkOption {
+    files.all = mkOption {
       description = lib.mdDoc ''
         Set of files to deploy in the target system.
         - destination paths must be relative to the root e.g. etc/foo
