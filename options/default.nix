@@ -3,6 +3,6 @@
 { ... }:
 {
   imports = [
-    ./fs
+    ./files
   ];
 }
