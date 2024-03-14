@@ -131,6 +131,7 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
+* [ ] Include missing hicolor icons - fall back icons not working `XDG_ICON_DIRS`
 * [ ] Build new option `home.file`
 
 ## Sometime
@@ -148,7 +149,13 @@ world though this already exists.
 * [ ] clu to update `flake.nix` with user selection
 * [ ] Change the tty autologin welcome message
 * [ ] Change the kernel boot colors 
-* [ ] Evaluate [dofiles option](https://github.com/benetis/dotfiles-1/blob/master/nixos-config/modules/dotfiles.nix)
+
+* Configs to circle back to
+  * https://github.com/benetis/dotfiles-1/blob/master/nixos-config/machines/desktop/modules/android.nix
+  * https://github.com/benetis/dotfiles-1/blob/master/nixos-config/machines/desktop/modules/hardened-chromium.nix
+  * https://github.com/thexyno/nixos-config/blob/main/nixos-modules/hardware/laptop.nix
+  * https://github.com/jakehamilton/config/blob/main/modules/nixos/desktop/addons/gtk/default.nix
+  * https://github.com/librephoenix/nixos-config
 
 ## Completed
 * [x] Build out standard xfce desktop
