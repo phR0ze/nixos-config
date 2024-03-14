@@ -1,2 +1,4 @@
 *.swp
 temp
+files.log
+files.tmp
