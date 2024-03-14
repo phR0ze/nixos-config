@@ -217,14 +217,14 @@ in
 
             # Derive the source from the text or directory cases
             source = mkMerge [
-              (mkIf (config.kind == "dir") {
+              (mkIf (config.kind == "dir") (
                 let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
                 in mkDerivedConfig "directory" (pkgs.writeText name')
-              })
-              (mkIf (config.text != null) {
+              ))
+              (mkIf (config.text != null) (
                 let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
                 in mkDerivedConfig options.text (pkgs.writeText name')
-              })
+              ))
             ];
           };
         }
