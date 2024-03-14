@@ -162,7 +162,8 @@ in
             };
 
             source = mkOption {
-              type = types.path;
+              type = types.str;
+              default = "directory";
               description = lib.mdDoc ''
                 Path of the source file in the nix store e.g pkgs.writeText "root-.dircolors"
                   (lib.fileContents ../include/home/.dircolors);
