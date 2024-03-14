@@ -18,11 +18,11 @@ shopt -s extglob            # enable extended globbing
 # - supports levels of link indirection
 # - supports spaces in file names
 # - supports .dotfiles i.e. files prefixed with .
+# - supports directory metadata for creation <file>.dir
+# - support files inside nested directories
 # - removes any files that don't exist in the new files
 #
 # ### Backlog
-# - support directory metadata for creation <file>.dir
-# - support files inside nested directories
 #
 # - support directories
 # - change directory permissions
@@ -65,7 +65,7 @@ metadata() {
   trimspace dirmode "${meta[0]}"          # get trimmed dirmode
   trimspace filemode "${meta[1]}"         # get trimmed filemode
   trimspace user "${meta[2]}"             # get trimmed user
-  trimspace group "${meta[2]}"            # get trimmed group
+  trimspace group "${meta[3]}"            # get trimmed group
 }
 
 # Create missing directories with the given metadata in dirmode, user, group
@@ -73,14 +73,15 @@ mkdir_p() {
   local dir="$(dirname "$1")"             # directory of the file we are working with
 
   # Recurse until we get to an existing directory
-  if [[ ! -d "$dir" ]]; then
-    mkdir_p "$dir"
-  else
+  if [[ -d "$dir" ]]; then
     return
+  else
+    mkdir_p "$dir"
   fi
 
   # Create the missing directory component
-  echo "creating:  user=$user, group=$group, dir=$dir"
+  echo "  creating: $dir"
+  echo "         >> filemode=$filemode, dirmode=$dirmode, user=$user, group=$group"
   mkdir -m $dirmode "$dir"
   chown $user:$group "$dir"
 }
@@ -96,6 +97,7 @@ copy() {
   mkdir_p "$target"
 
   echo "  copying: $source -> $target"
+  echo "        >> filemode=$filemode, dirmode=$dirmode, user=$user, group=$group"
 
   # install
   # - is more performant as it does this operation in one go
@@ -115,14 +117,14 @@ link() {
   _src="${files}${target}"
 
   # Create any needed directories
-  metadata "$_src.dir"
+  metadata "$_src.link"
   mkdir_p "$target"
 
   # Update link if it doesn't exist or is incorrect
   local _path="$(readlink "$target")"
   if [[ "$_src" != "$_path" ]]; then
-    rm -f "$target"                       # cleaner to just ensure it doesn't exist
     echo "  linking: $_src -> $target"
+    rm -f "$target"                       # cleaner to just ensure it doesn't exist
     ln -sf "$_src" "$target"
   else
     echo "  correct: $_src -> $target"
@@ -159,7 +161,7 @@ clean() {
 
 # Save off the existing tracking files
 [[ ! -e "$log" ]] && touch "$log"
-mv "$log" "$tmplog"
+mv "$log" "$tmplog" && touch "$log"
 
 # Update the source store path first to avoid creating this as a directory during the file directory 
 # creation process. This will switch all linked files over to our new source store path.
@@ -170,9 +172,18 @@ elif [[ "$files" != "$src" ]]; then
   ln -sf "$src" "$files"
 fi
 
-# Process all links from the source store path
+# Process all files from the source store path
 echo "installing files from ${src}"
-find "$src" -type l | while read x; do  # handles spaces in results
+
+# Process owned directories first
+find "$src" -name ".dir" | while read x; do # handles spaces in results
+  metadata "$x"
+  mkdir_p "$x"
+  echo "$(dirname "$x")" >> "$log"          # Track owned directories
+done
+
+# Process all the files next
+find "$src" -type l | while read x; do      # handles spaces in results
   
   # Copy file to destination
   if [[ -e "$x.file" ]]; then
@@ -186,4 +197,3 @@ done
 
 # Clean up any files that no longer exist
 clean
-rm -f "$tmplog"

@@ -40,35 +40,44 @@ let
   # - files and directories are owned by root by default
   # ------------------------------------------------------------------------------------------------
   allFilesPackage = pkgs.runCommandLocal "files" {} ''
-    set -euo pipefail # Configure an immediate fail if something goes badly
-    mkdir -p "$out"   # Creates the root package directory
+    set -euo pipefail       # Configure an immediate fail if something goes badly
+    mkdir -p "$out"         # Creates the nix store path to populate
 
-    linkfiles() {
+    track() {
       local src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
       local dst="$2"        # Destination path to deploy to e.g. 'root/foobar'
-      local kind="$3"       # Kind of file being created [ link | file ]
+      local kind="$3"       # Kind of file being created [ link | file | dir ]
       local dirmode="$4"    # Mode to use for directories
       local filemode="$5"   # Mode to use for files
       local user="$6"       # Owner to use for file and/or directories
       local group="$7"      # Group to use for file and/or directories
 
-      [[ ''${dst:0:1} == "/" ]] && exit 1  # Fail if the given destination path isn't relative
-      local dir="$(dirname "/$dst")"       # Get the dir name
-
-      # Create any directories that are needed
-      [[ ''${dir} != "/" ]] && mkdir -p "$out/$dir"
-
-      # Create the link referencing the source store path regardless of kind
-      echo "Linking: $src -> $out/$dst"
-      ln -sf "$src" "$out/$dst"
-
-      # Create the metadata file based on kind
-      local meta
-      if [[ "$kind" == "link" ]]; then
-        meta="$out/dst.dir"
-      else
-        meta="$out/dst.file"
+      # Validation on inputs
+      if [[ ''${dst:0:1} == "/" ]]; then
+        echo "files path must not start with a /"
+        exit 1
       fi
+      if [[ ''${dst:0-1} == "/" ]]; then
+        echo "files path must not end with a /"
+        exit 1
+      fi
+
+      echo "Linking: $src -> $out/$dst"
+
+      # Handle different kinds
+      local meta
+      local dir
+      if [[ "$kind" == "dir" ]]; then
+        meta="$out/$dst/.dir"                           # craft metadata .dir in directory
+        mkdir -p "$out/$dst"                            # create any needed directories
+      else
+        meta="$out/$dst.$kind"                          # craft metadata file name
+        dir="$(dirname "$dst")"                         # grab the directory of the target
+        [[ ''${dir} != "." ]] && mkdir -p "$out/$dir"   # create any needed directories
+        ln -sf "$src" "$out/$dst"                       # link in the file content
+      fi
+
+      # Add the metadata file content
       echo "Metadata: $meta"
       echo "$dirmode" >> "$meta"
       echo "$filemode" >> "$meta"
@@ -76,11 +85,11 @@ let
       echo "$group" >> "$meta"
     }
 
-    # Convert the files derivations into a list of calls to linkfiles by taking all the files 
+    # Convert the files derivations into a list of calls to track by taking all the file
     # derivations escaping the arguments and adding them line by line to this ouput bash script.
-    # e.g. 'linkfiles' '/nix/store/<hash>-files-root-foobar' '/root/foobar'
+    # e.g. 'track' '/nix/store/<hash>-files-root-foobar' '/root/foobar'
     ${concatMapStringsSep "\n" (entry: escapeShellArgs [
-      "linkfiles"
+      "track"
       # Simply referencing the source file here will suck it into the /nix/store
       "${entry.source}"
       entry.dest
@@ -165,9 +174,11 @@ in
               default = "link";
               example = "file";
               description = lib.mdDoc ''
-                Kind of file to create. When link is used the mode, user, and group properties will 
-                be used to specify the directory permissions to use for any directories that need to 
-                be created along the way.
+                Kind can be one of [ file | link | dir ] and indicates the type of object being 
+                created. When 'link' is used the mode, user, and group properties will be used to 
+                specify the directory permissions to use for any directories that need to be created 
+                along the way. Likewise for 'file', but for 'dir' we are indicating that the 
+                directory is owned by the files configuration.
               '';
             };
 
