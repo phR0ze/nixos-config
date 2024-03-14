@@ -91,7 +91,7 @@ let
     ${concatMapStringsSep "\n" (entry: escapeShellArgs [
       "track"
       # Simply referencing the source file here will suck it into the /nix/store
-      "${entry.source}"
+      ("${entry.source}" = mkIf (config.source != null))
       entry.dest
       entry.kind
       entry.dirmode
