@@ -91,7 +91,7 @@ let
     ${concatMapStringsSep "\n" (entry: escapeShellArgs [
       "track"
       # Simply referencing the source file here will suck it into the /nix/store
-      (if (entry.source != null) then "${entry.source}" else "directory")
+      "${entry.source}"
       entry.dest
       entry.kind
       entry.dirmode
@@ -163,7 +163,6 @@ in
 
             source = mkOption {
               type = types.path;
-              default = "directory";
               description = lib.mdDoc ''
                 Path of the source file in the nix store e.g pkgs.writeText "root-.dircolors"
                   (lib.fileContents ../include/home/.dircolors);
@@ -215,6 +214,12 @@ in
 
             # Default the destination name to the attribute name
             dest = mkDefault name;
+
+            # Create an empty shell for owned directories
+            source = mkIf (config.kind == "dir") (
+              let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
+              in mkDerivedConfig "directory" (pkgs.writeText name')
+            );
 
             # Create a nix store package out of the raw text if it's set
             source = mkIf (config.text != null) (
