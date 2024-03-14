@@ -131,6 +131,8 @@
     paper-icon-theme                    # Modern icon theme designed around bold colors
     numix-cursor-theme                  # Numix cursor theme
 
+    #(pkgs.callPackage ../../pkgs/hicolor {})
+
     # Utilities
     #galculator                        # Simple calculator
   ];
