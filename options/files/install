@@ -23,7 +23,10 @@ shopt -s extglob            # enable extended globbing
 # ### Backlog
 # - support directory metadata for creation <file>.dir
 # - support files inside nested directories
+#
 # - support directories
+# - change directory permissions
+# - remove old directories
 #
 # ### Testing
 # run tests with the following where temp is a directory full of files representing the store path
@@ -38,13 +41,48 @@ tmplog="$dst/files.tmp"   # old file tracking all files copied or linked
 
 # Trim leading and trailing whitespace
 trimspace() {
-  local result="$1"                     # return value
-  local val="$2"                        # value to trim
+  local result="$1"                       # return value
+  local val="$2"                          # value to trim
 
-  val="${val##+([[:space:]])}"          # trim leading whitespace
-  val="${val%%+([[:space:]])}"          # trim trailing whitespace
+  val="${val##+([[:space:]])}"            # trim leading whitespace
+  val="${val%%+([[:space:]])}"            # trim trailing whitespace
 
-  eval "$result"="'$val'"               # return as string
+  eval "$result"="'$val'"                 # return as string
+}
+
+# Read the metadata for the file and/or directories
+# Sets global variables:
+# - dirmode
+# - filemode
+# - user
+# - group
+metadata() {
+  local metafile="${1}"                   # name of the metadata file to read
+
+  # Read the copy metadata into an array
+  # - t trims the newline off the string
+  readarray -t meta < "$metafile"
+  trimspace dirmode "${meta[0]}"          # get trimmed dirmode
+  trimspace filemode "${meta[1]}"         # get trimmed filemode
+  trimspace user "${meta[2]}"             # get trimmed user
+  trimspace group "${meta[2]}"            # get trimmed group
+}
+
+# Create missing directories with the given metadata in dirmode, user, group
+mkdir_p() {
+  local dir="$(dirname "$1")"             # directory of the file we are working with
+
+  # Recurse until we get to an existing directory
+  if [[ ! -d "$dir" ]]; then
+    mkdir_p "$dir"
+  else
+    return
+  fi
+
+  # Create the missing directory component
+  echo "creating:  user=$user, group=$group, dir=$dir"
+  mkdir -m $dirmode "$dir"
+  chown $user:$group "$dir"
 }
 
 # Copy the given source store path to the implicated destination using the meta data file for mode, 
@@ -53,19 +91,17 @@ copy() {
   local source="${1}"                     # source store file path
   local target="${1#"$src"}"              # trim off the store path prefix
 
-  # Read the copy metadata into an array
-  # - t trims the newline off the string
-  readarray -t meta < "$source.file"
-  trimspace mode "${meta[0]}"             # get trimmed mode
-  trimspace user "${meta[1]}"             # get trimmed user
-  trimspace group "${meta[2]}"            # get trimmed group
+  # Create any needed directories
+  metadata "$source.file"
+  mkdir_p "$target"
+
+  echo "  copying: $source -> $target"
 
   # install
   # - is more performant as it does this operation in one go
   # - overwrites the existing target if it exists
   # - resolves link indirection recursively to find original source
-  echo "  copying: $source -> $target"
-  install -m $mode -o $user -g $group "$source" "$target"
+  install -C -m $filemode -o $user -g $group "$source" "$target"
   echo "$target" >> "$log"
 }
 
@@ -78,7 +114,11 @@ link() {
   # In this way we can switch all links at once when we update the 'files' link.
   _src="${files}${target}"
 
-  # Update link it doesn't exist or is incorrect
+  # Create any needed directories
+  metadata "$_src.dir"
+  mkdir_p "$target"
+
+  # Update link if it doesn't exist or is incorrect
   local _path="$(readlink "$target")"
   if [[ "$_src" != "$_path" ]]; then
     rm -f "$target"                       # cleaner to just ensure it doesn't exist
@@ -121,6 +161,15 @@ clean() {
 [[ ! -e "$log" ]] && touch "$log"
 mv "$log" "$tmplog"
 
+# Update the source store path first to avoid creating this as a directory during the file directory 
+# creation process. This will switch all linked files over to our new source store path.
+if [[ ! -e "$files" ]]; then
+  ln -sf "$src" "$files"
+elif [[ "$files" != "$src" ]]; then
+  rm -f "$files"
+  ln -sf "$src" "$files"
+fi
+
 # Process all links from the source store path
 echo "installing files from ${src}"
 find "$src" -type l | while read x; do  # handles spaces in results
@@ -138,11 +187,3 @@ done
 # Clean up any files that no longer exist
 clean
 rm -f "$tmplog"
-
-# Update the source store path
-if [[ ! -e "$files" ]]; then
-  ln -sf "$src" "$files"
-elif [[ "$files" != "$src" ]]; then
-  rm -f "$files"
-  ln -sf "$src" "$files"
-fi
