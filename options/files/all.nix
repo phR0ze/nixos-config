@@ -215,17 +215,17 @@ in
             # Default the destination name to the attribute name
             dest = mkDefault name;
 
-            # Create an empty shell for owned directories
-            source = mkIf (config.kind == "dir") (
-              let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-              in mkDerivedConfig "directory" (pkgs.writeText name')
-            );
-
-            # Create a nix store package out of the raw text if it's set
-            source = mkIf (config.text != null) (
-              let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-              in mkDerivedConfig options.text (pkgs.writeText name')
-            );
+            # Derive the source from the text or directory cases
+            source = mkMerge [
+              (mkIf (config.kind == "dir") {
+                let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
+                in mkDerivedConfig "directory" (pkgs.writeText name')
+              })
+              (mkIf (config.text != null) {
+                let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
+                in mkDerivedConfig options.text (pkgs.writeText name')
+              })
+            ];
           };
         }
       ));
