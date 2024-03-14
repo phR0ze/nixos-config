@@ -45,17 +45,27 @@ let
 
     linkfiles() {
       local src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
-      local dest="$2"       # Destination path to deploy to e.g. 'root/foobar'
+      local dst="$2"        # Destination path to deploy to e.g. 'root/foobar'
+      local mode="$3"       # Mode to use for file if not 'symlink'
+      local user="$4"       # Owner to use for file if mode is not 'symlink'
+      local group="$5"      # Group to use for file if mode is not 'symlink'
 
-      [[ ''${dest:0:1} == "/" ]] && exit 1  # Fail if the given destination path isn't relative
-      local dir="$(dirname "/$dest")"       # Get the dir name
+      [[ ''${dst:0:1} == "/" ]] && exit 1  # Fail if the given destination path isn't relative
+      local dir="$(dirname "/$dst")"       # Get the dir name
 
       # Create any directories that are needed
       [[ ''${dir} != "/" ]] && mkdir -p "$out/$dir"
 
-      # Link the source into the files derivation at the destination path
-      echo "Linking: $out/$dest -> $src"
-      ln -sf "$src" "$out/$dest"
+      # Link the source store file at the destination path
+      if [[ "$mode" == "symlink" ]]; then
+        echo "Linking: $src -> $out/$dst"
+        ln -sf "$src" "$out/$dst"
+      else
+        echo "Copying: $src -> $out/$dst"
+        echo "$mode" >> "$out/$dst.copy"
+        echo "$user" >> "$out/$dst.copy"
+        echo "$group" >> "$out/$dst.copy"
+      fi
     }
 
     # Convert the files derivations into a list of calls to linkfiles by taking all the files 
@@ -66,9 +76,9 @@ let
       # Simply referencing the source file here will suck it into the /nix/store
       "${entry.source}"
       entry.dest
-      #entry.mode
-      #entry.user
-      #entry.group
+      entry.mode
+      entry.user
+      entry.group
     ]) allfiles'}
   '';
 
@@ -138,6 +148,28 @@ in
                 Path of the source file in the nix store e.g pkgs.writeText "root-.dircolors"
                   (lib.fileContents ../include/home/.dircolors);
               '';
+            };
+
+            mode = mkOption {
+              type = types.str;
+              default = "symlink";
+              example = "0600";
+              description = lib.mdDoc ''
+                If set to something else than `symlink`, the file is copied instead of symlinked, with the given
+                file mode. This also triggers the user and group being set.
+              '';
+            };
+
+            user = mkOption {
+              default = "root";
+              type = types.str;
+              description = lib.mdDoc "Owner of copied file. Only takes effect if mode is not 'symlink'."
+            };
+
+            group = mkOption {
+              default = "root";
+              type = types.str;
+              description = lib.mdDoc "Group of copied file. Only takes effect if mode is not 'symlink'."
             };
           };
 
