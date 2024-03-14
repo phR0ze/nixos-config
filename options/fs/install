@@ -1,19 +1,12 @@
 #!/usr/bin/env bash
-set -euo pipefail # Configure an immediate fail if something goes badly
 
 # --------------------------------------------------------------------------------------------------
-# Simple NixOS install automation
-# 
-# ## Features
-# - Handles partitioning the disk in preparation for installation
-# - Allows for customizing some common install settings
-#   - hostname
+# Install the indicated files to the system
 # --------------------------------------------------------------------------------------------------
-SCRIPT_DIR=$(readlink -f $(dirname $BASH_SOURCE[0]))
-
-linksPkg="$1"
+set -euo pipefail   # configure an immediate fail if something goes badly
+files="$1"          # the /nix/store package with all the files that need installed
 
 # Main entry point
 # --------------------------------------------------------------------------------------------------
-echo "installing files: ${linksPkg}"
-echo "  executing from: $SCRIPT_DIR"
+echo "installing files ${links}"
+tree ${links}

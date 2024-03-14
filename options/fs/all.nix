@@ -19,11 +19,11 @@
 #  3. The option is invoked e.g. files."/root/foobar1".text = "this is a foobar1 test";
 #  4. During nixos-rebuild switch the activationScripts get run
 #  5. The option's config.system.activationScripts.files configuration is invoked
-#  6. This in turn invokes the allFilesLinksPackage via the reference
+#  6. This in turn invokes the allFilesPackage via the reference
 #  7. The files aggregate attribute set adds them to the /nix/store and links them in the parent package
-#  8. The parent allFilesLinksPackage package is then added to the /nix/store
+#  8. The parent allFilesPackage package is then added to the /nix/store
 #  9. Finally the original config.system.activationScripts.files payload is executed with the 
-#     allFilesLinksPackage called 'allfiles' as a parameter
+#     allFilesPackage called 'allfiles' as a parameter
 # 10. The activation script payload then uses the files package to install the files into your system
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib;
@@ -39,7 +39,7 @@ let
   # - operation is run as the root user
   # - files and directories are owned by root by default
   # ------------------------------------------------------------------------------------------------
-  allFilesLinksPackage = pkgs.runCommandLocal "files" {} ''
+  allFilesPackage = pkgs.runCommandLocal "files" {} ''
     set -euo pipefail # Configure an immediate fail if something goes badly
     mkdir -p "$out"   # Creates the root package directory
 
@@ -165,10 +165,10 @@ in
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/etc/etc-activation.nix
 
   # Adds a bash snippet to /nix/store/<hash>-nixos-system-nixos-24.05.20240229.1536926/activate.
-  # By referencing the ${allFilesLinksPackage} we trigger the derivation to be built and stored in 
+  # By referencing the ${allFilesPackage} we trigger the derivation to be built and stored in 
   # the /nix/store which can then be used as an input variable for the actual deployment of files to 
   # their destination paths.
   config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] ''
-    ${allFilesInstallScript} ${allFilesLinksPackage}
+    ${allFilesInstallScript} ${allFilesPackage}
   '';
 }
