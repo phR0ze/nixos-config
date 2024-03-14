@@ -74,7 +74,7 @@ let
 
   # Add the installer script to the /nix/store for reference
   # ------------------------------------------------------------------------------------------------
-  allFilesInstallScript = pkgs.writeShellScript "allFilesInstallScript" builtins.readFile ./install
+  allFilesInstallScript = pkgs.writeShellScript "allFilesInstallScript" builtins.readFile ./install;
 in
 {
   options = {
