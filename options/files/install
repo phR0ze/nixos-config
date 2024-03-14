@@ -80,8 +80,8 @@ mkdir_p() {
   fi
 
   # Create the missing directory component
-  echo "  creating: $dir"
-  echo "         >> filemode=$filemode, dirmode=$dirmode, user=$user, group=$group"
+  echo " creating: $dir"
+  echo "        >> filemode=$filemode, dirmode=$dirmode, user=$user, group=$group"
   mkdir -m $dirmode "$dir"
   chown $user:$group "$dir"
 }
@@ -134,6 +134,18 @@ link() {
   echo "$target" >> "$log"
 }
 
+# Create owned directories
+mkdirs() {
+  local target
+
+  find "$src" -name ".dir" | while read x; do # handles spaces in results
+    target="${x#"$src"}"                      # trim off the store path prefix
+    metadata "$x"                             # load the metadata
+    mkdir_p "$target"                         # create all directories
+    echo "$(dirname "$target")" >> "$log"     # track owned directories
+  done
+}
+
 # Clean up any files left over from the previous install
 clean() {
   readarray -t oldfiles < "$tmplog"       # read in all the old files
@@ -176,11 +188,7 @@ fi
 echo "installing files from ${src}"
 
 # Process owned directories first
-find "$src" -name ".dir" | while read x; do # handles spaces in results
-  metadata "$x"
-  mkdir_p "$x"
-  echo "$(dirname "$x")" >> "$log"          # Track owned directories
-done
+mkdirs
 
 # Process all the files next
 find "$src" -type l | while read x; do      # handles spaces in results
