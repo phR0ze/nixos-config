@@ -163,13 +163,13 @@ in
             user = mkOption {
               default = "root";
               type = types.str;
-              description = lib.mdDoc "Owner of copied file. Only takes effect if mode is not 'symlink'."
+              description = lib.mdDoc "Owner of copied file. Only takes effect if mode is not 'symlink'.";
             };
 
             group = mkOption {
               default = "root";
               type = types.str;
-              description = lib.mdDoc "Group of copied file. Only takes effect if mode is not 'symlink'."
+              description = lib.mdDoc "Group of copied file. Only takes effect if mode is not 'symlink'.";
             };
           };
 
