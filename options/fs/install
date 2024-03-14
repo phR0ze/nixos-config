@@ -19,8 +19,8 @@ linked="$dst/files.linked"  # file tracking all files that were linked
 echo "installing files ${src}"
 
 # Save off the current link then update it
-mv "$curr" "$prev"
-ln -sf "$src" "$curr"
+#mv "$curr" "$prev"
+#ln -sf "$src" "$curr"
 
 # Create links or copy for all source files
 find "$src" -type l | while read x; do  # handles spaces in results
