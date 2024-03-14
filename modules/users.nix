@@ -21,6 +21,7 @@
   # Initialize user home from /etc/skel on first login
   # ------------------------------------------------------------------------------------------------
   files.all."root/foo" = {
+    enable = false;
     kind = "dir";
     text = "foo";
   };
