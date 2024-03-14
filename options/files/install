@@ -14,13 +14,15 @@ shopt -s extglob            # enable extended globbing
 # - single base '/nix/files' link redirect that allows for a pseudo atomic switching
 # - skips creating correct links that already exist
 # - copies over files with mode, user and group
-# - sanitizes '<file>.copy' metadata file to trim whitespace
+# - sanitizes '<file>.file' metadata file to trim whitespace
 # - supports levels of link indirection
 # - supports spaces in file names
 # - supports .dotfiles i.e. files prefixed with .
 # - removes any files that don't exist in the new files
 #
 # ### Backlog
+# - support directory metadata for creation <file>.dir
+# - support files inside nested directories
 # - support directories
 #
 # ### Testing
@@ -53,7 +55,7 @@ copy() {
 
   # Read the copy metadata into an array
   # - t trims the newline off the string
-  readarray -t meta < "$source.copy"
+  readarray -t meta < "$source.file"
   trimspace mode "${meta[0]}"             # get trimmed mode
   trimspace user "${meta[1]}"             # get trimmed user
   trimspace group "${meta[2]}"            # get trimmed group
@@ -124,7 +126,7 @@ echo "installing files from ${src}"
 find "$src" -type l | while read x; do  # handles spaces in results
   
   # Copy file to destination
-  if [[ -e "$x.copy" ]]; then
+  if [[ -e "$x.file" ]]; then
     copy "$x"
 
   # Link file to destination

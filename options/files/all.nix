@@ -46,9 +46,10 @@ let
     linkfiles() {
       local src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
       local dst="$2"        # Destination path to deploy to e.g. 'root/foobar'
-      local mode="$3"       # Mode to use for file if not 'symlink'
-      local user="$4"       # Owner to use for file if mode is not 'symlink'
-      local group="$5"      # Group to use for file if mode is not 'symlink'
+      local kind="$3"       # Kind of file being created [ link | file ]
+      local mode="$4"       # Mode to use for file and/or directories
+      local user="$5"       # Owner to use for file if mode is not 'symlink'
+      local group="$6"      # Group to use for file if mode is not 'symlink'
 
       [[ ''${dst:0:1} == "/" ]] && exit 1  # Fail if the given destination path isn't relative
       local dir="$(dirname "/$dst")"       # Get the dir name
@@ -56,16 +57,21 @@ let
       # Create any directories that are needed
       [[ ''${dir} != "/" ]] && mkdir -p "$out/$dir"
 
-      # Link the source store file at the destination path
-      if [[ "$mode" == "symlink" ]]; then
-        echo "Linking: $src -> $out/$dst"
-        ln -sf "$src" "$out/$dst"
+      # Create the link referencing the source store path regardless of kind
+      echo "Linking: $src -> $out/$dst"
+      ln -sf "$src" "$out/$dst"
+
+      # Create the metadata file based on kind
+      local meta
+      if [[ "$kind" == "link" ]]; then
+        meta="$out/dst.dir"
       else
-        echo "Copying: $src -> $out/$dst"
-        echo "$mode" >> "$out/$dst.copy"
-        echo "$user" >> "$out/$dst.copy"
-        echo "$group" >> "$out/$dst.copy"
+        meta="$out/dst.file"
       fi
+      echo "Metadata: $meta"
+      echo "$mode" >> "$meta"
+      echo "$user" >> "$meta"
+      echo "$group" >> "$meta"
     }
 
     # Convert the files derivations into a list of calls to linkfiles by taking all the files 
@@ -76,6 +82,7 @@ let
       # Simply referencing the source file here will suck it into the /nix/store
       "${entry.source}"
       entry.dest
+      entry.kind
       entry.mode
       entry.user
       entry.group
@@ -150,26 +157,37 @@ in
               '';
             };
 
+            kind = mkOption {
+              type = types.str;
+              default = "link";
+              example = "file";
+              description = lib.mdDoc ''
+                Kind of file to create. When link is used the mode, user, and group properties will 
+                be used to specify the directory permissions to use for any directories that need to 
+                be created along the way.
+              '';
+            };
+
             mode = mkOption {
               type = types.str;
-              default = "symlink";
+              default = "0755";
               example = "0600";
               description = lib.mdDoc ''
-                If set to something else than `symlink`, the file is copied instead of symlinked, with the given
-                file mode. This also triggers the user and group being set.
+                Mode of file being created and/or the directories. When used to specify the file mode 
+                any directories being created will use the default 0755 mode for directories.
               '';
             };
 
             user = mkOption {
               default = "root";
               type = types.str;
-              description = lib.mdDoc "Owner of copied file. Only takes effect if mode is not 'symlink'.";
+              description = lib.mdDoc "Owner of file being created and/or the directories.";
             };
 
             group = mkOption {
               default = "root";
               type = types.str;
-              description = lib.mdDoc "Group of copied file. Only takes effect if mode is not 'symlink'.";
+              description = lib.mdDoc "Group of file being created and/or the directories.";
             };
           };
 
