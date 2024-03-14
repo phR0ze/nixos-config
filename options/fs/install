@@ -8,5 +8,5 @@ files="$1"          # the /nix/store package with all the files that need instal
 
 # Main entry point
 # --------------------------------------------------------------------------------------------------
-echo "installing files ${links}"
-tree ${links}
+echo "installing files ${files}"
+tree ${files}
