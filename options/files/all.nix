@@ -261,10 +261,14 @@ in
 #              else "link"
 #            );
 
-            # Set the source to the 
-            source = if (config.file != null) then (mkForce config.file)
-              else if (config.link != null) then (mkForce config.link)
-              else if (config.dir != null) then (mkForce config.dir)
+            # Set the source based off the convenience options: file, link, dir, text
+            source = if (config.file != null) then config.file
+              else if (config.link != null) then config.link
+              else if (config.dir != null) then config.dir
+              else if (config.text != null) then (
+                let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
+                in mkDerivedConfig options.text (pkgs.writeText name'
+              )
               else null;
 
             # Default text to anything for a directory to be added to ensure

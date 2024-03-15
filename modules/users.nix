@@ -20,7 +20,7 @@
 
   # Initialize user home from /etc/skel on first login
   # ------------------------------------------------------------------------------------------------
-  files.all."root/.dircolors".file = ../include/home/.dircolors;
+  files.all."root/foo1".file = ../include/home/.dircolors;
 
 #  files.all."root/foo".kind = "dir";
 #
@@ -28,7 +28,7 @@
 #    enable = true;
 #    text = "this is a test";
 #  };
-#  files.all."root/.dircolors".text = builtins.readFile ../include/home/.dircolors;
+  files.all."root/.dircolors".text = builtins.readFile ../include/home/.dircolors;
 
 #  config.foo = mkMerge [
 #    (mkIf atHome {
