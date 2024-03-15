@@ -47,7 +47,8 @@ let
     mkdir -p "$out"         # Creates the nix store path to populate
 
     # Test adding arbitrary files
-    cp -a ${../../include/logo.png} "$out/"
+    foo="../../include/logo.png"
+    ln -sf ${$foo} "$out/logo.png"
 
     track() {
       local src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
