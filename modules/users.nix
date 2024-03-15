@@ -23,11 +23,8 @@
   files.all."root/foo1".file = ../include/home/.dircolors;
 
 #  files.all."root/foo".kind = "dir";
-#
-#  files.all."root/foobar1" = {
-#    enable = true;
-#    text = "this is a test";
-#  };
+
+  files.all."root/foobar1" = { enable = true; text = "this is a test"; };
   files.all."root/.dircolors".text = builtins.readFile ../include/home/.dircolors;
 
 #  config.foo = mkMerge [
