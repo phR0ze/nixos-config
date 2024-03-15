@@ -254,7 +254,7 @@ in
 
             # Set the kind based off the convenience options: file, link, dir, text
             #kind = mkIf (config.kind == null) "link";
-            kind = mkIf !config.kind "file";
+            kind = mkIf (config.kind == null) "file";
 #            kind = mkIf (config.kind == null) (
 #              if (config.dir != null) then "dir"
 #              else if (config.file != null) then "file"
