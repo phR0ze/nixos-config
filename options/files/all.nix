@@ -47,8 +47,7 @@ let
     mkdir -p "$out"         # Creates the nix store path to populate
 
     # Test adding arbitrary files
-    foo="../../include/logo.png"
-    ln -sf ${$foo} "$out/logo.png"
+    ln -sf ${../../include/logo.png} "$out/logo.png"
 
     track() {
       local src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
@@ -95,8 +94,8 @@ let
     ${concatMapStringsSep "\n" (entry: escapeShellArgs [
       "track"
       # Simply referencing the source file here will suck it into the /nix/store
-      "${entry.source}"
-      entry.dest
+      "${entry.file}"
+      entry.target
       entry.kind
       entry.dirmode
       entry.filemode
@@ -144,6 +143,7 @@ in
           "/etc/openal/alsoft.conf".source = writeText "alsoft.conf" "drivers=pulse";
         };
       '';
+
       type = with types; attrsOf (submodule (
         { name, config, options, ... }: {
           options = {
@@ -151,10 +151,10 @@ in
             enable = mkOption {
               type = types.bool;
               default = true;
-              description = lib.mdDoc "Whether the file should be generated at the destination path.";
+              description = lib.mdDoc "Whether the file should be installed at the target path.";
             };
 
-            dest = mkOption {
+            target = mkOption {
               type = types.str;
               description = lib.mdDoc "Absolute destination path. Defaults to the attribute name.";
             };
@@ -165,13 +165,19 @@ in
               description = lib.mdDoc "Text of the file.";
             };
 
-            source = mkOption {
-              type = types.path;
-              description = lib.mdDoc ''
-                Path of the source file in the nix store e.g pkgs.writeText "root-.dircolors"
-                  (lib.fileContents ../include/home/.dircolors);
-              '';
+            file = mkOption {
+              default = null;
+              type = types.nullOr types.str;
+              description = lib.mdDoc "Path to the local file to install in system";
             };
+
+#            source = mkOption {
+#              type = types.path;
+#              description = lib.mdDoc ''
+#                Path of the source file in the nix store e.g pkgs.writeText "root-.dircolors"
+#                  (lib.fileContents ../include/home/.dircolors);
+#              '';
+#            };
 
             kind = mkOption {
               type = types.str;
@@ -217,17 +223,17 @@ in
           config = {
 
             # Default the destination name to the attribute name
-            dest = mkDefault name;
+            target = mkDefault name;
 
             # Default text to anything for a directory to be added to ensure
             # that source gets set below and we have a valid store path to avoid errors later.
-            text = mkIf (config.kind == "dir") "directory";
+            #text = mkIf (config.kind == "dir") "directory";
 
             # Create a nix store package out of the raw text if it's set
-            source = mkIf (config.text != null) (
-              let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-              in mkDerivedConfig options.text (pkgs.writeText name')
-            );
+            #source = mkIf (config.text != null) (
+            #  let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
+            #  in mkDerivedConfig options.text (pkgs.writeText name')
+            #);
           };
         }
       ));
