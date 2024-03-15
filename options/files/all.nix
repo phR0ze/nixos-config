@@ -213,9 +213,9 @@ in
               description = lib.mdDoc ''
                 Kind can be one of [ file | link | dir ] and indicates the type of object being 
                 created. When 'file' is used the user, group and filemode properties will be used to 
-                specify the file's properties and likewise for dirmode. Similarly 'link' dirmode, 
-                user, and group will set the directory properties of any directories needing to be 
-                created for the link.
+                specify the file's properties and likewise user, group and dirmode for directories. 
+                Similarly for 'link' dirmode, user, and group will set the directory properties of 
+                any directories needing to be created for the link.
               '';
             };
 
@@ -268,12 +268,6 @@ in
             # Default text to anything for a directory to be added to ensure
             # that source gets set below and we have a valid store path to avoid errors later.
             #text = mkIf (config.kind == "dir") "directory";
-
-            # Create a nix store package out of the raw text if it's set
-            #source = mkIf (config.text != null) (
-            #  let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-            #  in mkDerivedConfig options.text (pkgs.writeText name')
-            #);
           };
         }
       ));
