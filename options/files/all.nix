@@ -68,10 +68,10 @@ let
       local meta
       local dir
       if [[ "$kind" == "dir" ]]; then
-        meta="$out/$dst/.dir"                           # craft metadata .dir in directory
+        meta="$out/$dst/.meta.dir"                      # craft metadata for directory
         mkdir -p "$out/$dst"                            # create any needed directories
       else
-        meta="$out/$dst.$kind"                          # craft metadata file name
+        meta="$out/$dst.meta.$kind"                     # craft metadata for files or links
         dir="$(dirname "$dst")"                         # grab the directory of the target
         [[ ''${dir} != "." ]] && mkdir -p "$out/$dir"   # create any needed directories
         ln -sf "$src" "$out/$dst"                       # link in the file content
