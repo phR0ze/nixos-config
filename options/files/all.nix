@@ -70,6 +70,7 @@ let
       if [[ "$kind" == "dir" ]]; then
         meta="$out/$dst/.meta.dir"                      # craft metadata for directory
         mkdir -p "$out/$dst"                            # create any needed directories
+        ln -sf "$src" "$out/$dst/test"                  # link in the directory store
       else
         meta="$out/$dst.meta.$kind"                     # craft metadata for files or links
         dir="$(dirname "$dst")"                         # grab the directory of the target
