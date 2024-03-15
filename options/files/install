@@ -194,7 +194,7 @@ mkdirs
 find "$src" -type l | while read x; do      # handles spaces in results
   
   # Copy file to destination
-  if [[ -e "$x.file" ]]; then
+  if [[ -e "$x.meta.file" ]]; then
     copy "$x"
 
   # Link file to destination
