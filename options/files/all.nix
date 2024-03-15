@@ -256,7 +256,7 @@ in
             #kind = mkIf (config.kind == null) "link";
             kind = if (config.dir != null) then "dir"
               else if (config.file != null) then "file"
-              else "link"
+              else "link";
 
             # Set the source based off the convenience options: file, link, dir, text
             source = if (config.file != null) then config.file
