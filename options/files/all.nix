@@ -264,7 +264,7 @@ in
               else if (config.link != null) then config.link
               else if (config.dir != null) then config.dir
               else if (config.text != null) then (mkDerivedConfig options.text (pkgs.writeText name))
-              else null;
+              else null
             );
 
             # Default text to anything for a directory to be added to ensure
