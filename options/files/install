@@ -86,6 +86,18 @@ mkdir_p() {
   chown $user:$group "$dir"
 }
 
+# Create owned directories
+mkdirs() {
+  local target
+
+  find "$src" -name ".meta.dir" | while read x; do # handles spaces in results
+    target="${x#"$src"}"                      # trim off the store path prefix
+    metadata "$x"                             # load the metadata
+    mkdir_p "$target"                         # create all directories
+    echo "$(dirname "$target")" >> "$log"     # track owned directories
+  done
+}
+
 # Copy the given source store path to the implicated destination using the metadata file for mode, 
 # user and group properties
 copy() {
@@ -127,23 +139,11 @@ link() {
     rm -f "$target"                       # cleaner to just ensure it doesn't exist
     ln -sf "$_src" "$target"
   else
-    echo "  correct: $_src -> $target"
+    echo "  leaving: $_src -> $target"
   fi
 
   # Regardless of updating the link we depend on it
   echo "$target" >> "$log"
-}
-
-# Create owned directories
-mkdirs() {
-  local target
-
-  find "$src" -name ".meta.dir" | while read x; do # handles spaces in results
-    target="${x#"$src"}"                      # trim off the store path prefix
-    metadata "$x"                             # load the metadata
-    mkdir_p "$target"                         # create all directories
-    echo "$(dirname "$target")" >> "$log"     # track owned directories
-  done
 }
 
 # Clean up any files left over from the previous install

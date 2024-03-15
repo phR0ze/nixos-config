@@ -16,21 +16,20 @@
 # different components.
 #  1. The option is defined here in this file
 #  2. The option is imported into your project at the top level making it available everywhere
-#  3. The option is invoked e.g. files."/root/foobar1".text = "this is a foobar1 test";
-#  4. During nixos-rebuild switch the activationScripts get run
-#  5. The option's config.system.activationScripts.files configuration is invoked
-#  6. This in turn invokes the allFilesPackage via the reference
-#  7. The files aggregate attribute set adds them to the /nix/store and links them in the parent package
-#  8. The parent allFilesPackage package is then added to the /nix/store
-#  9. Finally the original config.system.activationScripts.files payload is executed with the 
-#     allFilesPackage called 'allfiles' as a parameter
-# 10. The activation script payload then uses the files package to install the files into your system
+#  3. The option is invoked e.g. files.all."/root/foobar1".text = "this is a foobar1 test";
+#  4. During nixos-rebuild switch the activationScripts get run performing the install
+#  5. This in turn invokes the filesPackage via the reference
+#  6. The files aggregate attribute set adds them to the /nix/store and links them in the parent package
+#  7. The parent filesPackage package is then added to the /nix/store
+#  8. Finally the original config.system.activationScripts.files payload is executed with the 
+#     filesPackage as a parameter
+#  9. The activation install script then uses the filesPackage to install the files
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib;
 let
 
   # Filter the files calls down to just those that are enabled
-  allfiles' = filter (f: f.enable) (attrValues config.files.all);
+  files' = filter (f: f.enable) (attrValues config.files.all);
 
   # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
   # that we can then use during the activation later on to deploy the files to their indicated 
@@ -39,7 +38,7 @@ let
   # - operation is run as the root user
   # - files and directories are owned by root by default
   # ------------------------------------------------------------------------------------------------
-  allFilesPackage = pkgs.runCommandLocal "files" {} ''
+  filesPackage = pkgs.runCommandLocal "files" {} ''
     set -euo pipefail       # Configure an immediate fail if something goes badly
     mkdir -p "$out"         # Creates the nix store path to populate
 
@@ -95,12 +94,12 @@ let
       entry.filemode
       entry.user
       entry.group
-    ]) allfiles'}
+    ]) files'}
   '';
 
   # Add the installer script to the /nix/store for reference
   # ------------------------------------------------------------------------------------------------
-  allFilesInstallScript = pkgs.writeShellScript "allFilesInstallScript"
+  installScript = pkgs.writeShellScript "installScript"
     (lib.fileContents ./install);
 in
 {
@@ -234,10 +233,10 @@ in
   # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/etc/etc-activation.nix
 
   # Adds a bash snippet to /nix/store/<hash>-nixos-system-nixos-24.05.20240229.1536926/activate.
-  # By referencing the ${allFilesPackage} we trigger the derivation to be built and stored in 
+  # By referencing the ${filesPackage} we trigger the derivation to be built and stored in 
   # the /nix/store which can then be used as an input variable for the actual deployment of files to 
   # their destination paths.
   config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] ''
-    ${allFilesInstallScript} ${allFilesPackage} "/nix"
+    ${installScript} ${filesPackage} "/nix"
   '';
 }
