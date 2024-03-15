@@ -7,7 +7,7 @@
 # that solution.
 #
 # ### Features
-# - provides the ability to install system files as root
+# - supports installing files with many configurable options
 # - gets run on boot and on nixos-rebuild switch so be careful what is included here
 # - files being deployed will overwrite the original files without any safe guards or checking
 #
@@ -53,14 +53,11 @@ let
       local group="$7"      # Group to use for file and/or directories
 
       # Validation on inputs
-      if [[ ''${dst:0:1} == "/" ]]; then
-        echo "files path must not start with a /"
-        exit 1
-      fi
-      if [[ ''${dst:0-1} == "/" ]]; then
-        echo "files path must not end with a /"
-        exit 1
-      fi
+      [[ ''${dst:0:1} == "/" ]] && echo "paths must not start with a /" && exit 1
+      [[ ''${dst:0-1} == "/" ]] && echo "paths must not end with a /" && exit 1
+      [[ ''${dst} == *".meta.file" ]] && echo "paths must not end with .meta.file" && exit 1
+      [[ ''${dst} == *".meta.link" ]] && echo "paths must not end with .meta.link" && exit 1
+      [[ ''${dst} == *".meta.dir" ]] && echo "paths must not end with .meta.dir" && exit 1
 
       echo "Linking: $src -> $out/$dst"
 
