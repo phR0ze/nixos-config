@@ -216,7 +216,7 @@ in
             dest = mkDefault name;
 
             # Leverage the default source option if text is set
-            text = mkIf (config.text == null) "directory";
+            text = mkIf (config.kind == "dir") "directory";
 
             # Create a nix store package out of the raw text if it's set
             source = mkIf (config.text != null) (
