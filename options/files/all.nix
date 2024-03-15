@@ -28,6 +28,10 @@
 { options, config, lib, pkgs, args, ... }: with lib;
 let
 
+  # Leads
+  # - https://github.com/Mic92/nix-ld/blob/main/nixos-example.nix
+  # - https://github.com/danth/stylix/blob/master/modules/grub/nixos.nix
+
   # Filter the files calls down to just those that are enabled
   files' = filter (f: f.enable) (attrValues config.files.all);
 
@@ -41,6 +45,9 @@ let
   filesPackage = pkgs.runCommandLocal "files" {} ''
     set -euo pipefail       # Configure an immediate fail if something goes badly
     mkdir -p "$out"         # Creates the nix store path to populate
+
+    # Test adding arbitrary files
+    cp -a ${../../include/logo.png} "$out/"
 
     track() {
       local src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
