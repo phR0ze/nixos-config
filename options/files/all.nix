@@ -215,7 +215,8 @@ in
             # Default the destination name to the attribute name
             dest = mkDefault name;
 
-            # Leverage the default source option if text is set
+            # Default text to anything for a directory to be added to ensure
+            # that source gets set below and we have a valid store path to avoid errors later.
             text = mkIf (config.kind == "dir") "directory";
 
             # Create a nix store package out of the raw text if it's set
