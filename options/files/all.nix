@@ -159,14 +159,40 @@ in
             text = mkOption {
               default = null;
               type = types.nullOr types.lines;
-              description = lib.mdDoc "Text of the file.";
+              description = lib.mdDoc ''
+                Raw text to be converted into a nix store object and then linked by default to the 
+                indicated target path. To make this a file at the target location set 'kind="file"'.
+              '';
+            };
+
+            dir = mkOption {
+              default = null;
+              type = types.nullOr types.path;
+              example = "../include/home";
+              description = lib.mdDoc ''
+                Path to the local directory to install in system. This is a convenience option 
+                to set the 'source' and 'kind' options for you.
+              '';
+            };
+
+            link = mkOption {
+              default = null;
+              type = types.nullOr types.path;
+              example = "../include/home/.dircolors";
+              description = lib.mdDoc ''
+                Path to the local file to install in system as a link. This is a convenience option 
+                to set the 'source' and 'kind' options for you.
+              '';
             };
 
             file = mkOption {
               default = null;
               type = types.nullOr types.path;
               example = "../include/home/.dircolors";
-              description = lib.mdDoc "Path to the local file to install in system";
+              description = lib.mdDoc ''
+                Path to the local file to install in system. This is a convenience option to set the 
+                'source' and 'kind' options for you.
+              '';
             };
 
             source = mkOption {
@@ -181,15 +207,15 @@ in
             };
 
             kind = mkOption {
-              type = types.str;
-              default = "link";
+              default = null;
+              type = types.nullOr types.str;
               example = "file";
               description = lib.mdDoc ''
                 Kind can be one of [ file | link | dir ] and indicates the type of object being 
-                created. When 'link' is used the mode, user, and group properties will be used to 
-                specify the directory permissions to use for any directories that need to be created 
-                along the way. Likewise for 'file', but for 'dir' we are indicating that the 
-                directory is owned by the files configuration.
+                created. When 'file' is used the user, group and filemode properties will be used to 
+                specify the file's properties and likewise for dirmode. Similarly 'link' dirmode, 
+                user, and group will set the directory properties of any directories needing to be 
+                created for the link.
               '';
             };
 
@@ -227,10 +253,14 @@ in
             target = mkDefault name;
 
             # Set the kind based off the convenience options: file, link, dir, text
-            kind = mkIf (config.file != null) "file";
+            kind = mkIf (config.kind == null) (
+              if (config.dir != null) then "dir"
+              else if (config.file != null) then "file"
+              else "link"
+            );
 
             # Set the source to the 
-            source = mkIf (config.file != null) config.file;
+            source = mkIf (config.dir != null) config.file;
 
             # Default text to anything for a directory to be added to ensure
             # that source gets set below and we have a valid store path to avoid errors later.
