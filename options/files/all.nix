@@ -259,11 +259,13 @@ in
               else "link";
 
             # Set the source based off the convenience options: file, link, dir, text
-            source = if (config.file != null) then config.file
+            source = mkIf (config.source == null) (
+              if (config.file != null) then config.file
               else if (config.link != null) then config.link
               else if (config.dir != null) then config.dir
               else if (config.text != null) then (mkDerivedConfig options.text (pkgs.writeText name))
               else null;
+            );
 
             # Default text to anything for a directory to be added to ensure
             # that source gets set below and we have a valid store path to avoid errors later.
