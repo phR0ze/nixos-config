@@ -218,7 +218,7 @@ in
             # Create a nix store package out of the raw text if it's set
             source = mkIf (config.text != null) (
               let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-              in mkDefault(pkgs.writeTextFile name options.text)
+              in mkDefault(pkgs.writeText name options.text)
             );
           };
         }
