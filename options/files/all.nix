@@ -167,7 +167,7 @@ in
 
             file = mkOption {
               default = null;
-              type = types.nullOr types.str;
+              type = types.nullOr types.path;
               description = lib.mdDoc "Path to the local file to install in system";
             };
 
