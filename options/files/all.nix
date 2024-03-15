@@ -262,7 +262,10 @@ in
 #            );
 
             # Set the source to the 
-            source = mkIf (config.file != null) config.file;
+            source = if (config.file != null) then (mkForce config.file)
+              else if (config.link != null) then (mkForce config.link)
+              else if (config.dir != null) then (mkForce config.dir)
+              else null;
 
             # Default text to anything for a directory to be added to ensure
             # that source gets set below and we have a valid store path to avoid errors later.
