@@ -260,7 +260,7 @@ in
             );
 
             # Set the source to the 
-            source = mkIf (config.dir != null) config.file;
+            source = mkIf (config.file != null) config.file;
 
             # Default text to anything for a directory to be added to ensure
             # that source gets set below and we have a valid store path to avoid errors later.
