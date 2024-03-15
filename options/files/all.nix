@@ -254,21 +254,15 @@ in
 
             # Set the kind based off the convenience options: file, link, dir, text
             #kind = mkIf (config.kind == null) "link";
-            kind = mkIf (config.file != null) (mkForce "file");
-#            kind = mkIf (config.kind == null) (
-#              if (config.dir != null) then "dir"
-#              else if (config.file != null) then "file"
-#              else "link"
-#            );
+            kind = if (config.dir != null) then "dir"
+              else if (config.file != null) then "file"
+              else "link"
 
             # Set the source based off the convenience options: file, link, dir, text
             source = if (config.file != null) then config.file
               else if (config.link != null) then config.link
               else if (config.dir != null) then config.dir
-              else if (config.text != null) then (
-                let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-                in mkDerivedConfig options.text (pkgs.writeText name')
-              )
+              else if (config.text != null) then (mkDerivedConfig options.text (pkgs.writeText name))
               else null;
 
             # Default text to anything for a directory to be added to ensure
