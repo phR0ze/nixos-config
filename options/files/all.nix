@@ -267,7 +267,7 @@ in
               else if (config.dir != null) then config.dir
               else if (config.text != null) then (
                 let name' = "files" + lib.replaceStrings ["/"] ["-"] name;
-                in mkDerivedConfig options.text (pkgs.writeText name'
+                in mkDerivedConfig options.text (pkgs.writeText name';
               )
               else null;
 
