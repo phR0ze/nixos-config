@@ -207,8 +207,8 @@ in
             };
 
             kind = mkOption {
-              default = null;
-              type = types.nullOr types.str;
+              type = types.str;
+              default = "link";
               example = "file";
               description = lib.mdDoc ''
                 Kind can be one of [ file | link | dir ] and indicates the type of object being 
@@ -255,8 +255,7 @@ in
             # Set the kind based off the convenience options: file, link, dir, text
             #kind = mkIf (config.kind == null) "link";
             kind = if (config.dir != null) then "dir"
-              else if (config.file != null) then "file"
-              else "link";
+              else mkIf (config.file != null) "file";
 
             # Set the source based off the convenience options: file, link, dir, text
             source = if (config.file != null) then config.file
