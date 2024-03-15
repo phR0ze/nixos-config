@@ -46,9 +46,6 @@ let
     set -euo pipefail       # Configure an immediate fail if something goes badly
     mkdir -p "$out"         # Creates the nix store path to populate
 
-    # Test adding arbitrary files
-    ln -sf ${../../include/logo.png} "$out/logo.png"
-
     track() {
       local src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
       local dst="$2"        # Destination path to deploy to e.g. 'root/foobar'
@@ -93,8 +90,8 @@ let
     # e.g. 'track' '/nix/store/<hash>-files-root-foobar' '/root/foobar'
     ${concatMapStringsSep "\n" (entry: escapeShellArgs [
       "track"
-      # Simply referencing the source file here will suck it into the /nix/store
-      "${entry.file}"
+      # Simply referencing the source file here will suck it into the /nix/store as its own package
+      "${entry.source}"
       entry.target
       entry.kind
       entry.dirmode
@@ -168,16 +165,20 @@ in
             file = mkOption {
               default = null;
               type = types.nullOr types.path;
+              example = "../include/home/.dircolors";
               description = lib.mdDoc "Path to the local file to install in system";
             };
 
-#            source = mkOption {
-#              type = types.path;
-#              description = lib.mdDoc ''
-#                Path of the source file in the nix store e.g pkgs.writeText "root-.dircolors"
-#                  (lib.fileContents ../include/home/.dircolors);
-#              '';
-#            };
+            source = mkOption {
+              type = types.path;
+              example = "../include/home/.dircolors";
+              description = lib.mdDoc ''
+                Path of the local file to store or a pre-stored path. Prefer setting this value using 
+                the helper options 'file', 'dir', 'link', or 'text'.
+                e.g. #1: ../include/home/.dircolors;
+                e.g. #2: pkgs.writeText "root-.dircolors" (lib.fileContents ../include/home/.dircolors);
+              '';
+            };
 
             kind = mkOption {
               type = types.str;
@@ -224,6 +225,9 @@ in
 
             # Default the destination name to the attribute name
             target = mkDefault name;
+
+            # Set the source to the 
+            source = if (config.file != null) then config.file;
 
             # Default text to anything for a directory to be added to ensure
             # that source gets set below and we have a valid store path to avoid errors later.
