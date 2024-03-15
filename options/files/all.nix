@@ -253,11 +253,12 @@ in
             target = mkDefault name;
 
             # Set the kind based off the convenience options: file, link, dir, text
-            kind = mkIf (config.kind == null) (
-              if (config.dir != null) then "dir"
-              else if (config.file != null) then "file"
-              else "link"
-            );
+            kind = mkIf (config.kind == null) "link";
+#            kind = mkIf (config.kind == null) (
+#              if (config.dir != null) then "dir"
+#              else if (config.file != null) then "file"
+#              else "link"
+#            );
 
             # Set the source to the 
             source = mkIf (config.file != null) config.file;
