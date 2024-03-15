@@ -226,6 +226,9 @@ in
             # Default the destination name to the attribute name
             target = mkDefault name;
 
+            # Set the kind based off the convenience options: file, link, dir, text
+            kind = mkIf (config.file != null) "file";
+
             # Set the source to the 
             source = mkIf (config.file != null) config.file;
 
