@@ -152,6 +152,7 @@ world though this already exists.
 * [ ] Change the kernel boot colors 
 
 * Configs to circle back to
+  * https://github.com/danth/stylix
   * https://github.com/benetis/dotfiles-1/blob/master/nixos-config/machines/desktop/modules/android.nix
   * https://github.com/benetis/dotfiles-1/blob/master/nixos-config/machines/desktop/modules/hardened-chromium.nix
   * https://github.com/thexyno/nixos-config/blob/main/nixos-modules/hardware/laptop.nix
