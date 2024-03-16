@@ -71,7 +71,7 @@ let
       [[ ''${dst:0:1} == "/" ]] && echo "paths must not start with a /" && exit 1
       [[ ''${dst:0-1} == "/" ]] && echo "paths must not end with a /" && exit 1
       [[ "$dst" == *".meta" ]] && echo "paths must not end with .meta" && exit 1
-      [[ -e "$src" && "$kind" == "dir" ]] && echo "store path is a file and kind is dir" && exit 1
+      [[ -e "$src" && "$kind" == "dir" ]] && echo "store path $src is a file and kind is dir" && exit 1
 
       echo "Linking: $src -> $out/$dst"
 
