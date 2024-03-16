@@ -1,17 +1,28 @@
 # All files option
+# Install files to your system either as writable files or links to readonly nix store paths.
 #
 # ### Disclaimer
 # This is NixOS specific and doesn't support other distributions or crossplatform systems. My intent 
 # here is to provide some basic file manipulation for deploying configuration already stored in a git 
 # repo. I specifically chose not to use Home Manager to keep this simple and avoid the complexity of 
 # that solution.
+
+# ### Warnings
+# - gets run on boot and on nixos-rebuild switch so be careful what is included here
+# - file type overwrites any existing target to keep the configuration accurage
+# - removes owned files and directories when they are no longer in your configuration
+# - multiple configurations for the same file or directory will be handled in a last out wins which
+#   can be non-deterministic. best to not duplicate files or directory configurations for now.
 #
 # ### Features
-# - supports installing files with many configurable options
-# - gets run on boot and on nixos-rebuild switch so be careful what is included here
-# - files being deployed will overwrite the original files without any safe guards or checking
+# - pseudo atomic link switching via the /nix/files indirection link
+# - choose to install files as writable files or as links to readonly nix store paths
+# - choose to own the files or directories, defaults to owning files and not owning directories
+# - choose the mode, user, and group for files and or directories
+# - only recreates links when they are incorrect or missing
+# - supports spaces in file or directory names
 #
-# ### Details
+# ### Implementation Details
 # This option follows a similar pattern as the environment.etc option. The pattern consists of three 
 # different components.
 #  1. The option is defined here in this file
@@ -54,6 +65,7 @@ let
       local filemode="$5"         # Mode to use for files
       local user="$6"             # Owner to use for file and/or directories
       local group="$7"            # Group to use for file and/or directories
+      local own="$8"              # Own the the file or directory
 
       # Validation on inputs
       [[ ''${dst:0:1} == "/" ]] && echo "paths must not start with a /" && exit 1
@@ -83,6 +95,7 @@ let
       echo "$filemode" >> "$meta"
       echo "$user" >> "$meta"
       echo "$group" >> "$meta"
+      echo "$own" >> "$meta"
     }
 
     # Convert the files derivations into a list of calls to track by taking all the file
@@ -98,6 +111,7 @@ let
       entry.filemode
       entry.user
       entry.group
+      entry.own
     ]) files'}
   '';
 
@@ -117,27 +131,17 @@ in
         - destination paths must be relative to the root e.g. etc/foo
       '';
       example = ''
-        # Single file example with inline content
+        # Create a single file from raw text
         files."/root/.dircolors".text = "this is a test";
 
-        # Single file example with source file content
-        files."/root/.dircolors".source = ../include/home/.dircolors;
-
-        # Single file example reading content from local file
-        files."/root/.dircolors".text = builtins.readFile ../include/home/.dircolors;
-
-        # Single file example with indirect source file
-        files."/root/.dircolors".source = pkgs.writeText "root-.dircolors"
-          (lib.fileContents ../include/home/.dircolors);
+        # Include a local file as your target
+        files."/root/.dircolors".file = ../include/home/.dircolors;
 
         # Multi file example
         files = {
           "/etc/asound.conf".text = "autospawn=no";
-
-          "/root/.dircolors".source = pkgs.writeText "root-.dircolors"
-            (lib.fileContents ../include/home/.dircolors);
-
-          "/etc/openal/alsoft.conf".source = writeText "alsoft.conf" "drivers=pulse";
+          "/root/.dircolors".file = ../include/home/.dircolors;
+          "/etc/openal/alsoft.conf".link =  ../include/etc/openal/alsoft.conf;
         };
       '';
 
@@ -162,6 +166,9 @@ in
               description = lib.mdDoc ''
                 Raw text to be converted into a nix store object and then linked by default to the 
                 indicated target path. To make this a file at the target location set 'kind="file"'.
+                - sets 'source' to the given file
+                - sets 'kind' to link
+                - sets 'own' to true
               '';
             };
 
@@ -170,8 +177,10 @@ in
               type = types.nullOr types.path;
               example = "../include/home";
               description = lib.mdDoc ''
-                Path to the local directory to install in system. This is a convenience option 
-                to set the 'source' and 'kind' options for you.
+                Path to the local directory to install in system. This is a convenience option:
+                - sets 'source' to the given directory
+                - sets 'kind' to dir
+                - sets 'own' to false
               '';
             };
 
@@ -180,8 +189,10 @@ in
               type = types.nullOr types.path;
               example = "../include/home/.dircolors";
               description = lib.mdDoc ''
-                Path to the local file to install in system as a link. This is a convenience option 
-                to set the 'source' and 'kind' options for you.
+                Path to the local file to install in system as a link. This is a convenience option:
+                - sets 'source' to the given file
+                - sets 'kind' to link
+                - sets 'own' to true
               '';
             };
 
@@ -190,8 +201,10 @@ in
               type = types.nullOr types.path;
               example = "../include/home/.dircolors";
               description = lib.mdDoc ''
-                Path to the local file to install in system. This is a convenience option to set the 
-                'source' and 'kind' options for you.
+                Path to the local file to install in system. This is a convenience option to set the:
+                - sets 'source' to the given file
+                - sets 'kind' to link
+                - sets 'own' to true
               '';
             };
 
@@ -219,6 +232,18 @@ in
               '';
             };
 
+            own = mkOption {
+              type = types.bool;
+              description = lib.mdDoc ''
+                Whether to own the file or directory or not. When a file or directory is owned it is 
+                automatically deleted if your configuration not longer uses it. This can be dangerous 
+                if you have included a directory such as .config in your home directory and set it as 
+                owned then remove your dependency on it since it will remove the entire .config 
+                directory on clean up despite other files you don't own being in the directory. This 
+                is why own is false for directories by default and only true for files by default.
+              '';
+            };
+
             dirmode = mkOption {
               type = types.str;
               default = "0755";
@@ -228,20 +253,20 @@ in
 
             filemode = mkOption {
               type = types.str;
-              default = "0600";
+              default = "0644";
               example = "0777";
               description = lib.mdDoc "Mode of any files being created";
             };
 
             user = mkOption {
-              default = "root";
               type = types.str;
+              default = "root";
               description = lib.mdDoc "Owner of file being created and/or the directories.";
             };
 
             group = mkOption {
-              default = "root";
               type = types.str;
+              default = "root";
               description = lib.mdDoc "Group of file being created and/or the directories.";
             };
           };
@@ -252,22 +277,23 @@ in
             # Default the destination name to the attribute name
             target = mkDefault name;
 
-            # Set the kind based off the convenience options: file, link, dir, text
-            #kind = mkIf (config.kind == null) "link";
+            # Set kind based off the convenience options: file, link, dir, text
             kind = if (config.dir != null) then "dir"
               else mkIf (config.file != null) "file";
 
-            # Set the source based off the convenience options: file, link, dir, text
+            # Set own based off kind if not already set
+            own = if (config.file != null) then (mkDefault true)
+              else if (config.link != null) then (mkDefault true);
+              else if (config.text != null) then (mkDefault true);
+              else (mkDefault false);
+
+            # Set source based off the convenience options: file, link, dir, text
             source = if (config.file != null) then config.file
               else if (config.link != null) then config.link
               else if (config.dir != null) then config.dir
               else mkIf (config.text != null) (
                 mkDerivedConfig options.text (pkgs.writeText name)
               );
-
-            # Default text to anything for a directory to be added to ensure
-            # that source gets set below and we have a valid store path to avoid errors later.
-            #text = mkIf (config.kind == "dir") "directory";
           };
         }
       ));

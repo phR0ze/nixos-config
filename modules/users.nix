@@ -20,10 +20,45 @@
 
   # Initialize user home from /etc/skel on first login
   # ------------------------------------------------------------------------------------------------
-  files.all."root/foo".dir = ../include/home;
-  files.all."root/foo1".file = ../include/home/.dircolors;
-  files.all."root/foobar1" = { enable = true; text = "this is a test"; };
-  files.all."root/.dircolors".text = builtins.readFile ../include/home/.dircolors;
+
+  # Disable
+  files.all."root/foobar1" = { enable = false; text = "this is a test"; };
+
+  # Text cases
+  files.all."root/text/text.file" = {
+    kind = "file";
+    dirmode = "0700";
+    filemode = "0600";
+    user = "admin";
+    group = "users";
+    own = false;
+    text = ../include/home/.dircolors;
+  };
+  files.all."root/text.link".text = ../include/home/.dircolors;
+
+  # File cases
+  files.all."root/.dircolors".file = ../include/home/.dircolors;
+  files.all."root/files/file1" = {
+    dirmode = "0700";
+    filemode = "0600";
+    user = "admin";
+    group = "users";
+    own = false;
+    file = ../include/home/.dircolors;
+  };
+
+  files.all."root/link1".link = ../include/home/.dircolors;
+  files.all."root/links/link1" = {
+    dirmode = "0700";
+    filemode = "0600";
+    user = "admin";
+    group = "users";
+    own = false;
+    link = ../include/home/.dircolors;
+  };
+
+  # Dir cases
+  files.all."root/.config".dir = ../include/home/.config;
 
 #  config.foo = mkMerge [
 #    (mkIf atHome {
