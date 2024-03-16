@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -veuo pipefail           # configure an immediate fail if something goes badly
+set -euo pipefail           # configure an immediate fail if something goes badly
 shopt -s extglob            # enable extended globbing
 
 # --------------------------------------------------------------------------------------------------
@@ -10,25 +10,12 @@ shopt -s extglob            # enable extended globbing
 # Example:
 #   ./options/files/install /nix/store/apzmd7w7kl9nhx66sxiagn9dv09v01m8-files /nix
 #
-# ### Features
-# - support owning directories with their own permissions '<dir>/.dir'
-# - removes old 'owned' directories i.e. those that were specifically added with the '<dir>/.dir'
-# - single base '/nix/files' link redirect that allows for a pseudo atomic switching
-# - skips creating correct links that already exist
-# - copies over files with mode, user and group
-# - sanitizes '<file>.meta.<type>' metadata files to trim whitespace from properties
-# - supports levels of link indirection
-# - supports spaces in file names
-# - supports .dotfiles i.e. files prefixed with .
-# - supports directory metadata <file>.meta.dir for ownership of directories
-# - support files inside nested directories
-# - removes any files that don't exist in the new files
-#
 # ### Backlog
 #
 # ### Testing
 # - run tests with the following where temp is a directory full of files representing the store path
 #   ./options/files/install temp .
+#
 # - you can quickly delete all installed files by just pointing at an empty directory as your source
 #   mkdir test; ./options/files/install test .
 # --------------------------------------------------------------------------------------------------
@@ -96,7 +83,9 @@ copy() {
   install -C -m $filemode -o $user -g $group "$_src" "$_target"
 
   # Only track the file if we own it
-  [[ "$own" == "true" ]] && echo "$_target" >> "$log"
+  if [[ "$own" == "true" ]]; then
+    echo "$_target" >> "$log"
+  fi
 }
 
 # Link the given source store path to the implicated destination
@@ -123,7 +112,9 @@ link() {
   fi
 
   # Only track the link if we own it
-  [[ "$own" == "true" ]] && echo "$_target" >> "$log"
+  if [[ "$own" == "true" ]]; then
+    echo "$_target" >> "$log"
+  fi
 }
 
 # Clean up any files left over from the previous install
@@ -146,7 +137,11 @@ clean() {
     # Remove the file if it no longer exists
     if [[ "$_exists" != true ]]; then
       echo " removing: $x"
-      [[ -d "$x" ]] && rm -rf "$x" || rm -f "$x"
+      if [[ -d "$x" ]]; then
+        rm -rf "$x"
+      else
+        rm -f "$x"
+      fi
     fi
   done
 }
@@ -161,7 +156,9 @@ mkdirs() {
     mkdir_p "$_target"                        # create all directories
 
     # Only track the link if we own it
-    [[ "$own" == "true" ]] && echo "$(dirname "$_target")" >> "$log"
+    if [[ "$own" == "true" ]]; then
+      echo "$(dirname "$_target")" >> "$log"
+    fi
   done
 }
 
@@ -178,8 +175,15 @@ mkfiles() {
     # In this way we can switch all links at once when we update the 'files' link.
     _src="${files}${_src}"                    # add on new path prefix e.g. /nix/files/etc/foo
 
-    [[ "$kind" == "file" ]] && copy "$_src"   # copy nix store path item to system
-    [[ "$kind" == "link" ]] && link "$_src"   # link nix store path item to system
+    # copy nix store path item to system
+    if [[ "$kind" == "file" ]]; then
+      copy "$_src"
+    fi
+
+    # link nix store path item to system
+    if [[ "$kind" == "link" ]]; then
+      link "$_src"
+    fi
   done
 }
 
