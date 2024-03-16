@@ -31,7 +31,6 @@
     filemode = "0600";
     user = "admin";
     group = "users";
-    own = false;
     text = "this is a nested test file test";
   };
   files.all."root/text.link".text = "this is a text test";
@@ -43,7 +42,6 @@
     filemode = "0600";
     user = "admin";
     group = "users";
-    own = false;
     file = ../include/home/.dircolors;
   };
 
@@ -53,12 +51,11 @@
     filemode = "0600";
     user = "admin";
     group = "users";
-    own = false;
     link = ../include/home/.dircolors;
   };
 
   # Dir cases
-  files.all."root/.config".dir = ../include/home/.config;
+  files.all."root/.config" = { own=true; dir = ../include/home/.config; };
 
 #  config.foo = mkMerge [
 #    (mkIf atHome {
