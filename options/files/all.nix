@@ -60,12 +60,13 @@ let
     track() {
       local src="$1"              # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
       local dst="$2"              # Destination path to deploy to e.g. 'root/foobar'
-      local kind="$3"             # Kind of file being created [ link | file | dir ]
+      local kind="$3"             # Kind of file being created [ copy | file | dir ]
       local dirmode="$4"          # Mode to use for directories
       local filemode="$5"         # Mode to use for files
       local user="$6"             # Owner to use for file and/or directories
       local group="$7"            # Group to use for file and/or directories
       local own="$8"              # Own the the file or directory
+      local op="$9"               # Operation type [ contents | direct ]
 
       # Validation on inputs
       [[ ''${dst:0:1} == "/" ]] && echo "paths must not start with a /" && exit 1
@@ -90,6 +91,7 @@ let
 
       # Add the metadata file content
       echo "Metadata: $meta"
+      echo "$op" >> "$meta"
       echo "$kind" >> "$meta"
       echo "$src" >> "$meta"
       echo "$dirmode" >> "$meta"
@@ -113,6 +115,7 @@ let
       entry.user
       entry.group
       entry.own
+      entry.op
     ]) files'}
   '';
 
@@ -230,6 +233,18 @@ in
                 specify the file's properties and likewise user, group and dirmode for directories. 
                 Similarly for 'link' dirmode, user, and group will set the directory properties of 
                 any directories needing to be created for the link.
+              '';
+            };
+
+            op = mkOption {
+              type = types.str;
+              default = "direct";
+              example = "contents";
+              description = lib.mdDoc ''
+                Operation can be one of [ contents | direct ] and indicates the type of operation 
+                being performed. Perfer setting this via the helper options: copyIn, linkIn.
+                 - 'direct' means install the given file or directory at the given target path
+                 - 'contents' means install the file or contents of directory into the given target
               '';
             };
 

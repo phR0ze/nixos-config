@@ -37,13 +37,14 @@ metadata() {
   # Read the copy metadata into an array
   # - t trims the newline off the string
   readarray -t meta < "$_metafile"
-  kind="${meta[0]}"      # kind of object: file, link, dir
-  src="${meta[1]}"       # nix store path of the object
-  dirmode="${meta[2]}"   # get trimmed dirmode
-  filemode="${meta[3]}"  # get trimmed filemode
-  user="${meta[4]}"      # get trimmed user
-  group="${meta[5]}"     # get trimmed group
-  own="${meta[6]}"       # get trimmed group
+  op="${meta[0]}"         # operation type [ direct | contents ]
+  kind="${meta[1]}"       # kind of object [ copy, link, dir ]
+  src="${meta[2]}"        # nix store path of the object
+  dirmode="${meta[3]}"    # mode for any directories needing created
+  filemode="${meta[4]}"   # mode for any files needing created
+  user="${meta[5]}"       # user for any directories or files being created
+  group="${meta[6]}"      # group for any directories or files being created
+  own="${meta[7]}"        # bool indicating if we should clean up this object
 }
 
 # Create missing directories with the given metadata in dirmode, user, group
