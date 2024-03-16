@@ -32,7 +32,7 @@
     user = "admin";
     group = "users";
     own = false;
-    text = ../include/home/.dircolors;
+    text = "this is a nested test file test";
   };
   files.all."root/text.link".text = "this is a text test";
 
