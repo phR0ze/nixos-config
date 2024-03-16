@@ -34,7 +34,7 @@
     own = false;
     text = ../include/home/.dircolors;
   };
-  files.all."root/text.link".text = ../include/home/.dircolors;
+  files.all."root/text.link".text = "this is a text test";
 
   # File cases
   files.all."root/.dircolors".file = ../include/home/.dircolors;
