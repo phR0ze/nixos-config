@@ -70,7 +70,8 @@ let
       # Validation on inputs
       [[ ''${dst:0:1} == "/" ]] && echo "paths must not start with a /" && exit 1
       [[ ''${dst:0-1} == "/" ]] && echo "paths must not end with a /" && exit 1
-      [[ ''${dst} == *".meta" ]] && echo "paths must not end with .meta" && exit 1
+      [[ "$dst" == *".meta" ]] && echo "paths must not end with .meta" && exit 1
+      [[ -e "$src" && "$kind" == "dir" ]] && echo "store path is a file and kind is dir" && exit 1
 
       echo "Linking: $src -> $out/$dst"
 
@@ -135,12 +136,12 @@ in
         files."/root/.dircolors".text = "this is a test";
 
         # Include a local file as your target
-        files."/root/.dircolors".file = ../include/home/.dircolors;
+        files."/root/.dircolors".copy = ../include/home/.dircolors;
 
         # Multi file example
         files = {
           "/etc/asound.conf".text = "autospawn=no";
-          "/root/.dircolors".file = ../include/home/.dircolors;
+          "/root/.dircolors".copy = ../include/home/.dircolors;
           "/etc/openal/alsoft.conf".link =  ../include/etc/openal/alsoft.conf;
         };
       '';
@@ -152,7 +153,7 @@ in
             enable = mkOption {
               type = types.bool;
               default = true;
-              description = lib.mdDoc "Whether the file should be installed at the target path.";
+              description = lib.mdDoc "Whether the source should be installed at the target path.";
             };
 
             target = mkOption {
@@ -165,7 +166,7 @@ in
               type = types.nullOr types.lines;
               description = lib.mdDoc ''
                 Raw text to be converted into a nix store object and then linked by default to the 
-                indicated target path. To make this a file at the target location set 'kind="file"'.
+                indicated target path. To make this a file at the target location set 'kind="copy"'.
                 - sets 'source' to the given file
                 - sets 'kind' to link
                 - sets 'own' to true
@@ -196,14 +197,14 @@ in
               '';
             };
 
-            file = mkOption {
+            copy = mkOption {
               default = null;
               type = types.nullOr types.path;
               example = "../include/home/.dircolors";
               description = lib.mdDoc ''
                 Path to the local file to install in system. This is a convenience option to set the:
                 - sets 'source' to the given file
-                - sets 'kind' to link
+                - sets 'kind' to copy
                 - sets 'own' to true
               '';
             };
@@ -213,7 +214,7 @@ in
               example = "../include/home/.dircolors";
               description = lib.mdDoc ''
                 Path of the local file to store or a pre-stored path. Prefer setting this value using 
-                the helper options 'file', 'dir', 'link', or 'text'.
+                the helper options 'copy', 'dir', 'link', or 'text'.
                 e.g. #1: ../include/home/.dircolors;
                 e.g. #2: pkgs.writeText "root-.dircolors" (lib.fileContents ../include/home/.dircolors);
               '';
@@ -222,10 +223,10 @@ in
             kind = mkOption {
               type = types.str;
               default = "link";
-              example = "file";
+              example = "copy";
               description = lib.mdDoc ''
-                Kind can be one of [ file | link | dir ] and indicates the type of object being 
-                created. When 'file' is used the user, group and filemode properties will be used to 
+                Kind can be one of [ copy | link | dir ] and indicates the type of object being 
+                created. When 'copy' is used the user, group and filemode properties will be used to 
                 specify the file's properties and likewise user, group and dirmode for directories. 
                 Similarly for 'link' dirmode, user, and group will set the directory properties of 
                 any directories needing to be created for the link.

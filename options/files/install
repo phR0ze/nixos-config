@@ -176,7 +176,7 @@ mkfiles() {
     _src="${files}${_src}"                    # add on new path prefix e.g. /nix/files/etc/foo
 
     # copy nix store path item to system
-    if [[ "$kind" == "file" ]]; then
+    if [[ "$kind" == "copy" ]]; then
       copy "$_src"
     fi
 
