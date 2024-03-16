@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail           # configure an immediate fail if something goes badly
+set -veuo pipefail           # configure an immediate fail if something goes badly
 shopt -s extglob            # enable extended globbing
 
 # --------------------------------------------------------------------------------------------------
