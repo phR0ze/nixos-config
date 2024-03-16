@@ -38,17 +38,6 @@ files="$dst/files"        # link to current files store path
 log="$dst/files.log"      # file tracking all files copied or linked
 tmplog="$dst/files.tmp"   # old file tracking all files copied or linked
 
-# Trim leading and trailing whitespace
-trimspace() {
-  local _result="$1"                      # return value
-  local _val="$2"                         # value to trim
-
-  _val="${_val##+([[:space:]])}"          # trim leading whitespace
-  _val="${_val%%+([[:space:]])}"          # trim trailing whitespace
-
-  eval "$_result"="'$_val'"               # return as string
-}
-
 # Read the metadata for the file and/or directories
 # Sets global variables:
 # - dirmode
@@ -56,17 +45,18 @@ trimspace() {
 # - user
 # - group
 metadata() {
-  local _metafile="${1}"                  # name of the metadata file to read
+  local _metafile="${1}" # name of the metadata file to read
 
   # Read the copy metadata into an array
   # - t trims the newline off the string
   readarray -t meta < "$_metafile"
-  trimspace kind "${meta[0]}"             # kind of object: file, link, dir
-  trimspace src "${meta[1]}"              # nix store path of the object
-  trimspace dirmode "${meta[2]}"          # get trimmed dirmode
-  trimspace filemode "${meta[3]}"         # get trimmed filemode
-  trimspace user "${meta[4]}"             # get trimmed user
-  trimspace group "${meta[5]}"            # get trimmed group
+  kind="${meta[0]}"      # kind of object: file, link, dir
+  src="${meta[1]}"       # nix store path of the object
+  dirmode="${meta[2]}"   # get trimmed dirmode
+  filemode="${meta[3]}"  # get trimmed filemode
+  user="${meta[4]}"      # get trimmed user
+  group="${meta[5]}"     # get trimmed group
+  own="${meta[6]}"       # get trimmed group
 }
 
 # Create missing directories with the given metadata in dirmode, user, group
@@ -104,7 +94,9 @@ copy() {
   # - overwrites the existing target if it exists
   # - resolves link indirection recursively to find original source
   install -C -m $filemode -o $user -g $group "$_src" "$_target"
-  echo "$_target" >> "$log"
+
+  # Only track the file if we own it
+  [[ "$own" == "true" ]] && echo "$_target" >> "$log"
 }
 
 # Link the given source store path to the implicated destination
@@ -127,8 +119,8 @@ link() {
     echo "  leaving: $_src -> $_target"
   fi
 
-  # Regardless of updating the link we depend on it
-  echo "$_target" >> "$log"
+  # Only track the link if we own it
+  [[ "$own" == "true" ]] && echo "$_target" >> "$log"
 }
 
 # Clean up any files left over from the previous install
@@ -164,7 +156,9 @@ mkdirs() {
     metadata "$x"                             # load the metadata
     _target="${x#"$pkg"}"                     # trim off the store path prefix
     mkdir_p "$_target"                        # create all directories
-    echo "$(dirname "$_target")" >> "$log"    # track owned directories
+
+    # Only track the link if we own it
+    [[ "$own" == "true" ]] && echo "$(dirname "$_target")" >> "$log"
   done
 }
 

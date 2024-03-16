@@ -131,6 +131,8 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
+* [ ] Conflicts: file names, directory names with different modes or permissions
+* [ ] Support installing directories
 * [ ] Support installing binaries
 * [ ] Include missing hicolor icons - fall back icons not working `XDG_ICON_DIRS`
 * [ ] Build new option `home.file`
