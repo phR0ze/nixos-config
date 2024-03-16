@@ -157,12 +157,12 @@ mkdirs() {
     mkdir_p "$_target"                        # create all directories
 
     # Create all sub directories
-    find "$x" -mindepth 1 -type d | while read y; do
+    find "$src" -mindepth 1 -type d | while read y; do
       echo "creating dir: $y"
     done
 
     # Create files
-    find "$x" -type f | while read y; do
+    find "$src" -type f | while read y; do
       if [[ "$kind" == "copy" ]]; then
         echo "copying: $y"
       fi
