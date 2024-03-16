@@ -95,7 +95,7 @@ let
       echo "$filemode" >> "$meta"
       echo "$user" >> "$meta"
       echo "$group" >> "$meta"
-      echo "$own" >> "$meta"
+      [[ $own -eq 1 ]] && echo "true" >> "$meta" || echo "false" >> "$meta"
     }
 
     # Convert the files derivations into a list of calls to track by taking all the file
