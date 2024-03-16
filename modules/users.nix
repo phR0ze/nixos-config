@@ -20,7 +20,9 @@
 
   # Initialize user home
   # ------------------------------------------------------------------------------------------------
-  files.all."root/.config".dir = ../include/home/.config/*;
+  files.all."root/.config".dir = ../include/home/.config;
+  #files.all."root/.config".linkIn = ../include/home/.config;
+  #files.all."root/.config".copyIn = ../include/home/.config;
 
 #  security.pam.services.login.makeHomeDir = true;
 #  users.extraUsers."me" = {
