@@ -307,8 +307,10 @@ in
             target = mkDefault name;
 
             # Set kind based off the convenience options: file, link, dir, text
-            kind = if (config.dir != null) then "dir"
-              else mkIf (config.copy != null) "copy";
+            kind = if (config.dir != null) then (mkForce "dir")
+              else if (config.link != null) then (mkForce "link")
+              else if (config.copy != null) then (mkForce "copy")
+              else mkIf (config.copyIn != null) (mkForce "copy");
 
             # Set based off the convenience options
             op = if (config.copyIn != null) then (mkForce "contents")
@@ -316,17 +318,17 @@ in
 
             # Set based off the convenience options
             own = if (config.copy != null) then (mkDefault true)
+              else if (config.copyIn != null) then (mkDefault true)
               else if (config.link != null) then (mkDefault true)
               else if (config.text != null) then (mkDefault true)
               else (mkDefault false);
 
             # Set based off the convenience options
-            source = if (config.copy != null) then config.copy
-              else if (config.link != null) then config.link
-              else if (config.dir != null) then config.dir
-              else mkIf (config.text != null) (
-                mkDerivedConfig options.text (pkgs.writeText name)
-              );
+            source = if (config.copy != null) then (mkForce config.copy)
+              else if (config.copyIn != null) then (mkForce config.copyIn)
+              else if (config.link != null) then (mkForce config.link)
+              else if (config.dir != null) then (mkForce config.dir)
+              else mkIf (config.text != null) (mkForce (mkDerivedConfig options.text (pkgs.writeText name)));
           };
         }
       ));
