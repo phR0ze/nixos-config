@@ -32,8 +32,7 @@ shopt -s extglob            # enable extended globbing
 # - you can quickly delete all installed files by just pointing at an empty directory as your source
 #   mkdir test; ./options/files/install test .
 # --------------------------------------------------------------------------------------------------
-
-src="$(realpath "$1")"    # the /nix/store path with all the files that need installed
+pkg="$(realpath "$1")"    # the /nix/store path with all the files that need installed
 dst="$(realpath "$2")"    # destination directory for tracking e.g. /nix
 files="$dst/files"        # link to current files store path
 log="$dst/files.log"      # file tracking all files copied or linked
@@ -41,13 +40,13 @@ tmplog="$dst/files.tmp"   # old file tracking all files copied or linked
 
 # Trim leading and trailing whitespace
 trimspace() {
-  local result="$1"                       # return value
-  local val="$2"                          # value to trim
+  local _result="$1"                      # return value
+  local _val="$2"                         # value to trim
 
-  val="${val##+([[:space:]])}"            # trim leading whitespace
-  val="${val%%+([[:space:]])}"            # trim trailing whitespace
+  _val="${_val##+([[:space:]])}"          # trim leading whitespace
+  _val="${_val%%+([[:space:]])}"          # trim trailing whitespace
 
-  eval "$result"="'$val'"                 # return as string
+  eval "$_result"="'$_val'"               # return as string
 }
 
 # Read the metadata for the file and/or directories
@@ -57,93 +56,79 @@ trimspace() {
 # - user
 # - group
 metadata() {
-  local metafile="${1}"                   # name of the metadata file to read
+  local _metafile="${1}"                  # name of the metadata file to read
 
   # Read the copy metadata into an array
   # - t trims the newline off the string
-  readarray -t meta < "$metafile"
-  trimspace dirmode "${meta[0]}"          # get trimmed dirmode
-  trimspace filemode "${meta[1]}"         # get trimmed filemode
-  trimspace user "${meta[2]}"             # get trimmed user
-  trimspace group "${meta[3]}"            # get trimmed group
+  readarray -t meta < "$_metafile"
+  trimspace kind "${meta[0]}"             # kind of object: file, link, dir
+  trimspace src "${meta[1]}"              # nix store path of the object
+  trimspace dirmode "${meta[2]}"          # get trimmed dirmode
+  trimspace filemode "${meta[3]}"         # get trimmed filemode
+  trimspace user "${meta[4]}"             # get trimmed user
+  trimspace group "${meta[5]}"            # get trimmed group
 }
 
 # Create missing directories with the given metadata in dirmode, user, group
 mkdir_p() {
-  local dir="$(dirname "$1")"             # directory of the file we are working with
+  local _dir="$(dirname "$1")"            # directory of the file we are working with
 
   # Recurse until we get to an existing directory
-  if [[ -d "$dir" ]]; then
+  if [[ -d "$_dir" ]]; then
     return
   else
-    mkdir_p "$dir"
+    mkdir_p "$_dir"
   fi
 
   # Create the missing directory component
-  echo " creating: $dir"
+  echo " creating: $_dir"
   echo "        >> filemode=$filemode, dirmode=$dirmode, user=$user, group=$group"
-  mkdir -m $dirmode "$dir"
-  chown $user:$group "$dir"
-}
-
-# Create owned directories
-mkdirs() {
-  local target
-
-  find "$src" -name ".meta.dir" | while read x; do # handles spaces in results
-    target="${x#"$src"}"                      # trim off the store path prefix
-    metadata "$x"                             # load the metadata
-    mkdir_p "$target"                         # create all directories
-    echo "$(dirname "$target")" >> "$log"     # track owned directories
-  done
+  mkdir -m $dirmode "$_dir"
+  chown $user:$group "$_dir"
 }
 
 # Copy the given source store path to the implicated destination using the metadata file for mode, 
 # user and group properties
 copy() {
-  local source="${1}"                     # source store file path
-  local target="${1#"$src"}"              # trim off the store path prefix
+  local _src="${1}"                         # intermediate source path e.g. /nix/files/etc/foo
+  local _target="${1#"$files"}"             # trim off the nix pkg prefix e.g. /etc/foo
 
   # Create any needed directories
-  metadata "$source.meta.file"
-  mkdir_p "$target"
+  mkdir_p "$_target"
 
-  echo "  copying: $source -> $target"
+  echo "  copying: $_src -> $_target"
   echo "        >> filemode=$filemode, dirmode=$dirmode, user=$user, group=$group"
 
   # install
   # - is more performant as it does this operation in one go
   # - overwrites the existing target if it exists
   # - resolves link indirection recursively to find original source
-  install -C -m $filemode -o $user -g $group "$source" "$target"
-  echo "$target" >> "$log"
+  install -C -m $filemode -o $user -g $group "$_src" "$_target"
+  echo "$_target" >> "$log"
 }
 
 # Link the given source store path to the implicated destination
 link() {
-  local _src="${1}"                       # source store file path
-  local target="${1#"$src"}"              # trim off the store path prefix
-
-  # Update source to use the intermediate files path which is linked back to the source store path. 
-  # In this way we can switch all links at once when we update the 'files' link.
-  _src="${files}${target}"
+  local _src="${1}"                         # intermediate source path e.g. /nix/files/etc/foo
+  local _target="${1#"$files"}"             # trim off the nix pkg prefix e.g. /etc/foo
 
   # Create any needed directories
-  metadata "$_src.meta.link"
-  mkdir_p "$target"
+  mkdir_p "$_target"
 
   # Update link if it doesn't exist or is incorrect
-  local _path="$(readlink "$target")"
-  if [[ "$_src" != "$_path" ]]; then
-    echo "  linking: $_src -> $target"
-    rm -f "$target"                       # cleaner to just ensure it doesn't exist
-    ln -sf "$_src" "$target"
+  if [[ ! -e "$_target" ]]; then
+    echo "  linking: $_src -> $_target"
+    ln -sf "$_src" "$_target"
+  elif [[ "$(realpath "$_target")" != "$src" ]]; then
+    echo " updating: $_src -> $_target"
+    rm -f "$_target"                       # cleaner to just ensure it doesn't exist
+    ln -sf "$_src" "$_target"
   else
-    echo "  leaving: $_src -> $target"
+    echo "  leaving: $_src -> $_target"
   fi
 
   # Regardless of updating the link we depend on it
-  echo "$target" >> "$log"
+  echo "$_target" >> "$log"
 }
 
 # Clean up any files left over from the previous install
@@ -155,21 +140,55 @@ clean() {
   for x in "${oldfiles[@]}"; do
 
     # Search the new files
-    exists=false
+    local _exists=false
     for y in "${newfiles[@]}"; do
       if [[ "$x" == "$y" ]]; then
-        exists=true
+        _exists=true
         break
       fi
     done
 
     # Remove the file if it no longer exists
-    if [[ "$exists" != true ]]; then
+    if [[ "$_exists" != true ]]; then
       echo " removing: $x"
       [[ -d "$x" ]] && rm -rf "$x" || rm -f "$x"
     fi
   done
 }
+
+# Loop through directories
+# - handles spaces in directory names
+mkdirs() {
+  local _target
+  find "$pkg" -name ".meta.dir" | while read x; do
+    metadata "$x"                             # load the metadata
+    _target="${x#"$pkg"}"                     # trim off the store path prefix
+    mkdir_p "$_target"                        # create all directories
+    echo "$(dirname "$_target")" >> "$log"    # track owned directories
+  done
+}
+
+# Loop through files
+# - handles spaces in file names
+mkfiles() {
+  local _src
+  find "$pkg" -name "*.meta.file" | while read x; do
+    metadata "$x"                             # load the metadata
+    _src="${x#"$pkg"}"                        # trim off the nix pkg prefix e.g. /etc/foo
+    _src="${_src%".meta.file"}"               # trim off the .meta.file suffix
+
+    # Use the saved pkg link /nix/files as an intermediate to store path.
+    # In this way we can switch all links at once when we update the 'files' link.
+    _src="${files}${_src}"                    # add on new path prefix e.g. /nix/files/etc/foo
+
+    [[ "$kind" == "file" ]] && copy "$_src"   # copy nix store path item to system
+    [[ "$kind" == "link" ]] && link "$_src"   # link nix store path item to system
+  done
+}
+
+# Install files
+# --------------------------------------------------------------------------------------------------
+echo "installing files from ${pkg}"
 
 # Save off the existing tracking files
 [[ ! -e "$log" ]] && touch "$log"
@@ -178,30 +197,12 @@ mv "$log" "$tmplog" && touch "$log"
 # Update the source store path first to avoid creating this as a directory during the file directory 
 # creation process. This will switch all linked files over to our new source store path.
 if [[ ! -e "$files" ]]; then
-  ln -sf "$src" "$files"
-elif [[ "$files" != "$src" ]]; then
+  ln -sf "$pkg" "$files"
+elif [[ "$(realpath "$files")" != "$pkg" ]]; then
   rm -f "$files"
-  ln -sf "$src" "$files"
+  ln -sf "$pkg" "$files"
 fi
 
-# Process all files from the source store path
-echo "installing files from ${src}"
-
-# Process owned directories first
-mkdirs
-
-# Process all the files next
-find "$src" -type l | while read x; do      # handles spaces in results
-  
-  # Copy file to destination
-  if [[ -e "$x.meta.file" ]]; then
-    copy "$x"
-
-  # Link file to destination
-  else
-    link "$x"
-  fi
-done
-
-# Clean up any files that no longer exist
-clean
+mkdirs      # make dirs first
+mkfiles     # make files second
+clean       # clean up last

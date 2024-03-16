@@ -43,36 +43,33 @@ let
   # - files and directories are owned by root by default
   # ------------------------------------------------------------------------------------------------
   filesPackage = pkgs.runCommandLocal "files" {} ''
-    set -euo pipefail       # Configure an immediate fail if something goes badly
-    mkdir -p "$out"         # Creates the nix store path to populate
+    set -euo pipefail             # Configure an immediate fail if something goes badly
+    mkdir -p "$out"               # Creates the nix store path to populate
 
     track() {
-      local src="$1"        # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
-      local dst="$2"        # Destination path to deploy to e.g. 'root/foobar'
-      local kind="$3"       # Kind of file being created [ link | file | dir ]
-      local dirmode="$4"    # Mode to use for directories
-      local filemode="$5"   # Mode to use for files
-      local user="$6"       # Owner to use for file and/or directories
-      local group="$7"      # Group to use for file and/or directories
+      local src="$1"              # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
+      local dst="$2"              # Destination path to deploy to e.g. 'root/foobar'
+      local kind="$3"             # Kind of file being created [ link | file | dir ]
+      local dirmode="$4"          # Mode to use for directories
+      local filemode="$5"         # Mode to use for files
+      local user="$6"             # Owner to use for file and/or directories
+      local group="$7"            # Group to use for file and/or directories
 
       # Validation on inputs
       [[ ''${dst:0:1} == "/" ]] && echo "paths must not start with a /" && exit 1
       [[ ''${dst:0-1} == "/" ]] && echo "paths must not end with a /" && exit 1
-      [[ ''${dst} == *".meta.file" ]] && echo "paths must not end with .meta.file" && exit 1
-      [[ ''${dst} == *".meta.link" ]] && echo "paths must not end with .meta.link" && exit 1
-      [[ ''${dst} == *".meta.dir" ]] && echo "paths must not end with .meta.dir" && exit 1
+      [[ ''${dst} == *".meta" ]] && echo "paths must not end with .meta" && exit 1
 
       echo "Linking: $src -> $out/$dst"
 
       # Handle different kinds
-      local meta
       local dir
+      local meta
       if [[ "$kind" == "dir" ]]; then
-        meta="$out/$dst/.meta.dir"                      # craft metadata for directory
+        meta="$out/$dst/.meta.dir"                      # craft meta file for directory
         mkdir -p "$out/$dst"                            # create any needed directories
-        ln -sf "$src" "$out/$dst/test"                  # link in the directory store
       else
-        meta="$out/$dst.meta.$kind"                     # craft metadata for files or links
+        meta="$out/$dst.meta.file"                      # craft meta file name for files
         dir="$(dirname "$dst")"                         # grab the directory of the target
         [[ ''${dir} != "." ]] && mkdir -p "$out/$dir"   # create any needed directories
         ln -sf "$src" "$out/$dst"                       # link in the file content
@@ -80,6 +77,8 @@ let
 
       # Add the metadata file content
       echo "Metadata: $meta"
+      echo "$kind" >> "$meta"
+      echo "$src" >> "$meta"
       echo "$dirmode" >> "$meta"
       echo "$filemode" >> "$meta"
       echo "$user" >> "$meta"
