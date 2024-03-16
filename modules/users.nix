@@ -26,6 +26,7 @@
 
   # Text cases
   files.all."root/text/text.file" = {
+    enable = false;
     kind = "file";
     dirmode = "0700";
     filemode = "0600";
@@ -33,11 +34,12 @@
     group = "users";
     text = "this is a nested test file test";
   };
-  files.all."root/text.link".text = "this is a text test";
+  files.all."root/text.link" = { enable = false; text = "this is a text test"; };
 
   # File cases
-  files.all."root/.dircolors".file = ../include/home/.dircolors;
+  files.all."root/.dircolors" = { enable = false; file = ../include/home/.dircolors; };
   files.all."root/files/file1" = {
+    enable = false;
     dirmode = "0700";
     filemode = "0600";
     user = "admin";
@@ -45,8 +47,9 @@
     file = ../include/home/.dircolors;
   };
 
-  files.all."root/link1".link = ../include/home/.dircolors;
+  files.all."root/link1" = { enable = false; link = ../include/home/.dircolors; };
   files.all."root/links/link1" = {
+    enable = false;
     dirmode = "0700";
     filemode = "0600";
     user = "admin";
@@ -55,7 +58,7 @@
   };
 
   # Dir cases
-  files.all."root/.config" = { own=true; dir = ../include/home/.config; };
+  files.all."root/.config" = { enble = false; own = true; dir = ../include/home/.config; };
 
 #  config.foo = mkMerge [
 #    (mkIf atHome {
