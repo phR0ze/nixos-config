@@ -150,11 +150,17 @@ clean() {
 # Loop through directories
 # - handles spaces in directory names
 mkdirs() {
-  local _target
+  local _src
   find "$pkg" -name ".meta.dir" | while read x; do
     metadata "$x"                             # load the metadata
-    _target="${x#"$pkg"}"                     # trim off the store path prefix
-    mkdir_p "$_target"                        # create all directories
+    _src="${x#"$pkg"}"                        # trim off the store path prefix
+    _src="${_src%".meta.dir"}"                # trim off the meta suffix
+    mkdir_p "$_src"                           # create all directories
+
+    # Use in link path
+    # Use the saved pkg link /nix/files as an intermediate to store path.
+    # In this way we can switch all links at once when we update the 'files' link.
+    #_src="${files}${_src}"                    # add on new path prefix e.g. /nix/files/etc/foo
 
     # Create all sub directories
     find "$src" -mindepth 1 -type d | while read y; do
@@ -182,7 +188,7 @@ mkfiles() {
   find "$pkg" -name "*.meta.file" | while read x; do
     metadata "$x"                             # load the metadata
     _src="${x#"$pkg"}"                        # trim off the nix pkg prefix e.g. /etc/foo
-    _src="${_src%".meta.file"}"               # trim off the .meta.file suffix
+    _src="${_src%".meta.file"}"               # trim off the file suffix
 
     # Use the saved pkg link /nix/files as an intermediate to store path.
     # In this way we can switch all links at once when we update the 'files' link.
