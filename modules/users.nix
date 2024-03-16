@@ -18,57 +18,9 @@
     password = args.settings.userpass;  # temp password to change on first login
   };
 
-  # Initialize user home from /etc/skel on first login
+  # Initialize user home
   # ------------------------------------------------------------------------------------------------
-
-  # Disable
-  files.all."root/foobar1" = { enable = false; text = "this is a test"; };
-
-  # Text cases
-  files.all."root/text/text.file" = {
-    enable = false;
-    kind = "file";
-    dirmode = "0700";
-    filemode = "0600";
-    user = "admin";
-    group = "users";
-    text = "this is a nested test file test";
-  };
-  files.all."root/text.link" = { enable = false; text = "this is a text test"; };
-
-  # File cases
-  files.all."root/.dircolors" = { enable = false; file = ../include/home/.dircolors; };
-  files.all."root/files/file1" = {
-    enable = false;
-    dirmode = "0700";
-    filemode = "0600";
-    user = "admin";
-    group = "users";
-    file = ../include/home/.dircolors;
-  };
-
-  files.all."root/link1" = { enable = false; link = ../include/home/.dircolors; };
-  files.all."root/links/link1" = {
-    enable = false;
-    dirmode = "0700";
-    filemode = "0600";
-    user = "admin";
-    group = "users";
-    link = ../include/home/.dircolors;
-  };
-
-  # Dir cases
-  files.all."root/.config" = { enable = false; own = true; dir = ../include/home/.config; };
-
-#  config.foo = mkMerge [
-#    (mkIf atHome {
-#      option1 = something1;
-#      option2 = something2;
-#    })
-#    (mkIf !atHome {
-#      option3 = somethin3;
-#    })
-#  ];
+  files.all."root/.config".dir = ../include/home/.config/*;
 
 #  security.pam.services.login.makeHomeDir = true;
 #  users.extraUsers."me" = {
