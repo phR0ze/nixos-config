@@ -283,8 +283,8 @@ in
 
             # Set own based off kind if not already set
             own = if (config.file != null) then (mkDefault true)
-              else if (config.link != null) then (mkDefault true);
-              else if (config.text != null) then (mkDefault true);
+              else if (config.link != null) then (mkDefault true)
+              else if (config.text != null) then (mkDefault true)
               else (mkDefault false);
 
             # Set source based off the convenience options: file, link, dir, text
