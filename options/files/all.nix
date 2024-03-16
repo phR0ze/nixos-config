@@ -133,6 +133,7 @@ in
       description = lib.mdDoc ''
         Set of files to deploy in the target system.
         - destination paths must be relative to the root e.g. etc/foo
+        - only one operation can be used at at time [ copy | link | dir | text | copyIn | linkIn ]
       '';
       example = ''
         # Create a single file from raw text
@@ -212,6 +213,20 @@ in
               '';
             };
 
+            copyIn = mkOption {
+              default = null;
+              type = types.nullOr types.path;
+              example = "../include/home/.dircolors";
+              description = lib.mdDoc ''
+                Local file path to copy into the target or local directory path to copy contents of 
+                into the target. This is a convenience option to set the:
+                - sets 'source' to the given file or directory
+                - sets 'kind' to copy
+                - sets 'own' to true
+                - sets 'op' to direct
+              '';
+            };
+
             source = mkOption {
               type = types.path;
               example = "../include/home/.dircolors";
@@ -238,8 +253,6 @@ in
 
             op = mkOption {
               type = types.str;
-              default = "direct";
-              example = "contents";
               description = lib.mdDoc ''
                 Operation can be one of [ contents | direct ] and indicates the type of operation 
                 being performed. Perfer setting this via the helper options: copyIn, linkIn.
@@ -297,13 +310,17 @@ in
             kind = if (config.dir != null) then "dir"
               else mkIf (config.copy != null) "copy";
 
-            # Set own based off kind if not already set
+            # Set based off the convenience options
+            op = if (config.copyIn != null) then (mkForce "contents")
+              else (mkForce "direct");
+
+            # Set based off the convenience options
             own = if (config.copy != null) then (mkDefault true)
               else if (config.link != null) then (mkDefault true)
               else if (config.text != null) then (mkDefault true)
               else (mkDefault false);
 
-            # Set source based off the convenience options: file, link, dir, text
+            # Set based off the convenience options
             source = if (config.copy != null) then config.copy
               else if (config.link != null) then config.link
               else if (config.dir != null) then config.dir
