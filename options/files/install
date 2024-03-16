@@ -97,7 +97,7 @@ link() {
   mkdir_p "$_target"
 
   # Update link if it doesn't exist or is incorrect
-  if [[ ! -e "$_target" ]]; then
+  if [[ ! -f "$_target" ]]; then
     echo "  linking: $_src -> $_target"
     echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     ln -sf "$_src" "$_target"
@@ -192,12 +192,12 @@ mkfiles() {
 echo "installing files from ${pkg}"
 
 # Save off the existing tracking files
-[[ ! -e "$log" ]] && touch "$log"
+[[ ! -f "$log" ]] && touch "$log"
 mv "$log" "$tmplog" && touch "$log"
 
 # Update the source store path first to avoid creating this as a directory during the file directory 
 # creation process. This will switch all linked files over to our new source store path.
-if [[ ! -e "$files" ]]; then
+if [[ ! -f "$files" ]]; then
   ln -sf "$pkg" "$files"
 elif [[ "$(realpath "$files")" != "$pkg" ]]; then
   rm -f "$files"
