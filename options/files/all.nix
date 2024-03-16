@@ -77,18 +77,18 @@ let
 
       echo "Linking: $src -> $out/$dst"
 
-      # Handle different kinds
-      local dir
+      # Determine meta name
       local meta
       if [[ -d "$src" ]]; then
-        meta="$out/$dst/.meta.dir"                      # craft meta file for directory
-        mkdir -p "$out/$dst"                            # create any needed directories
+        meta="$out/$dst.meta.dir"                       # craft meta file for directory
       else
         meta="$out/$dst.meta.file"                      # craft meta file name for files
-        dir="$(dirname "$dst")"                         # grab the directory of the target
-        [[ ''${dir} != "." ]] && mkdir -p "$out/$dir"   # create any needed directories
-        ln -sf "$src" "$out/$dst"                       # link in the file content
       fi
+
+      # Link nix store path
+      local dir="$(dirname "$dst")"                     # grab the directory of the target
+      [[ ''${dir} != "." ]] && mkdir -p "$out/$dir"     # create any needed directories
+      ln -sf "$src" "$out/$dst"                         # link in the file content
 
       # Add the metadata file content
       echo "Metadata: $meta"
