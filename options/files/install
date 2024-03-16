@@ -72,7 +72,7 @@ mkdir_p() {
 
   # Create the missing directory component
   echo " creating: $_dir"
-  echo "        >> filemode=$filemode, dirmode=$dirmode, user=$user, group=$group"
+  echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
   mkdir -m $dirmode "$_dir"
   chown $user:$group "$_dir"
 }
@@ -87,7 +87,7 @@ copy() {
   mkdir_p "$_target"
 
   echo "  copying: $_src -> $_target"
-  echo "        >> filemode=$filemode, dirmode=$dirmode, user=$user, group=$group"
+  echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
 
   # install
   # - is more performant as it does this operation in one go
@@ -110,13 +110,16 @@ link() {
   # Update link if it doesn't exist or is incorrect
   if [[ ! -e "$_target" ]]; then
     echo "  linking: $_src -> $_target"
+    echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     ln -sf "$_src" "$_target"
   elif [[ "$(realpath "$_target")" != "$src" ]]; then
     echo " updating: $_src -> $_target"
+    echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     rm -f "$_target"                       # cleaner to just ensure it doesn't exist
     ln -sf "$_src" "$_target"
   else
     echo "  leaving: $_src -> $_target"
+    echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
   fi
 
   # Only track the link if we own it
