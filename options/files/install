@@ -197,7 +197,7 @@ mv "$log" "$tmplog" && touch "$log"
 
 # Update the source store path first to avoid creating this as a directory during the file directory 
 # creation process. This will switch all linked files over to our new source store path.
-if [[ ! -f "$files" ]]; then
+if [[ ! -d "$files" ]]; then
   ln -sf "$pkg" "$files"
 elif [[ "$(realpath "$files")" != "$pkg" ]]; then
   rm -f "$files"
