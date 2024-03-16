@@ -16,6 +16,7 @@
 #
 # ### Features
 # - pseudo atomic link switching via the /nix/files indirection link
+# - merges with existing directories overwriting files that conflict but leaving unowned files
 # - choose to install files as writable files or as links to readonly nix store paths
 # - choose to own the files or directories, defaults to owning files and not owning directories
 # - choose the mode, user, and group for files and or directories
@@ -79,7 +80,7 @@ let
       # Handle different kinds
       local dir
       local meta
-      if [[ "$kind" == "dir" ]]; then
+      if [[ -d "$src" ]]; then
         meta="$out/$dst/.meta.dir"                      # craft meta file for directory
         mkdir -p "$out/$dst"                            # create any needed directories
       else
