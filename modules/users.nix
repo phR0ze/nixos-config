@@ -58,7 +58,7 @@
   };
 
   # Dir cases
-  files.all."root/.config" = { enble = false; own = true; dir = ../include/home/.config; };
+  files.all."root/.config" = { enable = false; own = true; dir = ../include/home/.config; };
 
 #  config.foo = mkMerge [
 #    (mkIf atHome {
