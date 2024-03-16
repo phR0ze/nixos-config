@@ -156,8 +156,20 @@ mkdirs() {
     _target="${x#"$pkg"}"                     # trim off the store path prefix
     mkdir_p "$_target"                        # create all directories
 
-    # Only track the link if we own it
-    if [[ "$own" == "true" ]]; then
+    # Create all sub directories
+    find "$x/*" -type d | while read y; do
+      echo "creating dir: $y"
+    done
+
+    # Create files
+    find "$x/*" -type d | while read y; do
+      if [[ "$kind" == "copy" ]]; then
+        echo "copying: $y"
+      fi
+    done
+
+    # Only track the link if we own it and not 'contents'
+    if [[ "$own" == "true" && "$op" != "contents" ]]; then
       echo "$(dirname "$_target")" >> "$log"
     fi
   done
