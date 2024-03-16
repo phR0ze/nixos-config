@@ -280,16 +280,16 @@ in
 
             # Set kind based off the convenience options: file, link, dir, text
             kind = if (config.dir != null) then "dir"
-              else mkIf (config.file != null) "file";
+              else mkIf (config.copy != null) "copy";
 
             # Set own based off kind if not already set
-            own = if (config.file != null) then (mkDefault true)
+            own = if (config.copy != null) then (mkDefault true)
               else if (config.link != null) then (mkDefault true)
               else if (config.text != null) then (mkDefault true)
               else (mkDefault false);
 
             # Set source based off the convenience options: file, link, dir, text
-            source = if (config.file != null) then config.file
+            source = if (config.copy != null) then config.copy
               else if (config.link != null) then config.link
               else if (config.dir != null) then config.dir
               else mkIf (config.text != null) (
