@@ -131,13 +131,12 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Conflicts: file names, directory names with different modes or permissions
-* [ ] Support installing directories
-* [ ] Support installing binaries
+* [ ] Build new option `linkIn`
+* [ ] Build new option `files.home`
 * [ ] Include missing hicolor icons - fall back icons not working `XDG_ICON_DIRS`
-* [ ] Build new option `home.file`
 
 ## Sometime
+* [ ] Conflicts: file names, directory names with different modes or permissions
 * [ ] Move launcher to top
 * [ ] Move app panel to bottom
 * [ ] Choose default resolution for system
@@ -162,6 +161,8 @@ world though this already exists.
   * https://github.com/librephoenix/nixos-config
 
 ## Completed
+* [x] Support installing directories of files 
+* [x] Support installing arbitrary files including binaries
 * [x] Build out standard xfce desktop
 * [x] ./clu clean store `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
 * [x] Fix nerd fonts in shell
