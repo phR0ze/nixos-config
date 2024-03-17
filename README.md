@@ -131,7 +131,6 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Build new option `linkIn`
 * [ ] Build new option `files.home`
 * [ ] Include missing hicolor icons - fall back icons not working `XDG_ICON_DIRS`
 
@@ -161,6 +160,7 @@ world though this already exists.
   * https://github.com/librephoenix/nixos-config
 
 ## Completed
+* [x] Implemented new options for files `copyIn`, `linkIn`
 * [x] Support installing directories of files 
 * [x] Support installing arbitrary files including binaries
 * [x] Build out standard xfce desktop
