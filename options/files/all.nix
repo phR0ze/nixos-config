@@ -57,19 +57,18 @@ let
     track() {
       local src="$1"              # Source e.g. '/nix/store/23k9zbg0brggn9w40ybk05xw5r9hwyng-files-root-foobar'
       local dst="$2"              # Destination path to deploy to e.g. 'root/foobar'
-      local kind="$3"             # Kind of file being created [ copy | file | dir ]
+      local kind="$3"             # Kind of file being created
       local dirmode="$4"          # Mode to use for directories
       local filemode="$5"         # Mode to use for files
       local user="$6"             # Owner to use for file and/or directories
       local group="$7"            # Group to use for file and/or directories
       local own="$8"              # Own the the file or directory
-      local op="$9"               # Operation type [ contents | direct ]
+      local op="$9"               # Operation type
 
       # Validation on inputs
       [[ ''${dst:0:1} == "/" ]] && echo "paths must not start with a /" && exit 1
       [[ ''${dst:0-1} == "/" ]] && echo "paths must not end with a /" && exit 1
       [[ "$dst" == *".meta" ]] && echo "paths must not end with .meta" && exit 1
-      [[ ! -d "$src" && "$kind" == "dir" ]] && echo "store path $src is a file and kind is dir" && exit 1
 
       echo "Linking: $src -> $out/$dst"
 
@@ -130,7 +129,7 @@ in
       description = lib.mdDoc ''
         Set of files to deploy in the target system.
         - destination paths must be relative to the root e.g. etc/foo
-        - only one operation can be used at at time [ copy | link | dir | text | copyIn | linkIn ]
+        - various convenience options allow for setting a combination of other options
       '';
       example = ''
         # Create a single file from raw text
@@ -138,6 +137,9 @@ in
 
         # Include a local file as your target
         files.all."root/.dircolors".copy = ../include/home/.dircolors;
+
+        # Include a local file as a readonly link
+        files.all."root/.dircolors".link = ../include/home/.dircolors;
 
         # Multi file example
         files.all = {
@@ -169,72 +171,38 @@ in
                 Raw text to be converted into a nix store object and then linked by default to the 
                 indicated target path. To make this a file at the target location set 'kind="copy"'.
                 - sets 'source' to the given file
-                - sets 'kind' to link
-                - sets 'own' to true
-              '';
-            };
-
-            dir = mkOption {
-              default = null;
-              type = types.nullOr types.path;
-              example = "../include/home";
-              description = lib.mdDoc ''
-                Path to the local directory to install in system. This is a convenience option:
-                - sets 'source' to the given directory
-                - sets 'kind' to dir
-                - sets 'own' to false
-              '';
-            };
-
-            link = mkOption {
-              default = null;
-              type = types.nullOr types.path;
-              example = "../include/home/.dircolors";
-              description = lib.mdDoc ''
-                Path to the local file to install in system as a link. This is a convenience option:
-                - sets 'source' to the given file
-                - sets 'kind' to link
-                - sets 'own' to true
-              '';
-            };
-
-            linkIn = mkOption {
-              default = null;
-              type = types.nullOr types.path;
-              example = "../include/home/.dircolors";
-              description = lib.mdDoc ''
-                Local file path to link into the target or local directory path to link contents of 
-                into the target. This is a convenience option to set the:
-                - sets 'source' to the given file or directory
-                - sets 'kind' to link
-                - sets 'own' to true
-                - sets 'op' to direct
+                - sets 'kind' to 'link'
+                - sets 'own' to 'true'
               '';
             };
 
             copy = mkOption {
               default = null;
               type = types.nullOr types.path;
-              example = "../include/home/.dircolors";
+              example = ''
+                files.all."root/.config".copy = ../include/home/.config;
+                files.all."root/.dircolors".copy = ../include/home/.dircolors;
+              '';
               description = lib.mdDoc ''
-                Path to the local file to install in system. This is a convenience option to set the:
+                Local file path or local directory path to install in system:
                 - sets 'source' to the given file
-                - sets 'kind' to copy
-                - sets 'own' to true
+                - sets 'kind' to 'copy'
+                - sets 'own' to 'true' for files and 'false' for directories
               '';
             };
 
-            copyIn = mkOption {
+            link = mkOption {
               default = null;
               type = types.nullOr types.path;
-              example = "../include/home/.dircolors";
+              example = ''
+                files.all."root/.config".link = ../include/home/.config;
+                files.all."root/.dircolors".link = ../include/home/.dircolors;
+              '';
               description = lib.mdDoc ''
-                Local file path to copy into the target or local directory path to copy contents of 
-                into the target. This is a convenience option to set the:
+                Local file path or local directory path to install in system as a link:
                 - sets 'source' to the given file or directory
-                - sets 'kind' to copy
-                - sets 'own' to true
-                - sets 'op' to direct
+                - sets 'kind' to 'link'
+                - sets 'own' to 'true' for files and 'false' for directories
               '';
             };
 
@@ -252,7 +220,6 @@ in
             kind = mkOption {
               type = types.str;
               default = "link";
-              example = "copy";
               description = lib.mdDoc ''
                 Kind can be one of [ copy | link | dir ] and indicates the type of object being 
                 created. When 'copy' is used the user, group and filemode properties will be used to 
@@ -264,23 +231,23 @@ in
 
             op = mkOption {
               type = types.str;
+              default = "default";
               description = lib.mdDoc ''
-                Operation can be one of [ contents | direct ] and indicates the type of operation 
-                being performed. Perfer setting this via the helper options: copyIn, linkIn.
-                 - 'direct' means install the given file or directory at the given target path
-                 - 'contents' means install the file or contents of directory into the given target
+                Operation can be one of [ default ]. Place holder for future.
               '';
             };
 
             own = mkOption {
-              type = types.bool;
+              type = types.str;
+              default = "default";
               description = lib.mdDoc ''
-                Whether to own the file or directory or not. When a file or directory is owned it is 
-                automatically deleted if your configuration not longer uses it. This can be dangerous 
-                if you have included a directory such as .config in your home directory and set it as 
-                owned then remove your dependency on it since it will remove the entire .config 
-                directory on clean up despite other files you don't own being in the directory. This 
-                is why own is false for directories by default and only true for files by default.
+                Whether to own the file or directory or not. Possible values [ default | owned | 
+                free]. When a file or directory is owned it is automatically deleted if your 
+                configuration not longer uses it. This can be dangerous if you have included a 
+                directory such as .config in your home directory and set it as owned then remove your 
+                dependency on it since it will remove the entire .config directory on clean up 
+                despite other files you don't own being in the directory. This is why own is false 
+                for directories by default and only true for files by default.
               '';
             };
 
@@ -317,32 +284,19 @@ in
             # Default the destination name to the attribute name
             target = mkDefault name;
 
-            # Set kind based off the convenience options: file, link, dir, text
-            kind = if (config.dir != null) then (mkForce "dir")
-              else if (config.link != null) then (mkForce "link")
-              else if (config.linkIn != null) then (mkForce "link")
-              else if (config.copy != null) then (mkForce "copy")
-              else mkIf (config.copyIn != null) (mkForce "copy");
+            # Set kind based off the convenience options [ copy | link ]
+            kind = if (config.link != null) then (mkForce "link")
+              else mkForce "copy";
 
-            # Set based off the convenience options
-            op = if (config.copyIn != null) then (mkForce "contents")
-              else if (config.linkIn != null) then (mkForce "contents")
-              else (mkForce "direct");
+            # Set default for future use
+            op = mkDefault "default";
 
-            # Set based off the convenience options
-            own = if (config.copy != null) then (mkDefault true)
-              else if (config.copyIn != null) then (mkDefault true)
-              else if (config.link != null) then (mkDefault true)
-              else if (config.linkIn != null) then (mkDefault true)
-              else if (config.text != null) then (mkDefault true)
-              else (mkDefault false);
+            # Set default( i.e. files are owned and directories are not) but allows for user overrides
+            own = mkDefault "default";
 
             # Set based off the convenience options
             source = if (config.copy != null) then (mkForce config.copy)
-              else if (config.copyIn != null) then (mkForce config.copyIn)
               else if (config.link != null) then (mkForce config.link)
-              else if (config.linkIn != null) then (mkForce config.linkIn)
-              else if (config.dir != null) then (mkForce config.dir)
               else mkIf (config.text != null) (mkForce (mkDerivedConfig options.text (pkgs.writeText name)));
           };
         }
