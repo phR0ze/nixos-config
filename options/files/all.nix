@@ -94,7 +94,7 @@ let
       echo "$filemode" >> "$meta"
       echo "$user" >> "$meta"
       echo "$group" >> "$meta"
-      [[ $own -eq 1 ]] && echo "true" >> "$meta" || echo "false" >> "$meta"
+      echo "$own" >> "$meta"
     }
 
     # Convert the files derivations into a list of calls to track by taking all the file
@@ -172,7 +172,7 @@ in
                 indicated target path. To make this a file at the target location set 'kind="copy"'.
                 - sets 'source' to the given file
                 - sets 'kind' to 'link'
-                - sets 'own' to 'true'
+                - sets 'own' to 'default'
               '';
             };
 
@@ -187,7 +187,7 @@ in
                 Local file path or local directory path to install in system:
                 - sets 'source' to the given file
                 - sets 'kind' to 'copy'
-                - sets 'own' to 'true' for files and 'false' for directories
+                - sets 'own' to 'default'
               '';
             };
 
@@ -202,7 +202,7 @@ in
                 Local file path or local directory path to install in system as a link:
                 - sets 'source' to the given file or directory
                 - sets 'kind' to 'link'
-                - sets 'own' to 'true' for files and 'false' for directories
+                - sets 'own' to 'default'
               '';
             };
 
@@ -241,8 +241,8 @@ in
               type = types.str;
               default = "default";
               description = lib.mdDoc ''
-                Whether to own the file or directory or not. Possible values [ default | owned | 
-                free]. When a file or directory is owned it is automatically deleted if your 
+                Whether to own the file or directory or not. Possible values [ default | owned | free ].
+                When a file or directory is owned it is automatically deleted if your 
                 configuration not longer uses it. This can be dangerous if you have included a 
                 directory such as .config in your home directory and set it as owned then remove your 
                 dependency on it since it will remove the entire .config directory on clean up 

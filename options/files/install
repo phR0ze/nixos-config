@@ -68,7 +68,7 @@ metadata() {
   filemode="${meta[4]}"   # mode for any files needing created
   user="${meta[5]}"       # user for any directories or files being created
   group="${meta[6]}"      # group for any directories or files being created
-  own="${meta[7]}"        # bool indicating if we should clean up this object
+  own="${meta[7]}"        # Whether to own the file or directory or not [ default | owned | free ]
 }
 
 # Create missing directories with the given metadata in dirmode, user, group
@@ -155,7 +155,7 @@ mkfile() {
   fi
 
   # Track the link if we own it
-  if [[ "$own" == "true" ]]; then
+  if [[ "$own" == "default" || "$own" == "owned" ]]; then
     echo "$_target" >> "$log"
   fi
 }
@@ -190,7 +190,7 @@ mkdirs() {
     mkdir_p "$_src"                           # create target path e.g. /home/.config
 
     # Track the link if we own it
-    if [[ "$own" == "true" ]]; then
+    if [[ "$own" == "owned" ]]; then
       echo "$_src" >> "$log"
     fi
 
