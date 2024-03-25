@@ -122,6 +122,7 @@ link() {
     ln -sf "$_src" "$_target"
   elif [[ "$(realpath "$_target")" != "$src" ]]; then
     echo " updating: $_src -> $_target"
+    echo "        >> as compared to: $src"
     echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     rm -f "$_target"                       # cleaner to just ensure it doesn't exist
     ln -sf "$_src" "$_target"
