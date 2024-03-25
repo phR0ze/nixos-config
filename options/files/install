@@ -113,16 +113,16 @@ link() {
 
   # Update link if it doesn't exist or is incorrect
   if [[ ! -f "$_target" ]]; then
-    echo "  linking: $_src -> $_inter -> $_target"
+    echo "  linking: $_target -> $_inter -> $_src"
     echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     ln -sf "$_inter" "$_target"
   elif [[ "$(realpath "$_target")" != "$_src" ]]; then
-    echo " updating: $_src -> $_inter -> $_target"
+    echo " updating: $_target -> $_inter -> $_src"
     echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     rm -f "$_target"                          # clean to ensure it doesn't exist
     ln -sf "$_inter" "$_target"
   else
-    echo "  leaving: $_src -> $_inter -> $_target"
+    echo "  leaving: $_target -> $_inter -> $_src"
     echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
   fi
 }
