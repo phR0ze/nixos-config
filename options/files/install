@@ -107,28 +107,22 @@ copy() {
 
 # Link the given source store path to the implicated destination
 link() {
-  local _src="${1}"                           # intermediate path e.g. /nix/files/root/.config/starship.toml
-  local _target="${2}"                        # target system path
-  local _orig_src="$src"                      # nix store path e.g. /nix/store/m2938jfgq69jid493s8agw94n5rl22xh-.config/starship.toml
-
-  # Concat the file in the directory case
-  if [[ "$mktype" == "dir" ]]; then
-    _orig_src="$src/$(basename "$_target")"
-  fi
+  local _src="${1}"                           # nix store path e.g. /nix/store/m2938jfgq69jid493s8agw94n5rl22xh-.config/starship.toml
+  local _inter="${2}"                         # intermediate path e.g. /nix/files/root/.config/starship.toml
+  local _target="${3}"                        # target system path
 
   # Update link if it doesn't exist or is incorrect
   if [[ ! -f "$_target" ]]; then
-    echo "  linking: $_src -> $_target"
+    echo "  linking: $_src -> $_inter -> $_target"
     echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
-    ln -sf "$_src" "$_target"
-  elif [[ "$(realpath "$_target")" != "$_orig_src" ]]; then
-    echo " updating: $_src -> $_target"
-    echo "        >> $(realpath "$_target") != $_orig_src"
+    ln -sf "$_inter" "$_target"
+  elif [[ "$(realpath "$_target")" != "$_src" ]]; then
+    echo " updating: $_src -> $_inter -> $_target"
     echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     rm -f "$_target"                          # clean to ensure it doesn't exist
-    ln -sf "$_src" "$_target"
+    ln -sf "$_inter" "$_target"
   else
-    echo "  leaving: $_src -> $_target"
+    echo "  leaving: $_src -> $_inter -> $_target"
     echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
   fi
 }
@@ -149,9 +143,9 @@ mkfile() {
 
     # Use the saved pkg link /nix/files as an intermediate to store path.
     # In this way we can switch all links at once when we update the 'files' link.
-    _src="${files}${_target}"
+    local _inter="${files}${_target}"
 
-    link "$_src" "$_target"
+    link "$_src" "$_inter" "$_target"
   fi
 
   # Track the link if we own it
@@ -163,13 +157,11 @@ mkfile() {
 # Loop through files
 # - handles spaces in file names
 mkfiles() {
-  mktype="file";
-
   local _src
   local _target
   find "$pkg" -name "*.meta.file" | while read x; do
     metadata "$x"                             # load the metadata
-    _src="${x#"$pkg"}"                        # trim off the nix pkg prefix e.g. /etc/foo.meta.file
+    _src="${x#"$pkg"}"                        # trim off the nix store prefix e.g. /etc/foo.meta.file
     _src="${_src%".meta.file"}"               # trim off the file suffix
     _target="${_src}"                         # target is trimmed source e.g. /etc/foo
     mkfile "$_src" "$_target"                 # copy or link the nix store path to the system
@@ -179,8 +171,6 @@ mkfiles() {
 # Loop through directories
 # - handles spaces in directory names
 mkdirs() {
-  mktype="dir";
-
   local _src
   local _target
   find "$pkg" -name "*.meta.dir" | while read x; do
