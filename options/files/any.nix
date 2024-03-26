@@ -47,12 +47,7 @@ let
   }).fileType;
 
   # Filter the files options down to just those that are enabled
-  # Conditionally include others
-  anyFiles = concatLists [
-    (if (config.files ? "any") then (filter (x: x.enable) (attrValues config.files.any)) else [])
-    (if (config.files ? "user") then (filter (x: x.enable) (attrValues config.files.user)) else [])
-    (if (config.files ? "root") then (filter (x: x.enable) (attrValues config.files.root)) else [])
-  ];
+  anyFiles = filter (x: x.enable) (attrValues config.files.any);
 
   # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
   # that we can then use during the activation later on to deploy the files to their indicated 
@@ -137,6 +132,7 @@ in
     # any files option
     # ----------------------------------------------------------------------------------------------
     files.any = mkOption {
+      defaults = {};
       description = lib.mdDoc ''
         Set of files to deploy in the target system.
         - destination paths must be relative to the root e.g. etc/foo
