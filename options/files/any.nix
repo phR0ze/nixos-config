@@ -46,10 +46,12 @@ let
     inherit options config lib pkgs args;
   }).fileType;
 
-  # Filter the files.any calls down to just those that are enabled
+  # Filter the files options down to just those that are enabled
+  # Conditionally include others
   anyFiles = concatLists [
     (filter (f: f.enable) (attrValues config.files.any))
     (if (config.files ? "user") then (attrValues config.files.user) else [])
+    (if (config.files ? "root") then (attrValues config.files.root) else [])
   ];
 
   #rootFiles = if (config.files ? "root")

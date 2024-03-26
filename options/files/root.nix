@@ -39,8 +39,7 @@ in
 
   # Merge the files.root options into files.any options
   # ----------------------------------------------------------------------------------------------
-  config.files.any = mkMerge [
-    # see ./user.nix for an explanation of this
-    (attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) config.files.root)
-  ];
+  #config.files.any = mkMerge [
+  #  (attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) config.files.root)
+  #];
 }
