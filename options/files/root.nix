@@ -1,8 +1,8 @@
 # Root option
-# Wraps the all option to make all the paths relative to the /root path to simplify root user 
+# Wraps the 'any' option to make all the paths relative to the '/root' path to simplify root user 
 # configuration options.
 #
-# see ./all.nix for warnings and instructions
+# see ./any.nix for warnings and instructions
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib;
 {
@@ -181,9 +181,9 @@
     };
   };
 
-  # Merge the files.root options into files.all options
+  # Merge the files.root options into files.any options
   # ----------------------------------------------------------------------------------------------
-  config.files.all = mkMerge [
+  config.files.any = mkMerge [
     config.files.root
   ];
 }
