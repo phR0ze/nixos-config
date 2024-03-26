@@ -14,12 +14,13 @@ let
 
 in
 {
-  options = rec {
+  options = {
     files.user = mkOption {
       description = lib.mdDoc ''
         Set of files to deploy to the user's home directory
         - destination paths must be relative to /home/<user> e.g. .config
       '';
+      default = null;
       example = ''
         # Create a single file from raw text
         files.user.".dircolors".text = "this is a test";
