@@ -183,5 +183,7 @@
 
   # Convert the rootFiles into allFiles calls
   # ----------------------------------------------------------------------------------------------
-  config.files.all = mkMerge config.files.root;
+  config.files.all = mkMerge [
+    config.files.root
+  ];
 }
