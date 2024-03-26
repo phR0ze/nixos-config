@@ -49,9 +49,9 @@ let
   # Filter the files options down to just those that are enabled
   # Conditionally include others
   anyFiles = concatLists [
-    #(if (config.files ? "any") then (filter (x: x.enable) (attrValues config.files.any)) else [])
-    #(if (config.files ? "user") then (filter (x: x.enable) (attrValues config.files.user)) else [])
-    #(if (config.files ? "root") then (filter (x: x.enable) (attrValues config.files.root)) else [])
+    (if (config.files ? "any") then (filter (x: x.enable) (attrValues config.files.any)) else [])
+    (if (config.files ? "user") then (filter (x: x.enable) (attrValues config.files.user)) else [])
+    (if (config.files ? "root") then (filter (x: x.enable) (attrValues config.files.root)) else [])
   ];
 
   # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
