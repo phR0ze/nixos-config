@@ -39,7 +39,7 @@ in
 
   # Merge the files.user options into files.any options
   # ----------------------------------------------------------------------------------------------
-  config.files.any = mkIf (isAttrs config.files.user) (mkMerge [
+  config.files.any = mkIf (isAttrs config.files) (mkMerge [
     # We are changing the user sets names to the unique target definitions set above to avoid 
     # clashing with values set in other options. Potentially we could be setting 
     # 'files.user.".dircolors"' and 'files.root.".dircolors"' or others. This gives them a unique 
