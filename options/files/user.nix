@@ -184,6 +184,6 @@
   # Merge the files.user options into files.any options
   # ----------------------------------------------------------------------------------------------
   config.files.any = mkMerge [
-    attrsets.mapAttrs' (name: value: nameValuePair ("home/${args.settings.username}/" + name) (value)) config.files.user
+    (attrsets.mapAttrs' (name: value: nameValuePair ("home/${args.settings.username}/" + name) value) config.files.user)
   ];
 }
