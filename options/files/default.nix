@@ -3,7 +3,7 @@
 { ... }:
 {
   imports = [
-    ./all.nix
+    ./any.nix
     ./root.nix
   ];
 }

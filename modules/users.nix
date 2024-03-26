@@ -20,13 +20,11 @@
 
   # Initialize user home
   # ------------------------------------------------------------------------------------------------
-  files.all."foobar1".text = "this is a test"; 
-  files.all."foobar2".link = ../include/home/.dircolors;
-  files.all."foobar3".copy = ../include/home/.dircolors;
+  files.any."foobar1".text = "this is a test"; 
+  files.any."foobar2".link = ../include/home/.dircolors;
+  files.any."foobar3".copy = ../include/home/.dircolors;
   files.root.".config".link = ../include/home/.config;
   files.root.".dircolors".copy = ../include/home/.dircolors;
-  #files.root.".config".link = ../include/home/.config;
-  #files.root.".dircolors".copy = ../include/home/.dircolors;
 
 #  security.pam.services.login.makeHomeDir = true;
 #  users.extraUsers."me" = {

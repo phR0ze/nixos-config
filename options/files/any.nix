@@ -1,5 +1,6 @@
-# All files option
-# Install files to your system either as writable files or links to readonly nix store paths.
+# Any files option
+# Install files to any path in your system either as writable files or links to readonly nix store 
+# paths.
 #
 # ### Disclaimer
 # This is NixOS specific and doesn't support other distributions or crossplatform systems. My intent 
@@ -28,7 +29,7 @@
 # different components.
 #  1. The option is defined here in this file
 #  2. The option is imported into your project at the top level making it available everywhere
-#  3. The option is invoked e.g. files.all."/root/foobar1".text = "this is a foobar1 test";
+#  3. The option is invoked e.g. files.any."root/foobar1".text = "this is a foobar1 test";
 #  4. During nixos-rebuild switch the activationScripts get run performing the install
 #  5. This in turn invokes the filesPackage via the reference
 #  6. The files aggregate attribute set adds them to the /nix/store and links them in the parent package
@@ -40,8 +41,8 @@
 { options, config, lib, pkgs, args, ... }: with lib;
 let
 
-  # Filter the files.all calls down to just those that are enabled
-  allFiles = filter (f: f.enable) (attrValues config.files.all);
+  # Filter the files.any calls down to just those that are enabled
+  anyFiles = filter (f: f.enable) (attrValues config.files.any);
 
   # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
   # that we can then use during the activation later on to deploy the files to their indicated 
@@ -112,7 +113,7 @@ let
       entry.group
       entry.own
       entry.op
-    ]) allFiles}
+    ]) anyFiles}
   '';
 
   # Add the installer script to the /nix/store for reference
@@ -123,9 +124,9 @@ in
 {
   options = {
 
-    # all files option
+    # any files option
     # ----------------------------------------------------------------------------------------------
-    files.all = mkOption {
+    files.any = mkOption {
       description = lib.mdDoc ''
         Set of files to deploy in the target system.
         - destination paths must be relative to the root e.g. etc/foo
@@ -133,16 +134,16 @@ in
       '';
       example = ''
         # Create a single file from raw text
-        files.all."root/.dircolors".text = "this is a test";
+        files.any."root/.dircolors".text = "this is a test";
 
         # Include a local file as your target
-        files.all."root/.dircolors".copy = ../include/home/.dircolors;
+        files.any."root/.dircolors".copy = ../include/home/.dircolors;
 
         # Include a local file as a readonly link
-        files.all."root/.dircolors".link = ../include/home/.dircolors;
+        files.any."root/.dircolors".link = ../include/home/.dircolors;
 
         # Multi file example
-        files.all = {
+        files.any = {
           "etc/asound.conf".text = "autospawn=no";
           "root/.dircolors".copy = ../include/home/.dircolors;
           "etc/openal/alsoft.conf".link =  ../include/etc/openal/alsoft.conf;
@@ -180,8 +181,8 @@ in
               default = null;
               type = types.nullOr types.path;
               example = ''
-                files.all."root/.config".copy = ../include/home/.config;
-                files.all."root/.dircolors".copy = ../include/home/.dircolors;
+                files.any."root/.config".copy = ../include/home/.config;
+                files.any."root/.dircolors".copy = ../include/home/.dircolors;
               '';
               description = lib.mdDoc ''
                 Local file path or local directory path to install in system:
@@ -195,8 +196,8 @@ in
               default = null;
               type = types.nullOr types.path;
               example = ''
-                files.all."root/.config".link = ../include/home/.config;
-                files.all."root/.dircolors".link = ../include/home/.dircolors;
+                files.any."root/.config".link = ../include/home/.config;
+                files.any."root/.dircolors".link = ../include/home/.dircolors;
               '';
               description = lib.mdDoc ''
                 Local file path or local directory path to install in system as a link:
@@ -278,7 +279,7 @@ in
             };
           };
 
-          # config in this context will be the files.all."" definition
+          # config in this context will be the files.any."" definition
           config = {
 
             # Default the destination name to the attribute name
