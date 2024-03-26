@@ -14,7 +14,7 @@ let
 
 in
 {
-  options = {
+  options = rec {
     files.user = mkOption {
       description = lib.mdDoc ''
         Set of files to deploy to the user's home directory
@@ -49,7 +49,7 @@ in
     #   error: The option `files.any.".dircolors".target' has conflicting definition values:
     #   - In `/nix/store/vcgagc2la95ngp00296x0ac69s9d0vmx-source/options/files/root.nix': "root/.dircolors"
     #   - In `/nix/store/vcgagc2la95ngp00296x0ac69s9d0vmx-source/options/files/user.nix': "home/admin/.dircolors"
-    (if (hasAttr "user" config.files) then attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) 
+    (if (config.files ? "user") then attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) 
      config.files.user else {})
   ];
 }
