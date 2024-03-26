@@ -181,7 +181,7 @@
     };
   };
 
-  # Convert the rootFiles into allFiles calls
+  # Merge the files.root options into files.all options
   # ----------------------------------------------------------------------------------------------
   config.files.all = mkMerge [
     config.files.root
