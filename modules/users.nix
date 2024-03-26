@@ -23,7 +23,7 @@
   #files.root.".config".link = ../include/home/.config;
   #files.any."root/.dircolors".copy = ../include/home/.dircolors;
   #files.root.".dircolors".copy = ../include/home/.dircolors;
-  files.user.".dircolors".copy = ../include/home/.dircolors;
+  #files.user.".dircolors".copy = ../include/home/.dircolors;
 
 #  security.pam.services.login.makeHomeDir = true;
 #  users.extraUsers."me" = {
