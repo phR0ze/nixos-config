@@ -184,6 +184,6 @@
   # Merge the files.user options into files.any options
   # ----------------------------------------------------------------------------------------------
   config.files.any = mkMerge [
-    (map (x: x // { name = x.target; } ) config.files.user)
+    (map (x: x // { name = x.target; } ) (attrValue config.files.user))
   ];
 }
