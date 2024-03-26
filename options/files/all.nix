@@ -282,7 +282,8 @@ in
           config = {
 
             # Default the destination name to the attribute name
-            target = mkDefault name;
+            #target = mkDefault name;
+            target = mkDefault ("root/" + name);
 
             # Set kind based off the convenience options [ copy | link ]
             kind = if (config.link != null) then (mkForce "link")
@@ -297,7 +298,9 @@ in
             # Set based off the convenience options
             source = if (config.copy != null) then (mkForce config.copy)
               else if (config.link != null) then (mkForce config.link)
-              else mkIf (config.text != null) (mkForce (mkDerivedConfig options.text (pkgs.writeText name)));
+              else mkIf (config.text != null) (
+                mkDerivedConfig options.text (pkgs.writeText name)
+              );
               #else mkIf (config.text != null) (mkForce (mkDerivedConfig options.text (pkgs.writeText (concatStringsSep "/" ["root" name]))));
           };
         }

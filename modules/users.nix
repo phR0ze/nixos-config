@@ -20,9 +20,7 @@
 
   # Initialize user home
   # ------------------------------------------------------------------------------------------------
-  files.all."root/foobar".text = ''
-    this is a test
-  ''; 
+  files.all."foobar".text = "this is a test"; 
   #files.all.".config".link = ../include/home/.config;
   #files.all."root/.config".link = ../include/home/.config;
   #files.all."root/.dircolors".copy = ../include/home/.dircolors;
