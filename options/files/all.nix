@@ -278,11 +278,12 @@ in
             };
           };
 
-          # config in this context will be the files."" definition
+          # config in this context will be the files.all."" definition
           config = {
 
             # Default the destination name to the attribute name
-            target = mkDefault name;
+            #target = mkDefault name;
+            target = mkDefault concatStringsSep "/" ["root" name];
 
             # Set kind based off the convenience options [ copy | link ]
             kind = if (config.link != null) then (mkForce "link")

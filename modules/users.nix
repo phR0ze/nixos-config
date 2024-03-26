@@ -20,11 +20,11 @@
 
   # Initialize user home
   # ------------------------------------------------------------------------------------------------
-  #files.all."root/.config".copyIn = ../include/home/.config;
-  files.all."root/.config".link = ../include/home/.config;
-  files.all."root/.dircolors".copy = ../include/home/.dircolors;
-  #files.all."root/.config".linkIn = ../include/home/.config;
-  #files.all."root/.config".copyIn = ../include/home/.config;
+  files.all.".config".link = ../include/home/.config;
+  #files.all."root/.config".link = ../include/home/.config;
+  #files.all."root/.dircolors".copy = ../include/home/.dircolors;
+  #files.root.".config".link = ../include/home/.config;
+  #files.root.".dircolors".copy = ../include/home/.dircolors;
 
 #  security.pam.services.login.makeHomeDir = true;
 #  users.extraUsers."me" = {

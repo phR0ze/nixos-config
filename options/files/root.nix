@@ -21,7 +21,7 @@
 
         # Multi file example
         files.root = {
-          "root/.config".copyIn = ../include/home/.config;
+          "root/.config".copy = ../include/home/.config;
           "root/.dircolors".copy = ../include/home/.dircolors;
         };
       '';
@@ -48,72 +48,38 @@
                 Raw text to be converted into a nix store object and then linked by default to the 
                 indicated target path. To make this a file at the target location set 'kind="copy"'.
                 - sets 'source' to the given file
-                - sets 'kind' to link
-                - sets 'own' to true
-              '';
-            };
-
-            dir = mkOption {
-              default = null;
-              type = types.nullOr types.path;
-              example = "../include/home";
-              description = lib.mdDoc ''
-                Path to the local directory to install in system. This is a convenience option:
-                - sets 'source' to the given directory
-                - sets 'kind' to dir
-                - sets 'own' to false
-              '';
-            };
-
-            link = mkOption {
-              default = null;
-              type = types.nullOr types.path;
-              example = "../include/home/.dircolors";
-              description = lib.mdDoc ''
-                Path to the local file to install in system as a link. This is a convenience option:
-                - sets 'source' to the given file
-                - sets 'kind' to link
-                - sets 'own' to true
-              '';
-            };
-
-            linkIn = mkOption {
-              default = null;
-              type = types.nullOr types.path;
-              example = "../include/home/.dircolors";
-              description = lib.mdDoc ''
-                Local file path to link into the target or local directory path to link contents of 
-                into the target. This is a convenience option to set the:
-                - sets 'source' to the given file or directory
-                - sets 'kind' to link
-                - sets 'own' to true
-                - sets 'op' to direct
+                - sets 'kind' to 'link'
+                - sets 'own' to 'default'
               '';
             };
 
             copy = mkOption {
               default = null;
               type = types.nullOr types.path;
-              example = "../include/home/.dircolors";
+              example = ''
+                files.root.".config".copy = ../include/home/.config;
+                files.root.".dircolors".copy = ../include/home/.dircolors;
+              '';
               description = lib.mdDoc ''
-                Path to the local file to install in system. This is a convenience option to set the:
+                Local file path or local directory path to install in system:
                 - sets 'source' to the given file
-                - sets 'kind' to copy
-                - sets 'own' to true
+                - sets 'kind' to 'copy'
+                - sets 'own' to 'default'
               '';
             };
 
-            copyIn = mkOption {
+            link = mkOption {
               default = null;
               type = types.nullOr types.path;
-              example = "../include/home/.dircolors";
+              example = ''
+                files.root.".config".link = ../include/home/.config;
+                files.root.".dircolors".link = ../include/home/.dircolors;
+              '';
               description = lib.mdDoc ''
-                Local file path to copy into the target or local directory path to copy contents of 
-                into the target. This is a convenience option to set the:
+                Local file path or local directory path to install in system as a link:
                 - sets 'source' to the given file or directory
-                - sets 'kind' to copy
-                - sets 'own' to true
-                - sets 'op' to direct
+                - sets 'kind' to 'link'
+                - sets 'own' to 'default'
               '';
             };
 
@@ -131,7 +97,6 @@
             kind = mkOption {
               type = types.str;
               default = "link";
-              example = "copy";
               description = lib.mdDoc ''
                 Kind can be one of [ copy | link | dir ] and indicates the type of object being 
                 created. When 'copy' is used the user, group and filemode properties will be used to 
@@ -143,23 +108,23 @@
 
             op = mkOption {
               type = types.str;
+              default = "default";
               description = lib.mdDoc ''
-                Operation can be one of [ contents | direct ] and indicates the type of operation 
-                being performed. Perfer setting this via the helper options: copyIn, linkIn.
-                 - 'direct' means install the given file or directory at the given target path
-                 - 'contents' means install the file or contents of directory into the given target
+                Operation can be one of [ default ]. Place holder for future.
               '';
             };
 
             own = mkOption {
-              type = types.bool;
+              type = types.str;
+              default = "default";
               description = lib.mdDoc ''
-                Whether to own the file or directory or not. When a file or directory is owned it is 
-                automatically deleted if your configuration not longer uses it. This can be dangerous 
-                if you have included a directory such as .config in your home directory and set it as 
-                owned then remove your dependency on it since it will remove the entire .config 
-                directory on clean up despite other files you don't own being in the directory. This 
-                is why own is false for directories by default and only true for files by default.
+                Whether to own the file or directory or not. Possible values [ default | owned | free ].
+                When a file or directory is owned it is automatically deleted if your 
+                configuration not longer uses it. This can be dangerous if you have included a 
+                directory such as .config in your home directory and set it as owned then remove your 
+                dependency on it since it will remove the entire .config directory on clean up 
+                despite other files you don't own being in the directory. This is why own is false 
+                for directories by default and only true for files by default.
               '';
             };
 
@@ -190,38 +155,25 @@
             };
           };
 
-          # config in this context will be the files."" definition
+          # config in this context will be the files.root."" definition
           config = {
 
             # Default the destination name to the attribute name
-            target = mkDefault name;
+            target = mkDefault concatStringsSep "/" ["root" name];
 
-            # Set kind based off the convenience options: file, link, dir, text
-            kind = if (config.dir != null) then (mkForce "dir")
-              else if (config.link != null) then (mkForce "link")
-              else if (config.linkIn != null) then (mkForce "link")
-              else if (config.copy != null) then (mkForce "copy")
-              else mkIf (config.copyIn != null) (mkForce "copy");
+            # Set kind based off the convenience options [ copy | link ]
+            kind = if (config.link != null) then (mkForce "link")
+              else mkForce "copy";
 
-            # Set based off the convenience options
-            op = if (config.copyIn != null) then (mkForce "contents")
-              else if (config.linkIn != null) then (mkForce "contents")
-              else (mkForce "direct");
+            # Set default for future use
+            op = mkDefault "default";
 
-            # Set based off the convenience options
-            own = if (config.copy != null) then (mkDefault true)
-              else if (config.copyIn != null) then (mkDefault true)
-              else if (config.link != null) then (mkDefault true)
-              else if (config.linkIn != null) then (mkDefault true)
-              else if (config.text != null) then (mkDefault true)
-              else (mkDefault false);
+            # Set default( i.e. files are owned and directories are not) but allows for user overrides
+            own = mkDefault "default";
 
             # Set based off the convenience options
             source = if (config.copy != null) then (mkForce config.copy)
-              else if (config.copyIn != null) then (mkForce config.copyIn)
               else if (config.link != null) then (mkForce config.link)
-              else if (config.linkIn != null) then (mkForce config.linkIn)
-              else if (config.dir != null) then (mkForce config.dir)
               else mkIf (config.text != null) (mkForce (mkDerivedConfig options.text (pkgs.writeText name)));
           };
         }
