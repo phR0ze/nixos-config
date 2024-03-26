@@ -297,7 +297,8 @@ in
             # Set based off the convenience options
             source = if (config.copy != null) then (mkForce config.copy)
               else if (config.link != null) then (mkForce config.link)
-              else mkIf (config.text != null) (mkForce (mkDerivedConfig options.text (pkgs.writeText (concatStringsSep "/" ["root" name]))));
+              else mkIf (config.text != null) (mkForce (mkDerivedConfig options.text (pkgs.writeText name)));
+              #else mkIf (config.text != null) (mkForce (mkDerivedConfig options.text (pkgs.writeText (concatStringsSep "/" ["root" name]))));
           };
         }
       ));
