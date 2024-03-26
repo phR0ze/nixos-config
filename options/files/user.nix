@@ -38,8 +38,9 @@ in
   };
 
   # Merge the files.user options into files.any options
+  # Note: [mkIf is evaluated regardless of the condition](https://discourse.nixos.org/t/mkif-vs-if-then/28521/2)
   # ----------------------------------------------------------------------------------------------
-  config.files.any = mkMerge [
+  config.files.any = if (config.files ? "user") then (mkMerge [
     # We are changing the user sets names to the unique target definitions set above to avoid 
     # clashing with values set in other options. Potentially we could be setting 
     # 'files.user.".dircolors"' and 'files.root.".dircolors"' or others. This gives them a unique 
@@ -49,8 +50,6 @@ in
     #   error: The option `files.any.".dircolors".target' has conflicting definition values:
     #   - In `/nix/store/vcgagc2la95ngp00296x0ac69s9d0vmx-source/options/files/root.nix': "root/.dircolors"
     #   - In `/nix/store/vcgagc2la95ngp00296x0ac69s9d0vmx-source/options/files/user.nix': "home/admin/.dircolors"
-    (mkIf (config.files ? "user")
-      (attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) config.files.user)
-    )
-  ];
+    (attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) config.files.user)
+  ]) else {};
 }
