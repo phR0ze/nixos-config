@@ -16,7 +16,7 @@ in
 {
   options = {
     files.root = mkOption {
-      defaults = {};
+      default = {};
       description = lib.mdDoc ''
         Set of files to deploy to the root user's directory
         - destination paths must be relative to /root e.g. .config
