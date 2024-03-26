@@ -181,17 +181,7 @@
     };
   };
 
-  # Activation scripts
+  # Convert the rootFiles into allFiles calls
   # ----------------------------------------------------------------------------------------------
-  # - you can find the activation script in `ll -d /nix/store/*-nixos-system-nixos*/activate`
-  # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/activation/activation-script.nix
-  # - https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/etc/etc-activation.nix
-
-  # Adds a bash snippet to /nix/store/<hash>-nixos-system-nixos-24.05.20240229.1536926/activate.
-  # By referencing the ${filesPackage} we trigger the derivation to be built and stored in 
-  # the /nix/store which can then be used as an input variable for the actual deployment of files to 
-  # their destination paths.
-  config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] ''
-    ${installScript} ${filesPackage} "/nix"
-  '';
+  config.files.all = mkMerge config.files.root;
 }

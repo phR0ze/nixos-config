@@ -40,8 +40,8 @@
 { options, config, lib, pkgs, args, ... }: with lib;
 let
 
-  # Filter the files calls down to just those that are enabled
-  files' = filter (f: f.enable) (attrValues config.files.all);
+  # Filter the files.all calls down to just those that are enabled
+  allFiles = filter (f: f.enable) (attrValues config.files.all);
 
   # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
   # that we can then use during the activation later on to deploy the files to their indicated 
@@ -112,7 +112,7 @@ let
       entry.group
       entry.own
       entry.op
-    ]) files'}
+    ]) allFiles}
   '';
 
   # Add the installer script to the /nix/store for reference
