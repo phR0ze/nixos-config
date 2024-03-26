@@ -49,9 +49,9 @@ let
   # Filter the files options down to just those that are enabled
   # Conditionally include others
   anyFiles = concatLists [
-    (if (config.files ? "any") then (filter (f: f.enable) (attrValues config.files.any)) else [])
-    (if (config.files ? "user") then (filter (f: f.enable) (attrValues config.files.user)) else [])
-    (if (config.files ? "root") then (filter (f: f.enable) (attrValues config.files.root)) else [])
+    #(if (config.files ? "any") then (filter (x: x.enable) (attrValues config.files.any)) else [])
+    #(if (config.files ? "user") then (filter (x: x.enable) (attrValues config.files.user)) else [])
+    #(if (config.files ? "root") then (filter (x: x.enable) (attrValues config.files.root)) else [])
   ];
 
   # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
@@ -173,7 +173,7 @@ in
   # By referencing the ${filesPackage} we trigger the derivation to be built and stored in 
   # the /nix/store which can then be used as an input variable for the actual deployment of files to 
   # their destination paths.
-  config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] ''
-    ${installScript} ${filesPackage} "/nix"
-  '';
+  #config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] ''
+  #  ${installScript} ${filesPackage} "/nix"
+  #'';
 }
