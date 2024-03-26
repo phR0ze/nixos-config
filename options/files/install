@@ -164,7 +164,7 @@ mkfiles() {
     _src="${x#"$pkg"}"                        # trim off the nix store prefix e.g. /etc/foo.meta.file
     _src="${_src%".meta.file"}"               # trim off the file suffix
     _target="${_src}"                         # target is trimmed source e.g. /etc/foo
-    mkfile "$_src" "$_target"                 # copy or link the nix store path to the system
+    mkfile "$src" "$_target"                  # use src path from meta data to get realpath for store link
   done
 }
 
