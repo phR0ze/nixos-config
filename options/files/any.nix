@@ -174,6 +174,6 @@ in
   # the /nix/store which can then be used as an input variable for the actual deployment of files to 
   # their destination paths.
   config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] (
-    if (anyFiles != []) then ''${installScript} ${filesPackage} "/nix"'' else ""
+    mkIf (anyFiles != []) ''${installScript} ${filesPackage} "/nix"''
   );
 }
