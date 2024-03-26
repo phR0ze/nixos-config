@@ -47,8 +47,10 @@ let
   }).fileType;
 
   # Filter the files.any calls down to just those that are enabled
-  anyFiles = filter (f: f.enable) (attrValues config.files.any) //
-    if (config.files ? "user") then (attrValues config.files.user) else [];
+  anyFiles = concatLists [
+    (filter (f: f.enable) (attrValues config.files.any))
+    (if (config.files ? "user") then (attrValues config.files.user) else [])
+  ];
 
   #rootFiles = if (config.files ? "root")
   #  then (attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) config.files.root) else {};
