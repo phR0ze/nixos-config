@@ -154,7 +154,7 @@ in
           "etc/openal/alsoft.conf".link =  ../include/etc/openal/alsoft.conf;
         };
       '';
-      type = fileType "root" "root" ""
+      type = fileType "root" "root" "";
     };
   };
 
