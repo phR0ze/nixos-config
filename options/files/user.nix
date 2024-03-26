@@ -1,26 +1,26 @@
-# Files root option
-# Wraps the 'any' option to make all the paths relative to the '/root' path to simplify root user 
-# configuration options.
+# Files user option
+# Wraps the 'any' option to make all the paths relative to the '/home/<user>' path to simplify user
+# files configuration options.
 #
 # see ./any.nix for warnings and instructions
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib;
 {
   options = {
-    files.root = mkOption {
+    files.user = mkOption {
       description = lib.mdDoc ''
-        Set of files to deploy to the root user's directory
-        - destination paths must be relative to /root e.g. .config
+        Set of files to deploy to the user's home directory
+        - destination paths must be relative to /home/<user> e.g. .config
       '';
       example = ''
         # Create a single file from raw text
-        files.root.".dircolors".text = "this is a test";
+        files.user.".dircolors".text = "this is a test";
 
         # Include a local file as your target
-        files.root.".dircolors".copy = ../include/home/.dircolors;
+        files.user.".dircolors".copy = ../include/home/.dircolors;
 
         # Multi file example
-        files.root = {
+        files.user = {
           ".config".copy = ../include/home/.config;
           ".dircolors".copy = ../include/home/.dircolors;
         };
@@ -57,8 +57,8 @@
               default = null;
               type = types.nullOr types.path;
               example = ''
-                files.root.".config".copy = ../include/home/.config;
-                files.root.".dircolors".copy = ../include/home/.dircolors;
+                files.user.".config".copy = ../include/home/.config;
+                files.user.".dircolors".copy = ../include/home/.dircolors;
               '';
               description = lib.mdDoc ''
                 Local file path or local directory path to install in system:
@@ -72,8 +72,8 @@
               default = null;
               type = types.nullOr types.path;
               example = ''
-                files.root.".config".link = ../include/home/.config;
-                files.root.".dircolors".link = ../include/home/.dircolors;
+                files.user.".config".link = ../include/home/.config;
+                files.user.".dircolors".link = ../include/home/.dircolors;
               '';
               description = lib.mdDoc ''
                 Local file path or local directory path to install in system as a link:
@@ -144,22 +144,22 @@
 
             user = mkOption {
               type = types.str;
-              default = "root";
+              default = "${args.settings.username}";
               description = lib.mdDoc "Owner of file being created and/or the directories.";
             };
 
             group = mkOption {
               type = types.str;
-              default = "root";
+              default = "users";
               description = lib.mdDoc "Group of file being created and/or the directories.";
             };
           };
 
-          # config in this context will be the files.root."" definition
+          # config in this context will be the files.user."" definition
           config = {
 
             # Default the destination name to the attribute name
-            target = mkDefault ("root/" + name);
+            target = mkDefault ("home/${args.settings.username}/" + name);
 
             # Set kind based off the convenience options [ copy | link ]
             kind = if (config.link != null) then (mkForce "link")
@@ -181,9 +181,9 @@
     };
   };
 
-  # Merge the files.root options into files.any options
+  # Merge the files.user options into files.any options
   # ----------------------------------------------------------------------------------------------
   config.files.any = mkMerge [
-    config.files.root
+    config.files.user
   ];
 }
