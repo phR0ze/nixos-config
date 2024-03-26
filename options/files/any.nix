@@ -132,7 +132,7 @@ in
     # any files option
     # ----------------------------------------------------------------------------------------------
     files.any = mkOption {
-      defaults = {};
+      default = {};
       description = lib.mdDoc ''
         Set of files to deploy in the target system.
         - destination paths must be relative to the root e.g. etc/foo
