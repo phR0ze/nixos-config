@@ -184,9 +184,10 @@
   # Merge the files.user options into files.any options
   # ----------------------------------------------------------------------------------------------
   config.files.any = mkMerge [
-    # We are changing the user sets names to avoid clashing with values set in other options. 
-    # Potentially we could be setting 'files.user.".dircolors"' and 'files.root.".dircolors"' or 
-    # others. This gives them a unique name.
+    # We are changing the user sets names to the unique target definitions set above to avoid 
+    # clashing with values set in other options. Potentially we could be setting 
+    # 'files.user.".dircolors"' and 'files.root.".dircolors"' or others. This gives them a unique 
+    # name.
     #
     # e.g. error i was getting before changing the name to avoid conflicts
     #   error: The option `files.any.".dircolors".target' has conflicting definition values:

@@ -184,6 +184,7 @@
   # Merge the files.root options into files.any options
   # ----------------------------------------------------------------------------------------------
   config.files.any = mkMerge [
-    config.files.root
+    # see ./user.nix for an explanation of this
+    (attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) config.files.root)
   ];
 }
