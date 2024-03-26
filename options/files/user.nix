@@ -16,6 +16,7 @@ in
 {
   options = {
     files.user = mkOption {
+      default = {};
       description = lib.mdDoc ''
         Set of files to deploy to the user's home directory
         - destination paths must be relative to /home/<user> e.g. .config
