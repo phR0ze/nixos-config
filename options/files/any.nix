@@ -49,6 +49,18 @@ let
   # Filter the files.any calls down to just those that are enabled
   anyFiles = filter (f: f.enable) (attrValues config.files.any);
 
+  # We are changing the user sets names to the unique target definitions set above to avoid 
+  # clashing with values set in other options. Potentially we could be setting 
+  # 'files.user.".dircolors"' and 'files.root.".dircolors"' or others. This gives them a unique 
+  # name.
+  #
+  # e.g. error i was getting before changing the name to avoid conflicts
+  #   error: The option `files.any.".dircolors".target' has conflicting definition values:
+  #   - In `/nix/store/vcgagc2la95ngp00296x0ac69s9d0vmx-source/options/files/root.nix': "root/.dircolors"
+  #   - In `/nix/store/vcgagc2la95ngp00296x0ac69s9d0vmx-source/options/files/user.nix': "home/admin/.dircolors"
+  userFiles = if (config.files ? "user")
+    then (attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) config.files.user) else {};
+
   # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
   # that we can then use during the activation later on to deploy the files to their indicated 
   # destination paths.

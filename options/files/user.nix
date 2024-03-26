@@ -36,19 +36,4 @@ in
       type = fileType "${args.settings.username}" "users" "home/${args.settings.username}/";
     };
   };
-
-  # Merge the files.user options into files.any options
-  # Note: [mkIf and mkMerge are evaluated regardless of the condition](https://discourse.nixos.org/t/mkif-vs-if-then/28521/2)
-  # ----------------------------------------------------------------------------------------------
-  config.files.any = config.files.any //
-    # We are changing the user sets names to the unique target definitions set above to avoid 
-    # clashing with values set in other options. Potentially we could be setting 
-    # 'files.user.".dircolors"' and 'files.root.".dircolors"' or others. This gives them a unique 
-    # name.
-    #
-    # e.g. error i was getting before changing the name to avoid conflicts
-    #   error: The option `files.any.".dircolors".target' has conflicting definition values:
-    #   - In `/nix/store/vcgagc2la95ngp00296x0ac69s9d0vmx-source/options/files/root.nix': "root/.dircolors"
-    #   - In `/nix/store/vcgagc2la95ngp00296x0ac69s9d0vmx-source/options/files/user.nix': "home/admin/.dircolors"
-    (attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) config.files.user);
 }
