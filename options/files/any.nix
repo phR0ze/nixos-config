@@ -1,4 +1,4 @@
-# Any files option
+# Files any option
 # Install files to any path in your system either as writable files or links to readonly nix store 
 # paths.
 #
@@ -212,7 +212,7 @@ in
               example = "../include/home/.dircolors";
               description = lib.mdDoc ''
                 Path of the local file to store or a pre-stored path. Prefer setting this value using 
-                the helper options 'copy', 'dir', 'link', or 'text'.
+                the helper options 'copy', 'link', or 'text'.
                 e.g. #1: ../include/home/.dircolors;
                 e.g. #2: pkgs.writeText "root-.dircolors" (lib.fileContents ../include/home/.dircolors);
               '';
