@@ -4,5 +4,6 @@
 {
   imports = [
     ./all.nix
+    ./root.nix
   ];
 }
