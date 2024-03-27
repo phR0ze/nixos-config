@@ -37,11 +37,4 @@ in
       type = fileType "${args.settings.username}" "users" "home/${args.settings.username}/";
     };
   };
-
-  # Redirect all files.user options to the files.any to be handled in a common way.
-  # Alos renaming to avoid clashing see ./root.nix for more detail
-  # ----------------------------------------------------------------------------------------------
-  config.files.any = mkMerge [
-    (attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) config.files.root)
-  ];
 }

@@ -48,7 +48,7 @@ in
   #   - In `/nix/store/vcgagc2la95ngp00296x0ac69s9d0vmx-source/options/files/root.nix': "root/.dircolors"
   #   - In `/nix/store/vcgagc2la95ngp00296x0ac69s9d0vmx-source/options/files/user.nix': "home/admin/.dircolors"
   # ----------------------------------------------------------------------------------------------
-  config.files.any = mkMerge [
-    (attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) config.files.root)
-  ];
+  #config.files.any = mkMerge [
+  #  (attrsets.mapAttrs' (name: value: nameValuePair (value.target) value) config.files.root)
+  #];
 }
