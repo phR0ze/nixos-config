@@ -47,7 +47,12 @@ let
   }).fileType;
 
   # Filter the files options down to just those that are enabled
-  anyFiles = filter (x: x.enable) (attrValues config.files.any);
+  # Conditionally include others
+  anyFiles = concatLists [
+    (filter (x: x.enable) (attrValues config.files.any))
+    (filter (x: x.enable) (attrValues config.files.user))
+    (filter (x: x.enable) (attrValues config.files.root))
+  ];
 
   # Using runCommand to build a derivation that bundles the target files into a /nix/store package 
   # that we can then use during the activation later on to deploy the files to their indicated 
@@ -170,6 +175,6 @@ in
   # the /nix/store which can then be used as an input variable for the actual deployment of files to 
   # their destination paths.
   config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ] (
-    mkIf (anyFiles != []) ''${installScript} ${filesPackage} "/nix"''
+    if (anyFiles != []) then ''${installScript} ${filesPackage} "/nix"'' else "";
   );
 }
