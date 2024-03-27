@@ -56,7 +56,7 @@ let
     # For each all entry create both user and root entries
     # files.all is user compatible by default but for the root case we need to override a few things
     (filter (x: x.enable) (attrValues config.files.all))
-    (mapAttrs (name: value: value // { user = "root"; group = "root"; target = "root/${name}" } ) 
+    (mapAttrs (name: value: value // { user = "root"; group = "root"; target = "root/${name}"; } ) 
       (filter (x: x.enable) (attrValues config.files.all)))
   ];
 
