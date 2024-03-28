@@ -5,12 +5,23 @@
 # ### Features
 # - Size: 986.0 MiB
 # --------------------------------------------------------------------------------------------------
-{ args, pkgs, lib, ... }:
+{ config, lib, pkgs, args, ... }: with lib;
 {
   imports = [
     # I get a weird infinite recursion bug if I use ${pkgs} instead
     "${args.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
     ../../modules/nix.nix
+  ];
+
+  # ISO image configuration
+  # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/installer/cd-dvd/iso-image.nix
+  # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/installer/cd-dvd/installation-cd-base.nix
+  # Original example naming: "nixos-23.11.20240225.5bf1cad-x86_64-linux.iso"
+  isoImage.isoBaseName = "nixos-installer";
+  isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
+  isoImage.includeSystemBuildDependencies = true;
+  isoImage.storeContents = [
+    system.build.toplevel   # default ISO inclusion
   ];
 
   # Configure /etc/bashrc to launch our installer automation 'clu'
@@ -41,9 +52,9 @@
   users.users.nixos.password = "nixos";
   users.extraUsers.root.password = "nixos";
 
-  #networking.hostName = "iso";
+  # Adding packages needed for the clu installer automation
   environment.systemPackages = with pkgs; [
-    git                 # Needed for clu installer automation
-    jq                  # Needed for clu installer automation
+    git
+    jq
   ];
 }
