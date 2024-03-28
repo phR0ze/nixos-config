@@ -21,7 +21,7 @@
   isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
   isoImage.includeSystemBuildDependencies = true;
   isoImage.storeContents = [
-    system.build.toplevel   # default ISO inclusion
+    config.system.build.toplevel   # default ISO inclusion
   ];
 
   # Configure /etc/bashrc to launch our installer automation 'clu'
