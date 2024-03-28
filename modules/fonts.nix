@@ -13,8 +13,8 @@
 #  };
 
   fonts = {
-    fontconfig.enable = true;
     fontDir.enable = true;          # Create shared font dir /run/current-system/sw/share/X11/fonts
+    fontconfig.enable = true;
 
     packages = with pkgs; [
       (nerdfonts.override {

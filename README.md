@@ -81,20 +81,18 @@ have copied the original configuration to `/etc/nixos`.
 
 2. Make changes as desired
   
-3. Commit or stage your configuration changes
+3. Commit or stage your configuration changes so they are visible to nix flakes
    ```bash
    $ git add .
    ```
 
-4. Synchronize your system to the configuration changes
+4. Update your system with the configuration changes
    ```bash
-   # Update flake.lock
+   # Optionally first upgrade your flake.lock
    $ nix flake update
 
-   # Apply updates default path is /etc/nixos
-   $ sudo nixos-rebuild switch --flake path:/etc/nixos#system
-
-   $ sudo ./clu sync
+   # Apply your configuration changes
+   $ sudo ./clu update system
    ```
 
 ## Advanced use cases
@@ -115,7 +113,7 @@ world though this already exists.
 
 2. Modify the ISO profile as desired
    ```bash
-   $ vim profiles/iso.nix
+   $ vim profiles/iso/default.nix
    ```
 
 3. Commit or at the least stage your changes so Nix will see them
@@ -131,13 +129,13 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Build new option `files.home`
-* [ ] Include missing hicolor icons - fall back icons not working `XDG_ICON_DIRS`
+* [ ] Binary cache included in ISO
 
 ## Sometime
+* [ ] Include missing hicolor icons - fall back icons not working `XDG_ICON_DIRS`
 * [ ] Conflicts: file names, directory names with different modes or permissions
-* [ ] Move launcher to top
-* [ ] Move app panel to bottom
+* [ ] XFCE: Move launcher to top
+* [ ] XFCE: Move app panel to bottom
 * [ ] Choose default resolution for system
 * [ ] Add `nix-prefetch fetchFromGitHub --owner hrsh7th --repo nvim-cmp --rev 768548bf4980fd6d635193a9320545bb46fcb6d8`
 * [ ] Add vim-colorize plugin
@@ -160,36 +158,25 @@ world though this already exists.
   * https://github.com/librephoenix/nixos-config
 
 ## Completed
-* [x] Implemented new options for files `copyIn`, `linkIn`
-* [x] Support installing directories of files 
-* [x] Support installing arbitrary files including binaries
-* [x] Build out standard xfce desktop
-* [x] ./clu clean store `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
-* [x] Fix nerd fonts in shell
-* [x] Xfce base with autologin
-* [x] Port cyberlinux cli packages over
-* [x] Fix dircolors
-* [x] Adding solarized dircolors theme
-* [x] Clean up starship prompt to look better
-* [x] Customize neovim
-* [x] Add starship command prompt for all users
-* [x] Install neovim as default editor
-* [x] Add the flake nixpkgs to the `NIX_PATH`
-* [x] Install git and vim for basic usage
-* [x] Present and install user profile selection
-* [x] Pass user set options
-* [x] Pass automation set options
-* [x] Warn user before destructive disk commands are run
-* [x] Enabling docs
-* [x] Build my own minimal.nix
-* [x] Disable IPv6
-* [x] Default root password
-* [x] Default user and password
-* [x] Build installer automation
-* [x] Inject clu as bootable ISO launch
-* [x] clu to clone config repo
-* [x] ISO automatically launchs `clu`
-* [x] clu installs the nixos configuration
+* [x] XFCE profiles
+  * [x] Fix nerd fonts in shell
+  * [x] Autologin options plumbed in
+  * [x] Port cyberlinux cli packages over
+  * [x] Adding solarized dircolors theme
+  * [x] Add starship command prompt for all users
+  * [x] Install neovim as default editor and customize
+  * [x] Add the flake nixpkgs to the `NIX_PATH`
+* [x] Nix `files` options
+  * [x] Implemented `files.user`, `files.any`, `files.root`, `files.all`
+  * [x] Support installing arbitrary files and directories
+* [x] clu system automation
+  * [x] `./clu clean store` wrapper for `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
+* [x] clu installer automation
+  * [x] Inject clu into bootable ISO and auto launch it
+  * [x] clu to clone nixos-config repo and install it
+  * [x] Pass automation and user set options
+  * [x] Warn user before destructive disk operations
+  * [x] Default root and user passwords and print them out during install
 
 <!-- 
 vim: ts=2:sw=2:sts=2
