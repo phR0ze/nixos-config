@@ -173,18 +173,10 @@ install::config_system()
     log::header1 "Installing NixOS configuration"
     nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#system"
 
-#    # Configure time and date
-#    # --------------------------------------------------------------------------
-#    if [ "x$TIMEDATE_SET" == "xy" ]; then
-#        local now=$(date --iso-8601=seconds)
-#        echo -en ":: Set time and date to ${cyan}${now}${none}..."
-#        chroot ${ROOT_MOUNT} date -s ${now} &>/dev/null
-#        check_status
-#    fi
-#
-#    echo -en ":: Set hwclock to system clock ${cyan}${TIMEDATE}${none}..."
-#    chroot ${ROOT_MOUNT} hwclock --systohc &>/dev/null
-#    check_status
+    echo
+    echo -e ":: ${yellow}1. Power down your system:${none} sudo poweroff"
+    echo -e ":: ${yellow}2. Remove the install media${none}"
+    echo -e ":: ${yellow}3. Boot the system back up${none}"
 }
 
 # Start the install wizard
