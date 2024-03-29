@@ -21,7 +21,6 @@
     ../../options
     ../../modules/locale.nix
     ../../modules/nix.nix
-    ../../modules/sudo.nix
     ../../modules/users.nix
     ../../modules/boot/grub.nix
     ../../modules/boot/kernel.nix
