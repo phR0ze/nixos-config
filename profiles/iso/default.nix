@@ -10,8 +10,10 @@
   imports = [
     # I get a weird infinite recursion bug if I use ${pkgs} instead
     "${args.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-    ../../modules/nix.nix
+
     ./packages.nix
+    ../../modules/nix.nix
+    ../../modules/users.nix
   ];
 
   # ISO image configuration
@@ -20,6 +22,12 @@
   # Original example naming: "nixos-23.11.20240225.5bf1cad-x86_64-linux.iso"
   isoImage.isoBaseName = "nixos-installer";
   isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
+
+  # Adding packages needed for the clu installer automation
+  environment.systemPackages = with pkgs; [
+    git
+    jq
+  ];
 
   # Configure /etc/bashrc to launch our installer automation 'clu'
   programs.bash.promptPluginInit = ''
@@ -44,14 +52,4 @@
     chmod +x /home/nixos/nixos-config/clu
     sudo /home/nixos/nixos-config/clu install
   '';
-
-  # Set the default user passwords
-  users.users.nixos.password = "nixos";
-  users.extraUsers.root.password = "nixos";
-
-  # Adding packages needed for the clu installer automation
-  environment.systemPackages = with pkgs; [
-    git
-    jq
-  ];
 }
