@@ -4,7 +4,7 @@
 # - Configures users default groups
 # - Configures users default passwords
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }:
+{ config, lib, pkgs, args, ... }: with lib;
 {
   # Set the root password to the same as the admin user
   users.users.root.password = mkIf (args.settings.install) args.settings.userpass;
