@@ -7,7 +7,7 @@
 { config, lib, pkgs, args, ... }:
 {
   # Set the root password to the same as the admin user
-  #users.users.root.password = mkIf (config.isoImage) args.settings.userpass;
+  users.users.root.password = mkIf (args.settings.install) args.settings.userpass;
 
   # Configure the system admin user
   users.users.${args.settings.username} = {
