@@ -7,7 +7,7 @@
 { lib, pkgs, args, ... }:
 {
   # Set the root password to the same as the admin user
-  users.extraUsers.root.password = lib.mkForce args.settings.userpass;
+  users.extraUsers.root.password = args.settings.userpass;
 
   users.users.${args.settings.username} = {
     isNormalUser = true;
