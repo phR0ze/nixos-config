@@ -9,7 +9,7 @@
 {
   imports = [
     # I get a weird infinite recursion bug if I use ${pkgs} instead
-    "${args.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+    #"${args.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
 
     ./packages.nix
     ../../options
