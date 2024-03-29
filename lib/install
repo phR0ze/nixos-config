@@ -144,29 +144,29 @@ install::config_system()
     [ "x$DEFAULT" == "xy" ] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
     echo -en ":: Setting new user ${cyan}${USER_NAME}${none} and ${cyan}root${none} user passwords${pass}..."
 
-    utils::replace str "fullname" "${FULL_NAME}" "${NIXOS_CONFIG}/flake.nix"
-    utils::replace str "email" "${USER_EMAIL}" "${NIXOS_CONFIG}/flake.nix"
-    utils::replace str "username" "${USER_NAME}" "${NIXOS_CONFIG}/flake.nix"
-    utils::replace str "userpass" "${USER_PASS}" "${NIXOS_CONFIG}/flake.nix"
-    utils::replace str "git_name" "${GIT_USER}" "${NIXOS_CONFIG}/flake.nix"
-    utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_CONFIG}/flake.nix"
+    utils::replace str "fullname" "${FULL_NAME}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "email" "${USER_EMAIL}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "username" "${USER_NAME}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "userpass" "${USER_PASS}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "git_name" "${GIT_USER}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_CONFIG}/flake_opts.nix"
     [ "x${AUTO_LOGIN}" == "x1" ] && autologin="true" || autologin="false"
-    utils::replace bool "autologin" "${autologin}" "${NIXOS_CONFIG}/flake.nix"
+    utils::replace bool "autologin" "${autologin}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::check_status
 
     # Configure boot device target
     echo -en ":: Configure boot device type..."
     [ "x${EFI}" == "x1" ] && efi_str="true" || efi_str="false"
-    utils::replace bool "efi" "${efi_str}" "${NIXOS_CONFIG}/flake.nix"
+    utils::replace bool "efi" "${efi_str}" "${NIXOS_CONFIG}/flake_opts.nix"
 
     [ "x${EFI}" == "x1" ] && mbr_str="nodev" || mbr_str="${DESTDEV}"
-    utils::replace str "mbr" "${mbr_str}" "${NIXOS_CONFIG}/flake.nix"
+    utils::replace str "mbr" "${mbr_str}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::check_status
 
     # Configure system settings
-    utils::replace str "timezone" "${TIMEZONE}" "${NIXOS_CONFIG}/flake.nix"
-    utils::replace str "hostname" "${HOSTNAME}" "${NIXOS_CONFIG}/flake.nix"
-    utils::replace str "profile" "${PROFILE}" "${NIXOS_CONFIG}/flake.nix"
+    utils::replace str "timezone" "${TIMEZONE}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "hostname" "${HOSTNAME}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "profile" "${PROFILE}" "${NIXOS_CONFIG}/flake_opts.nix"
 
     # Execute the NixOS install
     # ----------------------------------------------------------------------------------------------
