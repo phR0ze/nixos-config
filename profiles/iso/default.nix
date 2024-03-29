@@ -8,9 +8,7 @@
 { config, lib, pkgs, args, ... }: with lib;
 {
   imports = [
-    # I get a weird infinite recursion bug if I use ${pkgs} instead
-    #"${args.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-
+    "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
     ./packages.nix
     ../../options
     ../../modules/nix.nix
