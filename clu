@@ -63,6 +63,7 @@ Commands:
   logs              Print out logging for various components
   manage            Manage the clu repo
   pkgs              Package management commands
+  repl              Launch the Nix repl
   test              Testing function for development
   update            Update the system with any changed configuration
 USAGE
@@ -106,6 +107,7 @@ case "$command" in
     logs) logs::run "$@" ;;
     manage) manage::run "$@" ;;
     pkgs) pkgs::run "$@" ;;
+    repl) nix repl -f '<nixpkgs>' ;;
     test) test::run "$@" ;;
     update) update::run "$@" ;;
     *) log::error "Invalid command: ${cyan}${command}${none}"; core::usage ;;
