@@ -3,9 +3,11 @@
 # https://nixos.wiki/wiki/Creating_a_NixOS_live_CD
 #
 # ### Features
-# - Size: 986.0 MiB
+# - Automatically run installation wizard to guide you through the install
+# - Automation for installing NixOS including partitioning and customization
+# - Packages included on ISO for optimimal install speed and offline installations
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, modulesPath, args, ... }: with lib;
+{ lib, pkgs, modulesPath, ... }: with lib;
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
@@ -22,10 +24,10 @@
   isoImage.isoBaseName = "nixos-installer";
   isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
 
-  # Adding packages needed for the clu installer automation
+  # Adding packages for the ISO environment
   environment.systemPackages = with pkgs; [
-    git
-    jq
+    git         # dependency for clu installer automation
+    jq          # dependency for clu installer automation
   ];
 
   # Configure /etc/bashrc to launch our installer automation 'clu'
