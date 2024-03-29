@@ -9,7 +9,7 @@
 # * [Live NixOS ISO](https://nixos.wiki/wiki/Creating_a_NixOS_live_CD)
 # * [ISO Image Construction](https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/installer/cd-dvd/iso-image.nix
 # --------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   # Not sure why this is useful as it seems to include all source code for all packages which is an 
   # insane amount of space. All I want to do is include pre-built applications to speed up install 
