@@ -5,7 +5,7 @@
 # ### Features
 # - Size: 986.0 MiB
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib;
+{ config, lib, pkgs, modulesPath, args, ... }: with lib;
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
