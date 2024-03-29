@@ -2,3 +2,4 @@
 temp
 files.log
 files.tmp
+flake_opts.nix
