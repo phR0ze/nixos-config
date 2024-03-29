@@ -7,7 +7,7 @@
 # - Automation for installing NixOS including partitioning and customization
 # - Packages included on ISO for optimimal install speed and offline installations
 # --------------------------------------------------------------------------------------------------
-{ lib, pkgs, modulesPath, ... }: with lib;
+{ config, lib, pkgs, modulesPath, ... }: with lib;
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
