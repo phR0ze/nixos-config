@@ -81,7 +81,7 @@
       # Defines configuration for building an ISO
       iso = nixpkgs.lib.nixosSystem {
         inherit pkgs system;
-        specialArgs = specialArgs // { args // { settings // { install = false; }; }; };
+        specialArgs = specialArgs // { args = args // { settings = settings // { install = false; }; }; };
         modules = [ ./profiles/iso/default.nix ];
       };
     };
