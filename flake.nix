@@ -26,9 +26,16 @@
   # is to just call them out explicitly as required named arguments which does this scoping for you.
   outputs = { self, nixpkgs, ... }@inputs: let
 
-    # Updatable system options
+    # Configurable system options
     # ----------------------------------------------------------------------------------------------
-    settings = import ./flake_opts.nix;
+    settings = {
+      stateVersion = "23.11";           # Base install version, not sure this matters when on flake
+      #wmType = if (wm == "hyprland") then "wayland" else "x11";
+      term = "alacritty";             # default terminal to use
+      fontName = "Intel One Mono";    # default font name
+      #fontPkg = pkgs.intel-one-mono;  # default font package
+    }
+    // import ./flake_opts.nix;         # include configuration set during installation
 
     # Allow for package patches, overrides and additions
     # * [allowUnfree](https://nixos.wiki/wiki/Unfree_Software)
