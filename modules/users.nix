@@ -4,11 +4,12 @@
 # - Configures users default groups
 # - Configures users default passwords
 #---------------------------------------------------------------------------------------------------
-{ lib, pkgs, args, ... }:
+{ config, lib, pkgs, args, ... }:
 {
   # Set the root password to the same as the admin user
-  users.users.root.password = args.settings.userpass;
+  #users.users.root.password = mkIf (config.isoImage) args.settings.userpass;
 
+  # Configure the system admin user
   users.users.${args.settings.username} = {
     isNormalUser = true;
     extraGroups = [
@@ -16,6 +17,21 @@
       "networkmanager"                  # enables ability for user to make network manager changes
     ];
     password = args.settings.userpass;  # temp password to change on first login
+  };
+
+  # Configure sudo access for system admin
+  security.sudo = {
+    enable = true;
+
+    # Configure passwordless sudo access for 'wheel' group
+    wheelNeedsPassword = false;
+
+    # Keep the environment variables of the calling user
+#    extraConfig = ''
+#      Defaults env_keep += "http_proxy HTTP_PROXY"
+#      Defaults env_keep += "https_proxy HTTPS_PROXY"
+#      Defaults env_keep += "ftp_proxy FTP_PROXY"
+#    '';
   };
 
   # Initialize user home
