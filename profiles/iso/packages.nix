@@ -22,6 +22,9 @@
   isoImage.storeContents = with pkgs; [
     config.system.build.toplevel  # default ISO inclusion
 
+    # CLI dependencies
+    # ----------------------------------------------------------------------------------------------
+
     # Firmware
     linux-firmware                # 
     alsa-firmware                 #
@@ -34,13 +37,14 @@
     dos2unix                      # Text file format converter
     #fwupd                         # Firmware update tool (NixOS requires building this?????)
     gptfdisk                      # Disk tools e.g. sgdisk, gdisk, cgdisk
-    #'intel-ucode'               # required for Intel Microcode update files to boot
+    grub2                         # GNU GRUB, the Grand Unified Boot Loader
+    #'intel-ucode'                 # required for Intel Microcode update files to boot
     inxi                          # CLI system information tool
     jq                            # Command line JSON processor, depof: kubectl
     libisoburn                    # xorriso ISO creation tools
     logrotate                     # Rotates and compresses system logs
     nix-prefetch                  # Utility to fetch git source to compute hashes
-    #'mkinitcpio-vt-colors'      # vt-colors, mkintcpio, find, xargs, gawk, grep
+    #'mkinitcpio-vt-colors'        # vt-colors, mkintcpio, find, xargs, gawk, grep
     psmisc                        # Proc filesystem utilities e.g. killall
     smartmontools                 # Monitoring tools for hard drives
     squashfsTools                 # mksquashfs, unsquashfs
@@ -65,6 +69,19 @@
     unrar                         # Unfree utility to uncompress RAR archives
     unzip                         # Uncompress Zip archives
     zip                           # Create zip archives
+
+    # X11 dependencies
+    # ----------------------------------------------------------------------------------------------
+    vscodium                      # Open source version of Microsoft's vscode without phone home
+    pavucontrol                   # PulseAudio Volume Control
+    pulseaudioFull                # Sound server for POSIX and Win32 systems
+    blueman                       # GTK-based Bluetooth Manager
+    bluez                         # Daemon for the bluetooth protocol stack
+
+    # XFCE dependencies
+    # ----------------------------------------------------------------------------------------------
+    xfce.xfconf                   # Simple client-server configuration storage and query system for Xfce
+
 
     # Other not sure needed
     #fontconfig
