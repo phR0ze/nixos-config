@@ -1,6 +1,6 @@
 # Grub configuration
 # --------------------------------------------------------------------------------------------------
-{ lib, args, ... }: with lib;
+{ lib, args, ... }:
 {
   # Configure default kernel modules
   boot.loader = {
@@ -8,10 +8,10 @@
 
     # Defaults to '/boot' and only gets used if efiSupport is true
     efi.efiSysMountPoint = "/boot";
-    grub.efiSupport = mkIf args.settings.efi true;
+    grub.efiSupport = lib.mkIf args.settings.efi true;
 
     # i.e. EFI/BOOT/BOOTX64.efi
-    grub.efiInstallAsRemovable = mkIf args.settings.efi true;
+    grub.efiInstallAsRemovable = lib.mkIf args.settings.efi true;
 
     # Configure or disable BIOS MBR boot support 
     # Will be set with automation to, e.g. '/dev/sda' (MBR), or 'nodev' (EFI)
