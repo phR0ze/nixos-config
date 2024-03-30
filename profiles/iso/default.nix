@@ -11,7 +11,7 @@
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
-    ../cli
+    ../cli/minimal.nix
     #./packages.nix
     #../../options
     #../../modules/nix.nix
