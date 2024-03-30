@@ -1,38 +1,82 @@
-# Minimal configuration to start from essentially nothing
+# Minimal base non-bootable configuration
 #
-# * [NixOS minimal profile](https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/profiles/minimal.nix)
-# * [NixOS discourse on minimal OS](https://discourse.nixos.org/t/how-to-have-a-minimal-nixos/22652/3)
-#
-# Use the following in your 'imports' for the upstream minimal.nix
-#  "${args.nixpkgs}/nixos/modules/profiles/minimal.nix"
+# ### Features
+# - Directly installable: fully functional cli environment
+# - Size: 2433.7 MiB
+# - Configured by flake args
+#   - System/User Locale
+#   - Default user/admin
+#   - Hostname
+#   - Disable IPv5 networking
+# - Bash custom user configuration
+# - Passwordless access for Sudo for default user
+# - SSHD custom configuration
+# - Nix flake and commands configuration
+# - DHCP systemd-networkd networking
 #---------------------------------------------------------------------------------------------------
-{ config, lib, ... }: with lib;
+{ config, lib, pkgs, args, ... }:
 {
-  # Disable X11 by default
-  environment.noXlibs = mkDefault true;
-  xdg.autostart.enable = mkDefault false;
-  xdg.icons.enable = mkDefault false;
-  xdg.mime.enable = mkDefault false;
-  xdg.sounds.enable = mkDefault false;
+  imports = [
+    ../../options
+    ../../modules/locale.nix
+    ../../modules/nix.nix
+    ../../modules/users.nix
+    ../../modules/boot/kernel.nix
+    ../../modules/terminal/bash.nix
+    ../../modules/terminal/starship.nix
+    ../../modules/network/base.nix
+    ../../modules/development/git.nix
+    ../../modules/development/neovim.nix
+    ../../modules/services/sshd.nix
+  ];
 
-  # Disable docs to save space
-  documentation.enable = mkDefault false;
-  documentation.doc.enable = mkDefault false;
-  documentation.info.enable = mkDefault false;
-  documentation.man.enable = mkDefault false;
-  documentation.nixos.enable = mkDefault false;
 
-  # Disable default packges like Perl by default
-  environment.defaultPackages = mkDefault [ ];
+  # Install hardware firmware
+  # https://github.com/NixOS/nixpkgs/blob/release-23.11/nixos/modules/hardware/all-firmware.nix
+  hardware.firmware = with pkgs; [
+    linux-firmware
+    alsa-firmware
+  ];
 
-  # Disable one offs that pull things in
-  #environment.stub-ld.enable = false; # seems to fail during install
-  programs.less.lessopen = mkDefault null;  # less pulls in Perl
-  boot.enableContainers = mkDefault false;  # nixos-containers pulls in Perl
-  programs.command-not-found.enable = mkDefault false;
-  services.logrotate.enable = mkDefault false;
-  services.udisks2.enable = mkDefault false;
+  # Install useful system packages
+  environment.systemPackages = with pkgs; [
 
-  # Trim down the boot modules
-  boot.initrd.includeDefaultModules = false;
+    # Networking utilities
+    git                           # The fast distributed version control system
+    nfs-utils                     # Support programs for Network File Systems
+    wget                          # Retrieve files using HTTP, HTTPS, and FTP
+
+    # System utilities
+    efibootmgr                    # EFI Boot Manager
+    efivar                        # Tools to manipulate EFI variables
+    cdrtools                      # ISO tools e.g. isoinfo, mkisofs
+    ddrescue                      # GNU ddrescue, a data recovery tool
+    dos2unix                      # Text file format converter
+    #fwupd                         # Firmware update tool (NixOS requires building this?????)
+    gptfdisk                      # Disk tools e.g. sgdisk, gdisk, cgdisk
+    #'intel-ucode'               # required for Intel Microcode update files to boot
+    inxi                          # CLI system information tool
+    jq                            # Command line JSON processor, depof: kubectl
+    libisoburn                    # xorriso ISO creation tools
+    logrotate                     # Rotates and compresses system logs
+    nix-prefetch                  # Utility to fetch git source to compute hashes
+    #'mkinitcpio-vt-colors'      # vt-colors, mkintcpio, find, xargs, gawk, grep
+    psmisc                        # Proc filesystem utilities e.g. killall
+    smartmontools                 # Monitoring tools for hard drives
+    squashfsTools                 # mksquashfs, unsquashfs
+    testdisk                      # Checks and undeletes partitions + photorec
+    tmux                          # Terminal multiplexer
+    tree                          # Simple dir listing app in tree form
+    usbutils                      # Tools for working with USB devices e.g. lsusb
+    yq                            # Command line YAML/XML/TOML processor
+
+    # Compression utilities
+    p7zip                         # Comman-line file archiver for 7zip format, depof: thunar
+    unrar                         # Unfree utility to uncompress RAR archives
+    unzip                         # Uncompress Zip archives
+    zip                           # Create zip archives
+  ];
+
+  # Set the NixOS version that this was installed with
+  system.stateVersion = args.settings.stateVersion;
 }
