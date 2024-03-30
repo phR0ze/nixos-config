@@ -170,7 +170,7 @@ install::config_system()
 
     # Pre-populate the target system's nix store to accelerate installation speed
     # ----------------------------------------------------------------------------------------------
-    log::header1 "Pre-populating the Nix Store for accelerated install"
+    log::header1 "Pre-populating the Nix Store"
     nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
 
     # Execute the NixOS install
