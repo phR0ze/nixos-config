@@ -3,7 +3,7 @@
 { args, ... }:
 {
   # Configure default kernel modules
-  boot.loader = {
+  boot.loader = mkIf (args.settings.install) {
     grub.enable = true;
 
     # Defaults to '/boot' and only gets used if efiSupport is true
