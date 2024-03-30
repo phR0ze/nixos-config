@@ -11,4 +11,10 @@ test::run()
 {
     core::title
     log::header1 "Test command invoked"
+
+    # Extract the nixpkgs input pieces and build the URL
+    x=".nodes.nixpkgs.locked"
+    repo=($(jq -r "$x.type, $x.owner, $x.repo, $x.rev" "$SCRIPT_DIR/flake.lock"))
+    nixpkgs_url="https://${repo[0]}.com/${repo[1]}/${repo[2]}/archive/${repo[3]}.tar.gz"
+    echo "${nixpkgs_url}"
 }

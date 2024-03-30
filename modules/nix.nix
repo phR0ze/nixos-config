@@ -5,14 +5,17 @@
   nix = {
     package = pkgs.nixFlakes;
 
-    # Sets up the NIX_PATH environment variable to use the flake nixpkgs for older nix2 commands
-    # e.g. nix-shell
+    # Used in conjunction with registry.nixpkgs.flake below this sets up the NIX_PATH environment 
+    # variable for older v2 binaries so they are using the correct nixpkgs and config versions.
     nixPath = [ "nixpkgs=${args.nixpkgs.outPath}" ];
 
     # Enable experimental features
     extraOptions = "experimental-features = nix-command flakes";
 
-    # Make nix search run faster by adding the default nixpkgs to the registry
+    # By configuring the nix registry to use our flake nixpkgs version we are pinning and aligning 
+    # across the system which version fo nixpkgs to use. This will keep things clean and avoid 
+    # downloading a new version constantly. Both using different versions and downloading the now 
+    # 40Mb tarball are awful. This fixes that.
     registry.nixpkgs.flake = args.nixpkgs;
 
     # Nix settings
