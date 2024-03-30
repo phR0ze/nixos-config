@@ -1,6 +1,6 @@
 # Grub configuration
 # --------------------------------------------------------------------------------------------------
-{ args, ... }:
+{ lib, args, ... }: with lib;
 {
   # Configure default kernel modules
   boot.loader = {
