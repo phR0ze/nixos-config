@@ -11,10 +11,11 @@
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
-    ./packages.nix
-    ../../options
-    ../../modules/nix.nix
-    ../../modules/users.nix
+    ../cli
+    #./packages.nix
+    #../../options
+    #../../modules/nix.nix
+    #../../modules/users.nix
   ];
 
   # ISO image configuration

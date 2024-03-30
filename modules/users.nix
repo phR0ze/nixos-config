@@ -17,6 +17,7 @@
     extraGroups = [
       "wheel"                           # enables passwordless sudo for this user
       "networkmanager"                  # enables ability for user to make network manager changes
+      "video"                           # enables ability for user to login to graphical environment
     ];
     password = args.settings.userpass;  # temp password to change on first login
   };
