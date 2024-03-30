@@ -9,7 +9,7 @@
   # Set the root password to the same as the admin user
   # Not setting this for the ISO path as was getting some weird warning and don't need this anyway
   # as the default system users is an administrator with sudo access.
-  users.users.root.password = mkIf (args.settings.install) args.settings.userpass;
+  users.users.root.password = mkIf (args.install) args.settings.userpass;
 
   # Configure the system admin user
   users.users.${args.settings.username} = {
@@ -19,7 +19,7 @@
       "networkmanager"                  # enables ability for user to make network manager changes
       "video"                           # enables ability for user to login to graphical environment
     ];
-    password = args.settings.userpass;  # temp password to change on first login
+    password = mkIf (args.install) args.settings.userpass;  # temp password to change on first login
   };
 
   # Configure sudo access for system admin

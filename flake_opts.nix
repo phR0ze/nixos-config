@@ -18,5 +18,4 @@
   system = "x86_64-linux";        # system architecture to use
   timezone = "America/Boise";     # time-zone selection
   locale = "en_US.UTF-8";         # locale selection
-  install = true;                 # Track if this is an installation or other operation
 }
