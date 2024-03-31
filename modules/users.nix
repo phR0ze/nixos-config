@@ -8,7 +8,6 @@
 {
   # Set the root password to the same as the admin user
   # Overriding the ISO settings to avoid the duplicate values warning
-  users.users.root.initialHashedPassword = mkForce null;
   users.users.root.initialPassword = mkForce args.settings.userpass;
 
   # Configure the system admin user

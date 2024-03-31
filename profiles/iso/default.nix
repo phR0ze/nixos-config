@@ -7,7 +7,7 @@
 # - Automation for installing NixOS including partitioning and customization
 # - Packages included on ISO for optimimal install speed and offline installations
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, modulesPath, ... }: with lib;
+{ config, lib, pkgs, args, modulesPath, ... }: with lib;
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
@@ -20,6 +20,12 @@
   # Original example naming: "nixos-23.11.20240225.5bf1cad-x86_64-linux.iso"
   isoImage.isoBaseName = "nixos-installer";
   isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
+
+  # Set ISO nixos user's password to default in flake_opts.nix and clear out the
+  # hashed form to avoid the warning during ISO creation.
+  users.users.root.initialHashedPassword = mkForce null;
+  users.users.nixos.initialHashedPassword = mkForce null;
+  users.users.nixos.initialPassword = mkForce args.settings.userpass;
 
   # Adding packages for the ISO environment
   environment.systemPackages = with pkgs; [
