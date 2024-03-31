@@ -1,9 +1,9 @@
 # SSHD configuration
 #---------------------------------------------------------------------------------------------------
-{ ... }:
+{ args, ... }:
 {
   services.openssh = {
     enable = true;
-    settings.PermitRootLogin = "no";
+    settings.PermitRootLogin = if (args.iso) then "yes" else "no";
   };
 }

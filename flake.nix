@@ -59,7 +59,7 @@
     };
 
     # Using attribute set update syntax '//' here to combine a couple sets for simpler input arguments
-    args = inputs // { inherit settings; } // { install = true; };
+    args = inputs // { inherit settings; } // { iso = false; };
     #opts = import modules/opts.nix {
       #{ options, config, lib, pkgs, args, ... }: with lib;
     #};
@@ -81,8 +81,8 @@
       # Defines configuration for building an ISO
       iso = nixpkgs.lib.nixosSystem {
         inherit pkgs system;
-        # Update the settings.install field to be false for ISO builds
-        specialArgs = specialArgs // { args = args // { install = false; }; };
+        # Update the args.iso field to be true for ISO builds
+        specialArgs = specialArgs // { args = args // { iso = true; }; };
         modules = [ ./profiles/iso/default.nix ];
       };
     };
