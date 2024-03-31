@@ -168,14 +168,11 @@ install::config_system()
     utils::replace str "hostname" "${HOSTNAME}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "profile" "${PROFILE}" "${NIXOS_CONFIG}/flake_opts.nix"
 
-    # Pre-populate the target system's nix store to accelerate installation speed
-    # ----------------------------------------------------------------------------------------------
-    log::header1 "Pre-populating the Nix Store"
-    nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
-
     # Execute the NixOS install
     # ----------------------------------------------------------------------------------------------
     log::header1 "Installing NixOS configuration"
+    echo -en ":: Pre-populating the Nix Store..."
+    nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
     nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#system"
 
     echo
