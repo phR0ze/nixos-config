@@ -7,8 +7,8 @@
 { config, lib, pkgs, args, ... }: with lib;
 {
   # Set the root password to the same as the admin user
-  # Not setting this for the ISO path as was getting some weird warning and don't need this anyway
-  # as the default system users is an administrator with sudo access.
+  # Overriding the ISO settings to avoid the duplicate values warning
+  users.users.root.initialHashedPassword = mkForce null;
   users.users.root.initialPassword = mkForce args.settings.userpass;
 
   # Configure the system admin user
