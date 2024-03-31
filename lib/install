@@ -217,7 +217,7 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     PROFILES=()
     local profiles_dir="${SCRIPT_DIR}/profiles"
-    local _profiles=($(echo $(find $profiles_dir -name "*.nix")))
+    local _profiles=($(echo $(find $profiles_dir -name "*.nix" | sort)))
     log::header0 "Select a deployment profile:"
     local i=0
     for j in "${!_profiles[@]}"; do # ! means loop over indices instead of values
