@@ -1,11 +1,11 @@
 {
   # Configuration set by user selections in the clu installer
   # ------------------------------------------------------------------------------------------------
-  fullname = "nixos";             # user's full name to use for general purposes
+  fullname = "admin";             # user's full name to use for general purposes
   email = "nixos@nixos.org";      # email to use for general configuration
-  username = "nixos";             # initial admin user to create during install
-  userpass = "nixos";             # admin user password securely entered during boot
-  git_user = "nixos";             # username to use for github, gitlab or other git tools
+  username = "admin";             # initial admin user to create during install
+  userpass = "admin";             # admin user password securely entered during boot
+  git_user = "admin";             # username to use for github, gitlab or other git tools
   git_email = "nixos@nixos.org";  # email to use for github, gitlab or other git tools
   hostname = "nixos";             # hostname to use for the install
   profile = "xfce/desktop";       # pre-defined configurations in path './profiles' selection
