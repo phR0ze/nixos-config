@@ -138,15 +138,23 @@ log::header()
     local separator=""
 
     # If the message has no color then colorize it
-    [[ "${msg}" != *"\e[1"* ]] && msg="${color}${msg}${none}"
+    if [[ "${msg}" != *"\e[1"* ]]; then
+      msg="${color}${msg}${none}"
+    fi
 
     # Calculate the separator in advance as it doesn't seem to translate otherwise
-    [[ $kind > 0 && "$char" != "" ]] && separator=$(echo -e ${color}$_{1..80}'\b'"${char}"${none})
+    if [[ $kind > 0 && "$char" != "" ]]; then
+      separator=$(echo -e ${color}$_{1..80}'\b'"${char}"${none})
+    fi
 
     _log $_info ""
-    [[ $kind > 1 ]] && _log $_info "$separator"
+    if [[ $kind > 1 ]]; then
+      _log $_info "$separator"
+    fi
     _log $_info "${color}::${none} ${msg}"
-    [[ $kind > 0 ]] && _log $_info "$separator"
+    if [[ $kind > 0 ]]; then
+      _log $_info "$separator"
+    fi
 }
 
 # Print out a double header with newline
