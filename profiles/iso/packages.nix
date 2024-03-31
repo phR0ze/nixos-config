@@ -11,13 +11,6 @@
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, ... }:
 {
-  # Not sure why this is useful as it seems to include all source code for all packages which is an 
-  # insane amount of space. All I want to do is include pre-built applications to speed up install 
-  # similar to a nix binary cache but included in the ISO. As a result I'm not using this option and 
-  # instead using the `isoImage.storeContents` option below which I'll then orchestrate to with
-  # `nix copy` to pre-populate the Nix store during install.
-  #isoImage.includeSystemBuildDependencies = true;
-
   # Not including packages already included by default with minimal ISO
   isoImage.storeContents = with pkgs; [
     config.system.build.toplevel  # default ISO inclusion

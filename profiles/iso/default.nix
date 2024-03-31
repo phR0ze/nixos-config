@@ -12,10 +12,6 @@
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
     ../cli/minimal.nix
-    #./packages.nix
-    #../../options
-    #../../modules/nix.nix
-    #../../modules/users.nix
   ];
 
   # ISO image configuration
@@ -24,6 +20,13 @@
   # Original example naming: "nixos-23.11.20240225.5bf1cad-x86_64-linux.iso"
   isoImage.isoBaseName = "nixos-installer";
   isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
+
+  # Not sure why this is useful as it seems to include all source code for all packages which is an 
+  # insane amount of space. All I want to do is include pre-built applications to speed up install 
+  # similar to a nix binary cache but included in the ISO. As a result I'm not using this option and 
+  # instead using the `isoImage.storeContents` option below which I'll then orchestrate to with
+  # `nix copy` to pre-populate the Nix store during install.
+  isoImage.includeSystemBuildDependencies = true;
 
   # Adding packages for the ISO environment
   environment.systemPackages = with pkgs; [
