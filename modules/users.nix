@@ -9,7 +9,7 @@
   # Set the root password to the same as the admin user
   # Not setting this for the ISO path as was getting some weird warning and don't need this anyway
   # as the default system users is an administrator with sudo access.
-  users.users.root.password = if args.iso then null else args.settings.userpass;
+  users.users.root.initialPassword = mkForce args.settings.userpass;
 
   # Configure the system admin user
   users.users.${args.settings.username} = {
@@ -21,7 +21,7 @@
     ];
 
     # User password or none if ISO
-    password = if args.iso then null else args.settings.userpass;
+    initialPassword = args.settings.userpass;
   };
 
   # Configure sudo access for system admin
