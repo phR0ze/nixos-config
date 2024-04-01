@@ -70,7 +70,7 @@ utils::check_status()
 # - $1 return variable name to be set
 # - $2 message to display to the user to prompt for read
 # - $3 default value to use if no value was read
-# - $4 if 's' don't echo result, if 'f' ignore automation and require user read
+# - $4 if 's' don't echo result, if 'f' force answer from user
 #
 # Special commands:
 # Instead of answering the read query the user can use these special commands to invoke debugging
@@ -87,18 +87,20 @@ utils::read()
     echo -en "   ${msg} (default=${cyan}${result}${none}): "
 
     # Defaulting settings is true then add a newline to format nicely
-    [ "x$multi" != "xf" ] && [ "x$DEFAULT" == "xy" ] && echo ''
+    if [[ "x$multi" != "xf" && "x$DEFAULT" == "xy" ]]; then
+      echo
+    fi
 
     # Handle non default options 
-    if [ "x$multi" == "xf" ] || [ "x$DEFAULT" == "xn" ]; then
+    if [[ "x$multi" == "xf" || "x$DEFAULT" == "xn" ]]; then
         if [ "x$multi" == "xs" ]; then
             read -s value
-            echo ''
+            echo
         else
             read value
         fi
 
-        # Handle debug user read
+        # Handle debug values
         [[ "$value" == *"debug"* ]] && DEBUG=1 && value=""
         [[ "$value" == *"exit"* ]] && utils::exit
 
@@ -130,7 +132,7 @@ utils::select()
     # Present options and retry if an invalid selection is given
     while true; do
         echo -en "   Enter your numbered selection (default=${cyan}1${none}): "
-        [ "x$DEFAULT" == "xy" ] && echo '' || read choice
+        [ "x$DEFAULT" == "xy" ] && echo || read choice
         [ "$choice" == "exit" ] && utils::exit
         [ "x$choice" == "x" ] && choice=1
         log::ln_d "Choice: $choice"

@@ -171,7 +171,7 @@ install::config_system()
     # Execute the NixOS install
     # ----------------------------------------------------------------------------------------------
     log::header1 "Installing NixOS configuration"
-    echo -en ":: Pre-populating the Nix Store..."
+    echo -e ":: Pre-populating the Nix Store..."
     nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
     nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#system"
 
