@@ -15,10 +15,9 @@
 # - Nix flake and commands configuration
 # - DHCP systemd-networkd networking
 #---------------------------------------------------------------------------------------------------
-{ ... }:
+{ config, lib, args, ... }:
 {
   imports = [
     ./minimal.nix
-    ../../modules/boot/grub.nix
-  ];
+  ] ++ lib.optional !args.iso ../../modules/boot/grub.nix;
 }

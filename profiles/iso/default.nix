@@ -11,7 +11,7 @@
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
-    ../cli/minimal.nix
+    ../cli
   ];
 
   # ISO image configuration
