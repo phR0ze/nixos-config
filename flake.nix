@@ -60,9 +60,6 @@
 
     # Using attribute set update syntax '//' here to combine a couple sets for simpler input arguments
     args = inputs // { inherit settings; } // { iso = false; };
-    #opts = import modules/opts.nix {
-      #{ options, config, lib, pkgs, args, ... }: with lib;
-    #};
     system = settings.system;
     specialArgs = { inherit args; };
     

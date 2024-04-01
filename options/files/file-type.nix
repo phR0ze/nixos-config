@@ -8,7 +8,7 @@
   #   - user          user to use as default for ownership e.g. "admin"
   #   - group         group to use as default for ownership e.g. "users"
   #   - prefix        path prefix including trailing slash to keep instances unique e.g. "root/" | "home/admin/"
-  fileType = user: group: prefix: with types; attrsOf (submodule (
+  fileType = user: group: prefix: with lib.types; attrsOf (submodule (
     { name, config, options, ... }: {
       options = {
 
