@@ -19,5 +19,5 @@
 {
   imports = [
     ./minimal.nix
-  ] ++ lib.optional !args.iso ../../modules/boot/grub.nix;
+  ] ++ lib.optional (!args.iso) ../../modules/boot/grub.nix;
 }
