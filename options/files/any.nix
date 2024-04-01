@@ -48,7 +48,7 @@ let
 
   # Filter the files options down to just those that are enabled.
   # By including justing the values we can avoid key collisions that occurred with the names.
-  anyFiles = concatLists [
+  anyFiles = lib.concatLists [
     (filter (x: x.enable) (attrValues config.files.any))
     (filter (x: x.enable) (attrValues config.files.user))
     (filter (x: x.enable) (attrValues config.files.root))
