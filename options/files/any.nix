@@ -49,14 +49,14 @@ let
   # Filter the files options down to just those that are enabled.
   # By including justing the values we can avoid key collisions that occurred with the names.
   anyFiles = lib.concatLists [
-    (filter (x: x.enable) (attrValues config.files.any))
-    (filter (x: x.enable) (attrValues config.files.user))
-    (filter (x: x.enable) (attrValues config.files.root))
+    (lib.filter (x: x.enable) (attrValues config.files.any))
+    (lib.filter (x: x.enable) (attrValues config.files.user))
+    (lib.filter (x: x.enable) (attrValues config.files.root))
 
     # For each all entry create both user and root entries
     # files.all is user compatible by default but for the root case we need to override a few things
-    (filter (x: x.enable) (attrValues config.files.all))
-    (filter (x: x.enable) (attrValues (
+    (lib.filter (x: x.enable) (attrValues config.files.all))
+    (lib.filter (x: x.enable) (attrValues (
       mapAttrs (name: value: value // { user = "root"; group = "root"; target = "root/${name}"; } ) config.files.all))
     )
   ];
