@@ -118,7 +118,7 @@ let
     # Convert the files derivations into a list of calls to track by taking all the file
     # derivations escaping the arguments and adding them line by line to this ouput bash script.
     # e.g. 'track' '/nix/store/<hash>-files-root-foobar' '/root/foobar'
-    ${lib.concatMapStringsSep "\n" (entry: escapeShellArgs [
+    ${lib.concatMapStringsSep "\n" (entry: lib.escapeShellArgs [
       "track"
       # Simply referencing the source file here will suck it into the /nix/store as its own package
       "${entry.source}"
