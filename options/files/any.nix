@@ -57,7 +57,7 @@ let
     # files.all is user compatible by default but for the root case we need to override a few things
     (lib.filter (x: x.enable) (lib.attrValues config.files.all))
     (lib.filter (x: x.enable) (lib.attrValues (
-      mapAttrs (name: value: value // { user = "root"; group = "root"; target = "root/${name}"; } ) config.files.all))
+      lib.mapAttrs (name: value: value // { user = "root"; group = "root"; target = "root/${name}"; } ) config.files.all))
     )
   ];
 
