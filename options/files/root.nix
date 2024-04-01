@@ -4,7 +4,7 @@
 #
 # see ./any.nix for warnings and instructions
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib;
+{ options, config, lib, pkgs, args, ... }:
 let
 
   # Import the shared fileType
@@ -15,7 +15,7 @@ let
 in
 {
   options = {
-    files.root = mkOption {
+    files.root = lib.mkOption {
       default = {};
       description = lib.mdDoc ''
         Set of files to deploy to the root user's directory

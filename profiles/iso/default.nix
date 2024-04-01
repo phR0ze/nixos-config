@@ -7,7 +7,7 @@
 # - Automation for installing NixOS including partitioning and customization
 # - Packages included on ISO for optimimal install speed and offline installations
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, modulesPath, ... }: with lib;
+{ config, lib, pkgs, args, modulesPath, ... }:
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
@@ -23,9 +23,9 @@
 
   # Set ISO nixos user's password to default in flake_opts.nix and clear out the
   # hashed form to avoid the warning during ISO creation.
-  users.users.root.initialHashedPassword = mkForce null;
-  users.users.nixos.initialHashedPassword = mkForce null;
-  users.users.nixos.initialPassword = mkForce args.settings.userpass;
+  users.users.root.initialHashedPassword = lib.mkForce null;
+  users.users.nixos.initialHashedPassword = lib.mkForce null;
+  users.users.nixos.initialPassword = lib.mkForce args.settings.userpass;
 
   # Adding packages for the ISO environment
   environment.systemPackages = with pkgs; [

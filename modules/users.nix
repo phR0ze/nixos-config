@@ -4,11 +4,11 @@
 # - Configures users default groups
 # - Configures users default passwords
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib;
+{ config, lib, pkgs, args, ... }:
 {
   # Set the root password to the same as the admin user
   # Overriding the ISO settings to avoid the duplicate values warning
-  users.users.root.initialPassword = mkForce args.settings.userpass;
+  users.users.root.initialPassword = lib.mkForce args.settings.userpass;
 
   # Configure the system admin user
   users.users.${args.settings.username} = {

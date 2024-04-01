@@ -38,7 +38,7 @@
 #     filesPackage as a parameter
 #  9. The activation install script then uses the filesPackage to install the files
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib;
+{ options, config, lib, pkgs, args, ... }:
 let
 
   # Import the shared fileType
@@ -143,7 +143,7 @@ in
 
     # any files option
     # ----------------------------------------------------------------------------------------------
-    files.any = mkOption {
+    files.any = lib.mkOption {
       default = {};
       description = lib.mdDoc ''
         Set of files to deploy in the target system.
