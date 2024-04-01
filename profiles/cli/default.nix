@@ -15,7 +15,7 @@
 # - Nix flake and commands configuration
 # - DHCP systemd-networkd networking
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib;
+{ config, lib, pkgs, args, ... }:
 {
   imports = [
     ../../options
@@ -31,7 +31,7 @@
     ../../modules/services/sshd.nix
 
   # conditionally exclude grub for iso builds
-  ] ++ optional (!args.iso) ../../modules/boot/grub.nix;
+  ] ++ lib.optional (!args.iso) ../../modules/boot/grub.nix;
 
 
   # Install hardware firmware
