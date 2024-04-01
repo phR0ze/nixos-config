@@ -1,6 +1,6 @@
 # Declares files fileType for use in various files options
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib;
+{ options, config, lib, pkgs, args, ... }:
 {
   # Constructs a files type.
   #
@@ -12,18 +12,18 @@
     { name, config, options, ... }: {
       options = {
 
-        enable = mkOption {
+        enable = lib.mkOption {
           type = types.bool;
           default = true;
           description = lib.mdDoc "Whether the source should be installed at the target path.";
         };
 
-        target = mkOption {
+        target = lib.mkOption {
           type = types.str;
           description = lib.mdDoc "Absolute destination path. Defaults to the attribute name.";
         };
 
-        text = mkOption {
+        text = lib.mkOption {
           default = null;
           type = types.nullOr types.lines;
           description = lib.mdDoc ''
@@ -35,7 +35,7 @@
           '';
         };
 
-        copy = mkOption {
+        copy = lib.mkOption {
           default = null;
           type = types.nullOr types.path;
           description = lib.mdDoc ''
@@ -46,7 +46,7 @@
           '';
         };
 
-        link = mkOption {
+        link = lib.mkOption {
           default = null;
           type = types.nullOr types.path;
           description = lib.mdDoc ''
@@ -57,7 +57,7 @@
           '';
         };
 
-        source = mkOption {
+        source = lib.mkOption {
           type = types.path;
           example = "../include/home/.dircolors";
           description = lib.mdDoc ''
@@ -68,7 +68,7 @@
           '';
         };
 
-        kind = mkOption {
+        kind = lib.mkOption {
           type = types.str;
           default = "link";
           description = lib.mdDoc ''
@@ -80,7 +80,7 @@
           '';
         };
 
-        op = mkOption {
+        op = lib.mkOption {
           type = types.str;
           default = "default";
           description = lib.mdDoc ''
@@ -88,7 +88,7 @@
           '';
         };
 
-        own = mkOption {
+        own = lib.mkOption {
           type = types.str;
           default = "default";
           description = lib.mdDoc ''
@@ -102,27 +102,27 @@
           '';
         };
 
-        dirmode = mkOption {
+        dirmode = lib.mkOption {
           type = types.str;
           default = "0755";
           example = "0700";
           description = lib.mdDoc "Mode of any directories being created";
         };
 
-        filemode = mkOption {
+        filemode = lib.mkOption {
           type = types.str;
           default = "0644";
           example = "0777";
           description = lib.mdDoc "Mode of any files being created";
         };
 
-        user = mkOption {
+        user = lib.mkOption {
           type = types.str;
           default = "${user}";
           description = lib.mdDoc "Owner of file being created and/or the directories.";
         };
 
-        group = mkOption {
+        group = lib.mkOption {
           type = types.str;
           default = "${group}";
           description = lib.mdDoc "Group of file being created and/or the directories.";
@@ -133,22 +133,22 @@
       config = {
 
         # Default the destination name to the attribute name
-        target = mkDefault "${prefix}${name}";
+        target = lib.mkDefault "${prefix}${name}";
 
         # Set kind based off the convenience options [ copy | link ]
-        kind = if (config.link != null) then (mkForce "link")
-          else mkForce "copy";
+        kind = if (config.link != null) then (lib.mkForce "link")
+          else lib.mkForce "copy";
 
         # Set default for future use
-        op = mkDefault "default";
+        op = lib.mkDefault "default";
 
         # Set default( i.e. files are owned and directories are not) but allows for user overrides
-        own = mkDefault "default";
+        own = lib.mkDefault "default";
 
         # Set based off the convenience options
-        source = if (config.copy != null) then (mkForce config.copy)
-          else if (config.link != null) then (mkForce config.link)
-          else mkIf (config.text != null) (mkDerivedConfig options.text (pkgs.writeText name));
+        source = if (config.copy != null) then (lib.mkForce config.copy)
+          else if (config.link != null) then (lib.mkForce config.link)
+          else lib.mkIf (config.text != null) (lib.mkDerivedConfig options.text (pkgs.writeText name));
       };
     }
   ));
