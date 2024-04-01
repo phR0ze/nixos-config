@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# Registry code
+# 
+# ## Features
+#
+# --------------------------------------------------------------------------------------------------
+
+# Usage for the registry command and its sub commands
+# --------------------------------------------------------------------------------------------------
+registry::usage()
+{
+    cat <<USAGE
+Usage:
+  registry [OPTIONS] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out top level usage
+
+Commands:
+  list              List out the registry entries
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "List out the registry entries: ${green}./${SCRIPT} registry list${none}"
+    echo
+    exit
+}
+
+
+# Parse the registry commands and execute
+# --------------------------------------------------------------------------------------------------
+registry::run()
+{
+    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && registry::usage
+
+    local command=$1; shift
+    case "$command" in
+        list) registry::list "$@" ;;
+        *) log::error "Invalid registry command: ${cyan}${command}${none}"; registry::usage ;;
+    esac
+}
+ 
+# Registry list
+# --------------------------------------------------------------------------------------------------
+registry::list()
+{
+    core::title
+    log::header0 "Registry list"
+
+    nix registry list
+}
