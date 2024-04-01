@@ -11,7 +11,7 @@
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
-    ../cli
+    ../xfce/develop.nix
   ];
 
   # ISO image configuration
