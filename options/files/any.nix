@@ -181,6 +181,6 @@ in
   # By referencing the ${filesPackage} we trigger the derivation to be built and stored in 
   # the /nix/store which can then be used as an input variable for the actual deployment of files to 
   # their destination paths.
-  config.system.activationScripts.files = stringAfter [ "etc" "users" "groups" ]
+  config.system.activationScripts.files = lib.stringAfter [ "etc" "users" "groups" ]
     ''${installScript} ${filesPackage} "/nix"'';
 }
