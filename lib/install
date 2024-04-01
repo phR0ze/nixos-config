@@ -238,7 +238,7 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::header0 "Automatically deploy with defaults?"
     utils::read DEFAULT 'Use automatic mode with defaults' 'n'
-    if [ "x$DEFAULT" == "xy" ]; then
+    if [[ "x$DEFAULT" == "xy" ]]; then
         AUTO_LOGIN=1
     fi
 

@@ -144,7 +144,7 @@ log::header()
 
     # Calculate the separator in advance as it doesn't seem to translate otherwise
     if [[ $kind > 0 && "$char" != "" ]]; then
-      separator=$(echo -e ${color}$_{1..80}'\b'"${char}"${none})
+      separator="${color}$(printf "%.0s${char}" {1..100})${none}"
     fi
 
     _log $_info ""
