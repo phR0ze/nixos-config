@@ -6,15 +6,10 @@ let
 
   # Generate the xfce4-desktop xml settings file based on the given options
   xmlfile = lib.mkIf (cfg.background != null)
-    (pkgs.runCommandLocal "xfce4-desktop-xml" {} ''
-      set -euo pipefail             # Configure an immediate fail if something goes badly
-      mkdir -p "$out"               # Creates the nix store path to populate
-
-      target="$out/xfce4-desktop.xml"
-
-      echo '<?xml version="1.0" encoding="UTF-8"?>' >> $target
-      echo '${cfg.background}'
-      echo '</channel>' >> $target
+    (pkgs.writeText "xfce4-desktop.xml" ''
+      <?xml version="1.0" encoding="UTF-8"?>
+      ${cfg.background}
+      </channel>
     '');
 
 in
