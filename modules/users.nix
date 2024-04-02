@@ -40,7 +40,7 @@
 
   # Initialize user home
   # ------------------------------------------------------------------------------------------------
-  files.any."root/.config".link = ../include/home/.config;
+  #files.any."root/.config".link = ../include/home/.config;
   files.all.".dircolors".copy = ../include/home/.dircolors;
 
 #  security.pam.services.login.makeHomeDir = true;
