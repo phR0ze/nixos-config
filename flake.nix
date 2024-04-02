@@ -29,7 +29,7 @@
     # Configurable system options
     # ----------------------------------------------------------------------------------------------
     settings = {
-      stateVersion = "23.11";           # Base install version, not sure this matters when on flake
+      stateVersion = "24.05";           # Base install version, not sure this matters when on flake
       #wmType = if (wm == "hyprland") then "wayland" else "x11";
       term = "alacritty";             # default terminal to use
       fontName = "Intel One Mono";    # default font name

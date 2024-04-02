@@ -8,13 +8,13 @@
   git_user = "admin";             # username to use for github, gitlab or other git tools
   git_email = "nixos@nixos.org";  # email to use for github, gitlab or other git tools
   hostname = "nixos";             # hostname to use for the install
-  profile = "xfce/desktop";       # pre-defined configurations in path './profiles' selection
+  profile = "xfce/develop";       # pre-defined configurations in path './profiles' selection
   autologin = true;               # automatically log the user in after boot when true
   
   # Configuration set via automation in the clu installer
   # ------------------------------------------------------------------------------------------------
-  efi = true;                     # EFI system boot type
-  mbr = "nodev";                  # MBR system boot device
+  efi = false;                    # EFI system boot type, default "false"
+  mbr = "/dev/sda";               # MBR system boot device, default "nodev"
   system = "x86_64-linux";        # system architecture to use
   timezone = "America/Boise";     # time-zone selection
   locale = "en_US.UTF-8";         # locale selection
