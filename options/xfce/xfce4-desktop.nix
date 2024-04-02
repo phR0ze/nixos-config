@@ -61,10 +61,10 @@ let
           <property name="icon-size" type="uint" value="48"/>
           <property name="show-thumbnails" type="bool" value="true"/>
           <property name="file-icons" type="empty">
-            <property name="show-home" type="bool" value="${cfg.show-home}"/>
-            <property name="show-trash" type="bool" value="${cfg.show-trash}"/>
-            <property name="show-filesystem" type="bool" value="${cfg.show-filesystem}"/>
-            <property name="show-removable" type="bool" value="${cfg.show-removable}"/>
+            <property name="show-home" type="bool" value="${toString cfg.show-home}"/>
+            <property name="show-trash" type="bool" value="${toString cfg.show-trash}"/>
+            <property name="show-filesystem" type="bool" value="${toString cfg.show-filesystem}"/>
+            <property name="show-removable" type="bool" value="${toString cfg.show-removable}"/>
           </property>
         </property>
         <property name="last" type="empty">
