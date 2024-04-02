@@ -26,6 +26,15 @@
   users.users.root.initialHashedPassword = lib.mkForce null;
   users.users.nixos.initialHashedPassword = lib.mkForce null;
 
+  # Some more help text.
+  services.getty.helpLine = lib.mkForce ''
+    The "nixos" and "root" account passwords are set to ${args.settings.userpass}.
+
+    If you need a wireless connection, type
+    `sudo systemctl start wpa_supplicant` and configure a
+    network using `wpa_cli`. See the NixOS manual for details.
+  '';
+
   # Adding packages for the ISO environment
   environment.systemPackages = with pkgs; [
     git         # dependency for clu installer automation
