@@ -21,11 +21,10 @@
   isoImage.isoBaseName = "nixos-installer";
   isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
 
-  # Set ISO nixos user's password to default in flake_opts.nix and clear out the
-  # hashed form to avoid the warning during ISO creation.
+  # Clearing out the hashed form to avoid the warning during ISO creation.
+  # The passwords are set in the ../../modules/users.nix file via the flake_opts.nix
   users.users.root.initialHashedPassword = lib.mkForce null;
   users.users.nixos.initialHashedPassword = lib.mkForce null;
-  users.users.nixos.initialPassword = lib.mkForce args.settings.userpass;
 
   # Adding packages for the ISO environment
   environment.systemPackages = with pkgs; [

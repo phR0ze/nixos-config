@@ -20,7 +20,7 @@
     ];
 
     # User password or none if ISO
-    initialPassword = args.settings.userpass;
+    initialPassword = lib.mkForce args.settings.userpass;
   };
 
   # Configure sudo access for system admin
