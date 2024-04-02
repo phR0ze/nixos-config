@@ -10,11 +10,9 @@
     ../x11/minimal.nix
   ];
 
-  # Configure custom XFCE xfconf settings
-  files.all.".config/xfce4/xfconf".copy = ../../include/home/.config/xfce4/xfconf;
-
-  # Enable the main configuration tool for xfce
+  # Enable the main configuration tool for xfce and drop in custom configuration
   programs.xfconf.enable = true;
+  files.all.".config/xfce4/xfconf".copy = ../../include/home/.config/xfce4/xfconf;
 
   # Indirectly installs xfce4-power-manager
   powerManagement.enable = true;
@@ -30,7 +28,6 @@
     displayManager = {
       defaultSession = "xfce";
     };
-
   };
 
   # Additional xfce specific services
