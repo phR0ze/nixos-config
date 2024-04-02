@@ -129,7 +129,7 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Binary cache included in ISO
+* [ ] Create ISO with full live GUI environment
 
 ## Sometime
 * [ ] Include missing hicolor icons - fall back icons not working `XDG_ICON_DIRS`
@@ -170,8 +170,10 @@ world though this already exists.
   * [x] Implemented `files.user`, `files.any`, `files.root`, `files.all`
   * [x] Support installing arbitrary files and directories
 * [x] clu system automation
+  * [x] `./clu registry list`
   * [x] `./clu clean store` wrapper for `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
-* [x] clu installer automation
+* [x] ISO and clu installer automation
+  * [x] ISO nix store is used to pre-populate the target system
   * [x] Inject clu into bootable ISO and auto launch it
   * [x] clu to clone nixos-config repo and install it
   * [x] Pass automation and user set options
