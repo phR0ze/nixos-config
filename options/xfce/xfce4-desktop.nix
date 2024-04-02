@@ -4,6 +4,19 @@
 let
   cfg = config.services.xserver.desktopManager.xfce.xfce4-desktop;
 
+  # Generate the xfce4-desktop xml settings file based on the given options
+  xmlfile = lib.mkIf cfg.background
+    (pkgs.runCommandLocal "xfce4-desktop-xml" {} ''
+      set -euo pipefail             # Configure an immediate fail if something goes badly
+      mkdir -p "$out"               # Creates the nix store path to populate
+
+      target="$out/xfce4-desktop.xml"
+
+      echo '<?xml version="1.0" encoding="UTF-8"?>' >> $target
+      echo '${cfg.background}'
+      echo '</channel>' >> $target
+    '');
+
 in
 {
   options = {
@@ -18,19 +31,7 @@ in
 
   config = lib.mkIf cfg.background {
 
-    # Generate the xfce4-desktop xml settings file based on the given options
-    xml = pkgs.runCommandLocal "xfce4-desktop-xml" {} ''
-      set -euo pipefail             # Configure an immediate fail if something goes badly
-      mkdir -p "$out"               # Creates the nix store path to populate
-
-      target="$out/xfce4-desktop.xml"
-
-      echo '<?xml version="1.0" encoding="UTF-8"?>' >> $target
-      echo '${cfg.background}'
-      echo '</channel>' >> $target
-    '';
-
     # Install the generated xfce4-desktop xml file
-    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml".copy = xml;
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml".copy = xmlfile;
   };
 }
