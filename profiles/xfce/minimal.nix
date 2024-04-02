@@ -10,13 +10,14 @@
     ../x11/minimal.nix
   ];
 
+  # Configure custom XFCE xfconf settings
+  files.all.".config/xfce4/xfconf".copy = ../../include/home/.config/xfce4/xfconf;
+
   # Enable the main configuration tool for xfce
   programs.xfconf.enable = true;
 
   # Indirectly installs xfce4-power-manager
   powerManagement.enable = true;
-  files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".copy =
-    ../../include/home/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml;
 
   # XFCE configuration
   # ------------------------------------------------------------------------------------------------
