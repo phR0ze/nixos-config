@@ -68,8 +68,8 @@ let
           </property>
         </property>
         <property name="last" type="empty">
-          <property name="window-width" type="int" value="${cfg.window-width}"/>
-          <property name="window-height" type="int" value="${cfg.window-height}"/>
+          <property name="window-width" type="int" value="${toString cfg.window-width}"/>
+          <property name="window-height" type="int" value="${toString cfg.window-height}"/>
         </property>
       </channel>
     '');
