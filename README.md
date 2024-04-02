@@ -148,7 +148,8 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Add backgrounds to system
+* [ ] XFCE option
+  * [ ] Add backgrounds to system
 * [ ] XFCE: Move launcher to top
 * [ ] XFCE: Move app panel to bottom
 
