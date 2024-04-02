@@ -8,7 +8,7 @@ in
 {
   options = {
     services.xserver.desktopManager.xfce.xfce4-desktop = {
-      background = mkOption {
+      background = lib.mkOption {
         type = types.nullOr types.path;
         default = null;
         description = lib.mdDoc "Set the XFCE desktop background.";
