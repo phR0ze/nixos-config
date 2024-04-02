@@ -8,11 +8,15 @@
 {
   imports = [
     ../x11/minimal.nix
-    ../../modules/desktop/xfce.nix
   ];
 
-  # Installs xfce4-power-manager
+  # Enable the main configuration tool for xfce
+  programs.xfconf.enable = true;
+
+  # Indirectly installs xfce4-power-manager
   powerManagement.enable = true;
+  files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".copy =
+    ../include/home/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml
 
   # XFCE configuration
   # ------------------------------------------------------------------------------------------------
