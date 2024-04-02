@@ -82,12 +82,6 @@ in
         default = null;
         description = lib.mdDoc "Set the XFCE desktop background.";
       };
-
-      background = lib.mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = lib.mdDoc "Set the XFCE desktop background.";
-      };
     };
   };
 
