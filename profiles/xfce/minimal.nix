@@ -14,7 +14,7 @@
   programs.xfconf.enable = true;
   #files.all.".config/xfce4/xfconf".copy = ../../include/home/.config/xfce4/xfconf;
   files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".copy = 
-    ../../include/home/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml
+    ../../include/home/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml;
 
   # Indirectly installs xfce4-power-manager
   powerManagement.enable = true;
