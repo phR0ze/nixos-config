@@ -16,7 +16,8 @@ fork it and build on my work.
 
 ### Quick links
 * [Getting Started](#getting-started)
-  * [Install instructions](#install-instructions)
+  * [Install from upstream ISO](#install-from-upstream-iso)
+  * [Install from custom ISO](#install-from-custom-iso)
   * [Update instructions](#update-instructions)
 * [Advanced use cases](#advanced-use-cases)
   * [Build the live ISO for installation](#build-the-live-iso-for-installation)
@@ -32,7 +33,7 @@ fork it and build on my work.
   * transfering install time customizations to the underlying nix flake
   * triggering the install of the complete system via nix flakes
 
-### Install instructions
+### Install from upstream ISO
 
 1. Download the minimal image from [NixOS downloads](https://nixos.org/download.html#nixos-iso)
    ```bash
@@ -69,6 +70,24 @@ fork it and build on my work.
    $ chmod +x clu
    $ sudo ./clu install
    ```
+
+### Install from custom ISO
+By following the [Build the live ISO for installation](#build-the-live-iso-for-installation) section 
+of this doc you can build a custom ISO which will pre-populate the nix store of the target system 
+during install with prebuilt binaries (i.e. you can think of it as a local binary cache) which will 
+speed up the installation tremendously as you don't need to download nearly as much and any custom 
+built binaries will already be built.
+
+Of course this is really only useful if you install a lot of systems or your target system is rather 
+limited in resources.
+
+1. [Build the live ISO for installation](#build-the-live-iso-for-installation)
+
+2. Burn the ISO to USB see step 2 of [Install from upstream ISO](#install-from-upstream-iso)
+
+3. Boot from the new USB and open a shell
+
+4. You'll be greeted with the clu installer
 
 ### Update instructions
 After installing your system you'll need to make changes from time to time. The `clu` automation will 
@@ -129,13 +148,13 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Create ISO with full live GUI environment
+* [ ] Configure power management display defaults to be always on
+* [ ] XFCE: Move launcher to top
+* [ ] XFCE: Move app panel to bottom
 
 ## Sometime
 * [ ] Include missing hicolor icons - fall back icons not working `XDG_ICON_DIRS`
 * [ ] Conflicts: file names, directory names with different modes or permissions
-* [ ] XFCE: Move launcher to top
-* [ ] XFCE: Move app panel to bottom
 * [ ] Choose default resolution for system
 * [ ] Add `nix-prefetch fetchFromGitHub --owner hrsh7th --repo nvim-cmp --rev 768548bf4980fd6d635193a9320545bb46fcb6d8`
 * [ ] Add vim-colorize plugin
@@ -148,6 +167,8 @@ world though this already exists.
 * [ ] clu to update `flake.nix` with user selection
 * [ ] Change the tty autologin welcome message
 * [ ] Change the kernel boot colors 
+* [ ] Create ISO with full live GUI environment
+  * [ ] Switch to calamares for installation
 
 * Configs to circle back to
   * https://github.com/danth/stylix
