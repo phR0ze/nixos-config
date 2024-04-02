@@ -16,7 +16,7 @@ in
     };
   };
 
-  config = mkIf cfg.background {
+  config = lib.mkIf cfg.background {
 
     # Generate the xfce4-desktop xml settings file based on the given options
     xml = pkgs.runCommandLocal "xfce4-desktop-xml" {} ''
