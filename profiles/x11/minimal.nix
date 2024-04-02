@@ -15,6 +15,7 @@
     ../../modules/fonts.nix
     ../../modules/network/firefox.nix
     ../../modules/network/network-manager.nix
+    ../../modules/desktop/backgrounds.nix
   ];
 
   # Xserver configuration
