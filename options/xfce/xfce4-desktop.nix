@@ -5,37 +5,37 @@ let
   cfg = config.services.xserver.desktopManager.xfce.xfce4-desktop;
 
   monitors = [
-    monitorDisplayPort-0
-    monitorDisplayPort-1
-    monitorDisplayPort-2
-    monitorDP-0
-    monitorDP-1
-    monitorDP-2
-    monitorDVI-0
-    monitorDVI-1
-    monitorDVI-2
-    monitorDVI-D-0
-    monitorDVI-D-1
-    monitorDVI-D-2
-    monitorDVI-I-0
-    monitorDVI-I-1
-    monitorDVI-I-2
-    monitorHDMI0
-    monitorHDMI1
-    monitorHDMI2
-    monitorHDMI-0
-    monitorHDMI-1
-    monitorHDMI-2
-    monitorHDMI-A-0
-    monitorHDMI-A-1
-    monitorLVDS0
-    monitorLVDS1
-    monitorVGA-0
-    monitorVGA-1
-    monitorVirtual0
-    monitorVirtual1
-    monitorVirtual-0
-    monitorVirtual-1
+    "monitorDisplayPort-0"
+    "monitorDisplayPort-1"
+    "monitorDisplayPort-2"
+    "monitorDP-0"
+    "monitorDP-1"
+    "monitorDP-2"
+    "monitorDVI-0"
+    "monitorDVI-1"
+    "monitorDVI-2"
+    "monitorDVI-D-0"
+    "monitorDVI-D-1"
+    "monitorDVI-D-2"
+    "monitorDVI-I-0"
+    "monitorDVI-I-1"
+    "monitorDVI-I-2"
+    "monitorHDMI0"
+    "monitorHDMI1"
+    "monitorHDMI2"
+    "monitorHDMI-0"
+    "monitorHDMI-1"
+    "monitorHDMI-2"
+    "monitorHDMI-A-0"
+    "monitorHDMI-A-1"
+    "monitorLVDS0"
+    "monitorLVDS1"
+    "monitorVGA-0"
+    "monitorVGA-1"
+    "monitorVirtual0"
+    "monitorVirtual1"
+    "monitorVirtual-0"
+    "monitorVirtual-1"
   ];
 
   # Generate the xfce4-desktop xml settings file based on the given options
