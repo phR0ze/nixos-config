@@ -148,7 +148,7 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Configure power management display defaults to be always on
+* [ ] Add backgrounds to system
 * [ ] XFCE: Move launcher to top
 * [ ] XFCE: Move app panel to bottom
 
@@ -180,6 +180,7 @@ world though this already exists.
 
 ## Completed
 * [x] XFCE profiles
+  * [x] Configure power management display defaults to be always on
   * [x] Fix nerd fonts in shell
   * [x] Autologin options plumbed in
   * [x] Port cyberlinux cli packages over
