@@ -4,7 +4,7 @@
 # - Directly installable: cli/default with bare minimal xfce environment
 # - Size: 4504.7 MiB
 # --------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   imports = [
     ../x11/minimal.nix
@@ -24,6 +24,7 @@
       xfce.enable = true;
       xfce.enableXfwm = true;
       xfce.enableScreensaver = true;
+      xfce.xfce4-desktop.background = lib.mkDefault "/usr/share/backgrounds/theater_curtains1.jpg";
     };
     displayManager = {
       defaultSession = "xfce";
