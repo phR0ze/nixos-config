@@ -11,10 +11,10 @@ let
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="keyboards" version="1.0">
         <property name="Default" type="empty">
-          <property name="Numlock" type="${toString cfg.numlock}" value="true"/>
+          <property name="Numlock" type="empty"/>
           <property name="KeyRepeat" type="empty">
-            <property name="Delay" type="int" value="${toString cfg.repeat.delay}"/>
             <property name="Rate" type="int" value="${toString cfg.repeat.rate}"/>
+            <property name="Delay" type="int" value="${toString cfg.repeat.delay}"/>
           </property>
         </property>
       </channel>
@@ -27,11 +27,6 @@ in
         type = types.bool;
         default = false;
         description = lib.mdDoc "Enable XFCE keyboards configuration";
-      };
-      numlock = lib.mkOption {
-        type = types.bool;
-        default = true;
-        description = lib.mdDoc "Enable numlock";
       };
     };
     services.xserver.desktopManager.xfce.keyboards.repeat = {
