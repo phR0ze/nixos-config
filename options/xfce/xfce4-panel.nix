@@ -85,7 +85,7 @@ let
           </property>
           <property name="plugin-12" type="string" value="clock">
             <property name="mode" type="uint" value="4"/>
-            <property name="show-military" type="bool" value="${toString cfg.clock.military}"/>
+            <property name="show-military" type="bool" value="${boolToStr cfg.clock.military}"/>
           </property>
           <property name="plugin-13" type="string" value="separator">
             <property name="style" type="uint" value="0"/>
