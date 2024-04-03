@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
-  cfg = config.services.xserver.desktopManager.xfce.xfce4-power-manager
+  cfg = config.services.xserver.desktopManager.xfce.xfce4-power-manager;
 
   xmlfile = lib.mkIf (cfg.background != null)
     (pkgs.writeText "xfce4-power-manager.xml" ''
