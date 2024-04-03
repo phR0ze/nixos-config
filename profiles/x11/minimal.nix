@@ -16,6 +16,7 @@
     ../../modules/network/firefox.nix
     ../../modules/network/network-manager.nix
     ../../modules/desktop/backgrounds.nix
+    ../../modules/desktop/icons.nix
   ];
 
   # Xserver configuration
