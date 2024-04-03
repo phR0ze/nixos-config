@@ -10,12 +10,6 @@
     ../x11/minimal.nix
   ];
 
-  # Enable the main configuration tool for xfce and drop in custom configuration
-  programs.xfconf.enable = true;
-
-  # Indirectly installs xfce4-power-manager
-  powerManagement.enable = true;
-
   # XFCE configuration
   # ------------------------------------------------------------------------------------------------
   services.xserver = {
@@ -32,8 +26,13 @@
     };
   };
 
-  # Additional xfce specific services
-  services.tumbler.enable = true;     # tumbler uses ffmpegthumbnailer
+  # Adding raw configuration files
+  files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml".copy = 
+    ../../include/home/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml;
+
+  programs.xfconf.enable = true;            # Enable XFCE's configuration manager
+  powerManagement.enable = true;            # Indirectly installs xfce4-power-manager
+  services.tumbler.enable = true;           # tumbler uses ffmpegthumbnailer
 
   # Thunar configuration
   # ------------------------------------------------------------------------------------------------
