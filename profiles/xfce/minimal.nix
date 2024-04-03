@@ -20,7 +20,7 @@
       xfce.keyboards.enable = true;
       xfce.xfce4-panel.enable = true;
       xfce.xfce4-power-manager.enable = true;
-      xfce.xfce4-desktop.background = lib.mkDefault "/usr/share/backgrounds/theater_curtains1.jpg";
+      xfce.xfce4-desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
     };
     displayManager = {
       defaultSession = "xfce";
