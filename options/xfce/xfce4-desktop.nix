@@ -1,4 +1,6 @@
 # XFCE Desktop options
+#
+# Gnerate the ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml configuration file
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
@@ -117,9 +119,8 @@ in
     };
   };
 
+  # Install the generated xml file
   config = lib.mkIf (cfg.background != null) {
-
-    # Install the generated xfce4-desktop xml file
     files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml".copy = xmlfile;
   };
 }
