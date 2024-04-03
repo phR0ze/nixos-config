@@ -44,7 +44,7 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkIf cfg.enable
+  config = lib.mkIf cfg.enable {
     files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".copy = xmlfile;
   };
 }
