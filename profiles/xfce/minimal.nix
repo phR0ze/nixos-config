@@ -12,9 +12,6 @@
 
   # Enable the main configuration tool for xfce and drop in custom configuration
   programs.xfconf.enable = true;
-  #files.all.".config/xfce4/xfconf".copy = ../../include/home/.config/xfce4/xfconf;
-  files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".copy = 
-    ../../include/home/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml;
 
   # Indirectly installs xfce4-power-manager
   powerManagement.enable = true;
@@ -26,6 +23,8 @@
       xfce.enable = true;
       xfce.enableXfwm = true;
       xfce.enableScreensaver = true;
+      xfce.keyboards.enable = true;
+      xfce.xfce4-power-manager.enable = true;
       xfce.xfce4-desktop.background = lib.mkDefault "/usr/share/backgrounds/theater_curtains1.jpg";
     };
     displayManager = {
