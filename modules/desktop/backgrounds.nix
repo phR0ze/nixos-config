@@ -10,10 +10,11 @@ let
   '';
 in
 {
-#  # Add a link to /run/current-system/sw/ to make the package available
-#  environment.pathsToLink = [
-#    "/share/icons/hicolor"      # searches all packages that have this path and links them
-#  ];
+  # Search all packages that have paths matching the list and link them in
+  # the system directory /run/current-system/sw
+  environment.pathsToLink = [
+    "/share/backgrounds"
+  ];
 
   # Add the package to the /nix/store
   environment.systemPackages = [
