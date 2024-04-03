@@ -148,8 +148,6 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] XFCE option
-  * [ ] Add backgrounds to system
 * [ ] XFCE: Move launcher to top
 * [ ] XFCE: Move app panel to bottom
 
@@ -181,7 +179,6 @@ world though this already exists.
 
 ## Completed
 * [x] XFCE profiles
-  * [x] Configure power management display defaults to be always on
   * [x] Fix nerd fonts in shell
   * [x] Autologin options plumbed in
   * [x] Port cyberlinux cli packages over
@@ -189,6 +186,10 @@ world though this already exists.
   * [x] Add starship command prompt for all users
   * [x] Install neovim as default editor and customize
   * [x] Add the flake nixpkgs to the `NIX_PATH`
+* [x] XFCE option
+  * [x] Add desktop settings including background
+  * [x] Add keyboard numlock, repeat delay and rate
+  * [x] Configure power management display defaults to be always on
 * [x] Nix `files` options
   * [x] Implemented `files.user`, `files.any`, `files.root`, `files.all`
   * [x] Support installing arbitrary files and directories
