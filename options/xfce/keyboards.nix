@@ -6,7 +6,7 @@
 let
   cfg = config.services.xserver.desktopManager.xfce.keyboards;
 
-  xmlfile = lib.mkIf (cfg.background != null)
+  xmlfile = lib.mkIf cfg.enable
     (pkgs.writeText "keyboards.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="keyboards" version="1.0">
@@ -23,6 +23,11 @@ in
 {
   options = {
     services.xserver.desktopManager.xfce.keyboards = {
+      enable = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Enable XFCE keyboards configuration";
+      };
       numlock = lib.mkOption {
         type = types.bool;
         default = true;
