@@ -39,6 +39,8 @@ let
   ];
 
   # Generate the xfce4-desktop xml settings file based on the given options
+  # White space is a little tricky see docs link for more details
+  # https://nixos.org/manual/nix/stable/language/values.html?highlight=indent#type-string
   xmlfile = lib.mkIf (cfg.background != null)
     (pkgs.writeText "xfce4-desktop.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
@@ -47,14 +49,13 @@ let
         <property name="backdrop" type="empty">
           <property name="screen0" type="empty">
             ${lib.concatMapStringsSep "\n" (x:
-            ''
-                  <property name="${x}" type="empty">
-                    <property name="workspace0" type="empty">
-                      <property name="color-style" type="int" value="0"/>
-                      <property name="image-style" type="int" value="5"/>
-                      <property name="last-image" type="string" value="${cfg.background}"/>
-                    </property>
-                  </property>'') monitors}
+            ''      <property name="${x}" type="empty">
+                      <property name="workspace0" type="empty">
+                        <property name="color-style" type="int" value="0"/>
+                        <property name="image-style" type="int" value="5"/>
+                        <property name="last-image" type="string" value="${cfg.background}"/>
+                      </property>
+                    </property>'') monitors}
           </property>
         </property>
         <property name="desktop-icons" type="empty">
