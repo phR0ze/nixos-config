@@ -49,7 +49,7 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkIf (cfg.background != null) {
+  config = lib.mkIf cfg.enable
     files.all.".config/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml".copy = xmlfile;
   };
 }
