@@ -6,7 +6,7 @@
 let
   cfg = config.services.xserver.desktopManager.xfce.xfce4-power-manager;
 
-  xmlfile = lib.mkIf (cfg.background != null)
+  xmlfile = lib.mkIf cfg.enable
     (pkgs.writeText "xfce4-power-manager.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xfce4-power-manager" version="1.0">
@@ -25,6 +25,11 @@ in
 {
   options = {
     services.xserver.desktopManager.xfce.xfce4-power-manager = {
+      enable = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Enable XFCE power management configuration";
+      };
       presentation-mode = lib.mkOption {
         type = types.bool;
         default = true;

@@ -43,7 +43,7 @@ let
   # Generate the xfce4-desktop xml settings file based on the given options
   # White space is a little tricky see docs link for more details
   # https://nixos.org/manual/nix/stable/language/values.html?highlight=indent#type-string
-  xmlfile = lib.mkIf (cfg.background != null)
+  xmlfile = lib.mkIf (cfg.enable || cfg.background != null)
     (pkgs.writeText "xfce4-desktop.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
 
@@ -81,6 +81,11 @@ in
 {
   options = {
     services.xserver.desktopManager.xfce.xfce4-desktop = {
+      enable = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Enable XFCE desktop configuration";
+      };
       background = lib.mkOption {
         type = types.nullOr types.str;
         default = null;
