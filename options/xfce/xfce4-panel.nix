@@ -56,7 +56,9 @@ let
         </property>
         <property name="plugins" type="empty">
           <property name="plugin-1" type="string" value="applicationsmenu">
-            <property name="button-title" type="string" value=" Apps   "/>
+            <property name="show-button-title" type="bool" value="true"/>
+            <property name="button-icon" type="string" value="cyberlinux"/>
+            <property name="button-title" type="string" value="${cfg.apps.title}"/>
           </property>
           <property name="plugin-2" type="string" value="tasklist">
             <property name="grouping" type="uint" value="1"/>
@@ -135,6 +137,13 @@ in
         type = types.bool;
         default = false;
         description = lib.mdDoc "Enable military time";
+      };
+    };
+    services.xserver.desktopManager.xfce.xfce4-panel.apps = {
+      title = lib.mkOption {
+        type = types.str;
+        default = " Apps   ";
+        description = lib.mdDoc "Title for the applications start menu";
       };
     };
   };
