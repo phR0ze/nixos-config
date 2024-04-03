@@ -1,13 +1,13 @@
 # XFCE Keyboard options
 #
-# Generate the ~/.config/xfce/xfconf/xfce-perchannel-xml/keyboard.xml configuration file
+# Generate the ~/.config/xfce/xfconf/xfce-perchannel-xml/keyboards.xml configuration file
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
-  cfg = config.services.xserver.desktopManager.xfce.keyboard;
+  cfg = config.services.xserver.desktopManager.xfce.keyboards;
 
   xmlfile = lib.mkIf (cfg.background != null)
-    (pkgs.writeText "keyboard.xml" ''
+    (pkgs.writeText "keyboards.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="keyboards" version="1.0">
         <property name="Default" type="empty">
@@ -22,14 +22,14 @@ let
 in
 {
   options = {
-    services.xserver.desktopManager.xfce.keyboard = {
+    services.xserver.desktopManager.xfce.keyboards = {
       numlock = lib.mkOption {
         type = types.bool;
         default = true;
         description = lib.mdDoc "Enable numlock";
       };
     };
-    services.xserver.desktopManager.xfce.keyboard.repeat = {
+    services.xserver.desktopManager.xfce.keyboards.repeat = {
       delay = lib.mkOption {
         type = types.int;
         default = 203;
@@ -45,6 +45,6 @@ in
 
   # Install the generated xml file
   config = lib.mkIf (cfg.background != null) {
-    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/keyboard.xml".copy = xmlfile;
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml".copy = xmlfile;
   };
 }
