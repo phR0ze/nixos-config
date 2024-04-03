@@ -20,8 +20,8 @@ let
             <property name="position" type="string" value="p=8;x=0;y=0"/>
             <property name="length" type="double" value="100"/>
             <property name="position-locked" type="bool" value="true"/>
-            <property name="icon-size" type="uint" value="${cfg.taskbar.icon-size}"/>
-            <property name="size" type="uint" value="${cfg.taskbar.size}"/>
+            <property name="icon-size" type="uint" value="${toString cfg.taskbar.icon-size}"/>
+            <property name="size" type="uint" value="${toString cfg.taskbar.size}"/>
             <property name="plugin-ids" type="array">
               <value type="int" value="1"/>
               <value type="int" value="2"/>
