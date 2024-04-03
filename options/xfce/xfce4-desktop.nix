@@ -49,7 +49,8 @@ let
         <property name="backdrop" type="empty">
           <property name="screen0" type="empty">
             ${lib.concatMapStringsSep "\n" (x:
-            ''      <property name="${x}" type="empty">
+            ''
+              <property name="${x}" type="empty">
                 <property name="workspace0" type="empty">
                   <property name="color-style" type="int" value="0"/>
                   <property name="image-style" type="int" value="5"/>
