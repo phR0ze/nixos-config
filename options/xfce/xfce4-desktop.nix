@@ -48,15 +48,14 @@ let
       <channel name="xfce4-desktop" version="1.0">
         <property name="backdrop" type="empty">
           <property name="screen0" type="empty">
-            ${lib.concatMapStringsSep "\n" (x:
-            ''
-                <property name="${x}" type="empty">
-                  <property name="workspace0" type="empty">
-                    <property name="color-style" type="int" value="0"/>
-                    <property name="image-style" type="int" value="5"/>
-                    <property name="last-image" type="string" value="${cfg.background}"/>
-                  </property>
-                </property>'') monitors}
+            ${lib.concatMapStringsSep "\n" (x: ''
+              <property name="${x}" type="empty">
+                <property name="workspace0" type="empty">
+                  <property name="color-style" type="int" value="0"/>
+                  <property name="image-style" type="int" value="5"/>
+                  <property name="last-image" type="string" value="${cfg.background}"/>
+                </property>
+              </property>'') monitors}
           </property>
         </property>
         <property name="desktop-icons" type="empty">
