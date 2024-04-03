@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../funcs {};
+  f = pkgs.callPackage ../../funcs;
   cfg = config.services.xserver.desktopManager.xfce.xfce4-power-manager;
 
   xmlfile = lib.mkIf cfg.enable
