@@ -18,7 +18,6 @@
 { config, lib, pkgs, args, ... }:
 {
   imports = [
-    ../../funcs
     ../../options
     ../../modules/locale.nix
     ../../modules/nix.nix
