@@ -16,7 +16,7 @@ let
           <value type="int" value="1"/>
           <value type="int" value="2"/>
           <property name="dark-mode" type="bool" value="true"/>
-          <property name="panel-1" type="empty">
+          <property name="Taskbar" type="empty">
             <property name="position" type="string" value="p=8;x=0;y=0"/>
             <property name="length" type="double" value="100"/>
             <property name="position-locked" type="bool" value="true"/>
@@ -37,7 +37,7 @@ let
               <value type="int" value="12"/>
             </property>
           </property>
-          <property name="panel-2" type="empty">
+          <property name="Launcher" type="empty">
             <property name="autohide-behavior" type="uint" value="1"/>
             <property name="position" type="string" value="p=9;x=0;y=0"/>
             <property name="length" type="double" value="1"/>
