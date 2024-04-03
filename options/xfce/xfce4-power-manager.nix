@@ -4,6 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
+  f = import ../../funcs;
   cfg = config.services.xserver.desktopManager.xfce.xfce4-power-manager;
 
   xmlfile = lib.mkIf cfg.enable
@@ -12,12 +13,12 @@ let
       <channel name="xfce4-power-manager" version="1.0">
         <property name="xfce4-power-manager" type="empty">
           <property name="show-tray-icon" type="bool" value="false"/>
-          <property name="presentation-mode" type="bool" value="${boolToStr cfg.presentation-mode}"/>
+          <property name="presentation-mode" type="bool" value="${f.boolToStr cfg.presentation-mode}"/>
           <property name="power-button-action" type="uint" value="4"/>
           <property name="sleep-button-action" type="uint" value="1"/>
           <property name="hibernate-button-action" type="uint" value="2"/>
           <property name="battery-button-action" type="uint" value="1"/>
-          <property name="dpms-enabled" type="bool" value="${boolToStr cfg.manage-display-power}"/>
+          <property name="dpms-enabled" type="bool" value="${f.boolToStr cfg.manage-display-power}"/>
         </property>
       </channel>
     '');

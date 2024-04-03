@@ -4,10 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
-  import = [
-    ../../funcs
-  ];
-
+  f = import ../../funcs;
   cfg = config.services.xserver.desktopManager.xfce.xfce4-desktop;
 
   monitors = [
@@ -68,10 +65,10 @@ let
           <property name="icon-size" type="uint" value="48"/>
           <property name="show-thumbnails" type="bool" value="true"/>
           <property name="file-icons" type="empty">
-            <property name="show-home" type="bool" value="${boolToStr cfg.show-home}"/>
-            <property name="show-trash" type="bool" value="${boolToStr cfg.show-trash}"/>
-            <property name="show-filesystem" type="bool" value="${boolToStr cfg.show-filesystem}"/>
-            <property name="show-removable" type="bool" value="${boolToStr cfg.show-removable}"/>
+            <property name="show-home" type="bool" value="${f.boolToStr cfg.show-home}"/>
+            <property name="show-trash" type="bool" value="${f.boolToStr cfg.show-trash}"/>
+            <property name="show-filesystem" type="bool" value="${f.boolToStr cfg.show-filesystem}"/>
+            <property name="show-removable" type="bool" value="${f.boolToStr cfg.show-removable}"/>
           </property>
         </property>
         <property name="last" type="empty">
