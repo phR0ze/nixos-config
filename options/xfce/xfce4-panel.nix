@@ -20,20 +20,21 @@ let
             <property name="position" type="string" value="p=8;x=0;y=0"/>
             <property name="length" type="double" value="100"/>
             <property name="position-locked" type="bool" value="true"/>
-            <property name="icon-size" type="uint" value="16"/>
-            <property name="size" type="uint" value="26"/>
+            <property name="icon-size" type="uint" value="${cfg.taskbar.icon-size}"/>
+            <property name="size" type="uint" value="${cfg.taskbar.size}"/>
             <property name="plugin-ids" type="array">
               <value type="int" value="1"/>
               <value type="int" value="2"/>
               <value type="int" value="3"/>
+              <value type="int" value="4"/>
               <value type="int" value="5"/>
               <value type="int" value="6"/>
+              <value type="int" value="7"/>
+              <value type="int" value="8"/>
               <value type="int" value="9"/>
               <value type="int" value="10"/>
-              <value type="int" value="8"/>
               <value type="int" value="11"/>
               <value type="int" value="12"/>
-              <value type="int" value="13"/>
             </property>
           </property>
           <property name="panel-2" type="empty">
@@ -55,19 +56,22 @@ let
           </property>
         </property>
         <property name="plugins" type="empty">
-          <property name="plugin-1" type="string" value="applicationsmenu">
-            <property name="show-button-title" type="bool" value="true"/>
-            <property name="button-icon" type="string" value="cyberlinux"/>
-            <property name="button-title" type="string" value="${cfg.apps.title}"/>
-          </property>
-          <property name="plugin-2" type="string" value="tasklist">
-            <property name="grouping" type="uint" value="1"/>
-          </property>
-          <property name="plugin-3" type="string" value="separator">
-            <property name="expand" type="bool" value="true"/>
+          <property name="plugin-1" type="string" value="separator">
             <property name="style" type="uint" value="0"/>
           </property>
+          <property name="plugin-2" type="string" value="applicationsmenu">
+            <property name="show-button-title" type="bool" value="true"/>
+            <property name="button-icon" type="string" value="${cfg.taskbar.icon}"/>
+            <property name="button-title" type="string" value="${cfg.taskbar.title}"/>
+          </property>
+          <property name="plugin-3" type="string" value="separator">
+            <property name="style" type="uint" value="0"/>
+          </property>
+          <property name="plugin-4" type="string" value="tasklist">
+            <property name="grouping" type="uint" value="1"/>
+          </property>
           <property name="plugin-5" type="string" value="separator">
+            <property name="expand" type="bool" value="true"/>
             <property name="style" type="uint" value="0"/>
           </property>
           <property name="plugin-6" type="string" value="systray">
@@ -77,22 +81,23 @@ let
               <value type="string" value="ethernet network connection “wired connection 1” active"/>
             </property>
           </property>
-          <property name="plugin-8" type="string" value="pulseaudio">
+          <property name="plugin-7" type="string" value="power-manager-plugin"/>
+          <property name="plugin-8" type="string" value="notification-plugin"/>
+          <property name="plugin-9" type="string" value="pulseaudio">
             <property name="enable-keyboard-shortcuts" type="bool" value="true"/>
             <property name="show-notifications" type="bool" value="true"/>
           </property>
-          <property name="plugin-9" type="string" value="power-manager-plugin"/>
-          <property name="plugin-10" type="string" value="notification-plugin"/>
-          <property name="plugin-11" type="string" value="separator">
+          <property name="plugin-10" type="string" value="separator">
             <property name="style" type="uint" value="0"/>
           </property>
-          <property name="plugin-12" type="string" value="clock">
+          <property name="plugin-11" type="string" value="clock">
             <property name="mode" type="uint" value="4"/>
             <property name="show-military" type="bool" value="${f.boolToStr cfg.clock.military}"/>
           </property>
-          <property name="plugin-13" type="string" value="separator">
+          <property name="plugin-12" type="string" value="separator">
             <property name="style" type="uint" value="0"/>
           </property>
+          <!-- Launcher icons -->
           <property name="plugin-15" type="string" value="showdesktop"/>
           <property name="plugin-16" type="string" value="separator"/>
           <property name="plugin-17" type="string" value="launcher">
@@ -139,11 +144,26 @@ in
         description = lib.mdDoc "Enable military time";
       };
     };
-    services.xserver.desktopManager.xfce.xfce4-panel.apps = {
+    services.xserver.desktopManager.xfce.xfce4-panel.taskbar = {
       title = lib.mkOption {
         type = types.str;
-        default = " Apps   ";
-        description = lib.mdDoc "Title for the applications start menu";
+        default = "Apps";
+        description = lib.mdDoc "Taskbar title";
+      };
+      icon = lib.mkOption {
+        type = types.str;
+        default = "cyberlinux";
+        description = lib.mdDoc "Taskbar icon";
+      };
+      size = lib.mkOption {
+        type = types.int;
+        default = 24;
+        description = lib.mdDoc "Taskbar size in pixels";
+      };
+      icon-size = lib.mkOption {
+        type = types.int;
+        default = 20;
+        description = lib.mdDoc "Taskbar icon size in pixels";
       };
     };
   };
