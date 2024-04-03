@@ -8,13 +8,9 @@ let
   backgroundsPackage = pkgs.stdenvNoCC.mkDerivation {
     name = "backgrounds";
     src = ../../include/usr/share/backgrounds;
-    unpackPhase = ''
-      cp $src
-    '';
-    buildPhase = "";
     installPhase = ''
-      mkdir -p $out/share/icons/hicolor
-      cp $src/* $out/share/icons/hicolor
+      mkdir -p $out/share/backgrounds
+      cp $src/* $out/share/backgrounds
     '';
   };
 in
