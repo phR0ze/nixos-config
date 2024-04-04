@@ -18,6 +18,7 @@
       xfce.enableXfwm = true;
       xfce.enableScreensaver = true;
       xfce.keyboards.enable = true;
+      xfce.thunar.enable = true;
       xfce.xsettings.enable = true;
       xfce.xfce4-panel.enable = true;
       xfce.xfce4-power-manager.enable = true;
@@ -50,8 +51,6 @@
 
   # Thunar configuration
   # ------------------------------------------------------------------------------------------------
-  files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".copy = 
-    ../../include/home/.config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml;
   programs.thunar.plugins = with pkgs.xfce; [
     thunar-volman
     thunar-archive-plugin
