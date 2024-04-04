@@ -113,50 +113,59 @@ let
   # Generate launcher files based on the launcher options definitions
   launchersPackage = pkgs.runCommandLocal "launchers" {} ''
     set -euo pipefail             # Configure an immediate fail if something goes badly
+    mkdir -p "$out"               # Creates the nix store path to populate
 
     createLauncher() {
       local name="$1"             # name of the launcher
       local exec="$2"             # execution command line for the launcher
       local icon="$3"             # icon string to use for the launcher
       local notify="$4"           # notify on startup bool
-      local terminal="$5"         # enable a terminal window with the launcher
-      local categories="$6"       # categories string to use for launcher
-      local commen="$7"           # comment to use for the launcher
-      local order="$8"            # order of the launcher
 
-      # Launcher path used in final ~/.config/xfce4/panel/launcher-xx location
-      local dir="$out/launcher-$order"
-      local launcher="$dir/$name.desktop"
+      # Validation on inputs
+      [[ ''${dst:0:1} == "/" ]] && echo "paths must not start with a /" && exit 1
+      [[ ''${dst:0-1} == "/" ]] && echo "paths must not end with a /" && exit 1
+      [[ "$dst" == *".meta" ]] && echo "paths must not end with .meta" && exit 1
 
-      # Create the launcher
-      mkdir -p "$dir"
-      echo "[Desktop Entry]" > "$launcher"
-      echo "Version=1.0" >> "$launcher"
-      echo "Type=Application" >> "$launcher"
-      echo "Exec=$exec" >> "$launcher"
-      echo "Icon=$icon" >> "$launcher"
-      echo "StartupNotify=$notify" >> "$launcher"
-      echo "Terminal=$terminal" >> "$launcher"
-      echo "Categories=$categories" >> "$launcher"
-      echo "OnlyShowIn=XFCE;" >> "$launcher"
-      echo "X-AppStream-Ignore=True" >> "$launcher"
-      echo "Name=Terminal Emulator" >> "$launcher"
-      echo "Comment=Use the command line" >> "$launcher"
+      echo "Linking: $src -> $out/$dst"
+
+      # Determine meta name
+      local meta
+      if [[ -d "$src" ]]; then
+        meta="$out/$dst.meta.dir"                       # craft meta file for directory
+      else
+        meta="$out/$dst.meta.file"                      # craft meta file name for files
+      fi
+
+      # Link nix store path
+      local dir="$(dirname "$dst")"                     # grab the directory of the target
+      [[ ''${dir} != "." ]] && mkdir -p "$out/$dir"     # create any needed directories
+      ln -sf "$src" "$out/$dst"                         # link in the file content
+
+      # Add the metadata file content
+      echo "Metadata: $meta"
+      echo "$op" >> "$meta"
+      echo "$kind" >> "$meta"
+      echo "$src" >> "$meta"
+      echo "$dirmode" >> "$meta"
+      echo "$filemode" >> "$meta"
+      echo "$user" >> "$meta"
+      echo "$group" >> "$meta"
+      echo "$own" >> "$meta"
     }
 
     # Create bash function calls to createLauncher for each launcher entry
-    ${lib.concatImapStringsSep "\n" (i: x: lib.escapeShellArgs [
+    ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [
       "createLauncher"
       x.name
       x.exec
       x.icon
-      (f.boolToStr x.startup-notify)
-      (f.boolToStr x.terminal)
+      x.startup-notify
+      x.terminal
       x.categories
       x.comment
-      (toString (i+20))
     ]) cfg.launchers}
   '';
+
 
 in
 {
@@ -246,6 +255,5 @@ in
   # Install the generated xml file
   config = lib.mkIf cfg.enable {
     files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml".copy = xfce4PanelXmlFile;
-    files.all.".config/xfce4/panel".copy = launchersPackage;
   };
 }
