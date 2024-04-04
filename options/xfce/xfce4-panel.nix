@@ -116,13 +116,14 @@ let
 
     createLauncher() {
       local filename="$1"         # filename of the launcher
-      local exec="$2"             # execution command line for the launcher
-      local icon="$3"             # icon string to use for the launcher
-      local notify="$4"           # notify on startup bool
-      local terminal="$5"         # enable a terminal window with the launcher
-      local categories="$6"       # categories string to use for launcher
-      local comment="$7"          # comment to use for the launcher
-      local order="$8"            # order of the launcher
+      local name="$2"             # filename of the launcher
+      local exec="$3"             # execution command line for the launcher
+      local icon="$4"             # icon string to use for the launcher
+      local notify="$5"           # notify on startup bool
+      local terminal="$6"         # enable a terminal window with the launcher
+      local categories="$7"       # categories string to use for launcher
+      local comment="$8"          # comment to use for the launcher
+      local order="$9"            # order of the launcher
 
       # Launcher path used in final ~/.config/xfce4/panel/launcher-xx location
       local dir="$out/launcher-$order"
