@@ -49,8 +49,8 @@ let
             <property name="position-locked" type="bool" value="true"/>
             <property name="size" type="uint" value="${toString cfg.launcher.size}"/>
             <property name="plugin-ids" type="array">
-              ${lib.concatImapStringsSep "\n" (i: x: ''
-                <value type="int" value="${toString (i + 20)}"/>'') cfg.launchers}
+            ${lib.concatImapStringsSep "\n" (i: x: ''
+              <value type="int" value="${toString (i + 20)}"/>'') cfg.launchers}
             </property>
           </property>
         </property>
@@ -101,11 +101,11 @@ let
 
           <!-- Launcher components -->
           ${lib.concatImapStringsSep "\n" (i: x: ''
-              <property name="plugin-${toString (i + 20)}" type="string" value="launcher">
-                <property name="items" type="array">
-                  <value type="string" value="${lib.toLower (lib.replaceStrings [" "] ["-"] x.name)}.desktop"/>
-                </property>
-            </property>'') cfg.launchers}
+          <property name="plugin-${toString (i + 20)}" type="string" value="launcher">
+            <property name="items" type="array">
+              <value type="string" value="${lib.toLower (lib.replaceStrings [" "] ["-"] x.name)}.desktop"/>
+            </property>
+          </property>'') cfg.launchers}
         </property>
       </channel>
     '');
