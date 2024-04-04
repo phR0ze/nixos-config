@@ -101,11 +101,11 @@ let
 
           <!-- Launcher components -->
           ${lib.concatImapStringsSep "\n" (i: x: ''
-          <property name="plugin-${toString (i + 20)}" type="string" value="launcher">
-            <property name="items" type="array">
-              <value type="string" value="${lib.toLower (lib.replaceStrings [" "] ["-"] x.name)}.desktop"/>
-            </property>
-          </property>'') cfg.launchers}
+            <property name="plugin-${toString (i + 20)}" type="string" value="launcher">
+                <property name="items" type="array">
+                  <value type="string" value="${lib.toLower (lib.replaceStrings [" "] ["-"] x.name)}.desktop"/>
+                </property>
+              </property>'') cfg.launchers}
         </property>
       </channel>
     '');
