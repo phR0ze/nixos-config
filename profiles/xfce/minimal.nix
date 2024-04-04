@@ -24,6 +24,7 @@
       xfce.xfce4-desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
       xfce.xfce4-panel.launchers = [
         { name = "XFCE4 Terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
+        { name = "Thunar"; exec = "exo-open --launch FileManager %u"; icon = "org.xfce.thunar"; }
       ];
     };
     displayManager = {
