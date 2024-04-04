@@ -37,7 +37,7 @@ in
         description = lib.mdDoc "Enable XFCE thunar configuration";
       };
       view = lib.mkOption {
-        type = types.enum = [ "ThunarDetailsView" ];
+        type = types.enum [ "ThunarDetailsView" ];
         default = "ThunarDetailsView";
         description = lib.mdDoc "The type of view to use";
       };
