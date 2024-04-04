@@ -108,12 +108,6 @@ let
           </property>
 
           <!-- Launcher components -->
-        ${lib.concatMapStringsSep "\n" (x: ''
-          <property name="plugin-${toString x.order}" type="string" value="launcher">
-            <property name="items" type="array">
-              <value type="string" value="${x.target}.desktop"/>
-            </property>
-          </property>'') launchers}
         </property>
       </channel>
     '');
