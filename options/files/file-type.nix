@@ -69,10 +69,10 @@
         };
 
         kind = lib.mkOption {
-          type = types.str;
+          type = types.enum [ "copy" "link" ];
           default = "link";
           description = lib.mdDoc ''
-            Kind can be one of [ copy | link | dir ] and indicates the type of object being 
+            Kind can be one of [ copy | link ] and indicates the type of object being 
             created. When 'copy' is used the user, group and filemode properties will be used to 
             specify the file's properties and likewise user, group and dirmode for directories. 
             Similarly for 'link' dirmode, user, and group will set the directory properties of 
@@ -81,7 +81,7 @@
         };
 
         op = lib.mkOption {
-          type = types.str;
+          type = types.enum [ "default" ];
           default = "default";
           description = lib.mdDoc ''
             Operation can be one of [ default ]. Place holder for future.
@@ -89,7 +89,7 @@
         };
 
         own = lib.mkOption {
-          type = types.str;
+          type = types.enum [ "default" "owned" "free" ];
           default = "default";
           description = lib.mdDoc ''
             Whether to own the file or directory or not. Possible values [ default | owned | free ].

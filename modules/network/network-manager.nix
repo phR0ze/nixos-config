@@ -9,6 +9,9 @@
    # interfaces = { wlp0s20f3.useDHCP = true; };
     networkmanager = {
       enable = true;
+
+      # Configure systemd-resolved as the DNS provider
+      dns = "systemd-resolved";
       
       # Ignore virtualization technologies
       unmanaged = [

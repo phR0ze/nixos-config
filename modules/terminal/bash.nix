@@ -5,12 +5,6 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 {
-  environment.variables = {
-    XDG_CONFIG_HOME = "$HOME/.config";
-    XDG_CACHE_HOME = "$HOME/.cache";
-    XDG_DATA_HOME = "$HOME/.local/share";
-  };
-
   programs.bash = {
 
     # Configures 'dircolors -b' but doesn't allow for a custom config so manually doing this below.

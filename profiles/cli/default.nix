@@ -23,12 +23,14 @@
     ../../modules/nix.nix
     ../../modules/users.nix
     ../../modules/boot/kernel.nix
+    ../../modules/terminal/env.nix
     ../../modules/terminal/bash.nix
     ../../modules/terminal/starship.nix
     ../../modules/network/base.nix
     ../../modules/development/git.nix
     ../../modules/development/neovim.nix
     ../../modules/services/sshd.nix
+    ../../modules/services/systemd.nix
 
   # conditionally exclude grub for iso builds
   ] ++ lib.optional (!args.iso) ../../modules/boot/grub.nix;
