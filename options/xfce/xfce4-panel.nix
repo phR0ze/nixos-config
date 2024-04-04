@@ -7,14 +7,6 @@ let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.xfce4-panel;
 
-  # Import the launcher type
-  launcherType = (import ./xfce4-panel-launcher.nix {
-    inherit options config lib;
-  }).xfce4PanelLauncherType;
-
-  # Group all the launchers as a list
-  launchers = (lib.attrValues cfg.launcher);
-
   # Define the xml file contents
   xmlfile = lib.mkIf cfg.enable
     (pkgs.writeText "xfce4-panel.xml" ''
@@ -57,8 +49,8 @@ let
             <property name="position-locked" type="bool" value="true"/>
             <property name="size" type="uint" value="48"/>
             <property name="plugin-ids" type="array">
-              ${lib.concatMapStringsSep "\n" (x: ''
-                <value type="int" value="${toString x.order}"/>'') launchers}
+              ${lib.concatImapStringsSep "\n" (i: x: ''
+                <value type="int" value="${toString (i + 20)}"/>'') cfg.launchers}
             </property>
           </property>
         </property>
@@ -108,6 +100,12 @@ let
           </property>
 
           <!-- Launcher components -->
+          ${lib.concatImapStringsSep "\n" (i: x: ''
+          <property name="plugin-${toString (i + 20)}" type="string" value="launcher">
+            <property name="items" type="array">
+              <value type="string" value="${lib.toLower (lib.replaceStrings [" "] ["-"] x.name)}.desktop"/>
+            </property>
+          </property>'') cfg.launchers}
         </property>
       </channel>
     '');
@@ -150,10 +148,49 @@ in
         description = lib.mdDoc "Taskbar icon size in pixels";
       };
     };
-    services.xserver.desktopManager.xfce.xfce4-panel.launcher = lib.mkOption {
-      type = launcherType "";
-      default = {};
-      description = lib.mdDoc "Define an XFCE panel launcher";
+    services.xserver.desktopManager.xfce.xfce4-panel.launchers = lib.mkOption {
+      type = types.listOf (submodule {
+        options = {
+          name = lib.mkOption {
+            type = types.str;
+            description = lib.mdDoc "Name of the launcher";
+          };
+          exec = lib.mkOption {
+            type = types.str;
+            description = lib.mdDoc "Execution command for the launcher";
+          };
+          icon = lib.mkOption {
+            type = types.str;
+            description = lib.mdDoc "Icon to use for the launcher";
+          };
+          startup-notify = lib.mkOption {
+            type = types.bool;
+            default = false;
+            description = lib.mdDoc "Notify the user when the launcher starts";
+          };
+          terminal = lib.mkOption {
+            type = types.bool;
+            default = false;
+            description = lib.mdDoc "Launch the execution command in a terminal window";
+          };
+          categories = lib.mkOption {
+            type = types.str;
+            default = "Utility;X-XFCE;X-Xfce-Toplevel;";
+            description = lib.mdDoc "Category for the launcher";
+          };
+          comment = lib.mkOption {
+            type = types.str;
+            default = "Launch the given script or command";
+            description = lib.mdDoc "Category for the launcher";
+          };
+        };
+      });
+      default = [];
+      example = [
+        { name = "Firefox"; exec = "firefox"; icon = "firefox"; }
+        { name = "terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
+      ];
+      description = lib.mdDoc "Define XFCE panel launchers";
     };
   };
 
