@@ -12,6 +12,9 @@ let
     inherit options config lib;
   }).xfce4PanelLauncherType;
 
+  # Group all the launchers as a list
+  launchers = lib.attrValues cfg.launcher;
+
   # Define the xml file contents
   xmlfile = lib.mkIf cfg.enable
     (pkgs.writeText "xfce4-panel.xml" ''
@@ -54,6 +57,8 @@ let
             <property name="position-locked" type="bool" value="true"/>
             <property name="size" type="uint" value="48"/>
             <property name="plugin-ids" type="array">
+              ${lib.concatMapStringsSep "\n" (x: ''
+                <value type="int" value="${toString x.order}"/>'') launchers}
             </property>
           </property>
         </property>
@@ -103,6 +108,12 @@ let
           </property>
 
           <!-- Launcher components -->
+        ${lib.concatMapStringsSep "\n" (x: ''
+          <property name="plugin-${toString x.order}" type="string" value="launcher">
+            <property name="items" type="array">
+              <value type="string" value="${x.target}.desktop"/>
+            </property>
+          </property>'') launchers}
         </property>
       </channel>
     '');
