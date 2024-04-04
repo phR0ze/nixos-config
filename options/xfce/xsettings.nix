@@ -81,7 +81,7 @@ in
       };
       anti-alias = lib.mkOption {
         type = types.bool;
-        default = "true";
+        default = true;
         description = lib.mdDoc "Enable font anti-aliasing";
       };
       hinting-style = lib.mkOption {
