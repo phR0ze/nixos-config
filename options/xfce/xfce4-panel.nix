@@ -231,15 +231,15 @@ in
           };
           comment = lib.mkOption {
             type = types.str;
-            default = "Launch the given script or command";
-            description = lib.mdDoc "Category for the launcher";
+            default = "";
+            description = lib.mdDoc "Comment for the launcher used in tooltip";
           };
         };
       });
       default = [];
       example = [
         { name = "Firefox"; exec = "firefox"; icon = "firefox"; }
-        { name = "terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
+        { name = "Xfce4 terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
       ];
       description = lib.mdDoc "Define XFCE panel launchers";
     };
