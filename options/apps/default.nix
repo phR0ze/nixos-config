@@ -1,10 +1,8 @@
-# Import all the options
+# Apps options
 #---------------------------------------------------------------------------------------------------
 { ... }:
 {
   imports = [
-    ./apps
-    ./files
-    ./xfce
+    ./filezilla.nix
   ];
 }
