@@ -23,8 +23,16 @@
       xfce.xfce4-power-manager.enable = true;
       xfce.xfce4-desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
       xfce.xfce4-panel.launchers = [
-        { name = "XFCE4 Terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
-        { name = "Thunar"; exec = "exo-open --launch FileManager %u"; icon = "org.xfce.thunar"; }
+        { name = "Xfce4 Terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
+        { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
+        { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
+        { name = "HandBrake"; exec = "ghb"; icon = "fr.handbrake.ghb"; }
+        { name = "VLC Media Player"; exec = "vlc"; icon = "vlc"; }
+        { name = "FileZilla"; exec = "filezilla"; icon = "filezilla"; }
+        { name = "Firefox"; exec = "firefox"; icon = "firefox"; }
+        { name = "LibreOffice Calc"; exec = "libreoffice --calc"; icon = "libreoffice-calc"; }
+        { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; }
+        { name = "VirtualBox"; exec = "VirtualBox"; icon = "virtualbox"; }
       ];
     };
     displayManager = {
