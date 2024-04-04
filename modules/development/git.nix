@@ -9,6 +9,12 @@
         name = args.settings.git_user;
         email = args.settings.git_email;
       };
+      core = {
+        editor = vim;
+      };
+      push = {
+        default = simple;
+      };
       init = {
         defaultBranch = "main";
       };

@@ -28,11 +28,14 @@
     };
   };
 
-#  services.resolved = {
-#    enable = true;
-#    dnssec = "false";
-#    llmnr = "false";
-#  };
+  # Use systemd-resolved for DNS
+  # Uses the above networking.nameservers as the primary DNS servers
+  services.resolved = {
+    enable = true;
+    dnssec = "true";
+    #domains = [ "example.com" ]
+    fallbackDns = [ "8.8.8.8" "8.8.4.4" ]; # fallback on google dns
+  };
 
 #  services.avahi = lib.mkIf (config.my.mdns && !config.boot.isContainer) {
 #    enable = true;

@@ -50,6 +50,8 @@
 
   # Thunar configuration
   # ------------------------------------------------------------------------------------------------
+  files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".copy = 
+    ../../include/home/.config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml;
   programs.thunar.plugins = with pkgs.xfce; [
     thunar-volman
     thunar-archive-plugin
