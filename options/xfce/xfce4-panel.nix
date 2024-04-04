@@ -7,6 +7,12 @@ let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.xfce4-panel;
 
+  # Import the launcher type
+  launcherType = (import ./xfce4-panel-launcher.nix {
+    inherit options config lib;
+  }).xfce4PanelLauncherType;
+
+  # Define the xml file contents
   xmlfile = lib.mkIf cfg.enable
     (pkgs.writeText "xfce4-panel.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
@@ -48,14 +54,8 @@ let
             <property name="position-locked" type="bool" value="true"/>
             <property name="size" type="uint" value="48"/>
             <property name="plugin-ids" type="array">
-              <value type="int" value="15"/>
-              <value type="int" value="16"/>
-              <value type="int" value="17"/>
-              <value type="int" value="18"/>
-              <value type="int" value="19"/>
-              <value type="int" value="20"/>
-              <value type="int" value="21"/>
-              <value type="int" value="22"/>
+              ${lib.concatMapStringsSep "\n" (x: ''
+                <value type="int" value="${toString x.order}"/>'') cfg.launcher}
             </property>
           </property>
         </property>
@@ -105,32 +105,12 @@ let
           </property>
 
           <!-- Launcher components -->
-          <property name="plugin-15" type="string" value="showdesktop"/>
-          <property name="plugin-16" type="string" value="separator"/>
-          <property name="plugin-17" type="string" value="launcher">
+        ${lib.concatMapStringsSep "\n" (x: ''
+          <property name="plugin-${toString x.order}" type="string" value="launcher">
             <property name="items" type="array">
-              <value type="string" value="17120232521.desktop"/>
+              <value type="string" value="${x.target}.desktop"/>
             </property>
-          </property>
-          <property name="plugin-18" type="string" value="launcher">
-            <property name="items" type="array">
-              <value type="string" value="17120232522.desktop"/>
-            </property>
-          </property>
-          <property name="plugin-19" type="string" value="launcher">
-            <property name="items" type="array">
-              <value type="string" value="17120232523.desktop"/>
-            </property>
-          </property>
-          <property name="plugin-20" type="string" value="launcher">
-            <property name="items" type="array">
-              <value type="string" value="17120232524.desktop"/>
-            </property>
-          </property>
-          <property name="plugin-21" type="string" value="separator"/>
-          <property name="plugin-22" type="string" value="directorymenu">
-            <property name="base-directory" type="string" value="/home/admin"/>
-          </property>
+          </property>'') cfg.launcher}
         </property>
       </channel>
     '');
@@ -172,6 +152,11 @@ in
         default = 20;
         description = lib.mdDoc "Taskbar icon size in pixels";
       };
+    };
+    services.xserver.desktopManager.xfce.xfce4-panel.launcher = lib.mkOption {
+      type = launcherType;
+      default = {};
+      description = lib.mdDoc "Define an XFCE panel launcher";
     };
   };
 
