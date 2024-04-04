@@ -13,7 +13,7 @@ let
   }).xfce4PanelLauncherType;
 
   # Group all the launchers as a list
-  launchers = lib.attrValues cfg.launcher;
+  launchers = (lib.attrValues cfg.launcher);
 
   # Define the xml file contents
   xmlfile = lib.mkIf cfg.enable
