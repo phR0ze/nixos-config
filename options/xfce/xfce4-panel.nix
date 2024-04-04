@@ -47,7 +47,7 @@ let
             <property name="position" type="string" value="p=9;x=0;y=0"/>
             <property name="length" type="double" value="1"/>
             <property name="position-locked" type="bool" value="true"/>
-            <property name="size" type="uint" value="48"/>
+            <property name="size" type="uint" value="${toString cfg.launcher.size}"/>
             <property name="plugin-ids" type="array">
               ${lib.concatImapStringsSep "\n" (i: x: ''
                 <value type="int" value="${toString (i + 20)}"/>'') cfg.launchers}
@@ -197,6 +197,13 @@ in
         type = types.int;
         default = 20;
         description = lib.mdDoc "Taskbar icon size in pixels";
+      };
+    };
+    services.xserver.desktopManager.xfce.xfce4-panel.launcher = {
+      size = lib.mkOption {
+        type = types.int;
+        default = 36;
+        description = lib.mdDoc "Launcher size in pixels";
       };
     };
     services.xserver.desktopManager.xfce.xfce4-panel.launchers = lib.mkOption {
