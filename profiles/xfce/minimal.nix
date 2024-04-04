@@ -23,7 +23,7 @@
       xfce.xfce4-power-manager.enable = true;
       xfce.xfce4-desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
       xfce.xfce4-panel.launchers = [
-        { name = "terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
+        { name = "XFCE4 Terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
       ];
     };
     displayManager = {
