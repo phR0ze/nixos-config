@@ -151,7 +151,7 @@ in
       };
     };
     services.xserver.desktopManager.xfce.xfce4-panel.launcher = lib.mkOption {
-      type = launcherType;
+      type = launcherType {};
       default = {};
       description = lib.mdDoc "Define an XFCE panel launcher";
     };
