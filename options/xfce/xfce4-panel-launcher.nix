@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, ... }:
 {
-  xfce4PanelLauncherType = user: group: prefix: with lib.types; attrsOf (submodule (
+  xfce4PanelLauncherType = { }: with lib.types; attrsOf (submodule (
     { name, config, options, ... }: {
       options = {
 
