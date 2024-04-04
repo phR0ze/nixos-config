@@ -115,18 +115,18 @@ let
     set -euo pipefail             # Configure an immediate fail if something goes badly
 
     createLauncher() {
-      local name="$1"             # name of the launcher
+      local filename="$1"         # filename of the launcher
       local exec="$2"             # execution command line for the launcher
       local icon="$3"             # icon string to use for the launcher
       local notify="$4"           # notify on startup bool
       local terminal="$5"         # enable a terminal window with the launcher
       local categories="$6"       # categories string to use for launcher
-      local commen="$7"           # comment to use for the launcher
+      local comment="$7"          # comment to use for the launcher
       local order="$8"            # order of the launcher
 
       # Launcher path used in final ~/.config/xfce4/panel/launcher-xx location
       local dir="$out/launcher-$order"
-      local launcher="$dir/$name.desktop"
+      local launcher="$dir/$filename.desktop"
 
       # Create the launcher
       mkdir -p "$dir"
@@ -140,13 +140,14 @@ let
       echo "Categories=$categories" >> "$launcher"
       echo "OnlyShowIn=XFCE;" >> "$launcher"
       echo "X-AppStream-Ignore=True" >> "$launcher"
-      echo "Name=Terminal Emulator" >> "$launcher"
-      echo "Comment=Use the command line" >> "$launcher"
+      echo "Name=$name" >> "$launcher"
+      echo "Comment=$comment" >> "$launcher"
     }
 
     # Create bash function calls to createLauncher for each launcher entry
     ${lib.concatImapStringsSep "\n" (i: x: lib.escapeShellArgs [
       "createLauncher"
+      (lib.toLower (lib.replaceStrings [" "] ["-"] x.name))
       x.name
       x.exec
       x.icon
