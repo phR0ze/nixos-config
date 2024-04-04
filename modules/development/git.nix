@@ -10,10 +10,10 @@
         email = args.settings.git_email;
       };
       core = {
-        editor = vim;
+        editor = "vim";
       };
       push = {
-        default = simple;
+        default = "simple";
       };
       init = {
         defaultBranch = "main";
