@@ -16,7 +16,9 @@ let
           <value type="int" value="1"/>
           <value type="int" value="2"/>
           <property name="dark-mode" type="bool" value="true"/>
-          <property name="Taskbar" type="empty">
+
+          <!-- Taskbar components order -->
+          <property name="panel-1" type="empty">
             <property name="position" type="string" value="p=8;x=0;y=0"/>
             <property name="length" type="double" value="100"/>
             <property name="position-locked" type="bool" value="true"/>
@@ -37,7 +39,9 @@ let
               <value type="int" value="12"/>
             </property>
           </property>
-          <property name="Launcher" type="empty">
+
+          <!-- Launcher components order -->
+          <property name="panel-2" type="empty">
             <property name="autohide-behavior" type="uint" value="1"/>
             <property name="position" type="string" value="p=9;x=0;y=0"/>
             <property name="length" type="double" value="1"/>
@@ -56,6 +60,8 @@ let
           </property>
         </property>
         <property name="plugins" type="empty">
+
+          <!-- Taskbar components -->
           <property name="plugin-1" type="string" value="separator">
             <property name="style" type="uint" value="0"/>
           </property>
@@ -97,7 +103,8 @@ let
           <property name="plugin-12" type="string" value="separator">
             <property name="style" type="uint" value="0"/>
           </property>
-          <!-- Launcher icons -->
+
+          <!-- Launcher components -->
           <property name="plugin-15" type="string" value="showdesktop"/>
           <property name="plugin-16" type="string" value="separator"/>
           <property name="plugin-17" type="string" value="launcher">
