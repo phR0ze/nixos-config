@@ -54,8 +54,6 @@ let
             <property name="position-locked" type="bool" value="true"/>
             <property name="size" type="uint" value="48"/>
             <property name="plugin-ids" type="array">
-              ${lib.concatMapStringsSep "\n" (x: ''
-                <value type="int" value="${toString x.order}"/>'') cfg.launcher}
             </property>
           </property>
         </property>
@@ -105,12 +103,6 @@ let
           </property>
 
           <!-- Launcher components -->
-        ${lib.concatMapStringsSep "\n" (x: ''
-          <property name="plugin-${toString x.order}" type="string" value="launcher">
-            <property name="items" type="array">
-              <value type="string" value="${x.target}.desktop"/>
-            </property>
-          </property>'') cfg.launcher}
         </property>
       </channel>
     '');
