@@ -10,14 +10,14 @@
     ../../modules/virtualization/virtualbox.nix
   ];
 
-  # Additional programs
+  # Additional programs and services
   programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
   programs.steam.enable = true;         # Digital distribution platform from Valve
+  services.barrier.enable = true;       # Enable the barrier server and client
 
   environment.systemPackages = with pkgs; [
 
     # Network
-    barrier                             # Share a single mouse and keyboard between multiple computers
     freerdp                             # RDP client plugin for remmina
     networkmanager-openvpn              # NetworkManager VPN plugin for OpenVPN
     nfs-utils                           # Linux user-space NFS utilities

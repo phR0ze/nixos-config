@@ -1,8 +1,8 @@
-# Programs options
+# Services options
 #---------------------------------------------------------------------------------------------------
 { ... }:
 {
   imports = [
-    ./filezilla.nix
+    ./barrier.nix
   ];
 }
