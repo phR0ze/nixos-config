@@ -258,12 +258,6 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkIf cfg.enable {
-    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml".copy = panelXmlFile;
-    files.all.".config/xfce4/panel".copy = launchersPackage;
-  };
-
-  # Install the generated xml file
   config = lib.mkMerge [
     (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml".copy = panelXmlFile;
