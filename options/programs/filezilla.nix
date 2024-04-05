@@ -51,7 +51,14 @@ in
 
   # Install the generated xml file
   config = lib.mkMerge [
-    { environment.systemPackages = with pkgs; [ filezilla ]; }
-    { files.all.".config/filezilla/filezilla.xml".copy = xmlfile; }
+    (lib.mkIf (cfg.enable) {
+      environment.systemPackages = with pkgs; [ filezilla ];
+    })
+    (lib.mkIf (cfg.enable && cfg.persist) {
+      files.all.".config/filezilla/filezilla.xml".copy = xmlfile;
+    })
+    (lib.mkIf (cfg.enable && !cfg.persist) {
+      files.all.".config/filezilla/filezilla.xml".link = xmlfile;
+    })
   ];
 }
