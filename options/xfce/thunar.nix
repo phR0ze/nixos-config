@@ -36,6 +36,11 @@ in
         default = false;
         description = lib.mdDoc "Enable XFCE thunar configuration";
       };
+      ownConfigs = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Overwrite settings every reboot/update";
+      };
       view = lib.mkOption {
         type = types.enum [ "ThunarDetailsView" ];
         default = "ThunarDetailsView";
@@ -62,15 +67,21 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkIf cfg.enable {
-
-    programs.thunar.plugins = with pkgs.xfce; [
-      thunar-volman               # Install thunar
-      thunar-archive-plugin       # Install archive plugin
-      thunar-media-tags-plugin    # Install media tags plugin
-    ];
-
-    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".copy = thunarXmlfile;
-    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar-volman.xml".copy = thunarVolmanXmlfile;
-  };
+  config = lib.mkMerge [
+    (lib.mkIf (cfg.enable) {
+      programs.thunar.plugins = with pkgs.xfce; [
+        thunar-volman               # Install thunar
+        thunar-archive-plugin       # Install archive plugin
+        thunar-media-tags-plugin    # Install media tags plugin
+      ];
+    })
+    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
+      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".copy = thunarXmlfile;
+      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar-volman.xml".copy = thunarVolmanXmlfile;
+    })
+    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
+      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".ownCopy = thunarXmlfile;
+      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar-volman.xml".ownCopy = thunarVolmanXmlfile;
+    })
+  ];
 }

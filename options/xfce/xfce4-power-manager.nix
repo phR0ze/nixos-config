@@ -31,6 +31,11 @@ in
         default = false;
         description = lib.mdDoc "Enable XFCE power management configuration";
       };
+      ownConfigs = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Overwrite settings every reboot/update";
+      };
       presentationMode = lib.mkOption {
         type = types.bool;
         default = true;
@@ -45,8 +50,15 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkIf cfg.enable {
-    powerManagement.enable = true;            # Indirectly installs xfce4-power-manager
-    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".copy = xmlfile;
-  };
+  config = lib.mkMerge [
+    (lib.mkIf (cfg.enable) {
+      powerManagement.enable = true;            # Indirectly installs xfce4-power-manager
+    })
+    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
+      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".copy = xmlfile;
+    })
+    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
+      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".ownCopy = xmlfile;
+    })
+  ];
 }

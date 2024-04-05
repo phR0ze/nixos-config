@@ -62,6 +62,11 @@ in
         default = false;
         description = lib.mdDoc "Enable XFCE panel configuration";
       };
+      ownConfigs = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Overwrite settings every reboot/update";
+      };
       gtkTheme = lib.mkOption {
         type = types.str;
         default = "Arc-Dark";
@@ -93,7 +98,12 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkIf cfg.enable {
-    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml".copy = xmlfile;
-  };
+  config = lib.mkMerge [
+    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
+      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml".copy = xmlfile;
+    })
+    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
+      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml".ownCopy = xmlfile;
+    })
+  ];
 }

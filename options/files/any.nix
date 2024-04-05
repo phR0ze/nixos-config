@@ -154,8 +154,11 @@ in
         # Create a single file from raw text
         files.any."root/.dircolors".text = "this is a test";
 
-        # Include a local file as your target
+        # Include a local file as your target that is unowned
         files.any."root/.dircolors".copy = ../include/home/.dircolors;
+
+        # Include a local file as your target that is owned
+        files.any."root/.dircolors".ownCopy = ../include/home/.dircolors;
 
         # Include a local file as a readonly link
         files.any."root/.dircolors".link = ../include/home/.dircolors;

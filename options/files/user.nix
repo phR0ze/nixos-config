@@ -22,11 +22,14 @@ in
         - destination paths must be relative to /home/<user> e.g. .config
       '';
       example = ''
-        # Create a single file from raw text
+        # Create a single file from raw text for the current user
         files.user.".dircolors".text = "this is a test";
 
-        # Include a local file as your target
-        files.user.".dircolors".copy = ../include/home/.dircolors;
+        # Include a local file as your target that is unowned for the current user
+        files.user."root/.dircolors".copy = ../include/home/.dircolors;
+
+        # Include a local file as your target that is owned for the current user
+        files.user."root/.dircolors".ownCopy = ../include/home/.dircolors;
 
         # Multi file example
         files.user = {

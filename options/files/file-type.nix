@@ -39,18 +39,24 @@
           default = null;
           type = types.nullOr types.path;
           description = lib.mdDoc ''
-            Local file path or local directory path to install in system:
+            Local file path or local directory path to install in system. Doesn't re-copy the file on 
+            reboot or updates. Removing the corresponding entry from the file `/nix/files.unowned` 
+            will allow an update to overwrite the file for a fresh start.
             - sets 'source' to the given file
             - sets 'kind' to 'copy'
-            - sets 'own' to 'default'
+            - sets 'own' to 'unowned'
           '';
         };
 
-        initCopy = lib.mkOption {
+        ownCopy = lib.mkOption {
           default = null;
           type = types.nullOr types.path;
           description = lib.mdDoc ''
-            Behaves the same as `copy` except the file is only copied to the destination once.
+            Local file path or local directory path to install in system. Copies the file on reboot 
+            or updates. Tracks these files in `/nix/files.owned`
+            - sets 'source' to the given file
+            - sets 'kind' to 'copy'
+            - sets 'own' to 'owned'
           '';
         };
 
@@ -89,27 +95,25 @@
         };
 
         op = lib.mkOption {
-          type = types.enum [ "init" "persist" ];
-          default = "persist";
+          type = types.str;
+          default = "default";
           description = lib.mdDoc ''
-            By default all file operations will be repeated on each reboot; however this behavior
-            can be modified by setting this to `init` which means only install the file the one
-            initial time and not during each reboot. This is useful for initial defaults 
-            configuration.
+            Placeholder for a future operation
           '';
         };
 
         own = lib.mkOption {
-          type = types.enum [ "default" "owned" "free" ];
+          type = types.enum [ "default" "owned" "unowned" ];
           default = "default";
           description = lib.mdDoc ''
-            Whether to own the file or directory or not. Possible values [ default | owned | free ].
-            When a file or directory is owned it is automatically deleted if your 
-            configuration not longer uses it. This can be dangerous if you have included a 
-            directory such as .config in your home directory and set it as owned then remove your 
-            dependency on it since it will remove the entire .config directory on clean up 
-            despite other files you don't own being in the directory. This is why own is false 
-            for directories by default and only true for files by default.
+            Whether to own the file or directory or not. When a file or directory is owned it is 
+            automatically deleted if your configuration no longer uses it. It is also overwritten 
+            on every reboot or update. This can be dangerous if you have included a directory such as 
+            .config in your home directory and set it as owned then remove your dependency on it 
+            since it will remove the entire .config directory on clean up despite other files you 
+            don't own being in the directory. This is why there is a separate option `ownCopy` that 
+            invokes the owned behavior and why own is false by default for regular `copy` operations 
+            and for directories. It is true by default for links however.
           '';
         };
 
@@ -151,10 +155,11 @@
           else lib.mkForce "copy";
 
         # Set default for future use
-        op = lib.mkIf (config.initCopy != null) (lib.mkForce "init");
+        op = lib.mkDefault "default";
 
         # Set default( i.e. files are owned and directories are not) but allows for user overrides
-        own = lib.mkDefault "default";
+        own = if (config.copy != null || config.text != null) then (lib.mkForce "unowned")
+          else lib.mkIf (config.ownCopy != null) (lib.mkForce "owned")
 
         # Set based off the convenience options
         source = if (config.copy != null) then (lib.mkForce config.copy)
