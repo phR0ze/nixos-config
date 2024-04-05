@@ -148,26 +148,16 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] XFCE: Move launcher to top
-* [ ] XFCE: Move app panel to bottom
 
 ## Sometime
-* [ ] Include missing hicolor icons - fall back icons not working `XDG_ICON_DIRS`
-* [ ] Conflicts: file names, directory names with different modes or permissions
-* [ ] Choose default resolution for system
-* [ ] Add `nix-prefetch fetchFromGitHub --owner hrsh7th --repo nvim-cmp --rev 768548bf4980fd6d635193a9320545bb46fcb6d8`
-* [ ] Add vim-colorize plugin
-* [ ] Configure `git config --global user.name`
-* [ ] Configure `git config --global user.email`
-* [ ] Configure `git config --global --add safe.directory /etc/nixos`
-* [ ] Change nix flake symbol to blue in vim colorizer plugin
-* [ ] `sudo nix-channel --list` is showing stuff
-* [ ] Remove `/etc/nixos/etc/nixos`
-* [ ] clu to update `flake.nix` with user selection
-* [ ] Change the tty autologin welcome message
-* [ ] Change the kernel boot colors 
 * [ ] Create ISO with full live GUI environment
   * [ ] Switch to calamares for installation
+* [ ] Include missing hicolor icons - fall back icons not working `XDG_ICON_DIRS`
+* [ ] Choose default resolution for system
+* [ ] Add vim-colorize plugin
+* [ ] Change nix flake symbol to blue in vim colorizer plugin
+* [ ] Remove `/etc/nixos/etc/nixos`
+* [ ] Change the kernel boot colors 
 
 * Configs to circle back to
   * https://github.com/danth/stylix
@@ -186,7 +176,9 @@ world though this already exists.
   * [x] Add starship command prompt for all users
   * [x] Install neovim as default editor and customize
   * [x] Add the flake nixpkgs to the `NIX_PATH`
-* [x] XFCE option
+* [x] Nix `xfce` options
+  * [x] Move launcher to top
+  * [x] Move app panel to bottom
   * [x] Add desktop settings including background
   * [x] Add keyboard numlock, repeat delay and rate
   * [x] Configure power management display defaults to be always on
