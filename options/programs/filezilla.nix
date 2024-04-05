@@ -4,7 +4,7 @@
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
-  cfg = config.apps.filezilla;
+  cfg = config.programs.filezilla;
 
   xmlfile = lib.mkIf cfg.enable
     (pkgs.writeText "filezilla.xml" ''
@@ -20,7 +20,7 @@ let
 in
 {
   options = {
-    apps.filezilla = {
+    programs.filezilla = {
       enable = lib.mkOption {
         type = types.bool;
         default = false;
