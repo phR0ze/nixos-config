@@ -52,6 +52,6 @@ in
   # Install the generated xml file
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [ filezilla ];
-    (files.all.".config/filezilla/filezilla.xml".copy = xmlfile);
+    files.all.".config/filezilla/filezilla.xml".copy = xmlfile;
   };
 }
