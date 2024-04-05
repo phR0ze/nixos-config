@@ -43,8 +43,13 @@ in
     };
   };
 
-  # Install the generated xml file
   config = lib.mkIf cfg.enable {
+
+    # Insall manually crafted keyboard shortcuts
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml".copy = 
+      ../../include/home/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml;
+
+    # Install the generated xml file
     files.all.".config/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml".copy = xmlfile;
   };
 }

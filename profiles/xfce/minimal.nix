@@ -10,9 +10,10 @@
     ../x11/minimal.nix
   ];
 
-  # XFCE configuration
-  # ------------------------------------------------------------------------------------------------
   services.xserver = {
+    displayManager = {
+      defaultSession = "xfce";
+    };
     desktopManager = {
       xfce.enable = true;
       xfce.enableXfwm = true;
@@ -20,10 +21,10 @@
       xfce.keyboards.enable = true;
       xfce.thunar.enable = true;
       xfce.xsettings.enable = true;
-      xfce.xfce4-panel.enable = true;
-      xfce.xfce4-power-manager.enable = true;
-      xfce.xfce4-desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
-      xfce.xfce4-panel.launchers = [
+      xfce.panel.enable = true;
+      xfce.powerManager.enable = true;
+      xfce.desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
+      xfce.panel.launchers = [
         { name = "Xfce4 Terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
         { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
         { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
@@ -36,29 +37,11 @@
         { name = "VirtualBox"; exec = "VirtualBox"; icon = "virtualbox"; }
       ];
     };
-    displayManager = {
-      defaultSession = "xfce";
-    };
   };
 
-  # Adding raw configuration files
-  files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml".copy = 
-    ../../include/home/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml;
-
   programs.xfconf.enable = true;            # Enable XFCE's configuration manager
-  powerManagement.enable = true;            # Indirectly installs xfce4-power-manager
   services.tumbler.enable = true;           # tumbler uses ffmpegthumbnailer
-
-  # Thunar configuration
-  # ------------------------------------------------------------------------------------------------
-  programs.thunar.plugins = with pkgs.xfce; [
-    thunar-volman
-    thunar-archive-plugin
-    thunar-media-tags-plugin
-  ];
   
-  # General applications
-  # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs.xfce // pkgs; [
     gnome.gnome-themes-extra          # Xfce default,
     gnome.adwaita-icon-theme          # Xfce default,

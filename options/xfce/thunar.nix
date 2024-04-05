@@ -11,7 +11,7 @@ let
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="thunar" version="1.0">
         <property name="last-view" type="string" value="${cfg.view}"/>
-        <property name="last-show-hidden" type="bool" value="${f.boolToStr cfg.show-hidden}"/>
+        <property name="last-show-hidden" type="bool" value="${f.boolToStr cfg.showHidden}"/>
       </channel>
     '');
 
@@ -20,10 +20,10 @@ let
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="thunar-volman" version="1.0">
         <property name="automount-media" type="empty">
-          <property name="enabled" type="bool" value="${f.boolToStr cfg.volman.automount-media}"/>
+          <property name="enabled" type="bool" value="${f.boolToStr cfg.volman.automountMedia}"/>
         </property>
         <property name="automount-drives" type="empty">
-          <property name="enabled" type="bool" value="${f.boolToStr cfg.volman.automount-drives}"/>
+          <property name="enabled" type="bool" value="${f.boolToStr cfg.volman.automountDrives}"/>
         </property>
       </channel>
     '');
@@ -41,19 +41,19 @@ in
         default = "ThunarDetailsView";
         description = lib.mdDoc "The type of view to use";
       };
-      show-hidden = lib.mkOption {
+      showHidden = lib.mkOption {
         type = types.bool;
         default = true;
         description = lib.mdDoc "Show hidden files and directories";
       };
     };
     services.xserver.desktopManager.xfce.thunar.volman = {
-      automount-media = lib.mkOption {
+      automountMedia = lib.mkOption {
         type = types.bool;
         default = true;
         description = lib.mdDoc "Mount removable media when inserted";
       };
-      automount-drives = lib.mkOption {
+      automountDrives = lib.mkOption {
         type = types.bool;
         default = true;
         description = lib.mdDoc "Mount removable drives when hot-plugged";
@@ -63,6 +63,13 @@ in
 
   # Install the generated xml file
   config = lib.mkIf cfg.enable {
+
+    programs.thunar.plugins = with pkgs.xfce; [
+      thunar-volman               # Install thunar
+      thunar-archive-plugin       # Install archive plugin
+      thunar-media-tags-plugin    # Install media tags plugin
+    ];
+
     files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".copy = thunarXmlfile;
     files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar-volman.xml".copy = thunarVolmanXmlfile;
   };

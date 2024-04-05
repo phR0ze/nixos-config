@@ -12,8 +12,8 @@ let
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xsettings" version="1.0">
         <property name="Net" type="empty">
-          <property name="ThemeName" type="string" value="${cfg.gtk-theme}"/>
-          <property name="IconThemeName" type="string" value="${cfg.icon-theme}"/>
+          <property name="ThemeName" type="string" value="${cfg.gtkTheme}"/>
+          <property name="IconThemeName" type="string" value="${cfg.iconTheme}"/>
           <property name="DoubleClickTime" type="empty"/>
           <property name="DoubleClickDistance" type="empty"/>
           <property name="DndDragThreshold" type="empty"/>
@@ -25,16 +25,16 @@ let
         </property>
         <property name="Xft" type="empty">
           <property name="DPI" type="empty"/>
-          <property name="Antialias" type="int" value="${toString (f.boolToInt cfg.font.anti-alias)}"/>
+          <property name="Antialias" type="int" value="${toString (f.boolToInt cfg.font.antiAlias)}"/>
           <property name="Hinting" type="int" value="1"/>
-          <property name="HintStyle" type="string" value="${cfg.font.hinting-style}"/>
+          <property name="HintStyle" type="string" value="${cfg.font.hintingStyle}"/>
           <property name="RGBA" type="empty"/>
         </property>
         <property name="Gtk" type="empty">
           <property name="CanChangeAccels" type="empty"/>
           <property name="ColorPalette" type="empty"/>
           <property name="FontName" type="empty"/>
-          <property name="MonospaceFontName" type="string" value="${cfg.font.default-monospace}"/>
+          <property name="MonospaceFontName" type="string" value="${cfg.font.defaultMonospace}"/>
           <property name="IconSizes" type="empty"/>
           <property name="KeyThemeName" type="empty"/>
           <property name="ToolbarStyle" type="empty"/>
@@ -62,29 +62,29 @@ in
         default = false;
         description = lib.mdDoc "Enable XFCE panel configuration";
       };
-      gtk-theme = lib.mkOption {
+      gtkTheme = lib.mkOption {
         type = types.str;
         default = "Arc-Dark";
         description = lib.mdDoc "GTK theme";
       };
-      icon-theme = lib.mkOption {
+      iconTheme = lib.mkOption {
         type = types.str;
         default = "Paper";
         description = lib.mdDoc "Icon theme";
       };
     };
     services.xserver.desktopManager.xfce.xsettings.font = {
-      default-monospace = lib.mkOption {
+      defaultMonospace = lib.mkOption {
         type = types.str;
         default = "Inconsolata Nerd Font Mono 11";
         description = lib.mdDoc "Default monospace font";
       };
-      anti-alias = lib.mkOption {
+      antiAlias = lib.mkOption {
         type = types.bool;
         default = true;
         description = lib.mdDoc "Enable font anti-aliasing";
       };
-      hinting-style = lib.mkOption {
+      hintingStyle = lib.mkOption {
         type = types.str;
         default = "hintfull";
         description = lib.mdDoc "Font anti-aliasing hinting";

@@ -88,6 +88,8 @@
 
   # Other programs and services
   # ------------------------------------------------------------------------------------------------
+  programs.filezilla.enable = true;     # Network/Transfer
+
   programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
 
   services.fwupd.enable = true;         # Firmware update tool for BIOS, etc...
@@ -97,7 +99,6 @@
   environment.systemPackages = with pkgs; [
 
     # Network
-    filezilla                           # Network/Transfer
 
     # Media
     audacious                           # Lightweight advanced audio player
