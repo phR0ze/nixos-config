@@ -3,8 +3,8 @@
 { ... }:
 {
   imports = [
-    ./apps
     ./files
+    ./programs
     ./xfce
   ];
 }

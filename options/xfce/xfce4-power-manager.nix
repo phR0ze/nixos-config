@@ -5,7 +5,7 @@
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
-  cfg = config.services.xserver.desktopManager.xfce.xfce4-power-manager;
+  cfg = config.services.xserver.desktopManager.xfce.power-manager;
 
   xmlfile = lib.mkIf cfg.enable
     (pkgs.writeText "xfce4-power-manager.xml" ''
@@ -13,30 +13,30 @@ let
       <channel name="xfce4-power-manager" version="1.0">
         <property name="xfce4-power-manager" type="empty">
           <property name="show-tray-icon" type="bool" value="false"/>
-          <property name="presentation-mode" type="bool" value="${f.boolToStr cfg.presentation-mode}"/>
+          <property name="presentation-mode" type="bool" value="${f.boolToStr cfg.presentationMode}"/>
           <property name="power-button-action" type="uint" value="4"/>
           <property name="sleep-button-action" type="uint" value="1"/>
           <property name="hibernate-button-action" type="uint" value="2"/>
           <property name="battery-button-action" type="uint" value="1"/>
-          <property name="dpms-enabled" type="bool" value="${f.boolToStr cfg.manage-display-power}"/>
+          <property name="dpms-enabled" type="bool" value="${f.boolToStr cfg.manageDisplayPower}"/>
         </property>
       </channel>
     '');
 in
 {
   options = {
-    services.xserver.desktopManager.xfce.xfce4-power-manager = {
+    services.xserver.desktopManager.xfce.power-manager = {
       enable = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc "Enable XFCE power management configuration";
       };
-      presentation-mode = lib.mkOption {
+      presentationMode = lib.mkOption {
         type = types.bool;
         default = true;
         description = lib.mdDoc "Enable presentation mode";
       };
-      manage-display-power = lib.mkOption {
+      manageDisplayPower = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc "Enable xfce display power management i.e. dpms";
@@ -46,6 +46,7 @@ in
 
   # Install the generated xml file
   config = lib.mkIf cfg.enable {
+    powerManagement.enable = true;            # Indirectly installs xfce4-power-manager
     files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".copy = xmlfile;
   };
 }

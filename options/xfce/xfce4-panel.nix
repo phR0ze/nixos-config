@@ -5,10 +5,10 @@
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
-  cfg = config.services.xserver.desktopManager.xfce.xfce4-panel;
+  cfg = config.services.xserver.desktopManager.xfce.panel;
 
   # Define the xml file contents
-  xfce4PanelXmlFile = lib.mkIf cfg.enable
+  panelXmlFile = lib.mkIf cfg.enable
     (pkgs.writeText "xfce4-panel.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xfce4-panel" version="1.0">
@@ -23,7 +23,7 @@ let
             <property name="position" type="string" value="p=8;x=0;y=0"/>
             <property name="length" type="double" value="100"/>
             <property name="position-locked" type="bool" value="true"/>
-            <property name="icon-size" type="uint" value="${toString cfg.taskbar.icon-size}"/>
+            <property name="icon-size" type="uint" value="${toString cfg.taskbar.iconSize}"/>
             <property name="size" type="uint" value="${toString cfg.taskbar.size}"/>
             <property name="plugin-ids" type="array">
               <value type="int" value="1"/>
@@ -152,7 +152,7 @@ let
       x.name
       x.exec
       x.icon
-      (f.boolToStr x.startup-notify)
+      (f.boolToStr x.startupNotify)
       (f.boolToStr x.terminal)
       x.categories
       x.comment
@@ -163,21 +163,21 @@ let
 in
 {
   options = {
-    services.xserver.desktopManager.xfce.xfce4-panel = {
+    services.xserver.desktopManager.xfce.panel = {
       enable = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc "Enable XFCE panel configuration";
       };
     };
-    services.xserver.desktopManager.xfce.xfce4-panel.clock = {
+    services.xserver.desktopManager.xfce.panel.clock = {
       military = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc "Enable military time";
       };
     };
-    services.xserver.desktopManager.xfce.xfce4-panel.taskbar = {
+    services.xserver.desktopManager.xfce.panel.taskbar = {
       title = lib.mkOption {
         type = types.str;
         default = "Apps";
@@ -193,20 +193,20 @@ in
         default = 24;
         description = lib.mdDoc "Taskbar size in pixels";
       };
-      icon-size = lib.mkOption {
+      iconSize = lib.mkOption {
         type = types.int;
         default = 20;
         description = lib.mdDoc "Taskbar icon size in pixels";
       };
     };
-    services.xserver.desktopManager.xfce.xfce4-panel.launcher = {
+    services.xserver.desktopManager.xfce.panel.launcher = {
       size = lib.mkOption {
         type = types.int;
         default = 36;
         description = lib.mdDoc "Launcher size in pixels";
       };
     };
-    services.xserver.desktopManager.xfce.xfce4-panel.launchers = lib.mkOption {
+    services.xserver.desktopManager.xfce.panel.launchers = lib.mkOption {
       type = types.listOf (submodule {
         options = {
           name = lib.mkOption {
@@ -221,7 +221,7 @@ in
             type = types.str;
             description = lib.mdDoc "Icon to use for the launcher";
           };
-          startup-notify = lib.mkOption {
+          startupNotify = lib.mkOption {
             type = types.bool;
             default = false;
             description = lib.mdDoc "Notify the user when the launcher starts";
@@ -254,7 +254,7 @@ in
 
   # Install the generated xml file
   config = lib.mkIf cfg.enable {
-    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml".copy = xfce4PanelXmlFile;
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml".copy = panelXmlFile;
     files.all.".config/xfce4/panel".copy = launchersPackage;
   };
 }

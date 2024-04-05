@@ -4,39 +4,44 @@
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
-  cfg = config.network.filezilla.default;
+  cfg = config.apps.filezilla;
 
   xmlfile = lib.mkIf cfg.enable
     (pkgs.writeText "filezilla.xml" ''
      <?xml version="1.0"?>
       <FileZilla3 version="3.66.4" platform="*nix">
         <Settings>
-          <Setting name="Show Tree Remote">${toString (f.boolToInt cfg.show-local-tree)}</Setting>
-          <Setting name="Show Tree Local">${toString (f.boolToInt cfg.show-remote-tree)}</Setting>
-          <Setting name="Number of Transfers">${toString cfg.num-transfers}</Setting>
+          <Setting name="Show Tree Remote">${toString (f.boolToInt cfg.showLocalTree)}</Setting>
+          <Setting name="Show Tree Local">${toString (f.boolToInt cfg.showRemoteTree)}</Setting>
+          <Setting name="Number of Transfers">${toString cfg.numTransfers}</Setting>
         </Settings>
       </FileZilla3>
     '');
 in
 {
   options = {
-    network.filezilla.default = {
+    apps.filezilla = {
       enable = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Enable initial filezilla defaults settings";
+        description = lib.mdDoc "Install filezilla";
       };
-      show-local-tree = lib.mkOption {
+      persist = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Persist filezilla settings across reboots";
+      };
+      showLocalTree = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc "Show the local tree";
       };
-      show-remote-tree = lib.mkOption {
+      showRemoteTree = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc "Show the remote tree";
       };
-      num-transfers = lib.mkOption {
+      numTransfers = lib.mkOption {
         type = types.int;
         default = 10;
         description = lib.mdDoc "Set the number of parallel transfers";
@@ -46,6 +51,7 @@ in
 
   # Install the generated xml file
   config = lib.mkIf cfg.enable {
-    files.all.".config/filezilla/filezilla.xml".copy = thunarXmlfile;
+    environment.systemPackages = with pkgs; [ filezilla ];
+    (files.all.".config/filezilla/filezilla.xml".copy = xmlfile);
   };
 }

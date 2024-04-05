@@ -5,7 +5,7 @@
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
-  cfg = config.services.xserver.desktopManager.xfce.xfce4-desktop;
+  cfg = config.services.xserver.desktopManager.xfce.desktop;
 
   monitors = [
     "monitorDisplayPort-0"
@@ -65,15 +65,15 @@ let
           <property name="icon-size" type="uint" value="48"/>
           <property name="show-thumbnails" type="bool" value="true"/>
           <property name="file-icons" type="empty">
-            <property name="show-home" type="bool" value="${f.boolToStr cfg.show-home}"/>
-            <property name="show-trash" type="bool" value="${f.boolToStr cfg.show-trash}"/>
-            <property name="show-filesystem" type="bool" value="${f.boolToStr cfg.show-filesystem}"/>
-            <property name="show-removable" type="bool" value="${f.boolToStr cfg.show-removable}"/>
+            <property name="show-home" type="bool" value="${f.boolToStr cfg.showHome}"/>
+            <property name="show-trash" type="bool" value="${f.boolToStr cfg.showTrash}"/>
+            <property name="show-filesystem" type="bool" value="${f.boolToStr cfg.showFilesystem}"/>
+            <property name="show-removable" type="bool" value="${f.boolToStr cfg.showRemovable}"/>
           </property>
         </property>
         <property name="last" type="empty">
-          <property name="window-width" type="int" value="${toString cfg.window-width}"/>
-          <property name="window-height" type="int" value="${toString cfg.window-height}"/>
+          <property name="window-width" type="int" value="${toString cfg.windowWidth}"/>
+          <property name="window-height" type="int" value="${toString cfg.windowHeight}"/>
         </property>
       </channel>
     '');
@@ -81,7 +81,7 @@ let
 in
 {
   options = {
-    services.xserver.desktopManager.xfce.xfce4-desktop = {
+    services.xserver.desktopManager.xfce.desktop = {
       enable = lib.mkOption {
         type = types.bool;
         default = false;
@@ -92,32 +92,32 @@ in
         default = null;
         description = lib.mdDoc "Desktop background";
       };
-      show-home = lib.mkOption {
+      showHome = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc "Show home icon on desktop";
       };
-      show-trash = lib.mkOption {
+      showTrash = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc "Show trash icon on desktop";
       };
-      show-filesystem = lib.mkOption {
+      showFilesystem = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc "Show filesystem icon on desktop";
       };
-      show-removable = lib.mkOption {
+      showRemovable = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc "Show removable drives icon on desktop";
       };
-      window-width = lib.mkOption {
+      windowWidth = lib.mkOption {
         type = types.int;
         default = 885;
         description = lib.mdDoc "Desktop settings window width";
       };
-      window-height = lib.mkOption {
+      windowHeight = lib.mkOption {
         type = types.int;
         default = 710;
         description = lib.mdDoc "Desktop settings window height";
