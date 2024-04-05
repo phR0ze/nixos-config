@@ -15,7 +15,7 @@ let
 in
 {
   # Add the custom fonts package to the /nix/store and setup the /run/current-system/sw links
-  environment.systemPackages = [ iconsPackage ];
+  environment.systemPackages = [ fontsPackage ];
   environment.pathsToLink = [
     "/share/doc/TTF"  # /run/current-system/sw/share/doc
     "/share/fonts/TTF"  # /run/current-system/sw/share/fonts
