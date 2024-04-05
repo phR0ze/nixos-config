@@ -159,7 +159,7 @@
 
         # Set default( i.e. files are owned and directories are not) but allows for user overrides
         own = if (config.copy != null || config.text != null) then (lib.mkForce "unowned")
-          else lib.mkIf (config.ownCopy != null) (lib.mkForce "owned")
+          else lib.mkIf (config.ownCopy != null) (lib.mkForce "owned");
 
         # Set based off the convenience options
         source = if (config.copy != null) then (lib.mkForce config.copy)
