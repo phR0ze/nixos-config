@@ -46,6 +46,14 @@
           '';
         };
 
+        initCopy = lib.mkOption {
+          default = null;
+          type = types.nullOr types.path;
+          description = lib.mdDoc ''
+            Behaves the same as `copy` except the file is only copied to the destination once.
+          '';
+        };
+
         link = lib.mkOption {
           default = null;
           type = types.nullOr types.path;
@@ -81,10 +89,13 @@
         };
 
         op = lib.mkOption {
-          type = types.enum [ "default" ];
-          default = "default";
+          type = types.enum [ "init" "persist" ];
+          default = "persist";
           description = lib.mdDoc ''
-            Operation can be one of [ default ]. Place holder for future.
+            By default all file operations will be repeated on each reboot; however this behavior
+            can be modified by setting this to `init` which means only install the file the one
+            initial time and not during each reboot. This is useful for initial defaults 
+            configuration.
           '';
         };
 
@@ -140,7 +151,7 @@
           else lib.mkForce "copy";
 
         # Set default for future use
-        op = lib.mkDefault "default";
+        op = lib.mkIf (config.initCopy != null) (lib.mkForce "init");
 
         # Set default( i.e. files are owned and directories are not) but allows for user overrides
         own = lib.mkDefault "default";
