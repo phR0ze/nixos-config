@@ -26,10 +26,10 @@ in
         default = false;
         description = lib.mdDoc "Install filezilla";
       };
-      persist = lib.mkOption {
+      ownConfigs = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Persist filezilla settings across reboots";
+        description = lib.mdDoc "Overwrite settings every reboot/update";
       };
       showLocalTree = lib.mkOption {
         type = types.bool;
@@ -54,11 +54,11 @@ in
     (lib.mkIf (cfg.enable) {
       environment.systemPackages = with pkgs; [ filezilla ];
     })
-    (lib.mkIf (cfg.enable && cfg.persist) {
+    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
       files.all.".config/filezilla/filezilla.xml".copy = xmlfile;
     })
-    (lib.mkIf (cfg.enable && !cfg.persist) {
-      files.all.".config/filezilla/filezilla.xml".initCopy = xmlfile;
+    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
+      files.all.".config/filezilla/filezilla.xml".ownCopy = xmlfile;
     })
   ];
 }
