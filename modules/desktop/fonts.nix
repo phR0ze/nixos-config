@@ -14,6 +14,13 @@ let
   '';
 in
 {
+  # Add the custom fonts package to the /nix/store and setup the /run/current-system/sw links
+  environment.systemPackages = [ iconsPackage ];
+  environment.pathsToLink = [
+    "/share/doc/TTF"  # /run/current-system/sw/share/doc
+    "/share/fonts/TTF"  # /run/current-system/sw/share/fonts
+  ];
+
   # Virtual console font will be chosen by the kernel
   # Default is 8x16 and Terminus 32 bold for larger resolutions
 #  console = {
@@ -26,7 +33,6 @@ in
     fontconfig.enable = true;
 
     packages = with pkgs; [
-      fontsPackage                  # Custom package from above
       (nerdfonts.override {
         fonts = [
           "Hack"                    # Hand groomed/optically balanced typeface based on Bitstream Vera Mono
@@ -49,10 +55,4 @@ in
       terminus-nerdfont             # A clean fixed width font
     ];
   };
-
-  # Link the package to the system path /run/current-system/sw 
-  environment.pathsToLink = [
-    "/share/doc/TTF"  # /run/current-system/sw/share/doc
-    "/share/fonts/TTF"  # /run/current-system/sw/share/fonts
-  ];
 }
