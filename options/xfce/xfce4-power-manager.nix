@@ -5,7 +5,7 @@
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
-  cfg = config.services.xserver.desktopManager.xfce.power-manager;
+  cfg = config.services.xserver.desktopManager.xfce.powerManager;
 
   xmlfile = lib.mkIf cfg.enable
     (pkgs.writeText "xfce4-power-manager.xml" ''
@@ -25,7 +25,7 @@ let
 in
 {
   options = {
-    services.xserver.desktopManager.xfce.power-manager = {
+    services.xserver.desktopManager.xfce.powerManager = {
       enable = lib.mkOption {
         type = types.bool;
         default = false;
