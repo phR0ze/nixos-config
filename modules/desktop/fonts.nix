@@ -26,7 +26,7 @@ in
     fontconfig.enable = true;
 
     packages = with pkgs; [
-      iconsPackage                  # Custom package from above
+      fontsPackage                  # Custom package from above
       (nerdfonts.override {
         fonts = [
           "Hack"                    # Hand groomed/optically balanced typeface based on Bitstream Vera Mono
