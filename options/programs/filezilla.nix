@@ -58,7 +58,7 @@ in
       files.all.".config/filezilla/filezilla.xml".copy = xmlfile;
     })
     (lib.mkIf (cfg.enable && !cfg.persist) {
-      files.all.".config/filezilla/filezilla.xml".link = xmlfile;
+      files.all.".config/filezilla/filezilla.xml".initCopy = xmlfile;
     })
   ];
 }
