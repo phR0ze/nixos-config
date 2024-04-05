@@ -6,19 +6,20 @@
 { pkgs, ... }:
 let
   # Build the package from the local files
+  # Simple mkDerivation example https://github.com/jeslie0/fonts/blob/main/flake.nix
   fontsPackage = pkgs.runCommandLocal "fonts" {} ''
-    mkdir -p $out/share/doc/TTF
-    mkdir -p $out/share/fonts/TTF
-    cp -r ${../../include/usr/share/doc/TTF}/* $out/share/doc/TTF
-    cp -r ${../../include/usr/share/fonts/TTF}/* $out/share/fonts/TTF
+    mkdir -p $out/share/doc/X11/fonts
+    mkdir -p $out/share/X11/fonts
+    cp -r ${../../include/usr/share/doc/TTF}/* $out/share/doc/X11/fonts
+    cp -r ${../../include/usr/share/fonts/TTF}/* $out/share/X11/fonts
   '';
 in
 {
   # Add the custom fonts package to the /nix/store and setup the /run/current-system/sw links
   environment.systemPackages = [ fontsPackage ];
   environment.pathsToLink = [
-    "/share/doc/TTF"  # /run/current-system/sw/share/doc
-    "/share/fonts/TTF"  # /run/current-system/sw/share/fonts
+    "/share/doc/X11/fonts"  # /run/current-system/sw/share/doc/X11/fonts
+    "/share/X11/fonts"  # /run/current-system/sw/share/X11/fonts
   ];
 
   # Virtual console font will be chosen by the kernel
