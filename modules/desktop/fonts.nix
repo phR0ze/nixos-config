@@ -4,6 +4,15 @@
 # - requires a GUI desktop environment
 #---------------------------------------------------------------------------------------------------
 { pkgs, ... }:
+let
+  # Build the package from the local files
+  fontsPackage = pkgs.runCommandLocal "fonts" {} ''
+    mkdir -p $out/share/doc/TTF
+    mkdir -p $out/share/fonts/TTF
+    cp -r ${../../include/usr/share/doc/TTF}/* $out/share/doc/TTF
+    cp -r ${../../include/usr/share/fonts/TTF}/* $out/share/fonts/TTF
+  '';
+in
 {
   # Virtual console font will be chosen by the kernel
   # Default is 8x16 and Terminus 32 bold for larger resolutions
@@ -17,6 +26,7 @@
     fontconfig.enable = true;
 
     packages = with pkgs; [
+      iconsPackage                  # Custom package from above
       (nerdfonts.override {
         fonts = [
           "Hack"                    # Hand groomed/optically balanced typeface based on Bitstream Vera Mono
@@ -39,4 +49,10 @@
       terminus-nerdfont             # A clean fixed width font
     ];
   };
+
+  # Link the package to the system path /run/current-system/sw 
+  environment.pathsToLink = [
+    "/share/doc/TTF"  # /run/current-system/sw/share/doc
+    "/share/fonts/TTF"  # /run/current-system/sw/share/fonts
+  ];
 }

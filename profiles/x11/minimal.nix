@@ -12,10 +12,10 @@
     ../../modules/hardware/printers.nix
     ../../modules/hardware/opengl.nix
     ../../modules/xdg.nix
-    ../../modules/fonts.nix
     ../../modules/network/firefox.nix
     ../../modules/network/network-manager.nix
     ../../modules/desktop/backgrounds.nix
+    ../../modules/desktop/fonts.nix
     ../../modules/desktop/icons.nix
   ];
 
