@@ -106,7 +106,7 @@ in
         wantedBy = optional cfgC.autoStart "graphical-session.target";
         path = [ pkgs.barrier ];
         serviceConfig.Restart = "on-failure";
-        serviceConfig.ExecStart = lib.toString (
+        serviceConfig.ExecStart = toString (
           [ "${pkgs.barrier}/bin/barrierc -f" ]
           ++ lib.optional (cfgC.name != "") "-n ${cfgC.name}"
           ++ optional (!cfgC.enableCrypto) "--disable-crypto"
@@ -122,7 +122,7 @@ in
         wantedBy = optional cfgS.autoStart "graphical-session.target";
         path = [ pkgs.barrier ];
         serviceConfig.Restart = "on-failure";
-        serviceConfig.ExecStart = lib.toString (
+        serviceConfig.ExecStart = toString (
           [ "${pkgs.barrier}/bin/barriers -c ${cfgS.configFile} -f" ]
           ++ lib.optional (cfgS.address != "") "-a ${cfgS.address}"
           ++ lib.optional (cfgS.name != "") "-n ${cfgS.name}"
