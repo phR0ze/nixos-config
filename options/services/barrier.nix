@@ -8,6 +8,19 @@ let
   cfgC = config.services.barrier.client;
   cfgS = config.services.barrier.server;
 
+  barrierConfig = lib.mkIf (cfg.enable || cfgS.enable)
+    (pkgs.writeText "barrier.config" ''
+      section: screens
+        ${cfgS.name}:
+        ${cfgS.clientName}:
+      end
+      section: links
+        ${cfgS.name}:
+          right = ${cfgS.clientName}
+        ${cfgS.clientName}:
+          left = ${cfgS.name}
+      end
+    '');
 in
 {
   options = {
@@ -67,10 +80,17 @@ in
 
         name = lib.mkOption {
           type = types.str;
-          default = "";
+          default = "server";
           description = lib.mdDoc ''
-            Use the given name instead of the hostname to identify
-            this screen in the configuration.
+            Use this name for the server in the screen configuration.
+          '';
+        };
+
+        clientName = lib.mkOption {
+          type = types.str;
+          default = "client";
+          description = lib.mdDoc ''
+            Use this name for the client in the screen configuration.
           '';
         };
 
@@ -98,6 +118,9 @@ in
   config = lib.mkMerge [
     (lib.mkIf (cfg.enable || cfgC.enable || cfgS.enable) {
       environment.systemPackages = with pkgs; [ barrier ];
+    })
+    (lib.mkIf (cfg.enable || cfgS.enable) {
+      environment.etc."barrier.conf".source = barrierConfig;
     })
     (lib.mkIf (cfg.enable || cfgC.enable) {
       systemd.user.services.barrierc = {
@@ -132,17 +155,3 @@ in
     })
   ];
 }
-
-/* barrier server example configuration file
-section: screens
-	main:
-	laptop:
-end
-
-section: links
-	main:
-		right = laptop
-	laptop:
-		left = main
-end
-*/
