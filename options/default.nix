@@ -5,6 +5,7 @@
   imports = [
     ./files
     ./programs
+    ./services
     ./xfce
   ];
 }
