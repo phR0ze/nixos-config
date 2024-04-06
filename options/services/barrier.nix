@@ -103,14 +103,14 @@ in
       systemd.user.services.barrierc = {
         description = "Barrier client";
         after = [ "network.target" "graphical-session.target" ];
-        wantedBy = optional cfgC.autoStart "graphical-session.target";
+        wantedBy = lib.optional cfgC.autoStart "graphical-session.target";
         path = [ pkgs.barrier ];
         serviceConfig.Restart = "on-failure";
         serviceConfig.ExecStart = toString (
           [ "${pkgs.barrier}/bin/barrierc -f" ]
           ++ lib.optional (cfgC.name != "") "-n ${cfgC.name}"
-          ++ optional (!cfgC.enableCrypto) "--disable-crypto"
-          ++ optional cfgC.enableDragDrop "--enable-drag-drop"
+          ++ lib.optional (!cfgC.enableCrypto) "--disable-crypto"
+          ++ lib.optional cfgC.enableDragDrop "--enable-drag-drop"
           ++ lib.optional (cfgC.server != "") "${cfgC.server}"
         );
       };
@@ -119,14 +119,14 @@ in
       systemd.user.services.barriers = {
         description = "Barrier server";
         after = [ "network.target" "graphical-session.target" ];
-        wantedBy = optional cfgS.autoStart "graphical-session.target";
+        wantedBy = lib.optional cfgS.autoStart "graphical-session.target";
         path = [ pkgs.barrier ];
         serviceConfig.Restart = "on-failure";
         serviceConfig.ExecStart = toString (
           [ "${pkgs.barrier}/bin/barriers -c ${cfgS.configFile} -f" ]
           ++ lib.optional (cfgS.address != "") "-a ${cfgS.address}"
           ++ lib.optional (cfgS.name != "") "-n ${cfgS.name}"
-          ++ optional (!cfgS.enableCrypto) "--disable-crypto"
+          ++ lib.optional (!cfgS.enableCrypto) "--disable-crypto"
         );
       };
     })
