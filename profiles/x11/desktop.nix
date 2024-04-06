@@ -13,7 +13,6 @@
   # Additional programs and services
   programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
   programs.steam.enable = true;         # Digital distribution platform from Valve
-  services.barriers.enable = true;      # Enable the barrier server and client
 
   environment.systemPackages = with pkgs; [
 
