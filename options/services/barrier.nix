@@ -4,11 +4,10 @@
 { options, config, lib, pkgs, args, ... }: with lib.types;
 
 let
-  cfg = config.services.barrier;
-  cfgC = config.services.barrier.client;
-  cfgS = config.services.barrier.server;
+  cfgC = config.services.barrierc;
+  cfgS = config.services.barriers;
 
-  barrierConfig = lib.mkIf (cfg.enable || cfgS.enable)
+  barrierConfig = lib.mkIf cfgS.enable
     (pkgs.writeText "barrier.config" ''
       section: screens
         ${cfgS.name}:
@@ -24,105 +23,99 @@ let
 in
 {
   options = {
-    services.barrier = {
-      enable = lib.mkEnableOption (
-        lib.mdDoc "Barrier is an open source software KVM solution");
+    services.barrierc = {
+      enable = lib.mkEnableOption (lib.mdDoc "Barrier client");
 
-      client = {
-        enable = lib.mkEnableOption (lib.mdDoc "Barrier client");
-
-        name = lib.mkOption {
-          type = types.str;
-          default = "";
-          description = lib.mdDoc ''
-            Use the given name instead of the hostname to identify
-            ourselves to the server.
-          '';
-        };
-
-        server = lib.mkOption {
-          type = types.str;
-          default = "";
-          description = lib.mdDoc ''
-            The server address is of the form: [hostname][:port].  The
-            hostname must be the address or hostname of the server.  The
-            port overrides the default port, 24800.
-          '';
-        };
-
-        enableCrypto = lib.mkOption {
-          type = types.bool;
-          default = false;
-          description = lib.mdDoc "Enable the crypto (SSL) plugin";
-        };
-
-        enableDragDrop = lib.mkOption {
-          type = types.bool;
-          default = false;
-          description = lib.mdDoc "Enable file drag and drop support";
-        };
-
-        autoStart = lib.mkOption {
-          type = types.bool;
-          default = false;
-          description = lib.mdDoc "Whether the client should be started automatically.";
-        };
+      name = lib.mkOption {
+        type = types.str;
+        default = "client";
+        description = lib.mdDoc ''
+          Make this name match what is expected in the screen configuration on the server.
+        '';
       };
 
-      server = {
-        enable = lib.mkEnableOption (lib.mdDoc "Barrier server");
+      server = lib.mkOption {
+        type = types.str;
+        default = "";
+        description = lib.mdDoc ''
+          The server address is of the form: [hostname][:port].  The
+          hostname must be the address or hostname of the server.  The
+          port overrides the default port, 24800.
+        '';
+      };
 
-        configFile = lib.mkOption {
-          type = types.path;
-          default = "/etc/barrier.conf";
-          description = lib.mdDoc "Barrier server configuration file.";
-        };
+      enableCrypto = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Enable the crypto (SSL) plugin";
+      };
 
-        name = lib.mkOption {
-          type = types.str;
-          default = "server";
-          description = lib.mdDoc ''
-            Use this name for the server in the screen configuration.
-          '';
-        };
+      enableDragDrop = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Enable file drag and drop support";
+      };
 
-        clientName = lib.mkOption {
-          type = types.str;
-          default = "client";
-          description = lib.mdDoc ''
-            Use this name for the client in the screen configuration.
-          '';
-        };
+      autoStart = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Whether the client should be started automatically.";
+      };
+    };
 
-        address = lib.mkOption {
-          type = types.str;
-          default = "";
-          description = lib.mdDoc "Address on which to listen for clients.";
-        };
+    services.barriers = {
+      enable = lib.mkEnableOption (lib.mdDoc "Barrier server");
 
-        autoStart = lib.mkOption {
-          type = types.bool;
-          default = true;
-          description = lib.mdDoc "Whether the Barrier server should be started automatically.";
-        };
+      configFile = lib.mkOption {
+        type = types.path;
+        default = "/etc/barrier.conf";
+        description = lib.mdDoc "Barrier server configuration file.";
+      };
 
-        enableCrypto = lib.mkOption {
-          type = types.bool;
-          default = false;
-          description = lib.mdDoc "Enable the crypto (SSL) plugin";
-        };
+      name = lib.mkOption {
+        type = types.str;
+        default = "server";
+        description = lib.mdDoc ''
+          Use this name for the server in the screen configuration.
+        '';
+      };
+
+      clientName = lib.mkOption {
+        type = types.str;
+        default = "client";
+        description = lib.mdDoc ''
+          Use this name for the client in the screen configuration.
+        '';
+      };
+
+      address = lib.mkOption {
+        type = types.str;
+        default = "";
+        description = lib.mdDoc "Address on which to listen for clients.";
+      };
+
+      autoStart = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = lib.mdDoc "Whether the Barrier server should be started automatically.";
+      };
+
+      enableCrypto = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Enable the crypto (SSL) plugin";
       };
     };
   };
 
   config = lib.mkMerge [
-    (lib.mkIf (cfg.enable || cfgC.enable || cfgS.enable) {
+    (lib.mkIf (cfgC.enable || cfgS.enable) {
       environment.systemPackages = with pkgs; [ barrier ];
     })
-    (lib.mkIf (cfg.enable || cfgS.enable) {
+    (lib.mkIf cfgS.enable {
       environment.etc."barrier.conf".source = barrierConfig;
     })
-    (lib.mkIf (cfg.enable || cfgC.enable) {
+    (lib.mkIf cfgC.enable {
       systemd.user.services.barrierc = {
         description = "Barrier client";
         after = [ "network.target" "graphical-session.target" ];
@@ -138,7 +131,7 @@ in
         );
       };
     })
-    (lib.mkIf (cfg.enable || cfgS.enable) {
+    (lib.mkIf cfgS.enable {
       systemd.user.services.barriers = {
         description = "Barrier server";
         after = [ "network.target" "graphical-session.target" ];
