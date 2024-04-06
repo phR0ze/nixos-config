@@ -95,11 +95,11 @@ in
     };
   };
 
-  config = mkMerge [
+  config = lib.mkMerge [
     (lib.mkIf (cfg.enable || cfgC.enable || cfgS.enable) {
       environment.systemPackages = with pkgs; [ barrier ];
     })
-    (mkIf (cfg.enable || cfgC.enable) {
+    (lib.mkIf (cfg.enable || cfgC.enable) {
       systemd.user.services.barrierc = {
         description = "Barrier client";
         after = [ "network.target" "graphical-session.target" ];
@@ -115,7 +115,7 @@ in
         );
       };
     })
-    (mkIf (cfg.enable || cfgS.enable) {
+    (lib.mkIf (cfg.enable || cfgS.enable) {
       systemd.user.services.barriers = {
         description = "Barrier server";
         after = [ "network.target" "graphical-session.target" ];
