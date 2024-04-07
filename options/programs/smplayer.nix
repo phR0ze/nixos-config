@@ -6,21 +6,27 @@
 let
   cfg = config.programs.smplayer;
 
-  smplayer-themes = pkgs.stdenvNoCC.mkDerivation rec {
-    name = "smplayer-themes";
-    version = "20.11.0";
-    src = pkgs.fetchzip {
-      url = "https://downloads.sourceforge.net/smplayer/${name}-${version}.tar.bz2";
-      hash = "sha256-+O1fOL7qh/sHN1tEtIANt/+bEOCsjVmECLDBmSSQmHI=";
-    };
-    buildPhase = ''
-      mkdir $out
-      make PREFIX=$out
-    '';
-    installPhase = ''
-      make PREFIX=$out install
-    '';
-  };
+#  smplayer-themes = pkgs.stdenvNoCC.mkDerivation rec {
+#    name = "smplayer-themes";
+#    version = "20.11.0";
+#    src = pkgs.fetchzip {
+#      url = "https://downloads.sourceforge.net/smplayer/${name}-${version}.tar.bz2";
+#      hash = "sha256-+O1fOL7qh/sHN1tEtIANt/+bEOCsjVmECLDBmSSQmHI=";
+#    };
+#
+#    # Include build time dependencies
+#    buildInputs = [ pkgs.optipng ];
+#
+#    # Nix will make the current working directory the root of the unzipped package
+#    buildPhase = ''
+#      mkdir $out
+#      make PREFIX=$out
+#    '';
+#
+#    installPhase = ''
+#      make PREFIX=$out install
+#    '';
+#  };
 
 in
 {
@@ -43,7 +49,8 @@ in
     (lib.mkIf (cfg.enable) {
       environment.systemPackages = with pkgs; [
         smplayer
-        smplayer-themes
+        optipng
+        #smplayer-themes
       ];
     })
   ];
