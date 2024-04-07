@@ -2,7 +2,7 @@
 #
 # Adapted from https://gitlab.archlinux.org/archlinux/packaging/packages/smplayer-themes/-/blob/main/PKGBUILD
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, fetchurl, ... }: with lib.types;
+{ options, config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.programs.smplayer;
 
@@ -12,7 +12,6 @@ let
 
     src = pkgs.fetchurl {
       url = "https://downloads.sourceforge.net/smplayer/${name}-${version}.tar.bz2";
-      hash = lib.fakeSha256;
     };
 
     installPhase = ''
