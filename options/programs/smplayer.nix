@@ -9,7 +9,7 @@ let
   smplayer-themes = pkgs.stdenvNoCC.mkDerivation rec {
     name = "smplayer-themes";
     version = "20.11.0";
-    src = pkgs.fetchurl {
+    src = pkgs.fetchzip {
       url = "https://downloads.sourceforge.net/smplayer/${name}-${version}.tar.bz2";
       hash = "sha256-uZwCoT5Vh+DFnRJ9LyU2obwnQOcm+ttHyJ00nfWVETI=";
     };
