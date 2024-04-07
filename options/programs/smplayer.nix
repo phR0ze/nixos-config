@@ -60,6 +60,9 @@ in
         smplayer
         smplayer-themes
       ];
+      environment.pathsToLink = [
+        "/share/smplayer"  # /run/current-system/sw/share/smplayer
+      ];
     })
   ];
 }
