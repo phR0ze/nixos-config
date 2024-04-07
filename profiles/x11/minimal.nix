@@ -11,90 +11,20 @@
     ../../modules/hardware/firmware.nix
     ../../modules/hardware/printers.nix
     ../../modules/hardware/opengl.nix
-    ../../modules/xdg.nix
     ../../modules/network/firefox.nix
     ../../modules/network/network-manager.nix
     ../../modules/desktop/backgrounds.nix
     ../../modules/desktop/fonts.nix
     ../../modules/desktop/icons.nix
+    ../../modules/desktop/xdg.nix
+    ../../modules/desktop/xorg.nix
   ];
 
-  # Xserver configuration
-  #-------------------------------------------------------------------------------------------------
-  services.xserver = {
-    enable = true;
-
-    desktopManager = {
-      xterm.enable = false;
-
-      # Controls how the ~/.background-image is used as a background
-      wallpaper.mode = "fill";
-    };
-
-    displayManager = {
-      lightdm = {
-        enable = true;
-        #background = "";
-        # enso, mini, tiny, slick, mobile, gtk, pantheon
-        greeters.slick = {
-          enable = true;
-          theme.name = "Zukitre-dark";
-        };
-      };
-
-      # Conditionally autologin based on install settings
-      autoLogin = {
-        enable = args.settings.autologin;
-        user = args.settings.username;
-      }; 
-    };
-
-    # Arch Linux recommends libinput and Xfce uses it in its settings manager
-    libinput = {
-      enable = true;
-##      touchpad = {
-##        accelSpeed = "0.7";
-##        tappingDragLock = false;
-##        naturalScrolling = true;
-##      };
-    };
-  };
-
-  # GTK/Qt themese
-  # - https://nixos.org/manual/nixos/unstable/#sec-x11-gtk-and-qt-themes
-  # ------------------------------------------------------------------------------------------------
-  #qt.enable = true;
-  #qt.platformTheme = "gtk2";
-  #qt.style = "gtk2";
-
-  # GTK gsettings
-  # ------------------------------------------------------------------------------------------------
-#  services.xserver.desktopManager.gnome = {
-#    extraGSettingsOverrides = ''
-#      # Change default background
-#      [org.gnome.desktop.background]
-#      picture-uri='file://${pkgs.nixos-artwork.wallpapers.mosaic-blue.gnomeFilePath}'
-#
-#      # Favorite apps in gnome-shell
-#      [org.gnome.shell]
-#      favorite-apps=['org.gnome.Console.desktop', 'org.gnome.Nautilus.desktop']
-#    '';
-#
-#    extraGSettingsOverridePackages = [
-#      pkgs.gsettings-desktop-schemas # for org.gnome.desktop
-#      pkgs.gnome.gnome-shell # for org.gnome.shell
-#    ];
-#  };
-
-  # Other programs and services
-  # ------------------------------------------------------------------------------------------------
   programs.filezilla.enable = true;     # Network/Transfer
-
   programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
 
   services.fwupd.enable = true;         # Firmware update tool for BIOS, etc...
   services.gvfs.enable = true;          # GVfs virtual filesystem
-  services.timesyncd.enable = true;
 
   environment.systemPackages = with pkgs; [
 
@@ -119,9 +49,7 @@
     paper-icon-theme                    # Modern icon theme designed around bold colors
     numix-cursor-theme                  # Numix cursor theme
 
-    #(pkgs.callPackage ../../pkgs/hicolor {})
-
     # Utilities
-    #galculator                        # Simple calculator
+    galculator                          # Simple calculator
   ];
 }

@@ -10,8 +10,8 @@
   # - Defaults were changed here https://github.com/NixOS/nixpkgs/pull/16021
   # - Want shutdown to kill all users process immediately for fast shutdown
   # ------------------------------------------------------------------------------------------------
+  services.logind.killUserProcesses = true;
   services.logind.extraConfig = ''
-    KillUserProcesses=yes
     UserStopDelaySec=0
   '';
 
@@ -24,5 +24,5 @@
   # Timesyncd configuration
   # Defaults are fine
   # ------------------------------------------------------------------------------------------------
-  #services.timesyncd.extraConfig = '' '';
+  services.timesyncd.enable = true;
 }

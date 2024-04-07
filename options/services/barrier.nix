@@ -119,6 +119,7 @@ in
       systemd.user.services.barrierc = {
         description = "Barrier client";
         after = [ "network.target" "graphical-session.target" ];
+        # creates teh /etc/systemd/user/graphical-session.target.wants link
         wantedBy = lib.optional cfgC.autoStart "graphical-session.target";
         path = [ pkgs.barrier ];
         serviceConfig.Restart = "on-failure";
