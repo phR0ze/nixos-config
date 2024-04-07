@@ -10,7 +10,7 @@ let
     name = "smplayer-themes";
     version = "20.11.0";
 
-    src = lib.fetchzip {
+    src = fetchzip {
       url = "https://downloads.sourceforge.net/smplayer/${name}-${version}.tar.bz2";
       sha256 = lib.fakeSha256;
     };
