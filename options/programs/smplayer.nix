@@ -11,13 +11,14 @@ let
     version = "20.11.0";
     src = pkgs.fetchzip {
       url = "https://downloads.sourceforge.net/smplayer/${name}-${version}.tar.bz2";
-      #hash = "sha256-uZwCoT5Vh+DFnRJ9LyU2obwnQOcm+ttHyJ00nfWVETI=";
       hash = "sha256-+O1fOL7qh/sHN1tEtIANt/+bEOCsjVmECLDBmSSQmHI=";
     };
-    dontBuild = true;
+    buildPhase = ''
+      mkdir $out
+      make PREFIX=$out
+    '';
     installPhase = ''
-      mkdir -p $out/share/smplayer
-      cp -r $src/usr/share/smplayer/themes $out/share/smplayer
+      make PREFIX=$out install
     '';
   };
 
