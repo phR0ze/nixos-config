@@ -15,7 +15,10 @@ let
     };
 
     # Include build time dependencies
-    buildInputs = [ pkgs.optipng ];
+    buildInputs = [
+      pkgs.optipng
+      pkgs.libsForQt5.qt5.qtbase
+    ];
 
     # Nix will make the current working directory the root of the unzipped package
     buildPhase = ''
