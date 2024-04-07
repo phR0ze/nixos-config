@@ -4,5 +4,6 @@
 {
   imports = [
     ./filezilla.nix
+    ./smplayer.nix
   ];
 }
