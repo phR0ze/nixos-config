@@ -69,11 +69,11 @@ in
   # Install the generated xml file
   config = lib.mkMerge [
     (lib.mkIf (cfg.enable) {
-      programs.thunar.enable;       # Install and configure thunar
+      programs.thunar.enable = true;  # Install and configure thunar
       programs.thunar.plugins = with pkgs.xfce; [
-        thunar-volman               # Install volman plugin
-        thunar-archive-plugin       # Install archive plugin
-        thunar-media-tags-plugin    # Install media tags plugin
+        thunar-volman                 # Install volman plugin
+        thunar-archive-plugin         # Install archive plugin
+        thunar-media-tags-plugin      # Install media tags plugin
       ];
     })
     (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
