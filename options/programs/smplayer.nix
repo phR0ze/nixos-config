@@ -2,11 +2,11 @@
 #
 # Adapted from https://gitlab.archlinux.org/archlinux/packaging/packages/smplayer-themes/-/blob/main/PKGBUILD
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, stdenvNoCC, fetchurl, ... }: with lib.types;
+{ options, config, lib, pkgs, fetchurl, ... }: with lib.types;
 let
   cfg = config.programs.smplayer;
 
-  smplayer-themes = stdenvNoCC.mkDerivation rec {
+  smplayer-themes = pkgs.stdenvNoCC.mkDerivation rec {
     name = "smplayer-themes";
     version = "20.11.0";
 
