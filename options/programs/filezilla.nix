@@ -1,7 +1,7 @@
 # Filezilla options
 #
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib.types;
+{ options, config, lib, pkgs, ... }: with lib.types;
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.programs.filezilla;
