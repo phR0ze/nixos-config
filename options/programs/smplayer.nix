@@ -2,9 +2,8 @@
 #
 # Adapted from https://gitlab.archlinux.org/archlinux/packaging/packages/smplayer-themes/-/blob/main/PKGBUILD
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib.types;
+{ options, config, lib, pkgs, fetchzip, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.programs.smplayer;
 
   smplayer-themes = pkgs.stdenvNoCC.mkDerivation rec {
