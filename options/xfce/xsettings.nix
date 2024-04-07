@@ -42,7 +42,7 @@ let
           <property name="MenuImages" type="empty"/>
           <property name="ButtonImages" type="empty"/>
           <property name="MenuBarAccel" type="empty"/>
-          <property name="CursorThemeName" type="empty"/>
+          <property name="CursorThemeName" type="string" value="${cfg.cursorTheme}"/>
           <property name="CursorThemeSize" type="empty"/>
           <property name="DecorationLayout" type="empty"/>
           <property name="DialogsUseHeader" type="empty"/>
@@ -76,6 +76,11 @@ in
         type = types.str;
         default = "Paper";
         description = lib.mdDoc "Icon theme";
+      };
+      cursorTheme = lib.mkOption {
+        type = types.str;
+        default = "Numix-Cursor-Light";
+        description = lib.mdDoc "Cursor theme";
       };
     };
     services.xserver.desktopManager.xfce.xsettings.font = {
