@@ -22,6 +22,7 @@
 
   programs.filezilla.enable = true;     # Network/Transfer
   programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
+  programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
 
   services.fwupd.enable = true;         # Firmware update tool for BIOS, etc...
   services.gvfs.enable = true;          # GVfs virtual filesystem
@@ -33,7 +34,6 @@
     # Media
     audacious                           # Lightweight advanced audio player
     audacious-plugins                   # Additional codecs support for audacious
-    smplayer                            # UI wrapper around mplayer with click to pause
     vlc                                 # Multi-platform MPEG, VCD/DVD, and DivX player
 
     # System
