@@ -2,17 +2,17 @@
 #
 # Adapted from https://gitlab.archlinux.org/archlinux/packaging/packages/smplayer-themes/-/blob/main/PKGBUILD
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, fetchzip, ... }: with lib.types;
+{ options, config, lib, stdenvNoCC, fetchurl, ... }: with lib.types;
 let
   cfg = config.programs.smplayer;
 
-  smplayer-themes = pkgs.stdenvNoCC.mkDerivation rec {
+  smplayer-themes = stdenvNoCC.mkDerivation rec {
     name = "smplayer-themes";
     version = "20.11.0";
 
-    src = fetchzip {
+    src = fetchurl {
       url = "https://downloads.sourceforge.net/smplayer/${name}-${version}.tar.bz2";
-      sha256 = lib.fakeSha256;
+      hash = lib.fakeSha256;
     };
 
     installPhase = ''
