@@ -20,6 +20,8 @@ let
       pkgs.libsForQt5.qt5.qtbase
     ];
 
+    dontWrapQtApps = true;
+
     # Nix will make the current working directory the root of the unzipped package
     buildPhase = ''
       mkdir $out
