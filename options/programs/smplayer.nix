@@ -9,12 +9,11 @@ let
   smplayer-themes = pkgs.stdenvNoCC.mkDerivation rec {
     name = "smplayer-themes";
     version = "20.11.0";
-
     src = pkgs.fetchurl {
       url = "https://downloads.sourceforge.net/smplayer/${name}-${version}.tar.bz2";
       hash = "sha256-uZwCoT5Vh+DFnRJ9LyU2obwnQOcm+ttHyJ00nfWVETI=";
     };
-
+    dontBuild = true;
     installPhase = ''
       mkdir -p $out/share/smplayer
       cp -r $src/usr/share/smplayer/themes $out/share/smplayer
