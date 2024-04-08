@@ -5,5 +5,6 @@
   imports = [
     ./filezilla.nix
     ./smplayer.nix
+    ./xnviewmp.nix
   ];
 }
