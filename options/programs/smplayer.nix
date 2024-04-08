@@ -6,8 +6,6 @@
 let
   cfg = config.programs.smplayer;
 
-  smplayer = pkgs.libsForQt5.callPackage ./smplayer-base.nix { };
-
   smplayer-themes = pkgs.stdenvNoCC.mkDerivation rec {
     name = "smplayer-themes";
     version = "20.11.0";
@@ -53,18 +51,18 @@ in
         default = false;
         description = lib.mdDoc "Overwrite settings every reboot/update";
       };
+      theme = lib.mkOption {
+        type = types.str;
+        default = "Numix-remix";
+        description = lib.mdDoc "Smplayer theme to use";
+      };
     };
   };
 
   config = lib.mkMerge [
     (lib.mkIf (cfg.enable) {
-      environment.systemPackages = [
-        smplayer
-        smplayer-themes
-      ];
-      environment.pathsToLink = [
-        "/share/smplayer/themes"  # /run/current-system/sw/share/smplayer/themes
-      ];
+      environment.systemPackages = with pkgs; [ smplayer ];
+      files.all.".config/smplayer/themes/${cfg.theme}".link = ${smplayer-themes}/share/smplayer/themes/${cfg.theme};
     })
   ];
 }
