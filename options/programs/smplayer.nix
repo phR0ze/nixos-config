@@ -37,6 +37,13 @@ let
     '';
   };
 
+  inifile = lib.mkIf cfg.enable
+    (pkgs.writeText "smplayer.ini" ''
+      [gui]
+      gui=MiniGUI
+      iconset=Numix-remix
+    '');
+
 in
 {
   options = {
@@ -63,6 +70,12 @@ in
     (lib.mkIf (cfg.enable) {
       environment.systemPackages = with pkgs; [ smplayer ];
       files.all.".config/smplayer/themes".link = "${smplayer-themes}/share/smplayer/themes";
+    })
+    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
+      files.all.".config/smplayer/smplayer.ini".copy = inifile;
+    })
+    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
+      files.all.".config/smplayer/smplayer.ini".ownCopy = inifile;
     })
   ];
 }
