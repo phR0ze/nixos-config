@@ -2,7 +2,7 @@
 #
 # Adapted from https://gitlab.archlinux.org/archlinux/packaging/packages/smplayer-themes/-/blob/main/PKGBUILD
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, wrapQtAppsHook, ... }: with lib.types;
+{ options, config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.programs.smplayer;
 
@@ -17,10 +17,10 @@ let
     # Include build time dependencies
     buildInputs = [
       pkgs.optipng
-      pkgs.libsForQt5.qtbase
+      pkgs.libsForQt5.qt5.qtbase
     ];
 
-    nativeBuildIInputs = [ wrapQtAppsHook ];
+    dontWrapQtApps = true;
 
     # Nix will make the current working directory the root of the unzipped package
     buildPhase = ''
