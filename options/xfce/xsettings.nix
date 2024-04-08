@@ -109,6 +109,9 @@ in
 
   # Install the generated xml file
   config = lib.mkMerge [
+    (lib.mkIf (cfg.enable) {
+      environment.systemPackages = with pkgs; [ kdePackages.qtstyleplugin-kvantum ];
+    })
     (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml".copy = xmlfile;
     })
