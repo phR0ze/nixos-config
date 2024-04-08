@@ -23,6 +23,7 @@
   programs.filezilla.enable = true;     # Network/Transfer
   programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
   programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
+  programs.xnviewmp.enable = true;      # Excellent image viewer
 
   services.fwupd.enable = true;         # Firmware update tool for BIOS, etc...
   services.gvfs.enable = true;          # GVfs virtual filesystem
