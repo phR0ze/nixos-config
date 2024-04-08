@@ -23,13 +23,16 @@ in
       '';
       example = ''
         # Create a single file from raw text for both the root and current users
-        files.all.".dircolors".text = "this is a test";
+        files.all.".config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=ArkDark";
 
         # Include a local file as your target that is unowned for both the root and current users
         files.all."root/.dircolors".copy = ../include/home/.dircolors;
 
         # Include a local file as your target that is owned for both the root and current users
         files.all."root/.dircolors".ownCopy = ../include/home/.dircolors;
+
+        # Existing nix store source path
+        files.all.".config/Kvantum/ArcDark".source = "${pkgs.arc-kde-theme}/share/Kvantum/ArcDark";
 
         # Multi file example
         files.all = {
