@@ -6,6 +6,45 @@
 let
   cfg = config.programs.smplayer;
 
+  smplayer = pkgs.stdenv.mkDerivation rec {
+    pname = "smplayer";
+    version = "23.6.0.10170";
+
+    src = fetchFromGitHub {
+      owner = "smplayer-dev";
+      repo = "smplayer";
+      rev = "v${version}";
+      hash = "sha256-ByheWIXvCw9jL3lY63oRzRZhl0jZz4jr+rw5Wi7Mm8w=";
+    };
+
+    nativeBuildInputs = [
+      qmake
+      wrapQtAppsHook
+    ];
+
+    buildInputs = [
+      qtscript
+    ];
+
+    dontUseQmakeConfigure = true;
+
+    makeFlags = [
+      "PREFIX=${placeholder "out"}"
+    ];
+
+    meta = {
+      homepage = "https://www.smplayer.info";
+      description = "A complete front-end for MPlayer";
+      longDescription = ''
+        SMPlayer is a free media player with built-in codecs that can play virtually all video and 
+        audio formats. It doesn't need any external codecs.
+      '';
+      changelog = "https://github.com/smplayer-dev/smplayer/releases/tag/v${finalAttrs.version}";
+      license = lib.licenses.gpl3Plus;
+      platforms = lib.platforms.linux;
+    };
+  };
+
   smplayer-themes = pkgs.stdenvNoCC.mkDerivation rec {
     name = "smplayer-themes";
     version = "20.11.0";
@@ -56,7 +95,7 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf (cfg.enable) {
-      environment.systemPackages = with pkgs; [
+      environment.systemPackages = [
         smplayer
         smplayer-themes
       ];
