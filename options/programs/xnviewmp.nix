@@ -48,7 +48,7 @@ let
 in
 {
   options = {
-    programs.smplayer = {
+    programs.xnviewmp = {
       enable = lib.mkOption {
         type = types.bool;
         default = false;
