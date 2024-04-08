@@ -40,7 +40,6 @@
   };
 
   programs.xfconf.enable = true;            # Enable XFCE's configuration manager
-  services.tumbler.enable = true;           # tumbler uses ffmpegthumbnailer
   
   environment.systemPackages = with pkgs.xfce // pkgs; [
     gnome.gnome-themes-extra          # Xfce default,
