@@ -62,7 +62,7 @@ in
   config = lib.mkMerge [
     (lib.mkIf (cfg.enable) {
       environment.systemPackages = with pkgs; [ smplayer ];
-      files.all.".config/smplayer/themes/".link = "${smplayer-themes}/share/smplayer/themes";
+      files.all.".config/smplayer/themes".link = "${smplayer-themes}/share/smplayer/themes";
     })
   ];
 }
