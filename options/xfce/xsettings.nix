@@ -72,6 +72,11 @@ in
         default = "Arc-Dark";
         description = lib.mdDoc "GTK theme";
       };
+      qtTheme = lib.mkOption {
+        type = types.str;
+        default = "ArcDark";
+        description = lib.mdDoc "Qt theme";
+      };
       iconTheme = lib.mkOption {
         type = types.str;
         default = "Paper";
@@ -117,16 +122,14 @@ in
         libsForQt5.qtstyleplugin-kvantum
       ];
 
-      # Configure qt
+      # Configure the qt theme to use
       qt = {
         enable = true;
         platformTheme = "qtct";
         style = "kvantum";
       };
-
-      xdg.configFile = {
-        "Kvantum/ArcDark".source = "${pkgs.arc-kde-theme}/share/Kvantum/ArcDark";
-        "Kvantum/kvantum.kvconfig".text = "[General]\ntheme=ArcDark";
+      files.all.".config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=${cfg.qtTheme}";
+      files.all.".config/Kvantum/ArcDark".source = "${pkgs.arc-kde-theme}/share/Kvantum/ArcDark";
       };
     })
     (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
