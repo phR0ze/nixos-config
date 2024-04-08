@@ -41,7 +41,7 @@ let
     (pkgs.writeText "smplayer.ini" ''
       [gui]
       gui=MiniGUI
-      iconset=Numix-remix
+      iconset=${cfg.theme}
     '');
 
 in
