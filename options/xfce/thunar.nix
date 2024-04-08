@@ -27,6 +27,7 @@ let
         </property>
       </channel>
     '');
+
 in
 {
   options = {

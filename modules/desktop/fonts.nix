@@ -7,7 +7,7 @@
 let
   # Build the package from the local files
   # Simple mkDerivation example https://github.com/jeslie0/fonts/blob/main/flake.nix
-  fontsPackage = pkgs.runCommandLocal "fonts" {} ''
+  customFonts = pkgs.runCommandLocal "fonts" {} ''
     mkdir -p $out/share/doc/X11/fonts
     mkdir -p $out/share/X11/fonts
     cp -r ${../../include/usr/share/doc/TTF}/* $out/share/doc/X11/fonts
@@ -16,7 +16,7 @@ let
 in
 {
   # Add the custom fonts package to the /nix/store and setup the /run/current-system/sw links
-  environment.systemPackages = [ fontsPackage ];
+  environment.systemPackages = [ customFonts ];
   environment.pathsToLink = [
     "/share/doc/X11/fonts"  # /run/current-system/sw/share/doc/X11/fonts
     "/share/X11/fonts"  # /run/current-system/sw/share/X11/fonts
@@ -31,7 +31,36 @@ in
 
   fonts = {
     fontDir.enable = true;          # Create shared font dir /run/current-system/sw/share/X11/fonts
-    fontconfig.enable = true;
+
+    fontconfig = {
+      enable = true;                # Enable Fontconfig for X11 applications
+      antialias = true;             # Enable font antialising
+      hinting = true;               # Enable font hinting
+      style = "slight";             # Configure slight hinting style
+      subpixel.rgba = "rgb";        # See option for more details
+      defaultFonts.monospace = [
+        "Inconsolata Nerd Font Mono Regular"
+        "Hack Nerd Font Mono Regular"
+        "Source Code Pro Regular"
+        "DejaVu Sans Mono Book"
+      ];
+      defaultFonts.sansSerif = [
+        "Source Sans Pro Regular"
+        "Liberation Sans Regular"
+        "DejaVu Sans Book"
+      ];
+      defaultFonts.serif = [
+        "Source Serif Pro Regular"
+        "Liberation Serif Regular"
+      ];
+      #defaultFonts.emoji = [ "JoyPixels" ];
+      localConf = ''
+        <match>
+          <test name="family"><string>Helvetica</string></test>
+          <edit binding="same" mode="assign" name="family"><string>Source Sans Pro Regular</string></edit>
+        </match>
+      '';
+    };
 
     packages = with pkgs; [
       (nerdfonts.override {
