@@ -35,8 +35,10 @@ in
     fontconfig = {
       enable = true;                # Enable Fontconfig for X11 applications
       antialias = true;             # Enable font antialising
-      hinting = true;               # Enable font hinting
-      style = "slight";             # Configure slight hinting style
+      hinting = {
+        enable = true;              # Enable font hinting
+        style = "slight";             # Configure slight hinting style
+      };
       subpixel.rgba = "rgb";        # See option for more details
       defaultFonts.monospace = [
         "Inconsolata Nerd Font Mono Regular"
