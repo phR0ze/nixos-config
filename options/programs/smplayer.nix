@@ -61,7 +61,7 @@ in
         smplayer-themes
       ];
       environment.pathsToLink = [
-        "/share/smplayer"  # /run/current-system/sw/share/smplayer
+        "/share/smplayer/themes"  # /run/current-system/sw/share/smplayer/themes
       ];
     })
   ];
