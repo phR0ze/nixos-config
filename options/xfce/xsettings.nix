@@ -110,7 +110,24 @@ in
   # Install the generated xml file
   config = lib.mkMerge [
     (lib.mkIf (cfg.enable) {
-      environment.systemPackages = with pkgs; [ kdePackages.qtstyleplugin-kvantum ];
+
+      # Add kvantum support to configure Qt theming to match
+      environment.systemPackages = with pkgs; [
+        libsForQt5.qt5ct
+        libsForQt5.qtstyleplugin-kvantum
+      ];
+
+      # Configure qt
+      qt = {
+        enable = true;
+        platformTheme = "qtct";
+        style = "kvantum";
+      };
+
+      xdg.configFile = {
+        "Kvantum/ArcDark".source = "${pkgs.arc-kde-theme}/share/Kvantum/ArcDark";
+        "Kvantum/kvantum.kvconfig".text = "[General]\ntheme=ArcDark";
+      };
     })
     (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml".copy = xmlfile;
