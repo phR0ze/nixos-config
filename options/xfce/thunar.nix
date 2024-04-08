@@ -78,7 +78,7 @@ in
       services.tumbler.enable = true;           # provides image thumbnails
 
       environment.etc."systemd/user/default.target.wants/thunar.service".source = 
-        "${thunar-with-plugins}/lib/systemd/user/thunar.service"
+        "${pkgs.thunar-with-plugins}/lib/systemd/user/thunar.service";
     })
     (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".copy = thunarXmlfile;
