@@ -1,11 +1,12 @@
 # Smplayer options
 #
-# Adapted from https://gitlab.archlinux.org/archlinux/packaging/packages/smplayer-themes/-/blob/main/PKGBUILD
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.programs.smplayer;
 
+  # Create the smplayer-themes package that is available on other platforms i.e. Arch Linux
+  # Adapted from https://gitlab.archlinux.org/archlinux/packaging/packages/smplayer-themes/-/blob/main/PKGBUILD
   smplayer-themes = pkgs.stdenvNoCC.mkDerivation rec {
     name = "smplayer-themes";
     version = "20.11.0";
@@ -16,11 +17,11 @@ let
 
     # Include build time dependencies
     buildInputs = [
-      pkgs.optipng
-      pkgs.libsForQt5.qt5.qtbase
+      pkgs.optipng                # used below in modifying the pngs
+      pkgs.libsForQt5.qt5.qtbase  # used in the makefile to for qt's rcc
     ];
 
-    dontWrapQtApps = true;
+    dontWrapQtApps = true;        # Don't bother with the Qt environment variable overrides
 
     # Nix will make the current working directory the root of the unzipped package
     buildPhase = ''
@@ -37,6 +38,7 @@ let
     '';
   };
 
+  # Create the smplayer settings file with presets
   inifile = lib.mkIf cfg.enable
     (pkgs.writeText "smplayer.ini" ''
       [gui]
