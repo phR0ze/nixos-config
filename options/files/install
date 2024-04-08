@@ -26,6 +26,7 @@ owned_log="$dst/files.owned"            # track all the files that we own
 unowned_log="$dst/files.unowned"        # track all the files that we don't own
 owned_tmp="$dst/files.owned.tmp"        # old file tracking all files copied or linked
 unowned_tmp="$dst/files.unowned.tmp"    # old file tracking all files copied or linked
+debug=false                             # debug mode for extra logging
 
 # Clean up any files left over from the previous install
 clean() {
@@ -154,8 +155,10 @@ link() {
     rm -f "$_target"                          # clean to ensure it doesn't exist
     ln -sf "$_inter" "$_target"
   else
-    echo "  leaving: $_target -> $_inter -> $_src"
-    echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+    if [[ "$debug" == true ]]; then
+      echo "  leaving: $_target -> $_inter -> $_src"
+      echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+    fi
   fi
 }
 
