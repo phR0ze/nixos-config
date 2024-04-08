@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.smplayer;
+  cfg = config.programs.xnviewmp;
 
   # Fetch and convert the icon
   icon = pkgs.runCommand "xnviewmp-icon" { 
