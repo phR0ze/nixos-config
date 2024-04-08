@@ -77,9 +77,6 @@ in
         thunar-media-tags-plugin                # install media tags plugin
       ];
       services.tumbler.enable = true;           # provides image thumbnails
-
-      files.any."etc/systemd/user/default.target.wants/thunar.service".source = 
-        "${pkgs.xfce.thunar}/share/systemd/user/thunar.service";
     })
     (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".copy = thunarXmlfile;
