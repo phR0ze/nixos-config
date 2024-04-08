@@ -152,7 +152,7 @@ in
       '';
       example = ''
         # Create a single file from raw text
-        files.any."root/.dircolors".text = "this is a test";
+        files.any."root/.config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=ArkDark";
 
         # Include a local file as your target that is unowned
         files.any."root/.dircolors".copy = ../include/home/.dircolors;
@@ -166,7 +166,7 @@ in
         # Existing nix store source path
         files.any."systemd/user/default.target.wants/thunar.service".source =
           (pkgs.writeText "thunar.service" (lib.fileContents ../thunar.service));
- 
+
         # Multi file example
         files.any = {
           "etc/asound.conf".text = "autospawn=no";
