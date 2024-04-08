@@ -2,48 +2,11 @@
 #
 # Adapted from https://gitlab.archlinux.org/archlinux/packaging/packages/smplayer-themes/-/blob/main/PKGBUILD
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, qtscript, wrapQtAppsHook, ... }: with lib.types;
+{ options, config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.programs.smplayer;
 
-  smplayer = pkgs.stdenv.mkDerivation rec {
-    pname = "smplayer";
-    version = "23.6.0.10170";
-
-    src = fetchFromGitHub {
-      owner = "smplayer-dev";
-      repo = "smplayer";
-      rev = "v${version}";
-      hash = "sha256-ByheWIXvCw9jL3lY63oRzRZhl0jZz4jr+rw5Wi7Mm8w=";
-    };
-
-    nativeBuildInputs = [
-      qmake
-      wrapQtAppsHook
-    ];
-
-    buildInputs = [
-      qtscript
-    ];
-
-    dontUseQmakeConfigure = true;
-
-    makeFlags = [
-      "PREFIX=${placeholder "out"}"
-    ];
-
-    meta = {
-      homepage = "https://www.smplayer.info";
-      description = "A complete front-end for MPlayer";
-      longDescription = ''
-        SMPlayer is a free media player with built-in codecs that can play virtually all video and 
-        audio formats. It doesn't need any external codecs.
-      '';
-      changelog = "https://github.com/smplayer-dev/smplayer/releases/tag/v${finalAttrs.version}";
-      license = lib.licenses.gpl3Plus;
-      platforms = lib.platforms.linux;
-    };
-  };
+  smplayer = pkgs.libsForQt5.callPackage ./smplayer-base.nix { };
 
   smplayer-themes = pkgs.stdenvNoCC.mkDerivation rec {
     name = "smplayer-themes";
