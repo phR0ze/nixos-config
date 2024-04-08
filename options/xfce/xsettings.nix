@@ -33,7 +33,7 @@ let
         <property name="Gtk" type="empty">
           <property name="CanChangeAccels" type="empty"/>
           <property name="ColorPalette" type="empty"/>
-          <property name="FontName" type="empty"/>
+          <property name="FontName" type="string" value="${cfg.font.defaultSans}"/>
           <property name="MonospaceFontName" type="string" value="${cfg.font.defaultMonospace}"/>
           <property name="IconSizes" type="empty"/>
           <property name="KeyThemeName" type="empty"/>
@@ -84,6 +84,11 @@ in
       };
     };
     services.xserver.desktopManager.xfce.xsettings.font = {
+      defaultSans = lib.mkOption {
+        type = types.str;
+        default = "Source Sans Pro 11";
+        description = lib.mdDoc "Default sans font";
+      };
       defaultMonospace = lib.mkOption {
         type = types.str;
         default = "Inconsolata Nerd Font Mono 11";
