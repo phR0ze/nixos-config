@@ -122,12 +122,14 @@ in
         libsForQt5.qtstyleplugin-kvantum
       ];
 
-      # Configure the qt theme to use
+      # Configure the qt theme engine to use
       qt = {
         enable = true;
         platformTheme = "qt5ct";
         style = "kvantum";
       };
+
+      # Configure the kvantum theme to use for Qt
       files.all.".config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=${cfg.qtTheme}";
       files.all.".config/Kvantum/ArcDark".source = "${pkgs.arc-kde-theme}/share/Kvantum/ArcDark";
     })
