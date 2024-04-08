@@ -78,7 +78,7 @@
             Path of the local file to store or a pre-stored path. Prefer setting this value using 
             the helper options 'copy', 'link', or 'text'.
             e.g. #1: ../include/home/.dircolors;
-            e.g. #2: pkgs.writeText "root-.dircolors" (lib.fileContents ../include/home/.dircolors);
+            e.g. #2: pkgs.writeText ".dircolors" (lib.fileContents ../include/home/.dircolors);
           '';
         };
 
@@ -151,8 +151,8 @@
         target = lib.mkDefault "${prefix}${name}";
 
         # Set kind based off the convenience options [ copy | link ]
-        kind = if (config.link != null) then (lib.mkForce "link")
-          else lib.mkForce "copy";
+        kind = if (config.copy != null) then (lib.mkForce "copy")
+          else lib.mkForce "link";
 
         # Set default for future use
         op = lib.mkDefault "default";

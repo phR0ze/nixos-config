@@ -163,6 +163,10 @@ in
         # Include a local file as a readonly link
         files.any."root/.dircolors".link = ../include/home/.dircolors;
 
+        # Existing nix store source path
+        files.any."systemd/user/default.target.wants/thunar.service".source =
+          (pkgs.writeText "thunar.service" (lib.fileContents ../thunar.service));
+ 
         # Multi file example
         files.any = {
           "etc/asound.conf".text = "autospawn=no";
