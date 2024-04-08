@@ -2,7 +2,7 @@
 #
 # Adapted from https://gitlab.archlinux.org/archlinux/packaging/packages/smplayer-themes/-/blob/main/PKGBUILD
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, ... }: with lib.types;
+{ options, config, lib, pkgs, qtscript, wrapQtAppsHook, ... }: with lib.types;
 let
   cfg = config.programs.smplayer;
 
