@@ -125,7 +125,7 @@ in
       # Configure the qt theme to use
       qt = {
         enable = true;
-        platformTheme = "qtct";
+        platformTheme = "qt5ct";
         style = "kvantum";
       };
       files.all.".config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=${cfg.qtTheme}";
