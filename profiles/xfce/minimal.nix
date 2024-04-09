@@ -37,6 +37,9 @@
         { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; }
         { name = "VirtualBox"; exec = "VirtualBox"; icon = "virtualbox"; }
       ];
+      xfce.menu.hidden = [
+        "xfce4-about"
+      ];
     };
   };
 
