@@ -37,12 +37,12 @@
         { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; }
         { name = "VirtualBox"; exec = "VirtualBox"; icon = "virtualbox"; }
       ];
-      xfce.menu.overrides = [
-        { noDisplay = true; source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; }
-        { noDisplay = true; source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; }
-        { noDisplay = true; source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; }
-        { categories = "Office"; source = "${pkgs.libreoffice}/share/applications/math.desktop"; }
-      ];
+      #xfce.menu.overrides = [
+      #  { noDisplay = true; source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; }
+      #  { noDisplay = true; source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; }
+      #  { noDisplay = true; source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; }
+      #  { categories = "Office"; source = "${pkgs.libreoffice}/share/applications/math.desktop"; }
+      #];
       #xfce.menu.named =   [
       #  { name = "Terminal"; target = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; }
       #];
