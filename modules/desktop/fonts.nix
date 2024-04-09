@@ -15,9 +15,10 @@ let
   '';
 in
 {
-  environment.systemPackages = [
+  environment.systemPackages = with pkgs; [
     customFonts               # Custom local fonts
-    pkgs.font-manager
+    fontmatrix
+    font-manager
   ];
   environment.pathsToLink = [
     "/share/doc/X11/fonts"  # /run/current-system/sw/share/doc/X11/fonts
