@@ -163,6 +163,7 @@
 
         # Set based off the convenience options
         source = if (config.copy != null) then (lib.mkForce config.copy)
+          else if (config.ownCopy != null) then (lib.mkForce config.ownCopy)
           else if (config.link != null) then (lib.mkForce config.link)
           else lib.mkIf (config.text != null) (lib.mkDerivedConfig options.text (pkgs.writeText name));
       };
