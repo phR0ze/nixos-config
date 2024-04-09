@@ -3,7 +3,6 @@
 { options, config, lib, pkgs, args, ... }:
 {
   desktopType = submodule {
-  type = types.listOf (submodule {
     options = {
       name = lib.mkOption {
         type = types.str;
