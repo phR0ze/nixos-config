@@ -29,7 +29,7 @@ let
     }
 
     ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [ "hide" x ]) cfg.hidden}
-    ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [ "move" x.name x.target ]) cfg.hidden}
+    ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [ "move" x.name x.target ]) cfg.category}
   '';
 
 in
