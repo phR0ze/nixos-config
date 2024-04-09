@@ -32,7 +32,7 @@ let
       sed -i -e "s|\(^Terminal=\).*|\1$terminal|" "$target"
       #[[ "$categories" != "" ]] && sed -i -e "s|\(^Categories=\).*|\1$categories|" "$target"
       #[[ "$comment" != "" ]] && sed -i -e "s|\(^Comment=\).*|\1$comment|" "$target"
-      #[[ "$hidden" == "true" ]] && echo "NoDisplay=true" >> "$target"
+      [[ "$hidden" == true ]] && echo "NoDisplay=true" >> "$target"
     }
 
     ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [
