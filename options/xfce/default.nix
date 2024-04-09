@@ -4,6 +4,7 @@
 {
   imports = [
     ./keyboards.nix
+    ./menu.nix
     ./thunar.nix
     ./xsettings.nix
     ./xfce4-panel.nix
