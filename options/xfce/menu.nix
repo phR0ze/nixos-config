@@ -11,10 +11,9 @@ let
   hiddenMenuItems = pkgs.runCommandLocal "hidden-menu-items" {} ''
     set -euo pipefail
     hideMenuItem() {
-      local dir="$out/.local/share/applications"
-      local target="$dir/$(basename "$1")"
-      mkdir -p "$dir"
-      cp "$1" "$dir"
+      local target="$out/$(basename "$1")"
+      mkdir -p "$out"
+      cp "$1" "$out"
       chmod +w "$target"
       echo "NoDisplay=true" >> "$target"
     }
