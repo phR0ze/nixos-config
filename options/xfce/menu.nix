@@ -14,7 +14,7 @@ let
     override() {
       local source="$1"           # str: source nix store path to start from
       local name="$2"             # str: name of the desktop entry to use if set
-      local cmd="$3"              # str: execution command line to use if set
+      local exec="$3"             # str: execution command line to use if set
       local icon="$4"             # str: icon to use if set
       local startupNotify="$5"    # bool: notify on startup
       local terminal="$6"         # bool: enable a terminal window
@@ -26,7 +26,7 @@ let
       cp "$source" "$out";
       chmod +w "$target"
       [[ "$name" != "null" ]] && sed -i -e "s|\(^Name=\).*|\1$name|" "$target"
-      #[[ "$cmd" != "null" ]] && sed -i -e "s|\(^Exec=\).*|\1$cmd|" "$target"
+      #[[ "$exec" != "null" ]] && sed -i -e "s|\(^Exec=\).*|\1$exec|" "$target"
       #[[ "$icon" != "null" ]] && sed -i -e "s|\(^Icon=\).*|\1$icon|" "$target"
       #sed -i -e "s|\(^StartupNotify=\).*|\1$startupNotify|" "$target"
       #sed -i -e "s|\(^Terminal=\).*|\1$terminal|" "$target"
