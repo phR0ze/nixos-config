@@ -39,6 +39,7 @@
       ];
       xfce.menu.hidden = [
         "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"
+        "${pkgs.xfce.settings}/share/applications/xfce4-web-browser.desktop"
       ];
       xfce.menu.category = [
         { name = "Office"; target = "${pkgs.libreoffice}/share/applications/math.desktop"; }
