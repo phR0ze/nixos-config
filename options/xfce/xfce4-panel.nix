@@ -169,6 +169,11 @@ in
         default = false;
         description = lib.mdDoc "Enable XFCE panel configuration";
       };
+      ownConfigs = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Overwrite settings every reboot/update";
+      };
     };
     services.xserver.desktopManager.xfce.panel.clock = {
       military = lib.mkOption {
@@ -254,7 +259,11 @@ in
 
   # Install the generated xml file
   config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
+    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
+      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml".copy = panelXmlFile;
+      files.all.".config/xfce4/panel".copy = launchersPackage;
+    })
+    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml".ownCopy = panelXmlFile;
       files.all.".config/xfce4/panel".ownCopy = launchersPackage;
     })
