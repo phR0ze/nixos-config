@@ -26,7 +26,7 @@ let
       cp "$source" "$out";
       chmod +w "$target"
       [[ "$name" != "null" ]] && sed -i -e "s|\(^Name=\).*|\1$name|" "$target"
-      [[ "$cmd" != "null" ]] && sed -i -e "s|\(^Exec=\).*|\1$cmd|" "$target"
+      #[[ "$cmd" != "null" ]] && sed -i -e "s|\(^Exec=\).*|\1$cmd|" "$target"
       #[[ "$icon" != "null" ]] && sed -i -e "s|\(^Icon=\).*|\1$icon|" "$target"
       #sed -i -e "s|\(^StartupNotify=\).*|\1$startupNotify|" "$target"
       #sed -i -e "s|\(^Terminal=\).*|\1$terminal|" "$target"
