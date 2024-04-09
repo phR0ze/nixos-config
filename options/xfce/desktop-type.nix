@@ -16,7 +16,7 @@
       };
       icon = lib.mkOption {
         type = types.str;
-        default = "":
+        default = "";
         description = lib.mdDoc "Icon to use for the desktop entry";
       };
       startupNotify = lib.mkOption {
