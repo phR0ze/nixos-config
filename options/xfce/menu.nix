@@ -12,7 +12,7 @@ let
     set -euo pipefail
     hideMenuItem() {
       local dir="$out/.local/share/applications"
-      local target="$dir/$(dirname "$1")"
+      local target="$dir/$(basename "$1")"
       mkdir -p "$dir"
       cp "$1" "$dir"
       echo "NoDisplay=true" >> "$target"
