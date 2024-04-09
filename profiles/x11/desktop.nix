@@ -61,7 +61,6 @@
     # Office
     hunspell                            # LibreOffice spell checker and actively maintained
     hunspellDicts.en_US                 # LibreOffice spell checker and actively maintained
-    geany                               # Fast and lightweight IDE
     keepassxc                           # Offline password manager with many features
     libreoffice-fresh                   # Comprehensive, professional-quality productivity suite
     scribus                             # Open Source Desktop Publishing
