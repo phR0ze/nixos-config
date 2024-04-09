@@ -20,6 +20,12 @@ in
     fontmatrix
     font-manager
   ];
+
+  # Needed for fontmatrix
+  permittedInsecurePackages = [
+    "qtwebkit-5.212.0-alpha4"
+  ];
+
   environment.pathsToLink = [
     "/share/doc/X11/fonts"  # /run/current-system/sw/share/doc/X11/fonts
     "/share/X11/fonts"  # /run/current-system/sw/share/X11/fonts
