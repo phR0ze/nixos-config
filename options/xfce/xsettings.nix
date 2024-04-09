@@ -33,8 +33,8 @@ let
         <property name="Gtk" type="empty">
           <property name="CanChangeAccels" type="empty"/>
           <property name="ColorPalette" type="empty"/>
-          <property name="FontName" type="string" value="${cfg.font.defaultSans}"/>
-          <property name="MonospaceFontName" type="string" value="${cfg.font.defaultMonospace}"/>
+          <property name="FontName" type="string" value="${cfg.font.defaultSans} ${toString cfg.font.defaultSansSize}"/>
+          <property name="MonospaceFontName" type="string" value="${cfg.font.defaultMonospace} ${toString cfg.font.defaultMonospaceSize}"/>
           <property name="IconSizes" type="empty"/>
           <property name="KeyThemeName" type="empty"/>
           <property name="ToolbarStyle" type="empty"/>
@@ -91,13 +91,23 @@ in
     services.xserver.desktopManager.xfce.xsettings.font = {
       defaultSans = lib.mkOption {
         type = types.str;
-        default = "Source Sans Pro 11";
+        default = "Source Sans Pro";
         description = lib.mdDoc "Default sans font";
+      };
+      defaultSansSize = lib.mkOption {
+        type = types.int;
+        default = 11;
+        description = lib.mdDoc "Default sans font size";
       };
       defaultMonospace = lib.mkOption {
         type = types.str;
-        default = "Inconsolata Nerd Font Mono 11";
+        default = "Inconsolata Nerd Font Mono";
         description = lib.mdDoc "Default monospace font";
+      };
+      defaultMonospaceSize = lib.mkOption {
+        type = types.int;
+        default = 11;
+        description = lib.mdDoc "Default monospace font size";
       };
       antiAlias = lib.mkOption {
         type = types.bool;
@@ -132,6 +142,11 @@ in
       # Configure the kvantum theme to use for Qt
       files.all.".config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=${cfg.qtTheme}";
       files.all.".config/Kvantum/ArcDark".source = "${pkgs.arc-kde-theme}/share/Kvantum/ArcDark";
+      files.all.".config/qt5ct/qt5ct.conf".text = ''
+        [Fonts]
+        fixed="${cfg.font.defaultMonospace},${toString cfg.font.defaultMonospaceSize},-1,5,50,0,0,0,0,0,Regular"
+        general="${cfg.font.defaultSans},${toString cfg.font.defaultSansSize},-1,5,50,0,0,0,0,0,Regular"
+      '';
     })
     (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml".copy = xmlfile;
