@@ -28,16 +28,6 @@ let
       sed -i -e "s|\(^Categories=\).*|\1$category|" "$target"
     }
 
-    # Set the `Name` field to the desired value
-    move() {
-      local name="$1"
-      local filename="$2"
-      local target="$out/$(basename "$filename")"
-      cp "$filename" "$out"
-      chmod +w "$target"
-      sed -i -e "s|\(^Categories=\).*|\1$category|" "$target"
-    }
-
     ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [ "hide" x ]) cfg.hidden}
     ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [ "move" x.name x.target ]) cfg.category}
   '';
