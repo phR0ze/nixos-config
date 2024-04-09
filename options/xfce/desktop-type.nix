@@ -6,17 +6,17 @@
     options = {
       name = lib.mkOption {
         type = types.str;
-        default = "";
+        default = "null";
         description = lib.mdDoc "Name of the desktop entry";
       };
       exec = lib.mkOption {
         type = types.str;
-        default = "";
+        default = "null";
         description = lib.mdDoc "Execution command for the desktop entry";
       };
       icon = lib.mkOption {
         type = types.str;
-        default = "";
+        default = "null";
         description = lib.mdDoc "Icon to use for the desktop entry";
       };
       startupNotify = lib.mkOption {
@@ -41,12 +41,12 @@
       };
       categories = lib.mkOption {
         type = types.str;
-        default = "Utility;X-XFCE;X-Xfce-Toplevel;";
+        default = "null";
         description = lib.mdDoc "Category for the desktop entry";
       };
       comment = lib.mkOption {
         type = types.str;
-        default = "";
+        default = "null";
         description = lib.mdDoc "Comment for the desktop entry's tooltip";
       };
       source = lib.mkOption {
