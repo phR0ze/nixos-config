@@ -60,6 +60,7 @@ in
   config = lib.mkMerge [
     (lib.mkIf (cfg.enable) {
       environment.systemPackages = with pkgs; [ xnviewmp ];
+      files.all.".config/xnviewmp/xnview.ini".copy = "../../include/home/.config/xnviewmp/xnview.ini";
     })
   ];
 }
