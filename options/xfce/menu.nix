@@ -63,7 +63,7 @@ in
   };
 
   config = lib.mkMerge [
-    (lib.mkIf (cfg.hidden != []) {
+    (lib.mkIf (cfg.hidden != [] || cfg.category != []) {
       files.all.".local/share/applications".source = menuItems;
     })
   ];
