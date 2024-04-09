@@ -125,9 +125,7 @@ let
       local icon="$4"             # icon string to use for the launcher
       local notify="$5"           # notify on startup bool
       local terminal="$6"         # enable a terminal window with the launcher
-      local categories="$7"       # categories string to use for launcher
-      local comment="$8"          # comment to use for the launcher
-      local order="$9"            # order of the launcher
+      local order="$7"            # order of the launcher
 
       # Launcher path used in final ~/.config/xfce4/panel/launcher-xx location
       local dir="$out/launcher-$order"
@@ -142,11 +140,11 @@ let
       echo "Icon=$icon" >> "$launcher"
       echo "StartupNotify=$notify" >> "$launcher"
       echo "Terminal=$terminal" >> "$launcher"
-      echo "Categories=$categories" >> "$launcher"
+      echo "Categories=Utility;X-XFCE;X-Xfce-Toplevel;" >> "$launcher"
       echo "OnlyShowIn=XFCE;" >> "$launcher"
       echo "X-AppStream-Ignore=True" >> "$launcher"
       echo "Name=$name" >> "$launcher"
-      echo "Comment=$comment" >> "$launcher"
+      echo "Comment=" >> "$launcher"
     }
 
     # Create bash function calls to createLauncher for each launcher entry
@@ -158,8 +156,6 @@ let
       x.icon
       (f.boolToStr x.startupNotify)
       (f.boolToStr x.terminal)
-      x.categories
-      x.comment
       (toString (i+20))
     ]) cfg.launchers}
   '';

@@ -5,59 +5,60 @@
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.menu;
+  desktopType = (import ./desktop-type.nix { inherit options config lib pkgs args; }).desktopType;
 
   menuItems = pkgs.runCommandLocal "menu-items" {} ''
     set -euo pipefail
     mkdir -p "$out"
 
-    # Adding the NoDisplay=true value will hide it in the menu
-    hide() {
-      local target="$out/$(basename "$1")"
-      cp "$1" "$out";
+    override() {
+      local source="$1"           # str: source nix store path to start from
+      local name="$2"             # str: name of the desktop entry to use if set
+      local exec="$3"             # str: execution command line to use if set
+      local icon="$4"             # str: icon to use if set
+      local startupNotify="$5"    # bool: notify on startup
+      local terminal="$6"         # bool: enable a terminal window
+      local categories="$7"       # str: categories to use for entry
+      local comment="$8"          # str: comment to use for tool tip
+      local hidden="$9"           # bool: mark the desktop entry to be hidden
+
+      local target="$out/$(basename "$source")"
+      cp "$source" "$out";
       chmod +w "$target"
-      echo "NoDisplay=true" >> "$target"
+      [[ "$name" != "" ]] && sed -i -e "s|\(^Name=\).*|\1$name|" "$target"
+      [[ "$exec" != "" ]] && sed -i -e "s|\(^Exec=\).*|\1$exec|" "$target"
+      [[ "$icon" != "" ]] && sed -i -e "s|\(^Icon=\).*|\1$icon|" "$target"
+      sed -i -e "s|\(^StartupNotify=\).*|\1$startupNotify|" "$target"
+      sed -i -e "s|\(^Terminal=\).*|\1$terminal|" "$target"
+      [[ "$categories" != "" ]] && sed -i -e "s|\(^Categories=\).*|\1$categories|" "$target"
+      [[ "$comment" != "" ]] && sed -i -e "s|\(^Comment=\).*|\1$comment|" "$target"
+      [[ "$hidden" == "true" ]] && echo "NoDisplay=true" >> "$target"
     }
 
-    # Set the `Categories` field to the desired value
-    move() {
-      local category="$1"
-      local filename="$2"
-      local target="$out/$(basename "$filename")"
-      cp "$filename" "$out"
-      chmod +w "$target"
-      sed -i -e "s|\(^Categories=\).*|\1$category|" "$target"
-    }
-
-    ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [ "hide" x ]) cfg.hidden}
-    ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [ "move" x.name x.target ]) cfg.category}
+    ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [
+      "override"
+      x.source
+      x.name
+      x.exec
+      x.icon
+      (f.boolToStr x.startupNotify)
+      (f.boolToStr x.terminal)
+      x.categories
+      x.comment
+      (f.boolToStr x.noDisplay)
+    ]) cfg.overrides}
   '';
+    #${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [ "move" x.name x.target ]) cfg.category}
 in
 {
   options = {
-    services.xserver.desktopManager.xfce.menu = {
-      hidden = lib.mkOption {
-        type = types.listOf types.path;
-        default = [];
-        description = lib.mdDoc "List of desktop files to hide in the menu";
-      };
-      category = lib.mkOption {
-        type = types.listOf (submodule {
-          options = {
-            name = lib.mkOption {
-              type = types.str;
-              description = lib.mdDoc "Category name";
-            };
-            target = lib.mkOption {
-              type = types.path;
-              description = lib.mdDoc "Desktop file target";
-            };
-          };
-        });
-        default = [];
-        example = [
-          { name = "Office"; target = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; }
-        ];
-      };
+    services.xserver.desktopManager.xfce.menu.overrides = lib.mkOption {
+      type = types.listOf desktopType;
+      default = [];
+      example = [
+        { noDisplay = true; source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; }
+      ];
+      description = lib.mdDoc "";
     };
   };
 
