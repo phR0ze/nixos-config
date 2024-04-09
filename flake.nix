@@ -46,6 +46,9 @@
       system = settings.system;
       config.allowUnfree = true;
       config.allowUnfreePredicate = _: true;
+      config.permittedInsecurePackages = [
+        "qtwebkit-5.212.0-alpha4"
+      ];
 
 #      overlays = [
 #        (final: prev: {
