@@ -17,7 +17,7 @@ in
 {
   environment.systemPackages = with pkgs; [
     customFonts               # Custom local fonts
-    font-manager
+    font-manager              # GTK font viewer
   ];
 
   environment.pathsToLink = [
