@@ -25,14 +25,14 @@ let
       local target="$out/$(basename "$source")"
       cp "$source" "$out";
       chmod +w "$target"
-      [[ "$name" != "null" ]] && sed -i -e "s|\(^Name=\).*|\1$name|" "$target"
-      [[ "$exec" != "null" ]] && sed -i -e "s|\(^Exec=\).*|\1$exec|" "$target"
-      [[ "$icon" != "null" ]] && sed -i -e "s|\(^Icon=\).*|\1$icon|" "$target"
-      sed -i -e "s|\(^StartupNotify=\).*|\1$startupNotify|" "$target"
-      sed -i -e "s|\(^Terminal=\).*|\1$terminal|" "$target"
-      [[ "$categories" != "null" ]] && sed -i -e "s|\(^Categories=\).*|\1$categories|" "$target"
-      [[ "$comment" != "null" ]] && sed -i -e "s|\(^Comment=\).*|\1$comment|" "$target"
-      [[ "$hidden" == true ]] && echo "NoDisplay=true" >> "$target"
+      [[ "$name" != "" ]] && sed -i -e "s|\(^Name=\).*|\1$name|" "$target"
+      #[[ "$exec" != "null" ]] && sed -i -e "s|\(^Exec=\).*|\1$exec|" "$target"
+      #[[ "$icon" != "null" ]] && sed -i -e "s|\(^Icon=\).*|\1$icon|" "$target"
+      #sed -i -e "s|\(^StartupNotify=\).*|\1$startupNotify|" "$target"
+      #sed -i -e "s|\(^Terminal=\).*|\1$terminal|" "$target"
+      #[[ "$categories" != "null" ]] && sed -i -e "s|\(^Categories=\).*|\1$categories|" "$target"
+      #[[ "$comment" != "null" ]] && sed -i -e "s|\(^Comment=\).*|\1$comment|" "$target"
+      #[[ "$hidden" == true ]] && echo "NoDisplay=true" >> "$target"
     }
 
     ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [
