@@ -7,6 +7,10 @@ let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.panel;
 
+  desktopType = (import ./desktop-type.nix {
+    inherit options config lib pkgs args;
+  }).desktopType;
+
   # Define the xml file contents
   panelXmlFile = lib.mkIf cfg.enable
     (pkgs.writeText "xfce4-panel.xml" ''
@@ -207,42 +211,7 @@ in
       };
     };
     services.xserver.desktopManager.xfce.panel.launchers = lib.mkOption {
-      type = types.listOf (submodule {
-        options = {
-          name = lib.mkOption {
-            type = types.str;
-            description = lib.mdDoc "Name of the launcher";
-          };
-          exec = lib.mkOption {
-            type = types.str;
-            description = lib.mdDoc "Execution command for the launcher";
-          };
-          icon = lib.mkOption {
-            type = types.str;
-            description = lib.mdDoc "Icon to use for the launcher";
-          };
-          startupNotify = lib.mkOption {
-            type = types.bool;
-            default = false;
-            description = lib.mdDoc "Notify the user when the launcher starts";
-          };
-          terminal = lib.mkOption {
-            type = types.bool;
-            default = false;
-            description = lib.mdDoc "Launch the execution command in a terminal window";
-          };
-          categories = lib.mkOption {
-            type = types.str;
-            default = "Utility;X-XFCE;X-Xfce-Toplevel;";
-            description = lib.mdDoc "Category for the launcher";
-          };
-          comment = lib.mkOption {
-            type = types.str;
-            default = "";
-            description = lib.mdDoc "Comment for the launcher used in tooltip";
-          };
-        };
-      });
+      type = types.listOf desktopType;
       default = [];
       example = [
         { name = "Firefox"; exec = "firefox"; icon = "firefox"; }
