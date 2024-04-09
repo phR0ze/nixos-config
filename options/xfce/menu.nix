@@ -12,9 +12,9 @@ let
     set -euo pipefail
     hideMenuItem() {
       local dir="$out/.local/share/applications"
-      local target="$dir/$1.desktop"
+      local target="$dir/$(dirname "$1")"
       mkdir -p "$dir"
-      cp "/run/current-system/sw/share/applications/$1.desktop" "$target"
+      cp "$1" "$dir"
       echo "NoDisplay=true" >> "$target"
     }
     ${lib.concatMapStringsSep "\n" (item: lib.escapeShellArgs [
@@ -29,7 +29,7 @@ in
   options = {
     services.xserver.desktopManager.xfce.menu = {
       hidden = lib.mkOption {
-        type = types.listOf types.str;
+        type = types.listOf types.path;
         default = [];
         description = lib.mdDoc "List of desktop files to hide in the menu";
       };

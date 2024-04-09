@@ -38,7 +38,7 @@
         { name = "VirtualBox"; exec = "VirtualBox"; icon = "virtualbox"; }
       ];
       xfce.menu.hidden = [
-        "xfce4-about"
+        "${libxfce4ui/share/applications/xfce4-about.desktop}"
       ];
     };
   };
