@@ -41,18 +41,24 @@ in
         default = [];
         description = lib.mdDoc "List of desktop files to hide in the menu";
       };
-      category = types.listOf (submodule {
-        options = {
-          name = lib.mkOption {
-            type = types.str;
-            description = lib.mdDoc "Category name";
+      category = lib.mkOption {
+        type = types.listOf (submodule {
+          options = {
+            name = lib.mkOption {
+              type = types.str;
+              description = lib.mdDoc "Category name";
+            };
+            target = lib.mkOption {
+              type = types.path;
+              description = lib.mdDoc "Desktop file target";
+            };
           };
-          target = lib.mkOption {
-            type = types.path;
-            description = lib.mdDoc "Desktop file target";
-          };
-        };
-      });
+        });
+        default = [];
+        example = [
+          { name = "Office"; target = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; }
+        ];
+      };
     };
   };
 
