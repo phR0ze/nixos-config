@@ -45,6 +45,9 @@
       xfce.menu.category = [
         { name = "Office"; target = "${pkgs.libreoffice}/share/applications/math.desktop"; }
       ];
+      #xfce.menu.named =   [
+      #  { name = "Terminal"; target = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; }
+      #];
     };
   };
 
