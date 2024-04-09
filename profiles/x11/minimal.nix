@@ -20,6 +20,7 @@
     ../../modules/desktop/xorg.nix
   ];
 
+  programs.geany.enable = true;         # Simple text editor
   programs.filezilla.enable = true;     # Network/Transfer
   programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
   programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
