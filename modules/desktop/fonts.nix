@@ -17,7 +17,6 @@ in
 {
   environment.systemPackages = with pkgs; [
     customFonts               # Custom local fonts
-    fontmatrix
     font-manager
   ];
 
