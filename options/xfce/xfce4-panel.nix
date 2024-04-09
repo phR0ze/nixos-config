@@ -256,7 +256,7 @@ in
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml".ownCopy = panelXmlFile;
-      files.all.".config/xfce4/panel".ownCopy = launchersPackage;
+      files.all.".config/xfce4/panel".link = launchersPackage;
     })
   ];
 }
