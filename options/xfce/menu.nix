@@ -48,7 +48,6 @@ let
       (f.boolToStr x.noDisplay)
     ]) cfg.overrides}
   '';
-    #${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [ "move" x.name x.target ]) cfg.category}
 in
 {
   options = {
@@ -63,7 +62,7 @@ in
   };
 
   config = lib.mkMerge [
-    (lib.mkIf (cfg.hidden != [] || cfg.category != []) {
+    (lib.mkIf (cfg.overrides != []) {
       files.all.".local/share/applications".source = menuItems;
     })
   ];
