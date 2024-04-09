@@ -37,8 +37,11 @@
         { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; }
         { name = "VirtualBox"; exec = "VirtualBox"; icon = "virtualbox"; }
       ];
-      xfce.menu.hidden = [
-        "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"
+      #xfce.menu.hidden = [
+      #  "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"
+      #];
+      xfce.menu.category = [
+        { name = "Office"; target = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop" }
       ];
     };
   };

@@ -6,23 +6,31 @@ let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.menu;
 
-  # Find the referenced desktop items, copy their contents to ~/.local/share/applications and set the 
-  # key NoDisplay=true to tell XFCE not to show the item.
-  hiddenMenuItems = pkgs.runCommandLocal "hidden-menu-items" {} ''
+  menuItems = pkgs.runCommandLocal "menu-items" {} ''
     set -euo pipefail
-    hideMenuItem() {
+    mkdir -p "$out"
+
+    # Adding the NoDisplay=true value will hide it in the menu
+    hide() {
       local target="$out/$(basename "$1")"
-      mkdir -p "$out"
-      cp "$1" "$out"
+      cp "$1" "$out";
       chmod +w "$target"
       echo "NoDisplay=true" >> "$target"
     }
-    ${lib.concatMapStringsSep "\n" (item: lib.escapeShellArgs [
-      "hideMenuItem"
-      item
-    ]) cfg.hidden}
-  '';
 
+    # Set the `Categories` field to the desired value
+    move() {
+      local category="$1"
+      local filename="$2"
+      local target="$out/$(basename "$filename")"
+      cp "$filename" "$out"
+      chmod +w "$target"
+      sed -i -e "s|\(^Categories=\).*|\1$category|" "$target"
+    }
+
+    ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [ "hide" x ]) cfg.hidden}
+    ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [ "move" x.name x.target ]) cfg.hidden}
+  '';
 
 in
 {
@@ -33,12 +41,24 @@ in
         default = [];
         description = lib.mdDoc "List of desktop files to hide in the menu";
       };
+      category = types.listOf (submodule {
+        options = {
+          name = lib.mkOption {
+            type = types.str;
+            description = lib.mdDoc "Category name";
+          };
+          target = lib.mkOption {
+            type = types.path;
+            description = lib.mdDoc "Desktop file target";
+          };
+        };
+      });
     };
   };
 
   config = lib.mkMerge [
     (lib.mkIf (cfg.hidden != []) {
-      files.all.".local/share/applications".source = hiddenMenuItems;
+      files.all.".local/share/applications".source = menuItems;
     })
   ];
 }
