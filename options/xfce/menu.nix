@@ -27,12 +27,12 @@ let
       chmod +w "$target"
       if [[ "$name" != "null" ]]; then sed -i -e "s|\(^Name=\).*|\1$name|" "$target"; fi
       if [[ "$exec" != "null" ]]; then sed -i -e "s|\(^Exec=\).*|\1$exec|" "$target"; fi
-      #[[ "$icon" != "null" ]] && sed -i -e "s|\(^Icon=\).*|\1$icon|" "$target"
-      #sed -i -e "s|\(^StartupNotify=\).*|\1$startupNotify|" "$target"
-      #sed -i -e "s|\(^Terminal=\).*|\1$terminal|" "$target"
-      #[[ "$categories" != "null" ]] && sed -i -e "s|\(^Categories=\).*|\1$categories|" "$target"
-      #[[ "$comment" != "null" ]] && sed -i -e "s|\(^Comment=\).*|\1$comment|" "$target"
-      #[[ "$hidden" == true ]] && echo "NoDisplay=true" >> "$target"
+      if [[ "$icon" != "null" ]]; then sed -i -e "s|\(^Icon=\).*|\1$icon|" "$target"; fi
+      sed -i -e "s|\(^StartupNotify=\).*|\1$startupNotify|" "$target"
+      sed -i -e "s|\(^Terminal=\).*|\1$terminal|" "$target"
+      if [[ "$categories" != "null" ]]; then sed -i -e "s|\(^Categories=\).*|\1$categories|" "$target"; fi
+      if [[ "$comment" != "null" ]]; then sed -i -e "s|\(^Comment=\).*|\1$comment|" "$target"; fi
+      if [[ "$hidden" == true ]];then echo "NoDisplay=true" >> "$target"; fi
     }
 
     ${lib.concatMapStringsSep "\n" (x: lib.escapeShellArgs [
