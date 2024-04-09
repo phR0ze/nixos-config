@@ -15,8 +15,10 @@ let
   '';
 in
 {
-  # Add the custom fonts package to the /nix/store and setup the /run/current-system/sw links
-  environment.systemPackages = [ customFonts ];
+  environment.systemPackages = [
+    customFonts               # Custom local fonts
+    pkgs.font-manager
+  ];
   environment.pathsToLink = [
     "/share/doc/X11/fonts"  # /run/current-system/sw/share/doc/X11/fonts
     "/share/X11/fonts"  # /run/current-system/sw/share/X11/fonts
