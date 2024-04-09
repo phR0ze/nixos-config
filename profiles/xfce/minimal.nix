@@ -41,7 +41,7 @@
       #  "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"
       #];
       xfce.menu.category = [
-        { name = "Office"; target = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop" }
+        { name = "Office"; target = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; }
       ];
     };
   };
