@@ -141,7 +141,8 @@ in
 
       # Configure the kvantum theme to use for Qt
       files.all.".config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=${cfg.qtTheme}";
-      files.all.".config/Kvantum/ArcDark".source = "${pkgs.arc-kde-theme}/share/Kvantum/ArcDark";
+      #files.all.".config/Kvantum/ArcDark".source = "${pkgs.arc-kde-theme}/share/Kvantum/ArcDark";
+      files.all.".config/Kvantum/ArcDark".source = ../../include/home/.config/Kvantum/ArcDark;
       files.all.".config/qt5ct/qt5ct.conf".text = ''
         [Fonts]
         fixed="${cfg.font.defaultMonospace},${toString cfg.font.defaultMonospaceSize},-1,5,50,0,0,0,0,0,Regular"
