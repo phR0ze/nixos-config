@@ -40,6 +40,7 @@
       xfce.menu.hidden = [
         "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"
         "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"
+        "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"
       ];
       xfce.menu.category = [
         { name = "Office"; target = "${pkgs.libreoffice}/share/applications/math.desktop"; }
