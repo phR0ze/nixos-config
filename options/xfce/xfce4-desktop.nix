@@ -127,7 +127,7 @@ in
 
   # Install the generated xml file
   config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
+    (lib.mkIf (cfg.enable || cfg.background != null) {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml".ownCopy = xmlfile;
     })
   ];
