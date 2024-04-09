@@ -15,6 +15,7 @@ let
       local target="$dir/$(basename "$1")"
       mkdir -p "$dir"
       cp "$1" "$dir"
+      chmod +w "$target"
       echo "NoDisplay=true" >> "$target"
     }
     ${lib.concatMapStringsSep "\n" (item: lib.escapeShellArgs [
