@@ -87,11 +87,6 @@ in
         default = false;
         description = lib.mdDoc "Enable XFCE desktop configuration";
       };
-      ownConfigs = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Overwrite settings every reboot/update";
-      };
       background = lib.mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -132,10 +127,7 @@ in
 
   # Install the generated xml file
   config = lib.mkMerge [
-    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml".copy = xmlfile;
-    })
-    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
+    (lib.mkIf cfg.enable {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml".ownCopy = xmlfile;
     })
   ];
