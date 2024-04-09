@@ -42,10 +42,9 @@
         { noDisplay = true; source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; }
         { noDisplay = true; source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; }
         { categories = "Office"; source = "${pkgs.libreoffice}/share/applications/math.desktop"; }
+        { name = "Terminal"; target = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; }
+        { icon = "Thunar"; target = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; }
       ];
-      #xfce.menu.named =   [
-      #  { name = "Terminal"; target = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; }
-      #];
     };
   };
 
