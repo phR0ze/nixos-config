@@ -43,7 +43,7 @@
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; noDisplay = true; }
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-accessibility-settings.desktop"; noDisplay = true; }
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-settings-manager.desktop"; noDisplay = true; }
-        { source = "${pkgs.network-manager-applet}/share/applications/nm-connection-editor.desktop"; noDisplay = true; }
+        #{ source = "${pkgs.network-manager-applet}/share/applications/nm-connection-editor.desktop"; noDisplay = true; }
         { source = "${pkgs.libreoffice}/share/applications/math.desktop"; categories = "Office"; }
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; name = "Terminal"; }
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
