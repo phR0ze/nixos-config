@@ -13,6 +13,7 @@
   # Additional programs and services
   programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
   programs.steam.enable = true;         # Digital distribution platform from Valve
+  programs.prismlauncher.enable = true; # Minecraft launcher
 
   environment.systemPackages = with pkgs; [
 
@@ -89,12 +90,5 @@
 #    wmctl                              # Rust X11 automation
 #    xnviewmp                           # A digital photo organizer, repo: cyberlinux
 #'tiny-media-manager'        # Cross platform media manager, repo: cyberlinux
-
-    # Patch prismlauncher for offline mode
-    (prismlauncher.override (prev: {
-      prismlauncher-unwrapped = prev.prismlauncher-unwrapped.overrideAttrs (o: {
-        patches = (o.patches or [ ]) ++ [ ../../patches/prismlauncher/offline.patch ];
-      });
-    }))
   ];
 }
