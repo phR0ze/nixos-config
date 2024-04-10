@@ -41,9 +41,18 @@
         { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; noDisplay = true; }
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; noDisplay = true; }
+        { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-accessibility-settings.desktop"; noDisplay = true; }
+        { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-settings-manager.desktop"; noDisplay = true; }
+        { source = "${pkgs.network-manager-applet}/share/applications/nm-connection-editor.desktop"; noDisplay = true; }
         { source = "${pkgs.libreoffice}/share/applications/math.desktop"; categories = "Office"; }
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; name = "Terminal"; }
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
+        { source = "${pkgs.neovim}/share/applications/nvim.desktop"; categories = "Development"; }
+        { source = "${pkgs.vscodium}/share/applications/codium.desktop"; categories = "Development"; }
+        { source = "${pkgs.veracrypt}/share/applications/veracrypt.desktop"; categories = "System"; }
+        { source = "${pkgs.winetricks}/share/applications/winetricks.desktop"; categories = "System"; }
+        { source = "${pkgs.protontricks}/share/applications/protontricks.desktop"; categories = "System"; }
+        { source = "${pkgs.libsForQt5.qtstyleplugin-kvantum}/share/applications/kvantummanager.desktop"; categories = "Settings"; }
       ];
     };
   };
