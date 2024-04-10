@@ -25,13 +25,12 @@ fork it and build on my work.
 
 ## Getting started
 ***clu***, is a simple bash script providing an install wizard to:
-
-* Prompt you for a few simple customization selections
-* Automate the annoying tasks like
-  * disk paritioning and mounting
-  * generation of nixos hardware configuration
-  * transfering install time customizations to the underlying nix flake
-  * triggering the install of the complete system via nix flakes
+  * Prompt you for a few simple customization selections
+  * Automate the annoying tasks like
+    * disk paritioning and mounting
+    * generation of nixos hardware configuration
+    * transferring install time customizations to the underlying nix flake
+    * triggering the install of the complete system via nix flakes
 
 ### Install from upstream ISO
 
