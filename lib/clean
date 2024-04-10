@@ -13,12 +13,14 @@ Options:
 
 Commands:
   all               Clean everything
+  pkg               Clean the given package out of the nix store
   store             Clean the nix store
 USAGE
 
     log::ln "\nExamples:"
     log::subln "Clean nix store: ${green}./${SCRIPT} clean all${none}"
     log::subln "Clean nix store: ${green}./${SCRIPT} clean store${none}"
+    log::subln "Clean nix store package: ${green}./${SCRIPT} clean /nix/store/1234${none}"
     echo
     exit
 }
@@ -34,9 +36,17 @@ clean::run()
     local command=$1; shift
     case "$command" in
         all) clean::store -d ;;
+        pkg) clean::pkg "$@" ;;
         store) clean::store ;;
         *) log::error "Invalid clean command: ${cyan}${command}${none}"; clean::usage ;;
     esac
+}
+
+# Clean the given package from the nix store
+# --------------------------------------------------------------------------------------------------
+clean::pkg()
+{
+    nix-store --delete $@
 }
 
 # Clean up nix store
