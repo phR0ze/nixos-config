@@ -13,12 +13,9 @@ let
       IconTheme=pe_colored
       JavaPath=${cfg.javaPath}
       Language=en_US
+      LastHostname=nixos
       MaxMemAlloc=${toString cfg.maxMemAlloc}
       MinMemAlloc=${toString cfg.minMemAlloc}
-      MainWindowGeometry=@ByteArray(AdnQywADAAAAAAAAAAAAJQAAAykAAAKeAAAABQAAAEIAAAMkAAACmQAAAAAAAAAABQAAAAAFAAAAQgAAAyQAAAKZ)
-      MainWindowState="@ByteArray(AAAA/wAAAAD9AAAAAAAAAmsAAAH0AAAABAAAAAQAAAAIAAAACPwAAAADAAAAAQAAAAEAAAAeAGkAbgBzAHQAYQBuAGMAZQBUAG8AbwBsAEIAYQByAwAAAAD/////AAAAAAAAAAAAAAACAAAAAQAAABYAbQBhAGkAbgBUAG8AbwBsAEIAYQByAQAAAAD/////AAAAAAAAAAAAAAADAAAAAQAAABYAbgBlAHcAcwBUAG8AbwBsAEIAYQByAQAAAAD/////AAAAAAAAAAA=)"
-      ToolbarsLocked=false
-      WideBarVisibility_instanceToolBar="@ByteArray(111111111,BpBQWIumr+0ABXFEarV0R5nU0iY=)"
     '');
 in
 {
