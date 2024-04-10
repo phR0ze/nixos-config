@@ -113,7 +113,7 @@ in
       environment.systemPackages = with pkgs; [ barrier ];
     })
     (lib.mkIf cfgS.enable {
-      environment.etc."barrier.conf".source = barrierConfig;
+      environment.etc."barrier.conf".link = barrierConfig;
     })
     (lib.mkIf cfgC.enable {
       systemd.user.services.barrierc = {

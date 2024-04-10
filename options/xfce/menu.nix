@@ -63,7 +63,7 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf (cfg.overrides != []) {
-      files.all.".local/share/applications".source = menuItems;
+      files.all.".local/share/applications".link = menuItems;
     })
   ];
 }
