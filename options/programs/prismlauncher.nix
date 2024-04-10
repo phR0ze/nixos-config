@@ -56,7 +56,7 @@ in
       ];
 
       # Install the first time configuration
-      files.user.".local/share/PrismLauncher/prismlauncher.cfg".source = cfgfile;
+      files.user.".local/share/PrismLauncher/prismlauncher.cfg".copy = cfgfile;
     })
   ];
 }
