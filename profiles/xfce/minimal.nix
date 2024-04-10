@@ -38,12 +38,12 @@
         { name = "VirtualBox"; exec = "VirtualBox"; icon = "virtualbox"; }
       ];
       xfce.menu.overrides = [
-        { noDisplay = true; source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; }
-        { noDisplay = true; source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; }
-        { noDisplay = true; source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; }
-        { categories = "Office"; source = "${pkgs.libreoffice}/share/applications/math.desktop"; }
-        { name = "Terminal"; source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; }
-        { icon = "Thunar"; source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; }
+        { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
+        { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; noDisplay = true; }
+        { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; noDisplay = true; }
+        { source = "${pkgs.libreoffice}/share/applications/math.desktop"; categories = "Office"; }
+        { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; name = "Terminal"; }
+        { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
       ];
     };
   };
