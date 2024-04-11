@@ -18,7 +18,7 @@
             show-a11y=false
             show-hostname=false
             show-keyboard=false
-            clock-format=%H:%M:%S
+            clock-format=%h:%M:%S
           '';
         };
       };
