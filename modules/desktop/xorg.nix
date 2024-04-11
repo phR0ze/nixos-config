@@ -41,15 +41,15 @@
           theme.package = pkgs.arc-theme;
           iconTheme.name = "Paper";
           iconTheme.package = pkgs.paper-icon-theme;
-          font.name = "Noto Sans 32";
-          font.package = pkgs.noto-fonts;
+          #font.name = "Noto Sans";
+          #font.package = pkgs.noto-fonts;
           extraConfig = ''
+            enable-hidpi=on
             show-a11y=false
             show-hostname=false
             show-keyboard=false
             clock-format=%a  %b  %d    %I:%M %P
           '';
-            #enable-hidpi=on
         };
       #autoLogin.enable = args.settings.autologin;
       #autoLogin.user = args.settings.username;
