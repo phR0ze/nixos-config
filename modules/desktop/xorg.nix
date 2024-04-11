@@ -10,8 +10,9 @@
     displayManager = {
       lightdm = {
         enable = true;
-        greeters.enso.enable = true;
+        #greeters.enso.enable = true;
         #greeters.gtk.enable = true;
+        greeters.mini.enable = true;
 
         # enso, mini, tiny, slick, mobile, gtk, pantheon
         #greeters.slick = {
@@ -24,10 +25,8 @@
       };
 
       # Conditionally autologin based on install settings
-      autoLogin = {
-        enable = args.settings.autologin;
-        user = args.settings.username;
-      }; 
+      #autoLogin.enable = args.settings.autologin;
+      #autoLogin.user = args.settings.username;
     };
 
     # Arch Linux recommends libinput and Xfce uses it in its settings manager
