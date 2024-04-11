@@ -198,7 +198,7 @@ in
     };
   };
 
-  config = mkIf (ldmcfg.enable && cfg.enable) {
+  config = lib.mkIf (ldmcfg.enable && cfg.enable) {
     environment.systemPackages = [ webkit2GreeterPkg ];
 
     services = {
