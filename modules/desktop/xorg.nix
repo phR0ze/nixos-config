@@ -18,11 +18,13 @@
             show-a11y=false
             show-hostname=false
             show-keyboard=false
-            clock-format=%I:%M:%S
+            clock-format=%a %b %d %r
           '';
         };
       };
     };
+
+            #clock-format=%I:%M:%S
 
 #        greeters.slick = {
 #          enable = true;
