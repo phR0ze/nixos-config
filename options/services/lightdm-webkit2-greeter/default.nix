@@ -7,7 +7,7 @@ let
   ldmcfg = config.services.xserver.displayManager.lightdm;
   cfg = ldmcfg.greeters.webkit2;
 
-  webkit2Greeter = pkgs.stdenvNoCC.mkDerivation rec {
+  webkit2Greeter = pkgs.stdenv.mkDerivation rec {
     name = "lightdm-webkit2-greeter";
     version = "2.2.5";
     src = pkgs.fetchFromGitHub {
