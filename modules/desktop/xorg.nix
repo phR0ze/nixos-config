@@ -66,7 +66,7 @@
 #        extraConfig = ''
 #          background=#ca9ee6
 #          enable-hidpi=on
-        '';
+#        '';
       };
       # Conditionally autologin based on install settings
       #autoLogin.enable = args.settings.autologin;
