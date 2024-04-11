@@ -2,6 +2,30 @@
 #
 # ### Details
 # - requires a GUI desktop environment
+#
+# Clock format
+# %a  Abbreviated weekday name (Mon, Tue, etc.)
+# %A  Full weekday name (Monday, Tuesday, etc.)
+# %b  Abbreviated month name (Jan, Feb, etc.)
+# %B  Full month name (January, February, etc.)
+# %d  Day of month
+# %j  Julian day of year
+# %m  Month number (01-12)
+# %y  Year in century
+# %Y  Year with 4 digits
+# -------------------------------------------------------------------------------
+# %H  Hour (00-23)
+# %I  Hour (00-12)
+# %M  Minutes (00-59)
+# %S  Seconds(00-59)
+# %P  AM or PM
+# %p  am or pm
+# -------------------------------------------------------------------------------
+# %D  Date as %m/%d/%y
+# %r  Time as %I:%M:%S %p
+# %R  Time as %H:%M
+# %T  Time as %H:%M:%S
+# %Z  Time Zone Name 
 #---------------------------------------------------------------------------------------------------
 { pkgs, args, ... }:
 {
@@ -18,7 +42,7 @@
             show-a11y=false
             show-hostname=false
             show-keyboard=false
-            clock-format=%a %b %d %r
+            clock-format=%a %d | %b.%Y | %I:%M %P
           '';
         };
       };
