@@ -57,8 +57,6 @@
   };
 
   environment.xfce.excludePackages = with pkgs.xfce // pkgs; [
-    gnome.gnome-themes-extra          # default extra gnome themes
-    gnome.adwaita-icon-theme          # default gnome theme
     tango-icon-theme                  # Xfce default,
     mousepad                          # Xfce default, simple text editor
     parole                            # Xfce default, simple media player
