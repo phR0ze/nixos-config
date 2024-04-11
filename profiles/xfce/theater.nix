@@ -9,11 +9,8 @@
     ./desktop.nix
   ];
 
-  # The first element is used as the default resolution
-  services.xserver.resolutions = [
-    { x = 1920; y = 1080; }
-  ];
-
-  environment.systemPackages = with pkgs; [
-  ];
+  #services.xserver.resolutions = [ { x = 1920; y = 1080; } ];
+  services.xserver.desktopManager.xfce.desktop.background = lib.mkForce
+    "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
+  environment.systemPackages = with pkgs; [ ];
 }
