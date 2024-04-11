@@ -10,7 +10,7 @@
   ];
 
   # Configure theater system resolution default
-  services.xserver.displayManager.desktopManager.xfce.display.resolution = { x = 1920; y = 1080; };
+  services.xserver.desktopManager.xfce.display.resolution = { x = 1920; y = 1080; };
 
   # Configure theater system background
   services.xserver.desktopManager.xfce.desktop.background = lib.mkOverride 500
