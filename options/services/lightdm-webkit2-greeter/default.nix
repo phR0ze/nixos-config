@@ -204,7 +204,7 @@ in
     services = {
       xserver.displayManager.lightdm = {
         greeters.gtk.enable = false;
-        greeter = mkDefault {
+        greeter = lib.mkDefault {
           package = webkit2GreeterPkg;
           name = "lightdm-webkit2-greeter";
         };
