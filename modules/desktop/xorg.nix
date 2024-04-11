@@ -10,8 +10,8 @@
     displayManager = {
       lightdm = {
         enable = true;
-        greeters.slick.enable = true;
-        greeters.slick.draw-user-backgrounds = true;
+        #greeters.slick.enable = true;
+        #greeters.slick.draw-user-backgrounds = true;
         greeters.webkit2.enable = true;
         #greeters.slick = {
         #  enable = true;
