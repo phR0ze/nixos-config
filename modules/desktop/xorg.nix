@@ -37,8 +37,7 @@
         greeters.slick = {
           enable = true;
           draw-user-backgrounds = true;
-          #theme.name = "Arc-Dark";
-          #theme.package = pkgs.arc-theme;
+          theme.name = "Adwaita-dark";
           extraConfig = ''
             enable-hidpi=on
             show-a11y=false
