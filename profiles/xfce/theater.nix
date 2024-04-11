@@ -10,7 +10,7 @@
   ];
 
   #services.xserver.resolutions = [ { x = 1920; y = 1080; } ];
-  services.xserver.desktopManager.xfce.desktop.background = lib.mkForce
+  services.xserver.desktopManager.xfce.desktop.background = lib.mkOverride 500
     "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
   environment.systemPackages = with pkgs; [ ];
 }
