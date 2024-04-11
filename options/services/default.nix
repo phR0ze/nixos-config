@@ -4,5 +4,6 @@
 {
   imports = [
     ./barrier.nix
+    ./lightdm-webkit2-greeter
   ];
 }
