@@ -5,7 +5,7 @@
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
-  cfg = config.services.xserver.desktopManager.xfce.displays.resolution;
+  cfg = config.services.xserver.desktopManager.xfce.defaultDisplay.resolution;
 
   xmlfile = lib.mkIf (cfg.x != 0 && cfg.y != 0)
     (pkgs.writeText "xsettings.xml" ''
@@ -22,7 +22,7 @@ let
 in
 {
   options = {
-    services.xserver.desktopManager.xfce.displays.resolution = {
+    services.xserver.desktopManager.xfce.defaultDisplay.resolution = {
       x = lib.mkOption {
         type = types.int;
         default = 0;
