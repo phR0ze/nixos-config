@@ -10,11 +10,12 @@
     displayManager = {
       lightdm = {
         enable = true;
+        greeters.enso.enble;
         # enso, mini, tiny, slick, mobile, gtk, pantheon
-        greeters.slick = {
-          enable = true;
-          theme.name = "Zukitre-dark";
-        };
+        #greeters.slick = {
+        #  enable = true;
+        #  theme.name = "Zukitre-dark";
+        #};
 
         #background = "";
         #xfce.desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
