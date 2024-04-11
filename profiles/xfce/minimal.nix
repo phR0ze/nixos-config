@@ -56,23 +56,9 @@
     };
   };
 
-  programs.xfconf.enable = true;            # Enable XFCE's configuration manager
-  
-  environment.systemPackages = with pkgs.xfce // pkgs; [
-    gnome.gnome-themes-extra          # Xfce default,
-    gnome.adwaita-icon-theme          # Xfce default,
-    hicolor-icon-theme                # Xfce default,
-    desktop-file-utils                # Xfce default,
-    shared-mime-info                  # Xfce default, for update-mime-database
-    polkit_gnome                      # Xfce default, polkit authentication agent
-    ristretto                         # Xfce default, simple picture viewer
-    xfce4-appfinder                   # Xfce default
-    xfce4-screenshooter               # Xfce default, plugin that makes screenshots for Xfce
-    xfce4-taskmanager                 # Xfce default
-    xfce4-terminal                    # Xfce default
-  ];
-
   environment.xfce.excludePackages = with pkgs.xfce // pkgs; [
+    gnome.gnome-themes-extra          # default extra gnome themes
+    gnome.adwaita-icon-theme          # default gnome theme
     tango-icon-theme                  # Xfce default,
     mousepad                          # Xfce default, simple text editor
     parole                            # Xfce default, simple media player

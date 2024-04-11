@@ -147,6 +147,7 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
+* [ ] Adjust lightdm login theme
 
 ## Sometime
 * [ ] Create ISO with full live GUI environment
