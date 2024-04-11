@@ -42,7 +42,7 @@
             show-a11y=false
             show-hostname=false
             show-keyboard=false
-            clock-format=%b %Y,    %a %d,    %I:%M %P
+            clock-format=%b  %Y,    %a  %d,    %I:%M %P
           '';
         };
       };
