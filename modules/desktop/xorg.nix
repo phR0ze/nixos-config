@@ -13,6 +13,7 @@
         #greeters.enso.enable = true;
         #greeters.gtk.enable = true;
         greeters.slick.enable = true;
+        greeters.slick.draw-user-backgrounds = true;
 
         # enso, mini, tiny, slick, mobile, gtk, pantheon
         #greeters.slick = {
