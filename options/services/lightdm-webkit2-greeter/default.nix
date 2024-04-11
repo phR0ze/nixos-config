@@ -44,7 +44,7 @@ let
 
     postPatch = "patchShebangs build/utils.sh";
 
-    nativeBuildInputs = [ meson ninja pkg-config wrapGAppsHook ];
+    nativeBuildInputs = with pkgs; [ meson ninja pkg-config wrapGAppsHook ];
     buildInputs = with pkgs; [ dbus-glib gtk3 lightdm webkitgtk ];
 
     mesonFlags = [
