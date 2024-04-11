@@ -12,7 +12,7 @@
         enable = true;
         #greeters.enso.enable = true;
         #greeters.gtk.enable = true;
-        greeters.tiny.enable = true;
+        greeters.slick.enable = true;
 
         # enso, mini, tiny, slick, mobile, gtk, pantheon
         #greeters.slick = {
