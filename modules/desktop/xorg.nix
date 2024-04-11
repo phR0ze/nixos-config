@@ -11,6 +11,7 @@
       lightdm = {
         enable = true;
         greeters.enso.enable = true;
+        greeters.enso.blur = true;
         # enso, mini, tiny, slick, mobile, gtk, pantheon
         #greeters.slick = {
         #  enable = true;
