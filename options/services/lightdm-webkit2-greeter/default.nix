@@ -99,7 +99,7 @@ in
         description = lib.mdDoc "Enable the lightdm-webkit2-greeter as the lightdm greeter";
       };
 
-      debugMode = mkOption {
+      debugMode = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc ''
@@ -107,7 +107,7 @@ in
         '';
       };
 
-      detectThemeErrors = mkOption {
+      detectThemeErrors = lib.mkOption {
         type = types.bool;
         default = true;
         description = lib.mdDoc ''
@@ -115,7 +115,7 @@ in
         '';
       };
 
-      screensaverTimeout = mkOption {
+      screensaverTimeout = lib.mkOption {
         type = types.int;
         default = 300;
         description = lib.mdDoc ''
@@ -124,7 +124,7 @@ in
         '';
       };
 
-      secureMode = mkOption {
+      secureMode = lib.mkOption {
         type = types.bool;
         default = true;
         description = lib.mdDoc ''
@@ -133,7 +133,7 @@ in
       };
 
       time = {
-        format = mkOption {
+        format = lib.mkOption {
           type = types.str;
           default = "LT";
           description = lib.mdDoc ''
@@ -142,7 +142,7 @@ in
           '';
         };
 
-        language = mkOption {
+        language = lib.mkOption {
           type = types.str;
           default = "auto";
           description = lib.mdDoc ''
@@ -151,7 +151,7 @@ in
         };
       };
 
-      webkitTheme = mkOption {
+      webkitTheme = lib.mkOption {
         type = types.either types.path (types.enum [ "antergos" "simple" ]);
         default = "antergos";
         example = literalExpression ''
@@ -167,7 +167,7 @@ in
       };
 
       branding = {
-        backgroundImages = mkOption {
+        backgroundImages = lib.mkOption {
           type = types.path;
           default = dirOf ldmcfg.background;
           example = literalExpression "\${pkgs.gnome.gnome-backgrounds}/share/backgrounds/gnome";
@@ -176,7 +176,7 @@ in
           '';
         };
 
-        logo = mkOption {
+        logo = lib.mkOption {
           type = types.path;
           default = pkgs.fetchurl {
             url = "https://raw.githubusercontent.com/NixOS/nixos-artwork/4f041870efa1a6f0799ef4b32bb7be2cafee7a74/logo/nixos.svg";
@@ -187,7 +187,7 @@ in
           '';
         };
 
-        userImage = mkOption {
+        userImage = lib.mkOption {
           type = types.path;
           default = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
           description = lib.mdDoc ''
