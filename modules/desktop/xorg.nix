@@ -37,10 +37,8 @@
         greeters.slick = {
           enable = true;
           draw-user-backgrounds = true;
-          theme.name = "Arc-Dark";
-          theme.package = pkgs.arc-theme;
-          iconTheme.name = "Papirus-Dark";
-          iconTheme.package = pkgs.papirus-icon-theme;
+          #theme.name = "Arc-Dark";
+          #theme.package = pkgs.arc-theme;
           extraConfig = ''
             enable-hidpi=on
             show-a11y=false
