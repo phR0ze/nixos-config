@@ -10,7 +10,7 @@
     displayManager = {
       lightdm = {
         enable = true;
-        greeters.enso.enable;
+        greeters.enso.enable = true;
         # enso, mini, tiny, slick, mobile, gtk, pantheon
         #greeters.slick = {
         #  enable = true;
