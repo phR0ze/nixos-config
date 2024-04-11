@@ -3,6 +3,7 @@
 { ... }:
 {
   imports = [
+    ./displays.nix
     ./keyboards.nix
     ./menu.nix
     ./thunar.nix
