@@ -3,7 +3,7 @@
 # ### Features
 # - Directly installable: xfce/desktop with additional media apps and configuration
 # --------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   imports = [
     ./desktop.nix
