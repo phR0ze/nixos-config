@@ -46,8 +46,8 @@
             clock-format=%a  %b  %d    %I:%M %P
           '';
         };
-      #autoLogin.enable = args.settings.autologin;
-      #autoLogin.user = args.settings.username;
+        autoLogin.enable = args.settings.autologin;
+        autoLogin.user = args.settings.username;
       };
     };
 
