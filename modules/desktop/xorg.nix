@@ -37,6 +37,8 @@
         greeters.slick = {
           enable = true;
           draw-user-backgrounds = true;
+          theme.name = "Arc-Dark";
+          iconTheme.name = "Paper";
           extraConfig = ''
             enable-hidpi=on
             show-a11y=false
@@ -45,35 +47,10 @@
             clock-format=%a  %b  %d    %I:%M %P
           '';
         };
-      };
-    };
-
-            #clock-format=%I:%M:%S
-
-#        greeters.slick = {
-#          enable = true;
-#          theme = {
-#            name = "vimix-dark-ruby";
-#            package = pkgs.vimix-gtk-themes.override {
-#              themeVariants = ["ruby"];
-#              colorVariants = ["dark"];
-#              tweaks = ["flat" "grey"];
-#            };
-#          };
-#          iconTheme = {
-#            name = "Adwaita";
-#            package = pkgs.gnome.adwaita-icon-theme;
-#          };
-#          extraConfig = ''
-#            show-a11y=false
-#            clock-format=%H:%M:%S
-#          '';
-#        };
-#      };
-
-      # Conditionally autologin based on install settings
       #autoLogin.enable = args.settings.autologin;
       #autoLogin.user = args.settings.username;
+      };
+    };
 
     # Arch Linux recommends libinput and Xfce uses it in its settings manager
     libinput = {
