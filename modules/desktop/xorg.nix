@@ -12,35 +12,65 @@
         enable = true;
 #        greeters.slick.enable = true;
 #        greeters.slick.draw-user-backgrounds = true;
-#        greeters.slick.extraConfig = {
-#          "show-hostname=false"
-#          "show-keyboard=false"
-#          "show-a11y=false"
+#        greeters.slick.extraConfig = ''
+#          show-a11y=false
+#          show-hostname=false
+#          show-keyboard=false
+#          clock-format=%H:%M:%S
+#        '';
+
+#        greeters.slick = {
+#          enable = true;
+#          theme = {
+#            name = "vimix-dark-ruby";
+#            package = pkgs.vimix-gtk-themes.override {
+#              themeVariants = ["ruby"];
+#              colorVariants = ["dark"];
+#              tweaks = ["flat" "grey"];
+#            };
+#          };
+#          iconTheme = {
+#            name = "Adwaita";
+#            package = pkgs.gnome.adwaita-icon-theme;
+#          };
+#          extraConfig = ''
+#            show-a11y=false
+#            clock-format=%H:%M:%S
+#          '';
 #        };
+#      };
+
+      lightdm = {
+        enable = true;
         greeters.slick = {
           enable = true;
-          theme = {
-            name = "vimix-dark-ruby";
-            package = pkgs.vimix-gtk-themes.override {
-              themeVariants = ["ruby"];
-              colorVariants = ["dark"];
-              tweaks = ["flat" "grey"];
-            };
+          theme.name = "Catppuccin-Frappe-Compact-Mauve-Dark";
+          theme.package = pkgs.catppuccin-gtk.override {
+            accents = ["mauve"];
+            size = "compact";
+            variant = "frappe";
+            tweaks = ["normal"];
           };
-          iconTheme = {
-            name = "Adwaita";
-            package = pkgs.gnome.adwaita-icon-theme;
+
+          iconTheme.name = "Papirus-Dark";
+          iconTheme.package = pkgs.catppuccin-papirus-folders.override {
+            flavor = "frappe";
+            accent = "mauve";
           };
+
+          font.name = "NotoSans Nerd Font Regular";
+          font.package = pkgs.nerdfonts.override {fonts = ["Noto"];};
+
+          cursorTheme.package = pkgs.catppuccin-cursors.frappeDark;
+          cursorTheme.name = "Catppuccin-Frappe-Dark-Cursors";
+          cursorTheme.size = 32;
+
           extraConfig = ''
-            show-a11y=false
-            clock-format=%H:%M:%S
+            background=#ca9ee6
+            enable-hidpi=on
           '';
         };
-        #greeters.slick = {
-        #  theme.name = "Zukitre-dark";
-        #};
       };
-
       # Conditionally autologin based on install settings
       #autoLogin.enable = args.settings.autologin;
       #autoLogin.user = args.settings.username;
