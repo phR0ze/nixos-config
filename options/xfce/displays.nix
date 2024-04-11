@@ -7,7 +7,7 @@ let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.displays.resolution
 
-  xmlfile = lib.mkIf cfg.enable
+  xmlfile = lib.mkIf (cfg.x != 0 && cfg.y != 0)
     (pkgs.writeText "xsettings.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xsettings" version="1.0">
