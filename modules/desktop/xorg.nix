@@ -10,12 +10,14 @@
     displayManager = {
       lightdm = {
         enable = true;
-        #background = "";
         # enso, mini, tiny, slick, mobile, gtk, pantheon
         greeters.slick = {
           enable = true;
           theme.name = "Zukitre-dark";
         };
+
+        #background = "";
+        #xfce.desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
       };
 
       # Conditionally autologin based on install settings

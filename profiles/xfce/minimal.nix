@@ -23,7 +23,7 @@
       xfce.xsettings.enable = true;
       xfce.panel.enable = true;
       xfce.powerManager.enable = true;
-      xfce.desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
+      xfce.desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/sector-8_1600x900.jpg";
       xfce.panel.launchers = [
         { name = "Xfce4 Terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
         { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
