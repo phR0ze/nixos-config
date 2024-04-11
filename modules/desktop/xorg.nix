@@ -41,7 +41,7 @@
           theme.package = pkgs.arc-theme;
           iconTheme.name = "Paper";
           iconTheme.package = pkgs.paper-icon-theme;
-          font.name = "Noto Sans 32":
+          font.name = "Noto Sans 32";
           font.package = pkgs.noto-fonts;
           extraConfig = ''
             show-a11y=false
