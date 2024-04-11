@@ -38,7 +38,9 @@
           enable = true;
           draw-user-backgrounds = true;
           theme.name = "Arc-Dark";
+          theme.package = pkgs.arc-theme;
           iconTheme.name = "Paper";
+          iconTheme.package = pkgs.paper-icon-theme;
           extraConfig = ''
             enable-hidpi=on
             show-a11y=false
