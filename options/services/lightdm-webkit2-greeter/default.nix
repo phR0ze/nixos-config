@@ -85,7 +85,7 @@ in
     };
   };
 
-  config = lib.mkIf (lib.mkIf (cfg.enable) {
+  config = lib.mkIf (cfg.enable) {
     environment.systemPackages = with pkgs; [ webkit2Greeter ];
     #files.all.".config/smplayer/themes".link = "${smplayer-themes}/share/smplayer/themes";
   };
