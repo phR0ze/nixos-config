@@ -8,9 +8,9 @@ let
   cfg = config.services.xserver.desktopManager.xfce.defaultDisplay.resolution;
 
   xmlfile = lib.mkIf (cfg.x != 0 && cfg.y != 0)
-    (pkgs.writeText "xsettings.xml" ''
+    (pkgs.writeText "displays.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
-      <channel name="xsettings" version="1.0">
+      <channel name="displays" version="1.0">
         <property name="ActiveProfile" type="string" value="Default"/>
         <property name="Default" type="empty">
           <property name="Default" type="string" value="Default">
