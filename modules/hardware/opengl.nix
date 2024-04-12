@@ -4,9 +4,12 @@
 # - Mesa is an open source OpenGL, Vulkan and other 3D graphics specification. AMD uses Mesa's 
 #   Radeon over the deprecated AMD Catalyst and Intel only uses Mesa. Nouveau also uses Mesa but
 #   Proprietary Nvidia doesn't use any of Mesa.
-# - test VA-API with: `nix-shell -p libva-utils --run vainfo`
-# - test OpenCL with: `clinfo | head -n3`
-# - test Vulkan with: `vulkaninfo | grep GPU` or `vkcube`
+#
+# ### Testing
+# - OpenGL with: `glxgears`
+# - VA-API with: `nix-shell -p libva-utils --run vainfo`
+# - OpenCL with: `clinfo | head -n3`
+# - Vulkan with: `vulkaninfo | grep GPU` or `vkcube`
 #
 # - https://nixos.wiki/wiki/OpenGL
 # - https://nixos.org/manual/nixos/unstable/#sec-gpu-accel
