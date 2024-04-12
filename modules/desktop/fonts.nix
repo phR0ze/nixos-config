@@ -44,17 +44,18 @@ in
       };
       subpixel.rgba = "rgb";        # See option for more details
       defaultFonts.monospace = [
-        "Inconsolata Nerd Font Mono Regular"
-        "Hack Nerd Font Mono Regular"
-        "Source Code Pro Regular"
         "DejaVu Sans Mono Book"
+        "Hack Nerd Font Mono Regular"
+        "Inconsolata Nerd Font Mono Regular"
+        "Source Code Pro Regular"
       ];
       defaultFonts.sansSerif = [
+        "DejaVu Sans Book"
         "Source Sans Pro Regular"
         "Liberation Sans Regular"
-        "DejaVu Sans Book"
       ];
       defaultFonts.serif = [
+        "DejaVu Serif Book"
         "Source Serif Pro Regular"
         "Liberation Serif Regular"
       ];
@@ -62,7 +63,7 @@ in
       localConf = ''
         <match>
           <test name="family"><string>Helvetica</string></test>
-          <edit binding="same" mode="assign" name="family"><string>Source Sans Pro Regular</string></edit>
+          <edit binding="same" mode="assign" name="family"><string>DejaVu Sans Book</string></edit>
         </match>
       '';
     };
