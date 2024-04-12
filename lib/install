@@ -126,7 +126,7 @@ install::config_system()
 
     # Modules must be at least staged for the flake to recognize them
     pushd ${NIXOS_CONFIG}
-    git add hardware-configuration.nix
+    git add hardware-configuration.nix -f
     popd
 
     # Extract the current NIXOS version from teh generated configuration.nix file
@@ -150,7 +150,7 @@ install::config_system()
     utils::replace str "userpass" "${USER_PASS}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "git_user" "${GIT_USER}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_CONFIG}/flake_opts.nix"
-    [ "x${AUTO_LOGIN}" == "x1" ] && autologin="true" || autologin="false"
+    [ "x${AUTO_LOGIN}" == "xy" ] && autologin="true" || autologin="false"
     utils::replace bool "autologin" "${autologin}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::check_status
 
@@ -239,7 +239,7 @@ install::run()
     log::header0 "Automatically deploy with defaults?"
     utils::read DEFAULT 'Use automatic mode with defaults' 'n'
     if [[ "x$DEFAULT" == "xy" ]]; then
-        AUTO_LOGIN=1
+        AUTO_LOGIN='n'
     fi
 
     # Drop out debug variables if in debug mode
@@ -314,7 +314,7 @@ install::run()
         if [ "x${NETIP}" != "xDHCP" ]; then
             utils::read GATEWAY 'Enter gateway' $(echo $NETIP | awk -F. '{print $1"."$2"."$3".1"}')
         fi
-        utils::read ENABLE_BLUETOOTH 'Enter bluetooth state' 0
+        utils::read ENABLE_BLUETOOTH 'Enter bluetooth state' 'n'
     fi
 
     # Collect time and date choices from user
@@ -353,9 +353,7 @@ install::run()
     # Collect auto login choice from user
     # ----------------------------------------------------------------------------------------------
     if [ "x$DEFAULT" != "xy" ]; then
-        if [ "x$AUTO_LOGIN" != "x1" ]; then
-            utils::read AUTO_LOGIN 'Do you want to auto login' 0
-        fi
+        utils::read AUTO_LOGIN 'Do you want to auto login' 'n'
     fi
 
     # Start install
