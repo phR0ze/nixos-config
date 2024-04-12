@@ -7,7 +7,7 @@
   imports = [
     #../../modules/hardware/scanners.nix
     ../../modules/development/vscode.nix
-    ../../modules/virtualization/virtualbox.nix
+    #../../modules/virtualization/virtualbox.nix causing weird networking delays on boot
   ];
 
   # Additional programs and services

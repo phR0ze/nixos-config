@@ -36,7 +36,7 @@
         { name = "Firefox"; exec = "firefox"; icon = "firefox"; }
         { name = "LibreOffice Calc"; exec = "libreoffice --calc"; icon = "libreoffice-calc"; }
         { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; }
-        { name = "VirtualBox"; exec = "VirtualBox"; icon = "virtualbox"; }
+        #{ name = "VirtualBox"; exec = "VirtualBox"; icon = "virtualbox"; }
       ];
       xfce.menu.overrides = [
         { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
