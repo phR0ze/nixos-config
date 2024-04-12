@@ -91,7 +91,7 @@ in
     services.xserver.desktopManager.xfce.xsettings.font = {
       defaultSans = lib.mkOption {
         type = types.str;
-        default = "Source Sans Pro";
+        default = "DejaVu Sans Book";
         description = lib.mdDoc "Default sans font";
       };
       defaultSansSize = lib.mkOption {
@@ -101,7 +101,7 @@ in
       };
       defaultMonospace = lib.mkOption {
         type = types.str;
-        default = "Inconsolata Nerd Font Mono";
+        default = "DejaVu Sans Mono";
         description = lib.mdDoc "Default monospace font";
       };
       defaultMonospaceSize = lib.mkOption {
