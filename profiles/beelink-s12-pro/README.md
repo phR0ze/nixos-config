@@ -3,7 +3,7 @@ Beelink S12 Pro
 
 <img align="left" width="48" height="48" src="../../art/logo_256x256.png">
 Documenting the steps I went through to deploy <b><i>cyberlinux</i></b> onto the
-<a href="https://www.notebookcheck.net/Intel-N100-performance-debut-Beelink-Mini-S12-Pro-mini-PC-review.758950.0.html">Beelink S12 Pro</a> <br> This is now a <b>NixOS</b> based system.
+<a href="https://www.notebookcheck.net/Intel-N100-performance-debut-Beelink-Mini-S12-Pro-mini-PC-review.758950.0.html">Beelink S12 Pro</a> <br> This is now a <b>NixOS</b> based system see my <a href="../../">nixos-config</a>
 <br><br>
 
 WIP while I switch over to NixOS
