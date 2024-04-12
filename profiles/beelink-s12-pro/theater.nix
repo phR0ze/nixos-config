@@ -16,9 +16,10 @@
   # so that I'm reminded as to its importance in the video configuration aspect of the beelink-s12
   boot.kernelModules = lib.mkForce [ "kvm-intel" ];
 
-  nixpkgs.config.packageOverrides = pkgs: {
-    vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
-  };
+  # Need to do this from input nixpkgs
+  #nixpkgs.config.packageOverrides = pkgs: {
+  #  vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+  #};
 
   hardware.opengl.extraPackages = with pkgs; [
     intel-media-driver          # VA-API for Intel iHD Broadwell (2014) or newer
