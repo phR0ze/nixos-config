@@ -4,6 +4,8 @@ Beelink S12 Pro
 Documenting the steps I went through to deploy <b><i>cyberlinux</i></b> onto the [Beelink S12 Pro](https://www.notebookcheck.net/Intel-N100-performance-debut-Beelink-Mini-S12-Pro-mini-PC-review.758950.0.html)
 <br><br>
 
+WIP while I switch over to NixOS
+
 ### Quick links
 * [Install cyberlinux](#install-cyberlinux)
 * [Configure cyberlinux](#configure-cyberlinux)

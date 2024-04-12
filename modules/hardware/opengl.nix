@@ -16,16 +16,18 @@
 #---------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
-  # boot.kernelModules = mkBefore [ "kvm-intel" ];
-
   # OpenGL configuration
   #-------------------------------------------------------------------------------------------------
   hardware.opengl = {
     enable = true;                      # Installs mesa, mesa_drivers, mesa-demos
-    driSupport = true;                  # Enable OpenGL rendering through DRI for Vulkan
-    driSupport32Bit = true;             # Enabled by X11 by default
-    package = pkgs.mesa.drivers;        # OpenGL implementation aliased with 'mesa_drivers'
-    package32 = pkgs.pkgsi686Linux.mesa.drivers;  # OpenGL implementation aliased with 'mesa_drivers'
+
+    # Defaults from the opengl option
+    driSupport = true;
+    driSupport32Bit = true;
+
+    # Defaults from the opengl option, also aliased with 'mesa_drivers'
+    package = pkgs.mesa.drivers;
+    package32 = pkgs.pkgsi686Linux.mesa.drivers;
 
     #setLdLibraryPath = true;           # Drivers using libglvnd dispatch should not set this
 
@@ -45,7 +47,6 @@
       #libvdpau-va-gl                   #
 #    vaapi-intel-hybrid
 #    libva-full
-#    libva-utils
      #libglvnd                          # GL Vendor Neutral dispatch library
     ];
     extraPackages32 = with pkgs.pkgsi686Linux; [
@@ -58,9 +59,6 @@
       #intel-ocl                        # OpenCL support for Intel Gen 7 or older
       #intel-media-driver               # VA-API support for Intel iHD Broadwell (2014) or newer
       #intel-vaapi-driver               # VA-API support for Intel i965 Broadwell (2014) or older aka vaapiIntel
-
-      #intel-media-driver               # iHD, Use for Broadwell (2014) or newer
-      #intel-vaapi-driver               # Use for older than Broadwell (2014), aliased with vaapiIntel
     ];
   };
 
@@ -68,7 +66,7 @@
   #-------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
     mesa                                # Open-source 3D graphics library
-    mesa_drivers                        # An open source 3D graphics library
+    mesa.drivers                        # An open source 3D graphics library
     mesa-demos                          # Collection of demos and test programs for OpenGL and Mesa
     libva-utils                         # A collection of utilities and examples for VA-API e.g. vainfo
   ];
