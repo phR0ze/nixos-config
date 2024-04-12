@@ -148,7 +148,7 @@ install::config_system()
     utils::replace str "email" "${USER_EMAIL}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "username" "${USER_NAME}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "userpass" "${USER_PASS}" "${NIXOS_CONFIG}/flake_opts.nix"
-    utils::replace str "git_name" "${GIT_USER}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "git_user" "${GIT_USER}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_CONFIG}/flake_opts.nix"
     [ "x${AUTO_LOGIN}" == "x1" ] && autologin="true" || autologin="false"
     utils::replace bool "autologin" "${autologin}" "${NIXOS_CONFIG}/flake_opts.nix"
