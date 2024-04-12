@@ -34,6 +34,7 @@
   # Add additional packages
   # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
+    intel-gpu-tools
   ];
 
   # NFS Shares
