@@ -2,6 +2,7 @@
 #
 # ### Features
 # - Directly installable: xfce/theater with additional hardware configuration
+# - Working hardware accelerated video in Kodi as verified with 'intel_gpu_top'
 # --------------------------------------------------------------------------------------------------
 { lib, pkgs, ... }:
 {
@@ -16,20 +17,12 @@
   # so that I'm reminded as to its importance in the video configuration aspect of the beelink-s12
   boot.kernelModules = lib.mkForce [ "kvm-intel" ];
 
-  # Need to do this from input nixpkgs
-  #nixpkgs.config.packageOverrides = pkgs: {
-  #  vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
-  #};
-
   hardware.opengl.extraPackages = with pkgs; [
     intel-media-driver          # VA-API for Intel iHD Broadwell (2014) or newer
     intel-vaapi-driver          # VA-API for Intel i965 Broadwell (2014), better for Firefox?
     vaapiVdpau                  # VDPAU driver for the VAAPI library
     libvdpau-va-gl              # VDPAU driver with OpenGL/VAAPI backend
   ];
-
-  # Force intel-media-driver
-  #environment.sessionVariables = { LIBVA_DRIVER_NAME = "iHD"; };
 
   # Add additional packages
   # ------------------------------------------------------------------------------------------------
@@ -53,6 +46,16 @@
     };
     "/mnt/TV" = {
       device = "192.168.1.2:/srv/nfs/TV";
+      fsType = "nfs";
+      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+    };
+    "/mnt/Exercise" = {
+      device = "192.168.1.2:/srv/nfs/Exercise";
+      fsType = "nfs";
+      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+    };
+    "/mnt/Pictures" = {
+      device = "192.168.1.2:/srv/nfs/Pictures";
       fsType = "nfs";
       options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
     };
