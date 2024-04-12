@@ -20,18 +20,39 @@
     vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
   };
 
-  hardware.opengl = {
-    enable = true;
-    extraPackages = with pkgs; [
-      intel-media-driver # LIBVA_DRIVER_NAME=iHD
-      vaapiIntel         # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
-      vaapiVdpau
-      libvdpau-va-gl
-    ];
-  };
- 
+  hardware.opengl.extraPackages = with pkgs; [
+    intel-media-driver          # VA-API for Intel iHD Broadwell (2014) or newer
+    intel-vaapi-driver          # VA-API for Intel i965 Broadwell (2014), better for Firefox?
+    vaapiVdpau                  # VDPAU driver for the VAAPI library
+    libvdpau-va-gl              # VDPAU driver with OpenGL/VAAPI backend
+  ];
+
+  # Force intel-media-driver
+  #environment.sessionVariables = { LIBVA_DRIVER_NAME = "iHD"; };
+
   # Add additional packages
   # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
   ];
+
+  # NFS Shares
+  # ------------------------------------------------------------------------------------------------
+  services.rpcbind.enable = true; # needed for NFS
+  fileSystems = {
+    "/mnt/Movies" = {
+      device = "192.168.1.2:/srv/nfs/Movies";
+      fsType = "nfs";
+      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+    };
+    "/mnt/Kids" = {
+      device = "192.168.1.2:/srv/nfs/Kids";
+      fsType = "nfs";
+      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+    };
+    "/mnt/TV" = {
+      device = "192.168.1.2:/srv/nfs/TV";
+      fsType = "nfs";
+      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+    };
+  };
 }
