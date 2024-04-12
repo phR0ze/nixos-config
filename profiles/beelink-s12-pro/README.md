@@ -1,6 +1,6 @@
-![cyberlinux logo](../../art/logo_32x32.png) Beelink S12 Pro
+Beelink S12 Pro
 ====================================================================================================
-Documenting the steps I went through to deploy ***cyberlinux*** onto the
+![cyberlinux logo](../../art/logo_32x32.png) Documenting the steps I went through to deploy ***cyberlinux*** onto the
 [Beelink S12 Pro](https://www.notebookcheck.net/Intel-N100-performance-debut-Beelink-Mini-S12-Pro-mini-PC-review.758950.0.html)
 
 WIP while I switch over to NixOS
