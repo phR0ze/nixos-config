@@ -1,15 +1,13 @@
 Beelink S12 Pro
 ====================================================================================================
-<img align="left" width="48" height="48" src="../../../art/logo_256x256.png">
+<img align="left" width="48" height="48" src="../../art/logo_256x256.png">
 Documenting the steps I went through to deploy <b><i>cyberlinux</i></b> onto the [Beelink S12 Pro](https://www.notebookcheck.net/Intel-N100-performance-debut-Beelink-Mini-S12-Pro-mini-PC-review.758950.0.html)
 <br><br>
 
 ### Quick links
-* [.. up dir](../README.md)
 * [Install cyberlinux](#install-cyberlinux)
 * [Configure cyberlinux](#configure-cyberlinux)
   * [WiFi](#wifi)
-  * [General](#general)
   * [Graphics](#graphics)
   * [Kodi](#kodi)
   * [Warcraft 2](#warcraft-2)
@@ -17,14 +15,12 @@ Documenting the steps I went through to deploy <b><i>cyberlinux</i></b> onto the
 # Install cyberlinux
 
 1. Boot the S12 from the USB:
-   1. Plug in the [Multiboot USB](../../../cyberlinux#create-multiboot-usb)
+   1. Plugin in the USB built from [Build the live ISO for installation](../../README.md#build-the-live-iso-for-installation)
    2. Press `F7` repeatedly until the boot menu pops up
    3. Select your `UEFI` device entry e.g. `UEFI: KingstonDataTraveler 2.01.00`
 
 3. Install `cyberlinux`
-   1. Select the desired deployment type e.g. `Install xfce desktop`
-   2. Complete out the process and login to your new system
-   3. Unplug the USB, reboot and log back in
+   1. see [Install from custom ISO](../../README.md#isntall-from-custom-iso)
 
 # Configure cyberlinux
 
@@ -34,10 +30,6 @@ NetworkManager make configuring Wifi a breeze
 1. Left click on the NetworkManager applet in the system tray
 2. Select your WiFi endpoint
 3. Enter in your password and done
-
-## General
-1. Copy over ssh keys to `~/.ssh`
-2. Copy over any wallpaper to `/usr/share/backgrounds`
 
 ## Graphics
 [Hardware Video Acceleration](https://wiki.archlinux.org/title/Hardware_video_acceleration)
