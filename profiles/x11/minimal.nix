@@ -10,7 +10,7 @@
     ../../modules/hardware/bluetooth.nix
     ../../modules/hardware/firmware.nix
     ../../modules/hardware/printers.nix
-    ../../modules/hardware/opengl.nix
+    ../../modules/hardware/video.nix
     ../../modules/network/firefox.nix
     ../../modules/network/network-manager.nix
     ../../modules/desktop/backgrounds.nix

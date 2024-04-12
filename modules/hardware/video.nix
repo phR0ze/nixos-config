@@ -1,13 +1,31 @@
-# OpenGL video configuration
+# Hardware video acceleration configuration
 #
-# ### Detail
-# - Mesa is an open source OpenGL, Vulkan and other 3D graphics specification. AMD uses Mesa's 
-#   Radeon over the deprecated AMD Catalyst and Intel only uses Mesa. Nouveau also uses Mesa but
-#   Proprietary Nvidia doesn't use any of Mesa.
+# - https://wiki.archlinux.org/title/Hardware_video_acceleration
+# - https://wiki.archlinux.org/title/Hardware_video_acceleration#Comparison_tables
+#
+# ### Background
+# There are are few different hardware accelerated video APIs: VA-API and VDPAU are the most common:
+# - Video Acceleration API (VA-API) is a specification developed by Intel for both hardware 
+#   accelerated video encoding and decoding. Much more widely supported than VDPAU.
+# - Video Decode and Presentation API for Unix (VDPAU) is an open source library and API to offload 
+#   portions of the video decoding process and video post-processing to the GPU developed by Nvidia.
+#   Primarily used by Nvidia cards and has limited support in applications.
+#
+# - Mesa is an open source implementation for the various API specifications including VA-API, VDPAU, 
+#   OpenGL, Vulkan, OpenCL and other 3D graphics specification. AMD, Intel and Nouveau all use Mesa, 
+#   but Nvidia's proprietary driver doesn't.
+#
+# ### General config steps
+# 1. Make the kernel use the correct driver early
+#    boot.kernelModules = lib.mkForce [ "kvm-intel" ];
+#    boot.initrd.kernelModules = [ "amdgpu" ];
+#
+# 2. Make Xserver use the correct driver
+#    services.xserver.videoDrivers = [ "amdgpu" ];
 #
 # ### Testing
 # - OpenGL with: `glxgears`
-# - VA-API with: `nix-shell -p libva-utils --run vainfo`
+# - Check VA-API support: `nix-shell -p libva-utils --run vainfo`
 # - OpenCL with: `clinfo | head -n3`
 # - Vulkan with: `vulkaninfo | grep GPU` or `vkcube`
 #
@@ -34,14 +52,14 @@
     # Additional drivers e.g. VA-API/VDPAU
     extraPackages = with pkgs; [
       # AMD GPUs
-      # rocmPackages.clr.icd            # OpenCL support for modern AMD GPUs
-      # amdvlk                          # Vulkan support for Non-free driver, free is part of Mesa
+      # rocmPackages.clr.icd            # OpenCL for modern AMD GPUs
+      # amdvlk                          # Vulkan for Non-free driver, free is part of Mesa
 
       # Intel GPUs
-      #intel-compute-runtime            # OpenCL support for Intel Gen 8 or newer
-      #intel-ocl                        # OpenCL support for Intel Gen 7 or older
-      #intel-media-driver               # VA-API support for Intel iHD Broadwell (2014) or newer
-      #intel-vaapi-driver               # VA-API support for Intel i965 Broadwell (2014) or older aka vaapiIntel
+      #intel-compute-runtime            # OpenCL for Intel Gen 8 or newer
+      #intel-ocl                        # OpenCL for Intel Gen 7 or older
+      #intel-media-driver               # VA-API for Intel iHD Broadwell (2014) or newer
+      #intel-vaapi-driver               # VA-API for Intel i965 Broadwell (2014), alias 'vaapiIntel'
 
       #vaapiVdpau                       # 
       #libvdpau-va-gl                   #
@@ -51,14 +69,14 @@
     ];
     extraPackages32 = with pkgs.pkgsi686Linux; [
       # AMD GPUs
-      # rocmPackages.clr.icd            # OpenCL support for modern AMD GPUs
-      # amdvlk                          # Vulkan support for Non-free driver, free is part of Mesa
+      # rocmPackages.clr.icd            # OpenCL for modern AMD GPUs
+      # amdvlk                          # Vulkan for Non-free driver, free is part of Mesa
 
       # Intel GPUs
-      #intel-compute-runtime            # OpenCL support for Intel Gen 8 or newer
-      #intel-ocl                        # OpenCL support for Intel Gen 7 or older
-      #intel-media-driver               # VA-API support for Intel iHD Broadwell (2014) or newer
-      #intel-vaapi-driver               # VA-API support for Intel i965 Broadwell (2014) or older aka vaapiIntel
+      #intel-compute-runtime            # OpenCL for Intel Gen 8 or newer
+      #intel-ocl                        # OpenCL for Intel Gen 7 or older
+      #intel-media-driver               # VA-API for Intel iHD Broadwell (2014) or newer
+      #intel-vaapi-driver               # VA-API for Intel i965 Broadwell (2014), alias 'vaapiIntel'
     ];
   };
 
@@ -69,6 +87,7 @@
     mesa.drivers                        # An open source 3D graphics library
     mesa-demos                          # Collection of demos and test programs for OpenGL and Mesa
     libva-utils                         # A collection of utilities and examples for VA-API e.g. vainfo
+    vdpauinfo                           # Tool to query the Video Decode and Presentation API (VDPAU)
   ];
 
   # Video drivers to be tried in order until one that supports your card is found
