@@ -73,7 +73,10 @@ let
             <property name="style" type="uint" value="0"/>
           </property>
           <property name="plugin-4" type="string" value="tasklist">
-            <property name="grouping" type="uint" value="1"/>
+            <property name="grouping" type="bool" value="${f.boolToStr cfg.taskbar.grouping}"/>
+            <property name="sort-order" type="uint" value="4"/>
+            <property name="window-scrolling" type="bool" value="false"/>
+            <property name="show-handle" type="bool" value="false"/>
           </property>
           <property name="plugin-5" type="string" value="separator">
             <property name="expand" type="bool" value="true"/>
@@ -197,6 +200,11 @@ in
         type = types.int;
         default = 20;
         description = lib.mdDoc "Taskbar icon size in pixels";
+      };
+      grouping = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Taskbar item grouping";
       };
     };
     services.xserver.desktopManager.xfce.panel.launcher = {
