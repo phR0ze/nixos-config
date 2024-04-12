@@ -46,6 +46,7 @@
     handbrake                           # Video encoding tool for mp4/mkv
     lame                                # High quality MPEG layer III audio encoder
     mkvtoolnix                          # Cross-platform tools for Matroska
+    mpv                                 # General purpose media player, fork of MPlayer and mplayer2
     openshot-qt                         # Simple powerful Video Editor, alt: pitivi, kdenlive
     #obs-studio                          # Free and open source software for video recording and live streaming
     simplescreenrecorder                # Awesome screen recorder
