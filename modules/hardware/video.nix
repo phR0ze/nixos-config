@@ -15,6 +15,9 @@
 #   OpenGL, Vulkan, OpenCL and other 3D graphics specification. AMD, Intel and Nouveau all use Mesa, 
 #   but Nvidia's proprietary driver doesn't.
 #
+# ### Discovery
+# 1. Determmine your Video card with `lspci | grep VGA`
+#
 # ### General config steps
 # 1. Make the kernel use the correct driver early
 #    boot.kernelModules = lib.mkForce [ "kvm-intel" ];
@@ -89,6 +92,7 @@
     mesa-demos                          # Collection of demos and test programs for OpenGL and Mesa
     pciutils                            # Collection of utilities for inspecting and manipulating PCI devices
     vdpauinfo                           # Tool to query the Video Decode and Presentation API (VDPAU)
+    nvtop                  # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
     #nvtopPackages.full                  # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
   ];
 
