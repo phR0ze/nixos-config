@@ -93,7 +93,7 @@
     pciutils                            # Collection of utilities for inspecting and manipulating PCI devices
     vdpauinfo                           # Tool to query the Video Decode and Presentation API (VDPAU)
     nvtop                               # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
-    #.nvtopPackages.full                  # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
+    radeontop                           # Top-like tool for viewing AMD Radeon GPU utilization
   ];
 
   # Video drivers to be tried in order until one that supports your card is found
