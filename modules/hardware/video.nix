@@ -92,8 +92,12 @@
     mesa-demos                          # Collection of demos and test programs for OpenGL and Mesa
     pciutils                            # Collection of utilities for inspecting and manipulating PCI devices
     vdpauinfo                           # Tool to query the Video Decode and Presentation API (VDPAU)
-    nvtop                               # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
-    radeontop                           # Top-like tool for viewing AMD Radeon GPU utilization
+
+    # Doesn't seem to recognize the GPU even exists
+    #nvtop                              # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
+
+    # Doesn't show hardware decoding usage only general usage
+    #radeontop                           # Top-like tool for viewing AMD Radeon GPU utilization
   ];
 
   # Video drivers to be tried in order until one that supports your card is found

@@ -76,6 +76,7 @@
     conky                               # Advanced, highly configurable system monitor
     exiftool                            # A tool to read, write and edit EXIF meta information
     gnome-multi-writer                  # Tool for writing an ISO file to multiple USB devices at once
+    htop                                # Better top tool
     hardinfo                            # A system information and benchmark tool
     light                               # Control backlights for screen and keyboard
     veracrypt                           # Free Open-Source filesystem encryption
