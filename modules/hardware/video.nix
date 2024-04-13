@@ -83,12 +83,13 @@
   # Supporting system packages
   #-------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
+    libva-utils                         # A collection of utilities and examples for VA-API e.g. vainfo
     mesa                                # Open-source 3D graphics library
     mesa.drivers                        # An open source 3D graphics library
     mesa-demos                          # Collection of demos and test programs for OpenGL and Mesa
-    libva-utils                         # A collection of utilities and examples for VA-API e.g. vainfo
+    pciutils                            # Collection of utilities for inspecting and manipulating PCI devices
     vdpauinfo                           # Tool to query the Video Decode and Presentation API (VDPAU)
-    nvtopPackages.full                  # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
+    #nvtopPackages.full                  # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
   ];
 
   # Video drivers to be tried in order until one that supports your card is found
