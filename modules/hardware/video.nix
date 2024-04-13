@@ -88,6 +88,7 @@
     mesa-demos                          # Collection of demos and test programs for OpenGL and Mesa
     libva-utils                         # A collection of utilities and examples for VA-API e.g. vainfo
     vdpauinfo                           # Tool to query the Video Decode and Presentation API (VDPAU)
+    nvtopPackages.full                  # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
   ];
 
   # Video drivers to be tried in order until one that supports your card is found
