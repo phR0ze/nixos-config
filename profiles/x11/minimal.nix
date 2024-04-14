@@ -13,7 +13,7 @@
     ../../modules/hardware/video.nix
     ../../modules/network/firefox.nix
     ../../modules/network/network-manager.nix
-    ../../modules/desktop/backgrounds.nix
+    ../../modules/desktop/lightdm.nix
     ../../modules/desktop/fonts.nix
     ../../modules/desktop/icons.nix
     ../../modules/desktop/xdg.nix
