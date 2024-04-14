@@ -1,4 +1,4 @@
-# Background configuration
+# Lightdm configuration
 #
 # NixOS uses /run/current-system/sw/share in place of /usr/share
 #---------------------------------------------------------------------------------------------------
@@ -11,6 +11,7 @@ let
   '';
 in
 {
+
   # 2. Add the package to the /nix/store
   environment.systemPackages = [
     backgroundsPackage
@@ -21,4 +22,22 @@ in
   environment.pathsToLink = [
     "/share/backgrounds"  # /run/current-system/sw/share/backgrounds
   ];
+
+  # Enable lightdm and set its default configuration
+  services.xserver.displayManager.lightdm = {
+    enable = true;
+    background = "${backgroundsPackage}/share/backgrounds/sector-8_1600x900.jpg";
+    greeters.slick = {
+      enable = true;
+      draw-user-backgrounds = true;
+      theme.name = "Adwaita-dark";
+      extraConfig = ''
+        enable-hidpi=on
+        show-a11y=false
+        show-hostname=false
+        show-keyboard=false
+        clock-format=%a  %b  %d    %I:%M %P
+      '';
+    };
+  };
 }
