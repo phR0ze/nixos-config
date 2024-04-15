@@ -17,6 +17,7 @@ in
   services.xserver = {
     displayManager = {
       defaultSession = "xfce";
+      # mkDefault is 1000 so this should take priority over defaults but allow for more overrides
       lightdm.background = lib.mkOverride 900 "${backgrounds}/share/backgrounds/sector-8_1600x900.jpg";
     };
     desktopManager = {
