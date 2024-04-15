@@ -9,7 +9,7 @@ pkgs.rustPlatform.buildRustPackage rec {
   src = pkgs.fetchFromGitHub {
     owner = "phR0ze";
     repo = pname;
-    rev = "refs/tags/v${version}"
+    rev = "refs/tags/v${version}";
     hash = "sha256-+O1fOL7qh/sHN1tEtIANt/+bEOCsjVmECLDBmSSQmHI=";
   };
 
