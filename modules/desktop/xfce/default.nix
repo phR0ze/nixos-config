@@ -6,7 +6,7 @@
 # --------------------------------------------------------------------------------------------------
 { lib, pkgs, ... }:
 let
-  backgrounds = pkgs.callPackage ../backgrounds/pkg.nix { };
+  backgrounds = pkgs.callPackage ../backgrounds { };
 
 in
 {
