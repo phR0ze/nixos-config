@@ -19,21 +19,21 @@
 {
   imports = [
     ../../options
-    ../../modules/locale.nix
-    ../../modules/nix.nix
-    ../../modules/users.nix
-    ../../modules/boot/kernel.nix
-    ../../modules/terminal/env.nix
-    ../../modules/terminal/bash.nix
-    ../../modules/terminal/starship.nix
-    ../../modules/network/base.nix
-    ../../modules/development/git.nix
-    ../../modules/development/neovim.nix
-    ../../modules/services/sshd.nix
-    ../../modules/services/systemd.nix
+    ../locale.nix
+    ../nix.nix
+    ../users.nix
+    ../boot/kernel.nix
+    ./env.nix
+    ./bash.nix
+    ./starship.nix
+    ../network/base.nix
+    ../development/git.nix
+    ../development/neovim.nix
+    ../services/sshd.nix
+    ../services/systemd.nix
 
   # conditionally exclude grub for iso builds
-  ] ++ lib.optional (!args.iso) ../../modules/boot/grub.nix;
+  ] ++ lib.optional (!args.iso) ../boot/grub.nix;
 
 
   # Install hardware firmware

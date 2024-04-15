@@ -6,8 +6,8 @@
 { pkgs, ... }:
 {
   imports = [
-    ./minimal.nix
-    ../x11/desktop.nix
+    ../../modules/desktop/xfce
+    ../../modules/desktop/x11/desktop.nix
   ];
 
   environment.systemPackages = with pkgs; [ ];
