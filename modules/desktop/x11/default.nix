@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------------------------------
 { pkgs, args, ... }:
 let
-  backgrounds = pkgs.callPackage ../backgrounds/pkg.nix { };
+  backgrounds = pkgs.callPackage ../backgrounds { };
 
 in
 {
