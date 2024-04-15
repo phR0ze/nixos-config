@@ -6,7 +6,7 @@
 # --------------------------------------------------------------------------------------------------
 { lib, pkgs, ... }:
 let
-  backgrounds = pkgs.callPackage ../../modules/desktop/backgrounds/pkg.nix { };
+  #backgrounds = pkgs.callPackage ../../modules/desktop/backgrounds/pkg.nix { };
 
 in
 {
@@ -19,7 +19,7 @@ in
       defaultSession = "xfce";
     };
     desktopManager = {
-      lightdm.background = lib.mkDefault "${backgrounds}/share/backgrounds/sector-8_1600x900.jpg";
+      #lightdm.background = lib.mkDefault "${backgrounds}/share/backgrounds/sector-8_1600x900.jpg";
 
       xfce.enable = true;
       xfce.enableXfwm = true;
