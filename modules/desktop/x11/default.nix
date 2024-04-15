@@ -12,7 +12,7 @@
     ../../hardware/video.nix
     ../../network/firefox.nix
     ../../network/network-manager.nix
-    ../backgrounds
+    ../backgrounds/opt.nix
     ../fonts.nix
     ../icons.nix
     ../xdg.nix
