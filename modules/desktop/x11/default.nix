@@ -2,10 +2,6 @@
 #
 #---------------------------------------------------------------------------------------------------
 { pkgs, args, ... }:
-let
-  backgrounds = pkgs.callPackage ../backgrounds { };
-
-in
 {
   imports = [
     ../../terminal
@@ -16,6 +12,7 @@ in
     ../../hardware/video.nix
     ../../network/firefox.nix
     ../../network/network-manager.nix
+    ../backgrounds
     ../fonts.nix
     ../icons.nix
     ../xdg.nix
@@ -52,7 +49,6 @@ in
     arc-kde-theme                       # A port of the arc theme for Plasma
     paper-icon-theme                    # Modern icon theme designed around bold colors
     numix-cursor-theme                  # Numix cursor theme
-    backgrounds                         # Custom backgrounds
 
     # Utilities
     galculator                          # Simple calculator
