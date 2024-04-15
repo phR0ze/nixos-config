@@ -10,7 +10,7 @@ pkgs.rustPlatform.buildRustPackage rec {
     owner = "phR0ze";
     repo = pname;
     rev = "refs/tags/v${version}";
-    cargoHash = lib.fakeHash;
+    hash = lib.fakeHash;
   };
 
   cargoHash = lib.fakeHash;
