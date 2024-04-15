@@ -9,9 +9,9 @@ pkgs.rustPlatform.buildRustPackage rec {
   src = pkgs.fetchFromGitHub {
     owner = "phR0ze";
     repo = pname;
-    rev = "refs/tags/v${version}";
-    hash = "sha256-X7YHDtsB+kqHFc8ieHTpmwjSjRLh6iy/Jg49ijK/79Q=";
+    rev = "refs/tags/v${version}"
+    cargoHash = lib.fakeHash;
   };
 
-  cargoHash = "sha256-jjA+oPDXW+pvopCAgCN8QiBTla/71iZKINCYgXw9MCM=";
+  cargoHash = lib.fakeHash;
 }
