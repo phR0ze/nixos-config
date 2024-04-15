@@ -17,7 +17,7 @@ in
   services.xserver = {
     displayManager = {
       defaultSession = "xfce";
-      lightdm.background = lib.mkDefault "${backgrounds}/share/backgrounds/sector-8_1600x900.jpg";
+      lightdm.background = lib.mkOverride 900 "${backgrounds}/share/backgrounds/sector-8_1600x900.jpg";
     };
     desktopManager = {
       xfce.enable = true;
