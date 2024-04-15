@@ -5,7 +5,7 @@
 # --------------------------------------------------------------------------------------------------
 { lib, pkgs, ... }:
 let
-  #backgrounds = pkgs.callPackage ../../modules/desktop/backgrounds/pkg.nix { };
+  backgrounds = pkgs.callPackage ../../modules/desktop/backgrounds/pkg.nix { };
 
 in
 {
@@ -21,8 +21,8 @@ in
     "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
 
   # Set the default background image to avoid initial boot changes
-  #services.xserver.displayManager.lightdm.background = lib.mkOverride 500
-  #  "${backgrounds}/share/backgrounds/theater_curtains1.jpg";
+  services.xserver.displayManager.lightdm.background = lib.mkOverride 500
+    "${backgrounds}/share/backgrounds/theater_curtains1.jpg";
 
   # Add additional theater package
   environment.systemPackages = with pkgs; [ ];
