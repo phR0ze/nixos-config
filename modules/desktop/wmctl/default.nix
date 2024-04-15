@@ -13,9 +13,5 @@ pkgs.rustPlatform.buildRustPackage rec {
     hash = "sha256-X7YHDtsB+kqHFc8ieHTpmwjSjRLh6iy/Jg49ijK/79Q=";
   };
 
-  #cargoLock = {
-  #  lockFile = ./Cargo.lock;
-  #};
-
-  cargoHash = lib.fakeHash;
+  cargoHash = "sha256-jjA+oPDXW+pvopCAgCN8QiBTla/71iZKINCYgXw9MCM=";
 }
