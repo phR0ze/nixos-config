@@ -109,7 +109,6 @@ TERM st-meta-256color
 TERM tmux
 TERM tmux-256color
 TERM vt100
-TERM wezterm
 TERM xterm
 TERM xterm-new
 TERM xterm-16color

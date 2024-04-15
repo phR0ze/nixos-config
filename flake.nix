@@ -30,10 +30,6 @@
     # ----------------------------------------------------------------------------------------------
     settings = {
       stateVersion = "24.05";           # Base install version, not sure this matters when on flake
-      #wmType = if (wm == "hyprland") then "wayland" else "x11";
-      term = "wezterm";             # default terminal to use
-      fontName = "Intel One Mono";    # default font name
-      #fontPkg = pkgs.intel-one-mono;  # default font package
     }
     // import ./flake_opts.nix;         # include configuration set during installation
 
