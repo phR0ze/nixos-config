@@ -52,5 +52,6 @@
 
     # Utilities
     galculator                          # Simple calculator
+    wezterm                             # GPU accelerated terminal
   ];
 }

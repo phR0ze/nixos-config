@@ -42,7 +42,7 @@
       <property name="&lt;Super&gt;p" type="string" value="xfce4-display-settings --minimal"/>
       <property name="&lt;Primary&gt;&lt;Shift&gt;Escape" type="string" value="xfce4-taskmanager"/>
       <property name="override" type="bool" value="true"/>
-      <property name="&lt;Super&gt;t" type="string" value="alacritty"/>
+      <property name="&lt;Super&gt;t" type="string" value="wezterm"/>
       <property name="Super_L" type="string" value="xfce4-popup-applicationsmenu"/>
       <property name="&lt;Super&gt;l" type="string" value="xflock4"/>
       <property name="&lt;Super&gt;Escape" type="string" value="xkill"/>
