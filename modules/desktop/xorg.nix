@@ -27,11 +27,26 @@
 # %T  Time as %H:%M:%S
 # %Z  Time Zone Name 
 #---------------------------------------------------------------------------------------------------
-{ pkgs, args, ... }:
+{ lib, pkgs, args, ... }:
 {
   services.xserver = {
     enable = true;
     displayManager = {
+      lightdm = {
+        enable = true;
+        greeters.slick = {
+          enable = true;
+          draw-user-backgrounds = true;
+          theme.name = "Adwaita-dark";
+          extraConfig = ''
+            enable-hidpi=on
+            show-a11y=false
+            show-hostname=false
+            show-keyboard=false
+            clock-format=%a  %b  %d    %I:%M %P
+          '';
+        };
+      };
       autoLogin.enable = args.settings.autologin;
       autoLogin.user = args.settings.username;
     };

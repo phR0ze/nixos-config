@@ -7,6 +7,6 @@
 {
   imports = [
     ./desktop.nix
-    ../x11/develop.nix
+    ../../modules/desktop/x11/develop.nix
   ];
 }

@@ -5,7 +5,7 @@
 { config, lib, pkgs, args, ... }:
 {
   imports = [
-    ../cli
+    ../../terminal
   ];
 
   #services.xserver.displayManager.startx.enable = true;

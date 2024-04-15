@@ -1,23 +1,25 @@
-# Minimal desktop independent X11 configuration
+# X11 minimal configuration
 #
-# ### Features
 #---------------------------------------------------------------------------------------------------
 { pkgs, args, ... }:
+let
+  backgrounds = callPackage ../backgrounds/pkg.nix { };
+
+in
 {
   imports = [
-    ../cli
-    ../../modules/hardware/audio.nix
-    ../../modules/hardware/bluetooth.nix
-    ../../modules/hardware/firmware.nix
-    ../../modules/hardware/printers.nix
-    ../../modules/hardware/video.nix
-    ../../modules/network/firefox.nix
-    ../../modules/network/network-manager.nix
-    ../../modules/desktop/lightdm.nix
-    ../../modules/desktop/fonts.nix
-    ../../modules/desktop/icons.nix
-    ../../modules/desktop/xdg.nix
-    ../../modules/desktop/xorg.nix
+    ../../terminal
+    ../../hardware/audio.nix
+    ../../hardware/bluetooth.nix
+    ../../hardware/firmware.nix
+    ../../hardware/printers.nix
+    ../../hardware/video.nix
+    ../../network/firefox.nix
+    ../../network/network-manager.nix
+    ../fonts.nix
+    ../icons.nix
+    ../xdg.nix
+    ../xorg.nix
   ];
 
   programs.geany.enable = true;         # Simple text editor
@@ -45,11 +47,12 @@
     i3lock-color                        # Simple lightweight screen locker
     paprefs                             # Pulse audio server preferences for simultaneous output
 
-    # Themes and icons
+    # Themes, icons and backgrounds
     arc-theme                           # Flat theme with transparent elements for GTK 3 and GTK 2
     arc-kde-theme                       # A port of the arc theme for Plasma
     paper-icon-theme                    # Modern icon theme designed around bold colors
     numix-cursor-theme                  # Numix cursor theme
+    backgrounds                         # Custom backgrounds
 
     # Utilities
     galculator                          # Simple calculator

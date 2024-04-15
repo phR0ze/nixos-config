@@ -5,9 +5,9 @@
 { pkgs, args, ... }:
 {
   imports = [
-    #../../modules/hardware/scanners.nix
-    ../../modules/development/vscode.nix
-    #../../modules/virtualization/virtualbox.nix causing weird networking delays on boot
+    #../../hardware/scanners.nix
+    ../../development/vscode.nix
+    #../../virtualization/virtualbox.nix causing weird networking delays on boot
   ];
 
   # Additional programs and services
