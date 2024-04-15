@@ -5,7 +5,7 @@
 
 pkgs.rustPlatform.buildRustPackage rec {
   pname = "wmctl";
-  version = "0.0.45";
+  version = "0.0.48";
   src = pkgs.fetchFromGitHub {
     owner = "phR0ze";
     repo = pname;
