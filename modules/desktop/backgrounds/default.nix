@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 let
-  backgrounds = callPackage ./pkg.nix { };
+  backgrounds = pkgs.callPackage ./pkg.nix { };
 
 in
 {
