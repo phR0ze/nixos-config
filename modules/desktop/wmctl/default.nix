@@ -16,4 +16,6 @@ pkgs.rustPlatform.buildRustPackage rec {
   cargoLog = {
     lockFile = ./Cargo.lock;
   };
+
+  cargoHash = lib.fakeHash;
 }
