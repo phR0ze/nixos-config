@@ -53,6 +53,7 @@
     # Utilities
     galculator                          # Simple calculator
     alacritty                           # GPU accelerated terminal
+    alacritty-theme                     # GPU accelerated terminal themes
     wezterm                             # GPU accelerated terminal
   ];
 }
