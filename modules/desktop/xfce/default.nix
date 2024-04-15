@@ -7,6 +7,7 @@
 { lib, pkgs, ... }:
 let
   backgrounds = pkgs.callPackage ../backgrounds { };
+  wmctl = pkgs.callPackage ../wmctl { };
 
 in
 {
@@ -62,6 +63,10 @@ in
       ];
     };
   };
+
+  environment.systemPackages = [
+    wmctl
+  ];
 
   environment.xfce.excludePackages = with pkgs.xfce // pkgs; [
     tango-icon-theme                  # Xfce default,
