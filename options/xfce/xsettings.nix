@@ -6,8 +6,9 @@
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.xsettings;
+  xfceCfg = config.services.xserver.desktopManager.xfce;
 
-  xmlfile = lib.mkIf cfg.enable
+  xmlfile = lib.mkIf xfceCfg.enable
     (pkgs.writeText "xsettings.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xsettings" version="1.0">
@@ -57,16 +58,6 @@ in
 {
   options = {
     services.xserver.desktopManager.xfce.xsettings = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Enable XFCE panel configuration";
-      };
-      ownConfigs = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Overwrite settings every reboot/update";
-      };
       gtkTheme = lib.mkOption {
         type = types.str;
         default = "Arc-Dark";
@@ -123,37 +114,31 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable) {
+  config = lib.mkIf xfceCfg.enable {
 
-      # Add kvantum support to configure Qt theming to match
-      environment.systemPackages = with pkgs; [
-        libsForQt5.qt5ct
-        libsForQt5.qtstyleplugin-kvantum
-      ];
+    # Add kvantum support to configure Qt theming to match
+    environment.systemPackages = with pkgs; [
+      libsForQt5.qt5ct
+      libsForQt5.qtstyleplugin-kvantum
+    ];
 
-      # Configure the qt theme engine to use
-      qt = {
-        enable = true;
-        platformTheme = "qt5ct";
-        style = "kvantum";
-      };
+    # Configure the qt theme engine to use
+    qt = {
+      enable = true;
+      platformTheme = "qt5ct";
+      style = "kvantum";
+    };
 
-      # Configure the kvantum theme to use for Qt
-      files.all.".config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=${cfg.qtTheme}";
-      #files.all.".config/Kvantum/ArcDark".source = "${pkgs.arc-kde-theme}/share/Kvantum/ArcDark";
-      files.all.".config/Kvantum/ArcDark".link = ../../include/home/.config/Kvantum/ArcDark;
-      files.all.".config/qt5ct/qt5ct.conf".text = ''
-        [Fonts]
-        fixed="${cfg.font.defaultMonospace},${toString cfg.font.defaultMonospaceSize},-1,5,50,0,0,0,0,0,Regular"
-        general="${cfg.font.defaultSans},${toString cfg.font.defaultSansSize},-1,5,50,0,0,0,0,0,Regular"
-      '';
-    })
-    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml".copy = xmlfile;
-    })
-    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml".ownCopy = xmlfile;
-    })
-  ];
+    # Configure the kvantum theme to use for Qt
+    files.all.".config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=${cfg.qtTheme}";
+    #files.all.".config/Kvantum/ArcDark".source = "${pkgs.arc-kde-theme}/share/Kvantum/ArcDark";
+    files.all.".config/Kvantum/ArcDark".link = ../../include/home/.config/Kvantum/ArcDark;
+    files.all.".config/qt5ct/qt5ct.conf".text = ''
+      [Fonts]
+      fixed="${cfg.font.defaultMonospace},${toString cfg.font.defaultMonospaceSize},-1,5,50,0,0,0,0,0,Regular"
+      general="${cfg.font.defaultSans},${toString cfg.font.defaultSansSize},-1,5,50,0,0,0,0,0,Regular"
+    '';
+
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml".copy = xmlfile;
+  };
 }

@@ -6,13 +6,14 @@
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.panel;
+  xfceCfg = config.services.xserver.desktopManager.xfce;
 
   desktopType = (import ./desktop-type.nix {
     inherit options config lib pkgs args;
   }).desktopType;
 
   # Define the xml file contents
-  panelXmlFile = lib.mkIf cfg.enable
+  panelXmlFile = lib.mkIf xfceCfg.enable
     (pkgs.writeText "xfce4-panel.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xfce4-panel" version="1.0">
@@ -166,13 +167,6 @@ let
 in
 {
   options = {
-    services.xserver.desktopManager.xfce.panel = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Enable XFCE panel configuration";
-      };
-    };
     services.xserver.desktopManager.xfce.panel.clock = {
       military = lib.mkOption {
         type = types.bool;
@@ -227,7 +221,7 @@ in
 
   # Install the generated xml file
   config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
+    (lib.mkIf xfceCfg.enable {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml".ownCopy = panelXmlFile;
       files.all.".config/xfce4/panel".link = launchersPackage;
     })

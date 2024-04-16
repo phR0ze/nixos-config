@@ -25,12 +25,6 @@ in
       xfce.enable = true;
       xfce.enableXfwm = true;
       xfce.enableScreensaver = true;
-      xfce.keyboards.enable = true;
-      xfce.thunar.enable = true;
-      xfce.xsettings.enable = true;
-      xfce.panel.enable = true;
-      xfce.terminal.enable = true;
-      xfce.powerManager.enable = true;
       xfce.desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/sector-8_1600x900.jpg";
       xfce.panel.launchers = [
         { name = "Xfce4 Terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }

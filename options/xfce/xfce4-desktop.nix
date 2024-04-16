@@ -6,6 +6,7 @@
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.desktop;
+  xfceCfg = config.services.xserver.desktopManager.xfce;
 
   monitors = [
     "monitorDisplayPort-0"
@@ -44,7 +45,7 @@ let
   # Generate the xfce4-desktop xml settings file based on the given options
   # White space is a little tricky see docs link for more details
   # https://nixos.org/manual/nix/stable/language/values.html?highlight=indent#type-string
-  xmlfile = lib.mkIf (cfg.enable || cfg.background != null)
+  xmlfile = lib.mkIf (xfceCfg.enable)
     (pkgs.writeText "xfce4-desktop.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
 
@@ -77,16 +78,10 @@ let
         </property>
       </channel>
     '');
-
 in
 {
   options = {
     services.xserver.desktopManager.xfce.desktop = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Enable XFCE desktop configuration";
-      };
       background = lib.mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -126,9 +121,7 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable || cfg.background != null) {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml".ownCopy = xmlfile;
-    })
-  ];
+  config = lib.mkIf xfceCfg.enable {
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml".ownCopy = xmlfile;
+  };
 }

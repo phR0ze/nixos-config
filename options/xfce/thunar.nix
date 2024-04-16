@@ -5,8 +5,9 @@
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.thunar;
+  xfceCfg = config.services.xserver.desktopManager.xfce;
 
-  thunarXmlfile = lib.mkIf cfg.enable
+  thunarXmlfile = lib.mkIf xfceCfg.enable
     (pkgs.writeText "thunar.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="thunar" version="1.0">
@@ -15,7 +16,7 @@ let
       </channel>
     '');
 
-  thunarVolmanXmlfile = lib.mkIf cfg.enable
+  thunarVolmanXmlfile = lib.mkIf xfceCfg.enable
     (pkgs.writeText "thunar-volman.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="thunar-volman" version="1.0">
@@ -32,16 +33,6 @@ in
 {
   options = {
     services.xserver.desktopManager.xfce.thunar = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Enable XFCE thunar configuration";
-      };
-      ownConfigs = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Overwrite settings every reboot/update";
-      };
       view = lib.mkOption {
         type = types.enum [ "ThunarDetailsView" ];
         default = "ThunarDetailsView";
@@ -68,23 +59,16 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable) {
-      programs.thunar.enable = true;            # install and configure thunar
-      programs.thunar.plugins = with pkgs.xfce; [
-        thunar-volman                           # install volman plugin
-        thunar-archive-plugin                   # install archive plugin
-        thunar-media-tags-plugin                # install media tags plugin
-      ];
-      services.tumbler.enable = true;           # provides image thumbnails
-    })
-    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".copy = thunarXmlfile;
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar-volman.xml".copy = thunarVolmanXmlfile;
-    })
-    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".ownCopy = thunarXmlfile;
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar-volman.xml".ownCopy = thunarVolmanXmlfile;
-    })
-  ];
+  config = lib.mkIf (xfceCfg.enable) {
+    programs.thunar.enable = true;            # install and configure thunar
+    programs.thunar.plugins = with pkgs.xfce; [
+      thunar-volman                           # install volman plugin
+      thunar-archive-plugin                   # install archive plugin
+      thunar-media-tags-plugin                # install media tags plugin
+    ];
+    services.tumbler.enable = true;           # provides image thumbnails
+
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".copy = thunarXmlfile;
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar-volman.xml".copy = thunarVolmanXmlfile;
+  };
 }
