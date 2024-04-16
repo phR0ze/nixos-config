@@ -20,7 +20,7 @@ USAGE
     log::ln "\nExamples:"
     log::subln "Clean nix store: ${green}./${SCRIPT} clean all${none}"
     log::subln "Clean nix store: ${green}./${SCRIPT} clean store${none}"
-    log::subln "Clean nix store package: ${green}./${SCRIPT} clean /nix/store/1234${none}"
+    log::subln "Clean nix store package: ${green}./${SCRIPT} clean pkg /nix/store/1234${none}"
     echo
     exit
 }
