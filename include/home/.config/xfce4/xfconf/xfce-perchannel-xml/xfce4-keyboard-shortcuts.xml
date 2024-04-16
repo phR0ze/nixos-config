@@ -65,6 +65,7 @@
       <property name="&lt;Super&gt;minus" type="string" value="wmctl shape shrink"/>
       <property name="&lt;Super&gt;Left" type="string" value="wmctl place halfw left"/>
       <property name="&lt;Super&gt;Right" type="string" value="wmctl place halfw right"/>
+      <property name="F12" type="string" value="xfce4-terminal --hide-menubar --drop-down"/>
     </property>
   </property>
   <property name="xfwm4" type="empty">
