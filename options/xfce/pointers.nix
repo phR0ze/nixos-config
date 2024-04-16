@@ -6,8 +6,9 @@
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.pointers;
+  xfceCfg = config.services.xserver.desktopManager.xfce;
 
-  xmlfile = lib.mkIf cfg.enable
+  xmlfile = lib.mkIf (xfceCfg.enable)
     (pkgs.writeText "pointers.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="pointers" version="1.0">
@@ -22,16 +23,6 @@ in
 {
   options = {
     services.xserver.desktopManager.xfce.pointers = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Enable XFCE pointers configuration";
-      };
-      ownConfigs = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Overwrite settings every reboot/update";
-      };
       rightHanded = lib.mkOption {
         type = types.bool;
         default = true;
@@ -46,13 +37,8 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/pointers.xml".copy = xmlfile;
-    })
-    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/pointers.xml".ownCopy = xmlfile;
-    })
-  ];
+  config = lib.mkIf xfceCfg.enable {
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/pointers.xml".copy = xmlfile;
+  };
 
 }

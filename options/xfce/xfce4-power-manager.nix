@@ -6,8 +6,9 @@
 let
   f = pkgs.callPackage ../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.powerManager;
+  xfceCfg = config.services.xserver.desktopManager.xfce;
 
-  xmlfile = lib.mkIf cfg.enable
+  xmlfile = lib.mkIf xfceCfg.enable
     (pkgs.writeText "xfce4-power-manager.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xfce4-power-manager" version="1.0">
@@ -26,16 +27,6 @@ in
 {
   options = {
     services.xserver.desktopManager.xfce.powerManager = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Enable XFCE power management configuration";
-      };
-      ownConfigs = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Overwrite settings every reboot/update";
-      };
       presentationMode = lib.mkOption {
         type = types.bool;
         default = true;
@@ -50,15 +41,8 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable) {
-      powerManagement.enable = true;            # Indirectly installs xfce4-power-manager
-    })
-    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".copy = xmlfile;
-    })
-    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".ownCopy = xmlfile;
-    })
-  ];
+  config = lib.mkIf xfceCfg.enable {
+    powerManagement.enable = true;            # Indirectly installs xfce4-power-manager
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml".copy = xmlfile;
+  };
 }
