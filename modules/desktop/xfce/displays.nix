@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../funcs { inherit lib; };
+  f = pkgs.callPackage ../../../funcs { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.defaultDisplay.resolution;
 
   xmlfile = lib.mkIf (cfg.x != 0 && cfg.y != 0)

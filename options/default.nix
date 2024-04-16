@@ -6,6 +6,5 @@
     ./files
     ./programs
     ./services
-    ./xfce
   ];
 }
