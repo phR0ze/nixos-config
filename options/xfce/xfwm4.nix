@@ -83,8 +83,8 @@ let
           <property name="toggle_workspaces" type="bool" value="false"/>
           <property name="unredirect_overlays" type="bool" value="true"/>
           <property name="urgent_blink" type="bool" value="false"/>
-          <property name="use_compositing" type="bool" value="true"/>
-          <property name="workspace_count" type="int" value="4"/>
+          <property name="use_compositing" type="bool" value="${f.boolToStr cfg.useCompositing}"/>
+          <property name="workspace_count" type="int" value="${toString cfg.workspaceCount}"/>
           <property name="wrap_cycle" type="bool" value="true"/>
           <property name="wrap_layout" type="bool" value="true"/>
           <property name="wrap_resistance" type="int" value="10"/>
@@ -95,13 +95,10 @@ let
           <property name="workspace_names" type="array">
             <value type="string" value="Workspace 1"/>
             <value type="string" value="Workspace 2"/>
-            <value type="string" value="Workspace 3"/>
-            <value type="string" value="Workspace 4"/>
           </property>
         </property>
       </channel>
     '');
-
 in
 {
   options = {
@@ -120,6 +117,16 @@ in
         type = types.int;
         default = 10;
         description = lib.mdDoc "Title font size";
+      };
+      workspaceCount = lib.mkOption {
+        type = types.int;
+        default = 2;
+        description = lib.mdDoc "Workspace count";
+      };
+      useCompositing = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = lib.mdDoc "Use composititing";
       };
     };
   };
