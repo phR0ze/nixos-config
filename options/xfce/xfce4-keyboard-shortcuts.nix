@@ -161,7 +161,7 @@ let
             <property name="&lt;Alt&gt;F8" type="string" value="resize_window_key"/>
             <property name="Left" type="string" value="left_key"/>
             <property name="override" type="bool" value="true"/>
-            <property name="${cfg.maximizedWindowKey}" type="string" value="maximize_window_key"/>
+            <property name="${cfg.maximizeWindowKey}" type="string" value="maximize_window_key"/>
             <property name="&lt;Alt&gt;&lt;Super&gt;1" type="string" value="move_window_workspace_1_key"/>
             <property name="&lt;Alt&gt;&lt;Super&gt;2" type="string" value="move_window_workspace_2_key"/>
             <property name="&lt;Alt&gt;&lt;Super&gt;3" type="string" value="move_window_workspace_3_key"/>
