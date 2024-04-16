@@ -3,6 +3,7 @@
 { ... }:
 {
   imports = [
+    ./xfwm4.nix
     ./displays.nix
     ./keyboards.nix
     ./menu.nix
