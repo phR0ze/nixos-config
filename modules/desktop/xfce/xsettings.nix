@@ -5,16 +5,16 @@
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
   f = pkgs.callPackage ../../../funcs { inherit lib; };
-  cfg = config.services.xserver.desktopManager.xfce.xsettings;
-  xfceCfg = config.services.xserver.desktopManager.xfce;
+  xcfg = config.services.xserver;
+  xfceCfg = xcfg.desktopManager.xfce;
 
-  xmlfile = lib.mkIf xfceCfg.enable
+  xmlfile = lib.mkIf (xcfg.enable && xfceCfg.enable)
     (pkgs.writeText "xsettings.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xsettings" version="1.0">
         <property name="Net" type="empty">
-          <property name="ThemeName" type="string" value="${cfg.gtkTheme}"/>
-          <property name="IconThemeName" type="string" value="${cfg.iconTheme}"/>
+          <property name="ThemeName" type="string" value="${xcfg.xft.gtkTheme}"/>
+          <property name="IconThemeName" type="string" value="${xcfg.xft.iconTheme}"/>
           <property name="DoubleClickTime" type="empty"/>
           <property name="DoubleClickDistance" type="empty"/>
           <property name="DndDragThreshold" type="empty"/>
@@ -25,17 +25,17 @@ let
           <property name="EnableInputFeedbackSounds" type="empty"/>
         </property>
         <property name="Xft" type="empty">
-          <property name="DPI" type="empty"/>
-          <property name="Antialias" type="int" value="${toString (f.boolToInt cfg.font.antiAlias)}"/>
+          <property name="DPI" type="int" value="${xcfg.xft.dpi}"/>
+          <property name="Antialias" type="int" value="${toString (f.boolToInt xcfg.xft.antiAlias)}"/>
           <property name="Hinting" type="int" value="1"/>
-          <property name="HintStyle" type="string" value="${cfg.font.hintingStyle}"/>
-          <property name="RGBA" type="empty"/>
+          <property name="HintStyle" type="string" value="${xcfg.xft.hintingStyle}"/>
+          <property name="RGBA" type="string" value="${xcfg.xft.rgba}"/>
         </property>
         <property name="Gtk" type="empty">
           <property name="CanChangeAccels" type="empty"/>
           <property name="ColorPalette" type="empty"/>
-          <property name="FontName" type="string" value="${cfg.font.defaultSans} ${toString cfg.font.defaultSansSize}"/>
-          <property name="MonospaceFontName" type="string" value="${cfg.font.defaultMonospace} ${cfg.font.defaultMonospaceStyle} ${toString cfg.font.defaultMonospaceSize}"/>
+          <property name="FontName" type="string" value="${xcfg.xft.sans} ${toString xcfg.xft.sansSize}"/>
+          <property name="MonospaceFontName" type="string" value="${xcfg.xft.monospace} ${xcfg.xft.monospaceStyle} ${toString xcfg.xft.monospaceSize}"/>
           <property name="IconSizes" type="empty"/>
           <property name="KeyThemeName" type="empty"/>
           <property name="ToolbarStyle" type="empty"/>
@@ -43,8 +43,8 @@ let
           <property name="MenuImages" type="empty"/>
           <property name="ButtonImages" type="empty"/>
           <property name="MenuBarAccel" type="empty"/>
-          <property name="CursorThemeName" type="string" value="${cfg.cursorTheme}"/>
-          <property name="CursorThemeSize" type="int" value="${toString cfg.cursorSize}"/>
+          <property name="CursorThemeName" type="string" value="${xcfg.xft.cursorTheme}"/>
+          <property name="CursorThemeSize" type="int" value="${toString xcfg.xft.cursorSize}"/>
           <property name="DecorationLayout" type="empty"/>
           <property name="DialogsUseHeader" type="empty"/>
           <property name="TitlebarMiddleClick" type="empty"/>
@@ -56,75 +56,8 @@ let
     '');
 in
 {
-  options = {
-    services.xserver.desktopManager.xfce.xsettings = {
-      gtkTheme = lib.mkOption {
-        type = types.str;
-        default = "Arc-Dark";
-        description = lib.mdDoc "GTK theme";
-      };
-      qtTheme = lib.mkOption {
-        type = types.str;
-        default = "ArcDark";
-        description = lib.mdDoc "Qt theme";
-      };
-      iconTheme = lib.mkOption {
-        type = types.str;
-        default = "Paper";
-        description = lib.mdDoc "Icon theme";
-      };
-      cursorTheme = lib.mkOption {
-        type = types.str;
-        default = "Numix-Cursor-Light";
-        description = lib.mdDoc "Cursor theme";
-      };
-      cursorSize = lib.mkOption {
-        type = types.int;
-        default = 16;
-        description = lib.mdDoc "Cursor size";
-      };
-    };
-    services.xserver.desktopManager.xfce.xsettings.font = {
-      defaultSans = lib.mkOption {
-        type = types.str;
-        default = "DejaVu Sans Book";
-        description = lib.mdDoc "Default sans font";
-      };
-      defaultSansSize = lib.mkOption {
-        type = types.int;
-        default = 11;
-        description = lib.mdDoc "Default sans font size";
-      };
-      defaultMonospace = lib.mkOption {
-        type = types.str;
-        default = "InconsolataGo Nerd Font Mono";
-        description = lib.mdDoc "Default monospace font";
-      };
-      defaultMonospaceStyle = lib.mkOption {
-        type = types.str;
-        default = "Regular";
-        description = lib.mdDoc "Default monospace font style";
-      };
-      defaultMonospaceSize = lib.mkOption {
-        type = types.int;
-        default = 13;
-        description = lib.mdDoc "Default monospace font size";
-      };
-      antiAlias = lib.mkOption {
-        type = types.bool;
-        default = true;
-        description = lib.mdDoc "Enable font anti-aliasing";
-      };
-      hintingStyle = lib.mkOption {
-        type = types.str;
-        default = "hintfull";
-        description = lib.mdDoc "Font anti-aliasing hinting";
-      };
-    };
-  };
-
   # Install the generated xml file
-  config = lib.mkIf xfceCfg.enable {
+  config = lib.mkIf (xcfg.enable && xfceCfg.enable) {
 
     # Add kvantum support to configure Qt theming to match
     environment.systemPackages = with pkgs; [
@@ -140,12 +73,12 @@ in
     };
 
     # Configure the kvantum theme to use for Qt
-    files.all.".config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=${cfg.qtTheme}";
+    files.all.".config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=${xcfg.xft.qtTheme}";
     files.all.".config/Kvantum/ArcDark".link = ../../../include/home/.config/Kvantum/ArcDark;
     files.all.".config/qt5ct/qt5ct.conf".text = ''
       [Fonts]
-      fixed="${cfg.font.defaultMonospace},${toString cfg.font.defaultMonospaceSize},-1,5,50,0,0,0,0,0,${cfg.font.defaultMonospaceStyle}"
-      general="${cfg.font.defaultSans},${toString cfg.font.defaultSansSize},-1,5,50,0,0,0,0,0,Regular"
+      fixed="${xcfg.xft.monospace},${toString xcfg.xft.monospaceSize},-1,5,50,0,0,0,0,0,${xcfg.xft.monospaceStyle}"
+      general="${xcfg.xft.sans},${toString xcfg.xft.sansSize},-1,5,50,0,0,0,0,0,Regular"
     '';
 
     files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml".copy = xmlfile;

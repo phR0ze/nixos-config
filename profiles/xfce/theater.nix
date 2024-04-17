@@ -14,11 +14,11 @@ in
   ];
 
   # High dpi settings
-  services.xserver.desktopManager.xfce.xsettings.cursorSize = 64;
-  #services.xserver.defaultFonts.dpi = 192;
-  #services.xserver.defaultFonts.sansSize = 18;
-  #services.xserver.defaultFonts.serifSize = 18;
-  #services.xserver.defaultFonts.monospaceSize = 18;
+  #services.xserver.xft.dpi = 192;
+  #services.xserver.xft.sansSize = 18;
+  #services.xserver.xft.serifSize = 18;
+  #services.xserver.xft.monospaceSize = 18;
+  #services.xserver.xft.cursorSize = 64;
 
   # Configure theater system resolution default
   services.xserver.desktopManager.xfce.defaultDisplay.resolution = { x = 1920; y = 1080; };
