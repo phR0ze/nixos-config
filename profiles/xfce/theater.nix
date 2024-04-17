@@ -14,7 +14,7 @@ in
   ];
 
   # High dpi settings
-  #services.xserver.xft.dpi = 192;
+  services.xserver.xft.dpi = 110;
   #services.xserver.xft.sansSize = 18;
   #services.xserver.xft.serifSize = 18;
   #services.xserver.xft.monospaceSize = 18;
