@@ -193,6 +193,7 @@ in
           roboto                        # Google Roboto family of fonts
           terminus-nerdfont             # A clean fixed width font
         ];
-      })
+      };
+    })
   };
 }
