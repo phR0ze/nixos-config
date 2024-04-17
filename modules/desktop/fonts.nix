@@ -43,7 +43,7 @@ in
 
       fontconfig = {
         enable = true;                    # Enable Fontconfig for X11 applications
-        antialias = xfcg.xft.antiAlias;   # Enable font antialising
+        antialias = xcfg.xft.antiAlias;   # Enable font antialising
         hinting = {
           enable = true;                  # Enable font hinting
           style = "full";                 # Configure slight hinting style
