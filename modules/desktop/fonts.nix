@@ -110,7 +110,7 @@ in
           *cursorColor: #ff5f00
           *cursorColor2: #000000
 
-          *fontName: ${cfg.monospace}:style=${cfg.monospceStyle}:size=${toString cfg.monospaceSize}
+          *fontName: ${cfg.monospace}:style=${cfg.monospaceStyle}:size=${toString cfg.monospaceSize}
 
           Xcursor.theme: ${xfceCfg.xsettings.cursorTheme}
           Xcursor.size: ${toString xfceCfg.xsettings.cursorSize}
