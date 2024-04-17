@@ -4,10 +4,11 @@
 # - Directly installable: cli/default with bare minimal xfce environment
 # - Size: 4504.7 MiB
 # --------------------------------------------------------------------------------------------------
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   backgrounds = pkgs.callPackage ../backgrounds { };
   wmctl = pkgs.callPackage ../wmctl { };
+  xft = config.services.xserver.xft;
 
 in
 {
@@ -41,7 +42,9 @@ in
         { name = "Xfce4 Terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
         { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
         { name = "XnviewMP"; exec = "xnviewmp"; icon = "xnviewmp"; }
-        { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
+      ]
+      ++ lib.optional xft.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
+      ++ [ { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
         { name = "HandBrake"; exec = "ghb"; icon = "fr.handbrake.ghb"; }
         { name = "VLC Media Player"; exec = "vlc"; icon = "vlc"; }
         { name = "FileZilla"; exec = "filezilla"; icon = "filezilla"; }
