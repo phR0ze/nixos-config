@@ -25,7 +25,7 @@ let
           <property name="EnableInputFeedbackSounds" type="empty"/>
         </property>
         <property name="Xft" type="empty">
-          <property name="DPI" type="int" value="${xcfg.xft.dpi}"/>
+          <property name="DPI" type="int" value="${toString xcfg.xft.dpi}"/>
           <property name="Antialias" type="int" value="${toString (f.boolToInt xcfg.xft.antiAlias)}"/>
           <property name="Hinting" type="int" value="1"/>
           <property name="HintStyle" type="string" value="${xcfg.xft.hintingStyle}"/>
