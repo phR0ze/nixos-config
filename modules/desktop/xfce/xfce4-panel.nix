@@ -187,12 +187,12 @@ in
       };
       size = lib.mkOption {
         type = types.int;
-        default = 24;
+        default = 24; # 36 for hidpi
         description = lib.mdDoc "Taskbar size in pixels";
       };
       iconSize = lib.mkOption {
         type = types.int;
-        default = 20;
+        default = 20; # 32 for hidpi
         description = lib.mdDoc "Taskbar icon size in pixels";
       };
       grouping = lib.mkOption {
@@ -204,7 +204,7 @@ in
     services.xserver.desktopManager.xfce.panel.launcher = {
       size = lib.mkOption {
         type = types.int;
-        default = 36;
+        default = 36; # 52 for hidpi
         description = lib.mdDoc "Launcher size in pixels";
       };
     };
