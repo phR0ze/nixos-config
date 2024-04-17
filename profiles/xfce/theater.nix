@@ -13,6 +13,9 @@ in
     ./desktop.nix
   ];
 
+  # Larger cursor size
+  services.xserver.desktopManager.xfce.xsettings.cursorSize = 64;
+
   # Configure theater system resolution default
   services.xserver.desktopManager.xfce.defaultDisplay.resolution = { x = 1920; y = 1080; };
 
