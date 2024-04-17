@@ -48,7 +48,7 @@ in
           enable = true;                  # Enable font hinting
           style = "full";                 # Configure slight hinting style
         };
-        subpixel.rgba = "rgb";            # See option for more details
+        subpixel.rgba = xcfg.xft.rgba;    # See option for more details
         defaultFonts.monospace = [
           "${xcfg.xft.monospace} ${xcfg.xft.monospaceStyle}"
           "DejaVu Sans Mono Book"
