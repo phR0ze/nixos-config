@@ -24,7 +24,7 @@
 # %T  Time as %H:%M:%S
 # %Z  Time Zone Name 
 #---------------------------------------------------------------------------------------------------
-{ lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, args, ... }: with lib.types;
 let
   xft = config.services.xserver.xft;
 
