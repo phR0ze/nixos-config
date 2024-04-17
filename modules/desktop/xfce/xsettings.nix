@@ -35,7 +35,7 @@ let
           <property name="CanChangeAccels" type="empty"/>
           <property name="ColorPalette" type="empty"/>
           <property name="FontName" type="string" value="${cfg.font.defaultSans} ${toString cfg.font.defaultSansSize}"/>
-          <property name="MonospaceFontName" type="string" value="${cfg.font.defaultMonospace} ${toString cfg.font.defaultMonospaceSize}"/>
+          <property name="MonospaceFontName" type="string" value="${cfg.font.defaultMonospace} ${cfg.font.defaultMonospaceStyle} ${toString cfg.font.defaultMonospaceSize}"/>
           <property name="IconSizes" type="empty"/>
           <property name="KeyThemeName" type="empty"/>
           <property name="ToolbarStyle" type="empty"/>
@@ -44,7 +44,7 @@ let
           <property name="ButtonImages" type="empty"/>
           <property name="MenuBarAccel" type="empty"/>
           <property name="CursorThemeName" type="string" value="${cfg.cursorTheme}"/>
-          <property name="CursorThemeSize" type="empty"/>
+          <property name="CursorThemeSize" type="int" value="${toString cfg.cursorSize}"/>
           <property name="DecorationLayout" type="empty"/>
           <property name="DialogsUseHeader" type="empty"/>
           <property name="TitlebarMiddleClick" type="empty"/>
@@ -78,6 +78,11 @@ in
         default = "Numix-Cursor-Light";
         description = lib.mdDoc "Cursor theme";
       };
+      cursorSize = lib.mkOption {
+        type = types.int;
+        default = 16;
+        description = lib.mdDoc "Cursor size";
+      };
     };
     services.xserver.desktopManager.xfce.xsettings.font = {
       defaultSans = lib.mkOption {
@@ -92,12 +97,17 @@ in
       };
       defaultMonospace = lib.mkOption {
         type = types.str;
-        default = "DejaVu Sans Mono";
+        default = "InconsolataGo Nerd Font Mono";
         description = lib.mdDoc "Default monospace font";
+      };
+      defaultMonospaceStyle = lib.mkOption {
+        type = types.str;
+        default = "Regular";
+        description = lib.mdDoc "Default monospace font style";
       };
       defaultMonospaceSize = lib.mkOption {
         type = types.int;
-        default = 11;
+        default = 13;
         description = lib.mdDoc "Default monospace font size";
       };
       antiAlias = lib.mkOption {
@@ -134,7 +144,7 @@ in
     files.all.".config/Kvantum/ArcDark".link = ../../../include/home/.config/Kvantum/ArcDark;
     files.all.".config/qt5ct/qt5ct.conf".text = ''
       [Fonts]
-      fixed="${cfg.font.defaultMonospace},${toString cfg.font.defaultMonospaceSize},-1,5,50,0,0,0,0,0,Regular"
+      fixed="${cfg.font.defaultMonospace},${toString cfg.font.defaultMonospaceSize},-1,5,50,0,0,0,0,0,${cfg.font.defaultMonospaceStyle}"
       general="${cfg.font.defaultSans},${toString cfg.font.defaultSansSize},-1,5,50,0,0,0,0,0,Regular"
     '';
 
