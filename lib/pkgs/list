@@ -34,9 +34,7 @@ USAGE
 pkgs::list::run()
 {
     local cmd="$1"; shift
-    #[ "$cmd" == "ls" ] && echo space
-    #[ "$cmd" == "ll" ] && echo newline
-    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && pkgs::list::usage
+    utils::help "$@" "pkgs::list::usage"
 
     local command=$1; shift
     case "$command" in

@@ -26,7 +26,7 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 manage::run()
 {
-    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && manage::usage
+    utils::help "$@" "manage::usage"
 
     # Parse the manage commnand
     local command=$1; shift

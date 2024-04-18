@@ -34,8 +34,7 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 pkgs::run()
 {
-    # Handle arguments
-    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && pkgs::usage
+    utils::help "$@" "pkgs::usage"
 
     # Parse the pkgs commnand
     local command=$1; shift

@@ -32,7 +32,7 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 registry::run()
 {
-    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && registry::usage
+    utils::help "$@" "registry::usage"
 
     local command=$1; shift
     case "$command" in
