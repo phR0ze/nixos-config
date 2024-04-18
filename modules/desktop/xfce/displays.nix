@@ -12,7 +12,7 @@ let
     (pkgs.writeText "displays.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="displays" version="1.0">
-      ${(lib.mkIf (cfg.resolution.x != 0 && cfg.resolution.y != 0) toString ''
+      ${(lib.mkIf (cfg.resolution.x != 0 && cfg.resolution.y != 0) pkgs.writeText "foo" ''
         <property name="ActiveProfile" type="string" value="Default"/>
         <property name="Default" type="empty">
           <property name="Default" type="string" value="Default">
