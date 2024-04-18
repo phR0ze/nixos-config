@@ -38,6 +38,8 @@ in
     ../../hardware/firmware.nix
     ../../hardware/printers.nix
     ../../hardware/video.nix
+    ../../multimedia/xnviewmp.nix
+    ../../multimedia/smplayer.nix
     ../../network/filezilla.nix
     ../../network/firefox.nix
     ../../network/network-manager.nix

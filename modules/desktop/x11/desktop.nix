@@ -90,7 +90,6 @@
 #    kvantum                            # SVG-based theme engine for Qt5/Qt6 including Arc-Dark
 #    winff                              # GUI for ffmpeg, repo: cyberlinux
 #    wmctl                              # Rust X11 automation
-#    xnviewmp                           # A digital photo organizer, repo: cyberlinux
 #'tiny-media-manager'        # Cross platform media manager, repo: cyberlinux
   ];
 }
