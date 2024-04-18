@@ -64,6 +64,26 @@ utils::check_status()
     fi
 }
 
+# Execute the given help function if the commands arguments contain help flags anywhere
+# 
+# ### Params
+# - $1 command arguments for original command
+# - $2 
+#
+# ### Examples
+# utils::help "$@" update::usage
+
+utils::help()
+{
+    echo "$#"
+    #if [[ $# -eq 1 ]]; then usage; fi
+    #for x in "$@"; do
+    #  if [[ "$x" == "-h" || "$x" == "--help" ]]; then update::usage; fi
+    #done
+    #eval "$_result"="'$result'"
+    exit 1
+}
+
 # Read user choice from command line
 # --------------------------------------------------------------------------------------------------
 # ### Params

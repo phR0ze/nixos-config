@@ -38,9 +38,7 @@ USAGE
 update::run()
 {
     if [[ $# -eq 0 ]]; then update::usage; fi
-    for x in "$@"; do
-      if [[ "$x" == "-h" || "$x" == "--help" ]]; then update::usage; fi
-    done
+    utils::help "$@" "update::usage"
     exit 1
 
     local command=$1; shift
