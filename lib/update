@@ -56,7 +56,7 @@ update::system()
     [[ "$@" == "reset-xfce" ]] && reset_xfce=true
 
     # Shutdown the xfce setting daemon to ensure were not conflicting
-    log::ln "Shutting down xfconfd to avoid conflicts"
+    log::ln "Shutting down ${cyan}xfconfd${none} to avoid conflicts"
     pkill xfconfd
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
