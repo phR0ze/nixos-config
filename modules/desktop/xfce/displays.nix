@@ -16,7 +16,7 @@ let
         <property name="ActiveProfile" type="string" value="Default"/>
         <property name="Default" type="empty">
           <property name="Default" type="string" value="Default">
-            <property name="Resolution" type="string" value="${toString cfg.resolution.x}x${toString cfg.resolutiony}"/>
+            <property name="Resolution" type="string" value="${toString cfg.resolution.x}x${toString cfg.resolution.y}"/>
           </property>
         </property>
       ''}
