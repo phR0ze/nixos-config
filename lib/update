@@ -60,7 +60,7 @@ update::profile()
     git add "${opts}"
 
     _shutdownXfconfd
-    _remoteUserXfceConfigs
+    _removeUserXfceConfigs
     nixos-rebuild switch --flake "path:/etc/nixos#system"
 }
 
