@@ -15,6 +15,12 @@ let
     "monitorDP-0"
     "monitorDP-1"
     "monitorDP-2"
+
+    # Variation seen on HP laptop
+    "monitoreDP-0"
+    "monitoreDP-1"
+    "monitoreDP-2"
+
     "monitorDVI-0"
     "monitorDVI-1"
     "monitorDVI-2"
