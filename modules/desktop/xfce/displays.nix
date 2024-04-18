@@ -64,5 +64,5 @@ in
     (lib.mkIf (xfceCfg.enable) {
       files.all.".config/xfce4/xfconf/xfce-perchannel-xml/displays.xml".copy = xmlfile;
     })
-  };
+  ];
 }
