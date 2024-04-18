@@ -76,10 +76,7 @@ utils::check_status()
 utils::help()
 {
     args=($@)
-    echo "$#" # 3
-    echo "'$@'" # -h profile update::usage
-    echo "'${#args[@]}'"
-    #if [[ $# -eq 1 ]]; then eval "${}"; fi
+    if [[ ${#args[@]} -eq 1 ]]; then echo hit; fi
 
     #for x in "$@"; do
     #  if [[ "$x" == "-h" || "$x" == "--help" ]]; then update::usage; fi
