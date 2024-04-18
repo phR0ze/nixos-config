@@ -20,13 +20,10 @@ in
   services.xserver.desktopManager.xfce.panel.taskbar.size = 36;
   services.xserver.desktopManager.xfce.panel.taskbar.iconSize = 32;
   services.xserver.desktopManager.xfce.panel.launcher.size = 52;
-  #services.xserver.xft.sansSize = 18;
-  #services.xserver.xft.serifSize = 18;
-  #services.xserver.xft.monospaceSize = 18;
-  #services.xserver.xft.cursorSize = 64;
 
-  # Configure theater system resolution default
-  services.xserver.desktopManager.xfce.defaultDisplay.resolution = { x = 1920; y = 1080; };
+  # Display configuration
+  services.xserver.desktopManager.xfce.displays.connectingDisplay = 0;
+  services.xserver.desktopManager.xfce.displays.resolution = { x = 1920; y = 1080; };
 
   # Configure theater system background
   services.xserver.desktopManager.xfce.desktop.background = lib.mkOverride 500

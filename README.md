@@ -147,13 +147,10 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Adjust lightdm login theme
 
 ## Sometime
 * [ ] Create ISO with full live GUI environment
   * [ ] Switch to calamares for installation
-* [ ] Include missing hicolor icons - fall back icons not working `XDG_ICON_DIRS`
-* [ ] Choose default resolution for system
 * [ ] Add vim-colorize plugin
 * [ ] Change nix flake symbol to blue in vim colorizer plugin
 * [ ] Remove `/etc/nixos/etc/nixos`
@@ -169,6 +166,7 @@ world though this already exists.
 
 ## Completed
 * [x] XFCE profiles
+  * [x] Lightdm background follows desktop
   * [x] Fix nerd fonts in shell
   * [x] Autologin options plumbed in
   * [x] Port cyberlinux cli packages over
