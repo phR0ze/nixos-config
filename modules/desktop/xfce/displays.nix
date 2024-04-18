@@ -8,7 +8,7 @@ let
   xfceCfg = config.services.xserver.desktopManager.xfce;
   cfg = xfceCfg.displays;
 
-  xmlfile = lib.mkIf (cfg.x != 0 && cfg.y != 0)
+  xmlfile = lib.mkIf (xfceCfg.enable)
     (pkgs.writeText "displays.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="displays" version="1.0">
