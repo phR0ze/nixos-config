@@ -68,5 +68,5 @@ update::system()
         rm -rf "$target"
       done
     fi
-    #nixos-rebuild switch --flake "path:/etc/nixos#system"
+    nixos-rebuild switch --flake "path:/etc/nixos#system"
 }
