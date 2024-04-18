@@ -75,16 +75,15 @@ utils::check_status()
 
 utils::help()
 {
-    args=($@)
-    if [[ ${#args[@]} -eq 1 ]]; then echo hit; fi
-    echo "${args[-1]}"
-    eval "${args[-1]}"
+    local args=($@)
 
-    #for x in "$@"; do
-    #  if [[ "$x" == "-h" || "$x" == "--help" ]]; then update::usage; fi
-    #done
-    #eval "$_result"="'$result'"
-    exit 1
+    # Check for zero args
+    if [[ ${#args[@]} -eq 1 ]]; then eval "${args[-1]}"; fi
+
+    # Check for help anywhere in the args
+    for x in ${args[@]}; do
+      if [[ "$x" == "-h" || "$x" == "--help" ]]; then eval "${args[-1]}"; fi
+    done
 }
 
 # Read user choice from command line
