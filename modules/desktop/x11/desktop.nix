@@ -18,6 +18,7 @@
   environment.systemPackages = with pkgs; [
 
     # Network
+    chromium                            # An open source web browser from Google
     freerdp                             # RDP client plugin for remmina
     networkmanager-openvpn              # NetworkManager VPN plugin for OpenVPN
     nfs-utils                           # Linux user-space NFS utilities
