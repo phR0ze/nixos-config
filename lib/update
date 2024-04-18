@@ -37,7 +37,11 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 update::run()
 {
-    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && update::usage
+    if [[ $# -eq 0 ]]; then update::usage; fi
+    for x in "$@"; do
+      if [[ "$x" == "-h" || "$x" == "--help" ]]; then update::usage; fi
+    done
+    exit 1
 
     local command=$1; shift
     case "$command" in
