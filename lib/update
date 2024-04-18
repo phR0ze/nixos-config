@@ -18,6 +18,7 @@ Options:
   -h, --help        Print out top level usage
 
 Commands:
+  profile PROFILE   Change the system profile to the given one
   system            Update the system with the configuration changes
 
 system args:
@@ -26,6 +27,7 @@ USAGE
 
     log::ln "\nExamples:"
     log::subln "Update the system: ${green}./${SCRIPT} update system${none}"
+    log::subln "Update to the given profile: ${green}./${SCRIPT} update profile xfce/develop${none}"
     log::subln "Update the system, resetting xfce: ${green}./${SCRIPT} update system reset-xfce${none}"
     echo
     exit
@@ -39,11 +41,29 @@ update::run()
 
     local command=$1; shift
     case "$command" in
+        profile) update::profile "$@" ;;
         system) update::system "$@" ;;
         *) log::error "Invalid update command: ${cyan}${command}${none}"; update::usage ;;
     esac
 }
- 
+
+# Update the target profile in the options file e.g. flake_opts.nix
+# --------------------------------------------------------------------------------------------------
+update::profile()
+{
+    core::title
+    log::header1 "Update NixOS profile"
+
+    local opts="${SCRIPT_DIR}/flake_opts.nix"
+    log::ln "Switching system profile to ${cyan}${@}${none}"
+    utils::replace str "profile" "${@}" "${opts}"
+    git add "${opts}"
+
+    _shutdownXfconfd
+    _remoteUserXfceConfigs
+    nixos-rebuild switch --flake "path:/etc/nixos#system"
+}
+
 # Update the system with the system configuration changes
 # --------------------------------------------------------------------------------------------------
 update::system()
@@ -51,23 +71,35 @@ update::system()
     core::title
     log::header1 "Update NixOS system"
 
-    # Check for arguments
-    local reset_xfce=false
-    [[ "$@" == "reset-xfce" ]] && reset_xfce=true
+    # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
+    _shutdownXfconfd
+    if [[ "$@" == "reset-xfce" ]]; then
+        _removeUserXfceConfigs
+    fi
+    _updateSystem
+}
 
-    # Shutdown the xfce setting daemon to ensure were not conflicting
+# Shutdown the xfce setting daemon to ensure were not conflicting
+_shutdownXfconfd()
+{
     log::ln "Shutting down ${cyan}xfconfd${none} to avoid conflicts"
     pkill xfconfd
+}
 
-    # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
-    if [[ "${reset_xfce}" == "true" ]]; then
-      local users=$(find /home -mindepth 1 -maxdepth 1)
-      users+=('/root')
-      for x in ${users[@]}; do
-        local target="${x}/.config/xfce4"
-        log::ln "Cleaning up: ${cyan}${target}${none}"
-        rm -rf "$target"
-      done
-    fi
+# Remove user xfce configurations to get a clean point to start from
+_removeUserXfceConfigs()
+{
+    local users=$(find /home -mindepth 1 -maxdepth 1)
+    users+=('/root')
+    for x in ${users[@]}; do
+      local target="${x}/.config/xfce4"
+      log::ln "Cleaning up: ${cyan}${target}${none}"
+      rm -rf "$target"
+    done
+}
+
+# Trigger the Nix flake based system update
+_updateSystem()
+{
     nixos-rebuild switch --flake "path:/etc/nixos#system"
 }
