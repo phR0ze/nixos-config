@@ -67,13 +67,24 @@ in
       # Check about:config for options.
       Preferences = { 
         "browser.contentblocking.category" = { Value = "strict"; Status = "locked"; };
+        "browser.ctrlTab.sortByRecentlyUsed" = lock-true;
         "extensions.pocket.enabled" = lock-false;
         "extensions.screenshots.disabled" = lock-true;
         "browser.topsites.contile.enabled" = lock-false;
         "browser.formfill.enable" = lock-false;
         "browser.search.suggest.enabled" = lock-false;
+        "browser.search.suggest.addons" = lock-false;
+        "browser.search.suggest.mdn" = lock-false;
+        "browser.search.suggest.pocket" = lock-false;
         "browser.search.suggest.enabled.private" = lock-false;
+        "browser.urlbar.suggest.quicksuggest.nonsponsored" = lock-false;
+        "browser.urlbar.suggest.quicksuggest.sponsored" = lock-false;
         "browser.urlbar.suggest.searches" = lock-false;
+        "browser.urlbar.suggest.remotetab" = lock-false;
+        "browser.urlbar.suggest.topsites" = lock-false;
+        "browser.urlbar.suggest.trending" = lock-false;
+        "browser.urlbar.suggest.yelp" = lock-false;
+        "browser.urlbar.suggest.weather" = lock-false;
         "browser.urlbar.showSearchSuggestionsFirst" = lock-false;
         "browser.newtabpage.activity-stream.feeds.section.topstories" = lock-false;
         "browser.newtabpage.activity-stream.feeds.snippets" = lock-false;
