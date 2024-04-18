@@ -1,5 +1,6 @@
 # Arcologout options
 #
+# WIP not building because python dependencies don't exist
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, ... }: with lib.types;
 let

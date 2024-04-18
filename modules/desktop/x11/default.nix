@@ -43,6 +43,7 @@ in
     ../../network/filezilla.nix
     ../../network/firefox.nix
     ../../network/network-manager.nix
+    ../../office/geany.nix
     ../backgrounds/opt.nix
     ../fonts.nix
     ../icons.nix
