@@ -38,6 +38,7 @@ in
     ../../hardware/firmware.nix
     ../../hardware/printers.nix
     ../../hardware/video.nix
+    ../../network/filezilla.nix
     ../../network/firefox.nix
     ../../network/network-manager.nix
     ../backgrounds/opt.nix
