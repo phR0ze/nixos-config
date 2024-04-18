@@ -12,14 +12,14 @@ let
     (pkgs.writeText "displays.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="displays" version="1.0">
-      ${(lib.mkIf (cfg.resolution.x != 0 && cfg.resolution.y != 0) (''
+      ${lib.optionalString (cfg.resolution.x != 0 && cfg.resolution.y != 0) ''
         <property name="ActiveProfile" type="string" value="Default"/>
         <property name="Default" type="empty">
           <property name="Default" type="string" value="Default">
             <property name="Resolution" type="string" value="${toString cfg.resolution.x}x${toString cfg.resolutiony}"/>
           </property>
         </property>
-      ''))}
+      ''}
         <property name="Notify" type="int" value="${toString cfg.connectingDisplay}"/>
       </channel>
     '');
