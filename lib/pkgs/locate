@@ -47,8 +47,7 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 pkgs::locate::run()
 {
-    # Check if usage help is needed
-    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && pkgs::locate::usage
+    utils::help "$@" "pkgs::locate::usage"
 
     # Pass on the command to the weekly updated github nix-index-database
     # https://github.com/nix-community/nix-index-database

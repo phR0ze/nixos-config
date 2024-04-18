@@ -30,7 +30,7 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 clean::run()
 {
-    [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && clean::usage
+    utils::help "$@" "clean::usage"
 
     # Parse the clean commnand
     local command=$1; shift
