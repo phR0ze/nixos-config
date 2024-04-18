@@ -5,6 +5,7 @@
 # ## Features
 #
 # --------------------------------------------------------------------------------------------------
+RESET_XFCE=false
 
 # Usage for the update command and its sub commands
 # --------------------------------------------------------------------------------------------------
@@ -17,6 +18,7 @@ Usage:
 Options:
   -h, --help        Print out top level usage
   --repair          Check every path during update and rebuild it if corrupt
+  --reset-xfce      Remove existing xfce configuration
 
 Commands:
   system            Update the system with the configuration changes
@@ -24,16 +26,17 @@ USAGE
 
     log::ln "\nExamples:"
     log::subln "Update the system: ${green}./${SCRIPT} update system${none}"
+    log::subln "Update the system, resettign xfce: ${green}./${SCRIPT} update system --reset-xfce${none}"
     echo
     exit
 }
-
 
 # Parse the update commands and execute
 # --------------------------------------------------------------------------------------------------
 update::run()
 {
     [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && update::usage
+    [[ $1 == "--reset-xfce" ]] && RESET_XFCE=true
 
     local command=$1; shift
     case "$command" in
@@ -49,5 +52,14 @@ update::system()
     core::title
     log::header1 "Update NixOS system"
 
+    # Shutdown the xfce setting daemon to ensure were not conflicting
+    pkill xfconfd
+    if [[ "${RESET_XFCE}" == "true" ]]; then
+      local users=$(find /home -mindepth1 -maxdepth 1)
+      users+=('/root')
+      for x in ${users[@]}; do
+        rm -rf "${x}/.config/xfce4"
+      done
+    fi
     nixos-rebuild switch --flake "path:/etc/nixos#system" $@
 }
