@@ -53,10 +53,12 @@ update::system()
 
     # Check for arguments
     local reset_xfce=false
-    [[ "$@" == "--reset-xfce" ]] && reset_xfce=true
+    [[ "$@" == "reset-xfce" ]] && reset_xfce=true
 
     # Shutdown the xfce setting daemon to ensure were not conflicting
     pkill xfconfd
+
+    # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
     if [[ "${reset_xfce}" == "true" ]]; then
       local users=$(find /home -mindepth1 -maxdepth 1)
       users+=('/root')
@@ -66,5 +68,5 @@ update::system()
         rm -rf "$target"
       done
     fi
-    nixos-rebuild switch --flake "path:/etc/nixos#system" $@
+    #nixos-rebuild switch --flake "path:/etc/nixos#system"
 }
