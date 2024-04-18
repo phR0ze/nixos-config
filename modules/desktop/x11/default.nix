@@ -134,6 +134,9 @@ in
 
   environment.systemPackages = with pkgs; [
 
+    # x11 tools
+    xorg.xrdb                           # X server resource database utility
+
     # Network
 
     # Media
