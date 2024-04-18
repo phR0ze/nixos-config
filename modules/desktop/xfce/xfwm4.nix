@@ -132,9 +132,7 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkMerge [
-    (lib.mkIf (xfceCfg.enableXfwm) {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml".link = xmlfile;
-    })
-  ];
+  config = lib.mkIf (xfceCfg.enableXfwm) {
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml".link = xmlfile;
+  };
 }
