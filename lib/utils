@@ -78,7 +78,7 @@ utils::help()
     args=($@)
     echo "$#" # 3
     echo "'$@'" # -h profile update::usage
-    echo "'${args[@]}'"
+    echo "'${#args[@]}'"
     #if [[ $# -eq 1 ]]; then eval "${}"; fi
 
     #for x in "$@"; do
