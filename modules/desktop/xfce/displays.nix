@@ -18,8 +18,7 @@ let
           <property name="Default" type="string" value="Default">
             <property name="Resolution" type="string" value="${toString cfg.resolution.x}x${toString cfg.resolution.y}"/>
           </property>
-        </property>
-      ''}
+        </property>''}
         <property name="Notify" type="int" value="${toString cfg.connectingDisplay}"/>
       </channel>
     '');
