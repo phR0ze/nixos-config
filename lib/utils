@@ -76,7 +76,7 @@ utils::check_status()
 utils::help()
 {
     echo "$#"
-    echo "'$#'"
+    echo "'$@'"
     #if [[ $# -eq 1 ]]; then usage; fi
     #for x in "$@"; do
     #  if [[ "$x" == "-h" || "$x" == "--help" ]]; then update::usage; fi
