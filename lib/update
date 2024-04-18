@@ -60,7 +60,7 @@ update::system()
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
     if [[ "${reset_xfce}" == "true" ]]; then
-      local users=$(find /home -mindepth1 -maxdepth 1)
+      local users=$(find /home -mindepth 1 -maxdepth 1)
       users+=('/root')
       for x in ${users[@]}; do
         local target="${x}/.config/xfce4"
