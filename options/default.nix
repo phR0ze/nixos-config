@@ -5,6 +5,5 @@
   imports = [
     ./files
     ./programs
-    ./services
   ];
 }
