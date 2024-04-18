@@ -26,7 +26,7 @@ USAGE
 
     log::ln "\nExamples:"
     log::subln "Update the system: ${green}./${SCRIPT} update system${none}"
-    log::subln "Update the system, resettign xfce: ${green}./${SCRIPT} update system --reset-xfce${none}"
+    log::subln "Update the system, resettign xfce: ${green}./${SCRIPT} --reset-xfce update system${none}"
     echo
     exit
 }
