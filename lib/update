@@ -64,7 +64,7 @@ update::system()
       users+=('/root')
       for x in ${users[@]}; do
         local target="${x}/.config/xfce4"
-        log::subln "Cleaning up: ${cyan}${target}${none}"
+        log::ln "Cleaning up: ${cyan}${target}${none}"
         rm -rf "$target"
       done
     fi
