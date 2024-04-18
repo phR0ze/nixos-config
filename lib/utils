@@ -78,6 +78,7 @@ utils::help()
     args=($@)
     if [[ ${#args[@]} -eq 1 ]]; then echo hit; fi
     echo "${args[-1]}"
+    eval "${args[-1]}"
 
     #for x in "$@"; do
     #  if [[ "$x" == "-h" || "$x" == "--help" ]]; then update::usage; fi
