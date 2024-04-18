@@ -5,8 +5,8 @@
 { pkgs, args, ... }:
 {
   imports = [
-    #../../hardware/scanners.nix
     ../../development/vscode.nix
+    ../../games/prismlauncher.nix
     #../../virtualization/virtualbox.nix causing weird networking delays on boot
   ];
 

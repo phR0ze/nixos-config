@@ -4,6 +4,5 @@
 {
   imports = [
     ./geany.nix
-    ./prismlauncher.nix
   ];
 }
