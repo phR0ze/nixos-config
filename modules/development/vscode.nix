@@ -7,6 +7,7 @@
 { config, lib, pkgs, args, ... }: with lib.types;
 let
   cfg = config.programs.vscode;
+  xftCfg = config.services.xserver.xft;
 
   vscodePname = cfg.package.pname;
   vscodeVersion = cfg.package.version;
@@ -88,6 +89,7 @@ in
           "explorer.confirmDragAndDrop" = false;            # Ask for confirmation when moving file and folders
           "telemetry.telemetryLevel" = "off";               # Don't phone home with details of usage
           "terminal.explorerKind" = "integrated";           # What kind of terminal to use inside vscode
+          "terminal.integrated.fontFamily": "${xftCfg.monospace}" # Default font to use for vscode
         };
         example = literalExpression ''
           {

@@ -33,7 +33,7 @@
 #        "application/pdf" = "firefox.desktop";
 #         "text/xml" = [
 #            "nvim.desktop"
-#            "codium.desktop"
+#            "vscode.desktop"
 #          ];
 #      };
     };
