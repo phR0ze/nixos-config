@@ -8,9 +8,6 @@
     # ----------------------------------------------------------------------------------------
     tamasfe.even-better-toml            # Even Better TOML
 
-    # Nix extensions
-    # ----------------------------------------------------------------------------------------
-    bbenoist.nix                        # Nix language support
 
     # Dart extensions
     # ----------------------------------------------------------------------------------------
@@ -63,6 +60,15 @@
       sha256 = "sha256-eD/9UBYxf8kmqxuzY+hgAT0bqSiYw/BbDv2gyB63zY0=";
     }
 
+    # Nix extensions
+    # ----------------------------------------------------------------------------------------
+    {
+      name = "nix";                     # Nix language support
+      publisher = "bbenoist";
+      version = "1.0.1";
+      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+    }
+
     # General extensions
     # ----------------------------------------------------------------------------------------
     {
@@ -75,7 +81,7 @@
       name = "copilot-chat";            # Copilot companion extension for chat interface
       publisher = "github";
       version = "0.10.2";
-      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+      sha256 = "sha256-NfVg0Mor6agPrPYuzsNiWgX5DAcSysWaP3GilyXv/S4=";
     }
     {
       name = "vscode-great-icons";      # Awesome icon pack for vscode
