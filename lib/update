@@ -61,7 +61,8 @@ update::profile()
 
     _preUpdate
     _removeUserXfceConfigs
-    nixos-rebuild switch --flake "path:/etc/nixos#system"
+    _updateSystem
+    _postUpdate
 }
 
 # Update the system with the system configuration changes
@@ -77,13 +78,11 @@ update::system()
         _removeUserXfceConfigs
     fi
     _updateSystem
+    _postUpdate
 }
 
 _preUpdate()
 {
-    # Trigger on common exit signals SIGHUP, SIGINT, SIGQUIT, SIGABRT
-    trap _postUpdate 1 2 3 6
-
     log::ln "Removing ${cyan}/nix/files.lock${none} to permit files update"
     rm -f /nix/files.lock
 
