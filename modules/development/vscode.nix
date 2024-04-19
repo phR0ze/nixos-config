@@ -10,7 +10,7 @@ let
   xftCfg = config.services.xserver.xft;
 
   # Function to use in the config output
-  dropNullFields = filterAttrs (_: v: v != null);
+  dropNullFields = lib.filterAttrs (_: v: v != null);
 
   vscodePname = cfg.package.pname;
   vscodeVersion = cfg.package.version;
