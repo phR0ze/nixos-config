@@ -9,6 +9,9 @@ let
   cfg = config.programs.vscode;
   xftCfg = config.services.xserver.xft;
 
+  # Function to use in the config output
+  dropNullFields = filterAttrs (_: v: v != null);
+
   vscodePname = cfg.package.pname;
   vscodeVersion = cfg.package.version;
 
@@ -347,10 +350,7 @@ in
       // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
       // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; });
 
-    (let dropNullFields = filterAttrs (_: v: v != null);
-    in {
-      files.all."${keybindingsFilePath}".copy = jsonFormat.generate "vscode-keybindings" (map dropNullFields cfg.keybindings);
-    });
+    files.all."${keybindingsFilePath}".copy = jsonFormat.generate "vscode-keybindings" (map dropNullFields cfg.keybindings);
 
 #      (lib.mkIf (cfg.userTasks != { }) {
 #        "${tasksFilePath}".source =
