@@ -1,35 +1,12 @@
-# Visual Studio Code configuration
-#
-# ### Details
-# - https://nixos.wiki/wiki/VSCodium
-# - using the unbranded VSCodium
+# Visual Studio Code user settings
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, args, settingsFilePath, ... }: with lib.types;
 let
   cfg = config.programs.vscode;
   xftCfg = config.services.xserver.xft;
 
-  # Function to use in the config output
-  dropNullFields = lib.filterAttrs (_: v: v != null);
-
-  vscodePname = cfg.package.pname;
-  vscodeVersion = cfg.package.version;
-
   jsonFormat = pkgs.formats.json { };
 
-  configDir = {
-    "vscode" = "Code";
-    "vscodium" = "VSCodium";
-  }.${vscodePname};
-
-  extensionDir = {
-    "vscode" = "vscode";
-    "vscodium" = "vscode-oss";
-  }.${vscodePname};
-
-  userDir = ".config/${configDir}/User";
-  configFilePath = "${userDir}/settings.json";
-  keybindingsFilePath = "${userDir}/keybindings.json";
 #  tasksFilePath = "${userDir}/tasks.json";
 #
 #  snippetDir = "${userDir}/snippets";
@@ -46,14 +23,6 @@ let
 
 in
 {
-#  imports = [
-#    (lib.mkChangedOptionModule [ "programs" "vscode" "immutableExtensionsDir" ] [
-#      "programs"
-#      "vscode"
-#      "mutableExtensionsDir"
-#    ] (config: !config.programs.vscode.immutableExtensionsDir))
-#  ];
-
   options = {
     programs.vscode = {
       enable = lib.mkEnableOption "Visual Studio Code";
@@ -219,77 +188,6 @@ in
         '';
       };
 
-      keybindings = lib.mkOption {
-        type = types.listOf (types.submodule {
-          options = {
-            key = lib.mkOption {
-              type = types.str;
-              example = "ctrl+c";
-              description = "The key or key-combination to bind.";
-            };
-
-            command = lib.mkOption {
-              type = types.str;
-              example = "editor.action.clipboardCopyAction";
-              description = "The VS Code command to execute.";
-            };
-
-            when = lib.mkOption {
-              type = types.nullOr (types.str);
-              default = null;
-              example = "textInputFocus";
-              description = "Optional context filter.";
-            };
-
-            # https://code.visualstudio.com/docs/getstarted/keybindings#_command-arguments
-            args = lib.mkOption {
-              type = types.nullOr (jsonFormat.type);
-              default = null;
-              example = { direction = "up"; };
-              description = "Optional arguments for a command.";
-            };
-          };
-        });
-        default = [
-          {
-            key = "ctrl+shift+s";
-            command = "workbench.action.files.saveAll";
-          }
-          {
-            key = "ctrl+shift+t";
-            command = "workbench.action.tasks.test";
-          }
-          {
-            key = "ctrl+shift+r";
-            command = "workbench.action.tasks.runTask";
-            args = "Run";
-          }
-          {
-            key = "ctrl+f12";
-            command = "editor.action.goToDeclaration";
-            when = "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor";
-          }
-          {
-            key = "f12";
-            command = "-editor.action.goToDeclaration";
-            when = "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor";
-          }
-        ];
-        example = literalExpression ''
-          [
-            {
-              key = "ctrl+c";
-              command = "editor.action.clipboardCopyAction";
-              when = "textInputFocus";
-            }
-          ]
-        '';
-        description = ''
-          Keybindings written to Visual Studio Code's
-          {file}`keybindings.json`.
-        '';
-      };
-
       extensions = lib.mkOption {
         type = types.listOf types.package;
         default = [ ];
@@ -350,48 +248,45 @@ in
       // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
       // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; });
 
-    # configure keybindings
-    files.all."${keybindingsFilePath}".copy = jsonFormat.generate "vscode-keybindings" (map dropNullFields cfg.keybindings);
-
 #      (lib.mkIf (cfg.userTasks != { }) {
 #        "${tasksFilePath}".source =
 #          jsonFormat.generate "vscode-user-tasks" cfg.userTasks;
 #      })
 
-    (lib.mkIf (cfg.extensions != [ ]) (let
-      subDir = "share/vscode/extensions";
-
-      # Adapted from https://discourse.nixos.org/t/vscode-extensions-setup/1801/2
-      toPaths = ext:
-        map (k: { "${extensionPath}/${k}".source = "${ext}/${subDir}/${k}"; })
-        (if ext ? vscodeExtUniqueId then
-          [ ext.vscodeExtUniqueId ]
-        else
-          builtins.attrNames (builtins.readDir (ext + "/${subDir}")));
-    in if cfg.mutableExtensionsDir then
-      lib.mkMerge (concatMap toPaths cfg.extensions
-        ++ lib.optional (lib.versionAtLeast vscodeVersion "1.74.0") {
-          # Whenever our immutable extensions.json changes, force VSCode to regenerate
-          # extensions.json with both mutable and immutable extensions.
-          "${extensionPath}/.extensions-immutable.json" = {
-            text = extensionJson;
-            onChange = ''
-              run rm $VERBOSE_ARG -f ${extensionPath}/{extensions.json,.init-default-profile-extensions}
-              verboseEcho "Regenerating VSCode extensions.json"
-              run ${getExe cfg.package} --list-extensions > /dev/null
-            '';
-          };
-        })
-    else {
-      "${extensionPath}".source = let
-        combinedExtensionsDrv = pkgs.buildEnv {
-          name = "vscode-extensions";
-          paths = cfg.extensions
-            ++ lib.optional (lib.versionAtLeast vscodeVersion "1.74.0")
-            extensionJsonFile;
-        };
-      in "${combinedExtensionsDrv}/${subDir}";
-    }))
+#    (lib.mkIf (cfg.extensions != [ ]) (let
+#      subDir = "share/vscode/extensions";
+#
+#      # Adapted from https://discourse.nixos.org/t/vscode-extensions-setup/1801/2
+#      toPaths = ext:
+#        map (k: { "${extensionPath}/${k}".source = "${ext}/${subDir}/${k}"; })
+#        (if ext ? vscodeExtUniqueId then
+#          [ ext.vscodeExtUniqueId ]
+#        else
+#          builtins.attrNames (builtins.readDir (ext + "/${subDir}")));
+#    in if cfg.mutableExtensionsDir then
+#      lib.mkMerge (concatMap toPaths cfg.extensions
+#        ++ lib.optional (lib.versionAtLeast vscodeVersion "1.74.0") {
+#          # Whenever our immutable extensions.json changes, force VSCode to regenerate
+#          # extensions.json with both mutable and immutable extensions.
+#          "${extensionPath}/.extensions-immutable.json" = {
+#            text = extensionJson;
+#            onChange = ''
+#              run rm $VERBOSE_ARG -f ${extensionPath}/{extensions.json,.init-default-profile-extensions}
+#              verboseEcho "Regenerating VSCode extensions.json"
+#              run ${getExe cfg.package} --list-extensions > /dev/null
+#            '';
+#          };
+#        })
+#    else {
+#      "${extensionPath}".source = let
+#        combinedExtensionsDrv = pkgs.buildEnv {
+#          name = "vscode-extensions";
+#          paths = cfg.extensions
+#            ++ lib.optional (lib.versionAtLeast vscodeVersion "1.74.0")
+#            extensionJsonFile;
+#        };
+#      in "${combinedExtensionsDrv}/${subDir}";
+#    }))
 
 #      (lib.mkIf (cfg.globalSnippets != { })
 #        (let globalSnippets = "${snippetDir}/global.code-snippets";
