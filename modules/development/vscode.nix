@@ -89,7 +89,7 @@ in
           "explorer.confirmDragAndDrop" = false;            # Ask for confirmation when moving file and folders
           "telemetry.telemetryLevel" = "off";               # Don't phone home with details of usage
           "terminal.explorerKind" = "integrated";           # What kind of terminal to use inside vscode
-          "terminal.integrated.fontFamily": "${xftCfg.monospace}" # Default font to use for vscode
+          "terminal.integrated.fontFamily" = "${xftCfg.monospace}";
         };
         example = literalExpression ''
           {
