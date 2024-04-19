@@ -21,7 +21,7 @@
       name = "vscode-color";    # GUI color picker to generate color codes
       publisher = "anseki";
       version = "0.4.5";
-      sha256 = lib.fakeHash;
+      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY="
     }
   ];
 }
