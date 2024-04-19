@@ -30,8 +30,7 @@
       name = "vscode-rust-test-adapter"; # Rust test explorer that enables viewing and running rust tests
       publisher = "swellaby";
       version = "0.11.0";
-      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+      sha256 = "sha256-IgfcIRF54JXm9l2vVjf7lFJOVSI0CDgDjQT+Hw6FO4Q=";
     }
-      #sha256 = lib.fakeHash;
   ];
 }
