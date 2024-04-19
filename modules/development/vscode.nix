@@ -223,12 +223,11 @@ in
       environment.systemPackages = with pkgs; [
         cfg.package
       ];
-    })
-    (lib.mkIf cfg.enable {
-      files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" cfg.userSettings
+
+      files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.userSettings
         // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
         // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
-        // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; };
+        // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; });
     })
 
 #      (lib.mkIf (cfg.userTasks != { }) {
