@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, settingsFilePath, ... }:
 {
-  programs.vscode.extensions = with pkgs.vscode-marketplace; [
+  programs.vscode.extensions = with pkgs.vscode-extensions; [
     golang.go
   ];
 }
