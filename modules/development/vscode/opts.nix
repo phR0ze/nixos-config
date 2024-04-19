@@ -11,16 +11,9 @@ let
   userDir = ".config/Code/User";
   settingsFilePath = "${userDir}/settings.json";
   keybindingsFilePath = "${userDir}/keybindings.json";
-#  tasksFilePath = "${userDir}/tasks.json";
-#  snippetDir = "${userDir}/snippets";
-  extensionPath = ".vscode/extensions"; # i.e. ~/.vscode/extensions
-
-#  extensionJson = pkgs.vscode-utils.toExtensionJson cfg.extensions;
-#  extensionJsonFile = pkgs.writeTextFile {
-#    name = "extensions-json";
-#    destination = "/share/vscode/extensions/extensions.json";
-#    text = extensionJson;
-#  };
+  tasksFilePath = "${userDir}/tasks.json";
+  snippetDir = "${userDir}/snippets";
+  extensionsFilePath = ".vscode/extensions/extensions.json";
 
 in
 {
@@ -134,17 +127,7 @@ in
         default = [ ];
         example = literalExpression "[ pkgs.vscode-extensions.bbenoist.nix ]";
         description = ''
-          The extensions Visual Studio Code should be started with.
-        '';
-      };
-
-      mutableExtensionsDir = lib.mkOption {
-        type = types.bool;
-        default = true;
-        example = false;
-        description = ''
-          Whether extensions can be installed or updated manually
-          or by Visual Studio Code.
+          The extensions Visual Studio Code should be started with. 
         '';
       };
 
@@ -201,40 +184,10 @@ in
 #          jsonFormat.generate "vscode-user-tasks" cfg.userTasks;
 #      })
 
-#    (lib.mkIf (cfg.extensions != [ ]) (let
-#      subDir = "share/vscode/extensions";
-#
-#      # Adapted from https://discourse.nixos.org/t/vscode-extensions-setup/1801/2
-#      toPaths = ext:
-#        map (k: { "${extensionPath}/${k}".source = "${ext}/${subDir}/${k}"; })
-#        (if ext ? vscodeExtUniqueId then
-#          [ ext.vscodeExtUniqueId ]
-#        else
-#          builtins.attrNames (builtins.readDir (ext + "/${subDir}")));
-#    in if cfg.mutableExtensionsDir then
-#      lib.mkMerge (concatMap toPaths cfg.extensions
-#        ++ lib.optional (lib.versionAtLeast vscodeVersion "1.74.0") {
-#          # Whenever our immutable extensions.json changes, force VSCode to regenerate
-#          # extensions.json with both mutable and immutable extensions.
-#          "${extensionPath}/.extensions-immutable.json" = {
-#            text = extensionJson;
-#            onChange = ''
-#              run rm $VERBOSE_ARG -f ${extensionPath}/{extensions.json,.init-default-profile-extensions}
-#              verboseEcho "Regenerating VSCode extensions.json"
-#              run ${getExe cfg.package} --list-extensions > /dev/null
-#            '';
-#          };
-#        })
-#    else {
-#      "${extensionPath}".source = let
-#        combinedExtensionsDrv = pkgs.buildEnv {
-#          name = "vscode-extensions";
-#          paths = cfg.extensions
-#            ++ lib.optional (lib.versionAtLeast vscodeVersion "1.74.0")
-#            extensionJsonFile;
-#        };
-#      in "${combinedExtensionsDrv}/${subDir}";
-#    }))
+    (lib.mkIf (cfg.extensions != [ ]) (let
+      files.all."${extensionsFilePath}".copy = jsonFormat.generate "vscode-extensions"
+        pkgs.vscode-utils.toExtensionJson cfg.extensions;
+    }))
 
 #      (lib.mkIf (cfg.globalSnippets != { })
 #        (let globalSnippets = "${snippetDir}/global.code-snippets";
