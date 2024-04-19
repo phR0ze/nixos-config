@@ -63,7 +63,6 @@ in
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; name = "Terminal"; }
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
         { source = "${pkgs.neovim}/share/applications/nvim.desktop"; categories = "Development"; }
-        { source = "${pkgs.vscode}/share/applications/code.desktop"; categories = "Development"; }
         { source = "${pkgs.veracrypt}/share/applications/veracrypt.desktop"; categories = "System"; }
         { source = "${pkgs.winetricks}/share/applications/winetricks.desktop"; categories = "System"; }
         { source = "${pkgs.protontricks}/share/applications/protontricks.desktop"; categories = "System"; }
