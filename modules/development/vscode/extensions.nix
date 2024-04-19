@@ -4,12 +4,6 @@
 {
   programs.vscode.extensions = with pkgs.vscode-extensions; [
 
-
-
-    # Dart extensions
-    # ----------------------------------------------------------------------------------------
-    dart-code.dart-code                 # Dart language support and debugger for vscode
-
     # Rust extensions
     # ----------------------------------------------------------------------------------------
     rust-lang.rust-analyzer             # Rust language support, code completion, go to definition etc...
@@ -35,6 +29,12 @@
 
     # Dart extensions
     # ----------------------------------------------------------------------------------------
+    {
+      name = "dart-code";               # Dart language support and debugger for vscode
+      publisher = "dart-code";
+      version = "3.86.0";
+      sha256 = "sha256-LRW+U3OhjHIO4PrKiG26h0zCL2wgiTGOmNTLKpsbJFw=";
+    }
     {
       name = "flutter";                 # Official flutter mobile apps support
       publisher = "dart-code";
@@ -78,7 +78,7 @@
       name = "copilot";                 # Github Copilot uses OpenAI Codex to suggest code
       publisher = "github";
       version = "1.180.0";
-      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+      sha256 = "sha256-TxqQzJfynmQkS86jnO6TV8MpRIwlkIPen6MtApT8/Uc=";
     }
     {
       name = "copilot-chat";            # Copilot companion extension for chat interface
