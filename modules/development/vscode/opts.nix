@@ -4,7 +4,6 @@
 { config, lib, pkgs, args, settingsFilePath, ... }: with lib.types;
 let
   cfg = config.programs.vscode;
-  xftCfg = config.services.xserver.xft;
 
   jsonFormat = pkgs.formats.json { };
   dropNullFields = lib.filterAttrs (_: v: v != null);
