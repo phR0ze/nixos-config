@@ -23,8 +23,7 @@ let
     "vscodium" = "vscode-oss";
   }.${vscodePname};
 
-  userDir = "${config.xdg.configHome}/${configDir}/User";
-
+  userDir = ".config/${configDir}/User";
   configFilePath = "${userDir}/settings.json";
 #  tasksFilePath = "${userDir}/tasks.json";
 #  keybindingsFilePath = "${userDir}/keybindings.json";
