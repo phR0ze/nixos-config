@@ -9,7 +9,6 @@
     tamasfe.even-better-toml            # Even Better TOML
     github.copilot                      # Github Copilot uses OpenAI Codex to suggest code
     github.copilot-chat                 # Copilot companion extension for chat interface
-    emmanuelbeziat.vscode-great-icons   # Awesome icon pack for vscode
 
     # Nix extensions
     # ----------------------------------------------------------------------------------------
@@ -69,16 +68,22 @@
     # General extensions
     # ----------------------------------------------------------------------------------------
     {
-      name = "remote-containers";  # Open and folder or repo inside a Docker container
+      name = "vscode-great-icons";      # Awesome icon pack for vscode
+      publisher = "emmanuelbeziat";
+      version = "2.1.104";
+      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+    }
+    {
+      name = "remote-containers";       # Open and folder or repo inside a Docker container
       publisher = "ms-vscode-remote";
       version = "0.327.0";
       sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
     }
     {
-      name = "vim";                       # Essential vim syntax in vscode
+      name = "vim";                     # Essential vim syntax in vscode
       publisher = "vscodevim";
       version = "1.27.2";
-      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+      sha256 = "sha256-O5G4yhvD2HvKb4Vbvr1v20nMEQq88f5RE+X50bZvr1Q=";
     }
     {
       name = "vscode-color";            # GUI color picker to generate color codes
