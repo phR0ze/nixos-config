@@ -13,7 +13,9 @@
   services.barriers.enable = true;      # Enable the barrier server and client
 
   environment.systemPackages = with pkgs; [
+    clang                               # A C language family frontend for LLVM
     lldb                                # Next gen high-performance debugger for Rust
+    llvm                                # Compiler infrastructure
     rustup                              # Rust installer
   ];
 }
