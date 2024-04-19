@@ -59,7 +59,7 @@ update::profile()
     utils::replace str "profile" "${@}" "${opts}"
     git add "${opts}"
 
-    _shutdownXfconfd
+    _preUpdate
     _removeUserXfceConfigs
     nixos-rebuild switch --flake "path:/etc/nixos#system"
 }
@@ -72,16 +72,21 @@ update::system()
     log::header1 "Update NixOS system"
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
-    _shutdownXfconfd
+    _preUpdate
     if [[ "$@" == "reset-xfce" ]]; then
         _removeUserXfceConfigs
     fi
     _updateSystem
 }
 
-# Shutdown the xfce setting daemon to ensure were not conflicting
-_shutdownXfconfd()
+_preUpdate()
 {
+    # Trigger on common exit signals SIGHUP, SIGINT, SIGQUIT, SIGABRT
+    trap _postUpdate 1 2 3 6
+
+    log::ln "Removing ${cyan}/nix/files.lock${none} to permit files update"
+    rm -f /nix/files.lock
+
     log::ln "Shutting down ${cyan}xfconfd${none} to avoid conflicts"
     pkill xfconfd
 }
@@ -102,4 +107,10 @@ _removeUserXfceConfigs()
 _updateSystem()
 {
     nixos-rebuild switch --flake "path:/etc/nixos#system"
+}
+
+_postUpdate()
+{
+    log::ln "Adding ${cyan}/nix/files.lock${none} to block files updates during reboots"
+    touch /nix/files.lock
 }

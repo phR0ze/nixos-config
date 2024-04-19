@@ -24,7 +24,7 @@ dst="$(realpath "$2")"                  # destination directory for tracking e.g
 files="$dst/files"                      # link to current files store path
 log="$dst/files.log"                    # track all the files
 tmp="$dst/files.tmp"                    # old file tracking all files copied or linked
-disabled="$dst/files.disabled"          # don't do anything if disabled to avoid thrash on reboots
+lock="$dst/files.lock"                  # don't do anything if the lock file exists
 debug=false                             # debug mode for extra logging
 
 # Clean up any files left over from the previous install
@@ -192,7 +192,7 @@ mkdirs() {
 
 # Install files
 # --------------------------------------------------------------------------------------------------
-[[ -f "$disabled" ]] && exit
+[[ -f "$lock" ]] && exit
 echo "installing files from ${pkg}"
 
 # Backup the original files and read them in for reference
