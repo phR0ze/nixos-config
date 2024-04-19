@@ -8,12 +8,17 @@
     # ----------------------------------------------------------------------------------------
     rust-lang.rust-analyzer             # Rust language support, code completion, go to definition etc...
     vadimcn.vscode-lldb                 # A native debugger powered by LLDB for C++, Rust and other compiled languages
-    serayuzgur.crates                   # Simplify dependency management in Rust
 
   ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
 
     # Rust extensions
     # ----------------------------------------------------------------------------------------
+    {
+      name = "crates";                  # Simplify dependency management in Rust
+      publisher = "serayuzgur";
+      version = "0.6.6";
+      sha256 = "sha256-IgfcIRF54JXm9l2vVjf7lFJOVSI0CDgDjQT+Hw6FO4Q=";
+    }
     {
       name = "vscode-rust-test-adapter"; # Rust test explorer that enables viewing and running rust tests
       publisher = "swellaby";
@@ -96,7 +101,7 @@
       name = "remote-containers";       # Open and folder or repo inside a Docker container
       publisher = "ms-vscode-remote";
       version = "0.327.0";
-      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+      sha256 = "sha256-nx4g73fYTm5L/1s/IHMkiYBlt3v1PobAv6/0VUrlWis=";
     }
     {
       name = "vim";                     # Essential vim syntax in vscode
