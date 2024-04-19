@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../../funcs { inherit lib; };
+  f = pkgs.callPackage ../../../misc/funcs.nix { inherit lib; };
   xfceCfg = config.services.xserver.desktopManager.xfce;
   cfg = xfceCfg.displays;
 
