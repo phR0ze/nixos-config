@@ -14,7 +14,7 @@
     # ----------------------------------------------------------------------------------------
     vadimcn.vscode-lldb         # A native debugger powered by LLDB for C++, Rust and other compiled languages
 
-  ] ++ pkgs.vscode-utils.extensionsFromVsCodeMarketplce [
+#  ] ++ pkgs.vscode-utils.extensionsFromVsCodeMarketplce [
 
   ];
 }
