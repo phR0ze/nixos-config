@@ -26,8 +26,8 @@ let
 
   userDir = ".config/${configDir}/User";
   configFilePath = "${userDir}/settings.json";
+  keybindingsFilePath = "${userDir}/keybindings.json";
 #  tasksFilePath = "${userDir}/tasks.json";
-#  keybindingsFilePath = "${userDir}/keybindings.json";
 #
 #  snippetDir = "${userDir}/snippets";
 #
@@ -115,6 +115,16 @@ in
           "editor.fontSize" = 14;
           "editor.fontFamily" = "${xftCfg.monospace}";
 
+          # Copilot lang configuration
+          # ----------------------------------------------------------------------------------------
+          "github.copilot.enable" = {
+            "*" = true;
+            "plaintext" = true;
+            "markdown" = true;
+            "scminput" = false;
+          };
+          "git.openRepositoryInParentFolders" = "never";
+
           # Vim configuration
           # ----------------------------------------------------------------------------------------
           "vim.textwidth" = 100;
@@ -173,16 +183,6 @@ in
           # ----------------------------------------------------------------------------------------
           "dart.lineLength" = 100;
           "dart.closingLabels" = true;
-
-          # Copilot lang configuration
-          # ----------------------------------------------------------------------------------------
-          "github.copilot.enable" = {
-            "*" = true;
-            "plaintext" = true;
-            "markdown" = true;
-            "scminput" = false;
-          };
-          "git.openRepositoryInParentFolders" = "never";
         };
         example = literalExpression ''
           {
@@ -248,7 +248,31 @@ in
             };
           };
         });
-        default = [ ];
+        default = [
+          {
+            key = "ctrl+shift+s";
+            command = "workbench.action.files.saveAll";
+          }
+          {
+            key = "ctrl+shift+t";
+            command = "workbench.action.tasks.test";
+          }
+          {
+            key = "ctrl+shift+r";
+            command = "workbench.action.tasks.runTask";
+            args = "Run";
+          }
+          {
+            key = "ctrl+f12";
+            command = "editor.action.goToDeclaration";
+            when = "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor";
+          }
+          {
+            key = "f12";
+            command = "-editor.action.goToDeclaration";
+            when = "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor";
+          }
+        ];
         example = literalExpression ''
           [
             {
@@ -313,29 +337,25 @@ in
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
-      environment.systemPackages = with pkgs; [
-        cfg.package
-      ];
+  config = lib.mkIf cfg.enable {
+    environment.systemPackages = with pkgs; [
+      cfg.package
+    ];
 
-      files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.userSettings
-        // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
-        // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
-        // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; });
-    })
+    files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.userSettings
+      // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
+      // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
+      // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; });
+
+    (let dropNullFields = filterAttrs (_: v: v != null);
+    in {
+      files.all."${keybindingsFilePath}".copy = jsonFormat.generate "vscode-keybindings" (map dropNullFields cfg.keybindings);
+    });
 
 #      (lib.mkIf (cfg.userTasks != { }) {
 #        "${tasksFilePath}".source =
 #          jsonFormat.generate "vscode-user-tasks" cfg.userTasks;
 #      })
-#      (lib.mkIf (cfg.keybindings != [ ])
-#        (let dropNullFields = filterAttrs (_: v: v != null);
-#        in {
-#          "${keybindingsFilePath}".source =
-#            jsonFormat.generate "vscode-keybindings"
-#            (map dropNullFields cfg.keybindings);
-#        }))
 #      (lib.mkIf (cfg.extensions != [ ]) (let
 #        subDir = "share/vscode/extensions";
 #
@@ -383,5 +403,5 @@ in
 #        lib.nameValuePair "${snippetDir}/${language}.json" {
 #          source = jsonFormat.generate "user-snippet-${language}.json" snippet;
 #        }) cfg.languageSnippets)
-  ];
+  };
 }
