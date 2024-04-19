@@ -10,7 +10,6 @@
     github.copilot                      # Github Copilot uses OpenAI Codex to suggest code
     github.copilot-chat                 # Copilot companion extension for chat interface
     emmanuelbeziat.vscode-great-icons   # Awesome icon pack for vscode
-    vscodevim.vim                       # Essential vim syntax in vscode
     ms-vscode-remote.remote-containers  # Open and folder or repo inside a Docker container
 
     # Nix extensions
@@ -50,7 +49,7 @@
       name = "flutter";                 # Official flutter mobile apps support
       publisher = "dart-code";
       version = "3.86.0";
-      sha256 = "sha256-PnrTacI5QaJjBMQJ59VlSTqAjQLAh87ZpdhNWccxn5Y=";
+      sha256 = "sha256-LRW+U3OhjHIO4PrKiG26h0zCL2wgiTGOmNTLKpsbJFw=";
     }
     {
       name = "vscode-flutter-riverpod-helper"; # Automation to write Riverpod and Freezed classes
@@ -70,6 +69,12 @@
 
     # General extensions
     # ----------------------------------------------------------------------------------------
+    {
+      name = "vim";                       # Essential vim syntax in vscode
+      publisher = "vscodevim";
+      version = "1.27.2";
+      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+    }
     {
       name = "vscode-color";            # GUI color picker to generate color codes
       publisher = "anseki";
