@@ -16,6 +16,7 @@
     # Dart extensions
     # ----------------------------------------------------------------------------------------
     dart-code.flutter                 # Official flutter mobile apps support
+    dart-code.dart-code               # Dart language support and debugger for vscode
 
     # Rust extensions
     # ----------------------------------------------------------------------------------------
@@ -46,7 +47,7 @@
       name = "vscode-flutter-riverpod-helper"; # Automation to write Riverpod and Freezed classes
       publisher = "evils";
       version = "0.1.10";
-      sha256 = "sha256-eG5cj1ygGeOI/fttmJJbqFrFNjDUOKbqNOS2Ai+tNYI=";
+      sha256 = "sha256-PnrTacI5QaJjBMQJ59VlSTqAjQLAh87ZpdhNWccxn5Y=";
     }
   ];
 }
