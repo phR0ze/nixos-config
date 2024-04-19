@@ -147,9 +147,9 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
+* [ ] Always replace with copy but only run during actual update
 * [ ] Visual Studio Extensions
 * [ ] Remote Desktop
-* [ ] Don't run files every login/boot
 
 ## Sometime
 * [ ] Create ISO with full live GUI environment

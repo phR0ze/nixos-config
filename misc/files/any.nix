@@ -9,17 +9,14 @@
 # that solution.
 
 # ### Warnings
-# - gets run on boot and on nixos-rebuild switch so be careful what is included here
-# - file type overwrites any existing target to keep the configuration accurage
-# - removes owned files and directories when they are no longer in your configuration
+# - overwrites any existing target to keep the configuration accurate
 # - multiple configurations for the same file or directory will be handled in a last out wins which
 #   can be non-deterministic. best to not duplicate files or directory configurations for now.
 #
 # ### Features
 # - pseudo atomic link switching via the /nix/files indirection link
-# - merges with existing directories overwriting files that conflict but leaving unowned files
+# - merges with existing directories overwriting files that conflict
 # - choose to install files as writable files or as links to readonly nix store paths
-# - choose to own the files or directories, defaults to owning files and not owning directories
 # - choose the mode, user, and group for files and or directories
 # - only recreates links when they are incorrect or missing
 # - supports spaces in file or directory names
@@ -80,8 +77,7 @@ let
       local filemode="$5"         # Mode to use for files
       local user="$6"             # Owner to use for file and/or directories
       local group="$7"            # Group to use for file and/or directories
-      local own="$8"              # Own the the file or directory
-      local op="$9"               # Operation type
+      local op="$8"               # Operation type
 
       # Validation on inputs
       [[ ''${dst:0:1} == "/" ]] && echo "paths must not start with a /" && exit 1
@@ -112,7 +108,6 @@ let
       echo "$filemode" >> "$meta"
       echo "$user" >> "$meta"
       echo "$group" >> "$meta"
-      echo "$own" >> "$meta"
     }
 
     # Convert the files derivations into a list of calls to track by taking all the file
@@ -128,7 +123,6 @@ let
       entry.filemode
       entry.user
       entry.group
-      entry.own
       entry.op
     ]) anyFiles}
   '';
@@ -154,11 +148,8 @@ in
         # Create a single file from raw text
         files.any."root/.config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=ArkDark";
 
-        # Include a local file as your target that is unowned
+        # Include a local file as your target
         files.any."root/.dircolors".copy = ../include/home/.dircolors;
-
-        # Include a local file as your target that is owned
-        files.any."root/.dircolors".ownCopy = ../include/home/.dircolors;
 
         # Include a local file as a readonly link
         files.any."root/.dircolors".link = ../include/home/.dircolors;
