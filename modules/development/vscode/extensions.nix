@@ -13,6 +13,10 @@
     emmanuelbeziat.vscode-great-icons # Awesome icon pack for vscode
     vscodevim.vim                     # Essential vim syntax in vscode
 
+    # Dart extensions
+    # ----------------------------------------------------------------------------------------
+    dart-code.flutter                 # Official flutter mobile apps support
+
     # Rust extensions
     # ----------------------------------------------------------------------------------------
     rust-lang.rust-analyzer           # Rust language support, code completion, go to definition etc...
