@@ -101,8 +101,8 @@ in
 
           # Debug configuration
           # ----------------------------------------------------------------------------------------
-          "debug.console.closeOnEnd": true,
-          "debug.terminal.clearBeforeReusing": true,
+          "debug.console.closeOnEnd" = true;
+          "debug.terminal.clearBeforeReusing" = true;
 
           # Editor configuration
           # ----------------------------------------------------------------------------------------
