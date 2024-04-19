@@ -1,7 +1,4 @@
 # Visual Studio Code configuration
-#
-# ### Details
-# - https://nixos.wiki/wiki/VSCodium
 #---------------------------------------------------------------------------------------------------
 { ... }:
 {

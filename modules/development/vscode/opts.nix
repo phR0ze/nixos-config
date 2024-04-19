@@ -14,28 +14,19 @@ let
 #  tasksFilePath = "${userDir}/tasks.json";
 #  snippetDir = "${userDir}/snippets";
   extensionPath = ".vscode/extensions"; # i.e. ~/.vscode/extensions
-#
+
 #  extensionJson = pkgs.vscode-utils.toExtensionJson cfg.extensions;
 #  extensionJsonFile = pkgs.writeTextFile {
 #    name = "extensions-json";
 #    destination = "/share/vscode/extensions/extensions.json";
 #    text = extensionJson;
 #  };
-#
 
 in
 {
   options = {
     programs.vscode = {
       enable = lib.mkEnableOption "Visual Studio Code";
-
-      package = lib.mkOption {
-        type = types.package;
-        default = pkgs.vscode;
-        defaultText = literalExpression "pkgs.vscode";
-        example = literalExpression "pkgs.vscodium";
-        description = "Version of Visual Studio Code to install.";
-      };
 
       enableUpdateCheck = lib.mkOption {
         type = types.bool;
@@ -187,18 +178,23 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      cfg.package
-    ];
+  config = lib.mkMerge [
+    (lib.mkIf (cfg.enable) {
+      environment.systemPackages = with pkgs; [ vscode ];
+    })
 
-    # configure user settings
-    files.all."${settingsFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.settings
-      // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
-      // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
-      // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; });
+    # configure settings
+    (lib.mkIf (cft.enable && cfg.settings != { }) {
+      files.all."${settingsFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.settings
+        // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
+        // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
+        // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; });
+    })
 
-    files.all."${keybindingsFilePath}".copy = jsonFormat.generate "vscode-keybindings" (map dropNullFields cfg.keybindings);
+    # configure keybindings
+    (lib.mkIf (cft.enable && cfg.keybindings != [ ]) {
+      files.all."${keybindingsFilePath}".copy = jsonFormat.generate "vscode-keybindings" (map dropNullFields cfg.keybindings);
+    })
 
 #      (lib.mkIf (cfg.userTasks != { }) {
 #        "${tasksFilePath}".source =
@@ -252,5 +248,5 @@ in
 #        lib.nameValuePair "${snippetDir}/${language}.json" {
 #          source = jsonFormat.generate "user-snippet-${language}.json" snippet;
 #        }) cfg.languageSnippets)
-  };
+  ];
 }
