@@ -11,4 +11,7 @@
     ../../modules/desktop/x11/develop.nix
   ];
 
+  services.xserver.desktopManager.xfce.menu.overrides = [
+    { source = "${pkgs.vscode}/share/applications/code.desktop"; categories = "Development"; }
+  ];
 }

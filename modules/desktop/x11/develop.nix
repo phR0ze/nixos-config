@@ -5,6 +5,7 @@
 { pkgs, args, ... }:
 {
   imports = [
+    ../../development/vscode
     ../../services/barrier.nix
   ];
 
@@ -12,6 +13,7 @@
   services.barriers.enable = true;      # Enable the barrier server and client
 
   environment.systemPackages = with pkgs; [
+    lldb                                # Next gen high-performance debugger for Rust
     rustup                              # Rust installer
   ];
 }
