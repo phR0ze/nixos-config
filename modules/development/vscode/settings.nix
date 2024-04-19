@@ -1,5 +1,10 @@
 # Visual Studio Code user settings
 #---------------------------------------------------------------------------------------------------
+{ config, lib, pkgs, args, settingsFilePath, ... }: with lib.types;
+let
+  xft = config.services.xserver.xft;
+
+in
 {
   programs.vscode.settings = {
     # Explorer configuration
@@ -11,7 +16,7 @@
     # Integrated terminal configuration
     # ----------------------------------------------------------------------------------------
     "terminal.explorerKind" = "integrated";         # What kind of terminal to use inside vscode
-    "terminal.integrated.fontFamily" = "${xftCfg.monospace}";
+    "terminal.integrated.fontFamily" = "${xft.monospace}";
     "terminal.integrated.fontSize" = 16;
     "terminal.integrated.tabs.enabled" = false;
     "terminal.integrated.enablePersistentSessions" = false;
@@ -30,7 +35,7 @@
     "editor.formatOnSave" = true;                   #
     "editor.minimap.enabled" = true;                #
     "editor.fontSize" = 14;
-    "editor.fontFamily" = "${xftCfg.monospace}";
+    "editor.fontFamily" = "${xft.monospace}";
 
     # Copilot lang configuration
     # ----------------------------------------------------------------------------------------
