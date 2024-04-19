@@ -14,10 +14,12 @@ let
 
 in
 {
-  imports = [
-    ./settings.nix { inherit config lib pkgs settingsFilePath; }
-    ./keybindings.nix { inherit config lib pkgs keybindingsFilePath; }
-  ];
+  config = {
+    imports = [
+      ./settings.nix { inherit config lib pkgs settingsFilePath; }
+      ./keybindings.nix { inherit config lib pkgs keybindingsFilePath; }
+    ];
 
-  programs.vscode.enable = true;        # Visual Studio Code development IDE
+    programs.vscode.enable = true;        # Visual Studio Code development IDE
+  };
 }
