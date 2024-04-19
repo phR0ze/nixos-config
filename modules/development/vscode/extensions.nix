@@ -38,7 +38,7 @@
       name = "dart-code";               # Dart language support and debugger for vscode
       publisher = "dart-code";
       version = "3.86.0";
-      sha256 = "sha256-LRW+U3OhjHIO4PrKiG26h0zCL2wgiTGOmNTLKpsbJFw=";
+      sha256 = "sha256-0B75S2iAXbjN+8BGPQQH5rZDecYCUGeEgFgvpveTklA=";
     }
     {
       name = "flutter";                 # Official flutter mobile apps support
