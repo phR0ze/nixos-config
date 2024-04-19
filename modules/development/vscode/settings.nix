@@ -243,7 +243,7 @@ in
     ];
 
     # configure user settings
-    files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.userSettings
+    files.all."${settingsFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.userSettings
       // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
       // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
       // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; });
