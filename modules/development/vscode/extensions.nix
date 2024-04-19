@@ -77,7 +77,7 @@
       name = "even-better-toml";        # Even Better TOML
       publisher = "tamasfe";
       version = "0.19.2";
-      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+      sha256 = "sha256-JKj6noi2dTe02PxX/kS117ZhW8u7Bhj4QowZQiJKP2E=";
     }
     {
       name = "copilot";                 # Github Copilot uses OpenAI Codex to suggest code
