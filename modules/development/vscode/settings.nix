@@ -1,6 +1,6 @@
 # Visual Studio Code user settings
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, settingsFilePath, ... }: with lib.types;
+{ config, ... }:
 let
   xft = config.services.xserver.xft;
 
