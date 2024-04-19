@@ -42,5 +42,11 @@
       version = "1.8.0";
       sha256 = "sha256-eG5cj1ygGeOI/fttmJJbqFrFNjDUOKbqNOS2Ai+tNYI=";
     }
+    {
+      name = "vscode-flutter-riverpod-helper"; # Automation to write Riverpod and Freezed classes
+      publisher = "evils";
+      version = "0.1.10";
+      sha256 = "sha256-eG5cj1ygGeOI/fttmJJbqFrFNjDUOKbqNOS2Ai+tNYI=";
+    }
   ];
 }
