@@ -3,9 +3,8 @@
 # ### Details
 # - centralizing all font configuration here
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib.types;
+{ options, config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../misc/funcs.nix { inherit lib; };
   xcfg = config.services.xserver;
   xfceCfg = xcfg.desktopManager.xfce;
 

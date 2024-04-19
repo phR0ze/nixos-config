@@ -24,9 +24,8 @@
 # %T  Time as %H:%M:%S
 # %Z  Time Zone Name 
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../../misc/funcs.nix { inherit lib; };
   xft = config.services.xserver.xft;
 
 in

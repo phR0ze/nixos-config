@@ -1,9 +1,8 @@
 # XFCE Thunar options
 #
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib.types;
+{ options, config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../../misc/funcs.nix { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.thunar;
   xfceCfg = config.services.xserver.desktopManager.xfce;
 
