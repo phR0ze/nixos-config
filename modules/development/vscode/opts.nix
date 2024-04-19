@@ -180,7 +180,7 @@ in
     })
 
     (lib.mkIf (cfg.extensions != [ ]) {
-      files.all."${extensionsFilePath}".copy = pkgs.vscode-utils.toExtensionJson cfg.extensions;
+      files.all."${extensionsFilePath}".text = pkgs.vscode-utils.toExtensionJson cfg.extensions;
     })
 
 #      (lib.mkIf (cfg.userTasks != { }) {
