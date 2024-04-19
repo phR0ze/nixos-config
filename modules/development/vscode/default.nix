@@ -3,7 +3,7 @@
 # ### Details
 # - https://nixos.wiki/wiki/VSCodium
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, keybindingsFilePath, ... }:
+{ config, lib, pkgs, ... }:
 let
   cfg = config.programs.vscode;
 
