@@ -184,7 +184,7 @@ in
     })
 
     # configure settings
-    (lib.mkIf (cft.enable && cfg.settings != { }) {
+    (lib.mkIf (cfg.enable && cfg.settings != { }) {
       files.all."${settingsFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.settings
         // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
         // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
@@ -192,7 +192,7 @@ in
     })
 
     # configure keybindings
-    (lib.mkIf (cft.enable && cfg.keybindings != [ ]) {
+    (lib.mkIf (cfg.enable && cfg.keybindings != [ ]) {
       files.all."${keybindingsFilePath}".copy = jsonFormat.generate "vscode-keybindings" (map dropNullFields cfg.keybindings);
     })
 
