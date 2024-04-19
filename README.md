@@ -156,7 +156,6 @@ world though this already exists.
   * [ ] Switch to calamares for installation
 * [ ] Add vim-colorize plugin
 * [ ] Change nix flake symbol to blue in vim colorizer plugin
-* [ ] Remove `/etc/nixos/etc/nixos`
 * [ ] Change the kernel boot colors 
 
 * Configs to circle back to
