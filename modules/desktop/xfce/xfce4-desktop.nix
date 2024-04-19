@@ -127,6 +127,6 @@ in
 
   # Install the generated xml file
   config = lib.mkIf xfceCfg.enable {
-    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml".ownCopy = xmlfile;
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml".copy = xmlfile;
   };
 }

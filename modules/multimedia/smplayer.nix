@@ -55,11 +55,6 @@ in
         default = false;
         description = lib.mdDoc "Install smplayer";
       };
-      ownConfigs = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Overwrite settings every reboot/update";
-      };
       theme = lib.mkOption {
         type = types.str;
         default = "Numix-remix";
@@ -68,16 +63,10 @@ in
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable) {
-      environment.systemPackages = with pkgs; [ smplayer ];
-      files.all.".config/smplayer/themes".link = "${smplayer-themes}/share/smplayer/themes";
-    })
-    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
-      files.all.".config/smplayer/smplayer.ini".copy = inifile;
-    })
-    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
-      files.all.".config/smplayer/smplayer.ini".ownCopy = inifile;
-    })
-  ];
+  config = lib.mkIf (cfg.enable) {
+    environment.systemPackages = with pkgs; [ smplayer ];
+
+    files.all.".config/smplayer/themes".link = "${smplayer-themes}/share/smplayer/themes";
+    files.all.".config/smplayer/smplayer.ini".copy = inifile;
+  };
 }
