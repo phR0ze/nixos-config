@@ -11,6 +11,7 @@
   ];
 
   # Additional programs and services
+  programs.vscode.enable = true;        # Visual Studio Code development IDE
   programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
   programs.steam.enable = true;         # Digital distribution platform from Valve
   programs.prismlauncher.enable = true; # Minecraft launcher
