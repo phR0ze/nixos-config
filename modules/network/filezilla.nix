@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../funcs { inherit lib; };
+  f = pkgs.callPackage ../../misc/funcs.nix { inherit lib; };
   cfg = config.programs.filezilla;
 
   xmlfile = lib.mkIf cfg.enable

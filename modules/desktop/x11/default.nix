@@ -26,7 +26,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../../funcs { inherit lib; };
+  f = pkgs.callPackage ../../../misc/funcs.nix { inherit lib; };
   xft = config.services.xserver.xft;
 
 in

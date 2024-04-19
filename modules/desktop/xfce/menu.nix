@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../../funcs { inherit lib; };
+  f = pkgs.callPackage ../../../misc/funcs.nix { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.menu;
   desktopType = (import ./desktop-type.nix { inherit options config lib pkgs args; }).desktopType;
 
