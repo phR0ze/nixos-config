@@ -58,7 +58,7 @@
     };
 
     # Using attribute set update syntax '//' here to combine a couple sets for simpler input arguments
-    f = pkgs.callPackage ./misc/funcs.nix { nixpkgs.lib };
+    f = pkgs.callPackage ./misc/funcs.nix { nixpkgs.lib; };
     args = inputs // { inherit settings; } // { iso = false; };
     system = settings.system;
     specialArgs = { inherit args f; };
