@@ -1,9 +1,8 @@
 # Filezilla options
 #
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, ... }: with lib.types;
+{ options, config, lib, pkgs, f, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../misc/funcs.nix { inherit lib; };
   cfg = config.programs.filezilla;
 
   xmlfile = lib.mkIf cfg.enable
