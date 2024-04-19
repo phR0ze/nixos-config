@@ -180,7 +180,7 @@ in
             "*" = true;
             "plaintext" = true;
             "markdown" = true;
-            "scminput" = false
+            "scminput" = false;
           };
           "git.openRepositoryInParentFolders" = "never";
         };
