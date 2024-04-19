@@ -54,7 +54,7 @@
       name = "github-markdown-preview"; # Markdown extension pack to match Github rendering
       publisher = "bierner";
       version = "0.3.0";
-      sha256 = "sha256-PnrTacI5QaJjBMQJ59VlSTqAjQLAh87ZpdhNWccxn5Y=";
+      sha256 = "sha256-7pbl5OgvJ6S0mtZWsEyUzlg+lkUhdq3rkCCpLsvTm4g=";
     }
   ];
 }
