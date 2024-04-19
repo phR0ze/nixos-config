@@ -147,7 +147,6 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Firefox configs
 * [ ] Remote Desktop
 * [ ] Visual Studio Extensions
 
