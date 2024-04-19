@@ -217,7 +217,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ cfg.package ];
+    environment.systemPackages = with pkgs; [
+      cfg.package
+    ];
 
 #    home.file = lib.mkMerge [
 #      (lib.mkIf (mergedUserSettings != { }) {
