@@ -216,15 +216,16 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      cfg.package
-    ];
+  config = lib.mkMerge [
+    (lib.mkIf cfg.enable {
+      environment.systemPackages = with pkgs; [
+        cfg.package
+      ];
+    })
+    (lib.mkIf (cfg.enable && mergedUserSettings != { }) {
+      files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" mergedUserSettings;
+    })
 
-    lib.mkMerge [
-      (lib.mkIf (mergedUserSettings != { }) {
-        files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" mergedUserSettings;
-      })
 #      (lib.mkIf (cfg.userTasks != { }) {
 #        "${tasksFilePath}".source =
 #          jsonFormat.generate "vscode-user-tasks" cfg.userTasks;
@@ -283,6 +284,5 @@ in
 #        lib.nameValuePair "${snippetDir}/${language}.json" {
 #          source = jsonFormat.generate "user-snippet-${language}.json" snippet;
 #        }) cfg.languageSnippets)
-    ];
-  };
+  ];
 }
