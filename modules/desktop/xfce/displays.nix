@@ -2,9 +2,8 @@
 #
 # Gnerate the ~/.config/xfce4/xfconf/xfce-perchannel-xml/displays.xml configuration file
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib.types;
+{ options, config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../../misc/funcs.nix { inherit lib; };
   xfceCfg = config.services.xserver.desktopManager.xfce;
   cfg = xfceCfg.displays;
 

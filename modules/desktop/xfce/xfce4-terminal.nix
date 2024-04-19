@@ -2,9 +2,8 @@
 #
 # Generate the ~/.config/xfce/xfconf/xfce-perchannel-xml/xfce4-terminal.xml configuration file
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib.types;
+{ options, config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  f = pkgs.callPackage ../../../misc/funcs.nix { inherit lib; };
   cfg = config.services.xserver.desktopManager.xfce.terminal;
   xfceCfg = config.services.xserver.desktopManager.xfce;
 
