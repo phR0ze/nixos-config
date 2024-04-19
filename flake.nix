@@ -57,8 +57,9 @@
 #      ];
     };
 
-    # Using attribute set update syntax '//' here to combine a couple sets for simpler input arguments
+    # Import all custom functions to be use throughout
     f = pkgs.callPackage ./misc/funcs.nix { lib = nixpkgs.lib; };
+
     args = inputs // { inherit settings; } // { iso = false; };
     system = settings.system;
     specialArgs = { inherit args f; };
