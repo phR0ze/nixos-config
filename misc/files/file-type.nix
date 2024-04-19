@@ -31,7 +31,6 @@
             indicated target path. To make this a file at the target location set 'kind="copy"'.
             - sets 'source' to the given file
             - sets 'kind' to 'link'
-            - sets 'own' to 'default'
           '';
         };
 
@@ -39,24 +38,11 @@
           default = null;
           type = types.nullOr types.path;
           description = lib.mdDoc ''
-            Local file path or local directory path to install in system. Doesn't re-copy the file on 
-            reboot or updates. Removing the corresponding entry from the file `/nix/files.unowned` 
-            will allow an update to overwrite the file for a fresh start.
+            Local file path or local directory path to install in system. Copies during a 'clu' 
+            install or update, but not for nixos-rebuild switch nor during reboots. Overwrites 
+            existing files of the same name.
             - sets 'source' to the given file
             - sets 'kind' to 'copy'
-            - sets 'own' to 'unowned'
-          '';
-        };
-
-        ownCopy = lib.mkOption {
-          default = null;
-          type = types.nullOr types.path;
-          description = lib.mdDoc ''
-            Local file path or local directory path to install in system. Copies the file on reboot 
-            or updates. Tracks these files in `/nix/files.owned`
-            - sets 'source' to the given file
-            - sets 'kind' to 'copy'
-            - sets 'own' to 'owned'
           '';
         };
 
@@ -64,10 +50,10 @@
           default = null;
           type = types.nullOr types.path;
           description = lib.mdDoc ''
-            Local file path or local directory path to install in system as a link:
+            Local file path or local directory path to install in system as a link. Overwrites 
+            existing files of the same name.
             - sets 'source' to the given file or directory
             - sets 'kind' to 'link'
-            - sets 'own' to 'default'
           '';
         };
 
@@ -99,21 +85,6 @@
           default = "default";
           description = lib.mdDoc ''
             Placeholder for a future operation
-          '';
-        };
-
-        own = lib.mkOption {
-          type = types.enum [ "default" "owned" "unowned" ];
-          default = "default";
-          description = lib.mdDoc ''
-            Whether to own the file or directory or not. When a file or directory is owned it is 
-            automatically deleted if your configuration no longer uses it. It is also overwritten 
-            on every reboot or update. This can be dangerous if you have included a directory such as 
-            .config in your home directory and set it as owned then remove your dependency on it 
-            since it will remove the entire .config directory on clean up despite other files you 
-            don't own being in the directory. This is why there is a separate option `ownCopy` that 
-            invokes the owned behavior and why own is false by default for regular `copy` operations 
-            and for directories. It is true by default for links however.
           '';
         };
 
@@ -151,19 +122,14 @@
         target = lib.mkDefault "${prefix}${name}";
 
         # Set kind based off the convenience options [ copy | link ]
-        kind = if (config.copy != null || config.ownCopy != null || config.text != null)
+        kind = if (config.copy != null || config.text != null)
           then (lib.mkForce "copy") else lib.mkForce "link";
 
         # Set default for future use
         op = lib.mkDefault "default";
 
-        # Set default( i.e. files are owned and directories are not) but allows for user overrides
-        own = if (config.copy != null || config.text != null) then (lib.mkForce "unowned")
-          else lib.mkIf (config.ownCopy != null) (lib.mkForce "owned");
-
         # Set based off the convenience options
         source = if (config.copy != null) then (lib.mkForce config.copy)
-          else if (config.ownCopy != null) then (lib.mkForce config.ownCopy)
           else if (config.link != null) then (lib.mkForce config.link)
           else lib.mkIf (config.text != null) (lib.mkDerivedConfig options.text (pkgs.writeText name));
       };
