@@ -42,8 +42,8 @@ let
 #  };
 #
   mergedUserSettings = cfg.userSettings
-    // optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
-    // optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; };
+    // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
+    // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; };
 
 in
 {
