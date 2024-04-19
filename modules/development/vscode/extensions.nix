@@ -46,7 +46,7 @@
       name = "vscode-test-explorer";    # Dependency of vscode-rust-test-adapter
       publisher = "hbenl";
       version = "2.21.1";
-      sha256 = "sha256-eG5cj1ygGeOI/fttmJJbqFrFNjDUOKbqNOS2Ai+tNYI=";
+      sha256 = "sha256-fHyePd8fYPt7zPHBGiVmd8fRx+IM3/cSBCyiI/C0VAg=";
     }
     {
       name = "vscode-remove-comments";  # Remove all comments from the current selection or the whole doc
