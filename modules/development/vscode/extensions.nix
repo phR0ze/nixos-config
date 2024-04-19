@@ -9,7 +9,6 @@
     tamasfe.even-better-toml            # Even Better TOML
     github.copilot                      # Github Copilot uses OpenAI Codex to suggest code
     github.copilot-chat                 # Copilot companion extension for chat interface
-    golang.go                           # Google official Golang support
     emmanuelbeziat.vscode-great-icons   # Awesome icon pack for vscode
     vscodevim.vim                       # Essential vim syntax in vscode
     ms-vscode-remote.remote-containers  # Open and folder or repo inside a Docker container
@@ -20,7 +19,6 @@
 
     # Dart extensions
     # ----------------------------------------------------------------------------------------
-    dart-code.flutter                   # Official flutter mobile apps support
     dart-code.dart-code                 # Dart language support and debugger for vscode
 
     # Rust extensions
@@ -30,12 +28,9 @@
     serayuzgur.crates                   # Simplify dependency management in Rust
 
   ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
-    {
-      name = "vscode-color";            # GUI color picker to generate color codes
-      publisher = "anseki";
-      version = "0.4.5";
-      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
-    }
+
+    # Rust extensions
+    # ----------------------------------------------------------------------------------------
     {
       name = "vscode-rust-test-adapter"; # Rust test explorer that enables viewing and running rust tests
       publisher = "swellaby";
@@ -48,17 +43,44 @@
       version = "2.21.1";
       sha256 = "sha256-fHyePd8fYPt7zPHBGiVmd8fRx+IM3/cSBCyiI/C0VAg=";
     }
+
+    # Dart extensions
+    # ----------------------------------------------------------------------------------------
     {
-      name = "vscode-remove-comments";  # Remove all comments from the current selection or the whole doc
-      publisher = "rioj7";
-      version = "1.8.0";
-      sha256 = "sha256-eG5cj1ygGeOI/fttmJJbqFrFNjDUOKbqNOS2Ai+tNYI=";
+      name = "flutter";                 # Official flutter mobile apps support
+      publisher = "dart-code";
+      version = "3.86.0";
+      sha256 = "sha256-PnrTacI5QaJjBMQJ59VlSTqAjQLAh87ZpdhNWccxn5Y=";
     }
     {
       name = "vscode-flutter-riverpod-helper"; # Automation to write Riverpod and Freezed classes
       publisher = "evils";
       version = "0.1.10";
       sha256 = "sha256-PnrTacI5QaJjBMQJ59VlSTqAjQLAh87ZpdhNWccxn5Y=";
+    }
+
+    # Golang extensions
+    # ----------------------------------------------------------------------------------------
+    {
+      name = "go";                      # Google official Golang support
+      publisher = "golang";
+      version = "0.41.2";
+      sha256 = "sha256-PnrTacI5QaJjBMQJ59VlSTqAjQLAh87ZpdhNWccxn5Y=";
+    }
+
+    # General extensions
+    # ----------------------------------------------------------------------------------------
+    {
+      name = "vscode-color";            # GUI color picker to generate color codes
+      publisher = "anseki";
+      version = "0.4.5";
+      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+    }
+    {
+      name = "vscode-remove-comments";  # Remove all comments from the current selection or the whole doc
+      publisher = "rioj7";
+      version = "1.8.0";
+      sha256 = "sha256-eG5cj1ygGeOI/fttmJJbqFrFNjDUOKbqNOS2Ai+tNYI=";
     }
     {
       name = "github-markdown-preview"; # Markdown extension pack to match Github rendering
