@@ -4,7 +4,7 @@
 {
   programs.vscode.extensions = with pkgs.vscode-extensions; [
 
-    # Rust extensions
+    # Native package dependencies
     # ----------------------------------------------------------------------------------------
     rust-lang.rust-analyzer             # Rust language support, code completion, go to definition etc...
     vadimcn.vscode-lldb                 # A native debugger powered by LLDB for C++, Rust and other compiled languages
@@ -17,7 +17,7 @@
       name = "crates";                  # Simplify dependency management in Rust
       publisher = "serayuzgur";
       version = "0.6.6";
-      sha256 = "sha256-IgfcIRF54JXm9l2vVjf7lFJOVSI0CDgDjQT+Hw6FO4Q=";
+      sha256 = "sha256-HXoH1IgMLniq0kxHs2snym4rerScu9qCqUaqwEC+O/E=";
     }
     {
       name = "vscode-rust-test-adapter"; # Rust test explorer that enables viewing and running rust tests
