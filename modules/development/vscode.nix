@@ -40,9 +40,6 @@ let
 #    text = extensionJson;
 #  };
 #
-  mergedUserSettings = cfg.userSettings
-    // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
-    // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; };
 
 in
 {
@@ -76,6 +73,12 @@ in
         type = types.bool;
         default = true;
         description = "Whether to enable update notifications for extensions.";
+      };
+
+      workbenchIconTheme = lib.mkOption {
+        type = types.str;
+        default = "vscode-great-icons";
+        description = "Excellent icon theme for vscode";
       };
 
       userSettings = lib.mkOption {
@@ -222,7 +225,10 @@ in
       ];
     })
     (lib.mkIf (cfg.enable && mergedUserSettings != { }) {
-      files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" mergedUserSettings;
+      files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.userSettings
+        // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
+        // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
+        // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; })
     })
 
 #      (lib.mkIf (cfg.userTasks != { }) {
