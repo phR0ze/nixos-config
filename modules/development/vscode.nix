@@ -224,7 +224,7 @@ in
         cfg.package
       ];
     })
-    (lib.mkIf (cfg.enable && mergedUserSettings != { }) {
+    (lib.mkIf cfg.enable {
       files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" cfg.userSettings
         // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
         // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
