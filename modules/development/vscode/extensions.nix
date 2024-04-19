@@ -10,7 +10,6 @@
     github.copilot                      # Github Copilot uses OpenAI Codex to suggest code
     github.copilot-chat                 # Copilot companion extension for chat interface
     emmanuelbeziat.vscode-great-icons   # Awesome icon pack for vscode
-    ms-vscode-remote.remote-containers  # Open and folder or repo inside a Docker container
 
     # Nix extensions
     # ----------------------------------------------------------------------------------------
@@ -64,11 +63,17 @@
       name = "go";                      # Google official Golang support
       publisher = "golang";
       version = "0.41.2";
-      sha256 = "sha256-PnrTacI5QaJjBMQJ59VlSTqAjQLAh87ZpdhNWccxn5Y=";
+      sha256 = "sha256-eD/9UBYxf8kmqxuzY+hgAT0bqSiYw/BbDv2gyB63zY0=";
     }
 
     # General extensions
     # ----------------------------------------------------------------------------------------
+    {
+      name = "remote-containers";  # Open and folder or repo inside a Docker container
+      publisher = "ms-vscode-remote";
+      version = "0.327.0";
+      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+    }
     {
       name = "vim";                       # Essential vim syntax in vscode
       publisher = "vscodevim";
