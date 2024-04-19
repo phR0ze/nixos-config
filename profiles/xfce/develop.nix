@@ -4,7 +4,7 @@
 # - Directly installable: xfce/desktop with additional development tools and configuration
 # - barrier server configuration
 # --------------------------------------------------------------------------------------------------
-{ ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./desktop.nix
