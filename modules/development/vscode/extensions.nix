@@ -7,8 +7,6 @@
     # General extensions
     # ----------------------------------------------------------------------------------------
     tamasfe.even-better-toml            # Even Better TOML
-    github.copilot                      # Github Copilot uses OpenAI Codex to suggest code
-    github.copilot-chat                 # Copilot companion extension for chat interface
 
     # Nix extensions
     # ----------------------------------------------------------------------------------------
@@ -68,10 +66,22 @@
     # General extensions
     # ----------------------------------------------------------------------------------------
     {
+      name = "copilot";                 # Github Copilot uses OpenAI Codex to suggest code
+      publisher = "github";
+      version = "1.180.0";
+      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+    }
+    {
+      name = "copilot-chat";            # Copilot companion extension for chat interface
+      publisher = "github";
+      version = "0.10.2";
+      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+    }
+    {
       name = "vscode-great-icons";      # Awesome icon pack for vscode
       publisher = "emmanuelbeziat";
       version = "2.1.104";
-      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+      sha256 = "sha256-0F2n9WrQP6dMYTYLAa3iiClHqxpyTvMSGXxlKiucwQA=";
     }
     {
       name = "remote-containers";       # Open and folder or repo inside a Docker container
