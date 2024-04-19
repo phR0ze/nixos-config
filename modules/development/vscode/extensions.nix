@@ -43,6 +43,12 @@
       sha256 = "sha256-IgfcIRF54JXm9l2vVjf7lFJOVSI0CDgDjQT+Hw6FO4Q=";
     }
     {
+      name = "vscode-test-explorer";    # Dependency of vscode-rust-test-adapter
+      publisher = "hbenl";
+      version = "2.21.1";
+      sha256 = "sha256-eG5cj1ygGeOI/fttmJJbqFrFNjDUOKbqNOS2Ai+tNYI=";
+    }
+    {
       name = "vscode-remove-comments";  # Remove all comments from the current selection or the whole doc
       publisher = "rioj7";
       version = "1.8.0";
