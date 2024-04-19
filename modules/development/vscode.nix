@@ -225,10 +225,10 @@ in
       ];
     })
     (lib.mkIf (cfg.enable && mergedUserSettings != { }) {
-      files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.userSettings
+      files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" cfg.userSettings
         // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
         // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
-        // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; })
+        // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; };
     })
 
 #      (lib.mkIf (cfg.userTasks != { }) {
