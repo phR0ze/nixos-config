@@ -53,7 +53,7 @@ let
 in
 {
 #  imports = [
-#    (mkChangedOptionModule [ "programs" "vscode" "immutableExtensionsDir" ] [
+#    (lib.mkChangedOptionModule [ "programs" "vscode" "immutableExtensionsDir" ] [
 #      "programs"
 #      "vscode"
 #      "mutableExtensionsDir"
@@ -62,9 +62,9 @@ in
 
   options = {
     programs.vscode = {
-      enable = mkEnableOption "Visual Studio Code";
+      enable = lib.mkEnableOption "Visual Studio Code";
 
-      package = mkOption {
+      package = lib.mkOption {
         type = types.package;
         default = pkgs.vscode;
         defaultText = literalExpression "pkgs.vscode";
@@ -72,19 +72,19 @@ in
         description = "Version of Visual Studio Code to install.";
       };
 
-      enableUpdateCheck = mkOption {
+      enableUpdateCheck = lib.mkOption {
         type = types.bool;
         default = true;
         description = "Whether to enable update checks/notifications.";
       };
 
-      enableExtensionUpdateCheck = mkOption {
+      enableExtensionUpdateCheck = lib.mkOption {
         type = types.bool;
         default = true;
         description = "Whether to enable update notifications for extensions.";
       };
 
-      userSettings = mkOption {
+      userSettings = lib.mkOption {
         type = jsonFormat.type;
         default = { };
         example = literalExpression ''
@@ -99,7 +99,7 @@ in
         '';
       };
 
-      userTasks = mkOption {
+      userTasks = lib.mkOption {
         type = jsonFormat.type;
         default = { };
         example = literalExpression ''
@@ -120,22 +120,22 @@ in
         '';
       };
 
-      keybindings = mkOption {
+      keybindings = lib.mkOption {
         type = types.listOf (types.submodule {
           options = {
-            key = mkOption {
+            key = lib.mkOption {
               type = types.str;
               example = "ctrl+c";
               description = "The key or key-combination to bind.";
             };
 
-            command = mkOption {
+            command = lib.mkOption {
               type = types.str;
               example = "editor.action.clipboardCopyAction";
               description = "The VS Code command to execute.";
             };
 
-            when = mkOption {
+            when = lib.mkOption {
               type = types.nullOr (types.str);
               default = null;
               example = "textInputFocus";
@@ -143,7 +143,7 @@ in
             };
 
             # https://code.visualstudio.com/docs/getstarted/keybindings#_command-arguments
-            args = mkOption {
+            args = lib.mkOption {
               type = types.nullOr (jsonFormat.type);
               default = null;
               example = { direction = "up"; };
@@ -167,7 +167,7 @@ in
         '';
       };
 
-      extensions = mkOption {
+      extensions = lib.mkOption {
         type = types.listOf types.package;
         default = [ ];
         example = literalExpression "[ pkgs.vscode-extensions.bbenoist.nix ]";
@@ -176,7 +176,7 @@ in
         '';
       };
 
-      mutableExtensionsDir = mkOption {
+      mutableExtensionsDir = lib.mkOption {
         type = types.bool;
         default = true;
         example = false;
@@ -186,7 +186,7 @@ in
         '';
       };
 
-      languageSnippets = mkOption {
+      languageSnippets = lib.mkOption {
         type = jsonFormat.type;
         default = { };
         example = {
@@ -201,7 +201,7 @@ in
         description = "Defines user snippets for different languages.";
       };
 
-      globalSnippets = mkOption {
+      globalSnippets = lib.mkOption {
         type = jsonFormat.type;
         default = { };
         example = {
@@ -216,26 +216,26 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
-#    home.file = mkMerge [
-#      (mkIf (mergedUserSettings != { }) {
+#    home.file = lib.mkMerge [
+#      (lib.mkIf (mergedUserSettings != { }) {
 #        "${configFilePath}".source =
 #          jsonFormat.generate "vscode-user-settings" mergedUserSettings;
 #      })
-#      (mkIf (cfg.userTasks != { }) {
+#      (lib.mkIf (cfg.userTasks != { }) {
 #        "${tasksFilePath}".source =
 #          jsonFormat.generate "vscode-user-tasks" cfg.userTasks;
 #      })
-#      (mkIf (cfg.keybindings != [ ])
+#      (lib.mkIf (cfg.keybindings != [ ])
 #        (let dropNullFields = filterAttrs (_: v: v != null);
 #        in {
 #          "${keybindingsFilePath}".source =
 #            jsonFormat.generate "vscode-keybindings"
 #            (map dropNullFields cfg.keybindings);
 #        }))
-#      (mkIf (cfg.extensions != [ ]) (let
+#      (lib.mkIf (cfg.extensions != [ ]) (let
 #        subDir = "share/vscode/extensions";
 #
 #        # Adapted from https://discourse.nixos.org/t/vscode-extensions-setup/1801/2
@@ -246,7 +246,7 @@ in
 #          else
 #            builtins.attrNames (builtins.readDir (ext + "/${subDir}")));
 #      in if cfg.mutableExtensionsDir then
-#        mkMerge (concatMap toPaths cfg.extensions
+#        lib.mkMerge (concatMap toPaths cfg.extensions
 #          ++ lib.optional (lib.versionAtLeast vscodeVersion "1.74.0") {
 #            # Whenever our immutable extensions.json changes, force VSCode to regenerate
 #            # extensions.json with both mutable and immutable extensions.
@@ -270,7 +270,7 @@ in
 #        in "${combinedExtensionsDrv}/${subDir}";
 #      }))
 #
-#      (mkIf (cfg.globalSnippets != { })
+#      (lib.mkIf (cfg.globalSnippets != { })
 #        (let globalSnippets = "${snippetDir}/global.code-snippets";
 #        in {
 #          "${globalSnippets}".source =
