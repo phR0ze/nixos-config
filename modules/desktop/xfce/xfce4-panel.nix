@@ -221,7 +221,7 @@ in
   # Install the generated xml file
   config = lib.mkMerge [
     (lib.mkIf xfceCfg.enable {
-      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml".ownCopy = panelXmlFile;
+      files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml".copy = panelXmlFile;
       files.all.".config/xfce4/panel".link = launchersPackage;
     })
   ];

@@ -25,11 +25,6 @@ in
         default = false;
         description = lib.mdDoc "Install filezilla";
       };
-      ownConfigs = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Overwrite settings every reboot/update";
-      };
       showLocalTree = lib.mkOption {
         type = types.bool;
         default = false;
@@ -49,15 +44,9 @@ in
   };
 
   # Install the generated xml file
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable) {
-      environment.systemPackages = with pkgs; [ filezilla ];
-    })
-    (lib.mkIf (cfg.enable && !cfg.ownConfigs) {
-      files.all.".config/filezilla/filezilla.xml".copy = xmlfile;
-    })
-    (lib.mkIf (cfg.enable && cfg.ownConfigs) {
-      files.all.".config/filezilla/filezilla.xml".ownCopy = xmlfile;
-    })
-  ];
+  config = lib.mkIf (cfg.enable) {
+    environment.systemPackages = with pkgs; [ filezilla ];
+
+    files.all.".config/filezilla/filezilla.xml".copy = xmlfile;
+  };
 }
