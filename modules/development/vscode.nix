@@ -113,7 +113,7 @@ in
           "editor.formatOnSave" = true;                   #
           "editor.minimap.enabled" = true;                #
           "editor.fontSize" = 14;
-          "editor.fontFamily" = "${xftCfg.monospace}",
+          "editor.fontFamily" = "${xftCfg.monospace}";
 
           # Vim configuration
           # ----------------------------------------------------------------------------------------
