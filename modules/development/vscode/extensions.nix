@@ -36,7 +36,7 @@
       name = "vscode-remove-comments"; # Remove all comments from the current selection or the whole doc
       publisher = "rioj7";
       version = "1.8.0";
-      sha256 = "sha256-IgfcIRF54JXm9l2vVjf7lFJOVSI0CDgDjQT+Hw6FO4Q=";
+      sha256 = "sha256-eG5cj1ygGeOI/fttmJJbqFrFNjDUOKbqNOS2Ai+tNYI=";
     }
   ];
 }
