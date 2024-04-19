@@ -147,8 +147,9 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Remote Desktop
 * [ ] Visual Studio Extensions
+* [ ] Remote Desktop
+* [ ] Don't run files every login/boot
 
 ## Sometime
 * [ ] Create ISO with full live GUI environment
