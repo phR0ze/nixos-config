@@ -11,9 +11,9 @@ let
   userDir = ".config/Code/User";
   settingsFilePath = "${userDir}/settings.json";
   keybindingsFilePath = "${userDir}/keybindings.json";
+  extensionsFilePath = ".vscode/extensions/extensions.json";
   tasksFilePath = "${userDir}/tasks.json";
   snippetDir = "${userDir}/snippets";
-  extensionsFilePath = ".vscode/extensions/extensions.json";
 
 in
 {
@@ -179,15 +179,15 @@ in
       files.all."${keybindingsFilePath}".copy = jsonFormat.generate "vscode-keybindings" (map dropNullFields cfg.keybindings);
     })
 
+    (lib.mkIf (cfg.extensions != [ ]) {
+      files.all."${extensionsFilePath}".copy = jsonFormat.generate "vscode-extensions"
+        pkgs.vscode-utils.toExtensionJson cfg.extensions;
+    })
+
 #      (lib.mkIf (cfg.userTasks != { }) {
 #        "${tasksFilePath}".source =
 #          jsonFormat.generate "vscode-user-tasks" cfg.userTasks;
 #      })
-
-    (lib.mkIf (cfg.extensions != [ ]) (let
-      files.all."${extensionsFilePath}".copy = jsonFormat.generate "vscode-extensions"
-        pkgs.vscode-utils.toExtensionJson cfg.extensions;
-    }))
 
 #      (lib.mkIf (cfg.globalSnippets != { })
 #        (let globalSnippets = "${snippetDir}/global.code-snippets";
