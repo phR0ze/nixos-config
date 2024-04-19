@@ -23,12 +23,9 @@ let
     "vscodium" = "vscode-oss";
   }.${vscodePname};
 
-#  userDir = if pkgs.stdenv.hostPlatform.isDarwin then
-#    "Library/Application Support/${configDir}/User"
-#  else
-#    "${config.xdg.configHome}/${configDir}/User";
-#
-#  configFilePath = "${userDir}/settings.json";
+  userDir = "${config.xdg.configHome}/${configDir}/User";
+
+  configFilePath = "${userDir}/settings.json";
 #  tasksFilePath = "${userDir}/tasks.json";
 #  keybindingsFilePath = "${userDir}/keybindings.json";
 #
@@ -44,11 +41,9 @@ let
 #    text = extensionJson;
 #  };
 #
-#  mergedUserSettings = cfg.userSettings
-#    // optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
-#    // optionalAttrs (!cfg.enableExtensionUpdateCheck) {
-#      "extensions.autoCheckUpdates" = false;
-#    };
+  mergedUserSettings = cfg.userSettings
+    // optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
+    // optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; };
 
 in
 {
@@ -86,7 +81,12 @@ in
 
       userSettings = lib.mkOption {
         type = jsonFormat.type;
-        default = { };
+        default = {
+          "explorer.confirmDelete" = false;                 # Ask for confirmation when deleting a file
+          "explorer.confirmDragAndDrop" = false;            # Ask for confirmation when moving file and folders
+          "telemetry.telemetryLevel" = "off";               # Don't phone home with details of usage
+          "terminal.explorerKind" = "integrated";           # What kind of terminal to use inside vscode
+        };
         example = literalExpression ''
           {
             "files.autoSave" = "off";
@@ -221,11 +221,10 @@ in
       cfg.package
     ];
 
-#    home.file = lib.mkMerge [
-#      (lib.mkIf (mergedUserSettings != { }) {
-#        "${configFilePath}".source =
-#          jsonFormat.generate "vscode-user-settings" mergedUserSettings;
-#      })
+    lib.mkMerge [
+      (lib.mkIf (mergedUserSettings != { }) {
+        files.all."${configFilePath}".copy = jsonFormat.generate "vscode-user-settings" mergedUserSettings;
+      })
 #      (lib.mkIf (cfg.userTasks != { }) {
 #        "${tasksFilePath}".source =
 #          jsonFormat.generate "vscode-user-tasks" cfg.userTasks;
@@ -284,6 +283,6 @@ in
 #        lib.nameValuePair "${snippetDir}/${language}.json" {
 #          source = jsonFormat.generate "user-snippet-${language}.json" snippet;
 #        }) cfg.languageSnippets)
-#    ];
+    ];
   };
 }
