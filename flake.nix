@@ -59,7 +59,6 @@
 
     # Import all custom functions to be use throughout
     f = pkgs.callPackage ./misc/funcs.nix { lib = nixpkgs.lib; };
-
     args = inputs // { inherit settings; } // { iso = false; };
     system = settings.system;
     specialArgs = { inherit args f; };
