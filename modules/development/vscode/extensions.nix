@@ -4,9 +4,6 @@
 {
   programs.vscode.extensions = with pkgs.vscode-extensions; [
 
-    # General extensions
-    # ----------------------------------------------------------------------------------------
-    tamasfe.even-better-toml            # Even Better TOML
 
 
     # Dart extensions
@@ -66,11 +63,17 @@
       name = "nix";                     # Nix language support
       publisher = "bbenoist";
       version = "1.0.1";
-      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+      sha256 = "sha256-qwxqOGublQeVP2qrLF94ndX/Be9oZOn+ZMCFX1yyoH0=";
     }
 
     # General extensions
     # ----------------------------------------------------------------------------------------
+    {
+      name = "even-better-toml";        # Even Better TOML
+      publisher = "tamasfe";
+      version = "0.19.2";
+      sha256 = "sha256-xclKrAqa/00xmlfqgIi0cPNyzDI6HFc+bz2kpm4d1AY=";
+    }
     {
       name = "copilot";                 # Github Copilot uses OpenAI Codex to suggest code
       publisher = "github";
