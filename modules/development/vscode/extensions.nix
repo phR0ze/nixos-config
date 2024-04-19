@@ -14,6 +14,10 @@
     vscodevim.vim                       # Essential vim syntax in vscode
     ms-vscode-remote.remote-containers  # Open and folder or repo inside a Docker container
 
+    # Nix extensions
+    # ----------------------------------------------------------------------------------------
+    bbenoist.nix                        # Nix language support
+
     # Dart extensions
     # ----------------------------------------------------------------------------------------
     dart-code.flutter                   # Official flutter mobile apps support
