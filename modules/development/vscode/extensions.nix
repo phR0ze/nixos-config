@@ -35,7 +35,7 @@
       name = "test-adapter-converter";  # Dependency of vscode-test-explorer
       publisher = "ms-vscode";
       version = "0.1.9";
-      sha256 = "sha256-fHyePd8fYPt7zPHBGiVmd8fRx+IM3/cSBCyiI/C0VAg=";
+      sha256 = "sha256-M53jhAVawk2yCeSrLkWrUit3xbDc0zgCK2snbK+BaSs=";
     }
 
     # Dart extensions
