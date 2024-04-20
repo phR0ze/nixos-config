@@ -17,9 +17,9 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }: with lib.types;
 let
-  passwdfile = pkgs.runCommandLocal "x11vnc-passwd" {} ''
+  vncpass = pkgs.runCommandLocal "x11vnc-passwd" {} ''
     mkdir $out
-    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${args.settings.userpass}" "$out/passwd"
+    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${args.settings.userpass}" "$out/pass"
   '';
 in
 {
@@ -37,11 +37,10 @@ in
       after = [ "display-manager.service" ];
       serviceConfig = {
         ExecStart = "${pkgs.x11vnc}/bin/x11vnc -noxdamage -nap -many -repeat -clear_keys -capslock -xkb -forever -loop100 -no6 -auth /var/run/lightdm/root/:0 -display :0";
-        #ExecStart = "${pkgs.x11vnc}/bin/x11vnc -rfbauth ${passwdfile} -noxdamage -nap -many -repeat -clear_keys -capslock -xkb -forever -loop100 -no6 -auth /var/run/lightdm/root/:0 -display :0";
+        #ExecStart = "${pkgs.x11vnc}/bin/x11vnc -rfbauth ${vncpass}/pass -noxdamage -nap -many -repeat -clear_keys -capslock -xkb -forever -loop100 -no6 -auth /var/run/lightdm/root/:0 -display :0";
         ExecStop = "${pkgs.x11vnc}/bin/x11vnc -R stop";
       };
       wantedBy = [ "multi-user.target" ];
-      reloadIfChanged = true;
       restartIfChanged = true;
     };
   };
