@@ -147,9 +147,6 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Always replace with copy but only run during actual update
-* [ ] Visual Studio Extensions
-* [ ] Remote Desktop
 
 ## Sometime
 * [ ] Create ISO with full live GUI environment
@@ -167,6 +164,9 @@ world though this already exists.
   * https://github.com/librephoenix/nixos-config
 
 ## Completed
+* [x] Always replace with copy but only run during actual update
+* [x] Visual Studio Extensions
+* [x] Remote Desktop
 * [x] XFCE profiles
   * [x] Lightdm background follows desktop
   * [x] Fix nerd fonts in shell
