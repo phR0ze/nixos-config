@@ -36,7 +36,8 @@ in
       requires = [ "display-manager.service" ];
       after = [ "display-manager.service" ];
       serviceConfig = {
-        ExecStart = "${pkgs.x11vnc}/bin/x11vnc -rfbauth ${passwdfile} -noxdamage -nap -many -repeat -clear_keys -capslock -xkb -forever -loop100 -no6 -auth /var/run/lightdm/root/:0 -display :0";
+        ExecStart = "${pkgs.x11vnc}/bin/x11vnc -noxdamage -nap -many -repeat -clear_keys -capslock -xkb -forever -loop100 -no6 -auth /var/run/lightdm/root/:0 -display :0";
+        #ExecStart = "${pkgs.x11vnc}/bin/x11vnc -rfbauth ${passwdfile} -noxdamage -nap -many -repeat -clear_keys -capslock -xkb -forever -loop100 -no6 -auth /var/run/lightdm/root/:0 -display :0";
         ExecStop = "${pkgs.x11vnc}/bin/x11vnc -R stop";
       };
       wantedBy = [ "multi-user.target" ];
