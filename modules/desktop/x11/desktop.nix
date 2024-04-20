@@ -5,6 +5,7 @@
 { pkgs, args, ... }:
 {
   imports = [
+    ../x11vnc
     ../../games/prismlauncher.nix
     #../../virtualization/virtualbox.nix causing weird networking delays on boot
   ];

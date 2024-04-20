@@ -1,7 +1,7 @@
 # x11vnc configuration
 #
 # ### Command options
-# - passwdfile  Password in /home/{vars.user}/passwd
+# - rfbauth     VNC password
 # - noxdamage   Quicker render (maybe not optimal)
 # - nap         If no acitivity, take longer naps
 # - many        Keep listening for more connections
@@ -13,9 +13,15 @@
 # - loop100     Loop to restart service but wait 100ms
 # - auth        X authority file location so vnc also works from display manager (lightdm)
 # - display     Which display to show. Even with multiple monitors it's 0
-# - clip        Only show specific monitor using xinerama<displaynumber> or pixel coordinates you can find using $ xrandr -q. Can be removed to show all.
+# - no6         Disable IPV6 support
 # --------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, args, ... }: with lib.types;
+let
+  passwdfile = pkgs.runCommandLocal "x11vnc-passwd" {} ''
+    mkdir $out
+    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${args.settings.userpass}" "$out/passwd"
+  '';
+in
 {
   config = lib.mkIf (config.services.xserver.enable) {
     networking.firewall.allowedTCPPorts = [ 5900 ];
@@ -30,9 +36,7 @@
       requires = [ "display-manager.service" ];
       after = [ "display-manager.service" ];
       serviceConfig = {
-        # ExecStart = "${pkgs.x11vnc}/bin/x11vnc -xkb -display :0 -auth /var/run/lightdm/root/:0 -forever";
-        # Password stored in document "passwd" at $HOME. This needs auth and link to display. Otherwise x11vnc won't detect the display
-        ExecStart = "${pkgs.x11vnc}/bin/x11vnc -passwdfile /home/${vars.user}/passwd -noxdamage -nap -many -repeat -clear_keys -capslock -xkb -forever -loop100 -auth /var/run/lightdm/root/:0 -display :0 -clip 1920x1080+1920+0";
+        ExecStart = "${pkgs.x11vnc}/bin/x11vnc -rfbauth ${passwdfile} -noxdamage -nap -many -repeat -clear_keys -capslock -xkb -forever -loop100 -no6 -auth /var/run/lightdm/root/:0 -display :0";
         ExecStop = "${pkgs.x11vnc}/bin/x11vnc -R stop";
       };
       wantedBy = [ "multi-user.target" ];
