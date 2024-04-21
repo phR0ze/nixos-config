@@ -1,4 +1,4 @@
-# Theater configuration for beelink-s12-pro
+# Theater configuration for acepc-ak1
 #
 # ### Features
 # - Directly installable: xfce/theater with additional hardware configuration
