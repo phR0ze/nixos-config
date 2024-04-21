@@ -95,7 +95,6 @@
       name = "copilot-chat";            # Copilot companion extension for chat interface
       publisher = "github";
       version = "0.12.2";
-      #sha256 = "sha256-NfVg0Mor6agPrPYuzsNiWgX5DAcSysWaP3GilyXv/S4=";
       sha256 = "sha256-Yysqtp1kXSxrGbFkOkA2hoK2TmWkckgaUgmlAK7qCu8=";
     }
     {
@@ -108,7 +107,7 @@
       name = "remote-containers";       # Open and folder or repo inside a Docker container
       publisher = "ms-vscode-remote";
       version = "0.354.0";
-      sha256 = "sha256-nx4g73fYTm5L/1s/IHMkiYBlt3v1PobAv6/0VUrlWis=";
+      sha256 = "sha256-RE8Ub2sorRlv5YuGrwxLDDcVGiKGhthSzlH6/CTqGKM=";
     }
     {
       name = "vim";                     # Essential vim syntax in vscode
