@@ -35,4 +35,35 @@ in
 
   # Add additional theater package
   environment.systemPackages = with pkgs; [ ];
+
+  # NFS Shares
+  # ------------------------------------------------------------------------------------------------
+  services.rpcbind.enable = true; # needed for NFS
+  fileSystems = {
+    "/mnt/Movies" = {
+      device = "192.168.1.2:/srv/nfs/Movies";
+      fsType = "nfs";
+      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+    };
+    "/mnt/Kids" = {
+      device = "192.168.1.2:/srv/nfs/Kids";
+      fsType = "nfs";
+      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+    };
+    "/mnt/TV" = {
+      device = "192.168.1.2:/srv/nfs/TV";
+      fsType = "nfs";
+      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+    };
+    "/mnt/Exercise" = {
+      device = "192.168.1.2:/srv/nfs/Exercise";
+      fsType = "nfs";
+      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+    };
+    "/mnt/Pictures" = {
+      device = "192.168.1.2:/srv/nfs/Pictures";
+      fsType = "nfs";
+      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+    };
+  };
 }
