@@ -95,7 +95,8 @@
       name = "copilot-chat";            # Copilot companion extension for chat interface
       publisher = "github";
       version = "0.12.2";
-      sha256 = "sha256-NfVg0Mor6agPrPYuzsNiWgX5DAcSysWaP3GilyXv/S4=";
+      #sha256 = "sha256-NfVg0Mor6agPrPYuzsNiWgX5DAcSysWaP3GilyXv/S4=";
+      sha256 = "sha256-Yysqtp1kXSxrGbFkOkA2hoK2TmWkckgaUgmlAK7qCu8=";
     }
     {
       name = "vscode-great-icons";      # Awesome icon pack for vscode
