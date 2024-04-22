@@ -155,6 +155,8 @@ install::config_system()
     utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_CONFIG}/flake_opts.nix"
     [ "x${AUTO_LOGIN}" == "xy" ] && autologin="true" || autologin="false"
     utils::replace bool "autologin" "${autologin}" "${NIXOS_CONFIG}/flake_opts.nix"
+    [ "x${NFS_SHARES}" == "xy" ] && nfsshares="true" || nfsshares="false"
+    utils::replace bool "nfs_shares" "${nfsshares}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::check_status
 
     # Configure boot device target
@@ -201,24 +203,28 @@ install::run()
 
     # Default installer values
     # ----------------------------------------------------------------------------------------------
+    ROOT_MOUNT='/mnt'
+    NIXOS_CONFIG="${ROOT_MOUNT}/etc/nixos"
     SCSI=0
     DEFAULT='n'
     TIMEZONE='America/Boise'
     NETIP='DHCP'
     HOSTNAME='nixos'
 
+    # User settings
     GIT_USER='admin'
     GIT_EMAIL='nixos@nixos.org'
     FULL_NAME='admin'
     USER_EMAIL='nixos@nixos.org'
     USER_NAME='admin'
     USER_PASS='admin'
-
     DEFAULT_PASS='admin'
-    ROOT_MOUNT='/mnt'
+    AUTO_LOGIN='n'
+
+    # User profile and services settings
     MACHINE='generic'
     PROFILE='desktop'
-    NIXOS_CONFIG="${ROOT_MOUNT}/etc/nixos"
+    NFS_SHARES='n'
 
     # Detect EFI supported system
     [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
@@ -268,9 +274,6 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::header0 "Automatically deploy with defaults?"
     utils::read DEFAULT 'Use automatic mode with defaults' 'n'
-    if [[ "x$DEFAULT" == "xy" ]]; then
-        AUTO_LOGIN='n'
-    fi
 
     # Drop out debug variables if in debug mode
     # ----------------------------------------------------------------------------------------------
@@ -389,11 +392,18 @@ install::run()
         utils::read AUTO_LOGIN 'Do you want to auto login' 'n'
     fi
 
+    # Collect services selections from user
+    # ----------------------------------------------------------------------------------------------
+    if [ "x$DEFAULT" != "xy" ]; then
+        utils::read NFS_SHARES 'Do you want to mount pre-defined nfs shares' 'n'
+    fi
+
     # Start install
     # ----------------------------------------------------------------------------------------------
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
     log::subln3 "profile=${cyan}${MACHINE}/${PROFILE}${none}"
+    log::subln3 "nfs_shares=${cyan}${NFS_SHARES}${none}"
     log::subln3 "hostname=${cyan}${HOSTNAME}${none}"
     log::subln3 "networking=${cyan}${NETIP}${none}"
     log::subln3 "user_name=${cyan}${USER_NAME}${none}"

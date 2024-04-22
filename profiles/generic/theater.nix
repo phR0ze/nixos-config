@@ -3,7 +3,7 @@
 # ### Features
 # - Directly installable: generic/desktop with additional media apps and configuration
 # --------------------------------------------------------------------------------------------------
-{ lib, pkgs, ... }:
+{ lib, pkgs, args, ... }:
 let
   backgrounds = pkgs.callPackage ../../modules/desktop/backgrounds { };
 
@@ -12,8 +12,6 @@ in
   imports = [
     ./desktop.nix
   ];
-
-  services.xserver.xft.theater = true;
 
   # High dpi settings
   services.xserver.xft.dpi = 130;
@@ -33,37 +31,9 @@ in
   services.xserver.displayManager.lightdm.background = lib.mkOverride 500
     "${backgrounds}/share/backgrounds/theater_curtains1.jpg";
 
+  # Enable the nfs shares
+  services.nfs.client.shares.enable;
+
   # Add additional theater package
   environment.systemPackages = with pkgs; [ ];
-
-  # NFS Shares
-  # ------------------------------------------------------------------------------------------------
-  services.rpcbind.enable = true; # needed for NFS
-  fileSystems = {
-    "/mnt/Movies" = {
-      device = "192.168.1.2:/srv/nfs/Movies";
-      fsType = "nfs";
-      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
-    };
-    "/mnt/Kids" = {
-      device = "192.168.1.2:/srv/nfs/Kids";
-      fsType = "nfs";
-      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
-    };
-    "/mnt/TV" = {
-      device = "192.168.1.2:/srv/nfs/TV";
-      fsType = "nfs";
-      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
-    };
-    "/mnt/Exercise" = {
-      device = "192.168.1.2:/srv/nfs/Exercise";
-      fsType = "nfs";
-      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
-    };
-    "/mnt/Pictures" = {
-      device = "192.168.1.2:/srv/nfs/Pictures";
-      fsType = "nfs";
-      options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
-    };
-  };
 }

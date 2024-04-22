@@ -29,6 +29,7 @@
     ../network/base.nix
     ../development/git.nix
     ../development/neovim.nix
+    ../services/nfs.nix
     ../services/sshd.nix
     ../services/systemd.nix
 
