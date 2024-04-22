@@ -124,6 +124,9 @@ install::config_system()
     nixos-generate-config --root ${ROOT_MOUNT} &>/dev/null
     utils::check_status
 
+    # Update the swap partition name with the UUID if needed
+    #swapon ${PART_SWAP} &>/dev/null
+
     # Modules must be at least staged for the flake to recognize them
     pushd ${NIXOS_CONFIG}
     git add hardware-configuration.nix -f
@@ -167,6 +170,11 @@ install::config_system()
     utils::replace str "timezone" "${TIMEZONE}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "hostname" "${HOSTNAME}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "profile" "${MACHINE}/${PROFILE}" "${NIXOS_CONFIG}/flake_opts.nix"
+
+    # Modules must be at least staged for the flake to recognize them
+    pushd ${NIXOS_CONFIG}
+    git add flake_opts.nix
+    popd
 
     # Execute the NixOS install
     # ----------------------------------------------------------------------------------------------
