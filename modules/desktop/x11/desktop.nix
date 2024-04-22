@@ -15,12 +15,13 @@
   programs.steam.enable = true;         # Digital distribution platform from Valve
   programs.prismlauncher.enable = true; # Minecraft launcher
 
+  services.xserver.xft.theater = args.settings.nfs_shares; # Optionally enable client nfs shares
+
   environment.systemPackages = with pkgs; [
 
     # Network
     freerdp                             # RDP client plugin for remmina
     networkmanager-openvpn              # NetworkManager VPN plugin for OpenVPN
-    nfs-utils                           # Linux user-space NFS utilities
     openvpn                             # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
     qbittorrent                         # Freatureful free BitTorrent client
     remmina                             # Nice remoting UI for RDP and other protocols
