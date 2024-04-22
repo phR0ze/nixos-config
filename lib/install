@@ -382,7 +382,7 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
-    log::subln3 "profile=${cyan}${PROFILE}${none}"
+    log::subln3 "profile=${cyan}${MACHINE}/${PROFILE}${none}"
     log::subln3 "hostname=${cyan}${HOSTNAME}${none}"
     log::subln3 "networking=${cyan}${NETIP}${none}"
     log::subln3 "user_name=${cyan}${USER_NAME}${none}"
