@@ -294,7 +294,7 @@ install::run()
     # -e    exclude sepcified devices, loop(7), floppy(2)
     # -x    sort by the size of the drive smallest first
     DISKS_DETAILED=$(lsblk -dn -e ${excludes} -o NAME,SIZE,MODEL,TYPE,HOTPLUG -x SIZE --json | \
-      jq -rc '[.blockdevices[] | { name: .name, size: .size, mag: (.size | capture("(?<other>[0-9.]+)(?<value>[A-Z])")), model: .model, type: .type, hotplug: .hotplug } | select(.type == "disk" and .hotplug != true and .mag.value != "M" and .mag.value != "T")]')
+      jq -rc '[.blockdevices[] | { name: .name, size: .size, mag: (.size | capture("(?<other>[0-9.]+)(?<value>[A-Z])")), model: .model, type: .type, hotplug: .hotplug } | select(.type == "disk" and .hotplug != true and .mag.value != "M" and .mag.value != "B")]')
 
     # Get all the disks by name to provide to the user for selection
     DISKS=($(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[]'))
