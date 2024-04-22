@@ -166,7 +166,7 @@ install::config_system()
     # Configure system settings
     utils::replace str "timezone" "${TIMEZONE}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "hostname" "${HOSTNAME}" "${NIXOS_CONFIG}/flake_opts.nix"
-    utils::replace str "profile" "${PROFILE}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "profile" "${MACHINE}/${PROFILE}" "${NIXOS_CONFIG}/flake_opts.nix"
 
     # Execute the NixOS install
     # ----------------------------------------------------------------------------------------------
@@ -208,16 +208,34 @@ install::run()
 
     DEFAULT_PASS='admin'
     ROOT_MOUNT='/mnt'
-    PROFILE='cli/default'
+    MACHINE='generic'
+    PROFILE='desktop'
     NIXOS_CONFIG="${ROOT_MOUNT}/etc/nixos"
 
     # Detect EFI supported system
     [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
 
-    # Collect the profile selection from user
+    # Collect the machine selection from the user
+    # - Don't present the iso options to the user
+    # ----------------------------------------------------------------------------------------------
+    MACHINES=()
+    local machines_dir="${SCRIPT_DIR}/profiles"
+    local _machines=($(echo $(find $machines_dir -mindepth 1 -maxdepth 1 -type d ! "profiles/iso" | sort)))
+    log::header0 "Select a deployment machine:"
+    local i=0
+    for x in "${_machines[@]}"; do
+        local _machine="$(basename "$x")"
+        utils::pad_suffix _1 "$_machine" " " 20           # pad to 30 characters
+        MACHINES+=($_machine)                             # add to the final profiles list
+        echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
+        i=$((i+1))                                        # increment i
+    done
+    utils::select MACHINE "${MACHINES[@]}"
+
+    # Collect the profile selection from the user
     # ----------------------------------------------------------------------------------------------
     PROFILES=()
-    local profiles_dir="${SCRIPT_DIR}/profiles"
+    local profiles_dir="${machines_dir}/${MACHINE}"
     local _profiles=($(echo $(find $profiles_dir -name "*.nix" | sort)))
     log::header0 "Select a deployment profile:"
     local i=0
