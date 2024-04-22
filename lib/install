@@ -286,17 +286,20 @@ install::run()
     # Filtering out: loop (7), floppy (2), CD-ROM (11, 15, 20, 24, 25, 26, 27, 28, 29, 30, 32)
     local excludes=2,7,11,15,20,24,25,26,27,28,29,30,32
 
+    # Get all disks, sort by size and filter out any that are measured in bytes or megabytes
+    #
     # ### Paramaters
     # -d    do not print holder devices or slaves
     # -n    do not print headings line
     # -e    exclude sepcified devices, loop(7), floppy(2)
+    # -x    sort by the size of the drive smallest first
     DISKS_DETAILED=$(lsblk -dn -e ${excludes} -o NAME,SIZE,MODEL,TYPE,HOTPLUG -x SIZE --json | \
-        jq -rc '[.blockdevices[] | select(.type=="disk" and .hotplug!=true)]')
+      jq -rc '[.blockdevices[] | { name: .name, size: .size, mag: (.size | capture("(?<other>[0-9.]+)(?<value>[A-Z])")), model: .model, type: .type, hotplug: .hotplug } | select(.type == "disk" and .hotplug != true and .mag.value != "M" and .mag.value != "T")]')
 
-    # Get all the disks by name for selection
+    # Get all the disks by name to provide to the user for selection
     DISKS=($(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[]'))
 
-    # Sorted by size means the first, i.e. smallest, will likely be the boot drive
+    # Select the smallest sized disk by default i.e. most likely be the boot drive
     DESTDEV=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[0]')
 
     # Print out the detected disks
