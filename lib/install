@@ -220,7 +220,7 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     MACHINES=()
     local machines_dir="${SCRIPT_DIR}/profiles"
-    local _machines=($(echo $(find $machines_dir -mindepth 1 -maxdepth 1 ! "profiles/iso" -type d | sort)))
+    local _machines=($(echo $(find $machines_dir -mindepth 1 -maxdepth 1 -type d ! -path "*/profiles/iso" | sort)))
     log::header0 "Select a deployment machine:"
     local i=0
     for x in "${_machines[@]}"; do
