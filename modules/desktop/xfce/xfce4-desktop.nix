@@ -39,6 +39,7 @@ let
     "monitorHDMI-A-1"
     "monitorLVDS0"
     "monitorLVDS1"
+    "monitorLVDS-1"
     "monitorVGA-0"
     "monitorVGA-1"
     "monitorVirtual0"
