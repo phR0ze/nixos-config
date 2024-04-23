@@ -11,10 +11,10 @@
   ];
 
   # Additional programs and services
-  programs.evince.enable = true;                          # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
-  programs.steam.enable = true;                           # Digital distribution platform from Valve
-  programs.prismlauncher.enable = true;                   # Minecraft launcher
-  services.nfs.client.shares = args.settings.nfs_shares;  # Optionally enable client nfs shares
+  programs.evince.enable = true;                                # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
+  programs.steam.enable = true;                                 # Digital distribution platform from Valve
+  programs.prismlauncher.enable = true;                         # Minecraft launcher
+  services.nfs.client.shares.enable = args.settings.nfs_shares; # Optionally enable client nfs shares
 
   environment.systemPackages = with pkgs; [
 
