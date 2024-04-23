@@ -24,18 +24,13 @@ in
 
     services.rpcbind.enable = true; # needed for NFS
     fileSystems = {
-      "/mnt/Movies" = {
-        device = "192.168.1.2:/srv/nfs/Movies";
+      "/mnt/Ashley" = {
+        device = "192.168.1.2:/srv/nfs/Ashley";
         fsType = "nfs";
         options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
       };
-      "/mnt/Kids" = {
-        device = "192.168.1.2:/srv/nfs/Kids";
-        fsType = "nfs";
-        options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
-      };
-      "/mnt/TV" = {
-        device = "192.168.1.2:/srv/nfs/TV";
+      "/mnt/Educational" = {
+        device = "192.168.1.2:/srv/nfs/Educational";
         fsType = "nfs";
         options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
       };
@@ -44,8 +39,38 @@ in
         fsType = "nfs";
         options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
       };
+      "/mnt/Family" = {
+        device = "192.168.1.2:/srv/nfs/Family";
+        fsType = "nfs";
+        options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+      };
+      "/mnt/Install" = {
+        device = "192.168.1.2:/srv/nfs/Install";
+        fsType = "nfs";
+        options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+      };
+      "/mnt/Kids" = {
+        device = "192.168.1.2:/srv/nfs/Kids";
+        fsType = "nfs";
+        options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+      };
+      "/mnt/Lydia" = {
+        device = "192.168.1.2:/srv/nfs/Lydia";
+        fsType = "nfs";
+        options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+      };
+      "/mnt/Movies" = {
+        device = "192.168.1.2:/srv/nfs/Movies";
+        fsType = "nfs";
+        options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+      };
       "/mnt/Pictures" = {
         device = "192.168.1.2:/srv/nfs/Pictures";
+        fsType = "nfs";
+        options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+      };
+      "/mnt/TV" = {
+        device = "192.168.1.2:/srv/nfs/TV";
         fsType = "nfs";
         options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
       };
