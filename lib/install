@@ -132,7 +132,7 @@ install::config_system()
     git add hardware-configuration.nix -f
     popd
 
-    # Extract the current NIXOS version from teh generated configuration.nix file
+    # Extract the current NIXOS version from the generated configuration.nix file
     NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${NIXOS_CONFIG}/configuration.nix")
     echo -en ":: NIXOS target version: ${cyan}${NIXOS_VER}${none}..."
     utils::check_status
