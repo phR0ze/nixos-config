@@ -29,6 +29,11 @@ in
         fsType = "nfs";
         options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
       };
+      "/mnt/Documents" = {
+        device = "192.168.1.2:/srv/nfs/Documents";
+        fsType = "nfs";
+        options = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+      };
       "/mnt/Educational" = {
         device = "192.168.1.2:/srv/nfs/Educational";
         fsType = "nfs";
