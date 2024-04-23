@@ -18,8 +18,9 @@
   # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/installer/cd-dvd/iso-image.nix
   # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/installer/cd-dvd/installation-cd-base.nix
   # Original example naming: "nixos-23.11.20240225.5bf1cad-x86_64-linux.iso"
-  isoImage.isoBaseName = "nixos-installer";
+  isoImage.isoBaseName = "cyberlinux";
   isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
+  isoImage.volumeID = "${config.isoImage.isoBaseName}-installer";
 
   # Clearing out the hashed form to avoid the warning during ISO creation.
   # The passwords are set in the ../../modules/users.nix file via the flake_opts.nix
