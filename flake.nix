@@ -83,8 +83,15 @@
       iso = nixpkgs.lib.nixosSystem {
         inherit pkgs system;
         # Update the args.iso field to be true and set username for ISO builds
-        specialArgs = specialArgs // { args = args // { iso = true;
-          settings = settings // { username = "nixos"; }; }; };
+        specialArgs = specialArgs // {
+          args = args // {
+            iso = true;
+            settings = settings // {
+              username = "nixos";
+              autologin = true;
+            };
+          };
+        };
         modules = [ ./profiles/iso/default.nix ];
       };
     };
