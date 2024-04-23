@@ -9,7 +9,7 @@ in
 {
   options = {
     services.nfs.client.shares = {
-      enable = mkOption {
+      enable = lib.mkOption {
         type = types.bool;
         default = false;
         description = lib.mdDoc "Whether to enable NFS client shares on this system.";
