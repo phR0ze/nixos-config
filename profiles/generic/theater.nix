@@ -31,9 +31,6 @@ in
   services.xserver.displayManager.lightdm.background = lib.mkOverride 500
     "${backgrounds}/share/backgrounds/theater_curtains1.jpg";
 
-  # Enable the nfs shares
-  services.nfs.client.shares.enable;
-
   # Add additional theater package
   environment.systemPackages = with pkgs; [ ];
 }
