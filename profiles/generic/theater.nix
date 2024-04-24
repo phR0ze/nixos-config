@@ -13,6 +13,9 @@ in
     ./desktop.nix
   ];
 
+  # Set theater type
+  services.xserver.xft.theater = enable;
+
   # High dpi settings
   services.xserver.xft.dpi = 130;
   services.xserver.desktopManager.xfce.panel.taskbar.size = 36;
