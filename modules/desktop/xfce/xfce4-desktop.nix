@@ -4,8 +4,8 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  cfg = config.services.xserver.desktopManager.xfce.desktop;
   xfceCfg = config.services.xserver.desktopManager.xfce;
+  cfg = xfceCfg.desktop;
 
   monitors = [
     "monitorDisplayPort-0"
