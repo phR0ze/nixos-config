@@ -38,11 +38,13 @@ in
   config = lib.mkMerge [
     (lib.mkIf (args.settings.static_ip != "") {
       networking.useDHCP = false;     # disable dhcp for all interfaces
-      environment.etc."NetworkManager/system-connections/${staticName}" = {
-        mode = "0600";
-        #source = "${staticConn}/${staticName}";
-        source = staticConn;
-      };
+      environment.etc."NetworkManager/system-connections/${staticName}".source = "${staticConn}/${staticName}";
+
+      #environment.etc."NetworkManager/system-connections/${staticName}" = {
+      #  mode = "0600";
+      #  #source = "${staticConn}/${staticName}";
+      #  source = staticConn;
+      #};
     })
 
     ({
