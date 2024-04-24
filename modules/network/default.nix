@@ -8,9 +8,9 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }: with lib.types;
 let
+  staticName = "static.nmconnection";
   staticConn = lib.mkIf (args.settings.static_ip != "") (
-    pkgs.writeText "static.nmconnection" ''
-      "uuid=$(${pkgs.util-linux}/bin/uuidgen)"
+    pkgs.writeText staticName ''
       foo bar
     '');
 
@@ -38,7 +38,7 @@ in
   config = lib.mkMerge [
     (lib.mkIf (args.settings.static_ip != "") {
       networking.useDHCP = false;     # disable dhcp for all interfaces
-      environment.etc."NetworkManager/system-connections/static.nmconnection" = {
+      environment.etc."NetworkManager/system-connections/${staticName}" = {
         mode = "0600";
         #source = "${staticConn}/static.nmconnection";
         source = staticConn;
