@@ -28,6 +28,10 @@ in
         # Include a local file as your target
         files.root.".dircolors".copy = ../include/home/.dircolors;
 
+        # Make a weak copy of the target file for the root user
+        files.root."root/.dircolors".weakCopy = ../include/home/.dircolors;
+
+        # Existing nix store source path
         # Multi file example
         files.root = {
           ".config".copy = ../include/home/.config;

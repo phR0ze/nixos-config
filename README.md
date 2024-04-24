@@ -147,12 +147,10 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Prove out Warcraft II install with wine
 * [ ] Add tiny media manager
+* [ ] Prove out Warcraft II install with wine
 
 ## Sometime
-* [ ] Create ISO with full live GUI environment
-  * [ ] Switch to calamares for installation
 * [ ] Add vim-colorize plugin
 * [ ] Change nix flake symbol to blue in vim colorizer plugin
 * [ ] Change the kernel boot colors 
@@ -191,6 +189,7 @@ world though this already exists.
   * [x] `./clu registry list`
   * [x] `./clu clean store` wrapper for `nixcl="sudo nix-store --optimise -v && sudo nix-collect-garbage -d";`
 * [x] ISO and clu installer automation
+  * [x] Create ISO with full live GUI environment
   * [x] ISO nix store is used to pre-populate the target system
   * [x] Inject clu into bootable ISO and auto launch it
   * [x] clu to clone nixos-config repo and install it
