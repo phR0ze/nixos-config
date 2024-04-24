@@ -47,6 +47,6 @@ in
   config = lib.mkIf (cfg.enable) {
     environment.systemPackages = with pkgs; [ filezilla ];
 
-    files.all.".config/filezilla/filezilla.xml".copy = xmlfile;
+    files.all.".config/filezilla/filezilla.xml".weakCopy = xmlfile;
   };
 }
