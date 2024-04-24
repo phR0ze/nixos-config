@@ -18,8 +18,8 @@
   
   # Configuration set via automation in the clu installer
   # ------------------------------------------------------------------------------------------------
-  efi = false;                    # EFI system boot type, default "false"
-  mbr = "/dev/sda";               # MBR system boot device, default "nodev"
+  efi = true;                     # EFI system boot type, default "false"
+  mbr = "nodev";                  # MBR system boot device, default "nodev"
   system = "x86_64-linux";        # system architecture to use
   timezone = "America/Boise";     # time-zone selection
   locale = "en_US.UTF-8";         # locale selection
