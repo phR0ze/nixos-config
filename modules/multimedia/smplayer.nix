@@ -67,6 +67,6 @@ in
     environment.systemPackages = with pkgs; [ smplayer ];
 
     files.all.".config/smplayer/themes".link = "${smplayer-themes}/share/smplayer/themes";
-    files.all.".config/smplayer/smplayer.ini".copy = inifile;
+    files.all.".config/smplayer/smplayer.ini".weakCopy = inifile;
   };
 }
