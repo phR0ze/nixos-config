@@ -1,8 +1,9 @@
-# Intel mini pc hardware configuration
+# Intel graphics configuration
 #
 # ### Supported systems
 # - acepc-ak1
 # - beelink-s12-pro
+# - dell-xps-13
 # --------------------------------------------------------------------------------------------------
 { lib, pkgs, ... }:
 {

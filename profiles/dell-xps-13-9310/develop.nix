@@ -1,7 +1,7 @@
-# Theater configuration for acepc-ak1
+# Theater configuration for Dell XPS 13 9310
 #
 # ### Features
-# - Directly installable: generic/theater with additional hardware configuration
+# - Directly installable: generic/develop with Intel hardware support
 # - Working hardware accelerated video in Kodi as verified with 'intel_gpu_top'
 # --------------------------------------------------------------------------------------------------
 { lib, pkgs, ... }:
