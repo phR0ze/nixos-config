@@ -150,8 +150,10 @@ install::config_system()
     utils::replace str "userpass" "${USER_PASS}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "git_user" "${GIT_USER}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_CONFIG}/flake_opts.nix"
-    utils::replace str "static_ip" "${NETIP}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "static_ip" "${STATIC_IP}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "gateway" "${GATEWAY}" "${NIXOS_CONFIG}/flake_opts.nix"
+    [ "x${BLUETOOTH}" == "xy" ] && bluetooth="true" || bluetooth="false"
+    utils::replace str "bluetooth" "${bluetooth}" "${NIXOS_CONFIG}/flake_opts.nix"
     [ "x${AUTO_LOGIN}" == "xy" ] && autologin="true" || autologin="false"
     utils::replace bool "autologin" "${autologin}" "${NIXOS_CONFIG}/flake_opts.nix"
     [ "x${NFS_SHARES}" == "xy" ] && nfsshares="true" || nfsshares="false"
@@ -214,7 +216,7 @@ install::run()
     SCSI=0
     DEFAULT='n'
     TIMEZONE='America/Boise'
-    NETIP='DHCP'
+    STATIC_IP='DHCP'
     HOSTNAME='nixos'
 
     # User settings
@@ -352,11 +354,11 @@ install::run()
     if [ "x$DEFAULT" != "xy" ]; then
         log::header0 "Configure networking:"
         utils::read HOSTNAME 'Enter hostname' $HOSTNAME
-        utils::read NETIP 'Enter static IP, e.g. 192.168.1.2/24' 'DHCP'
-        if [ "x${NETIP}" != "xDHCP" ]; then
-            utils::read GATEWAY 'Enter gateway' $(echo $NETIP | awk -F. '{print $1"."$2"."$3".1"}')
+        utils::read STATIC_IP 'Enter static IP, e.g. 192.168.1.2/24' 'DHCP'
+        if [ "x${STATIC_IP}" != "xDHCP" ]; then
+            utils::read GATEWAY 'Enter gateway' $(echo $STATIC_IP | awk -F. '{print $1"."$2"."$3".1"}')
         fi
-        utils::read ENABLE_BLUETOOTH 'Enter bluetooth state' 'n'
+        utils::read BLUETOOTH 'Enable bluetooth support' 'n'
     fi
 
     # Collect time and date choices from user
@@ -410,8 +412,12 @@ install::run()
     log::header0 "Options being used for installation"
     log::subln3 "profile=${cyan}${MACHINE}/${PROFILE}${none}"
     log::subln3 "nfs_shares=${cyan}${NFS_SHARES}${none}"
+
+    # Networking
     log::subln3 "hostname=${cyan}${HOSTNAME}${none}"
-    log::subln3 "networking=${cyan}${NETIP}${none}"
+    log::subln3 "static_ip=${cyan}${STATIC_IP}${none}"
+    log::subln3 "bluetooth=${cyan}${BLUETOOTH}${none}"
+
     log::subln3 "user_name=${cyan}${USER_NAME}${none}"
     log::subln3 "user_email=${cyan}${USER_EMAIL}${none}"
     if [ "x$DEFAULT" == "xy" ] || [ "x$DEFAULT_PASS" == "x$USER_PASS" ]; then

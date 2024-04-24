@@ -14,8 +14,8 @@ let
   # Higher values of autoconnect-priority will be given priority
   connections = pkgs.runCommandLocal staticName {} ''
       mkdir $out
-      target="$out/${dhcpName}"
 
+      target="$out/${dhcpName}"
       echo "[connection]" >> $target
       echo "id=Wired dhcp" >> $target
       echo "uuid=$(${pkgs.util-linux}/bin/uuidgen)" >> $target
@@ -58,6 +58,7 @@ in
         mode = "0600";
         source = "${connections}/${dhcpName}";
       };
+
       networking.hostName = args.settings.hostname;
       networking.enableIPv6 = false;
 
