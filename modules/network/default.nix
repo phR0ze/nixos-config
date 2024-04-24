@@ -9,42 +9,35 @@
 { config, lib, pkgs, args, ... }: with lib.types;
 let
   staticName = "static.nmconnection";
- # staticConn = lib.mkIf (args.settings.static_ip != "") (
- #   pkgs.writeText staticName ''
- #     foo bar
- #   '');
-
-  staticConn = lib.mkIf (args.settings.static_ip != "") (
-    pkgs.runCommandLocal staticName {} ''
+  #staticConn = lib.mkIf (args.settings.static_ip != "") (
+  staticConn = pkgs.runCommandLocal staticName {} ''
       mkdir $out
       target="$out/${staticName}"
 
       echo "[connection]" >> $target
-#      echo "id=Wired static" >> $target
-#      echo "uuid=$(${pkgs.util-linux}/bin/uuidgen)" >> $target
-#      echo "type=ethernet" >> $target
-#      echo "autoconnect-priority=1" >> $target
-#      echo "" >> $target
-#      echo "[ipv4]" >> $target
-#      echo "method=manual" >> $target
-#      echo "address=${args.settings.static_ip}" >> $target
-#      echo "gateway=${args.settings.gateway}" >> $target
-#      echo "" >> $target
-#      echo "[ipv6]" >> $target
-#      echo "method=disabled" >> $target
-    '');
+      echo "id=Wired static" >> $target
+      echo "uuid=$(${pkgs.util-linux}/bin/uuidgen)" >> $target
+      echo "type=ethernet" >> $target
+      echo "autoconnect-priority=1" >> $target
+      echo "" >> $target
+      echo "[ipv4]" >> $target
+      echo "method=manual" >> $target
+      echo "address=${args.settings.static_ip}" >> $target
+      echo "gateway=${args.settings.gateway}" >> $target
+      echo "" >> $target
+      echo "[ipv6]" >> $target
+      echo "method=disabled" >> $target
+   '';
+   # '');
 in
 {
   config = lib.mkMerge [
     (lib.mkIf (args.settings.static_ip != "") {
       networking.useDHCP = false;     # disable dhcp for all interfaces
-      files.any."NetworkManager/system-connections/${staticName}".copy = "${staticConn}/${staticName}";
-
-      #environment.etc."NetworkManager/system-connections/${staticName}" = {
-      #  mode = "0600";
-      #  #source = "${staticConn}/${staticName}";
-      #  source = staticConn;
-      #};
+      environment.etc."NetworkManager/system-connections/${staticName}" = {
+        mode = "0600";
+        source = "${staticConn}/${staticName}";
+      };
     })
 
     ({
