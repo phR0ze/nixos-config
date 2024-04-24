@@ -34,7 +34,7 @@ in
       networking.useDHCP = false;     # disable dhcp for all interfaces
       environment.etc."NetworkManager/system-connections/static.nmconnection" = {
         mode = "0600";
-        text = staticConn;
+        source = staticConn;
       };
     })
 
