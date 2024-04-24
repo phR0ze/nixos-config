@@ -10,7 +10,7 @@
 
   hostname = "nixos";             # hostname to use for the install
   static_ip = "";                 # static ip to use if set e.g. 192.168.1.2/24
-  gateway = "192.168.1.1";        # default gateway to use for static ip addresses
+  gateway = "";                   # default gateway to use for static ip addresses
   bluetooth = false;              # default gateway to use for static ip addresses
 
   profile = "generic/develop";    # pre-defined configurations in path './profiles' selection
