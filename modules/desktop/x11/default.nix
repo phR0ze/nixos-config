@@ -41,7 +41,6 @@ in
     ../../multimedia/smplayer.nix
     ../../network/filezilla.nix
     ../../network/firefox.nix
-    ../../network/network-manager.nix
     ../../office/geany.nix
     ../backgrounds/opt.nix
     ../fonts.nix

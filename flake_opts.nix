@@ -7,7 +7,11 @@
   userpass = "admin";             # admin user password securely entered during boot
   git_user = "admin";             # username to use for github, gitlab or other git tools
   git_email = "nixos@nixos.org";  # email to use for github, gitlab or other git tools
+
   hostname = "nixos";             # hostname to use for the install
+  static_ip = "";                 # static ip to use if set e.g. 192.168.1.2/24
+  gateway = "192.168.1.1";        # default gateway to use for static ip addresses
+
   profile = "generic/develop";    # pre-defined configurations in path './profiles' selection
   nfs_shares = false;             # enable the nfs client shares for this system
   autologin = false;              # automatically log the user in after boot when true
