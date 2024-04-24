@@ -8,11 +8,27 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }: with lib.types;
 let
+  dhcpName = "dhcp.nmconnection";
   staticName = "static.nmconnection";
-  staticConn = pkgs.runCommandLocal staticName {} ''
-      mkdir $out
-      target="$out/${staticName}"
 
+  # Higher values of autoconnect-priority will be given priority
+  connections = pkgs.runCommandLocal staticName {} ''
+      mkdir $out
+      target="$out/${dhcpName}"
+
+      echo "[connection]" >> $target
+      echo "id=Wired dhcp" >> $target
+      echo "uuid=$(${pkgs.util-linux}/bin/uuidgen)" >> $target
+      echo "type=ethernet" >> $target
+      echo "autoconnect-priority=0" >> $target
+      echo "" >> $target
+      echo "[ipv4]" >> $target
+      echo "method=auto" >> $target
+      echo "" >> $target
+      echo "[ipv6]" >> $target
+      echo "method=disabled" >> $target
+
+      target="$out/${staticName}"
       echo "[connection]" >> $target
       echo "id=Wired static" >> $target
       echo "uuid=$(${pkgs.util-linux}/bin/uuidgen)" >> $target
@@ -31,14 +47,17 @@ in
 {
   config = lib.mkMerge [
     (lib.mkIf (args.settings.static_ip != "") {
-      networking.useDHCP = false;     # disable dhcp for all interfaces
       environment.etc."NetworkManager/system-connections/${staticName}" = {
         mode = "0600";
-        source = "${staticConn}/${staticName}";
+        source = "${connections}/${staticName}";
       };
     })
-
     ({
+      # Its ok to always have dhcp as static has higher priority when exists
+      environment.etc."NetworkManager/system-connections/${dhcpName}" = {
+        mode = "0600";
+        source = "${connections}/${dhcpName}";
+      };
       networking.hostName = args.settings.hostname;
       networking.enableIPv6 = false;
 
