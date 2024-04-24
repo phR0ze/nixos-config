@@ -19,7 +19,7 @@ let
 in
 {
   options = {
-    services.xserver.desktopManager.xfce.desktop = {
+    services.xserver.desktopManager.xfce.session = {
       saveOnExit = lib.mkOption {
         type = types.bool;
         default = false;
