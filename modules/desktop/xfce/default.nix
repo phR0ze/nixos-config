@@ -24,6 +24,7 @@ in
     ./xfce4-keyboard-shortcuts.nix
     ./xfce4-panel.nix
     ./xfce4-power-manager.nix
+    ./xfce4-sessison.nix
     ./xfce4-terminal.nix
   ];
 
