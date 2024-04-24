@@ -8,7 +8,7 @@
 {
   imports = [
     ../../modules/hardware/intel-graphics.nix
-    ../generic/theater.nix
+    ../generic/develop.nix
   ];
 
   # Add additional packages

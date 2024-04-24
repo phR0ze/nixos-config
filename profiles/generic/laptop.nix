@@ -2,7 +2,6 @@
 #
 # ### Features
 # - Directly installable: generic/desktop with additional development tools and configuration
-# - barrier server configuration
 # --------------------------------------------------------------------------------------------------
 { ... }:
 {
