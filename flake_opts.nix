@@ -11,7 +11,7 @@
   hostname = "nixos";             # hostname to use for the install
   static_ip = "";                 # static ip to use if set e.g. 192.168.1.2/24
   gateway = "";                   # default gateway to use for static ip addresses
-  bluetooth = false;              # default gateway to use for static ip addresses
+  bluetooth = false;              # flag to control bluetooth enablement
 
   profile = "generic/develop";    # pre-defined configurations in path './profiles' selection
   nfs_shares = false;             # enable the nfs client shares for this system
