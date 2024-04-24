@@ -9,8 +9,7 @@
 { config, lib, pkgs, args, ... }: with lib.types;
 let
   staticName = "static.nmconnection";
-  #staticConn = lib.mkIf (args.settings.static_ip != "") (
-  staticConn = pkgs.runCommandLocal staticName {} ''
+  staticConn = lib.mkIf (args.settings.static_ip != "") pkgs.runCommandLocal staticName {} ''
       mkdir $out
       target="$out/${staticName}"
 
@@ -28,7 +27,6 @@ let
       echo "[ipv6]" >> $target
       echo "method=disabled" >> $target
    '';
-   # '');
 in
 {
   config = lib.mkMerge [
