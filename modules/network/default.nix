@@ -9,16 +9,16 @@
 { config, lib, pkgs, args, ... }: with lib.types;
 let
   staticName = "static.nmconnection";
-  staticConn = lib.mkIf (args.settings.static_ip != "") (
-    pkgs.writeText staticName ''
-      foo bar
-    '');
+ # staticConn = lib.mkIf (args.settings.static_ip != "") (
+ #   pkgs.writeText staticName ''
+ #     foo bar
+ #   '');
 
-#  staticConn = lib.mkIf (args.settings.static_ip != "") (
-#    pkgs.runCommandLocal "static.nmconnection" {} ''
-#      mkdir $out
-#      target="$out/static.nmconnection"
-#
+  staticConn = lib.mkIf (args.settings.static_ip != "") (
+    pkgs.runCommandLocal staticName {} ''
+      mkdir $out
+      target="$out/${staticName}"
+
 #      echo "[connection]" >> $target
 #      echo "id=Wired static" >> $target
 #      echo "uuid=$(${pkgs.util-linux}/bin/uuidgen)" >> $target
@@ -32,7 +32,7 @@ let
 #      echo "" >> $target
 #      echo "[ipv6]" >> $target
 #      echo "method=disabled" >> $target
-#    '');
+    '');
 in
 {
   config = lib.mkMerge [
@@ -40,8 +40,8 @@ in
       networking.useDHCP = false;     # disable dhcp for all interfaces
       environment.etc."NetworkManager/system-connections/${staticName}" = {
         mode = "0600";
-        #source = "${staticConn}/static.nmconnection";
-        source = staticConn;
+        source = "${staticConn}/${staticName}";
+        #source = staticConn;
       };
     })
 
