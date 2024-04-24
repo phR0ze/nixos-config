@@ -10,6 +10,7 @@
 let
   staticConn = lib.mkIf (args.settings.static_ip != "") (
     pkgs.writeText "static.nmconnection" ''
+      "uuid=$(${pkgs.util-linux}/bin/uuidgen)"
       foo bar
     '');
 
