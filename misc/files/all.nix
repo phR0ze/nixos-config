@@ -28,6 +28,9 @@ in
         # Include a local file as your target for both the root and current users
         files.all."root/.dircolors".copy = ../include/home/.dircolors;
 
+        # Make a weak copy of the target file for both the root and current users
+        files.all."root/.dircolors".weakCopy = ../include/home/.dircolors;
+
         # Existing nix store source path
         files.all.".config/Kvantum/ArcDark".source = "${pkgs.arc-kde-theme}/share/Kvantum/ArcDark";
 

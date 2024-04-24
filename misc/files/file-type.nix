@@ -43,6 +43,20 @@
             existing files of the same name.
             - sets 'source' to the given file
             - sets 'kind' to 'copy'
+            - sets 'own' to 'owned'
+          '';
+        };
+
+        weakCopy = lib.mkOption {
+          default = null;
+          type = types.nullOr types.path;
+          description = lib.mdDoc ''
+            Local file path or local directory path to install in system. Copies during a 'clu' 
+            install or update, but not for nixos-rebuild switch nor during reboots. Only copies to 
+            the destination if it doesn't exist or there is no record of an initial copy.
+            - sets 'source' to the given file
+            - sets 'kind' to 'copy'
+            - sets 'own' to 'unowned'
           '';
         };
 
@@ -77,6 +91,18 @@
             specify the file's properties and likewise user, group and dirmode for directories. 
             Similarly for 'link' dirmode, user, and group will set the directory properties of 
             any directories needing to be created for the link.
+          '';
+        };
+
+        own = lib.mkOption {
+          type = types.enum [ "default" "owned" "unowned" ];
+          default = "default";
+          description = lib.mdDoc ''
+            Whether to own the file or directory or not. When a file or directory is owned it is 
+            automatically deleted if your configuration no longer uses it. It is also overwritten 
+            on every update. To avoid overwriting the original source on updates use the `weakCopy` 
+            instead which sets own to unowned and only copies the initial time or if it doesn't 
+            exist. Own is true by default for links.
           '';
         };
 
@@ -122,14 +148,18 @@
         target = lib.mkDefault "${prefix}${name}";
 
         # Set kind based off the convenience options [ copy | link ]
-        kind = if (config.copy != null || config.text != null)
+        kind = if (config.copy != null || config.weakCopy != null || config.text != null)
           then (lib.mkForce "copy") else lib.mkForce "link";
 
         # Set default for future use
         op = lib.mkDefault "default";
 
+        # Set default (i.e. files are owned and directories are not) but allows for user overrides
+        own = if (config.weakCopy != null) then (lib.mkForce "unowned") else (lib.mkForce "owned");
+
         # Set based off the convenience options
         source = if (config.copy != null) then (lib.mkForce config.copy)
+          else if (config.weakCopy != null) then (lib.mkForce config.weakCopy)
           else if (config.link != null) then (lib.mkForce config.link)
           else lib.mkIf (config.text != null) (lib.mkDerivedConfig options.text (pkgs.writeText name));
       };

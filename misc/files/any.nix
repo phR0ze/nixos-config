@@ -77,7 +77,8 @@ let
       local filemode="$5"         # Mode to use for files
       local user="$6"             # Owner to use for file and/or directories
       local group="$7"            # Group to use for file and/or directories
-      local op="$8"               # Operation type
+      local own="$8"              # Own the file or directory
+      local op="$9"               # Operation type
 
       # Validation on inputs
       [[ ''${dst:0:1} == "/" ]] && echo "paths must not start with a /" && exit 1
@@ -108,6 +109,7 @@ let
       echo "$filemode" >> "$meta"
       echo "$user" >> "$meta"
       echo "$group" >> "$meta"
+      echo "$own" >> "$meta"
     }
 
     # Convert the files derivations into a list of calls to track by taking all the file
@@ -123,6 +125,7 @@ let
       entry.filemode
       entry.user
       entry.group
+      entry.own
       entry.op
     ]) anyFiles}
   '';
@@ -150,6 +153,9 @@ in
 
         # Include a local file as your target
         files.any."root/.dircolors".copy = ../include/home/.dircolors;
+
+        # Make a weak copy of the target file
+        files.any."root/.dircolors".weakCopy = ../include/home/.dircolors;
 
         # Include a local file as a readonly link
         files.any."root/.dircolors".link = ../include/home/.dircolors;

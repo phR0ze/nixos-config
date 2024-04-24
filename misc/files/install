@@ -22,26 +22,39 @@ shopt -s extglob            # enable extended globbing
 pkg="$(realpath "$1")"                  # the /nix/store path with all the files that need installed
 dst="$(realpath "$2")"                  # destination directory for tracking e.g. /nix
 files="$dst/files"                      # link to current files store path
-log="$dst/files.log"                    # track all the files
-tmp="$dst/files.tmp"                    # old file tracking all files copied or linked
+owned_log="$dst/files.owned"            # track all the owned files
+owned_tmp="$dst/files.owned.tmp"        # old unowned files copied or linked
+unowned_log="$dst/files.unowned"        # track all the unowned files
+unowned_tmp="$dst/files.unowned.tmp"        # old unowned files copied or linked
 lock="$dst/files.lock"                  # don't do anything if the lock file exists
 debug=false                             # debug mode for extra logging
 
 # Clean up any files left over from the previous install
 clean() {
-  readarray -t newfiles < "$log"         # read in all the entries
+  readarray -t owned_new < "$owned_log"     # read in all the owned entries
+  readarray -t unowned_new < "$unowned_log" # read in all the unowned entries
 
   # Nested loop to check if any old files need removed
-  for x in "${oldfiles[@]}"; do
+  for x in "${owned_old[@]}"; do
 
-    # Search the new files to see if it still exists
+    # Search the new owned files to see if it still exists
     local _exists=false
-    for y in "${newfiles[@]}"; do
+    for y in "${owned_new[@]}"; do
       if [[ "$x" == "$y" ]]; then
         _exists=true
         break
       fi
     done
+
+    # Check the new unowned as we might have changed ownership
+    if [[ "$_exists" != true ]]; then
+      for y in "${unowned_new[@]}"; do
+        if [[ "$x" == "$y" ]]; then
+          _exists=true
+          break
+        fi
+      done
+    fi
 
     # Remove the file if it no longer exists
     if [[ "$_exists" != true ]]; then
@@ -69,6 +82,7 @@ metadata() {
   filemode="${meta[4]}"   # mode for any files needing created
   user="${meta[5]}"       # user for any directories or files being created
   group="${meta[6]}"      # group for any directories or files being created
+  own="${meta[7]}"        # whether to own the file or directory or not [ default | owned | unowned ]
 }
 
 # Create missing directories with the given metadata in dirmode, user, group
@@ -84,25 +98,47 @@ mkdir_p() {
 
   # Create the missing directory component
   echo "    mkdir: $_dir"
-  echo "        >> kind=$kind, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+  echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
   mkdir -m $dirmode "$_dir"
   chown $user:$group "$_dir"
 }
 
 # Copy the given source store path to the destination target system path using the metadata file for 
 # mode, user and group properties.
+#
+# Only perform the copy if one of the following is true:
+# - the file doesn't already exist
+# - the file hasn't yet been recorded as installed in /nix/files.unowned or /nix/files.owned
+# - the file is owned
 copy() {
   local _src="${1}"                           # full source nix store path
   local _target="${2}"                        # destination target system path
 
-  echo "  copying: $_src -> $_target"
-  echo "        >> kind=$kind, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+  local _copy=false
+  if [[ "$own" == "owned" || ! -f "$_target" ]]; then
+    _copy=true
+  else
+    # if file hasn't been installed yet then copy
+    local _exists=false
+    for x in "${unowned_old[@]}"; do
+      if [[ "$x" == "$_target" ]]; then
+        _exists=true
+        break
+      fi
+    done
+    [[ "$_exists" == false ]] && _copy=true
+  fi
 
-  # install
-  # - is more performant as it does this operation in one go
-  # - overwrites the existing target if it exists
-  # - resolves link indirection recursively to find original source
-  install -C -m $filemode -o $user -g $group "$_src" "$_target"
+  if [[ "$_copy" == true ]]; then
+    echo "  copying: $_src -> $_target"
+    echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+
+    # install
+    # - is more performant as it does this operation in one go
+    # - overwrites the existing target if it exists
+    # - resolves link indirection recursively to find original source
+    install -C -m $filemode -o $user -g $group "$_src" "$_target"
+  fi
 }
 
 # Link the given source store path to the implicated destination
@@ -114,17 +150,17 @@ link() {
   # Update link if it doesn't exist or is incorrect
   if [[ ! -f "$_target" ]]; then
     echo "  linking: $_target -> $_inter -> $_src"
-    echo "        >> kind=$kind, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+    echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     ln -sf "$_inter" "$_target"
   elif [[ "$(realpath "$_target")" != "$_src" ]]; then
     echo " updating: $_target -> $_inter -> $_src"
-    echo "        >> kind=$kind, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+    echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     rm -f "$_target"                          # clean to ensure it doesn't exist
     ln -sf "$_inter" "$_target"
   else
     if [[ "$debug" == true ]]; then
       echo "  leaving: $_target -> $_inter -> $_src"
-      echo "        >> kind=$kind, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+      echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     fi
   fi
 }
@@ -151,7 +187,11 @@ mkfile() {
   fi
 
   # Always track the file/link
-  echo "$_target" >> "$log"
+  if [[ "$own" == "owned" || "$kind" == "link" ]]; then
+    echo "$_target" >> "$owned_log"
+  else
+    echo "$_target" >> "$unowned_log"
+  fi
 }
 
 # Loop through files
@@ -179,6 +219,11 @@ mkdirs() {
     _src="${_src%".meta.dir"}"                # trim off the meta suffix
     mkdir_p "$_src"                           # create target path e.g. /home/.config
 
+    # Don't track directories as its too dangerous to remove them
+    #if [[ "$own" == "owned" ]]; then
+    #  echo "$_src" >> "$owned_log"
+    #fi
+
     # Search the directory and copy or link the store paths to the system.
     # $src will be the directory store path e.g. /nix/store/m2938jfgq69jid493s8agw94n5rl22xh-.config 
     # $y will be the individual file store paths e.g. /nix/store/m2938jfgq69jid493s8agw94n5rl22xh-.config/nvim/init.vim
@@ -196,9 +241,12 @@ mkdirs() {
 echo "installing files from ${pkg}"
 
 # Backup the original files and read them in for reference
-[[ ! -f "$log" ]] && touch "$log"
-mv "$log" "$tmp" && touch "$log"
-readarray -t oldfiles < "$tmp"
+[[ ! -f "$owned_log" ]] && touch "$owned_log"
+[[ ! -f "$unowned_log" ]] && touch "$unowned_log"
+mv "$owned_log" "$owned_tmp" && touch "$owned_log"
+mv "$unowned_log" "$unowned_tmp" && touch "$unowned_log"
+readarray -t owned_old < "$owned_tmp"
+readarray -t unowned_old < "$unowned_tmp"
 
 # Update the source store path first to avoid creating this as a directory during the file directory 
 # creation process. This will switch all linked files over to our new source store path.
