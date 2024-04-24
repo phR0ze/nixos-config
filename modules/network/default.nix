@@ -14,16 +14,28 @@ let
       target="$out/static.nmconnection"
 
       echo "[connection]" >> $target
+      echo "id=Wired static" >> $target
+      echo "uuid=$(${pkgs.util-linux}/bin/uuidgen)" >> $target
+      echo "type=ethernet" >> $target
+      echo "autoconnect-priority=1" >> $target
+      echo "" >> $target
+      echo "[ipv4]" >> $target
+      echo "method=manual" >> $target
+      echo "address=${args.settings.static_ip}" >> $target
+      echo "gateway=${args.settings.gateway}" >> $target
+      echo "" >> $target
+      echo "[ipv6]" >> $target
+      echo "method=disabled" >> $target
     '');
 in
 {
   config = lib.mkMerge [
     (lib.mkIf (args.settings.static_ip != "") {
       networking.useDHCP = false;     # disable dhcp for all interfaces
-      environment.etc."NetworkManager/system-connections/static.nmconnection" = {
-        mode = "0600";
-        source = "${staticConn}/static.nmconnection";
-      };
+      #environment.etc."NetworkManager/system-connections/static.nmconnection" = {
+      #  mode = "0600";
+      #  source = "${staticConn}/static.nmconnection";
+      #};
     })
 
     ({
