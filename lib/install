@@ -150,6 +150,8 @@ install::config_system()
     utils::replace str "userpass" "${USER_PASS}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "git_user" "${GIT_USER}" "${NIXOS_CONFIG}/flake_opts.nix"
     utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "static_ip" "${NETIP}" "${NIXOS_CONFIG}/flake_opts.nix"
+    utils::replace str "gateway" "${GATEWAY}" "${NIXOS_CONFIG}/flake_opts.nix"
     [ "x${AUTO_LOGIN}" == "xy" ] && autologin="true" || autologin="false"
     utils::replace bool "autologin" "${autologin}" "${NIXOS_CONFIG}/flake_opts.nix"
     [ "x${NFS_SHARES}" == "xy" ] && nfsshares="true" || nfsshares="false"
