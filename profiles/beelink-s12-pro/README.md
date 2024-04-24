@@ -6,12 +6,12 @@ Documenting the steps I went through to deploy <b><i>cyberlinux</i></b> onto the
 <a href="https://www.notebookcheck.net/Intel-N100-performance-debut-Beelink-Mini-S12-Pro-mini-PC-review.758950.0.html">Beelink S12 Pro</a> <br> This is now a <b>NixOS</b> based system see my <a href="../../">nixos-config</a>
 <br><br>
 
-WIP while I switch over to NixOS
-
 ### Quick links
+* [.. up dir](../../README.md)
 * [Install cyberlinux](#install-cyberlinux)
 * [Configure cyberlinux](#configure-cyberlinux)
   * [WiFi](#wifi)
+  * [General](#general)
   * [Graphics](#graphics)
   * [Kodi](#kodi)
   * [Warcraft 2](#warcraft-2)
@@ -19,43 +19,27 @@ WIP while I switch over to NixOS
 # Install cyberlinux
 
 1. Boot the S12 from the USB:
-   1. Plugin in the USB built from [Build the live ISO for installation](../../README.md#build-the-live-iso-for-installation)
+   1. Plug in the [Install USB](../../README.md#install-from-custom-iso)  
    2. Press `F7` repeatedly until the boot menu pops up
    3. Select your `UEFI` device entry e.g. `UEFI: KingstonDataTraveler 2.01.00`
 
-3. Install `cyberlinux`
-   1. see [Install from custom ISO](../../README.md#isntall-from-custom-iso)
+2. Install `cyberlinux`:  
+   1. Once booted into the live environment open a shell
+   2. The shell will load the install wizard automatically
+   3. Choose the `beelink-s12-pro` machine option then complete the wizard
+   4. Power off the machine `sudo poweroff`, unplug the USB and then power back up
 
 # Configure cyberlinux
 
 ## WiFi
-NetworkManager make configuring Wifi a breeze
+NetworkManager makes configuring Wifi a breeze
 
 1. Left click on the NetworkManager applet in the system tray
 2. Select your WiFi endpoint
 3. Enter in your password and done
 
 ## Graphics
-[Hardware Video Acceleration](https://wiki.archlinux.org/title/Hardware_video_acceleration)
-Note: for the [Intel 12th Gen Alder Lake UHD Graphics](https://www.notebookcheck.net/Intel-UHD-Graphics-24EUs-Alder-Lake-N-GPU-Benchmarks-and-Specs.760772.0.html) we'll need to use the `intel-media-driver` which you can see from its release info
-[Intel Media Driver 23.4.3](https://github.com/intel/media-driver/releases/tag/intel-media-23.4.3) supports Alter Lake. 
-
-Alder Lake N100 has an integrated `UHD Graphics` GPU. However by default the `i915` driver was used 
-as shown with `inxi` i.e. `Intel Alder Lake-N [UHD Graphics] driver: i915`
-
-1. Install hardware acceleration drivers:
-   ```bash
-   $ sudo pacman -S intel-media-driver libva libva-utils vdpauinfo mesa-utils
-   $ sudo pacman -S libva-intel-driver libvdpau-va-gl libva-utils vdpauinfo
-   ```
-2. Valid output from `vainfo` should show your acceleration is working
-   ```bash
-   $ vainfo
-   ```
-3. Valid output from `vdpauinfo` should show your acceleration is working
-   ```bash
-   $ vdpauinfo
-   ```
+Graphics are taken care of automatically by selecting the correct profile during install
 
 ## Kodi
 Optional example step for configuring the use of a pre-existing local NFS share for media on Kodi
