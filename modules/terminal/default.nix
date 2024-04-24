@@ -26,7 +26,7 @@
     ./env.nix
     ./bash.nix
     ./starship.nix
-    ../network/base.nix
+    ../network
     ../development/git.nix
     ../development/neovim.nix
     ../services/nfs.nix
