@@ -147,6 +147,8 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
+* [ ] Prove out Warcraft II install with wine
+* [ ] Add tiny media manager
 
 ## Sometime
 * [ ] Create ISO with full live GUI environment
