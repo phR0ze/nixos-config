@@ -14,7 +14,7 @@ in
   ];
 
   # Set theater type
-  services.xserver.xft.theater = enable;
+  services.xserver.xft.theater = true;
 
   # High dpi settings
   services.xserver.xft.dpi = 130;
