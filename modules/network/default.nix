@@ -38,7 +38,7 @@ in
   config = lib.mkMerge [
     (lib.mkIf (args.settings.static_ip != "") {
       networking.useDHCP = false;     # disable dhcp for all interfaces
-      environment.etc."NetworkManager/system-connections/${staticName}".source = "${staticConn}/${staticName}";
+      files.any."NetworkManager/system-connections/${staticName}".copy = "${staticConn}/${staticName}";
 
       #environment.etc."NetworkManager/system-connections/${staticName}" = {
       #  mode = "0600";
