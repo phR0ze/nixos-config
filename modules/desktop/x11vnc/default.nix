@@ -17,13 +17,25 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }: with lib.types;
 let
+  cfg = config.services.x11nvc;
+
   vncpass = pkgs.runCommandLocal "x11vnc-passwd" {} ''
     mkdir $out
     ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${args.settings.userpass}" "$out/pass"
   '';
 in
 {
-  config = lib.mkIf (config.services.xserver.enable) {
+  options = {
+    services.x11vnc = {
+      enable = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = lib.mdDoc "Enable the x11vnc service";
+      };
+    };
+  };
+ 
+  config = lib.mkIf (cfg.enable) {
     networking.firewall.allowedTCPPorts = [ 5900 ];
 
     environment.systemPackages = with pkgs; [

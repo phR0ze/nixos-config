@@ -10,6 +10,10 @@
     ../../modules/desktop/x11/develop.nix
   ];
 
+  # Disable x11vnc for laptops
+  services.x11vnc.enable = false;
+
+  # Add additional packages
   # Slick captive portal solutions for hotels etc...
 #  programs = {
 #    captive-browser = {

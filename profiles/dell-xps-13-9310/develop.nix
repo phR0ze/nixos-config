@@ -11,6 +11,9 @@
     ../generic/develop.nix
   ];
 
+  # Disable x11vnc for laptops
+  services.x11vnc.enable = false;
+
   # Add additional packages
   # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
