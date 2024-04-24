@@ -32,10 +32,10 @@ in
   config = lib.mkMerge [
     (lib.mkIf (args.settings.static_ip != "") {
       networking.useDHCP = false;     # disable dhcp for all interfaces
-      #environment.etc."NetworkManager/system-connections/static.nmconnection" = {
-      #  mode = "0600";
-      #  source = "${staticConn}/static.nmconnection";
-      #};
+      environment.etc."NetworkManager/system-connections/static.nmconnection" = {
+        mode = "0600";
+        source = staticConn/static.nmconnection;
+      };
     })
 
     ({
