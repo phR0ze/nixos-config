@@ -7,7 +7,7 @@
 { lib, pkgs, ... }:
 {
   imports = [
-    ../../modules/hardware/intel-mini-pc.nix
+    ../../modules/hardware/intel-graphics.nix
     ../generic/theater.nix
   ];
 

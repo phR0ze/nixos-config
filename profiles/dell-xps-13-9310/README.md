@@ -1,12 +1,13 @@
-Dell XPS 13 9310 deployment
+Dell XPS 13 9310
 ====================================================================================================
-<img align="left" width="48" height="48" src="../../../art/logo_256x256.png">
-Documenting the steps I went through to deploy <b><i>cyberlinux XFCE Desktop</i></b> onto the `Dell 
-XPS 13 9310` and additional configuration and maintenance I've done on this system.
+
+<img align="left" width="48" height="48" src="../../art/logo_256x256.png">
+Documenting the steps I went through to deploy <b><i>cyberlinux</i></b> onto the
+<a href="https://www.notebookcheck.net/Dell-XPS-13-9310-Core-i7-Laptop-Review-The-11th-Gen-Tiger-Lake-Difference.499291.0.html">Dell XPS 13 9310 Core i7 Laptop</a> <br> This is now a <b>NixOS</b> based system see my <a href="../../">nixos-config</a>
 <br><br>
 
 ### Quick links
-* [.. up dir](..)
+* [.. up dir](../../README.md)
 * [Device](#device)
   * [Specs](#Specs)
   * [Open chassis covere](#open-chassis-cover)
@@ -22,7 +23,6 @@ XPS 13 9310` and additional configuration and maintenance I've done on this syst
     * [Bluetooth](#bluetooth)
   * [Settings](#settings)
     * [SSH Keys](#ssh-keys)
-    * [Backgrounds](#backgrounds)
 * [Troubleshooting](#troubleshooting)
   * [Info](#info)
     * [SSD is directly bootable with cyberlinux](#ssd-is-direcctly-bootable-with-cyberlinux)
@@ -30,7 +30,7 @@ XPS 13 9310` and additional configuration and maintenance I've done on this syst
   * [Boot from live USB](#boot-from-live-usb)
   * [Stuck on Dell boot logo](#stuck-on-dell-boot-logo)
 
-# Device
+## Device
 **Resources:**
 * [Tear down of XPS 9310](https://www.youtube.com/watch?v=Dzf4R3vr22M)
   * Shows battery removal
@@ -41,7 +41,7 @@ XPS 13 9310` and additional configuration and maintenance I've done on this syst
   main battery
 * [Service Manual PDF](https://dl.dell.com/topicspdf/xps-13-9310-laptop_service-manual_en-us.pdf)
 
-## Specs
+### Specs
 * CPU: `Intel 11th Gen EVO Core i7-1185G7@3.00GHz`
 * BIOS came with: `2.2.0`
 * Microcode Version: `86`
@@ -50,14 +50,14 @@ XPS 13 9310` and additional configuration and maintenance I've done on this syst
 * Video BIOS: `GOP 1055`
 * Audio controller: `Realtek ALC3281-CG`
 
-## Open chassis cover
+### Open chassis cover
 1. Turn the laptop over
 2. Remove the 8 Torx T5 screws
 3. Use a guitar pick to gently pry off the case starting from the front two edges and along front
    then lift up the front.
 
-## SSD Upgrade
-The SSD options that dell provides are small, slow and way to expensive. I bought the
+### SSD Upgrade
+The SSD options that dell provides are small, slow and way too expensive. I bought the
 `Samsung V-NAND SSD 970 EVO Plus NVMe M.2 2TB` SSD from Amazon and it fits and works perfectly.
 
 1. [Remove the chassis cover](#open-chassis-cover)
@@ -71,27 +71,27 @@ You need to disable UEFI secure boot in order to install cyberlinux as only the 
 firmware that comes with the machine will be cryptographically signed for the machine.
 
 1. Boot Into the `Setup firmware`:  
-   a. Press `F2` while booting (no need to press `Fn` key)  
-   b. In the left hand navigation select `Boot Configuration`  
-   c. On the right side scroll down to `Secure Boot`  
-   d. Flip the toggle on `Enable Secure Boot` to `OFF`  
-   e. Select `Yes` on the Secure Boot disable confirmation  
-   f. In the left hand navigation select `Storage`  
-   g. Select `AHCI/NVMe` rather than `RAID On`  
-   h. Select `APPLY CHANGES` at the bottom  
-   i. Select `OK` on the Apply Settings Confirmation page  
-   j. Select `EXIT` bottom right of the screen to reboot  
+   1. Press `F2` while booting (no need to press `Fn` key)
+   2. In the left hand navigation select `Boot Configuration`
+   3. On the right side scroll down to `Secure Boot`
+   4. Flip the toggle on `Enable Secure Boot` to `OFF`
+   5. Select `Yes` on the Secure Boot disable confirmation
+   6. In the left hand navigation select `Storage`
+   7. Select `AHCI/NVMe` rather than `RAID On`
+   8. Select `APPLY CHANGES` at the bottom
+   9. Select `OK` on the Apply Settings Confirmation page
+  10. Select `EXIT` bottom right of the screen to reboot
 
 2. Now boot from the USB:  
-   a. Plug in the [Multiboot USB](../../../cyberlinux#create-multiboot-usb)  
-   b. Press `F2` while booting  
-   c. Select your `UEFI` USB device  
+   1. Plug in the [Install USB](../../README.md#install-from-custom-iso)  
+   2. Press `F2` while booting  
+   3. Select your `UEFI` USB device  
 
 3. Install `cyberlinux`:  
-   a. Select the desired deployment option e.g. `Install xfce desktop`  
-   b. Walk through the wizard enabling WiFi onlong the way  
-   c. Complete out the process and login to your new system  
-   d. Unplug the USB, reboot and log back in  
+   1. Once booted into the live environment open a shell
+   2. The shell will load the install wizard automatically
+   3. Choose the `dell-xps-13` machine option then complete the wizard
+   4. Power off the machine `sudo poweroff`, unplug the USB and then power back up
 
 # Configure cyberlinux
 * [Arch Linux Dell XPS 13 (9310)](https://wiki.archlinux.org/title/Dell_XPS_13_(9310))
@@ -192,12 +192,6 @@ Custom changes not included in cyberlinux builds
 Copy over ssh keys
 ```bash
 $ scp -r USER@IP-ADDRESS:~/.ssh .
-```
-
-### Backgrounds
-Copy over wallpaper
-```bash
-$ sudo scp USER@IP-ADDRESS:~/Storage/Install/Configs/Wallpaper/* /usr/share/backgrounds
 ```
 
 ### Configure hotkeys
