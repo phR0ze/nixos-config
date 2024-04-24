@@ -9,7 +9,7 @@
 { config, lib, pkgs, args, ... }: with lib.types;
 let
   staticName = "static.nmconnection";
-  staticConn = lib.mkIf (args.settings.static_ip != "") pkgs.runCommandLocal staticName {} ''
+  staticConn = pkgs.runCommandLocal staticName {} ''
       mkdir $out
       target="$out/${staticName}"
 
