@@ -19,7 +19,7 @@ let
       mkdir $out
       target="$out/${staticName}"
 
-#      echo "[connection]" >> $target
+      echo "[connection]" >> $target
 #      echo "id=Wired static" >> $target
 #      echo "uuid=$(${pkgs.util-linux}/bin/uuidgen)" >> $target
 #      echo "type=ethernet" >> $target
@@ -40,8 +40,8 @@ in
       networking.useDHCP = false;     # disable dhcp for all interfaces
       environment.etc."NetworkManager/system-connections/${staticName}" = {
         mode = "0600";
-        source = "${staticConn}/${staticName}";
-        #source = staticConn;
+        #source = "${staticConn}/${staticName}";
+        source = staticConn;
       };
     })
 
