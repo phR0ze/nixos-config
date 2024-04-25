@@ -6,6 +6,7 @@
 {
   imports = [
     ../../development/vscode
+    ../../virtualization/virtualbox.nix
   ];
 
   environment.systemPackages = with pkgs; [

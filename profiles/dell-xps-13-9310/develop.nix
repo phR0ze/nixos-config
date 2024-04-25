@@ -17,6 +17,9 @@
   # Increase the dpi
   services.xserver.xft.dpi = 110;
 
+  # Enable virtualbox host
+  virtualisation.host.enable = true;
+
   # Add additional packages
   # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
