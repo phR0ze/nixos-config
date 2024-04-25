@@ -138,6 +138,7 @@ in
 
     # x11 tools
     xorg.xrdb                           # X server resource database utility
+    xorg.xdpyinfo                       # Display information utility for X
 
     # Network
 
