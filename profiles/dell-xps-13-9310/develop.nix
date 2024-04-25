@@ -14,6 +14,9 @@
   # Disable x11vnc for laptops
   services.x11vnc.enable = false;
 
+  # Increase the dpi
+  services.xserver.xft.dpi = 110;
+
   # Add additional packages
   # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [

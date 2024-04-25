@@ -17,7 +17,7 @@ in
   services.xserver.xft.theater = true;
 
   # High dpi settings
-  services.xserver.xft.dpi = 130;
+  services.xserver.xft.dpi = 120; # 25% higher recommended by Arch Linux
   services.xserver.desktopManager.xfce.panel.taskbar.size = 36;
   services.xserver.desktopManager.xfce.panel.taskbar.iconSize = 32;
   services.xserver.desktopManager.xfce.panel.launcher.size = 52;
