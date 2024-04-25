@@ -224,7 +224,7 @@ in
       };
       applicationsMenu = lib.mkOption {
         type = types.str;
-        default = "Super_L";
+        default = "&lt;Super&gt;space";
         description = lib.mdDoc "Activate the applications menu";
       };
     };
