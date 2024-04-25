@@ -1,6 +1,8 @@
 # Virtualbox configuration
 #
-# ### Features
+# ### Notes
+# - Blocks the system from booting for 1.5 min waiting for vboxnet0 to exist and although
+#   the options are set to create is automatically and I tried explicitly it dosen't work.
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
