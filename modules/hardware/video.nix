@@ -105,7 +105,6 @@
   # - default: modesetting, fbdev
   #-------------------------------------------------------------------------------------------------
   #services.xserver.videoDrivers = [
-    #"virtualbox"                        # VirtualBox graphics driver
     #"modesetting"
     #"fbdev"
     #"nvidia"
