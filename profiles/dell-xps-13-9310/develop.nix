@@ -17,9 +17,11 @@
   # Increase the dpi
   services.xserver.xft.dpi = 110;
 
+  # Enable boxes virtualization
+  virtualisation.boxes.enable = true;
+
   # Add additional packages
   # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
-    gnome.gnome-boxes
   ];
 }
