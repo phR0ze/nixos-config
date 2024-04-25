@@ -7,8 +7,9 @@
 { lib, pkgs, ... }:
 {
   imports = [
-    ../../modules/hardware/intel-graphics.nix
     ../generic/develop.nix
+    ../../modules/hardware/intel-graphics.nix
+    ../../modules/virtualisation/boxes.nix
   ];
 
   # Disable x11vnc for laptops
