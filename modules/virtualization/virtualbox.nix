@@ -2,19 +2,23 @@
 #
 # ### Features
 #---------------------------------------------------------------------------------------------------
-{ args, ... }:
+{ config, lib, pkgs, args, f, ... }: with lib.types;
+let
+  cfg = config.virtualisation.virtualbox;
+
+in
 {
   virtualisation.virtualbox = {
-
-    # Guest configuration
     #guest.enable = true;
     #guest.x11 = true;
-
-    # Host configuration
     host.enable = true;
-    #host.enableExtensionPack = true;
   };
 
-  # Add user to the vboxusers group
-  users.extraGroups.vboxusers.members = [ args.settings.username ];
+  config = lib.mkIf (cfg.host.enable) {
+    # Install the Oracle Extension Pack requiring allowUnfree
+    virtualisation.virtualbox.host.enableExtensionPack = true;
+
+    # Add user to the vboxusers group
+    users.extraGroups.vboxusers.members = [ args.settings.username ];
+  };
 }
