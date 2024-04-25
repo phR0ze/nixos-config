@@ -9,7 +9,7 @@
   imports = [
     ../generic/develop.nix
     ../../modules/hardware/intel-graphics.nix
-    ../../modules/virtualisation/boxes.nix
+    ../../modules/virtualization/boxes.nix
   ];
 
   # Disable x11vnc for laptops
