@@ -10,7 +10,7 @@ in
 {
   config = lib.mkIf (cfg.host.enable) {
     # Install the Oracle Extension Pack requiring allowUnfree
-    virtualisation.virtualbox.host.enableExtensionPack = true;
+    #virtualisation.virtualbox.host.enableExtensionPack = true;
 
     # Add user to the vboxusers group
     users.extraGroups.vboxusers.members = [ args.settings.username ];
