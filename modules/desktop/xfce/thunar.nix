@@ -67,7 +67,7 @@ in
     ];
     services.tumbler.enable = true;           # provides image thumbnails
 
-    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".copy = thunarXmlfile;
-    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar-volman.xml".copy = thunarVolmanXmlfile;
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml".weakCopy = thunarXmlfile;
+    files.all.".config/xfce4/xfconf/xfce-perchannel-xml/thunar-volman.xml".weakCopy = thunarVolmanXmlfile;
   };
 }
