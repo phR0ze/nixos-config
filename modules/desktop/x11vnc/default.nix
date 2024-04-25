@@ -17,7 +17,7 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }: with lib.types;
 let
-  cfg = config.services.x11nvc;
+  cfg = config.services.x11vnc;
 
   vncpass = pkgs.runCommandLocal "x11vnc-passwd" {} ''
     mkdir $out
