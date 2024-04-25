@@ -8,12 +8,6 @@ let
 
 in
 {
-  virtualisation.virtualbox = {
-    #guest.enable = true;
-    #guest.x11 = true;
-    host.enable = true;
-  };
-
   config = lib.mkIf (cfg.host.enable) {
     # Install the Oracle Extension Pack requiring allowUnfree
     virtualisation.virtualbox.host.enableExtensionPack = true;

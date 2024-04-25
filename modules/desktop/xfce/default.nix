@@ -9,6 +9,7 @@ let
   backgrounds = pkgs.callPackage ../backgrounds { };
   wmctl = pkgs.callPackage ../wmctl { };
   xft = config.services.xserver.xft;
+  virtualbox = config.virtualisation.virtualbox.host;
 
 in
 {
@@ -52,7 +53,7 @@ in
         { name = "Firefox"; exec = "firefox"; icon = "firefox"; }
         { name = "LibreOffice Calc"; exec = "libreoffice --calc"; icon = "libreoffice-calc"; }
         { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; }]
-      ++ lib.optional virtualisation.virtualbox.host.enable { name = "VirtualBox"; exec = "VirtualBox"; icon = "virtualbox"; };
+      ++ lib.optional virtualbox.enable { name = "VirtualBox"; exec = "VirtualBox"; icon = "virtualbox"; };
 
       xfce.menu.overrides = [
         { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
