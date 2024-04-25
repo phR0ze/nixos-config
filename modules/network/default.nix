@@ -68,7 +68,7 @@ in
         dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
         unmanaged = [                       # Ignore virtualization technologies
           "interface-name:docker*"
-         # "interface-name:vboxnet*"
+          "interface-name:vboxnet*"
           "interface-name:vmnet*"
         ];
       };
