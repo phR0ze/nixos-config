@@ -79,6 +79,7 @@ let
             <property name="&lt;Super&gt;Left" type="string" value="wmctl place halfw left"/>
             <property name="&lt;Super&gt;Right" type="string" value="wmctl place halfw right"/>
             <property name="${cfg.dropDownTerminalKey}" type="string" value="xfce4-terminal --hide-menubar --drop-down"/>
+            <property name="${cfg.applicationsMenu}" type="string" value="xfce4-popup-applicationsmenu"/>
           </property>
         </property>
         <property name="xfwm4" type="empty">
@@ -220,6 +221,11 @@ in
         type = types.str;
         default = "&lt;Super&gt;Tab";
         description = lib.mdDoc "Switch to the next workspace";
+      };
+      applicationsMenu = lib.mkOption {
+        type = types.str;
+        default = "Super_L";
+        description = lib.mdDoc "Activate the applications menu";
       };
     };
   };
