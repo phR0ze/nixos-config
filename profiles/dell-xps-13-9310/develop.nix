@@ -18,7 +18,7 @@
   services.xserver.xft.dpi = 110;
 
   # Enable virtualbox host
-  virtualisation.host.enable = true;
+  virtualisation.virtualbox.host.enable = true;
 
   # Add additional packages
   # ------------------------------------------------------------------------------------------------
