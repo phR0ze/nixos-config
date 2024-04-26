@@ -46,7 +46,6 @@ in
     ../fonts.nix
     ../icons.nix
     ../xdg.nix
-    ./xft.nix
   ];
 
   services.xserver = {
