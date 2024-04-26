@@ -10,7 +10,7 @@
 
   # Add cargo's bin to the environment 
   environment.extraInit = ''
-    export PATH="$HOME/.cargo/bin"
+    export PATH="$HOME/.cargo/bin:$PATH"
   '';
 
   environment.systemPackages = with pkgs; [
