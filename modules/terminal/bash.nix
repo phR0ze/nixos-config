@@ -3,20 +3,8 @@
 # ### Details
 # - These changes get saved in /etc/bashrc which is loaded by /etc/profile
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }:
-let
-  env = lib.optional config.development.rust.enable ''export PATH="$HOME/.cargo/bin:$PATH"'';
-
-in
+{ lib, pkgs, ... }:
 {
-  # Add ~/.local/bin to the PATH
-  environment.localBinInPath = true;
-
-  # Add additional environment configuration
-  environment.extraInit = ''
-    ${lib.concatStringsSep "\n" env};
-  '';
-
   programs.bash = {
 
     # Configures 'dircolors -b' but doesn't allow for a custom config so manually doing this below.
