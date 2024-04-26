@@ -147,6 +147,7 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
+* [ ] Fix vim copy paste between windows
 * [ ] Add tiny media manager
 * [ ] Prove out Warcraft II install with wine
 
