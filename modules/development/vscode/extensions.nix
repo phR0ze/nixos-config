@@ -1,8 +1,8 @@
 # Visual Studio Code extensions
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, settingsFilePath, ... }:
+{ pkgs, ... }:
 {
-  programs.vscode.extensions = with pkgs.vscode-extensions; [
+  development.vscode.extensions = with pkgs.vscode-extensions; [
 
     # Native package dependencies
     # ----------------------------------------------------------------------------------------

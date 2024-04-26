@@ -1,12 +1,12 @@
 # Visual Studio Code user settings
 #---------------------------------------------------------------------------------------------------
-{ config, ... }:
+{ config, lib, ... }: with lib.types;
 let
   xft = config.services.xserver.xft;
 
 in
 {
-  programs.vscode.settings = {
+  development.vscode.settings = {
     # Explorer configuration
     # ----------------------------------------------------------------------------------------
     "explorer.confirmDelete" = false;               # Ask for confirmation when deleting a file

@@ -3,8 +3,6 @@
 { ... }:
 {
   imports = [
-    ./files
-    ./desktop
-    ./development
+    ./x11
   ];
 }

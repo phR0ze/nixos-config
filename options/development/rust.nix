@@ -8,11 +8,7 @@ in
 {
   options = {
     development.rust = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Install and configure rust tooling";
-      };
+      enable = lib.mkEnableOption "Install and configure rust tooling";
     };
   };
  
