@@ -1,7 +1,23 @@
-# Environment variable configuration
+# Environment configuration
+#
+# ### Details
+# - These changes get saved in /etc/set-environment or the session variables
 #---------------------------------------------------------------------------------------------------
-{ ... }:
+{ config, lib, ... }:
+let
+  env = lib.optional config.development.rust.enable ''export PATH="$HOME/.cargo/bin:$PATH"'';
+
+in
 {
+  # Add ~/.local/bin to the PATH in /etc/set-environment
+  environment.localBinInPath = true;
+
+  # Add additional environment configuration to /etc/set-environment
+  environment.extraInit = ''
+    ${lib.concatStringsSep "\n" env};
+  '';
+
+  # Environment variables
   environment.variables = {
     # $XDG_CONFIG_HOME defines the base directory relative to which user-specific configuration files
     # should be stored. If $XDG_CONFIG_HOME is either not set or empty, a default equal to $HOME/.config
