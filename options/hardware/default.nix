@@ -3,11 +3,6 @@
 { ... }:
 {
   imports = [
-    ./desktop
-    ./development
-    ./files
-    ./games
-    ./hardware
-    ./services
+    ./intel-graphics.nix
   ];
 }

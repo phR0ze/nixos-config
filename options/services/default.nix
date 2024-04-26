@@ -3,11 +3,6 @@
 { ... }:
 {
   imports = [
-    ./desktop
-    ./development
-    ./files
-    ./games
-    ./hardware
-    ./services
+    ./x11vnc.nix
   ];
 }
