@@ -58,7 +58,7 @@
     };
 
     # Import all custom functions to be use throughout
-    f = pkgs.callPackage ./misc/funcs.nix { lib = nixpkgs.lib; };
+    f = pkgs.callPackage ./options/funcs.nix { lib = nixpkgs.lib; };
     args = inputs // { inherit settings; } // {
       iso = false;
       userHome = "/home/${settings.username}";
