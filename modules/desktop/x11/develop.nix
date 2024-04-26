@@ -8,6 +8,11 @@
     ../../development/vscode
   ];
 
+  # Add cargo's bin to the environment 
+  environment.extraInit = ''
+    export PATH="$HOME/.cargo/bin"
+  '';
+
   environment.systemPackages = with pkgs; [
     chromium                            # An open source web browser from Google
     clang                               # A C language family frontend for LLVM
