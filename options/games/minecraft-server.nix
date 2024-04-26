@@ -7,11 +7,13 @@ let
 in
 {
   config = lib.mkIf (cfg.enable) {
-    cfg.eula = true;            # means agreeing to Mojang's EULA: https://account.mojang.com/documents/minecraft_eula
+
+    # This means agreeing to Mojang's EULA: https://account.mojang.com/documents/minecraft_eula
+    services.minecraft-server.eula = true;
 
     # JVM configuration
     # https://github.com/brucethemoose/Minecraft-Performance-Flags-Benchmarks?tab=readme-ov-file#server-g1gc
-    cfg.jvmOpts = lib.concatStringsSep " " [
+    services.minecraft-server.jvmOpts = lib.concatStringsSep " " [
       "-Xms4G -Xmx4G"                         # always bound the amount of memory allowed to the JVM
       "-XX:+UseG1GC"                          # use the G1GC garbabe collector
       "-XX:MaxGCPauseMillis=130"
