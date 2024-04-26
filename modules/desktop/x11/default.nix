@@ -136,7 +136,6 @@ in
   environment.systemPackages = with pkgs; [
 
     # x11 tools
-    xclip                               # Tool to access the X clipboard from a console application
     xorg.xrdb                           # X server resource database utility
     xorg.xdpyinfo                       # Display information utility for X
 
