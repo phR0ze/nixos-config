@@ -5,6 +5,9 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 {
+  # Add ~/.local/bin to the PATH
+  environment.localBinInPath = true;
+
   programs.bash = {
 
     # Configures 'dircolors -b' but doesn't allow for a custom config so manually doing this below.

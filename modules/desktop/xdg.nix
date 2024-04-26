@@ -12,7 +12,7 @@
     DOWNLOAD=Downloads
     DOCUMENTS=Documents
     PROJECTS=Projects
-    SCRIPTS=bin
+    SCRIPTS=.local/bin
     MUSIC=Music
     PICTURES=Pictures
     VIDEO=Video
