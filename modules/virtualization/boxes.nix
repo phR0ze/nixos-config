@@ -18,6 +18,8 @@ in
  
   config = lib.mkIf (cfg.enable) {
 
+    programs.virt-manager.enable = true;
+
     virtualisation.libvirtd = {
       enable = true;
       qemu.ovmf.enable = true;                      # support for UEFI
@@ -25,10 +27,13 @@ in
       #qemu.swtpm.enable = true;                    # support for windows
     };
 
+    # Configure virt-manager initial connection
+    dconf.settings = {
+
+    };
+
     environment.systemPackages = with pkgs; [
       gnome.gnome-boxes
-      virt-manager
-      #virtio-win   # support for windows
     ];
 
     environment.sessionVariables.LIBVIRT_DEFAULT_URI = [ "qemu:///system" ];
