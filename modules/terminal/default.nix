@@ -35,6 +35,7 @@
   # conditionally exclude grub for iso builds
   ] ++ lib.optional (!args.iso) ../boot/grub.nix;
 
+  programs.tmux.enable = true;
 
   # Install hardware firmware
   # https://github.com/NixOS/nixpkgs/blob/release-23.11/nixos/modules/hardware/all-firmware.nix
@@ -70,7 +71,6 @@
     smartmontools                 # Monitoring tools for hard drives
     squashfsTools                 # mksquashfs, unsquashfs
     testdisk                      # Checks and undeletes partitions + photorec
-    tmux                          # Terminal multiplexer
     tree                          # Simple dir listing app in tree form
     usbutils                      # Tools for working with USB devices e.g. lsusb
     yq                            # Command line YAML/XML/TOML processor
