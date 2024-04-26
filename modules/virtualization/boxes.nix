@@ -1,4 +1,7 @@
 # Boxes configuration
+#
+# ### Guest
+# - when running NixOS as a guest enable QEMU with `service.qemuGuest.enable = true;`
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
@@ -22,15 +25,20 @@ in
 
     virtualisation.libvirtd = {
       enable = true;
+      allowedBridges = [ "virbr0" ];                # default option
       qemu.ovmf.enable = true;                      # support for UEFI
       qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];    # support for UEFI
       #qemu.swtpm.enable = true;                    # support for windows
     };
 
     # Configure virt-manager initial connection
-    dconf.settings = {
-
-    };
+    # Home manager settings
+#    dconf.settings = {
+#      "org/virt-manager/virt-manager/connections" = {
+#        autoconnect = ["qemu:///system"];
+#        uris = ["qemu:///system"];
+#      };
+#    };
 
     environment.systemPackages = with pkgs; [
       gnome.gnome-boxes
