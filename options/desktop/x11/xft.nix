@@ -1,7 +1,6 @@
 # X11 xft options
-#
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, ... }: with lib.types;
 let
   cfg = config.services.xserver.xft;
 

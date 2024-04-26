@@ -1,9 +1,8 @@
-
-# Visual Studio Code user settings
+# Visual Studio Code options
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, settingsFilePath, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.vscode;
+  cfg = config.development.vscode;
 
   jsonFormat = pkgs.formats.json { };
   dropNullFields = lib.filterAttrs (_: v: v != null);
@@ -18,8 +17,8 @@ let
 in
 {
   options = {
-    programs.vscode = {
-      enable = lib.mkEnableOption "Visual Studio Code";
+    development.vscode = {
+      enable = lib.mkEnableOption "Install and configure Visual Studio Code"; 
 
       enableUpdateCheck = lib.mkOption {
         type = types.bool;

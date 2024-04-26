@@ -4,5 +4,6 @@
 {
   imports = [
     ./rust.nix
+    ./vscode.nix
   ];
 }

@@ -3,8 +3,6 @@
 { ... }:
 {
   imports = [
-    ./files
-    ./desktop
-    ./development
+    ./xft.nix
   ];
 }
