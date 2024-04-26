@@ -14,5 +14,7 @@
     lldb                                # Next gen high-performance debugger for Rust
     llvm                                # Compiler infrastructure
     rustup                              # Rust installer
+    cargo                               # Rust project dependency management tooling
+    rustfmt                             # Rust tool for formatting rust code
   ];
 }
