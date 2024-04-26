@@ -6,18 +6,18 @@ shopt -s extglob            # enable extended globbing
 # Install the indicated files to the system
 #
 # Usage:
-#   ./misc/files/install STORE_PATH NIX_PATH
+#   ./options/files/install STORE_PATH NIX_PATH
 # Example:
-#   ./misc/files/install /nix/store/apzmd7w7kl9nhx66sxiagn9dv09v01m8-files /nix
+#   ./options/files/install /nix/store/apzmd7w7kl9nhx66sxiagn9dv09v01m8-files /nix
 #
 # ### Backlog
 #
 # ### Testing
 # - run tests with the following where temp is a directory full of files representing the store path
-#   ./misc/files/install temp .
+#   ./options/files/install temp .
 #
 # - you can quickly delete all installed files by just pointing at an empty directory as your source
-#   mkdir test; ./misc/files/install test .
+#   mkdir test; ./options/files/install test .
 # --------------------------------------------------------------------------------------------------
 pkg="$(realpath "$1")"                  # the /nix/store path with all the files that need installed
 dst="$(realpath "$2")"                  # destination directory for tracking e.g. /nix
