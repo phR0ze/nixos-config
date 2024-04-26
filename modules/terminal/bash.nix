@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
-  env = lib.optional development.rust.enable ''export PATH="$HOME/.cargo/bin:$PATH"'';
+  env = lib.optional config.development.rust.enable ''export PATH="$HOME/.cargo/bin:$PATH"'';
 
 in
 {
