@@ -74,6 +74,7 @@
       system = nixpkgs.lib.nixosSystem {
         inherit pkgs system specialArgs;
         modules = [
+          ./options
           ./hardware-configuration.nix
           (./. + "/profiles" + ("/" + settings.profile + ".nix"))
         ];
@@ -92,7 +93,10 @@
             };
           };
         };
-        modules = [ ./profiles/iso/default.nix ];
+        modules = [
+          ./options
+          ./profiles/iso/default.nix
+        ];
       };
     };
   };
