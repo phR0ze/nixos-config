@@ -1,4 +1,13 @@
 # Minecraft server ooptions
+#
+# ### Server interaction
+# The NixOS minecraft module has been setup to be able to interacted with via a socket 
+# `/run/minecraft-server.stdin` for input and via the journal for output.
+#
+# Example to enable USER as an operator:
+# 1. Listen for server output: `journalctl -u minecraft-server -f`
+# 2. Feed it commands as root: `echo "op USER" > /run/minecraft-server.stdin`
+#
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -37,7 +46,7 @@ in
 
       # Enable serverProperties to take effect
       declarative = true;
-      serverProperties = {
+      serverProperties {
         #level-seed = "";                       # world generates with random see if left blank
         gamemode = "survival";                  # survival | creative | adventure | spectator
         difficulty = "normal";                  # peaceful | easy | normal | hard
