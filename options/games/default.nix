@@ -3,9 +3,6 @@
 { ... }:
 {
   imports = [
-    ./files
-    ./games
-    ./desktop
-    ./development
+    ./minecraft-server.nix
   ];
 }
