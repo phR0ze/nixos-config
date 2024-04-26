@@ -13,7 +13,9 @@ in
   environment.localBinInPath = true;
 
   # Add additional environment configuration
-  environment.extraInit = lib.concatMapStringsSep "\n" env;
+  environment.extraInit = ''
+    ${lib.concatMapStringsSep "\n" env};
+  '';
 
   programs.bash = {
 
