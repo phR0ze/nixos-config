@@ -33,7 +33,7 @@ augroup GeneralSettings
   set encoding=UTF-8            " Required for vim-devicons to work correctly
   set autochdir                 " Automatically switch working directory to current file
   set backspace=2               " Configure backspace to work as normal same as =indent,eol,start
-  set clipboard=unnamedplus     " Set all yanks to be copied to register * as well as register +
+  set clipboard+=unnamedplus    " Set all yanks to be copied to register * as well as register +
   set formatoptions+=tqw        " Text formatting, a=auto formatting for t=text and w=paragraphs
   set nobackup                  " Don't make a backup of a file when overwriting it
   set noerrorbells              " Turn off incessant beeping
