@@ -38,6 +38,12 @@ in
         description = "Excellent icon theme for vscode";
       };
 
+      workbenchColorTheme = lib.mkOption {
+        type = types.str;
+        default = "Default Dark Modern";
+        description = "Excellent color theme for vscode";
+      };
+
       settings = lib.mkOption {
         type = jsonFormat.type;
         default = { };
@@ -170,7 +176,9 @@ in
       files.all."${settingsFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.settings
         // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
         // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
-        // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; });
+        // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; }
+        // lib.optionalAttrs (cfg.workbenchColorTheme != "") { "workbench.colorTheme" = "${cfg.workbenchColorTheme}"; }
+      );
     })
 
     # configure keybindings
