@@ -14,7 +14,7 @@ in
 
   # Add additional environment configuration to /etc/set-environment
   environment.extraInit = ''
-    ${lib.concatStringsSep "\n" env};
+    ${lib.concatStringsSep "\n" env}
   '';
 
   # Environment variables
