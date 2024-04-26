@@ -147,7 +147,7 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
-* [ ] Fix vim copy paste between windows
+* [ ] Run a container
 * [ ] Add tiny media manager
 * [ ] Prove out Warcraft II install with wine
 
@@ -165,6 +165,7 @@ world though this already exists.
   * https://github.com/librephoenix/nixos-config
 
 ## Completed
+* [x] xclip solved my nvim copy paste issues
 * [x] Always replace with copy but only run during actual update
 * [x] Visual Studio Extensions
 * [x] Remote Desktop
