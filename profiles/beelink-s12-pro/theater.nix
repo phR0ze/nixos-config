@@ -7,12 +7,11 @@
 { lib, pkgs, ... }:
 {
   imports = [
-    ../../modules/hardware/intel-graphics.nix
     ../generic/theater.nix
   ];
 
-  # Add additional packages
-  # ------------------------------------------------------------------------------------------------
+  hardware.intel-graphics.enable = true;
+
   environment.systemPackages = with pkgs; [
   ];
 }

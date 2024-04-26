@@ -7,7 +7,6 @@
 {
   imports = [
     ../../modules/desktop/xfce
-    ../../modules/desktop/x11vnc
     ../../modules/games/prismlauncher.nix
   ];
 
@@ -15,6 +14,7 @@
   programs.evince.enable = true;                                # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
   programs.steam.enable = true;                                 # Digital distribution platform from Valve
   programs.prismlauncher.enable = true;                         # Minecraft launcher
+  services.x11vnc.enable = true;                                # Enable the x11vnc server
   services.nfs.client.shares.enable = args.settings.nfs_shares; # Optionally enable client nfs shares
 
   environment.systemPackages = with pkgs; [

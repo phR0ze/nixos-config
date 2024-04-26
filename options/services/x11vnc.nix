@@ -27,11 +27,7 @@ in
 {
   options = {
     services.x11vnc = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = true;
-        description = lib.mdDoc "Enable the x11vnc service";
-      };
+      enable = lib.mkEnableOption "Install and configure x11vnc";
     };
   };
  

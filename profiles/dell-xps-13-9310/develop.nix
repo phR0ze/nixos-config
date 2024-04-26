@@ -8,24 +8,16 @@
 {
   imports = [
     ../generic/develop.nix
-    ../../modules/hardware/intel-graphics.nix
     ../../modules/virtualization/boxes.nix
   ];
 
-  # Enable minecraft server for testing
-  services.minecraft-server.enable = true;
-
-  # Disable x11vnc for laptops
+  hardware.intel-graphics.enable = true;
+  services.xserver.xft.dpi = 110;
   services.x11vnc.enable = false;
 
-  # Increase the dpi
-  services.xserver.xft.dpi = 110;
-
-  # Enable boxes virtualization
   virtualisation.boxes.enable = true;
+  services.minecraft-server.enable = true;
 
-  # Add additional packages
-  # ------------------------------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
   ];
 }
