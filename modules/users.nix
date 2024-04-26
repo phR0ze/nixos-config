@@ -4,7 +4,7 @@
 # - Configures users default groups
 # - Configures users default passwords
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }:
+{ lib, args, ... }:
 {
   # Set the root password to the same as the admin user
   # Overriding the ISO settings to avoid the duplicate values warning
@@ -29,58 +29,9 @@
 
     # Configure passwordless sudo access for 'wheel' group
     wheelNeedsPassword = false;
-
-    # Keep the environment variables of the calling user
-#    extraConfig = ''
-#      Defaults env_keep += "http_proxy HTTP_PROXY"
-#      Defaults env_keep += "https_proxy HTTPS_PROXY"
-#      Defaults env_keep += "ftp_proxy FTP_PROXY"
-#    '';
   };
 
   # Initialize user home
   # ------------------------------------------------------------------------------------------------
-  #files.any."root/.config".link = ../include/home/.config;
   files.all.".dircolors".copy = ../include/home/.dircolors;
-
-#  security.pam.services.login.makeHomeDir = true;
-#  users.extraUsers."me" = {
-#    # Have to turn explicitly turn this off so PAM can do it on first login
-#    createHome = false;
-#  };
-#  environment.home."foobar".text = ''
-#    this is a test
-#  ''; 
- # apps = [
- #   { foo = 1; bar = "one"; }
- # ];
-
-  # Using writeTextFile functions to create files in nix store
-  # https://nixos.org/manual/nixpkgs/unstable/#trivial-builder-text-writing
-#  pkgs.writeTextFile {
-#    name = "foobar";
-#    text = ''
-#      contents of the file
-#    '';
-  # Using 
-
-#let
-#  clamavUserScanner = pkgs.writeTextFile {
-#    name = "clamav-user-scanner";
-#    executable = true;
-#    destination = "/bin/clamav-user-scanner.sh";
-#    text = ''
-#      # Script here...
-#    '';
-#in {
-#  # ...
-#  systemd.user.services.clamav-scan-weekly = {
-#    description = "Perform a full scan of the user's home directory for viruses";
-#    serviceConfig = {
-#      Type = "oneshot";
-#      ExecStart = "${clamavUserScanner}/bin/clamav-user-scanner.sh \"%h\"";
-#    };
-#  };
-#  # ...
-#}
 }
