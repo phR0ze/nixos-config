@@ -46,7 +46,7 @@ in
 
       # Enable serverProperties to take effect
       declarative = true;
-      serverProperties {
+      serverProperties = {
         #level-seed = "";                       # world generates with random see if left blank
         gamemode = "survival";                  # survival | creative | adventure | spectator
         difficulty = "normal";                  # peaceful | easy | normal | hard
