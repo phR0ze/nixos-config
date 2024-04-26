@@ -136,6 +136,7 @@ in
   environment.systemPackages = with pkgs; [
 
     # x11 tools
+    xclip
     xorg.xrdb                           # X server resource database utility
     xorg.xdpyinfo                       # Display information utility for X
 
