@@ -12,6 +12,9 @@
     ../../modules/virtualization/boxes.nix
   ];
 
+  # Enable minecraft server for testing
+  services.minecraft-server.enable = true;
+
   # Disable x11vnc for laptops
   services.x11vnc.enable = false;
 

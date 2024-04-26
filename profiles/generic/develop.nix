@@ -8,7 +8,6 @@
   imports = [
     ./desktop.nix
     ../../modules/development/vscode
-    ../../modules/desktop/x11/develop.nix
   ];
 
   development.rust.enable = true;
