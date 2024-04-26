@@ -3,7 +3,6 @@
 { ... }:
 {
   imports = [
-    ./files
-    ./development
+    ./rust.nix
   ];
 }

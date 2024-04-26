@@ -4,9 +4,16 @@
 # - These changes get saved in /etc/bashrc which is loaded by /etc/profile
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
+let
+  env = lib.optional development.rust.enable ''export PATH="$HOME/.cargo/bin:$PATH"'';
+
+in
 {
   # Add ~/.local/bin to the PATH
   environment.localBinInPath = true;
+
+  # Add additional environment configuration
+  environment.extraInit = lib.concatMapStringsSep "\n" env;
 
   programs.bash = {
 
