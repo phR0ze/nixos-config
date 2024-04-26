@@ -14,7 +14,7 @@ in
 
   # Add additional environment configuration
   environment.extraInit = ''
-    ${lib.concatMapStringsSep "\n" env};
+    ${lib.concatStringsSep "\n" env};
   '';
 
   programs.bash = {
