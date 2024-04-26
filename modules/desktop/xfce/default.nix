@@ -73,7 +73,6 @@ in
   };
 
   environment.systemPackages = with pkgs.xfce // pkgs; [
-    xfce4-clipman-plugin
     wmctl
   ];
 
