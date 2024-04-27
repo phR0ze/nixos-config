@@ -7,7 +7,6 @@
 {
   imports = [
     ../../modules/desktop/xfce
-    ../../modules/games/prismlauncher.nix
   ];
 
   # Additional programs and services

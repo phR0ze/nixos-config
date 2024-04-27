@@ -4,5 +4,6 @@
 {
   imports = [
     ./minecraft-server.nix
+    ./prismlauncher.nix
   ];
 }
