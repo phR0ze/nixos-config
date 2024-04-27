@@ -50,6 +50,9 @@ in
       # This means agreeing to Mojang's EULA: https://account.mojang.com/documents/minecraft_eula
       eula = true;
 
+      # Minecraft data files for state location
+      dataDir = "/var/lib/minecraft";
+
       # JVM configuration
       # https://github.com/brucethemoose/Minecraft-Performance-Flags-Benchmarks?tab=readme-ov-file#server-g1gc
       jvmOpts = lib.concatStringsSep " " [
