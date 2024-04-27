@@ -37,8 +37,6 @@ in
     ../../hardware/firmware.nix
     ../../hardware/printers.nix
     ../../hardware/video.nix
-    ../../multimedia/xnviewmp.nix
-    ../../multimedia/smplayer.nix
     ../../network/firefox.nix
     ../../office/geany.nix
     ../backgrounds/opt.nix

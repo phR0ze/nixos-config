@@ -1,7 +1,6 @@
 # Smplayer options
-#
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.programs.smplayer;
 
@@ -50,11 +49,8 @@ in
 {
   options = {
     programs.smplayer = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Install smplayer";
-      };
+      enable = lib.mkEnableOption "Install and configure smplayer";
+
       theme = lib.mkOption {
         type = types.str;
         default = "Numix-remix";
