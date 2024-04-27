@@ -16,7 +16,6 @@
   services.x11vnc.enable = lib.mkForce false;
 
   virtualisation.boxes.enable = true;
-  services.minecraft-server.enable = true;
 
   environment.systemPackages = with pkgs; [
   ];
