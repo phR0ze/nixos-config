@@ -26,6 +26,6 @@ in
   config = lib.mkIf (cfg.enable) {
     environment.systemPackages = with pkgs; [ qbittorrent ];
 
-    files.all.".config/qBittorent/qBittorrent.conf".weakCopy = conf;
+    files.all.".config/qBittorrent/qBittorrent.conf".weakCopy = conf;
   };
 }
