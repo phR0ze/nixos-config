@@ -3,13 +3,7 @@
 { ... }:
 {
   imports = [
-    ./desktop
-    ./development
-    ./files
-    ./games
-    ./hardware
-    ./multimedia
-    ./network
-    ./services
+    ./smplayer.nix
+    ./xnviewmp.nix
   ];
 }

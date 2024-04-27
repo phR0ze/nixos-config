@@ -1,7 +1,6 @@
 # Xnview options
-#
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.programs.xnviewmp;
 
@@ -49,18 +48,12 @@ in
 {
   options = {
     programs.xnviewmp = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Install xnviewmp";
-      };
+      enable = lib.mkEnableOption "Install and configure xnviewmp";
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable) {
-      environment.systemPackages = with pkgs; [ xnviewmp ];
-      files.all.".config/xnviewmp/xnview.ini".weakCopy = ../../include/home/.config/xnviewmp/xnview.ini;
-    })
-  ];
+  config = lib.mkIf (cfg.enable) {
+    environment.systemPackages = with pkgs; [ xnviewmp ];
+    files.all.".config/xnviewmp/xnview.ini".weakCopy = ../../include/home/.config/xnviewmp/xnview.ini;
+  };
 }
