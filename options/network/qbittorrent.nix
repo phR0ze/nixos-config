@@ -13,7 +13,7 @@ in
 {
   options = {
     programs.qbittorrent = {
-      enable = lib.mkEnableOption "Install and configure rust tooling";
+      enable = lib.mkEnableOption "Install and configure qBittorrent";
 
       acceptedLegalNotice = lib.mkOption {
         type = types.bool;

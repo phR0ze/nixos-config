@@ -3,6 +3,7 @@
 { ... }:
 {
   imports = [
+    ./filezilla.nix
     ./qbittorrent.nix
   ];
 }
