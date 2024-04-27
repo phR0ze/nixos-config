@@ -3,15 +3,6 @@
 { ... }:
 {
   imports = [
-    ./desktop
-    ./development
-    ./files
-    ./games
-    ./hardware
-    ./office
-    ./multimedia
-    ./network
-    ./services
-    ./virtualization
+    ./virt-manager.nix
   ];
 }

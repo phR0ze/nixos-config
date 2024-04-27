@@ -8,14 +8,13 @@
 {
   imports = [
     ../generic/develop.nix
-    ../../modules/virtualization/boxes.nix
   ];
 
   hardware.intel-graphics.enable = true;
   services.xserver.xft.dpi = 110;
   services.x11vnc.enable = lib.mkForce false;
 
-  virtualisation.boxes.enable = true;
+  virtualization.virt-manager.enable = true;
 
   environment.systemPackages = with pkgs; [
   ];
