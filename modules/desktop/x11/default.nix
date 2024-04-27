@@ -38,7 +38,6 @@ in
     ../../hardware/printers.nix
     ../../hardware/video.nix
     ../../network/firefox.nix
-    ../../office/geany.nix
     ../backgrounds/opt.nix
     ../fonts.nix
     ../icons.nix

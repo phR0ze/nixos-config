@@ -3,14 +3,6 @@
 { ... }:
 {
   imports = [
-    ./desktop
-    ./development
-    ./files
-    ./games
-    ./hardware
-    ./office
-    ./multimedia
-    ./network
-    ./services
+    ./geany.nix
   ];
 }
