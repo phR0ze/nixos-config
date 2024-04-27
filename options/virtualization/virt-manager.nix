@@ -1,26 +1,21 @@
-# Boxes configuration
+# Virt Manager configuration
 #
 # ### Guest
 # - when running NixOS as a guest enable QEMU with `service.qemuGuest.enable = true;`
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  cfg = config.virtualisation.boxes;
+  cfg = config.virtualization.virt-manager;
 
 in
 {
   options = {
-    virtualisation.boxes = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = true;
-        description = lib.mdDoc "Enable the boxes service";
-      };
+    virtualization.virt-manager = {
+      enable = lib.mkEnableOption "Install and configure virt-manager";
     };
   };
  
   config = lib.mkIf (cfg.enable) {
-
     programs.virt-manager.enable = true;
 
     virtualisation.libvirtd = {
