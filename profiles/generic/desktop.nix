@@ -13,6 +13,7 @@
   # Additional programs and services
   programs.evince.enable = true;                                # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
   programs.steam.enable = true;                                 # Digital distribution platform from Valve
+  programs.qbittorrent.enable = true;                           # Excellent bittorrent client
   programs.prismlauncher.enable = true;                         # Minecraft launcher
   services.x11vnc.enable = true;                                # Enable the x11vnc server
   services.nfs.client.shares.enable = args.settings.nfs_shares; # Optionally enable client nfs shares
@@ -23,7 +24,6 @@
     freerdp                             # RDP client plugin for remmina
     networkmanager-openvpn              # NetworkManager VPN plugin for OpenVPN
     openvpn                             # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
-    qbittorrent                         # Freatureful free BitTorrent client
     remmina                             # Nice remoting UI for RDP and other protocols
     #tdesktop                            # Telegram Desktop messaging app
     vopono                              # Run applications through VPN connections in network namespaces

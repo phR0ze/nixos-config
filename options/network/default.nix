@@ -3,12 +3,6 @@
 { ... }:
 {
   imports = [
-    ./desktop
-    ./development
-    ./files
-    ./games
-    ./hardware
-    ./network
-    ./services
+    ./qbittorrent.nix
   ];
 }

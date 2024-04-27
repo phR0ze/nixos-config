@@ -136,7 +136,7 @@ in
   environment.systemPackages = with pkgs; [
 
     # x11 tools
-    xclip
+    xclip                               # Required for neovim to copy paster to/from other apps
     xorg.xrdb                           # X server resource database utility
     xorg.xdpyinfo                       # Display information utility for X
 
