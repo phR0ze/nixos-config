@@ -2,6 +2,9 @@
 #
 # ### Guest
 # - when running NixOS as a guest enable QEMU with `service.qemuGuest.enable = true;`
+# 
+# ### Details
+# libvirt uses a virtual network switch `virbr0` that all the virtual machines "plug in" to.
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
@@ -36,7 +39,6 @@ in
 #    };
 
     environment.systemPackages = with pkgs; [
-      gnome.gnome-boxes
     ];
 
     environment.sessionVariables.LIBVIRT_DEFAULT_URI = [ "qemu:///system" ];
