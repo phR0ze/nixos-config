@@ -8,6 +8,11 @@
 # 1. Listen for server output: `journalctl -u minecraft-server -f`
 # 2. Feed it commands as root: `echo "op USER" > /run/minecraft-server.stdin`
 #
+# ### Awesome seeds
+# * https://www.pcgamer.com/best-minecraft-seeds/
+# * The Dark Tower: 3477968804511828743
+# * Village Mansion Island: 5705783928676095273
+# * Ancient City: 7980363013909395816 (194, -44, -7)
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -15,6 +20,31 @@ let
 
 in
 {
+  options = {
+    services.minecraft-server = {
+      levelSeed = lib.mkOption {
+        type = types.str;
+        default = "5705783928676095273";
+        description = "Level seed";
+      };
+      gameMode = lib.mkOption {
+        type = types.str;
+        default = "survival";
+        description = "Game mode to run in";
+      };
+      difficulty = lib.mkOption {
+        type = types.str;
+        default = "normal";
+        description = "Game difficulty to run in";
+      };
+      online = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = "Is the server to receive client from the internet";
+      };
+    };
+  };
+ 
   config = lib.mkIf (cfg.enable) {
     services.minecraft-server = {
       # This means agreeing to Mojang's EULA: https://account.mojang.com/documents/minecraft_eula
@@ -47,10 +77,10 @@ in
       # Enable serverProperties to take effect
       declarative = true;
       serverProperties = {
-        #level-seed = "";                       # world generates with random see if left blank
-        gamemode = "survival";                  # survival | creative | adventure | spectator
-        difficulty = "normal";                  # peaceful | easy | normal | hard
-        online-mode = false;                    # set to false if server is not connected to internet
+        level-seed = cfg.levelSeed;             # world generates with random see if left blank
+        gamemode = cfg.gameMode;                # survival | creative | adventure | spectator
+        difficulty = cfg.difficulty;            # peaceful | easy | normal | hard
+        online-mode = cfg.online;               # set to false if server is not connected to internet
       };
     };
   };
