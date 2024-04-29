@@ -1,13 +1,10 @@
-# Default networking configuration
-#
-# ### Features
-# - Disables IPv6
-# - DHCP systemd-networkd networking
-# - Configures CloudFlare DNS
-# - Support optional static ip addresses
+# Network manager configuration
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }: with lib.types;
 let
+  cfg = config.network.network-manager;
+  nmcfg = config.networking.networkmanager;
+
   dhcpName = "dhcp.nmconnection";
   staticName = "static.nmconnection";
 
@@ -45,14 +42,21 @@ let
    '';
 in
 {
+  options = {
+    network.network-manager = {
+      enable = lib.mkEnableOption "Install and configure network manager";
+    };
+  };
+  
   config = lib.mkMerge [
-    (lib.mkIf (args.settings.static_ip != "") {
-      environment.etc."NetworkManager/system-connections/${staticName}" = {
+    (lib.mkif (args.settings.static_ip != "") {
+      environment.etc."networkmanager/system-connections/${staticname}" = {
         mode = "0600";
-        source = "${connections}/${staticName}";
+        source = "${connections}/${staticname}";
       };
     })
-    ({
+    (lib.mkIf (cfg.enable) {
+
       # Its ok to always have dhcp as static has higher priority when exists
       environment.etc."NetworkManager/system-connections/${dhcpName}" = {
         mode = "0600";
@@ -92,6 +96,7 @@ in
      #   enable = true;
      #   nssmdns = true;
      # };
+
     })
   ];
 }

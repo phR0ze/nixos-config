@@ -5,5 +5,6 @@
   imports = [
     ./filezilla.nix
     ./qbittorrent.nix
+    ./network-manager.nix
   ];
 }

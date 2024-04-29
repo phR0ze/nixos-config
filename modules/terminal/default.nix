@@ -25,7 +25,6 @@
     ./env.nix
     ./bash.nix
     ./starship.nix
-    ../network
     ../development/git.nix
     ../development/neovim.nix
     ../services/nfs.nix
@@ -35,6 +34,7 @@
   # conditionally exclude grub for iso builds
   ] ++ lib.optional (!args.iso) ../boot/grub.nix;
 
+  network.network-manager.enable = true;
   programs.tmux.enable = true;
 
   # Install hardware firmware
