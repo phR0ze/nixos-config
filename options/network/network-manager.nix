@@ -49,7 +49,7 @@ in
   };
   
   config = lib.mkMerge [
-    (lib.mkif (args.settings.static_ip != "") {
+    (lib.mkIf (args.settings.static_ip != "") {
       environment.etc."networkmanager/system-connections/${staticname}" = {
         mode = "0600";
         source = "${connections}/${staticname}";
