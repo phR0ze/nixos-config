@@ -8,7 +8,7 @@
 let
   backgrounds = pkgs.callPackage ../backgrounds { };
   wmctl = pkgs.callPackage ../wmctl { };
-  xft = config.services.xserver.xft;
+  deployment = config.deployment;
 
 in
 {
@@ -45,7 +45,7 @@ in
         { name = "XnviewMP"; exec = "xnviewmp"; icon = "xnviewmp"; }
       ]
       ++
-        lib.optional services.xserver.type.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
+        lib.optional deployment.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
       ++ [
         { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
         { name = "HandBrake"; exec = "ghb"; icon = "fr.handbrake.ghb"; }
@@ -56,7 +56,7 @@ in
         { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; 
         }]
       ++
-        lib.optional deployment.type.develop { name = "Restart"; exec = "sudo restart"; icon = "restart"; };
+        lib.optional deployment.develop { name = "Restart"; exec = "sudo restart"; icon = "restart"; };
 
       xfce.menu.overrides = [
         { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
