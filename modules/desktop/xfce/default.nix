@@ -44,15 +44,19 @@ in
         { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
         { name = "XnviewMP"; exec = "xnviewmp"; icon = "xnviewmp"; }
       ]
-      ++ lib.optional xft.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
-      ++ [ { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
+      ++
+        lib.optional deployment.type.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
+      ++ [
+        { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
         { name = "HandBrake"; exec = "ghb"; icon = "fr.handbrake.ghb"; }
         { name = "VLC Media Player"; exec = "vlc"; icon = "vlc"; }
         { name = "FileZilla"; exec = "filezilla"; icon = "filezilla"; }
         { name = "Firefox"; exec = "firefox"; icon = "firefox"; }
         { name = "LibreOffice Calc"; exec = "libreoffice --calc"; icon = "libreoffice-calc"; }
         { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; 
-        }];
+        }]
+      ++
+        lib.optional deployment.type.develop { name = "Restart"; exec = "sudo restart"; icon = "restart"; };
 
       xfce.menu.overrides = [
         { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }

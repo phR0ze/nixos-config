@@ -8,11 +8,6 @@ in
 {
   options = {
     services.xserver.xft = {
-      theater = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Theater mode";
-      };
       gtkTheme = lib.mkOption {
         type = types.str;
         default = "Arc-Dark";

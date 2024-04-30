@@ -10,6 +10,8 @@
     ../../modules/development/vscode
   ];
 
+  deployment.type.develop = true;
+
   development.rust.enable = true;
 
   services.xserver.desktopManager.xfce.menu.overrides = [

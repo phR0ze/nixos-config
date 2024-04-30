@@ -13,8 +13,7 @@ in
     ./desktop.nix
   ];
 
-  # Set theater type
-  services.xserver.xft.theater = true;
+  deployment.type.theater = true;
 
   # High dpi settings
   services.xserver.xft.dpi = 120; # 25% higher recommended by Arch Linux
