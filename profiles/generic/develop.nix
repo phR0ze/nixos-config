@@ -18,6 +18,7 @@
 
   environment.systemPackages = with pkgs; [
     chromium                            # An open source web browser from Google
+    gnumake                             # A tool to control the generation of non-source files from sources
     google-cloud-sdk                    # Tools for the google cloud platform
   ];
 }
