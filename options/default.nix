@@ -16,7 +16,7 @@
   ];
 
   options = {
-    deployment = {
+    deployment.type = {
       develop = lib.mkOption {
         type = types.bool;
         default = false;
