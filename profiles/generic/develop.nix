@@ -18,5 +18,6 @@
 
   environment.systemPackages = with pkgs; [
     chromium                            # An open source web browser from Google
+    google-cloud-sdk                    # Tools for the google cloud platform
   ];
 }
