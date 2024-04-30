@@ -19,10 +19,13 @@
 
   environment.systemPackages = with pkgs; [
 
-    # Network
-    freerdp                             # RDP client plugin for remmina
+    # VPN
     networkmanager-openvpn              # NetworkManager VPN plugin for OpenVPN
     openvpn                             # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
+    gnome.gnome-keyring                 # Needed for storing VPN passwords
+
+    # Network
+    freerdp                             # RDP client plugin for remmina
     remmina                             # Nice remoting UI for RDP and other protocols
     #tdesktop                            # Telegram Desktop messaging app
     vopono                              # Run applications through VPN connections in network namespaces
