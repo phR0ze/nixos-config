@@ -1,6 +1,6 @@
 # Import all the options
 #---------------------------------------------------------------------------------------------------
-{ lib, ... }: with lib.types;
+{ config, lib, ... }: with lib.types;
 {
   imports = [
     ./desktop
@@ -16,7 +16,7 @@
   ];
 
   options = {
-    deployment.type = {
+    services.xserver.type = {
       develop = lib.mkOption {
         type = types.bool;
         default = false;
