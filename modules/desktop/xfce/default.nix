@@ -56,7 +56,7 @@ in
         { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; 
         }]
       ++
-        lib.optional deployment.type.develop { name = "Restart"; exec = "sudo restart"; icon = "restart"; };
+        lib.optional deployment.type.develop { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
 
       xfce.menu.overrides = [
         { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
