@@ -45,7 +45,7 @@ in
         { name = "XnviewMP"; exec = "xnviewmp"; icon = "xnviewmp"; }
       ]
       ++
-        lib.optional deployment.type.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
+        lib.optional services.xserver.type.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
       ++ [
         { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
         { name = "HandBrake"; exec = "ghb"; icon = "fr.handbrake.ghb"; }
