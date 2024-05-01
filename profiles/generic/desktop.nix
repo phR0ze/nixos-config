@@ -70,10 +70,6 @@
     libreoffice-fresh                   # Comprehensive, professional-quality productivity suite
     scribus                             # Open Source Desktop Publishing
 
-    # Development
-    android-tools                       # Android platform tools
-    android-udev-rules                  # Android udev rules list aimed to be the most comprehensive on the net
-
     # Utilities
     awf                                 # A widget factory for viewing theme changes
     conky                               # Advanced, highly configurable system monitor

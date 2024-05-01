@@ -13,6 +13,7 @@
   deployment.type.develop = true;
 
   development.rust.enable = true;
+  development.android.enable = true;
 
   services.xserver.desktopManager.xfce.menu.overrides = [
     { source = "${pkgs.vscode}/share/applications/code.desktop"; categories = "Development"; }
@@ -26,4 +27,5 @@
     go-bindata                          # Golang code generation utility for embedding binary data in Go programs
     golangci-lint                       # Golang CI linting tool
   ];
+
 }

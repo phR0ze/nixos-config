@@ -3,6 +3,7 @@
 { ... }:
 {
   imports = [
+    ./android.nix
     ./rust.nix
     ./vscode.nix
   ];
