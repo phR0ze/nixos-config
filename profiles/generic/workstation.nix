@@ -1,19 +1,18 @@
 # XFCE workstation configuration
 #
 # ### Features
-# - Directly installable: generic/develop with additional tools and configuration
+# - Directly installable: generic/develop with extra tools and configuration
 # - barrier server configuration
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
   imports = [
-    ./desktop.nix
-    ../../modules/desktop/x11/develop.nix
+    ./develop.nix
     ../../modules/services/barrier.nix
   ];
 
-  # Additional programs and services
-  services.barriers.enable = true;      # Enable the barrier server and client
+  services.barriers.enable = true;
+  virtualization.virt-manager.enable = true;
 
   services.xserver.desktopManager.xfce.menu.overrides = [
     { source = "${pkgs.vscode}/share/applications/code.desktop"; categories = "Development"; }
