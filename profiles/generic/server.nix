@@ -1,7 +1,7 @@
 # XFCE server configuration
 #
 # ### Features
-# - Directly installable: generic/desktop with additional server tools and configuration
+# - Directly installable: desktop with additional server tools and configuration
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {

@@ -1,7 +1,7 @@
 # XFCE workstation configuration
 #
 # ### Features
-# - Directly installable: generic/develop with extra tools and configuration
+# - Directly installable: develop with extra tools and configuration
 # - barrier server configuration
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:

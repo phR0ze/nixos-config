@@ -1,7 +1,7 @@
 # XFCE theater configuration
 #
 # ### Features
-# - Directly installable: generic/desktop with additional media apps and configuration
+# - Directly installable: desktop with additional media apps and configuration
 # --------------------------------------------------------------------------------------------------
 { lib, pkgs, args, ... }:
 let
