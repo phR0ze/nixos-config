@@ -39,6 +39,7 @@ in
 #    };
 
     environment.systemPackages = with pkgs; [
+      virt-viewer                                   # A slimmed down viewer for virtual machines
     ];
 
     environment.sessionVariables.LIBVIRT_DEFAULT_URI = [ "qemu:///system" ];

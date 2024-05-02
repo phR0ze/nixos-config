@@ -4,8 +4,9 @@ using only a bootable NixOS image and network connectivity.
 
 Due to the number of different machines I maintain and how often I change their intended purpose I 
 find it essential to be able to take a new system from baremetal to a pre-defined, purposefully built 
-system serving in it's intended function as effortlessly as possible. NixOS's Nix and flakes 
-integration provides a fantastic platform on which to build this functionality.
+system serving in it's intended function as effortlessly as possible in a repeatable way. NixOS's 
+functional Nix expression language and flakes provide a fantastic platform on which to build this 
+functionality.
 
 ### Disclaimer
 Any tooling or documentation here comes with absolutely no guarantees or support of any kind. It is 
