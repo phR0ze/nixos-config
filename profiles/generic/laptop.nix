@@ -1,7 +1,7 @@
 # XFCE development configuration
 #
 # ### Features
-# - Directly installable: generic/desktop with additional development tools and configuration
+# - Directly installable: generic/desktop with additional tooling and configuration for laptops
 # --------------------------------------------------------------------------------------------------
 { lib, ... }:
 {
