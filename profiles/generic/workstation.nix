@@ -8,13 +8,9 @@
 {
   imports = [
     ./develop.nix
-    ../../modules/services/barrier.nix
+    #../../modules/services/barrier.nix
   ];
 
-  services.barriers.enable = true;
-  virtualization.virt-manager.enable = true;
-
-  services.xserver.desktopManager.xfce.menu.overrides = [
-    { source = "${pkgs.vscode}/share/applications/code.desktop"; categories = "Development"; }
-  ];
+  #services.barriers.enable = true;
+  #virtualization.virt-manager.enable = true;
 }
