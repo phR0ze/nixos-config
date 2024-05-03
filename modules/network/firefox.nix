@@ -39,6 +39,7 @@ in
       DontCheckDefaultBrowser = true;       # Don't bother with checking the default browser status
       DisableSetDesktopBackground = true;   # Disable the menu command to set Desktop Background
       NoDefaultBookmarks = true;            # Disable the default bookmarks on fresh install
+      OfferToSaveLoginsDefault = false;     # Don't offer to remember saved logins and passwords
       #DisplayMenuBar = "default-off";      # alternatives: "always", "never" or "default-on"
       #SearchBar = "unified";               # alternative: "separate"
 

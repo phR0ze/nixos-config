@@ -148,6 +148,7 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
+* [ ] Turn off firefox's prompting to save passwords
 * [ ] wmctl not placing properly
 * [ ] gtk file picker doesn't sort directories first
 * [ ] Virtualbox or similar
