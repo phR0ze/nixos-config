@@ -15,7 +15,6 @@
     isNormalUser = true;
     extraGroups = [
       "wheel"                           # enables passwordless sudo for this user
-      "networkmanager"                  # enables ability for user to make network manager changes
       "video"                           # enables ability for user to login to graphical environment
     ];
 
@@ -26,9 +25,7 @@
   # Configure sudo access for system admin
   security.sudo = {
     enable = true;
-
-    # Configure passwordless sudo access for 'wheel' group
-    wheelNeedsPassword = false;
+    wheelNeedsPassword = false;         # Configure passwordless sudo access for 'wheel' group
   };
 
   # Initialize user home
