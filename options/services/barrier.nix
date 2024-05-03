@@ -114,6 +114,7 @@ in
 
     # Handle the server component configuration
     (lib.mkIf cfgS.enable {
+      networking.firewall.allowedTCPPorts = [ 24800 ];
       environment.etc."barrier.conf".source = barrierConfig;
 
       # creates the /etc/systemd/user/graphical-session.target.wants/barriers.service link
