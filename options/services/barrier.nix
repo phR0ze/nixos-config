@@ -116,6 +116,7 @@ in
     (lib.mkIf cfgS.enable {
 
       # Must allow clients to connect through the firewall
+      # View rules with: sudo iptables -S
       networking.firewall.allowedTCPPorts = [ 24800 ];
 
       # Lay down the screen orientation default configuration
