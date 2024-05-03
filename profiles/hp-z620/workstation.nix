@@ -1,16 +1,17 @@
-# XFCE workstation configuration
+# Workstation configuration for HP Z620
 #
 # ### Features
-# - Directly installable: develop with extra tools and configuration
+# - Directly installable: generic/develop with AMD GPU support
 # - barrier server configuration
 # --------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   imports = [
-    ./develop.nix
+    ../generic/develop.nix
     #../../modules/services/barrier.nix
   ];
 
+  hardware.amd-graphics.enable = true;
   #services.barriers.enable = true;
   #virtualization.virt-manager.enable = true;
 }

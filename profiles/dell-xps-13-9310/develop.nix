@@ -1,8 +1,7 @@
-# Theater configuration for Dell XPS 13 9310
+# Develop configuration for Dell XPS 13 9310
 #
 # ### Features
 # - Directly installable: generic/develop with Intel hardware support
-# - Working hardware accelerated video in Kodi as verified with 'intel_gpu_top'
 # --------------------------------------------------------------------------------------------------
 { lib, pkgs, ... }:
 {

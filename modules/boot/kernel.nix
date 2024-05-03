@@ -2,13 +2,6 @@
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
-  # boot.kernelPackages = pkgs.linuxPackages_latest;
-
-  # Kernel parameters
-  #boot.kernelParams = [
-   # "acpi_backlight=vendor"
-  #];
-
   # Runtime parameters for the kernel as set by sysctl
   boot.kernel.sysctl = {
     "vm.swappiness" = 1;                        # Minimal amount of swapping without disabling entirely
@@ -25,23 +18,5 @@
   # Blacklisted modules
   boot.blacklistedKernelModules = [
     "pcspkr"
-   # "nouveau"                                  # Uncomment to disable particular video drivers
-   # "nvidia"                                   # Uncomment to disable particular video drivers
   ];
-
-#  boot.plymout - {
-#    enable = true;
-#    theme = "breeze";
-#  };
-
-  # Kernel modules to be loaded in the second stage of the boot process
-  #boot.kernelModules = [
-    #"i915"
-    #"kvm"
-    #"kvm-intel"
-  #];
-
-  # Kernel modules to be always loaded by initrd
-  #boot.initrd.kernelModules = [
-  #];
 }
