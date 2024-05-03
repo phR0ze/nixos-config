@@ -38,9 +38,8 @@ in
         type = types.str;
         default = "";
         description = lib.mdDoc ''
-          The server address is of the form: [hostname][:port].  The
-          hostname must be the address or hostname of the server.  The
-          port overrides the default port, 24800.
+          The server address is of the form: [hostname][:port]. The hostname must be the
+          address or hostname of the server. The port overrides the default port, 24800.
         '';
       };
 
