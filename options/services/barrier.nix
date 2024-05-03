@@ -114,7 +114,11 @@ in
 
     # Handle the server component configuration
     (lib.mkIf cfgS.enable {
+
+      # Must allow clients to connect through the firewall
       networking.firewall.allowedTCPPorts = [ 24800 ];
+
+      # Lay down the screen orientation default configuration
       environment.etc."barrier.conf".source = barrierConfig;
 
       # creates the /etc/systemd/user/graphical-session.target.wants/barriers.service link
