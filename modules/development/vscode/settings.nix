@@ -16,8 +16,8 @@ in
     # Integrated terminal configuration
     # ----------------------------------------------------------------------------------------
     "terminal.explorerKind" = "integrated";         # What kind of terminal to use inside vscode
-    "terminal.integrated.fontFamily" = "${xft.monospace}";
-    "terminal.integrated.fontSize" = 16;
+    "terminal.integrated.fontFamily" = "${xft.monospace} ${xft.monospaceStyle}";
+    "terminal.integrated.fontSize" = 14;
     "terminal.integrated.tabs.enabled" = false;
     "terminal.integrated.enablePersistentSessions" = false;
 
