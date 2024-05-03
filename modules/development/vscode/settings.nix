@@ -34,7 +34,7 @@ in
     "editor.formatOnPaste" = true;                  #
     "editor.formatOnSave" = true;                   #
     "editor.minimap.enabled" = true;                #
-    "editor.fontSize" = 14;
+    "editor.fontSize" = 16;                         # InconsolataGo Nerd Font Mono seems to be smaller than others
     "editor.fontFamily" = "${xft.monospace}";
 
     # Copilot lang configuration
