@@ -148,6 +148,8 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ## Backlog
+* [ ] wmctl not placing properly
+* [ ] gtk file picker doesn't sort directories first
 * [ ] Virtualbox or similar
 * [ ] Run a container
 * [ ] Add tiny media manager
