@@ -8,10 +8,10 @@
 {
   imports = [
     ../generic/develop.nix
-    #../../modules/services/barrier.nix
   ];
 
   hardware.amd-graphics.enable = true;
-  #services.barriers.enable = true;
+  services.barriers.enable = true;
+
   #virtualization.virt-manager.enable = true;
 }
