@@ -26,8 +26,27 @@ in
       allowedBridges = [ "virbr0" ];                # default option
       qemu.ovmf.enable = true;                      # support for UEFI
       qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];    # support for UEFI
-      #qemu.swtpm.enable = true;                    # support for windows
+      qemu.swtpm.enable = true;                     # support for windows
     };
+
+    # Enable USB passthrough support for VMs
+    virtualisation.spiceUSBRedirection.enable = true;
+
+    # [netfilter is currently enabled on bridges by default](https://bugzilla.redhat.com/show_bug.cgi?id=512206#c0).
+    # This is unneeded additional overhead that can be confusing when trouble shooting. The libvirt team 
+    # recommends disabling it for all bridge devices.
+    boot.kernel.sysctl = {
+      "net.bridge.bridge-nf-call-arptables" = 0;
+      "net.bridge.bridge-nf-call-ip6tables" = 0;
+      "net.bridge.bridge-nf-call-iptables" = 0;
+    };
+
+    # Create the virbr0 network bridge
+    #networking = {
+      # dhcpcd.denyInterfaces = [ "macvtap0@*" ]; # avoid assigning dhcp address to bridge
+      #bridges.virbr0.interfaces = [ "eth0" ];
+      #interfaces.virbr0.useDHCP = true;
+    #};
 
     # Configure virt-manager initial connection
     # Home manager settings

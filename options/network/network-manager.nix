@@ -88,9 +88,7 @@ in
       };
 
       # Enables ability for user to make network manager changes
-      users.users.${args.settings.username} = {
-        extraGroups = [ "networkmanager" ];
-      };
+      users.users.${args.settings.username}.extraGroups = [ "networkmanager" ];
 
      # services.avahi = lib.mkIf (config.my.mdns && !config.boot.isContainer) {
      #   enable = true;

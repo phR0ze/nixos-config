@@ -5,7 +5,6 @@
   # Runtime parameters for the kernel as set by sysctl
   boot.kernel.sysctl = {
     "vm.swappiness" = 1;                        # Minimal amount of swapping without disabling entirely
-
     "net.ipv4.ip_forward" = 1;                  # Enable ipv4 forwarding for running containers
     "net.ipv6.conf.all.forwarding" = 0;         # Disable ipv6 forwarding
 
