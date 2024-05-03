@@ -12,7 +12,6 @@
 
   hardware.amd-graphics.enable = true;
   services.barriers.enable = true;
-  services.barriers.clientName = "MacBook";
 
   #virtualization.virt-manager.enable = true;
 }
