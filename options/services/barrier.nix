@@ -112,27 +112,13 @@ in
     (lib.mkIf (cfgC.enable || cfgS.enable) {
       environment.systemPackages = with pkgs; [ barrier ];
     })
+
+    # Handle the server component configuration
     (lib.mkIf cfgS.enable {
       environment.etc."barrier.conf".source = barrierConfig;
-    })
-    (lib.mkIf cfgC.enable {
-      systemd.user.services.barrierc = {
-        description = "Barrier client";
-        after = [ "network.target" "graphical-session.target" ];
-        # creates teh /etc/systemd/user/graphical-session.target.wants link
-        wantedBy = lib.optional cfgC.autoStart "graphical-session.target";
-        path = [ pkgs.barrier ];
-        serviceConfig.Restart = "on-failure";
-        serviceConfig.ExecStart = toString (
-          [ "${pkgs.barrier}/bin/barrierc -f" ]
-          ++ lib.optional (cfgC.name != "") "-n ${cfgC.name}"
-          ++ lib.optional (!cfgC.enableCrypto) "--disable-crypto"
-          ++ lib.optional cfgC.enableDragDrop "--enable-drag-drop"
-          ++ lib.optional (cfgC.server != "") "${cfgC.server}"
-        );
-      };
-    })
-    (lib.mkIf cfgS.enable {
+
+      # creates the /etc/systemd/user/graphical-session.target.wants/barriers.service link
+      # to /etc/systemd/user/barriers.service
       systemd.user.services.barriers = {
         description = "Barrier server";
         after = [ "network.target" "graphical-session.target" ];
@@ -144,6 +130,27 @@ in
           ++ lib.optional (cfgS.address != "") "-a ${cfgS.address}"
           ++ lib.optional (cfgS.name != "") "-n ${cfgS.name}"
           ++ lib.optional (!cfgS.enableCrypto) "--disable-crypto"
+        );
+      };
+    })
+
+    # Handle the client component configuration
+    (lib.mkIf cfgC.enable {
+
+      # creates the /etc/systemd/user/graphical-session.target.wants/barrierc.service link
+      # to /etc/systemd/user/barrierc.service
+      systemd.user.services.barrierc = {
+        description = "Barrier client";
+        after = [ "network.target" "graphical-session.target" ];
+        wantedBy = lib.optional cfgC.autoStart "graphical-session.target";
+        path = [ pkgs.barrier ];
+        serviceConfig.Restart = "on-failure";
+        serviceConfig.ExecStart = toString (
+          [ "${pkgs.barrier}/bin/barrierc -f" ]
+          ++ lib.optional (cfgC.name != "") "-n ${cfgC.name}"
+          ++ lib.optional (!cfgC.enableCrypto) "--disable-crypto"
+          ++ lib.optional cfgC.enableDragDrop "--enable-drag-drop"
+          ++ lib.optional (cfgC.server != "") "${cfgC.server}"
         );
       };
     })
