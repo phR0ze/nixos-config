@@ -88,7 +88,6 @@ in
         font-awesome                  # Font Awesome OTF font
         inconsolata-nerdfont          # A monospace font for both screen and print
         liberation_ttf                # Font replacements for Times New Roman, Arial and Courier New
-        noto-fonts                    # Beautiful and free fonts for many languages
         ubuntu_font_family            # Ubuntu font family
         source-code-pro               # Monospaced font family for coding environments
         source-sans-pro               # Sans variant of source pro fonts
