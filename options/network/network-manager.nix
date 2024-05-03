@@ -3,13 +3,12 @@
 { config, lib, pkgs, args, ... }: with lib.types;
 let
   cfg = config.network.network-manager;
-  nmcfg = config.networking.networkmanager;
 
   dhcpName = "dhcp.nmconnection";
   staticName = "static.nmconnection";
 
   # Higher values of autoconnect-priority will be given priority
-  connections = pkgs.runCommandLocal staticName {} ''
+  connections = pkgs.runCommandLocal "connections" {} ''
       mkdir $out
 
       target="$out/${dhcpName}"
@@ -56,17 +55,10 @@ in
       };
     })
     (lib.mkIf (cfg.enable) {
-
-      # Its ok to always have dhcp as static has higher priority when exists
-      environment.etc."NetworkManager/system-connections/${dhcpName}" = {
-        mode = "0600";
-        source = "${connections}/${dhcpName}";
-      };
-
-      networking.hostName = args.settings.hostname;
       networking.enableIPv6 = false;
+      networking.hostName = args.settings.hostname;
 
-      # XFCE enables networkmanager and nm-applet by default
+      # Enable networkmanager and nm-applet by default
       networking.networkmanager = {
         enable = true;
         dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
@@ -75,6 +67,15 @@ in
           "interface-name:vboxnet*"
           "interface-name:vmnet*"
         ];
+      };
+
+      # Enables ability for user to make network manager changes
+      users.users.${args.settings.username}.extraGroups = [ "networkmanager" ];
+
+      # Its ok to always have dhcp as static has higher priority when exists
+      environment.etc."NetworkManager/system-connections/${dhcpName}" = {
+        mode = "0600";
+        source = "${connections}/${dhcpName}";
       };
 
       # Use systemd-resolved for DNS
@@ -86,15 +87,6 @@ in
         #domains = [ "example.com" ]
         fallbackDns = [ "8.8.8.8" "8.8.4.4" ]; # fallback on google dns
       };
-
-      # Enables ability for user to make network manager changes
-      users.users.${args.settings.username}.extraGroups = [ "networkmanager" ];
-
-     # services.avahi = lib.mkIf (config.my.mdns && !config.boot.isContainer) {
-     #   enable = true;
-     #   nssmdns = true;
-     # };
-
     })
   ];
 }
