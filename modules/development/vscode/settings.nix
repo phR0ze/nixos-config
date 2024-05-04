@@ -16,8 +16,8 @@ in
     # Integrated terminal configuration
     # ----------------------------------------------------------------------------------------
     "terminal.explorerKind" = "integrated";         # What kind of terminal to use inside vscode
-    "terminal.integrated.fontFamily" = "${xft.monospace} ${xft.monospaceStyle}";
-    "terminal.integrated.fontSize" = 14;
+    "terminal.integrated.fontFamily" = "${xft.monospace}";
+    "terminal.integrated.fontSize" = 16;
     "terminal.integrated.tabs.enabled" = false;
     "terminal.integrated.enablePersistentSessions" = false;
 
@@ -34,8 +34,8 @@ in
     "editor.formatOnPaste" = true;                  #
     "editor.formatOnSave" = true;                   #
     "editor.minimap.enabled" = true;                #
-    "editor.fontSize" = 16;                         # InconsolataGo Nerd Font Mono seems to be smaller than others
-    "editor.fontFamily" = "${xft.monospace}";
+    "editor.fontSize" = 14;                         # InconsolataGo Nerd Font Mono seems to be smaller than others
+    "editor.fontFamily" = "${xft.monospace} ${xft.monospaceStyle}";
 
     # Copilot lang configuration
     # ----------------------------------------------------------------------------------------
