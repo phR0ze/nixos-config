@@ -14,4 +14,8 @@
   services.barriers.enable = true;
 
   #virtualization.virt-manager.enable = true;
+
+  environment.systemPackages = with pkgs; [
+    freecad
+  ];
 }
