@@ -84,5 +84,6 @@ in
     tango-icon-theme                  # Xfce default,
     mousepad                          # Xfce default, simple text editor
     parole                            # Xfce default, simple media player
+    ristretto                         # Xfce default, i like qview better
   ];
 }
