@@ -141,6 +141,7 @@ in
     # Media
     audacious                           # Lightweight advanced audio player
     audacious-plugins                   # Additional codecs support for audacious
+    qview                               # Simple image viewer with webp support
     vlc                                 # Multi-platform MPEG, VCD/DVD, and DivX player
 
     # System
