@@ -36,6 +36,14 @@
 #            "vscode.desktop"
 #          ];
 #      };
+#      defaultAssociations = {
+#        "application/pdf" = "firefox.desktop";
+#         "text/xml" = [
+#            "nvim.desktop"
+#            "vscode.desktop"
+#          ];
+#      };
+
     };
     #portal.enable = true;           # ??
     sounds.enable = true;           # Defaults to true

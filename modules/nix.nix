@@ -54,11 +54,11 @@
     # Garbage collection settings
     # ----------------------------------------------------------------------------------------------
     gc = {
-      automatic = true;
-      dates = "weekly";
+      #automatic = true;
+      #dates = "weekly";
 
       # Delete older generations
-      options = "--delete-older-than 2d";
+      #options = "--delete-older-than 2d";
     };
   };
 
