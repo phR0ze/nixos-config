@@ -24,7 +24,7 @@ in
     })
 
     # Configure X11 video driver
-    (lib.mkIf (x11.enable) {
+    (lib.mkIf (cfg.enable && x11.enable) {
       services.xserver.videoDrivers = [ "amdgpu" ];
     })
   ];
