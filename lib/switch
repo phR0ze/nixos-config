@@ -18,8 +18,8 @@ Arguments:
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "Switch system version: ${green}./${SCRIPT} switch 39${none}"
-    log::subln "Switch system version: ${green}./${SCRIPT} switch /run/current-system${none}"
+    log::subln "Set version 39 as boot default: ${green}./${SCRIPT} switch 39${none}"
+    log::subln "Set current as boot default: ${green}./${SCRIPT} switch /run/current-system${none}"
     echo
     exit
 }
@@ -36,36 +36,41 @@ switch::run()
 
     # Determine if the argument is a path or generation number
     local path=$(realpath $1)
+    local link=""
+    local target=""
+    local isGen=false
     if [[ -e "$path" ]]; then
         _getLatestVer _latest
-        local verPath="$NIXOS_PROFILES_PATH/system-${_latest}-link"
-
-        #pushd $profiles
-        #ln -s "$path" 
-        log::subln "Switching to ${cyan}${verPath}${none}"
-        #   $ ln -s /nix/store/...-workstation-23.05.4448.5550a85a087c system-39-link
-        
-        #popd
+        link="system-${_latest}-link"
+        target="$(realpath -e "$path")"
     else
-#        path="${profiles}/system-${1}-link"
-#        if [[ -e "$path" ]]; then
-#
-#        else
+        isGen=true
+        link="system-${1}-link"
+        path=$(realpath $NIXOS_PROFILES_PATH/$link)
+        if [[ ! -e "$path" ]]; then
             log::fatal "argument ${cyan}${1}${none} isn't a generation # or a path"
-#        fi
+        fi
     fi
-#
-#2. Create a link to your system version in `/nix/var/nix/profiles`
-#   ```bash
-#   $ cd /nix/var/nix/profiles
-#   $ ln -s /nix/store/...-workstation-23.05.4448.5550a85a087c system-39-link
-#   ```
-#3. Update the current system version
-#   ```bash
-#   $ rm system
-#   $ ln -s system-39-link system
-#   ```
-#
+
+    # Execute switch
+    log::subln "Switching to: ${aqua}${_latest}${none}"
+    log::subln " System link: ${purple}system${none} -> ${aqua}${link}${none}"
+    log::subln " Target path: ${purple}${link}${none} -> ${aqua}${target}${none}"
+
+    pushd $NIXOS_PROFILES_PATH
+
+    # Create the target link if it is a new target
+    if [[ $isGen == false ]]; then
+        ln -s "$target" "$link"
+    fi
+
+    # Update system link in either case
+    rm system
+    ln -s "$link" system
+    popd
+
+    # Finally set the default boot option
+    ${path}/bin/switch-to-configuration switch
 }
 
 # Get the latest system version
@@ -78,7 +83,7 @@ _getLatestVer()
     local _result=$1
 
     # Get the system versions
-    declare -a links=( $(echo $(find $NIXOS_PROFILES_PATH -type l -name 'system-*-link') ) )
+    declare -a links=( $(echo $(find $NIXOS_PROFILES_PATH -type l -name 'system-*-link' | sort) ) )
     if [[ "${#links}" == 0 ]]; then
         log::fatal "no system versions found at ${cyan}${NIXOS_PROFILES_PATH}${none}"
     fi
