@@ -8,6 +8,7 @@ source "${SCRIPT_DIR}/lib/logs"
 source "${SCRIPT_DIR}/lib/manage"
 source "${SCRIPT_DIR}/lib/pkgs/pkgs"
 source "${SCRIPT_DIR}/lib/registry"
+source "${SCRIPT_DIR}/lib/switch"
 source "${SCRIPT_DIR}/lib/test"
 source "${SCRIPT_DIR}/lib/update"
 

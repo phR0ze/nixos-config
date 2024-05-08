@@ -1,44 +1,41 @@
 #!/usr/bin/env bash
 
-# Usage for the manage command and its sub commands
+# Usage for the switch command and its sub commands
 # --------------------------------------------------------------------------------------------------
-manage::usage()
+switch::usage()
 {
     cat <<USAGE
 Usage:
-  manage [OPTIONS] [COMMAND] [ARGS...]
+  switch [OPTIONS] [COMMAND] [ARGS...]
 
 Options:
   -h, --help        Print out usage
-
-Commands:
-  repo              Convert the target repo into a git@github.com:USER repo
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "manage nix store: ${green}./${SCRIPT} manage all${none}"
+    log::subln "Switch system version: ${green}./${SCRIPT} switch ${none}"
     echo
     exit
 }
 
 
-# Parse the manage commands and execute
+# Parse the switch commands and execute
 # --------------------------------------------------------------------------------------------------
-manage::run()
+switch::run()
 {
-    utils::help "$@" "manage::usage"
+    utils::help "$@" "switch::usage"
 
-    # Parse the manage commnand
+    # Parse the switch commnand
     local command=$1; shift
     case "$command" in
-        repo) manage::repo ;;
-        *) log::error "Invalid manage command: ${cyan}${command}${none}"; manage::usage ;;
+        repo) switch::repo ;;
+        *) log::error "Invalid switch command: ${cyan}${command}${none}"; switch::usage ;;
     esac
 }
 
-# manage up nix store
+# switch up nix store
 # --------------------------------------------------------------------------------------------------
-manage::repo()
+switch::repo()
 {
     local remote=$(git remote)
     local url=$(git config --get remote.${remote}.url)

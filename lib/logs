@@ -9,7 +9,7 @@ Usage:
   logs [OPTIONS] [COMMAND] [ARGS...]
 
 Options:
-  -h, --help        Print out top level usage
+  -h, --help        Print out usage
 
 Arguments:
   NIX-PKG           Read the derivation build log for the given package path

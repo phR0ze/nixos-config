@@ -15,7 +15,7 @@ Usage:
   build [OPTIONS] [COMMAND] [ARGS...]
 
 Options:
-  -h, --help        Print out top level usage
+  -h, --help        Print out usage
 
 Commands:
   iso               Build the installable ISO

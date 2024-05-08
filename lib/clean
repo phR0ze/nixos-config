@@ -9,7 +9,7 @@ Usage:
   clean [OPTIONS] [COMMAND] [ARGS...]
 
 Options:
-  -h, --help        Print out top level usage
+  -h, --help        Print out usage
 
 Commands:
   all               Clean everything
