@@ -65,6 +65,7 @@ Commands:
   pkgs              Package management commands
   registry          Interact with the nix registry
   repl              Launch the Nix repl
+  switch            Switch system version to the given one
   test              Testing function for development
   update            Update the system with any changed configuration
 USAGE
@@ -110,6 +111,7 @@ case "$command" in
     pkgs) pkgs::run "$@" ;;
     registry) registry::run "$@" ;;
     repl) nix repl -f '<nixpkgs>' ;;
+    switch) switch::run "$@" ;;
     test) test::run "$@" ;;
     update) update::run "$@" ;;
     *) log::error "Invalid command: ${cyan}${command}${none}"; core::usage ;;
