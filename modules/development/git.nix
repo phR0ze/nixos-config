@@ -12,6 +12,9 @@
       core = {
         editor = "vim";
       };
+      pull = {
+        rebase = true;
+      };
       push = {
         default = "simple";
       };
