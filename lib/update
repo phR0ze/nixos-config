@@ -52,10 +52,10 @@ update::run()
 update::profile()
 {
     core::title
-    log::header1 "Update NixOS profile"
+    log::header1 "Update install profile"
 
     local opts="${SCRIPT_DIR}/flake_opts.nix"
-    log::ln "Switching system profile to ${cyan}${@}${none}"
+    log::ln "Switching install profile to ${cyan}${@}${none}"
     utils::replace str "profile" "${@}" "${opts}"
     git add "${opts}"
 
@@ -70,7 +70,7 @@ update::profile()
 update::system()
 {
     core::title
-    log::header1 "Update NixOS system"
+    log::header1 "Update system version"
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
     _preUpdate
