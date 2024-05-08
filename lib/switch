@@ -1,19 +1,25 @@
 #!/usr/bin/env bash
 
+NIXOS_PROFILES_PATH="/nix/var/nix/profiles"
+
 # Usage for the switch command and its sub commands
 # --------------------------------------------------------------------------------------------------
 switch::usage()
 {
     cat <<USAGE
 Usage:
-  switch [OPTIONS] [COMMAND] [ARGS...]
+  switch [OPTIONS] [ARGS...]
 
 Options:
   -h, --help        Print out usage
+
+Arguments:
+  TARGET            System version # or system version path
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "Switch system version: ${green}./${SCRIPT} switch ${none}"
+    log::subln "Switch system version: ${green}./${SCRIPT} switch 39${none}"
+    log::subln "Switch system version: ${green}./${SCRIPT} switch /run/current-system${none}"
     echo
     exit
 }
@@ -25,25 +31,67 @@ switch::run()
 {
     utils::help "$@" "switch::usage"
 
-    # Parse the switch commnand
-    local command=$1; shift
-    case "$command" in
-        repo) switch::repo ;;
-        *) log::error "Invalid switch command: ${cyan}${command}${none}"; switch::usage ;;
-    esac
+    core::title
+    log::header1 "Switch system version"
+
+    # Determine if the argument is a path or generation number
+    local path=$(realpath $1)
+    if [[ -e "$path" ]]; then
+        _getLatestVer _latest
+        local verPath="$NIXOS_PROFILES_PATH/system-${_latest}-link"
+
+        #pushd $profiles
+        #ln -s "$path" 
+        log::subln "Switching to ${cyan}${verPath}${none}"
+        #   $ ln -s /nix/store/...-workstation-23.05.4448.5550a85a087c system-39-link
+        
+        #popd
+    else
+#        path="${profiles}/system-${1}-link"
+#        if [[ -e "$path" ]]; then
+#
+#        else
+            log::fatal "argument ${cyan}${1}${none} isn't a generation # or a path"
+#        fi
+    fi
+#
+#2. Create a link to your system version in `/nix/var/nix/profiles`
+#   ```bash
+#   $ cd /nix/var/nix/profiles
+#   $ ln -s /nix/store/...-workstation-23.05.4448.5550a85a087c system-39-link
+#   ```
+#3. Update the current system version
+#   ```bash
+#   $ rm system
+#   $ ln -s system-39-link system
+#   ```
+#
 }
 
-# switch up nix store
+# Get the latest system version
 # --------------------------------------------------------------------------------------------------
-switch::repo()
+# ### Params
+# - $1 return variable name to be set
+#
+_getLatestVer()
 {
-    local remote=$(git remote)
-    local url=$(git config --get remote.${remote}.url)
-    if [[ "$url" =~ .*/(.*)/(.*) ]]; then 
-        local owner="${BASH_REMATCH[1]}"
-        local repo="${BASH_REMATCH[2]}"
-        git remote set-url ${remote} "git@github.com:${owner}/${repo}"
-    else
-        log::error "Unable to parse the remote URL: ${cyan}${remote}${none}"
+    local _result=$1
+
+    # Get the system versions
+    declare -a links=( $(echo $(find $NIXOS_PROFILES_PATH -type l -name 'system-*-link') ) )
+    if [[ "${#links}" == 0 ]]; then
+        log::fatal "no system versions found at ${cyan}${NIXOS_PROFILES_PATH}${none}"
     fi
+
+    # Get the latest and trim down to just the version number
+    local link="${links[-1]}"               # e.g. /nix/var/nix/profiles/system-40-link
+    local base=$(basename $link)            # e.g. system-40-link
+    local trimPrefix=${base#system-}        # e.g. 40-link
+    local trimSuffix=${trimPrefix%-link}    # e.g. 40
+
+    # Increment the version
+    local result=$((trimSuffix+1))          # e.g. 41
+
+    # Needs the single quotes to tell it not to treat it as a command
+    eval "$_result"="'$result'"
 }
