@@ -24,4 +24,5 @@
   system = "x86_64-linux";        # system architecture to use
   timezone = "America/Boise";     # time-zone selection
   locale = "en_US.UTF-8";         # locale selection
+  comment = "";                   # Placeholder for injected nixos-config comment
 }

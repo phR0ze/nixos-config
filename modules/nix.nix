@@ -2,9 +2,8 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }:
 {
-  # Set the git revision to be used in the system version `clu list versions`
-  #shortRev = builtins.substring 0 8 rev;
-  system.configurationRevision = lib.mkIf (args.self ? rev) args.self.rev;
+  # Set the short git revision and comment to be used in the system version `clu list versions`
+  system.configurationRevision = lib.mkIf (args.settings.comment != "") args.settings.comment;
 
   nix = {
     package = pkgs.nixFlakes;
