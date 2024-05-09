@@ -60,6 +60,7 @@ Commands:
   clean             Clean various system components
   help              Get help for a command
   install           Install system configuration
+  list, ll          List out system information
   logs              Print out logging for various components
   manage            Manage the clu repo
   pkgs              Package management commands
@@ -106,7 +107,8 @@ case "$command" in
     build) build::run "$@" ;;
     clean) clean::run "$@" ;;
     install) install::run "$@" ;;
-    logs) logs::run "$@" ;;
+    list) list::run "$@" ;;
+    ll) list::run "$@" ;;   # list alias
     manage) manage::run "$@" ;;
     pkgs) pkgs::run "$@" ;;
     registry) registry::run "$@" ;;

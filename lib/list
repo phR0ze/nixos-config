@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+
+# Usage for the list command and its sub commands
+# --------------------------------------------------------------------------------------------------
+list::usage()
+{
+    cat <<USAGE
+Usage:
+  list [OPTIONS] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out usage
+
+Commands:
+  versions, ver     List out the versions i.e. system versions
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "List out versions: ${green}./${SCRIPT} ll ver${none}"
+    echo
+    exit
+}
+
+
+# Parse the list commands and execute
+# --------------------------------------------------------------------------------------------------
+list::run()
+{
+    utils::help "$@" "list::usage"
+
+    log::header1 "list system versions"
+
+    # Parse the commnand
+    local command=$1; shift
+    case "$command" in
+        versions) list::versions;;
+        ver) list::versions ;;
+        *) log::error "Invalid list command: ${cyan}${command}${none}"; list::usage ;;
+    esac
+
+}
+
+list::versions()
+{
+    # Inspired by the `nixos-rebuild list-generations` command
+    declare -a links=( $(echo $(find $NIXOS_PROFILES_PATH -type l -name 'system-*-link' | sort) ) )
+    for x in ${links[@]}; do
+        _describeVersion $x
+        exit
+    done
+
+#    nixos-rebuild list-generations --json
+#    Generation  Build-date           NixOS version           Kernel  Configuration Revision  Specialisation
+#14 current  2024-05-05 09:56:50  24.05.20240229.1536926  6.6.18                          *
+#13          2024-05-04 12:03:16  24.05.20240229.1536926  6.6.18                          *
+#12          2024-05-03 17:15:38  24.05.20240229.1536926  6.6.18                          *
+}
+
+
+_describeVersion()
+{
+    version_dir="$1"
+    version="$(_getVer "$version_dir")"
+    nixos_version="$(cat "$version_dir/nixos-version" 2> /dev/null || echo "Unknown")"
+
+    kernel_dir="$(dirname "$(realpath "$version_dir/kernel")")"
+    kernel_version="$(ls "$kernel_dir/lib/modules" || echo "Unknown")"
+
+    configurationRevision="$("$version_dir/sw/bin/nixos-version" --configuration-revision 2> /dev/null || true)"
+
+    # Old nixos-version output ignored unknown flags and just printed the version
+    # therefore the following workaround is done not to show the default output
+    nixos_version_default="$("$version_dir/sw/bin/nixos-version")"
+    if [ "$configurationRevision" == "$nixos_version_default" ]; then
+         configurationRevision=""
+    fi
+
+    # jq automatically quotes the output => don't try to quote it in output!
+    build_date="$(stat "$version_dir" --format=%W | jq 'todate')"
+
+    pushd "$version_dir/specialisation/" > /dev/null || :
+    specialisation_list=(*)
+    popd > /dev/null || :
+
+    specialisations="$(jq --compact-output --null-input '$ARGS.positional' --args -- "${specialisation_list[@]}")"
+
+    if [ "$(basename "$version_dir")" = "$(readlink "$profile")" ]; then
+        current_version_tag="true"
+    else
+        current_version_tag="false"
+    fi
+
+    # Escape userdefined strings
+    nixos_version="$(jq -aR <<< "$nixos_version")"
+    kernel_version="$(jq -aR <<< "$kernel_version")"
+    configurationRevision="$(jq -aR <<< "$configurationRevision")"
+
+    # Return the json response on stdout
+    cat << EOF
+{
+  "version": $version,
+  "date": $build_date,
+  "nixosVersion": $nixos_version,
+  "kernelVersion": $kernel_version,
+  "configurationRevision": $configurationRevision,
+  "specialisations": $specialisations,
+  "current": $current_version_tag
+}
+EOF
+    }

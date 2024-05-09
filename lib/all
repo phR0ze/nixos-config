@@ -4,6 +4,7 @@
 source "${SCRIPT_DIR}/lib/build"
 source "${SCRIPT_DIR}/lib/clean"
 source "${SCRIPT_DIR}/lib/install"
+source "${SCRIPT_DIR}/lib/list"
 source "${SCRIPT_DIR}/lib/logs"
 source "${SCRIPT_DIR}/lib/manage"
 source "${SCRIPT_DIR}/lib/pkgs/pkgs"
