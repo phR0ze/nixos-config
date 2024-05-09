@@ -32,7 +32,7 @@ switch::run()
     utils::help "$@" "switch::usage"
 
     core::title
-    log::header1 "Switch system version"
+    log::header1 "Prep for system version switch"
 
     # Determine if the argument is a path or generation number
     local path=$(realpath $1)
@@ -76,7 +76,7 @@ switch::run()
     popd &>/dev/null
 
     # Finally set the default boot option
-    log::subln " Switching to: ${aqua}${link}${none}"
+    log::header1 "Switching to ${link}"
     ${target}/bin/switch-to-configuration switch
 }
 
