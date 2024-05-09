@@ -2,6 +2,9 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }:
 {
+  # Set the git revision to be used in the system version `clu list versions`
+  system.configurationRevision = self.rev or "dirty";
+
   nix = {
     package = pkgs.nixFlakes;
 
