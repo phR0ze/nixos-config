@@ -54,7 +54,7 @@ switch::run()
     fi
 
     # Execute switch
-    log::subln " Switching to: ${aqua}${latest}${none}"
+    log::subln "   Target ver: ${aqua}${latest}${none}"
     pushd $NIXOS_PROFILES_PATH &>/dev/null
 
     # Create the target link if it is a new target
@@ -76,8 +76,8 @@ switch::run()
     popd &>/dev/null
 
     # Finally set the default boot option
-    ls -la "${target}/bin/switch-to-configuration"
-    #${path}/bin/switch-to-configuration switch
+    log::subln " Switching to: ${aqua}${link}${none}"
+    ${target}/bin/switch-to-configuration switch
 }
 
 # Get the latest system version
