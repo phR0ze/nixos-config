@@ -83,6 +83,10 @@ update::system()
 
 _preUpdate()
 {
+    log::ln "Updating local git repo"
+    git config pull.rebased false
+    git pull
+
     log::ln "Removing ${cyan}/nix/files.lock${none} to permit files update"
     rm -f /nix/files.lock
 
