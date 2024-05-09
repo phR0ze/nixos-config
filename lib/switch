@@ -66,7 +66,7 @@ switch::run()
     fi
 
     # Update system link if needed
-    if [[ "$(realpath system)" != "${farget}" ]]; then
+    if [[ "$(realpath system)" != "${target}" ]]; then
         log::subln "  Update link: ${purple}system${none} -> ${aqua}${link}${none}"
         rm system
         ln -s "$link" system
