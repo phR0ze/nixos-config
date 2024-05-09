@@ -28,7 +28,7 @@ list::run()
 {
     utils::help "$@" "list::usage"
 
-    log::header1 "list system versions"
+    log::header1 "List system versions"
 
     # Parse the commnand
     local command=$1; shift
@@ -40,54 +40,56 @@ list::run()
 
 }
 
+# List all the system versions
+# 
 list::versions()
 {
     # Inspired by the `nixos-rebuild list-generations` command
-    declare -a links=( $(echo $(find $NIXOS_PROFILES_PATH -type l -name 'system-*-link' | sort) ) )
-    for x in ${links[@]}; do
-        _describeVersion $x
-        exit
-    done
-
-#    nixos-rebuild list-generations --json
-#    Generation  Build-date           NixOS version           Kernel  Configuration Revision  Specialisation
-#14 current  2024-05-05 09:56:50  24.05.20240229.1536926  6.6.18                          *
-#13          2024-05-04 12:03:16  24.05.20240229.1536926  6.6.18                          *
-#12          2024-05-03 17:15:38  24.05.20240229.1536926  6.6.18                          *
+    find "$NIXOS_PROFILES_PATH" -type l -name 'system-*-link' | sort -Vr |
+        while read -r ver; do
+            _describeVer "$ver"
+        done |
+            jq --slurp -r '.[] | [
+                ([.version, (if .current == true then "current" else "" end)] | join(" ")),
+                (.date | fromdate | strflocaltime("%Y-%m-%d %H:%M:%S")),
+                .nixosVersion,
+                .kernelVersion,
+                .configurationRevision
+            ] | @tsv' |
+                column --separator $'\t' --table --table-columns "Version,Build-date,NixOS version,Kernel,Configuration Revision"
 }
 
 
-_describeVersion()
+# One line description of the system version
+# 
+# ### Params
+# - $1 system version path
+#
+# ### Output
+# 
+#
+# ### Examples
+# _describeVer /nix/var/nix/profiles/system-12-link
+#
+_describeVer()
 {
-    version_dir="$1"
-    version="$(_getVer "$version_dir")"
-    nixos_version="$(cat "$version_dir/nixos-version" 2> /dev/null || echo "Unknown")"
+    local version_dir="$1"
+    local version="$(_getVer "$version_dir")"
+    local nixos_version="$(cat "$version_dir/nixos-version" 2> /dev/null || echo "Unknown")"
 
-    kernel_dir="$(dirname "$(realpath "$version_dir/kernel")")"
-    kernel_version="$(ls "$kernel_dir/lib/modules" || echo "Unknown")"
+    local kernel_dir="$(dirname "$(realpath "$version_dir/kernel")")"
+    local kernel_version="$(ls "$kernel_dir/lib/modules" || echo "Unknown")"
 
-    configurationRevision="$("$version_dir/sw/bin/nixos-version" --configuration-revision 2> /dev/null || true)"
-
-    # Old nixos-version output ignored unknown flags and just printed the version
-    # therefore the following workaround is done not to show the default output
-    nixos_version_default="$("$version_dir/sw/bin/nixos-version")"
-    if [ "$configurationRevision" == "$nixos_version_default" ]; then
-         configurationRevision=""
-    fi
+    # Get the 
+    local configurationRevision="$("$version_dir/sw/bin/nixos-version" --configuration-revision 2> /dev/null || true)"
 
     # jq automatically quotes the output => don't try to quote it in output!
-    build_date="$(stat "$version_dir" --format=%W | jq 'todate')"
+    local build_date="$(stat "$version_dir" --format=%W | jq 'todate')"
 
-    pushd "$version_dir/specialisation/" > /dev/null || :
-    specialisation_list=(*)
-    popd > /dev/null || :
-
-    specialisations="$(jq --compact-output --null-input '$ARGS.positional' --args -- "${specialisation_list[@]}")"
-
-    if [ "$(basename "$version_dir")" = "$(readlink "$profile")" ]; then
-        current_version_tag="true"
-    else
-        current_version_tag="false"
+    # Check if the system version is the current version i.e. /nix/var/nix/profiles/system
+    local current_version="false"
+    if [[ "$(basename "$version_dir")" == "$(readlink "$NIXOS_PROFILES_PATH/system")" ]]; then
+        current_version="true"
     fi
 
     # Escape userdefined strings
@@ -103,8 +105,7 @@ _describeVersion()
   "nixosVersion": $nixos_version,
   "kernelVersion": $kernel_version,
   "configurationRevision": $configurationRevision,
-  "specialisations": $specialisations,
-  "current": $current_version_tag
+  "current": $current_version
 }
 EOF
-    }
+}
