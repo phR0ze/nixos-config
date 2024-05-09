@@ -3,7 +3,7 @@
 { config, lib, pkgs, args, ... }:
 {
   # Set the git revision to be used in the system version `clu list versions`
-  system.configurationRevision = toString (args.self.rev or args.self.dirtyRev or args.self.lastModified);
+  system.configurationRevision = toString (args.self.rev or args.self.dirtyRev);
 
   nix = {
     package = pkgs.nixFlakes;
