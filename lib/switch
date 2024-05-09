@@ -54,24 +54,26 @@ switch::run()
     fi
 
     # Execute switch
-    log::subln "Switching to: ${aqua}${latest}${none}"
-    log::subln " System link: ${purple}system${none} -> ${aqua}${link}${none}"
-    log::subln " Target path: ${purple}${link}${none} -> ${aqua}${target}${none}"
+    log::subln " Switching to: ${aqua}${latest}${none}"
 
     pushd $NIXOS_PROFILES_PATH
 
     # Create the target link if it is a new target
     if [[ $isVer == false ]]; then
-        ln -s "$target" "$link"
+        log::subln "Creating link: ${purple}${link}${none} -> ${aqua}${target}${none}"
+        #ln -s "$target" "$link"
+    else
+        log::subln "  Link exists: ${purple}${link}${none} -> ${aqua}${target}${none}"
     fi
 
     # Update system link in either case
-    rm system
-    ln -s "$link" system
+    log::subln "  Update link: ${purple}system${none} -> ${aqua}${link}${none}"
+    #rm system
+    #ln -s "$link" system
     popd
 
     # Finally set the default boot option
-    ${path}/bin/switch-to-configuration switch
+    #${path}/bin/switch-to-configuration switch
 }
 
 # Get the latest system version
