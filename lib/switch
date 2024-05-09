@@ -56,7 +56,6 @@ switch::run()
     # Execute switch
     log::subln " Switching to: ${aqua}${latest}${none}"
     pushd $NIXOS_PROFILES_PATH &>/dev/null
-    echo "TEST: $(pwd)"
 
     # Create the target link if it is a new target
     if [[ $isVer == false ]]; then
@@ -66,14 +65,18 @@ switch::run()
         log::subln "  Link exists: ${purple}${link}${none} -> ${aqua}${target}${none}"
     fi
 
-    # Update system link in either case
-    log::subln "  Update link: ${purple}system${none} -> ${aqua}${link}${none}"
-    #rm system
-    #ln -s "$link" system
+    # Update system link if needed
+    if [[ "$(realpath system)" != "${farget}" ]]; then
+        log::subln "  Update link: ${purple}system${none} -> ${aqua}${link}${none}"
+        rm system
+        ln -s "$link" system
+    else
+        log::subln " Link correct: ${purple}system${none} -> ${aqua}${link}${none}"
+    fi
     popd &>/dev/null
-    echo "TEST: $(pwd)"
 
     # Finally set the default boot option
+    ls -la "${target}/bin/switch-to-configuration"
     #${path}/bin/switch-to-configuration switch
 }
 
