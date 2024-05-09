@@ -28,7 +28,7 @@ manage::run()
 {
     utils::help "$@" "manage::usage"
 
-    # Parse the manage commnand
+    # Parse the commnand
     local command=$1; shift
     case "$command" in
         repo) manage::repo ;;
