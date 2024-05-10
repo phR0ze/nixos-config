@@ -68,14 +68,25 @@
     specialArgs = { inherit args f; };
     
   in {
+    # These are the configurations for different use cases a.k.a. systems
     nixosConfigurations = {
 
-      # Defines configuration for the current system
+      # Defines configuration for the current system as defined in flake_opts.nix
       system = nixpkgs.lib.nixosSystem {
         inherit pkgs system specialArgs;
         modules = [
           ./options
           ./hardware-configuration.nix
+          (./. + "/profiles" + ("/" + settings.profile + ".nix"))
+        ];
+      };
+
+      # Defines configuration for the test vm
+      vm = nixpkgs.lib.nixosSystem {
+        inherit pkgs system specialArgs;
+        modules = [
+          ./options
+          #./hardware-configuration.nix
           (./. + "/profiles" + ("/" + settings.profile + ".nix"))
         ];
       };
