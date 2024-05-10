@@ -4,7 +4,10 @@
 # - when running NixOS as a guest enable QEMU with `service.qemuGuest.enable = true;`
 # 
 # ### Details
-# libvirt uses a virtual network switch `virbr0` that all the virtual machines "plug in" to.
+# Virt Manager is the standard GUI for libvirt which in turn uses QEMU which in turn uses KVM.
+# So the virtualization stack looks like `Virt Manager` => `libvirtd` => `QEMU` => `KVM`.
+#
+# - libvirt uses a virtual network switch `virbr0` that all the virtual machines "plug in" to.
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
@@ -21,6 +24,7 @@ in
   config = lib.mkIf (cfg.enable) {
     programs.virt-manager.enable = true;
 
+    # libvirtd enable qemu by default
     virtualisation.libvirtd = {
       enable = true;
       allowedBridges = [ "virbr0" ];                # default option
