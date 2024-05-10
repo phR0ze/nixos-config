@@ -19,10 +19,12 @@ Options:
 
 Commands:
   iso               Build the installable ISO
+  vm                Build the test VM
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "Build the installer ISO: ${green}./${SCRIPT} build iso${none}"
+    log::subln "Build the test VM: ${green}./${SCRIPT} build vm${none}"
+    log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
     echo
     exit
 }
@@ -37,11 +39,12 @@ build::run()
     local command=$1; shift
     case "$command" in
         iso) build::iso "$@" ;;
+        vm) build::vm "$@" ;;
         *) log::error "Invalid build command: ${cyan}${command}${none}"; build::usage ;;
     esac
 }
  
-# Build a minimal iso
+# Build the installable iso
 # --------------------------------------------------------------------------------------------------
 # https://releases.nixos.org/
 # https://discourse.nixos.org/t/nixos-reproducible-builds-minimal-installation-iso-successfully-independently-rebuilt/34756
@@ -49,19 +52,19 @@ build::run()
 build::iso()
 {
     core::title
-    log::header0 "Building ISO"
+    log::header0 "Building installable ISO"
 
-    echo -e "\n${cyan}:: Stage iso.lock file:${none}"
-    if [ -f iso.lock ]; then
-        rm -f flake.lock
-        cp iso.lock flake.lock
-    fi
-
-    echo -e "\n${cyan}:: Triggering nix iso build:${none}"
+    echo -e "\n${cyan}:: Triggering nix 'iso' build:${none}"
     nix build .#nixosConfigurations.iso.config.system.build.isoImage
+}
 
-    echo -e "\n${cyan}:: Save iso.lock file:${none}"
-    if [ -f iso.lock ]; then
-        cp flake.lock iso.lock
-    fi
+# Build the test vm
+# --------------------------------------------------------------------------------------------------
+build::vm()
+{
+    core::title
+    log::header0 "Building test VM"
+
+    echo -e "\n${cyan}:: Triggering nix 'vm' build:${none}"
+    nix build .#nixosConfigurations.vm.config.system.build.vm
 }
