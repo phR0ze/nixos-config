@@ -53,8 +53,6 @@ build::iso()
 {
     core::title
     log::header0 "Building installable ISO"
-
-    echo -e "\n${cyan}:: Triggering nix 'iso' build:${none}"
     nix build .#nixosConfigurations.iso.config.system.build.isoImage
 }
 
@@ -64,7 +62,5 @@ build::vm()
 {
     core::title
     log::header0 "Building test VM"
-
-    echo -e "\n${cyan}:: Triggering nix 'vm' build:${none}"
     nix build .#nixosConfigurations.vm.config.system.build.vm
 }
