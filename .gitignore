@@ -3,5 +3,5 @@ temp
 files.log
 files.tmp
 flake_opts.nix
-hardware-configuration.nix
+/hardware-configuration.nix
 result
