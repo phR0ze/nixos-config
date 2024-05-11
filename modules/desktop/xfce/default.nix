@@ -40,7 +40,7 @@ in
       xfce.enableScreensaver = true;
       xfce.desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/sector-8_1600x900.jpg";
       xfce.panel.launchers = [
-        { name = "Alacritty"; exec = "alacritty"; icon = "alacritty"; }
+        { name = "Alacritty"; exec = "alacritty"; icon = "Alacritty"; }
         { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
         { name = "XnviewMP"; exec = "xnviewmp"; icon = "xnviewmp"; }
       ]
