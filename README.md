@@ -120,6 +120,20 @@ can extend and make this their own. Following best practices across the NixOS co
 down my configuration into modules. This allows for composability for higher level concepts like 
 profiles. I'm organizing my modules to follow the nix options for the most part.
 
+### Build and run test VM
+Build the test VM based on the default system configuration and default `flake_opts.nix`. If your
+running the same system already this will only take a min and create the `result` link with an
+executable `./result/bin/run-nixos-vm` that will start the VM.
+
+1. Build the VM
+   ```bash
+   $ ./clu build vm
+   ```
+2. Run the VM
+   ```bash
+   $ ./result/bin/run-nixos-vm
+   ```
+
 ### Build the live ISO for installation
 NixOS has a lot of reusable automation built into it. In the Arch world typically you have to start 
 from scratch and build your own automation if you want control over how its being built. In the Nix 
