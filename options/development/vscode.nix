@@ -186,10 +186,10 @@ in
       files.all."${keybindingsFilePath}".copy = jsonFormat.generate "vscode-keybindings" (map dropNullFields cfg.keybindings);
     })
 
-    (lib.mkIf (cfg.extensions != [ ]) {
+    (lib.mkIf (cfg.enable && cfg.extensions != [ ]) {
       files.all."${extensionsFilePath}" = {
-        text = pkgs.vscode-utils.toExtensionJson cfg.extensions;
         own = "unowned";
+        text = pkgs.vscode-utils.toExtensionJson cfg.extensions;
       };
     })
 
