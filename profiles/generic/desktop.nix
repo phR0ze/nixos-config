@@ -15,6 +15,7 @@
   programs.qbittorrent.enable = true;                           # Excellent bittorrent client
   programs.prismlauncher.enable = true;                         # Minecraft launcher
   services.x11vnc.enable = true;                                # Enable the x11vnc server
+  services.gnome.gnome-keyring.enable = true;                   # Needed for storing VPN passwords
   services.nfs.client.shares.enable = args.settings.nfs_shares; # Optionally enable client nfs shares
 
   environment.systemPackages = with pkgs; [
@@ -22,7 +23,6 @@
     # VPN
     networkmanager-openvpn              # NetworkManager VPN plugin for OpenVPN
     openvpn                             # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
-    gnome.gnome-keyring                 # Needed for storing VPN passwords
 
     # Network
     freerdp                             # RDP client plugin for remmina
