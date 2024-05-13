@@ -30,7 +30,7 @@
             Raw text to be converted into a nix store object and then linked by default to the 
             indicated target path. To make this a link at the target location set 'kind="link"'.
             - sets 'source' to the given file
-            - sets 'kind' to 'copy'
+            - sets 'kind' to 'copy' by default
           '';
         };
 
@@ -42,8 +42,8 @@
             install or update, but not for nixos-rebuild switch nor during reboots. Overwrites 
             existing files of the same name.
             - sets 'source' to the given file
-            - sets 'kind' to 'copy'
-            - sets 'own' to 'owned'
+            - sets 'kind' to 'copy' by default
+            - sets 'own' to 'owned' by default
           '';
         };
 
@@ -55,8 +55,8 @@
             install or update, but not for nixos-rebuild switch nor during reboots. Only copies to 
             the destination if it doesn't exist or there is no record of an initial copy.
             - sets 'source' to the given file
-            - sets 'kind' to 'copy'
-            - sets 'own' to 'unowned'
+            - sets 'kind' to 'copy' by default
+            - sets 'own' to 'unowned' by default
           '';
         };
 
@@ -67,7 +67,7 @@
             Local file path or local directory path to install in system as a link. Overwrites 
             existing files of the same name.
             - sets 'source' to the given file or directory
-            - sets 'kind' to 'link'
+            - sets 'kind' to 'link' by default
           '';
         };
 
@@ -100,8 +100,8 @@
           type = types.enum [ "copy" "link" ];
           default = "link";
           description = lib.mdDoc ''
-            This is an internal computed value of what 'kind' should be based on the system's default 
-            behavior and user overrides.
+            This is an internally computed value of what 'own' should be based on the system's 
+            defaults and the user's choices.
           '';
         };
 
@@ -114,6 +114,15 @@
             on every update. To avoid overwriting the original source on updates use the `weakCopy` 
             instead which sets own to unowned and only copies the initial time or if it doesn't 
             exist. Own is true by default for links.
+          '';
+        };
+
+        _own = lib.mkOption {
+          type = types.enum [ "default" "owned" "unowned" ];
+          default = "default";
+          description = lib.mdDoc ''
+            This is an internally computed value of what 'own' should be based on the system's 
+            defaults and the user's choices.
           '';
         };
 
@@ -159,7 +168,7 @@
         target = lib.mkDefault "${prefix}${name}";
 
         # Set kind based off the convenience options [ default | copy | link ]
-        kind = if (config._kind != "default") then (lib.mkForce config._kind)
+        _kind = if (config.kind != "default") then (lib.mkForce config.kind)
           else if (config.copy != null || config.weakCopy != null || config.text != null)
           then (lib.mkForce "copy") else lib.mkForce "link";
 
@@ -167,7 +176,9 @@
         op = lib.mkDefault "default";
 
         # Set default (i.e. files are owned and directories are not) but allows for user overrides
-        own = if (config.weakCopy != null) then (lib.mkForce "unowned") else (lib.mkForce "owned");
+        _own = if (config.own != "default") then (lib.mkForce config.own)
+          else if (config.weakCopy != null) then (lib.mkForce "unowned")
+          else (lib.mkForce "owned");
 
         # Set based off the convenience options
         source = if (config.copy != null) then (lib.mkForce config.copy)
