@@ -84,7 +84,7 @@
 
         kind = lib.mkOption {
           type = types.enum [ "default" "copy" "link" ];
-          default = "link";
+          default = "default";
           description = lib.mdDoc ''
             Kind can be one of [ default | copy | link ] and indicates the type of object being 
             created. When 'copy' is used the user, group and filemode properties will be used to 
@@ -98,7 +98,6 @@
 
         _kind = lib.mkOption {
           type = types.enum [ "copy" "link" ];
-          default = "link";
           description = lib.mdDoc ''
             This is an internally computed value of what 'own' should be based on the system's 
             defaults and the user's choices and should not be set directly by the user.
@@ -118,8 +117,7 @@
         };
 
         _own = lib.mkOption {
-          type = types.enum [ "default" "owned" "unowned" ];
-          default = "default";
+          type = types.enum [ "owned" "unowned" ];
           description = lib.mdDoc ''
             This is an internally computed value of what 'own' should be based on the system's 
             defaults and the user's choices and should not be set directly by the user.
@@ -169,8 +167,8 @@
 
         # Set kind based off the convenience options [ default | copy | link ]
         _kind = if (config.kind != "default") then (lib.mkForce config.kind)
-          else if (config.copy != null || config.weakCopy != null || config.text != null)
-          then (lib.mkForce "copy") else lib.mkForce "link";
+          else if (config.copy != null || config.weakCopy != null || config.text != null) then (lib.mkForce "copy")
+          else lib.mkForce "link";
 
         # Set default for future use
         op = lib.mkDefault "default";
