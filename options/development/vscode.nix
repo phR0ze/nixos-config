@@ -173,7 +173,7 @@ in
 
     # configure settings
     (lib.mkIf (cfg.enable && cfg.settings != { }) {
-      files.all."${settingsFilePath}".copy = jsonFormat.generate "vscode-user-settings" (cfg.settings
+      files.all."${settingsFilePath}".weakCopy = jsonFormat.generate "vscode-user-settings" (cfg.settings
         // lib.optionalAttrs (!cfg.enableUpdateCheck) { "update.mode" = "none"; }
         // lib.optionalAttrs (!cfg.enableExtensionUpdateCheck) { "extensions.autoCheckUpdates" = false; }
         // lib.optionalAttrs (cfg.workbenchIconTheme != "") { "workbench.iconTheme" = "${cfg.workbenchIconTheme}"; }
@@ -183,7 +183,7 @@ in
 
     # configure keybindings
     (lib.mkIf (cfg.enable && cfg.keybindings != [ ]) {
-      files.all."${keybindingsFilePath}".copy = jsonFormat.generate "vscode-keybindings" (map dropNullFields cfg.keybindings);
+      files.all."${keybindingsFilePath}".weakCopy = jsonFormat.generate "vscode-keybindings" (map dropNullFields cfg.keybindings);
     })
 
     (lib.mkIf (cfg.enable && cfg.extensions != [ ]) {
