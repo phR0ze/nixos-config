@@ -120,12 +120,12 @@ let
       # Simply referencing the source file here will suck it into the /nix/store as its own package
       "${entry.source}"
       entry.target
-      entry.kind
+      entry._kind
       entry.dirmode
       entry.filemode
       entry.user
       entry.group
-      entry.own
+      entry._own
       entry.op
     ]) anyFiles}
   '';
