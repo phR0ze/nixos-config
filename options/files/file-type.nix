@@ -149,7 +149,8 @@
         target = lib.mkDefault "${prefix}${name}";
 
         # Set kind based off the convenience options [ copy | link ]
-        kind = if (config.kind != "default") then (lib.mkForce config.kind)
+        kind = if (config.kind == "copy") then (lib.mkForce "copy")
+          else if (config.kind == "link") then (lib.mkForce "link")
           else if (config.copy != null || config.weakCopy != null || config.text != null)
           then (lib.mkForce "copy") else lib.mkForce "link";
 
