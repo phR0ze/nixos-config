@@ -28,9 +28,9 @@
           type = types.nullOr types.lines;
           description = lib.mdDoc ''
             Raw text to be converted into a nix store object and then linked by default to the 
-            indicated target path. To make this a file at the target location set 'kind="copy"'.
+            indicated target path. To make this a link at the target location set 'kind="link"'.
             - sets 'source' to the given file
-            - sets 'kind' to 'link'
+            - sets 'kind' to 'copy'
           '';
         };
 
@@ -83,14 +83,15 @@
         };
 
         kind = lib.mkOption {
-          type = types.enum [ "copy" "link" ];
+          type = types.enum [ "default" "copy" "link" ];
           default = "link";
           description = lib.mdDoc ''
-            Kind can be one of [ copy | link ] and indicates the type of object being 
+            Kind can be one of [ default | copy | link ] and indicates the type of object being 
             created. When 'copy' is used the user, group and filemode properties will be used to 
             specify the file's properties and likewise user, group and dirmode for directories. 
             Similarly for 'link' dirmode, user, and group will set the directory properties of 
-            any directories needing to be created for the link.
+            any directories needing to be created for the link. A value of `default` indicates the 
+            system governs the value while a non default value means use this value.
           '';
         };
 
@@ -148,7 +149,8 @@
         target = lib.mkDefault "${prefix}${name}";
 
         # Set kind based off the convenience options [ copy | link ]
-        kind = if (config.copy != null || config.weakCopy != null || config.text != null)
+        kind = if (config.kind != "default") then (lib.mkForce config.kind)
+          else if (config.copy != null || config.weakCopy != null || config.text != null)
           then (lib.mkForce "copy") else lib.mkForce "link";
 
         # Set default for future use
