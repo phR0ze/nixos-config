@@ -101,7 +101,7 @@
           default = "link";
           description = lib.mdDoc ''
             This is an internally computed value of what 'own' should be based on the system's 
-            defaults and the user's choices.
+            defaults and the user's choices and should not be set directly by the user.
           '';
         };
 
@@ -122,7 +122,7 @@
           default = "default";
           description = lib.mdDoc ''
             This is an internally computed value of what 'own' should be based on the system's 
-            defaults and the user's choices.
+            defaults and the user's choices and should not be set directly by the user.
           '';
         };
 
