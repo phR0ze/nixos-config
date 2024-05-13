@@ -83,14 +83,14 @@ update::system()
 
 _preUpdate()
 {
+    log::ln "Updating local git repo"
+    git config pull.rebased false
+    git pull
+
     log::ln "Injecting HEAD short SHA and comment"
     local gitMsg="$(git log -1 --pretty="%h: %B" | xargs)"
     utils::replace str "comment" "${gitMsg}" "${SCRIPT_DIR}/flake_opts.nix"
-
-    log::ln "Updating local git repo"
-    git config pull.rebased false
     git add .
-    git pull
 
     log::ln "Removing ${cyan}/nix/files.lock${none} to permit files update"
     rm -f /nix/files.lock
