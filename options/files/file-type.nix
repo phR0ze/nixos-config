@@ -90,8 +90,18 @@
             created. When 'copy' is used the user, group and filemode properties will be used to 
             specify the file's properties and likewise user, group and dirmode for directories. 
             Similarly for 'link' dirmode, user, and group will set the directory properties of 
-            any directories needing to be created for the link. A value of `default` indicates the 
-            system governs the value while a non default value means use this value.
+            any directories needing to be created for the link. A value of 'default' indicates the 
+            user doesn't have a strong opionion and the system can choose how this is used based on 
+            the higher level functions.
+          '';
+        };
+
+        _kind = lib.mkOption {
+          type = types.enum [ "copy" "link" ];
+          default = "link";
+          description = lib.mdDoc ''
+            This is an internal computed value of what 'kind' should be based on the system's default 
+            behavior and user overrides.
           '';
         };
 
@@ -148,9 +158,8 @@
         # Default the destination name to the attribute name
         target = lib.mkDefault "${prefix}${name}";
 
-        # Set kind based off the convenience options [ copy | link ]
-        kind = if (config.kind == "copy") then (lib.mkForce "copy")
-          else if (config.kind == "link") then (lib.mkForce "link")
+        # Set kind based off the convenience options [ default | copy | link ]
+        kind = if (config._kind != "default") then (lib.mkForce config._kind)
           else if (config.copy != null || config.weakCopy != null || config.text != null)
           then (lib.mkForce "copy") else lib.mkForce "link";
 
