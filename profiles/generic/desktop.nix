@@ -38,7 +38,7 @@
   # Optionally enable client nfs shares
   services.nfs.client.shares.enable = args.settings.nfs_shares;
 
-  # Configure gnome keyring for VPN and Copilot passwords
+  # Configure gnome keyring for VPN and Copilot and automatically unlock on login
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.lightdm.enableGnomeKeyring = true;
 
