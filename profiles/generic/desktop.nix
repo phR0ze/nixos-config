@@ -6,19 +6,50 @@
 { pkgs, args, ... }:
 {
   imports = [
+    ../../modules/terminal
+    ../../modules/hardware/audio.nix
+    ../../modules/hardware/bluetooth.nix
+    ../../modules/hardware/firmware.nix
+    ../../modules/hardware/printers.nix
+    ../../modules/hardware/video.nix
+    ../../modules/network/firefox.nix
     ../../modules/desktop/xfce
+    ../../modules/desktop/backgrounds/opt.nix
+    ../../modules/desktop/fonts.nix
+    ../../modules/desktop/icons.nix
+    ../../modules/desktop/xdg.nix
   ];
 
   # Additional programs and services
-  programs.evince.enable = true;                                # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
-  programs.steam.enable = true;                                 # Digital distribution platform from Valve
-  programs.qbittorrent.enable = true;                           # Excellent bittorrent client
-  programs.prismlauncher.enable = true;                         # Minecraft launcher
-  services.x11vnc.enable = true;                                # Enable the x11vnc server
-  services.gnome.gnome-keyring.enable = true;                   # Needed for storing VPN passwords
-  services.nfs.client.shares.enable = args.settings.nfs_shares; # Optionally enable client nfs shares
+  programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
+  programs.steam.enable = true;         # Digital distribution platform from Valve
+  programs.qbittorrent.enable = true;   # Excellent bittorrent client
+  programs.prismlauncher.enable = true; # Minecraft launcher
+
+  programs.geany.enable = true;         # Simple text editor
+  programs.filezilla.enable = true;     # Network/Transfer
+  programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
+  programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
+  programs.xnviewmp.enable = true;      # Excellent image viewer
+
+  services.fwupd.enable = true;         # Firmware update tool for BIOS, etc...
+  services.gvfs.enable = true;          # GVfs virtual filesystem
+
+  # Optionally enable client nfs shares
+  services.nfs.client.shares.enable = args.settings.nfs_shares;
+
+  # Configure gnome keyring for VPN and Copilot passwords
+  services.gnome.gnome-keyring.enable = true;
+  security.pam.services.lightdm.enableGnomeKeyring = true;
 
   environment.systemPackages = with pkgs; [
+
+    # System
+    desktop-file-utils                  # Command line utilities for working with desktop entries
+    filelight                           # View disk usage information
+#    gnome-dconf-editor                 # General configuration manager that replaces gconf
+    i3lock-color                        # Simple lightweight screen locker
+    paprefs                             # Pulse audio server preferences for simultaneous output
 
     # VPN
     networkmanager-openvpn              # NetworkManager VPN plugin for OpenVPN
@@ -34,6 +65,8 @@
 
     # Media
     asunder                             # A lean and friendly audio CD ripper and encoder
+    audacious                           # Lightweight advanced audio player
+    audacious-plugins                   # Additional codecs support for audacious
     audacity                            # Audio editor - cross platform, tried and tested
     brasero                             # Burning tool, alt: k3b, xfburn
     devede                              # A program to create VideoDVDs and CDs
@@ -51,8 +84,10 @@
     mkvtoolnix                          # Cross-platform tools for Matroska
     mpv                                 # General purpose media player, fork of MPlayer and mplayer2
     openshot-qt                         # Simple powerful Video Editor, alt: pitivi, kdenlive
+    qview                               # Simple image viewer with webp support
     #obs-studio                          # Free and open source software for video recording and live streaming
     simplescreenrecorder                # Awesome screen recorder
+    vlc                                 # Multi-platform MPEG, VCD/DVD, and DivX player
     x264                                # Open Source H264/AVC video encoder, depof: smplayer
     yt-dlp                              # Command-line tool to download videos from YouTube.com and other sites
 
@@ -71,9 +106,12 @@
     scribus                             # Open Source Desktop Publishing
 
     # Utilities
+    alacritty                           # GPU accelerated terminal
+    alacritty-theme                     # GPU accelerated terminal themes
     awf                                 # A widget factory for viewing theme changes
     conky                               # Advanced, highly configurable system monitor
     exiftool                            # A tool to read, write and edit EXIF meta information
+    galculator                          # Simple calculator
     gnome-multi-writer                  # Tool for writing an ISO file to multiple USB devices at once
     htop                                # Better top tool
     hardinfo                            # A system information and benchmark tool
@@ -82,10 +120,5 @@
 
     # System
     jdk17                               # Needed for: minecraft
-
-    # Not available in NixOS
-#    arcologout                         # Simple clean logout overlay from
-#    kvantum                            # SVG-based theme engine for Qt5/Qt6 including Arc-Dark
-#    winff                              # GUI for ffmpeg, repo: cyberlinux
   ];
 }
