@@ -21,6 +21,7 @@
   ];
 
   # Additional programs and services
+  programs.dmenu.enable = true;         # Configure dmenu
   programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
   programs.steam.enable = true;         # Digital distribution platform from Valve
   programs.qbittorrent.enable = true;   # Excellent bittorrent client
@@ -41,6 +42,9 @@
   # Configure gnome keyring for VPN and Copilot and automatically unlock on login
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.lightdm.enableGnomeKeyring = true;
+
+  # Application launcher
+  #dmenu_run -fn -misc-fixed-*-*-*-*-20-200-*-*-*-*-*-*  -i -nb '#000000' -nf '#efefef' -sf '#000000' -sb '#3cb0fd'
 
   environment.systemPackages = with pkgs; [
 
