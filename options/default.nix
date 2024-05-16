@@ -12,6 +12,7 @@
     ./multimedia
     ./network
     ./services
+    ./utils
     ./virtualization
   ];
 

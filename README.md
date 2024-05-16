@@ -22,6 +22,7 @@ fork it and build on my work.
   * [Update instructions](#update-instructions)
 * [Advanced use cases](#advanced-use-cases)
   * [Build the live ISO for installation](#build-the-live-iso-for-installation)
+* [Development](#development)
 * [Backlog](#backlog)
 
 ## Getting started
@@ -160,6 +161,13 @@ world though this already exists.
    ```
 
 5. The ISO will end up in `result/iso/`
+
+## Development
+It's nice to have a copy of nixpkgs to reference for options
+
+```bash
+$ git clone -b nixos-unstable --depth 1 https://github.com/NixOS/nixpkgs
+```
 
 ## Backlog
 * [ ] Change image mime associatation
