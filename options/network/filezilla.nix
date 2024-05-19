@@ -11,6 +11,7 @@ let
         <Setting name="Show Tree Remote">${toString (f.boolToInt cfg.showLocalTree)}</Setting>
         <Setting name="Show Tree Local">${toString (f.boolToInt cfg.showRemoteTree)}</Setting>
         <Setting name="Number of Transfers">${toString cfg.numTransfers}</Setting>
+		    <Setting name="Size format">${toString cfg.fileSizeFormat}</Setting>
       </Settings>
     </FileZilla3>
   '');
@@ -34,6 +35,17 @@ in
         type = types.int;
         default = 10;
         description = lib.mdDoc "Set the number of parallel transfers";
+      };
+      fileSizeFormat = lib.mkOption {
+        type = types.int;
+        default = 2;
+        description = lib.mdDoc ''
+          Set the file size format.
+          0 Display size in bytes
+          1 IEC binary prefixes (e.g. 1 KiB = 1024 bytes)
+          2 Binary prefixes using SI symbols (e.g. 1 KB = 1024 bytes)
+          3 Decimal prefixes using SI symbols (e.g. 1 KB = 1000 bytes)
+        '';
       };
     };
   };
