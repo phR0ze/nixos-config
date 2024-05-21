@@ -31,7 +31,8 @@
     settings = {
       stateVersion = "24.05";           # Base install version, not sure this matters when on flake
     }
-    // import ./flake_opts.nix;         # include configuration set during installation
+    // import ./flake_private.nix       # include configuration set during installation
+    // import ./flake_public.nix;       # include configuration set during installation
 
     # Allow for package patches, overrides and additions
     # * [allowUnfree](https://nixos.wiki/wiki/Unfree_Software)
@@ -71,7 +72,7 @@
     # These are the configurations for different use cases a.k.a. systems
     nixosConfigurations = {
 
-      # Defines configuration for the current system as defined in flake_opts.nix
+      # Defines configuration for the current system
       system = nixpkgs.lib.nixosSystem {
         inherit pkgs system specialArgs;
         modules = [
