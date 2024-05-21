@@ -18,4 +18,7 @@
   environment.systemPackages = with pkgs; [
     freecad
   ];
+  services.xserver.desktopManager.xfce.menu.overrides = [
+    { source = "${pkgs.freecad}/share/applications/org.freecadweb.FreeCAD.desktop"; categories = "Graphics"; }
+  ];
 }
