@@ -6,7 +6,6 @@
 { options, config, lib, pkgs, args, f, ... }: with lib.types;
 let
   xcfg = config.services.xserver;
-  xfceCfg = xcfg.desktopManager.xfce;
 
   # Build the package from the local files
   customFonts = pkgs.runCommandLocal "fonts" {} ''

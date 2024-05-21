@@ -5,5 +5,6 @@
   imports = [
     ./x11
     ./xfce
+    ./fonts.nix
   ];
 }
