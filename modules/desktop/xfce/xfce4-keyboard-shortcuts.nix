@@ -46,10 +46,7 @@ let
           </property>
           <property name="custom" type="empty">
             <property name="&lt;Alt&gt;Print" type="string" value="xfce4-screenshooter -w"/>
-            <property name="&lt;Super&gt;r" type="string" value="xfce4-appfinder -c">
-              <property name="startup-notify" type="bool" value="true"/>
-            </property>
-            <property name="&lt;Alt&gt;F3" type="string" value="xfce4-appfinder">
+            <property name="&lt;Super&gt;r" type="string" value="${cfg.appFinderCmd}">
               <property name="startup-notify" type="bool" value="true"/>
             </property>
             <property name="Print" type="string" value="xfce4-screenshooter"/>
@@ -79,7 +76,7 @@ let
             <property name="&lt;Super&gt;Left" type="string" value="wmctl place halfw left"/>
             <property name="&lt;Super&gt;Right" type="string" value="wmctl place halfw right"/>
             <property name="${cfg.dropDownTerminalKey}" type="string" value="xfce4-terminal --hide-menubar --drop-down"/>
-            <property name="${cfg.applicationsMenu}" type="string" value="xfce4-popup-applicationsmenu"/>
+            <property name="${cfg.appMenuKey}" type="string" value="xfce4-popup-applicationsmenu"/>
           </property>
         </property>
         <property name="xfwm4" type="empty">
@@ -222,10 +219,15 @@ in
         default = "&lt;Super&gt;Tab";
         description = lib.mdDoc "Switch to the next workspace";
       };
-      applicationsMenu = lib.mkOption {
+      appMenuKey = lib.mkOption {
         type = types.str;
         default = "&lt;Super&gt;space";
         description = lib.mdDoc "Activate the applications menu";
+      };
+      appFinderCmd = lib.mkOption {
+        type = types.str;
+        default = if config.programs.dmenu.enable then config.programs.dmenu.run else "xfce4-appfinder -c";
+        description = lib.mdDoc "App finder command to use";
       };
     };
   };

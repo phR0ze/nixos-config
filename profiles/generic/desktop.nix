@@ -43,9 +43,6 @@
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.lightdm.enableGnomeKeyring = true;
 
-  # Application launcher
-  #dmenu_run -fn -misc-fixed-*-*-*-*-20-200-*-*-*-*-*-*  -i -nb '#000000' -nf '#efefef' -sf '#000000' -sb '#3cb0fd'
-
   environment.systemPackages = with pkgs; [
 
     # System
