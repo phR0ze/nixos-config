@@ -2,6 +2,7 @@
 temp
 files.log
 files.tmp
+flake_private.nix
 /hardware-configuration.nix
 nixos.qcow2
 result
