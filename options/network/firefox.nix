@@ -5,6 +5,7 @@
 { options, config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.programs.firefox;
+  xft = config.services.xserver.xft;
 
   lock-false = {
     Value = false;
@@ -20,8 +21,9 @@ in
     programs.firefox = {
       languagePacks = [ "en-US" ];            # Spell checking support
 
-      /* ---- POLICIES ---- */
-      # Check about:policies#documentation for options.
+      # POLICIES
+      # --------------------------------------------------------------------------------------------
+      # To check documentation for more configuration browse to: `about:policies#documentation`
       policies = {
         DisableTelemetry = true;              # Prevent the collection of telemetry data
         DisableFirefoxStudies = true;         # Prevent Firefox from running studies
@@ -45,7 +47,8 @@ in
         #DisplayMenuBar = "default-off";      # alternatives: "always", "never" or "default-on"
         #SearchBar = "unified";               # alternative: "separate"
 
-        /* ---- EXTENSIONS ---- */
+        ## EXTENSIONS
+        # ------------------------------------------------------------------------------------------
         # Check about:support for extension/add-on ID strings.
         # Valid strings for installation_mode are "allowed", "blocked",
         # "force_installed" and "normal_installed".
@@ -66,8 +69,9 @@ in
 
         };
 
-        /* ---- PREFERENCES ---- */
-        # Check about:config for options.
+        ## PREFERENCES
+        # ------------------------------------------------------------------------------------------
+        # To check for more configuration options browse to: `about:config`
         Preferences = { 
           "browser.contentblocking.category" = { Value = "strict"; Status = "locked"; };
           "browser.ctrlTab.sortByRecentlyUsed" = lock-true;
@@ -98,6 +102,12 @@ in
           "browser.newtabpage.activity-stream.showSponsored" = lock-false;
           "browser.newtabpage.activity-stream.system.showSponsored" = lock-false;
           "browser.newtabpage.activity-stream.showSponsoredTopSites" = lock-false;
+          "font.default.x-western" = { Value = "${xft.serif}"; };
+          "font.size.variable.x-western" = { Value = ${xft.serifWebSize}; };
+          "font.name.sans-serif.x-western" = { Value = "${xft.sans}"; };
+          "font.name.serif.x-western" = { Value = "${xft.serif}"; };
+          "font.name.monospace.x-western" = { Value = "${xft.monospace}"; };
+          "font.size.monospace.x-western" = { Value = ${xft.monospaceSize}; };
         };
       };
     };

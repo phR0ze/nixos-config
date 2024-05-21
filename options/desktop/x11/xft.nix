@@ -36,8 +36,13 @@ in
       };
       sans = lib.mkOption {
         type = types.str;
-        default = "Noto Sans Regular";
+        default = "Noto Sans";
         description = lib.mdDoc "Default sans serif font";
+      };
+      sansStyle = lib.mkOption {
+        type = types.str;
+        default = "Regular";
+        description = lib.mdDoc "Default sans serif font style";
       };
       sansSize = lib.mkOption {
         type = types.int;
@@ -46,13 +51,23 @@ in
       };
       serif = lib.mkOption {
         type = types.str;
-        default = "Noto Serif Regular";
+        default = "Noto Serif";
         description = lib.mdDoc "Default serif font";
+      };
+      serifStyle = lib.mkOption {
+        type = types.str;
+        default = "Regular";
+        description = lib.mdDoc "Default serif font style";
       };
       serifSize = lib.mkOption {
         type = types.int;
         default = 11;
         description = lib.mdDoc "Default serif font size";
+      };
+      serifWebSize = lib.mkOption {
+        type = types.int;
+        default = 16;
+        description = lib.mdDoc "Default serif font size for Browser use";
       };
       monospace = lib.mkOption {
         type = types.str;
