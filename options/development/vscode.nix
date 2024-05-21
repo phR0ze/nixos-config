@@ -169,6 +169,11 @@ in
   config = lib.mkMerge [
     (lib.mkIf (cfg.enable) {
       environment.systemPackages = with pkgs; [ vscode ];
+
+      # Set the correct menu category for vscode
+      services.xdg.menu.overrides = [
+        { source = "${pkgs.vscode}/share/applications/code.desktop"; categories = "Development"; }
+      ];
     })
 
     # configure settings

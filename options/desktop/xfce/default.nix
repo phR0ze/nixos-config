@@ -11,7 +11,6 @@ in
   imports = [
     ./displays.nix
     ./keyboards.nix
-    ./menu.nix
     ./thunar.nix
     ./xfce4-panel.nix
     ./xfce4-desktop.nix
@@ -53,29 +52,29 @@ in
           }]
         ++
           lib.optional config.deployment.type.develop { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
-
-        # 1. Determine the current app's desktop filename
-        #    e.g `ll /run/current-system/sw/share/applications`
-        #    e.g. xfce4-appfinder.desktop -> /nix/store/...-xfce4-appfinder-4.18.1/share/applications/xfce4-appfinder.desktop
-        # 2. Add an override to change the desktop entry
-        #    e.g. { source = "${pkgs.xfce.xfce4-appfinder}/share/applications/xfce4-appfinder.desktop"; noDisplay = true; }
-        xfce.menu.overrides = [
-          { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
-          { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; noDisplay = true; }
-          { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; noDisplay = true; }
-          { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-accessibility-settings.desktop"; noDisplay = true; }
-          { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce-settings-manager.desktop"; noDisplay = true; }
-          { source = "${pkgs.libreoffice}/share/applications/math.desktop"; categories = "Office"; }
-          { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; name = "Terminal"; }
-          { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
-          { source = "${pkgs.neovim}/share/applications/nvim.desktop"; categories = "Development"; }
-          { source = "${pkgs.veracrypt}/share/applications/veracrypt.desktop"; categories = "System"; }
-          { source = "${pkgs.winetricks}/share/applications/winetricks.desktop"; categories = "System"; }
-          { source = "${pkgs.protontricks}/share/applications/protontricks.desktop"; categories = "System"; }
-          { source = "${pkgs.libsForQt5.qtstyleplugin-kvantum}/share/applications/kvantummanager.desktop"; categories = "Settings"; }
-        ];
       };
     };
+
+    # 1. Determine the current app's desktop filename
+    #    e.g `ll /run/current-system/sw/share/applications`
+    #    e.g. xfce4-appfinder.desktop -> /nix/store/...-xfce4-appfinder-4.18.1/share/applications/xfce4-appfinder.desktop
+    # 2. Add an override to change the desktop entry
+    #    e.g. { source = "${pkgs.xfce.xfce4-appfinder}/share/applications/xfce4-appfinder.desktop"; noDisplay = true; }
+    services.xdg.menu.overrides = [
+      { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
+      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; noDisplay = true; }
+      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; noDisplay = true; }
+      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-accessibility-settings.desktop"; noDisplay = true; }
+      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce-settings-manager.desktop"; noDisplay = true; }
+      { source = "${pkgs.libreoffice}/share/applications/math.desktop"; categories = "Office"; }
+      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; name = "Terminal"; }
+      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
+      { source = "${pkgs.neovim}/share/applications/nvim.desktop"; categories = "Development"; }
+      { source = "${pkgs.veracrypt}/share/applications/veracrypt.desktop"; categories = "System"; }
+      { source = "${pkgs.winetricks}/share/applications/winetricks.desktop"; categories = "System"; }
+      { source = "${pkgs.protontricks}/share/applications/protontricks.desktop"; categories = "System"; }
+      { source = "${pkgs.libsForQt5.qtstyleplugin-kvantum}/share/applications/kvantummanager.desktop"; categories = "Settings"; }
+    ];
 
     environment.systemPackages = with pkgs.xfce // pkgs; [
       wmctl

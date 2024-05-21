@@ -35,6 +35,8 @@ in
   ];
 
   config = lib.mkIf cfg.enable {
+    services.xdg.enable = true;
+
     services.xserver = {
       displayManager = {
         lightdm = {

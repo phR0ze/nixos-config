@@ -3,6 +3,7 @@
 { ... }:
 {
   imports = [
+    ./freecad.nix
     ./smplayer.nix
     ./xnviewmp.nix
   ];

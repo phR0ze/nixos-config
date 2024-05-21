@@ -7,7 +7,7 @@ let
   cfg = config.services.xserver.desktopManager.xfce.panel;
   xfceCfg = config.services.xserver.desktopManager.xfce;
 
-  desktopType = (import ./desktop-type.nix {
+  desktopType = (import ../desktop-type.nix {
     inherit options config lib pkgs args;
   }).desktopType;
 

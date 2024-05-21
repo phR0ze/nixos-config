@@ -12,13 +12,7 @@
 
   hardware.amd-graphics.enable = true;
   services.barriers.enable = true;
+  programs.freecad.enable = true;
 
   #virtualization.virt-manager.enable = true;
-
-  environment.systemPackages = with pkgs; [
-    freecad
-  ];
-  services.xserver.desktopManager.xfce.menu.overrides = [
-    { source = "${pkgs.freecad}/share/applications/org.freecadweb.FreeCAD.desktop"; categories = "Graphics"; }
-  ];
 }
