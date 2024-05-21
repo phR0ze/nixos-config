@@ -24,17 +24,17 @@
 # %T  Time as %H:%M:%S
 # %Z  Time Zone Name 
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, args, ... }: with lib.types;
 let
   cfg = config.services.xserver;
 
 in
 {
-  config = lib.mkIf cfg.enable {
-    imports = [
-      ./xft.nix
-    ];
+  imports = [
+    ./xft.nix
+  ];
 
+  config = lib.mkIf cfg.enable {
     services.xserver = {
       displayManager = {
         lightdm = {
@@ -68,32 +68,6 @@ in
         };
       };
     };
-
-    # Configure .Xresources
-    services.xserver.displayManager.sessionCommands = ''
-      ${pkgs.xorg.xrdb}/bin/xrdb -merge <${pkgs.writeText "Xresources" ''
-        Xft.dpi: ${toString xft.dpi}
-        Xft.rgba: ${xft.rgba}
-        Xft.hinting: true
-        Xft.antialias: ${f.boolToStr xft.antiAlias}
-        Xft.hintstyle: ${xft.hintingStyle}
-        Xft.lcdfilter: lcddefault
-        XScreenSaver.dpmsEnabled: false
-
-        *loginShell: true
-        *saveLines: 65535
-
-        *background: #1c1c1c
-        *foreground: #d0d0d0
-        *cursorColor: #ff5f00
-        *cursorColor2: #000000
-
-        *fontName: ${xft.monospace}:style=${xft.monospaceStyle}:size=${toString xft.monospaceSize}
-
-        Xcursor.theme: ${xft.cursorTheme}
-        Xcursor.size: ${toString xft.cursorSize}
-      ''}
-    '';
 
     # Disable power management stuff to avoid blanking
     environment.etc."X11/xorg.conf.d/20-dpms.conf".text = ''

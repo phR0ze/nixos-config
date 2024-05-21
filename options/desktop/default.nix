@@ -6,5 +6,6 @@
     ./x11
     ./xfce
     ./fonts.nix
+    ./xdg.nix
   ];
 }

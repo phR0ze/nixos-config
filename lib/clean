@@ -18,8 +18,8 @@ Commands:
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "Clean nix store: ${green}./${SCRIPT} clean all${none}"
-    log::subln "Clean nix store: ${green}./${SCRIPT} clean store${none}"
+    log::subln "Clean nix store only: ${green}./${SCRIPT} clean store${none}"
+    log::subln "Clean nix store and generations: ${green}./${SCRIPT} clean all${none}"
     log::subln "Clean nix store package: ${green}./${SCRIPT} clean pkg /nix/store/1234${none}"
     echo
     exit
