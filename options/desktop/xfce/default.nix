@@ -3,7 +3,7 @@
 { ... }:
 {
   imports = [
-    ./x11
-    ./xfce
+    ./menu.nix
+    ./xfce4-panel.nix
   ];
 }

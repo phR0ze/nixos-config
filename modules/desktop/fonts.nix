@@ -50,7 +50,6 @@ in
         subpixel.rgba = xcfg.xft.rgba;    # See option for more details
         defaultFonts.monospace = [
           "${xcfg.xft.monospace} ${xcfg.xft.monospaceStyle}"
-          "DejaVu Sans Mono Book"
           "Hack Nerd Font Mono Regular"
           "Source Code Pro Regular"
         ];
