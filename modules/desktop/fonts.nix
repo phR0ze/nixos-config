@@ -86,6 +86,7 @@ in
         fira                          # Sans-serif font for Firefox OS
         fira-code-nerdfont            # Mozilla foundation monospace font with programming ligatures
         font-awesome                  # Font Awesome OTF font
+        google-fonts                  # Google Fonts
         inconsolata-nerdfont          # A monospace font for both screen and print
         liberation_ttf                # Font replacements for Times New Roman, Arial and Courier New
         ubuntu_font_family            # Ubuntu font family
