@@ -1,7 +1,8 @@
 # X11 xft options
 #---------------------------------------------------------------------------------------------------
-{ config, lib, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
+  xcfg = config.services.xserver;
   cfg = config.services.xserver.xft;
 
 in
@@ -89,5 +90,34 @@ in
         description = lib.mdDoc "Xft anti-aliasing hinting";
       };
     };
+  };
+
+  config = lib.mkIf xcfg.enable {
+
+    # Configure .Xresources
+    services.xserver.displayManager.sessionCommands = ''
+      ${pkgs.xorg.xrdb}/bin/xrdb -merge <${pkgs.writeText "Xresources" ''
+        Xft.dpi: ${toString cfg.dpi}
+        Xft.rgba: ${cfg.rgba}
+        Xft.hinting: true
+        Xft.antialias: ${f.boolToStr cfg.antiAlias}
+        Xft.hintstyle: ${cfg.hintingStyle}
+        Xft.lcdfilter: lcddefault
+        XScreenSaver.dpmsEnabled: false
+
+        *loginShell: true
+        *saveLines: 65535
+
+        *background: #1c1c1c
+        *foreground: #d0d0d0
+        *cursorColor: #ff5f00
+        *cursorColor2: #000000
+
+        *fontName: ${cfg.monospace}:style=${cfg.monospaceStyle}:size=${toString cfg.monospaceSize}
+
+        Xcursor.theme: ${cfg.cursorTheme}
+        Xcursor.size: ${toString cfg.cursorSize}
+      ''}
+    '';
   };
 }
