@@ -13,12 +13,14 @@
     ../../modules/hardware/printers.nix
     ../../modules/hardware/video.nix
     ../../modules/network/firefox.nix
-    ../../modules/desktop/xfce
     ../../modules/desktop/backgrounds/opt.nix
     ../../modules/desktop/fonts.nix
     ../../modules/desktop/icons.nix
     ../../modules/desktop/xdg.nix
   ];
+
+  # Enable XFCE and all needed components
+  services.xserver.desktopmanager.xfce.enable = true;
 
   # Additional programs and services
   programs.dmenu.enable = true;         # Configure dmenu
