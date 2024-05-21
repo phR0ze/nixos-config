@@ -8,7 +8,6 @@
 let
   backgrounds = pkgs.callPackage ../backgrounds { };
   wmctl = pkgs.callPackage ../wmctl { };
-  deployment = config.deployment;
 
 in
 {
@@ -45,7 +44,7 @@ in
         { name = "XnviewMP"; exec = "xnviewmp"; icon = "xnviewmp"; }
       ]
       ++
-        lib.optional deployment.type.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
+        lib.optional config.deployment.type.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
       ++ [
         { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
         { name = "HandBrake"; exec = "ghb"; icon = "fr.handbrake.ghb"; }
@@ -56,8 +55,13 @@ in
         { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; 
         }]
       ++
-        lib.optional deployment.type.develop { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
+        lib.optional config.deployment.type.develop { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
 
+      # 1. Determine the current app's desktop filename
+      #    e.g `ll /run/current-system/sw/share/applications`
+      #    e.g. xfce4-appfinder.desktop -> /nix/store/...-xfce4-appfinder-4.18.1/share/applications/xfce4-appfinder.desktop
+      # 2. Add an override to change the desktop entry
+      #    e.g. { source = "${pkgs.xfce.xfce4-appfinder}/share/applications/xfce4-appfinder.desktop"; noDisplay = true; }
       xfce.menu.overrides = [
         { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
         { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; noDisplay = true; }
@@ -85,5 +89,7 @@ in
     mousepad                          # Xfce default, simple text editor
     parole                            # Xfce default, simple media player
     ristretto                         # Xfce default, i like qview better
-  ];
+  ]
+  # Conditionally include xfce4-appfinder if using an alternate app finder
+  ++ lib.optional config.programs.dmenu.enable xfce4-appfinder;
 }
