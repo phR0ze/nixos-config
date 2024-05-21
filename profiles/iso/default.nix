@@ -23,7 +23,7 @@
   isoImage.volumeID = "${config.isoImage.isoBaseName}-installer";
 
   # Clearing out the hashed form to avoid the warning during ISO creation.
-  # The passwords are set in the ../../modules/users.nix file via the flake_opts.nix
+  # The passwords are set in the ../../modules/users.nix file via the flake_private.nix
   users.users.root.initialHashedPassword = lib.mkForce null;
   users.users.nixos.initialHashedPassword = lib.mkForce null;
 

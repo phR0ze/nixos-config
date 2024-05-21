@@ -83,8 +83,8 @@ USAGE
 [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && core::usage
 
 # Ensure user settable options is NOT group or all readable/writable
-[[ -f /etc/nixos/flake_opts.nix ]] && sudo chmod go-rw /etc/nixos/flake_opts.nix
-[[ -f "${SCRIPT_DIR}/flake_opts.nix" ]] && sudo chmod go-rw "${SCRIPT_DIR}/flake_opts.nix"
+[[ -f /etc/nixos/flake_private.nix ]] && sudo chmod go-rw /etc/nixos/flake_private.nix
+[[ -f "${SCRIPT_DIR}/flake_private.nix" ]] && sudo chmod go-rw "${SCRIPT_DIR}/flake_private.nix"
 
 # Handle debug mode
 if [[ $1 == "--debug" ]]; then
