@@ -12,7 +12,6 @@
     ../../modules/hardware/firmware.nix
     ../../modules/hardware/printers.nix
     ../../modules/hardware/video.nix
-    ../../modules/network/firefox.nix
     ../../modules/desktop/backgrounds/opt.nix
     ../../modules/desktop/icons.nix
   ];
@@ -28,6 +27,7 @@
   programs.prismlauncher.enable = true; # Minecraft launcher
 
   programs.geany.enable = true;         # Simple text editor
+  programs.firefox.enable = true;       # Mozilla browser
   programs.filezilla.enable = true;     # Network/Transfer
   programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
   programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
