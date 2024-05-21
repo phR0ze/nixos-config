@@ -83,7 +83,7 @@ in
         })
         corefonts                     # Microsoft's TrueType core fonts for the Web
         dejavu_fonts                  # A typeface family based on the Bitstream Vera fonts
-        fira                          # Sans-serif font for Firefox OS
+        #fira                          # Sans-serif font for Firefox OS
         fira-code-nerdfont            # Mozilla foundation monospace font with programming ligatures
         font-awesome                  # Font Awesome OTF font
         google-fonts                  # Google Fonts
@@ -93,8 +93,8 @@ in
         source-code-pro               # Monospaced font family for coding environments
         source-sans-pro               # Sans variant of source pro fonts
         source-serif-pro              # Serif variant of source pro fonts
-        roboto-mono                   # Google Roboto Mono fonts
-        roboto                        # Google Roboto family of fonts
+        #roboto-mono                   # Google Roboto Mono fonts
+        #roboto                        # Google Roboto family of fonts
         terminus-nerdfont             # A clean fixed width font
       ];
     };
