@@ -6,6 +6,7 @@
 { options, config, lib, pkgs, args, f, ... }: with lib.types;
 let
   xcfg = config.services.xserver;
+  xft = xcfg.xft;
 
   # Build the package from the local files
   customFonts = pkgs.runCommandLocal "fonts" {} ''
@@ -41,24 +42,24 @@ in
 
       fontconfig = {
         enable = true;                    # Enable Fontconfig for X11 applications
-        antialias = xcfg.xft.antiAlias;   # Enable font antialising
+        antialias = xft.antiAlias;        # Enable font antialising
         hinting = {
           enable = true;                  # Enable font hinting
           style = "full";                 # Configure slight hinting style
         };
-        subpixel.rgba = xcfg.xft.rgba;    # See option for more details
+        subpixel.rgba = xft.rgba;         # See option for more details
         defaultFonts.monospace = [
-          "${xcfg.xft.monospace} ${xcfg.xft.monospaceStyle}"
+          "${xft.monospace} ${xft.monospaceStyle}"
           "Hack Nerd Font Mono Regular"
           "Source Code Pro Regular"
         ];
         defaultFonts.sansSerif = [
-          "${xcfg.xft.sans}"
+          "${xft.sans} ${xft.sansStyle}"
           "Source Sans Pro Regular"
           "Liberation Sans Regular"
         ];
         defaultFonts.serif = [
-          "${xcfg.xft.serif}"
+          "${xft.serif} ${xft.serifStyle}"
           "Source Serif Pro Regular"
           "Liberation Serif Regular"
         ];
