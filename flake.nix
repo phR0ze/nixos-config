@@ -87,8 +87,15 @@
         inherit pkgs system specialArgs;
         modules = [
           ./options
-          #./hardware-configuration.nix
           (./. + "/profiles" + ("/" + settings.profile + ".nix"))
+          ({
+            virtualisation.vmVariant = {
+              virtualisation = {
+                memorySize = 4096;
+                cores = 4;
+              };
+            };
+          })
         ];
       };
 
