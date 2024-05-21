@@ -35,17 +35,17 @@ in
       };
       sans = lib.mkOption {
         type = types.str;
-        default = "DejaVu Sans Book";
-        description = lib.mdDoc "Default sans font";
+        default = "Noto Sans Regular";
+        description = lib.mdDoc "Default sans serif font";
       };
       sansSize = lib.mkOption {
         type = types.int;
         default = 11;
-        description = lib.mdDoc "Default sans font size";
+        description = lib.mdDoc "Default sans serif font size";
       };
       serif = lib.mkOption {
         type = types.str;
-        default = "DejaVu Serif Book";
+        default = "Noto Serif Regular";
         description = lib.mdDoc "Default serif font";
       };
       serifSize = lib.mkOption {
