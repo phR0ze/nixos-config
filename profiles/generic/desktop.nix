@@ -19,20 +19,25 @@
   # Enable XFCE and all needed components
   services.xserver.desktopManager.xfce.enable = true;
 
-  # Additional programs and services
-  programs.dmenu.enable = true;         # Configure dmenu
-  programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
-  programs.steam.enable = true;         # Digital distribution platform from Valve
-  programs.qbittorrent.enable = true;   # Excellent bittorrent client
-  programs.prismlauncher.enable = true; # Minecraft launcher
-
+  # Office
   programs.geany.enable = true;         # Simple text editor
-  programs.firefox.enable = true;       # Mozilla browser
-  programs.filezilla.enable = true;     # Network/Transfer
-  programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
+  programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
+
+  # Multimedia
   programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
+  programs.steam.enable = true;         # Digital distribution platform from Valve
+  programs.prismlauncher.enable = true; # Minecraft launcher
   programs.xnviewmp.enable = true;      # Excellent image viewer
 
+  # Network
+  programs.firefox.enable = true;       # Mozilla browser
+  programs.filezilla.enable = true;     # Network/Transfer
+  programs.qbittorrent.enable = true;   # Excellent bittorrent client
+
+  # System
+  programs.dmenu.enable = true;         # Configure dmenu
+  programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
+  programs.hardinfo.enable = true;      # A system information and benchmark tool
   services.fwupd.enable = true;         # Firmware update tool for BIOS, etc...
   services.gvfs.enable = true;          # GVfs virtual filesystem
 
@@ -115,7 +120,6 @@
     galculator                          # Simple calculator
     gnome-multi-writer                  # Tool for writing an ISO file to multiple USB devices at once
     htop                                # Better top tool
-    hardinfo                            # A system information and benchmark tool
     light                               # Control backlights for screen and keyboard
     veracrypt                           # Free Open-Source filesystem encryption
 

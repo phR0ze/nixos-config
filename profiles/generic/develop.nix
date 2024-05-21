@@ -15,10 +15,6 @@
   development.rust.enable = true;
   development.android.enable = true;
 
-  services.xserver.desktopManager.xfce.menu.overrides = [
-    { source = "${pkgs.vscode}/share/applications/code.desktop"; categories = "Development"; }
-  ];
-
   environment.systemPackages = with pkgs; [
     chromium                            # An open source web browser from Google
     gnumake                             # A tool to control the generation of non-source files from sources
