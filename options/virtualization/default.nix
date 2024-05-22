@@ -4,5 +4,6 @@
 {
   imports = [
     ./virt-manager.nix
+    ./winetricks.nix
   ];
 }

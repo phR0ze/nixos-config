@@ -24,7 +24,6 @@
     ./bash.nix
     ./starship.nix
     ../development/git.nix
-    ../development/neovim.nix
     ../services/nfs.nix
     ../services/sshd.nix
     ../services/systemd.nix
@@ -34,6 +33,7 @@
 
   network.network-manager.enable = true;
   programs.tmux.enable = true;
+  programs.neovim.enable = true;
 
   # Install hardware firmware
   # https://github.com/NixOS/nixpkgs/blob/release-23.11/nixos/modules/hardware/all-firmware.nix

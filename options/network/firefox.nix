@@ -102,12 +102,12 @@ in
           "browser.newtabpage.activity-stream.showSponsored" = lock-false;
           "browser.newtabpage.activity-stream.system.showSponsored" = lock-false;
           "browser.newtabpage.activity-stream.showSponsoredTopSites" = lock-false;
-          "font.default.x-western" = { Value = "${xft.serif}"; };
-          "font.size.variable.x-western" = { Value = xft.serifWebSize; };
-          "font.name.sans-serif.x-western" = { Value = "${xft.sans}"; };
-          "font.name.serif.x-western" = { Value = "${xft.serif}"; };
-          "font.name.monospace.x-western" = { Value = "${xft.monospace}"; };
-          "font.size.monospace.x-western" = { Value = xft.monospaceSize; };
+#          "font.default.x-western" = { Value = "${xft.serif}"; };
+#          "font.size.variable.x-western" = { Value = xft.serifWebSize; };
+#          "font.name.sans-serif.x-western" = { Value = "${xft.sans}"; };
+#          "font.name.serif.x-western" = { Value = "${xft.serif}"; };
+          "font.name.monospace.x-western" = { Value = "${xft.monospace}"; Status = "locked"; };
+#          "font.size.monospace.x-western" = { Value = xft.monospaceSize; };
         };
       };
     };

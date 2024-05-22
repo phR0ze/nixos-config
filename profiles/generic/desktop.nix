@@ -19,14 +19,18 @@
   # Enable XFCE and all needed components
   services.xserver.desktopManager.xfce.enable = true;
 
+  # Gaming
+  programs.steam.enable = true;         # Digital distribution platform from Valve
+  programs.protontricks.enable = true;  # A simple wrapper for running Winetricks commands for Proton-enabled games
+  programs.prismlauncher.enable = true; # Minecraft launcher
+  programs.winetricks.enable = true;    # A script to install DLLs needed to work around problems in Wine
+
   # Office
   programs.geany.enable = true;         # Simple text editor
   programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
 
   # Multimedia
   programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
-  programs.steam.enable = true;         # Digital distribution platform from Valve
-  programs.prismlauncher.enable = true; # Minecraft launcher
   programs.xnviewmp.enable = true;      # Excellent image viewer
 
   # Network
@@ -100,9 +104,6 @@
     # Game
     #cartridges                          # A GTK4 + Libadwaita game launcher
     lutris                              # Open Source gaming platform for GNU/Linux
-    wine                                # An Open Source implementation of the Windows API on top of X, OpenGL, and Unix
-    winetricks                          # A script to install DLLs needed to work around problems in Wine
-    protontricks                        # A simple wrapper for running Winetricks commands for Proton-enabled games
 
     # Office
     hunspell                            # LibreOffice spell checker and actively maintained

@@ -12,6 +12,7 @@ in
     ./displays.nix
     ./keyboards.nix
     ./thunar.nix
+    ./menu.nix
     ./xfce4-panel.nix
     ./xfce4-desktop.nix
     ./xfce4-keyboard-shortcuts.nix
@@ -55,12 +56,20 @@ in
       };
     };
 
+    # 1. Determine the desktop directory filename
+    #    e.g `ll /run/current-system/sw/share/desktop-directories/xfce-network.directory`
+    # 2. Add an override to change the desktop entry
+    #    e.g. { source = "${pkgs.xfce.garcon}/share/desktop-directories/xfce-network.directory"; name = "Network"; }
+    services.xdg.menu.dirOverrides = [
+      { source = "${pkgs.xfce.garcon}/share/desktop-directories/xfce-network.directory"; name = "Network"; }
+      { source = "${pkgs.xfce.garcon}/share/desktop-directories/xfce-network.directory"; icon = "applications-utilities"; }
+    ];
+
     # 1. Determine the current app's desktop filename
-    #    e.g `ll /run/current-system/sw/share/applications`
-    #    e.g. xfce4-appfinder.desktop -> /nix/store/...-xfce4-appfinder-4.18.1/share/applications/xfce4-appfinder.desktop
+    #    e.g `ll /run/current-system/sw/share/applications/xfce4-appfinder.desktop`
     # 2. Add an override to change the desktop entry
     #    e.g. { source = "${pkgs.xfce.xfce4-appfinder}/share/applications/xfce4-appfinder.desktop"; noDisplay = true; }
-    services.xdg.menu.overrides = [
+    services.xdg.menu.itemOverrides = [
       { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; noDisplay = true; }
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; noDisplay = true; }
@@ -69,10 +78,7 @@ in
       { source = "${pkgs.libreoffice}/share/applications/math.desktop"; categories = "Office"; }
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; name = "Terminal"; }
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
-      { source = "${pkgs.neovim}/share/applications/nvim.desktop"; categories = "Development"; }
       { source = "${pkgs.veracrypt}/share/applications/veracrypt.desktop"; categories = "System"; }
-      { source = "${pkgs.winetricks}/share/applications/winetricks.desktop"; categories = "System"; }
-      { source = "${pkgs.protontricks}/share/applications/protontricks.desktop"; categories = "System"; }
       { source = "${pkgs.libsForQt5.qtstyleplugin-kvantum}/share/applications/kvantummanager.desktop"; categories = "Settings"; }
     ];
 

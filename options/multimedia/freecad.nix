@@ -16,7 +16,7 @@ in
     environment.systemPackages = with pkgs; [ freecad ];
 
     # Set the correct menu category to keep the menu clean
-    services.xdg.menu.overrides = [
+    services.xdg.menu.itemOverrides = [
       {
         categories = "Graphics";
         source = "${pkgs.freecad}/share/applications/org.freecadweb.FreeCAD.desktop";
