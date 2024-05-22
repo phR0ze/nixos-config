@@ -5,5 +5,7 @@
   imports = [
     ./minecraft-server.nix
     ./prismlauncher.nix
+    ./protontricks.nix
+    ./steam.nix
   ];
 }

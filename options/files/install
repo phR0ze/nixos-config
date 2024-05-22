@@ -25,9 +25,18 @@ files="$dst/files"                      # link to current files store path
 owned_log="$dst/files.owned"            # track all the owned files
 owned_tmp="$dst/files.owned.tmp"        # old unowned files copied or linked
 unowned_log="$dst/files.unowned"        # track all the unowned files
-unowned_tmp="$dst/files.unowned.tmp"        # old unowned files copied or linked
+unowned_tmp="$dst/files.unowned.tmp"    # old unowned files copied or linked
 lock="$dst/files.lock"                  # don't do anything if the lock file exists
 debug=false                             # debug mode for extra logging
+
+# Log output if debug is set to true
+log() {
+  if [[ "$debug" == true ]]; then
+    echo "$1"
+  else
+    echo -n "."
+  fi
+}
 
 # Clean up any files left over from the previous install
 clean() {
@@ -58,7 +67,7 @@ clean() {
 
     # Remove the file if it no longer exists
     if [[ "$_exists" != true ]]; then
-      echo " removing: $x"
+      log " removing: $x"
       if [[ -d "$x" ]]; then
         rm -rf "$x"
       else
@@ -97,8 +106,8 @@ mkdir_p() {
   fi
 
   # Create the missing directory component
-  echo "    mkdir: $_dir"
-  echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+  log "    mkdir: $_dir"
+  log "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
   mkdir -m $dirmode "$_dir"
   chown $user:$group "$_dir"
 }
@@ -130,8 +139,8 @@ copy() {
   fi
 
   if [[ "$_copy" == true ]]; then
-    echo "  copying: $_src -> $_target"
-    echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+    log "  copying: $_src -> $_target"
+    log "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
 
     # install
     # - is more performant as it does this operation in one go
@@ -149,18 +158,18 @@ link() {
 
   # Update link if it doesn't exist or is incorrect
   if [[ ! -f "$_target" ]]; then
-    echo "  linking: $_target -> $_inter -> $_src"
-    echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+    log "  linking: $_target -> $_inter -> $_src"
+    log "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     ln -sf "$_inter" "$_target"
   elif [[ "$(realpath "$_target")" != "$_src" ]]; then
-    echo " updating: $_target -> $_inter -> $_src"
-    echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+    log " updating: $_target -> $_inter -> $_src"
+    log "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     rm -f "$_target"                          # clean to ensure it doesn't exist
     ln -sf "$_inter" "$_target"
   else
     if [[ "$debug" == true ]]; then
-      echo "  leaving: $_target -> $_inter -> $_src"
-      echo "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
+      log "  leaving: $_target -> $_inter -> $_src"
+      log "        >> kind=$kind, own=$own, dirmode=$dirmode, filemode=$filemode, user=$user, group=$group"
     fi
   fi
 }
@@ -221,7 +230,7 @@ mkdirs() {
 
     # Don't track directories as its too dangerous to remove them
     #if [[ "$own" == "owned" ]]; then
-    #  echo "$_src" >> "$owned_log"
+    #  log "$_src" >> "$owned_log"
     #fi
 
     # Search the directory and copy or link the store paths to the system.
@@ -260,3 +269,5 @@ fi
 mkdirs      # make dirs first
 mkfiles     # make files second
 clean       # clean up last
+
+# vim: ts=2:sw=2:sts=2

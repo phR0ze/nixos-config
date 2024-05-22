@@ -7,9 +7,9 @@
 let
   cfg = config.programs.dmenu;
 
-  runDesktopFilePackage = pkgs.runCommandLocal "run" {} ''
+  dmenuDesktopFilePackage = pkgs.runCommandLocal "dmenu" {} ''
     mkdir -p $out/share/applications
-    cat > $out/share/applications/run.desktop <<EOF
+    cat > $out/share/applications/dmenu.desktop <<EOF
     [Desktop Entry]
     Version=1.1
     Type=Application
@@ -37,7 +37,7 @@ in
   config = lib.mkIf (cfg.enable) {
     environment.systemPackages = with pkgs; [
       dmenu
-      runDesktopFilePackage
+      dmenuDesktopFilePackage
     ];
 
     # Trigger linking the package to the system path /run/current-system/sw 
