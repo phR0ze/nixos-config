@@ -58,7 +58,7 @@ in
           "video/x-matroska" = "smplayer.desktop";
           "video/quicktime" = "smplayer.desktop";
         };
-        defaultAssociations = {
+        defaultApplications = {
           "application/pdf" = "org.gnome.Evince.desktop";
           "image/gif" = "com.interversehq.qView.desktop";
           "image/jpeg" = "com.interversehq.qView.desktop";
