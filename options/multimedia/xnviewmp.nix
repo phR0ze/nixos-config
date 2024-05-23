@@ -1,4 +1,5 @@
 # Xnview options
+# - no longer using this as Thunar does a better job
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
