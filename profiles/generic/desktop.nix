@@ -32,7 +32,6 @@
   # Multimedia
   programs.qview.enable = true;         # Simple image viewer with webp support
   programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
-  programs.xnviewmp.enable = true;      # Excellent image viewer
 
   # Network
   programs.firefox.enable = true;       # Mozilla browser
