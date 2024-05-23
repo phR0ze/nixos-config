@@ -4,8 +4,8 @@
 {
   imports = [
     ./x11
+    ./xdg
     ./xfce
     ./fonts.nix
-    ./xdg.nix
   ];
 }
