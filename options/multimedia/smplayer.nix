@@ -43,6 +43,7 @@ let
       [gui]
       gui=MiniGUI
       iconset=${cfg.theme}
+      mouse_wheel_function=${cfg.mouseWheelFunction}
       mouse_double_click_function=fullscreen
       mouse_left_click_function=play_or_pause
       mouse_middle_click_function=mute
@@ -59,6 +60,16 @@ in
         type = types.str;
         default = "Numix-remix";
         description = lib.mdDoc "Smplayer theme to use";
+      };
+      mouseWheelFunction = lib.mkOption {
+        type = types.str;
+        default = "4";
+        description = lib.mdDoc ''
+           2 Media seeking
+           4 Volume control
+           8 Zoom video
+          16 Change speed
+        '';
       };
     };
   };
