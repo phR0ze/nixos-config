@@ -6,13 +6,15 @@
 #
 # Example to enable USER as an operator:
 # 1. Listen for server output: `journalctl -u minecraft-server -f`
-# 2. Feed it commands as root: `echo "op USER" > /run/minecraft-server.stdin`
+# 2. Feed it commands as root:
+#    sudo su
+#    echo "op USER" > /run/minecraft-server.stdin
 #
 # ### Awesome seeds
 # * https://www.pcgamer.com/best-minecraft-seeds/
-# * The Dark Tower: 3477968804511828743
-# * Village Mansion Island: 5705783928676095273
-# * Ancient City: 7980363013909395816 (194, -44, -7)
+#   * The Dark Tower: 3477968804511828743
+#   * Village Mansion Island: 5705783928676095273
+#   * Ancient City: 7980363013909395816 (194, -44, -7)
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -27,6 +29,11 @@ in
         default = "5705783928676095273";
         description = "Level seed";
       };
+      memory = lib.mkOption {
+        type = types.int;
+        default = 4;
+        description = "Amount of memory in GB to use";
+      };
       gameMode = lib.mkOption {
         type = types.str;
         default = "survival";
@@ -37,10 +44,10 @@ in
         default = "normal";
         description = "Game difficulty to run in";
       };
-      online = lib.mkOption {
+      lanOnly = lib.mkOption {
         type = types.bool;
-        default = false;
-        description = "Is the server to receive client from the internet";
+        default = true;
+        description = "Set to false for account validation against minecraft.net";
       };
     };
   };
@@ -53,11 +60,14 @@ in
       # Minecraft data files for state location
       dataDir = "/var/lib/minecraft";
 
+      # Open ports in the server's firewall so others on the LAN can connect
+      openFirewall = true;
+
       # JVM configuration
       # https://github.com/brucethemoose/Minecraft-Performance-Flags-Benchmarks?tab=readme-ov-file#server-g1gc
       jvmOpts = lib.concatStringsSep " " [
-        "-Xms4G -Xmx4G"                         # always bound the amount of memory allowed to the JVM
-        "-XX:+UseG1GC"                          # use the G1GC garbabe collector
+        "-Xms${toString cfg.memory}G -Xmx${toString cfg.memory}G"   # always bound the memory allowed the JVM
+        "-XX:+UseG1GC"                                              # use the G1GC garbabe collector
         "-XX:MaxGCPauseMillis=130"
         "-XX:+UnlockExperimentalVMOptions"
         "-XX:+DisableExplicitGC"
@@ -83,7 +93,7 @@ in
         level-seed = cfg.levelSeed;             # world generates with random see if left blank
         gamemode = cfg.gameMode;                # survival | creative | adventure | spectator
         difficulty = cfg.difficulty;            # peaceful | easy | normal | hard
-        online-mode = cfg.online;               # set to false if server is not connected to internet
+        online-mode = ! cfg.lanOnly;            # set lanOnly to false for account validation against minecraft.net
       };
     };
   };

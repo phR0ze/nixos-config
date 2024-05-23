@@ -10,6 +10,6 @@
   ];
 
   programs.tinyMediaManager.enable = true;
+  services.minecraft-server.enable = true;
   #virtualization.virt-manager.enable = true;
-  #services.minecraft-server.enable = true;
 }
