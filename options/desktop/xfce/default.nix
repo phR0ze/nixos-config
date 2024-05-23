@@ -38,7 +38,6 @@ in
         xfce.panel.launchers = [
           { name = "Alacritty"; exec = "alacritty"; icon = "Alacritty"; }
           { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
-          { name = "XnviewMP"; exec = "xnviewmp"; icon = "xnviewmp"; }
         ]
         ++
           lib.optional config.deployment.type.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
