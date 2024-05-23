@@ -48,6 +48,10 @@ let
       mouse_left_click_function=play_or_pause
       mouse_middle_click_function=mute
       mouse_right_click_function=show_context_menu
+
+      [actions]
+      close=Ctrl+W
+      open_file=Ctrl+O
     '');
 
 in
