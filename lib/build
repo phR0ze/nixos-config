@@ -19,11 +19,12 @@ Options:
 
 Commands:
   iso               Build the installable ISO
-  vm                Build the test VM
+  vm [PROFILE]      Build the test VM with an optional profile override
 USAGE
 
     log::ln "\nExamples:"
     log::subln "Build the test VM: ${green}./${SCRIPT} build vm${none}"
+    log::subln "Build server test VM: ${green}./${SCRIPT} build vm generic/server${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
     echo
     exit
@@ -62,5 +63,22 @@ build::vm()
 {
     core::title
     log::header0 "Building test VM"
+
+    # Switch profile if directed
+    local profile="$1"
+    local opts="${SCRIPT_DIR}/flake_public.nix"
+    if [[ "$profile" != "" ]]; then
+        log::ln "Switching VM profile to ${cyan}${profile}${none}"
+        utils::replace str "profile" "${profile}" "${opts}"
+        git add "${opts}"
+    fi
+
     nix build .#nixosConfigurations.vm.config.system.build.vm
+
+    # Restore the profile back to the original
+    if [[ "$profile" != "" ]]; then
+        log::ln "Restoring profile back to original"
+        git restore --staged "${opts}"
+        git checkout "${opts}"
+    fi
 }
