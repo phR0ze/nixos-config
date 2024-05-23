@@ -62,7 +62,7 @@ in
     #    e.g. { source = "${pkgs.xfce.garcon}/share/desktop-directories/xfce-network.directory"; name = "Network"; }
     services.xdg.menu.dirOverrides = [
       { source = "${pkgs.xfce.garcon}/share/desktop-directories/xfce-network.directory"; name = "Network"; }
-      { source = "${pkgs.xfce.garcon}/share/desktop-directories/xfce-network.directory"; icon = "applications-utilities"; }
+      { source = "${pkgs.xfce.garcon}/share/desktop-directories/xfce-accessories.directory"; icon = "applications-utilities"; }
     ];
 
     # 1. Determine the current app's desktop filename
