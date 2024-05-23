@@ -30,6 +30,7 @@
   programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
 
   # Multimedia
+  programs.qview.enable = true;         # Simple image viewer with webp support
   programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
   programs.xnviewmp.enable = true;      # Excellent image viewer
 
@@ -94,7 +95,6 @@
     mkvtoolnix                          # Cross-platform tools for Matroska
     mpv                                 # General purpose media player, fork of MPlayer and mplayer2
     openshot-qt                         # Simple powerful Video Editor, alt: pitivi, kdenlive
-    qview                               # Simple image viewer with webp support
     #obs-studio                          # Free and open source software for video recording and live streaming
     simplescreenrecorder                # Awesome screen recorder
     vlc                                 # Multi-platform MPEG, VCD/DVD, and DivX player

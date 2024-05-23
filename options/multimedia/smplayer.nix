@@ -38,7 +38,7 @@ let
   };
 
   # Create the smplayer settings file with presets
-  inifile = lib.mkIf cfg.enable
+  iniFile = lib.mkIf cfg.enable
     (pkgs.writeText "smplayer.ini" ''
       [%General]
       volume=92
@@ -87,6 +87,6 @@ in
     environment.systemPackages = with pkgs; [ smplayer ];
 
     files.all.".config/smplayer/themes".link = "${smplayer-themes}/share/smplayer/themes";
-    files.all.".config/smplayer/smplayer.ini".weakCopy = inifile;
+    files.all.".config/smplayer/smplayer.ini".weakCopy = iniFile;
   };
 }

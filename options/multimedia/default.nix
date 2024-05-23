@@ -4,6 +4,7 @@
 {
   imports = [
     ./freecad.nix
+    ./qview.nix
     ./smplayer.nix
     ./xnviewmp.nix
   ];
