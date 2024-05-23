@@ -43,6 +43,10 @@ let
       [gui]
       gui=MiniGUI
       iconset=${cfg.theme}
+      mouse_double_click_function=fullscreen
+      mouse_left_click_function=play_or_pause
+      mouse_middle_click_function=mute
+      mouse_right_click_function=show_context_menu
     '');
 
 in
