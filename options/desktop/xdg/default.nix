@@ -45,23 +45,29 @@ in
       menus.enable = true;            # Defaults to true
       mime = {
         enable = true;                # Defaults to true
-
-      #addedAssociations = {
-      #  "application/pdf" = "firefox.desktop";
-      #   "text/xml" = [
-      #      "nvim.desktop"
-      #      "vscode.desktop"
-      #    ];
-      #};
-      #defaultAssociations = {
-      #  "application/pdf" = "firefox.desktop";
-      #  "text/xml" = [
-      #    "nvim.desktop"
-      #    "vscode.desktop"
-      #   ];
-      # };
-
+        addedAssociations = {
+          "image/png" = "com.interversehq.qView.desktop";
+          "application/pdf" = [
+            "org.gnome.Evince.desktop"
+            "draw.desktop"
+          ];
+          "image/gif" = "com.interversehq.qView.desktop";
+          "image/jpeg" = "com.interversehq.qView.desktop";
+          "image/webp" = "com.interversehq.qView.desktop";
+          "video/mp4" = "smplayer.desktop";
+          "video/x-matroska" = "smplayer.desktop";
+          "video/quicktime" = "smplayer.desktop";
+        };
+        defaultAssociations = {
+          "application/pdf" = "org.gnome.Evince.desktop";
+          "image/gif" = "com.interversehq.qView.desktop";
+          "image/jpeg" = "com.interversehq.qView.desktop";
+          "image/png" = "com.interversehq.qView.desktop";
+          "image/webp" = "com.interversehq.qView.desktop";
+          "video/x-matroska" = "smplayer.desktop";
+        };
       };
+
       #portal.enable = true;           # ??
       sounds.enable = true;           # Defaults to true
 
