@@ -6,6 +6,7 @@
     ./freecad.nix
     ./qview.nix
     ./smplayer.nix
+    ./tinymediamanager.nix
     ./xnviewmp.nix
   ];
 }

@@ -9,10 +9,7 @@
     ./desktop.nix
   ];
 
-  virtualization.virt-manager.enable = true;
+  programs.tinyMediaManager.enable = true;
+  #virtualization.virt-manager.enable = true;
   #services.minecraft-server.enable = true;
-
-  environment.systemPackages = with pkgs; [
-    chromium                            # An open source web browser from Google
-  ];
 }

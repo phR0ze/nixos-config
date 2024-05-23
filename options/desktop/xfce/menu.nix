@@ -114,6 +114,7 @@ let
                   <Category>Audio</Category>
                   <Category>Video</Category>
                   <Category>AudioVideo</Category>
+                  <Category>Multimedia</Category>
               </Include>
           </Menu>
 
