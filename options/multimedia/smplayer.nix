@@ -40,6 +40,9 @@ let
   # Create the smplayer settings file with presets
   inifile = lib.mkIf cfg.enable
     (pkgs.writeText "smplayer.ini" ''
+      [%General]
+      volume=92
+
       [gui]
       gui=MiniGUI
       iconset=${cfg.theme}
@@ -52,6 +55,8 @@ let
       [actions]
       close=Ctrl+W
       open_file=Ctrl+O
+      decrease_volume="-, /, Volume Down"
+      increase_volume="=, *, Volume Up"
     '');
 
 in
