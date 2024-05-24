@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+# Usage for the clean xfce command and its sub commands
+# --------------------------------------------------------------------------------------------------
+clean::xfce::usage()
+{
+    cat <<USAGE
+Usage:
+  xfce [OPTIONS] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out usage
+
+Commands:
+  recent            Remove xfce's recent file list
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "Clean xfce recent files: ${green}./${SCRIPT} clean xfce recent${none}"
+    echo
+    exit
+}
+
+
+# Parse list sub commands
+# --------------------------------------------------------------------------------------------------
+clean::xfce::run()
+{
+    utils::help "$@" "clean::xfce::usage"
+
+    local command=$1; shift
+    case "$command" in
+        recent) clean::xfce::recent ;;
+        *) log::error "Invalid clean xfce command: ${cyan}${command}${none}"; clean::xfce::usage ;;
+    esac
+}
+
+# Remove the xfce recent tracking list
+# --------------------------------------------------------------------------------------------------
+clean::xfce::recent()
+{
+    rm -f ~/.local/share/recently-used.xbel
+}

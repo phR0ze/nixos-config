@@ -33,7 +33,6 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 pkgs::list::run()
 {
-    local cmd="$1"; shift
     utils::help "$@" "pkgs::list::usage"
 
     local command=$1; shift
