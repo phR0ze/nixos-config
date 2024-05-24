@@ -40,8 +40,8 @@ pkgs::run()
     local command=$1; shift
     case "$command" in
         locate) pkgs::locate::run $@ ;;
-        ll) pkgs::list::run "ll" $@ ;;
-        ls) pkgs::list::run "ls" $@ ;;
+        ll) pkgs::list::run $@ ;;
+        ls) pkgs::list::run $@ ;;
         *) log::error "Invalid pkgs command: ${cyan}${command}${none}"; pkgs::usage ;;
     esac
 }

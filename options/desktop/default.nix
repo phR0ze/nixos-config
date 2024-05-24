@@ -3,6 +3,7 @@
 { ... }:
 {
   imports = [
+    ./dconf
     ./x11
     ./xdg
     ./xfce

@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# --------------------------------------------------------------------------------------------------
+# Clean management commands
+# --------------------------------------------------------------------------------------------------
+source "${SCRIPT_DIR}/lib/clean/xfce"
+
 # Usage for the clean command and its sub commands
 # --------------------------------------------------------------------------------------------------
 clean::usage()
@@ -12,9 +17,10 @@ Options:
   -h, --help        Print out usage
 
 Commands:
-  all               Clean everything
+  all               Clean nix store and generations
   pkg               Clean the given package out of the nix store
   store             Clean the nix store
+  xfce              Clean various xfce components
 USAGE
 
     log::ln "\nExamples:"
@@ -38,6 +44,7 @@ clean::run()
         all) clean::store -d ;;
         pkg) clean::pkg "$@" ;;
         store) clean::store ;;
+        xfce) clean::xfce::run "$@" ;;
         *) log::error "Invalid clean command: ${cyan}${command}${none}"; clean::usage ;;
     esac
 }
