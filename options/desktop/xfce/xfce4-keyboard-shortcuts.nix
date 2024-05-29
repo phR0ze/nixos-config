@@ -64,8 +64,8 @@ let
             <property name="&lt;Super&gt;l" type="string" value="xflock4"/>
             <property name="&lt;Primary&gt;Escape" type="string" value="xfce4-taskmanager"/>
             <property name="&lt;Super&gt;Escape" type="string" value="xkill"/>
-            <property name="&lt;Super&gt;Page_Down" type="string" value="wmctl place halfh bottom"/>
-            <property name="&lt;Super&gt;Page_Up" type="string" value="wmctl place halfh top"/>
+            <property name="&lt;Super&gt;Page_Down" type="string" value="wmctl place halfh bottom-left"/>
+            <property name="&lt;Super&gt;Page_Up" type="string" value="wmctl place halfh top-left"/>
             <property name="&lt;Super&gt;Return" type="string" value="wmctl place large top-right"/>
             <property name="&lt;Super&gt;Delete" type="string" value="wmctl place small bottom-left"/>
             <property name="&lt;Super&gt;End" type="string" value="wmctl place small bottom-right"/>
@@ -73,8 +73,8 @@ let
             <property name="&lt;Super&gt;Home" type="string" value="wmctl place  small top-right"/>
             <property name="&lt;Super&gt;equal" type="string" value="wmctl shape grow"/>
             <property name="&lt;Super&gt;minus" type="string" value="wmctl shape shrink"/>
-            <property name="&lt;Super&gt;Left" type="string" value="wmctl place halfw left"/>
-            <property name="&lt;Super&gt;Right" type="string" value="wmctl place halfw right"/>
+            <property name="&lt;Super&gt;Left" type="string" value="wmctl place halfw top-left"/>
+            <property name="&lt;Super&gt;Right" type="string" value="wmctl place halfw top-right"/>
             <property name="${cfg.dropDownTerminalKey}" type="string" value="xfce4-terminal --hide-menubar --drop-down"/>
             <property name="${cfg.appMenuKey}" type="string" value="xfce4-popup-applicationsmenu"/>
           </property>
