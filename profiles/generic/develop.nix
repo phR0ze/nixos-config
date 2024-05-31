@@ -22,6 +22,7 @@
     go                                  # The Go programming language
     go-bindata                          # Golang code generation utility for embedding binary data in Go programs
     golangci-lint                       # Golang CI linting tool
+    pkg-config                          # At tool that allows packages to find out information about other packages
   ];
 
 }
