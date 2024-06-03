@@ -12,6 +12,9 @@ let
     (pkgs.writeText "qView.conf" ''
       [General]
       firstlaunch=true
+
+      [shortcuts]
+      quit=Esc
     '');
 in
 {
