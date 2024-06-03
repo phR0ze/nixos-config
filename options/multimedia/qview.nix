@@ -13,6 +13,9 @@ let
       [General]
       firstlaunch=true
 
+      [options]
+      askdelete=false
+
       [shortcuts]
       quit=Esc
     '');
