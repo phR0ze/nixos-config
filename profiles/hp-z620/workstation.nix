@@ -13,6 +13,5 @@
   hardware.amd-graphics.enable = true;
   services.barriers.enable = true;
   programs.freecad.enable = true;
-
-  #virtualization.virt-manager.enable = true;
+  virtualization.virt-manager.enable = true;
 }
