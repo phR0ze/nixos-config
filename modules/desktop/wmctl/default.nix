@@ -5,13 +5,13 @@
 
 pkgs.rustPlatform.buildRustPackage rec {
   pname = "wmctl";
-  version = "0.0.49";
+  version = "0.0.50";
   src = pkgs.fetchFromGitHub {
     owner = "phR0ze";
     repo = pname;
     rev = "refs/tags/v${version}";
-    hash = "sha256-Z9OsneHeV5JfNqmGF6RabQn3vmd1qmyylzcVCW40u2g=";
+    hash = "sha256-gRaa4SdD3j1VdCfjp00N1x5frSCVmd2cS+KAQTby4bY=";
   };
 
-  cargoHash = "sha256-HqQmyPzVbFt5t9AOcCoKK9eNIpXSFW1CNG/r0BiPA50=";
+  cargoHash = "sha256-6u7Nt6BGganGJMRKh3D4IhHH9O+ZFuWpSG+UhhSQWeY=";
 }
