@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# Usage for the run command and its sub commands
+# --------------------------------------------------------------------------------------------------
+run::usage()
+{
+    cat <<USAGE
+Usage:
+  run [OPTIONS] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out usage
+
+Commands:
+  vm                Run the test VM, depends on '${SCRIPT} build vm'"
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "Run the test VM: ${green}./${SCRIPT} run vm${none}"
+    echo
+    exit
+}
+
+
+# Parse the run commands and execute
+# --------------------------------------------------------------------------------------------------
+run::run()
+{
+    utils::help "$@" "run::usage"
+
+    local command=$1; shift
+    case "$command" in
+        vm) run::vm "$@" ;;
+        *) log::error "Invalid run command: ${cyan}${command}${none}"; run::usage ;;
+    esac
+}
+ 
+# Run the test vm
+# --------------------------------------------------------------------------------------------------
+run::vm()
+{
+    core::title
+    log::header0 "Running test VM"
+
+    local runner="$SCRIPT_DIR/result/bin/run-nixos-vm"
+    if [[ -f "$runner" ]]; then
+        log::ln "Running ${cyan}${runner}${none}"
+        $runner
+    else
+        log::ln "VM doesn't exist, check: $runner"
+    fi
+}
