@@ -66,6 +66,7 @@ Commands:
   pkgs              Package management commands
   registry          Interact with the nix registry
   repl              Launch the Nix repl
+  run               Launch the test VM and other tools
   switch            Switch system version to the given one
   test              Testing function for development
   update            Update the system with any changed configuration
@@ -113,6 +114,7 @@ case "$command" in
     pkgs) pkgs::run "$@" ;;
     registry) registry::run "$@" ;;
     repl) nix repl -f '<nixpkgs>' ;;
+    run) run::run "$@" ;;
     switch) switch::run "$@" ;;
     test) test::run "$@" ;;
     update) update::run "$@" ;;
