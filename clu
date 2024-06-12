@@ -68,6 +68,7 @@ Commands:
   repl              Launch the Nix repl
   run               Launch the test VM and other tools
   switch            Switch system version to the given one
+  shell             Run a nix-shell
   test              Testing function for development
   update            Update the system with any changed configuration
 USAGE
@@ -115,6 +116,7 @@ case "$command" in
     registry) registry::run "$@" ;;
     repl) nix repl -f '<nixpkgs>' ;;
     run) run::run "$@" ;;
+    shell) shell::run "$@" ;;
     switch) switch::run "$@" ;;
     test) test::run "$@" ;;
     update) update::run "$@" ;;
