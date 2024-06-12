@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# Usage for the shell command and its sub commands
+# --------------------------------------------------------------------------------------------------
+shell::usage()
+{
+    cat <<USAGE
+Usage:
+  shell [OPTIONS] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out usage
+  -p, --packages    Space delimited list of packages to include in the shell
+
+Commands:
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "Shell with wmctrl present: ${green}./${SCRIPT} shell -p wmctrl${none}"
+    log::subln "Shell with pyserial present: ${green}./${SCRIPT} shell -p python311Packages.pyserial${none}"
+    log::subln "Shell with multiple packages: ${green}./${SCRIPT} shell -p libjpeg openjdk${none}"
+    echo
+    exit
+}
+
+
+# Parse the shell commands and execute
+# --------------------------------------------------------------------------------------------------
+shell::run()
+{
+    utils::help "$@" "shell::usage"
+
+    # Pass the command on to nix-shell
+    nix-shell $@
+}
