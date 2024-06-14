@@ -90,6 +90,7 @@ in
 
     environment.systemPackages = with pkgs; [
       xclip                               # Required for neovim to copy paster to/from other apps
+      xorg.xkill                          # Kill for X windows instances
       xorg.xrdb                           # X server resource database utility
       xorg.xdpyinfo                       # Display information utility for X
 
