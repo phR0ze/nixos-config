@@ -17,6 +17,7 @@ in
       clang                               # A C language family frontend for LLVM
       lldb                                # Next gen high-performance debugger for Rust
       llvm                                # Compiler infrastructure
+      llvmPackages.bintools               # Use lld instead of ld
       rustup                              # Rust installer
       cargo                               # Rust project dependency management tooling
       rustfmt                             # Rust tool for formatting rust code
