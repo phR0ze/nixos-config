@@ -21,6 +21,13 @@ in
       rustup                              # Rust installer
       cargo                               # Rust project dependency management tooling
       rustfmt                             # Rust tool for formatting rust code
+
+      # C++ dependency build requirements
+      gnumake                             # A tool to control the generation of non-source files from sources
+      pkg-config                          # At tool that allows packages to find out information about other packages
+      openssl                             # Cryptocraphic implementation of the SSL and TLS protocols
+      openssl.dev                         # Development headers for Open SSL
+      gtk4                                # Multi-platform toolkit for creating graphical user interfaces
     ];
   };
 }
