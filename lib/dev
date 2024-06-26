@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# Usage for the dev command and its sub commands
+# --------------------------------------------------------------------------------------------------
+dev::usage()
+{
+    cat <<USAGE
+Usage:
+  dev [OPTIONS] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out usage
+
+Commands:
+  gtk4              Setup a dev environment for gtk4-rs
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "Dev environment for gtk4: ${green}./${SCRIPT} dev gtk4${none}"
+    echo
+    exit
+}
+
+
+# Parse the dev commands and execute
+# --------------------------------------------------------------------------------------------------
+dev::run()
+{
+    utils::help "$@" "dev::usage"
+
+    # Parse the dev commnand
+    local command=$1; shift
+    case "$command" in
+        gtk4) dev::gtk4 ;;
+        *) log::error "Invalid dev command: ${cyan}${command}${none}"; dev::usage ;;
+    esac
+}
+
+# Setup dev environment for gtk4
+# --------------------------------------------------------------------------------------------------
+dev::gtk4()
+{
+    nix-shell -p pkg-config openssl gtk4 libadwaita
+}

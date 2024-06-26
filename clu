@@ -58,6 +58,7 @@ Options:
 Commands:
   build             Build components
   clean             Clean various system components
+  dev               Setup a shell environment
   help              Get help for a command
   install           Install system configuration
   list, ll          List out system information
@@ -108,6 +109,7 @@ command=$1; shift
 case "$command" in
     build) build::run "$@" ;;
     clean) clean::run "$@" ;;
+    dev) dev::run "$@" ;;
     install) install::run "$@" ;;
     list) list::run "$@" ;;
     ll) list::run "$@" ;;   # list alias
