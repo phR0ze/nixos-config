@@ -83,6 +83,7 @@
     gnome.cheese                        # Take photos and videos with your webcam, with fun graphical effects
     dvdbackup                           # Command line tool for ripping DVDs
     gimp                                # Excellent image editor
+    inkscape                            # Vector graphics editor
     flac                                # Free lossless audio codec
     kodi                                # A software media player and entertainment hub for digital media
     kolourpaint                         # Paint application that saves jpg in format for GFXBoot
