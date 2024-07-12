@@ -12,6 +12,11 @@
 
   hardware.intel-graphics.enable = true;
 
+  programs.kodi = {
+    enble = true;
+    remoteControlHTTP = true;
+  };
+
   environment.systemPackages = with pkgs; [
   ];
 }
