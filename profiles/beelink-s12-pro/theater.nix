@@ -13,7 +13,7 @@
   hardware.intel-graphics.enable = true;
 
   programs.kodi = {
-    enble = true;
+    enable = true;
     remoteControlHTTP = true;
   };
 
