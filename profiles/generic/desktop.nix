@@ -30,6 +30,7 @@
   programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
 
   # Multimedia
+  programs.kodi.enable = true;          # Media player and entertainment hub
   programs.qview.enable = true;         # Simple image viewer with webp support
   programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
 
@@ -85,7 +86,6 @@
     gimp                                # Excellent image editor
     inkscape                            # Vector graphics editor
     flac                                # Free lossless audio codec
-    kodi                                # A software media player and entertainment hub for digital media
     kolourpaint                         # Paint application that saves jpg in format for GFXBoot
     libdvdcss                           # DVD decrypting media codec support
     losslesscut-bin                     # Crossplatform GUI tool for lossless trimming/cuttong of video/audio files
