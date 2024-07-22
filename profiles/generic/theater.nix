@@ -33,6 +33,12 @@ in
   services.xserver.displayManager.lightdm.background = lib.mkOverride 500
     "${backgrounds}/share/backgrounds/theater_curtains1.jpg";
 
+  # Configure Kodi
+  programs.kodi = {
+    enable = true;
+    remoteControlHTTP = true;
+  };
+
   # Add additional theater package
   environment.systemPackages = with pkgs; [ ];
 }
