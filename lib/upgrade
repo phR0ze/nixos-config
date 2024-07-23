@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+# Upgrade the system
+# 
+# ## Features
+#
+# --------------------------------------------------------------------------------------------------
+
+# Usage for the upgrade command and its sub commands
+# --------------------------------------------------------------------------------------------------
+upgrade::usage()
+{
+    cat <<USAGE
+Usage:
+  upgrade [OPTIONS] [COMMAND] [ARGS...]
+
+Options:
+  -h, --help        Print out usage
+
+Commands:
+  app APP           Upgrade the specific app
+  system            Upgrade the entire system to newer versions of the apps
+
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "Upgrade the system: ${green}./${SCRIPT} upgrade system${none}"
+    echo
+    exit
+}
+
+# Parse the upgrade commands and execute
+# --------------------------------------------------------------------------------------------------
+upgrade::run()
+{
+    utils::help "$@" "upgrade::usage"
+
+    local command=$1; shift
+    case "$command" in
+        app) upgrade::app "$@" ;;
+        system) upgrade::system "$@" ;;
+        *) log::error "Invalid upgrade command: ${cyan}${command}${none}"; upgrade::usage ;;
+    esac
+}
+
+# Upgrade
+# --------------------------------------------------------------------------------------------------
+upgrade::app()
+{
+    # Validation
+    local app="$1"
+    if [[ "$app" == "" ]]; then
+        log::error "Invalid app name '${cyan}${app}${none}' given\n"; upgrade::usage
+    fi
+
+    # Execute
+    core::title
+    log::header1 "Upgrade application"
+
+    #_preUpdate
+    #_updateSystem
+    #_postUpdate
+}
+
+# Update the system with the system configuration changes
+# --------------------------------------------------------------------------------------------------
+update::system()
+{
+    core::title
+    log::header1 "Update system version"
+
+    # Update the flake.lock file to the latest
+    nix flake update
+
+    _preUpdate
+    _updateSystem
+    _postUpdate
+}
+
+_preUpdate()
+{
+    log::ln "Updating local git repo"
+}
+
+# Trigger the Nix flake based system update
+_updateSystem()
+{
+    nixos-rebuild switch --flake "path:/etc/nixos#system"
+}
+
+_postUpdate()
+{
+    log::ln "Updating local git repo"
+}

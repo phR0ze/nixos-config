@@ -72,6 +72,7 @@ Commands:
   shell             Run a nix-shell
   test              Testing function for development
   update            Update the system with any changed configuration
+  upgrade           Upgrade the system or a specific application to a new version
 USAGE
 
     log::ln "\nExamples:"
@@ -122,5 +123,6 @@ case "$command" in
     switch) switch::run "$@" ;;
     test) test::run "$@" ;;
     update) update::run "$@" ;;
+    upgrade) upgrade::run "$@" ;;
     *) log::error "Invalid command: ${cyan}${command}${none}"; core::usage ;;
 esac

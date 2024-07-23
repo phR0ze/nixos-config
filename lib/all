@@ -15,6 +15,7 @@ source "${SCRIPT_DIR}/lib/shell"
 source "${SCRIPT_DIR}/lib/switch"
 source "${SCRIPT_DIR}/lib/test"
 source "${SCRIPT_DIR}/lib/update"
+source "${SCRIPT_DIR}/lib/upgrade"
 
 # Import utilities
 source "${SCRIPT_DIR}/lib/log"
