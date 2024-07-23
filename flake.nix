@@ -24,7 +24,7 @@
   # Although it is nice to gather all implicit arguments together this means to use them without the 
   # dot notation would require an 'inherit (inputs) nixpkgs' to bring them into scope. Another option 
   # is to just call them out explicitly as required named arguments which does this scoping for you.
-  outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
+  outputs = { self, nixpkgs, ... }@inputs: let
 
     # Configurable system options
     # ----------------------------------------------------------------------------------------------
@@ -39,7 +39,7 @@
     # * [lookup-paths](https://nix.dev/tutorials/nix-language.html#lookup-paths)
     # * [Override nixpkgs](https://discourse.nixos.org/t/allowunfree-predicate-does-not-apply-to-self-packages/21734/6)
     # ----------------------------------------------------------------------------------------------
-    pkgs-unstable = import nixpkgs-unstable {
+    pkgs-unstable = import inputs.nixpkgs-unstable {
       system = settings.system;
       config.allowUnfree = true;
       config.allowUnfreePredicate = _: true;
