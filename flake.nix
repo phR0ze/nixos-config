@@ -8,7 +8,7 @@
   # implicit arguments as defined by the outputs function.
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";          # pinned pseudo stable
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable"; # latest unstable for upgrades
+    nixpkgs-latest.url = "github:nixos/nixpkgs/nixos-unstable";   # latest unstable for upgrades
   };
 
   # ### Implicit arguments
@@ -39,7 +39,7 @@
     # * [lookup-paths](https://nix.dev/tutorials/nix-language.html#lookup-paths)
     # * [Override nixpkgs](https://discourse.nixos.org/t/allowunfree-predicate-does-not-apply-to-self-packages/21734/6)
     # ----------------------------------------------------------------------------------------------
-    pkgs-unstable = import inputs.nixpkgs-unstable {
+    pkgs-latest = import inputs.nixpkgs-latest {
       system = settings.system;
       config.allowUnfree = true;
       config.allowUnfreePredicate = _: true;
@@ -61,7 +61,7 @@
 
         # Upgrade select packages to the latest unstable bits
         (self: super: {
-          vscode = pkgs-unstable.vscode;
+          vscode = pkgs-latest.vscode;
         })
       ];
     };
