@@ -61,6 +61,9 @@
 
         # Upgrade select packages to the latest unstable bits
         (self: super: {
+          go = pkgs-unstable.go;
+          go-bindata = pkgs-unstable.go-bindata;
+          golangci-lint = pkgs-unstable.golangci-lint;
           vscode = pkgs-unstable.vscode;
         })
       ];
