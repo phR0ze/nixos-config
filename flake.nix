@@ -8,7 +8,7 @@
   # implicit arguments as defined by the outputs function.
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";          # pinned pseudo stable
-    nixpkgs-latest.url = "github:nixos/nixpkgs/nixos-unstable";   # latest unstable for upgrades
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable"; # latest unstable for upgrades
   };
 
   # ### Implicit arguments
@@ -24,7 +24,7 @@
   # Although it is nice to gather all implicit arguments together this means to use them without the 
   # dot notation would require an 'inherit (inputs) nixpkgs' to bring them into scope. Another option 
   # is to just call them out explicitly as required named arguments which does this scoping for you.
-  outputs = { self, nixpkgs, ... }@inputs: let
+  outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
 
     # Configurable system options
     # ----------------------------------------------------------------------------------------------
@@ -39,7 +39,7 @@
     # * [lookup-paths](https://nix.dev/tutorials/nix-language.html#lookup-paths)
     # * [Override nixpkgs](https://discourse.nixos.org/t/allowunfree-predicate-does-not-apply-to-self-packages/21734/6)
     # ----------------------------------------------------------------------------------------------
-    pkgs-latest = import inputs.nixpkgs-latest {
+    pkgs-unstable = import nixpkgs-unstable {
       system = settings.system;
       config.allowUnfree = true;
       config.allowUnfreePredicate = _: true;
@@ -61,7 +61,7 @@
 
         # Upgrade select packages to the latest unstable bits
         (self: super: {
-          vscode = pkgs-latest.vscode;
+          vscode = pkgs-unstable.vscode;
         })
       ];
     };

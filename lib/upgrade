@@ -57,38 +57,38 @@ upgrade::app()
     core::title
     log::header1 "Upgrade application"
 
-    #_preUpdate
-    #_updateSystem
-    #_postUpdate
+    #_preUpgrade
+    #_upgradeSystem
+    #_postUpgrade
 }
 
-# Update the system with the system configuration changes
+# Upgrade the system with the system configuration changes
 # --------------------------------------------------------------------------------------------------
-update::system()
+upgrade::system()
 {
     core::title
-    log::header1 "Update system version"
+    log::header1 "Upgrade system version"
 
-    # Update the flake.lock file to the latest
+    # Upgrade the flake.lock file to the latest
     nix flake update
 
-    _preUpdate
-    _updateSystem
-    _postUpdate
+    _preUpgrade
+    _upgradeSystem
+    _postUpgrade
 }
 
-_preUpdate()
+_preUpgrade()
 {
     log::ln "Updating local git repo"
 }
 
-# Trigger the Nix flake based system update
-_updateSystem()
+# Trigger the Nix flake based system upgrade
+_upgradeSystem()
 {
     nixos-rebuild switch --flake "path:/etc/nixos#system"
 }
 
-_postUpdate()
+_postUpgrade()
 {
     log::ln "Updating local git repo"
 }

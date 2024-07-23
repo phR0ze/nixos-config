@@ -16,7 +16,7 @@
         "type": "github"
       }
     },
-    "nixpkgs-latest": {
+    "nixpkgs-unstable": {
       "locked": {
         "lastModified": 1721562059,
         "narHash": "sha256-Tybxt65eyOARf285hMHIJ2uul8SULjFZbT9ZaEeUnP8=",
@@ -35,7 +35,7 @@
     "root": {
       "inputs": {
         "nixpkgs": "nixpkgs",
-        "nixpkgs-latest": "nixpkgs-latest"
+        "nixpkgs-unstable": "nixpkgs-unstable"
       }
     }
   },
