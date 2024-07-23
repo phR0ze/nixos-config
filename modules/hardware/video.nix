@@ -42,10 +42,6 @@
   hardware.opengl = {
     enable = true;                      # Installs mesa, mesa_drivers, mesa-demos
 
-    # Defaults from the opengl option
-    driSupport = true;
-    driSupport32Bit = true;
-
     # Defaults from the opengl option, also aliased with 'mesa_drivers'
     package = pkgs.mesa.drivers;
     package32 = pkgs.pkgsi686Linux.mesa.drivers;
