@@ -30,7 +30,10 @@
   programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
 
   # Multimedia
-  programs.kodi.enable = true;          # Media player and entertainment hub
+  programs.kodi = {                     # Media player and entertainment hub
+    enable = true;
+    remoteControlHTTP = true;
+  };
   programs.qview.enable = true;         # Simple image viewer with webp support
   programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
 
