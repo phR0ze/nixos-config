@@ -7,7 +7,6 @@
 {
   imports = [
     ./desktop.nix
-    ../../modules/desktop/x11/develop.nix
   ];
 
   # Disable x11vnc for laptops
