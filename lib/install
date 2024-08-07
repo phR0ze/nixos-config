@@ -189,7 +189,15 @@ install::config_system()
     log::header1 "Installing NixOS configuration"
     echo -e ":: Pre-populating the Nix Store..."
     nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
+
+    # Run the installer: $NIXOS_CONFIG will usually be /mnt/etc/nixos
+    # nixos-install --no-root-passwd --no-channel-copy --flake /mnt/etc/nixos#system
     nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG}#system"
+    if [ $? -ne 0 ]; then
+        echo -e ":: ${red}Failure building the install flake${none}"
+        echo -e "   1. Fix the flake issue at ${cyan}${NIXOS_CONIFG}${none}"
+        echo -e "   2. Rerun: ${cyan}nixos-install --no-root-passwd --no-channel-copy --flake ${NIXOS_CONFIG}#system${none}"
+    fi
 
     lockfile="${ROOT_MOUNT}/nix/files.lock"
     echo -e ":: Adding files lock file ${lockfile} to avoid file automation on every boot"

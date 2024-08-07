@@ -6,7 +6,7 @@
   gateway = "";                   # default gateway to use for static ip addresses
   bluetooth = false;              # flag to control bluetooth enablement
 
-  profile = "generic/develop";    # pre-defined configurations in path './profiles' selection
+  profile = "generic/laptop";    # pre-defined configurations in path './profiles' selection
   nfs_shares = false;             # enable the nfs client shares for this system
   autologin = false;              # automatically log the user in after boot when true
   
