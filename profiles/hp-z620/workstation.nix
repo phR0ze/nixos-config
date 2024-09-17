@@ -8,10 +8,13 @@
 {
   imports = [
     ../generic/develop.nix
+    ../../modules/virtualization/docker.nix
   ];
 
   hardware.amd-graphics.enable = true;
   services.barriers.enable = true;
   programs.freecad.enable = true;
   virtualization.virt-manager.enable = true;
+
+  programs.xnviewmp.enable = true;
 }
