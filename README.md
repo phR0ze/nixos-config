@@ -19,8 +19,10 @@ fork it and build on my work.
 * [Getting Started](#getting-started)
   * [Install from upstream ISO](#install-from-upstream-iso)
   * [Install from custom ISO](#install-from-custom-iso)
-  * [Update instructions](#update-instructions)
+* [Update use cases](#update-use-cases)
+  * [Upgrade an app](#upgrade-an-app)
 * [Advanced use cases](#advanced-use-cases)
+  * [Build and run test VM](#build-and-run-test-vm)
   * [Build the live ISO for installation](#build-the-live-iso-for-installation)
 * [Development](#development)
 * [Backlog](#backlog)
@@ -90,7 +92,10 @@ limited in resources.
 
 4. You'll be greeted with the clu installer
 
-### Update instructions
+* [General use cases](#general-use-cases)
+  * [Upgrade an app](#upgrade-an-app)
+
+## Update use cases
 After installing your system you'll need to make changes from time to time. The `clu` automation will 
 have copied the original configuration to `/etc/nixos`.
 
@@ -100,6 +105,7 @@ have copied the original configuration to `/etc/nixos`.
    ```
 
 2. Make changes as desired
+   * see [Upgrade an app](#upgrade-an-app)
   
 3. Commit or stage your configuration changes so they are visible to nix flakes
    ```bash
@@ -108,12 +114,31 @@ have copied the original configuration to `/etc/nixos`.
 
 4. Update your system with the configuration changes
    ```bash
-   # Optionally first upgrade your flake.lock
-   $ nix flake update
-
-   # Apply your configuration changes
    $ sudo ./clu update system
    ```
+
+### Upgrade an app
+I've setup my flake configuration such that the `flake.lock` file has configuration for two different 
+versions. The first is called `nixpkgs` and is pinned to an older version of the upstream 
+`nixos-unstable` branch while the other is called `nixpkgs-unstable` and is meant to more closely 
+follow the upstream unstable i.e. I can change this to be the latest SHA then update my system to 
+then update only the apps called out in my flake's unstable overlay in `flake.nix`. This is the case 
+for `vscode`.
+
+**For example upgrading vscode to the latest would look like:**
+1. Modifying `flake.nix` to ensure that the `overlays` section has an entry for `vscode`:
+   ```
+   vscode = pkgs-unstable.vscode;`
+   ```
+2. Update the lock file with
+   ```bash
+   $ nix flake update
+   ```
+3. Use git to compare and revert changes to the `nixpkgs`
+   ```bash
+   $ git diff flake.lock
+   ```
+4. Now follow the rest of the instructions in the parent section
 
 ## Advanced use cases
 Most linux users, especially those coming from Arch Linux, will immediately be interested in how they 
