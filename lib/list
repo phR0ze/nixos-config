@@ -12,10 +12,12 @@ Options:
   -h, --help        Print out usage
 
 Commands:
+  profiles          List out available profiles
   versions, ver     List out the versions i.e. system versions
 USAGE
 
     log::ln "\nExamples:"
+    log::subln "List out profiles: ${green}./${SCRIPT} ll profiles${none}"
     log::subln "List out versions: ${green}./${SCRIPT} ll ver${none}"
     echo
     exit
@@ -28,11 +30,10 @@ list::run()
 {
     utils::help "$@" "list::usage"
 
-    log::header1 "List system versions"
-
     # Parse the commnand
     local command=$1; shift
     case "$command" in
+        profiles) list::profiles;;
         versions) list::versions;;
         ver) list::versions ;;
         *) log::error "Invalid list command: ${cyan}${command}${none}"; list::usage ;;
@@ -40,10 +41,24 @@ list::run()
 
 }
 
+# List all profiles in the current configuration repo
+#
+list::profiles()
+{
+    log::header1 "List configuration profiles"
+
+    local profiles_dir="${SCRIPT_DIR}/profiles/"
+    for x in $(find "$profiles_dir" -name '*.nix' | sort); do
+        echo "${x#${profiles_dir}}"
+    done
+}
+
 # List all the system versions
 # 
 list::versions()
 {
+    log::header1 "List system versions"
+
     # Inspired by the `nixos-rebuild list-generations` command
     find "$NIXOS_PROFILES_PATH" -type l -name 'system-*-link' | sort -Vr |
         while read -r ver; do

@@ -68,7 +68,9 @@ build::vm()
     local profile="$1"
     local opts="${SCRIPT_DIR}/flake_public.nix"
     if [[ "$profile" != "" ]]; then
+        profile="${profile%.*}" # trim off the file extension
         log::ln "Switching VM profile to ${cyan}${profile}${none}"
+
         utils::replace str "profile" "${profile}" "${opts}"
         git add "${opts}"
     fi

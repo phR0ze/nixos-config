@@ -17,4 +17,8 @@
   virtualization.virt-manager.enable = true;
 
   programs.xnviewmp.enable = true;
+
+  environment.systemPackages = [
+    pkgs.zed-editor
+  ];
 }

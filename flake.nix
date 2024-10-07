@@ -65,6 +65,7 @@
           go-bindata = pkgs-unstable.go-bindata;
           golangci-lint = pkgs-unstable.golangci-lint;
           vscode = pkgs-unstable.vscode;
+          zed-editor = pkgs-unstable.vscode;
         })
       ];
     };
@@ -102,6 +103,7 @@
           ({
             virtualisation.vmVariant = {
               virtualisation = {
+                diskSize = 20 * 1024;
                 memorySize = 4096;
                 cores = 4;
               };
