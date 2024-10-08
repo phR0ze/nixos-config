@@ -19,6 +19,6 @@
   programs.xnviewmp.enable = true;
 
   environment.systemPackages = [
-    pkgs.zed-editor
+    pkgs.freetube
   ];
 }
