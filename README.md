@@ -133,13 +133,9 @@ for `vscode`.
    ```
 2. Update the lock file with
    ```bash
-   $ nix flake update
+   $ ./clu update flake
    ```
-3. Use git to compare and revert changes to the `nixpkgs`
-   ```bash
-   $ git diff flake.lock
-   ```
-4. Now follow the rest of the instructions in the parent section
+3. Now follow the rest of the instructions in the parent section
 
 ## Advanced use cases
 Most linux users, especially those coming from Arch Linux, will immediately be interested in how they 
