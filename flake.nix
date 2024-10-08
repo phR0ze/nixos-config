@@ -7,8 +7,8 @@
   # After inputs are resolved they are passed to the outputs function and map to the explicit and 
   # implicit arguments as defined by the outputs function.
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";          # pinned pseudo stable
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable"; # latest unstable for upgrades
+    nixpkgs.url = "github:nixos/nixpkgs/1536926ef5621b09bba54035ae2bb6d806d72ac8";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
   # ### Implicit arguments
@@ -66,6 +66,8 @@
           golangci-lint = pkgs-unstable.golangci-lint;
           vscode = pkgs-unstable.vscode;
           zed-editor = pkgs-unstable.vscode;
+          rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
+          vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
         })
       ];
     };

@@ -18,6 +18,7 @@ Options:
   -h, --help        Print out usage
 
 Commands:
+  flake             Update the flake.lock file with the latest
   profile PROFILE   Change the system profile to the given one
   system            Update the system with the configuration changes
 
@@ -26,6 +27,7 @@ system args:
 USAGE
 
     log::ln "\nExamples:"
+    log::subln "Update flake: ${green}./${SCRIPT} update flake${none}"
     log::subln "Update the system: ${green}./${SCRIPT} update system${none}"
     log::subln "Update to the given profile: ${green}./${SCRIPT} update profile xfce/develop${none}"
     log::subln "Update the system, resetting xfce: ${green}./${SCRIPT} update system reset-xfce${none}"
@@ -41,11 +43,23 @@ update::run()
 
     local command=$1; shift
     case "$command" in
+        flake) update::flake ;;
         profile) update::profile "$@" ;;
         system) update::system "$@" ;;
         *) log::error "Invalid update command: ${cyan}${command}${none}"; update::usage ;;
     esac
 }
+
+# Update the flake
+# --------------------------------------------------------------------------------------------------
+update::flake()
+{
+    core::title
+    log::header1 "Update flake"
+
+    nix flake update
+}
+
 
 # Update the target profile in the options file e.g. flake_public.nix
 # --------------------------------------------------------------------------------------------------
