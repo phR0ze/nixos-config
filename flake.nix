@@ -102,10 +102,15 @@
           (./. + "/profiles" + ("/" + settings.profile + ".nix"))
           ({
             virtualisation.vmVariant = {
+              # nixpkgs/nixos/modules/virtualisation/qemu-vm.nix
               virtualisation = {
-                diskSize = 20 * 1024;
-                memorySize = 4096;
                 cores = 4;
+                diskSize = 20 * 1024;   # 20 GB
+                memorySize = 4 * 1024;  # 4 GB
+                resolution = { x = 1920; y = 1080; };
+
+                # Allows for sftp, ssh etc... to the guest via localhost:2222
+                forwardPorts = [ { from = "host"; host.port = 2222; guest.port = 22; } ];
               };
             };
           })
