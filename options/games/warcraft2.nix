@@ -1,9 +1,7 @@
 # Warcraft2
 #
-# Firewall configuration
-# * UDP: 40000 - 60000
-# * IPX: UDP 54792
-# * Battle.net: UDP 6112 - 6119
+# Firewall exceptions needed:
+# * GOG IPXWrapper: UDP 54792
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
