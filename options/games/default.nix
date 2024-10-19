@@ -7,5 +7,6 @@
     ./prismlauncher.nix
     ./protontricks.nix
     ./steam.nix
+    ./warcraft2.nix
   ];
 }
