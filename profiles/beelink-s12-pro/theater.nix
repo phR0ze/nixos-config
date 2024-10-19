@@ -10,8 +10,14 @@
     ../generic/theater.nix
   ];
 
+  # Hardware
   hardware.intel-graphics.enable = true;
 
+  # Games
+  programs.hedgewars.enable = true;
+  programs.superTuxKart.enable = true;
+
+  # Misc programs
   environment.systemPackages = with pkgs; [
   ];
 }
