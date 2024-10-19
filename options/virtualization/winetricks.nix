@@ -21,9 +21,8 @@ in
 
       # winWowPackages.stable   - 32-bit and 64-bit stable
       # winWowPackages.staging  - 32-bit and 64-bit cutting edge
-      # wine                    - 32-bit only
       # wine64                  - 64-bit only
-      winWowPackages.staging
+      wine                      # 32-bit only
       winetricks                # support all versions
     ];
 
