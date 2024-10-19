@@ -30,4 +30,5 @@ in
       allowedTCPPorts = [ 54792 ];
       allowedUDPPortRanges = [ { from = 40000; to = 60000; } ]; 
     };
+  };
 }
