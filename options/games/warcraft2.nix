@@ -26,7 +26,7 @@ in
 
     # Allow multi-player IPX connections through the firewall
     # View rules with: sudo iptables -S
-    networking.firewall = lib.optional cfg.allowIPXMultiPlayer {
+    networking.firewall = lib.mkIf (cfg.allowIPXMultiPlayer) {
       allowedTCPPorts = [ 54792 ];
       allowedUDPPortRanges = [ { from = 40000; to = 60000; } ]; 
     };
