@@ -60,7 +60,7 @@ Optional example step for configuring a wine based game on your system
 1. Follow the [instructions here](https://github.com/phR0ze/tech-docs/gaming/warcraft2/README.md)
 2. Create the bash script `~/bin/warcraft2`
    ```bash
-   #!/bin/bash
+   #!/usr/bin/env bash
 
    WINEARCH=win32 WINEPREFIX=~/.wine/prefixes/warcraft2 wine ~/.wine/prefixes/warcraft2/drive_c/GOG\ Games/Warcraft\ II\ BNE/Warcraft\ II\ BNE_dx.exe
    ```
