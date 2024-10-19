@@ -1,6 +1,9 @@
 # Warcraft2
 #
-# * Firewall configuration
+# Firewall configuration
+# * UDP: 40000 - 60000
+# * TCP: 54792
+# Battle.net: UDP 6112 - 6119
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -11,11 +14,6 @@ in
   options = {
     programs.warcraft2 = {
       enable = lib.mkEnableOption "Configure system for warcraft2";
-      port = lib.mkOption {
-        type = types.port;
-        default = 54792;
-        description = lib.mdDoc "Port used for IPX multi-player";
-      };
       allowIPXMultiPlayer= lib.mkOption {
         type = types.bool;
         default = true;
@@ -28,6 +26,8 @@ in
 
     # Allow multi-player IPX connections through the firewall
     # View rules with: sudo iptables -S
-    networking.firewall.allowedTCPPorts = lib.optional cfg.allowIPXMultiPlayer cfg.port;
-  };
+    networking.firewall = lib.optional cfg.allowIPXMultiPlayer {
+      allowedTCPPorts = [ 54792 ];
+      allowedUDPPortRanges = [ { from = 40000; to = 60000; } ]; 
+    };
 }
