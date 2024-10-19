@@ -1,10 +1,7 @@
-Beelink S12 Pro
-====================================================================================================
+# Beelink S12 Pro <img style="margin: 6px 13px 0px 0px" align="left" src="../../art/logo_36x36.png" />
 
-<img align="left" width="48" height="48" src="../../art/logo_256x256.png">
-Documenting the steps I went through to deploy <b><i>cyberlinux</i></b> onto the
-<a href="https://www.notebookcheck.net/Intel-N100-performance-debut-Beelink-Mini-S12-Pro-mini-PC-review.758950.0.html">Beelink S12 Pro</a> <br> This is now a <b>NixOS</b> based system see my <a href="../../">nixos-config</a>
-<br><br>
+Documenting the steps I went through to deploy, my **NixOS** based system ***cyberlinux***
+onto the [Beelink S12 Pro](https://www.notebookcheck.net/Intel-N100-performance-debut-Beelink-Mini-S12-Pro-mini-PC-review.758950.0.html)
 
 ### Quick links
 * [.. up dir](../../README.md)
@@ -60,7 +57,7 @@ Optional example step for configuring the use of a pre-existing local NFS share 
 ## Warcraft 2
 Optional example step for configuring a wine based game on your system
 
-1. Follow the [instructions here](../../system/wine/README.md#install-warcraft-2)
+1. Follow the [instructions here](https://github.com/phR0ze/tech-docs/gaming/warcraft2/README.md)
 2. Create the bash script `~/bin/warcraft2`
    ```bash
    #!/bin/bash

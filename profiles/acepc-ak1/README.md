@@ -1,11 +1,7 @@
-ACEPC AK1
-====================================================================================================
+# ACEPC AK1 <img style="margin: 6px 13px 0px 0px" align="left" src="../../art/logo_36x36.png" />
 
-<img align="left" width="48" height="48" src="../../art/logo_256x256.png">
-Documenting the steps I went through to deploy <b><i>cyberlinux</i></b> onto the
-<a href="https://www.techradar.com/reviews/acepc-ak1-mini-pc">ACEPC AK1</a> <br>This is now a 
-<b>NixOS</b> based system see my <a href="../../">nixos-config</a>
-<br><br>
+Documenting the steps I went through to deploy, my **NixOS** based system ***cyberlinux***
+onto the [ACEPC AK1](https://www.techradar.com/reviews/acepc-ak1-mini-pc).
 
 ### Quick links
 * [.. up dir](../../README.md)
@@ -66,7 +62,7 @@ Graphics are taken care of automatically by selecting the correct profile during
 12. Repeat for any other NFS share paths your server has  
 
 ## Warcraft 2
-1. Follow the [instructions here](../../system/wine/README.md#install-warcraft-2)
+1. Follow the [instructions here](https://github.com/phR0ze/tech-docs/gaming/warcraft2/README.md)
 2. Create the bash script `~/bin/warcraft2`
    ```bash
    #!/bin/bash

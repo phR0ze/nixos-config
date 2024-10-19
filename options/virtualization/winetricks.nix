@@ -18,11 +18,16 @@ in
  
   config = lib.mkIf (cfg.enable) {
     environment.systemPackages = with pkgs; [
-      wine
-      winetricks
+
+      # winWowPackages.stable   - 32-bit and 64-bit stable
+      # winWowPackages.staging  - 32-bit and 64-bit cutting edge
+      # wine                    - 32-bit only
+      # wine64                  - 64-bit only
+      winWowPackages.staging
+      winetricks                # support all versions
     ];
 
-    # Set the correct category for steam
+    # Set the correct category
     services.xdg.menu.itemOverrides = [
       {
         categories = "System";
