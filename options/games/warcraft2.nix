@@ -2,8 +2,8 @@
 #
 # Firewall configuration
 # * UDP: 40000 - 60000
-# * UDP: 54792
-# Battle.net: UDP 6112 - 6119
+# * IPX: UDP 54792
+# * Battle.net: UDP 6112 - 6119
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -27,9 +27,7 @@ in
     # Allow multi-player IPX connections through the firewall
     # View rules with: sudo iptables -S
     networking.firewall = lib.mkIf (cfg.allowIPXMultiPlayer) {
-      allowedTCPPorts = [ 54792 ];
       allowedUDPPorts = [ 54792 ];
-      allowedUDPPortRanges = [ { from = 40000; to = 60000; } ]; 
     };
   };
 }
