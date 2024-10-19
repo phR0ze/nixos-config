@@ -19,9 +19,9 @@ in
   config = lib.mkIf (cfg.enable) {
     environment.systemPackages = with pkgs; [
 
-      # winWowPackages.stable   - 32-bit and 64-bit stable
-      # winWowPackages.staging  - 32-bit and 64-bit cutting edge
-      # wine64                  - 64-bit only
+      # wineWowPackages.stable  # 32-bit and 64-bit stable
+      # wineWowPackages.staging # 32-bit and 64-bit cutting edge
+      # wine64                  # 64-bit only
       wine                      # 32-bit only
       winetricks                # support all versions
     ];
