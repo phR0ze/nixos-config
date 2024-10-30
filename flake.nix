@@ -50,6 +50,8 @@
       config.allowUnfree = true;
       config.allowUnfreePredicate = _: true;
       config.permittedInsecurePackages = [
+        # Allowing this for wii tools
+        "freeimage-unstable-2021-11-01"
         #"qtwebkit-5.212.0-alpha4"
       ];
 
