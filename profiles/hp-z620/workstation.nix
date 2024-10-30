@@ -27,7 +27,12 @@
 
   # Multimedia
   programs.xnviewmp.enable = true;
+
+  # Misc
   environment.systemPackages = [
     pkgs.freetube
+    pkgs.wiiload
+    pkgs.wiimms-iso-tools
+    pkgs.gamecube-tools
   ];
 }
