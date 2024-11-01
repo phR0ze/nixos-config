@@ -83,7 +83,10 @@ in
       networking.nameservers = [ "1.1.1.1" "1.0.0.1" ];
       services.resolved = {
         enable = true;
-        dnssec = "true";
+
+        # using `true` will require and thus break if DNS servers don't support it like VPNs
+        dnssec = "allow-downgrade";
+
         #domains = [ "example.com" ]
         fallbackDns = [ "8.8.8.8" "8.8.4.4" ]; # fallback on google dns
       };

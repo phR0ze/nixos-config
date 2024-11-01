@@ -34,5 +34,6 @@
     pkgs.wiiload
     pkgs.wiimms-iso-tools
     pkgs.gamecube-tools
+    pkgs.quickemu
   ];
 }
