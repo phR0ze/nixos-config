@@ -1,4 +1,5 @@
 # Virt Manager configuration
+# https://nixos.wiki/wiki/Virt-manager
 #
 # ### Guest
 # - when running NixOS as a guest enable QEMU with `service.qemuGuest.enable = true;`
@@ -45,12 +46,17 @@ in
       "net.bridge.bridge-nf-call-iptables" = 0;
     };
 
-    # Create the virbr0 network bridge
-    #networking = {
-      # dhcpcd.denyInterfaces = [ "macvtap0@*" ]; # avoid assigning dhcp address to bridge
-      #bridges.virbr0.interfaces = [ "eth0" ];
-      #interfaces.virbr0.useDHCP = true;
-    #};
+    # Create network bridge with static IP
+#    networking.useDHCP = false;
+#    networking.bridges = {
+#      "br0" = {
+#        interfaces = [ "enp8s0" ];
+#      };
+#    };
+#    networking.interfaces.br0.ipv4.addresses = [
+#      { address = "10.10.10.10"; prefixLength = 24; }
+#    ];
+#    networking.defaultGateway = "10.10.10.1";
 
     # Configure virt-manager initial connection
     # Home manager settings
