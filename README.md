@@ -135,7 +135,11 @@ for `vscode`.
    ```bash
    $ ./clu update flake
    ```
-3. Now follow the rest of the instructions in the parent section
+3. Build and test the vm
+   ```bash
+   $ ./clu build vm generic/develop
+   $ ./clu run vm
+   ```
 
 ## Advanced use cases
 Most linux users, especially those coming from Arch Linux, will immediately be interested in how they 
@@ -154,7 +158,7 @@ executable `./result/bin/run-nixos-vm` that will start the VM.
    ```
 2. Run the VM
    ```bash
-   $ ./result/bin/run-nixos-vm
+   $ ./clu run vm
    ```
 
 ### Build the live ISO for installation
