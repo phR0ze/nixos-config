@@ -109,7 +109,6 @@
     #"amdgpu-pro"                        # Proprietary AMD driver
   #];
 
-
 #  environment.variables = {
 #    VDPAU_DRIVER = "va_gl";
 #    LIBVA_DRIVER_NAME = "iHD";         # Force intel-media-driver use
@@ -118,7 +117,6 @@
 
     #config = lib.mkAfter ''
     #'';
-
 
   #-------------------------------------------------------------------------------------------------
   # Intel
@@ -161,33 +159,4 @@
   # services.xserver.videoDrivers = [ "amdgpu" ];
   # Non-free 
   # services.xserver.videoDrivers = [ "amdgpu-pro" ];
-
-  # Nvidia configuration
-  # - https://nixos.org/manual/nixos/unstable/#sec-x11-graphics-cards-nvidia
-  #-------------------------------------------------------------------------------------------------
-#  hardware.nvidia = {
-#    prime = {
-#      offload.enable = true;
-#      offload.enableOffloadCmd = true;
-#      nvidiaBusId = "PCI:1:0:0";
-#      amdgpuBusId = "PCI:6:0:0";
-#    };
-#
-#    modesetting.enable = true;
-#
-#    powerManagement = {
-#      enable = true;
-#      finegrained = true;
-#    };
-#
-#    open = true;
-#    nvidiaSettings = false; # gui app
-#    package = config.boot.kernelPackages.nvidiaPackages.latest;
-#  };
-  # Non-free
-  #services.xserver.videoDrivers = [ "nvidia" ];
-  # older cards
-  #services.xserver.videoDrivers = [ "nvidiaLegacy390" ];
-  #services.xserver.videoDrivers = [ "nvidiaLegacy340" ];
-  #services.xserver.videoDrivers = [ "nvidiaLegacy304" ];
 }
