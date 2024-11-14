@@ -1,7 +1,7 @@
 # XFCE minimal desktop configuration
 #
 # ### Features
-# - Directly installable: full general purpose desktop environment
+# - Directly installable: minimal general purpose desktop environment
 # --------------------------------------------------------------------------------------------------
 { pkgs, args, ... }:
 {
