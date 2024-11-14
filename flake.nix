@@ -31,8 +31,7 @@
     settings = {
       stateVersion = "24.05";           # Base install version, not sure this matters when on flake
     }
-    // import ./flake_private.nix       # include configuration set during installation
-    // import ./flake_public.nix;       # include configuration set during installation
+    // import ./flake_private.nix;      # include external configuration set
 
     # Allow for package patches, overrides and additions
     # * [allowUnfree](https://nixos.wiki/wiki/Unfree_Software)
