@@ -54,6 +54,7 @@ in
         source = "${connections}/${staticName}";
       };
     })
+
     (lib.mkIf (cfg.enable) {
       networking.enableIPv6 = false;
       networking.hostName = args.settings.hostname;
@@ -62,7 +63,7 @@ in
       networking.networkmanager = {
         enable = true;
         dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
-        unmanaged = [                       # Ignore virtualization technologies
+        unmanaged = [                       # Ignore virtualization networks
           "interface-name:docker*"
           "interface-name:vboxnet*"
           "interface-name:vmnet*"
@@ -72,24 +73,30 @@ in
       # Enables ability for user to make network manager changes
       users.users.${args.settings.username}.extraGroups = [ "networkmanager" ];
 
-      # Its ok to always have dhcp as static has higher priority when exists
+      # Its ok to always have dhcp set as static has higher priority when it exists
       environment.etc."NetworkManager/system-connections/${dhcpName}" = {
         mode = "0600";
         source = "${connections}/${dhcpName}";
       };
 
-      # Use systemd-resolved for DNS
-      # Uses networking.nameservers as the primary DNS servers see /etc/systemd/resolved.conf
-      networking.nameservers = [ "1.1.1.1" "1.0.0.1" ];
+      # Configure systemd-resolved
       services.resolved = {
         enable = true;
 
         # using `true` will require and thus break if DNS servers don't support it like VPNs
         dnssec = "allow-downgrade";
-
-        #domains = [ "example.com" ]
-        fallbackDns = [ "8.8.8.8" "8.8.4.4" ]; # fallback on google dns
       };
+    })
+
+    # Configure primary and fallback DNS servers as specified in settings
+    (lib.mkIf (cfg.enable && args.settings.primary_dns != "") {
+      networking.nameservers = [ "${args.settings.primary_dns}" ];
+    })
+    (lib.mkIf (cfg.enable && args.settings.primary_dns != "" && args.settings.fallback_dns == "" ) {
+      services.resolved.fallbackDns = [ "${args.settings.primary_dns}" ];
+    })
+    (lib.mkIf (cfg.enable && args.settings.fallback_dns != "") {
+      services.resolved.fallbackDns = [ "${args.settings.fallback_dns}" ];
     })
   ];
 }

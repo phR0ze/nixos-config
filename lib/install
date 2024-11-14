@@ -152,36 +152,37 @@ install::config_system()
     utils::replace str "git_user" "${GIT_USER}" "${NIXOS_CONFIG_PRIVATE}"
     utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_CONFIG_PRIVATE}"
 
-    NIXOS_CONFIG_PUBLIC="${NIXOS_CONFIG}/flake_public.nix"
     [ "x${STATIC_IP}" == "xDHCP" ] && static_ip="" || static_ip="${STATIC_IP}"
-    utils::replace str "static_ip" "${static_ip}" "${NIXOS_CONFIG_PUBLIC}"
-    utils::replace str "gateway" "${GATEWAY}" "${NIXOS_CONFIG_PUBLIC}"
+    utils::replace str "static_ip" "${static_ip}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "gateway" "${GATEWAY}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "primary_dns" "${PRIMARY_DNS}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "fallback_dns" "${FALLBACK_DNS}" "${NIXOS_CONFIG_PRIVATE}"
+
     [ "x${BLUETOOTH}" == "xy" ] && bluetooth="true" || bluetooth="false"
-    utils::replace str "bluetooth" "${bluetooth}" "${NIXOS_CONFIG_PUBLIC}"
+    utils::replace str "bluetooth" "${bluetooth}" "${NIXOS_CONFIG_PRIVATE}"
     [ "x${AUTO_LOGIN}" == "xy" ] && autologin="true" || autologin="false"
-    utils::replace bool "autologin" "${autologin}" "${NIXOS_CONFIG_PUBLIC}"
+    utils::replace bool "autologin" "${autologin}" "${NIXOS_CONFIG_PRIVATE}"
     [ "x${NFS_SHARES}" == "xy" ] && nfsshares="true" || nfsshares="false"
-    utils::replace bool "nfs_shares" "${nfsshares}" "${NIXOS_CONFIG_PUBLIC}"
+    utils::replace bool "nfs_shares" "${nfsshares}" "${NIXOS_CONFIG_PRIVATE}"
     utils::check_status
 
     # Configure boot device target
     echo -en ":: Configure boot device type..."
     [ "x${EFI}" == "x1" ] && efi_str="true" || efi_str="false"
-    utils::replace bool "efi" "${efi_str}" "${NIXOS_CONFIG_PUBLIC}"
+    utils::replace bool "efi" "${efi_str}" "${NIXOS_CONFIG_PRIVATE}"
 
     [ "x${EFI}" == "x1" ] && mbr_str="nodev" || mbr_str="${DESTDEV}"
-    utils::replace str "mbr" "${mbr_str}" "${NIXOS_CONFIG_PUBLIC}"
+    utils::replace str "mbr" "${mbr_str}" "${NIXOS_CONFIG_PRIVATE}"
     utils::check_status
 
     # Configure system settings
-    utils::replace str "timezone" "${TIMEZONE}" "${NIXOS_CONFIG_PUBLIC}"
-    utils::replace str "hostname" "${HOSTNAME}" "${NIXOS_CONFIG_PUBLIC}"
-    utils::replace str "profile" "${MACHINE}/${PROFILE}" "${NIXOS_CONFIG_PUBLIC}"
+    utils::replace str "timezone" "${TIMEZONE}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "hostname" "${HOSTNAME}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "profile" "${MACHINE}/${PROFILE}" "${NIXOS_CONFIG_PRIVATE}"
 
     # Modules must be at least staged for the flake to recognize them
     pushd ${NIXOS_CONFIG}
     git add flake_private.nix
-    git add flake_public.nix
     popd
 
     # Execute the NixOS install
@@ -229,8 +230,10 @@ install::run()
     SCSI=0
     DEFAULT='n'
     TIMEZONE='America/Boise'
-    STATIC_IP='DHCP'
+
+    # Network settings
     HOSTNAME='nixos'
+    STATIC_IP='DHCP'
 
     # User settings
     GIT_USER='admin'
@@ -370,6 +373,8 @@ install::run()
         utils::read STATIC_IP 'Enter static IP, e.g. 192.168.1.2/24' 'DHCP'
         if [ "x${STATIC_IP}" != "xDHCP" ]; then
             utils::read GATEWAY 'Enter gateway' $(echo $STATIC_IP | awk -F. '{print $1"."$2"."$3".1"}')
+            utils::read PRIMARY_DNS 'Enter primary dns' $(echo $STATIC_IP | awk -F. '{print $1"."$2"."$3".53"}')
+            utils::read FALLBACK_DNS 'Enter fallback dns' $(echo $STATIC_IP | awk -F. '{print $1"."$2"."$3".53"}')
         fi
         utils::read BLUETOOTH 'Enable bluetooth support' 'n'
     fi

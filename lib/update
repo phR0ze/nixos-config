@@ -61,14 +61,14 @@ update::flake()
 }
 
 
-# Update the target profile in the options file e.g. flake_public.nix
+# Update the target profile in the options file e.g. flake_private.nix
 # --------------------------------------------------------------------------------------------------
 update::profile()
 {
     core::title
     log::header1 "Update install profile"
 
-    local opts="${SCRIPT_DIR}/flake_public.nix"
+    local opts="${SCRIPT_DIR}/flake_private.nix"
     log::ln "Switching install profile to ${cyan}${@}${none}"
     utils::replace str "profile" "${@}" "${opts}"
     git add "${opts}"
@@ -103,7 +103,7 @@ _preUpdate()
 
     log::ln "Injecting HEAD short SHA and comment"
     local gitMsg="$(git log -1 --pretty="%h: %B" | xargs)"
-    utils::replace str "comment" "${gitMsg}" "${SCRIPT_DIR}/flake_public.nix"
+    utils::replace str "comment" "${gitMsg}" "${SCRIPT_DIR}/flake_private.nix"
     git add .
 
     log::ln "Removing ${cyan}/nix/files.lock${none} to permit files update"

@@ -30,7 +30,7 @@ in
 
     # Have the kernel load the correct GPU driver as soon as possible
     (lib.mkIf (cfg.enable) {
-      config.hardware.nvidia = {
+      hardware.nvidia = {
 
         # Modesetting is required.
         modesetting.enable = true;
