@@ -13,7 +13,8 @@
   #services.minecraft-server.enable = true;
   #virtualization.virt-manager.enable = true;
 
-#  environment.systemPackages = with pkgs; [
+  environment.systemPackages = with pkgs; [
+    mdadm                               # Linux Software RAID management
 #    jdk17                               # Needed for: minecraft
-#  ];
+  ];
 }
