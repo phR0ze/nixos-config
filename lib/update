@@ -73,10 +73,10 @@ update::profile()
     utils::replace str "profile" "${@}" "${opts}"
     git add "${opts}"
 
-    _preUpdate
-    _removeUserXfceConfigs
-    _updateSystem
-    _postUpdate
+    _update::preUpdate
+    _update::removeUserXfceConfigs
+    _update::updateSystem
+    _update::postUpdate
 }
 
 # Update the system with the system configuration changes
@@ -87,15 +87,15 @@ update::system()
     log::header1 "Update system version"
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
-    _preUpdate
+    _update::preUpdate
     if [[ "$@" == "reset-xfce" ]]; then
-        _removeUserXfceConfigs
+        _update::removeUserXfceConfigs
     fi
-    _updateSystem
-    _postUpdate
+    _update::updateSystem
+    _update::postUpdate
 }
 
-_preUpdate()
+_update::preUpdate()
 {
     log::ln "Updating local git repo"
 
@@ -112,7 +112,7 @@ _preUpdate()
 }
 
 # Remove user xfce configurations to get a clean point to start from
-_removeUserXfceConfigs()
+_update::removeUserXfceConfigs()
 {
     local users=$(find /home -mindepth 1 -maxdepth 1)
     users+=('/root')
@@ -124,12 +124,12 @@ _removeUserXfceConfigs()
 }
 
 # Trigger the Nix flake based system update
-_updateSystem()
+_update::updateSystem()
 {
     nixos-rebuild switch --flake "path:/etc/nixos#system"
 }
 
-_postUpdate()
+_update::postUpdate()
 {
     log::ln "Adding ${cyan}/nix/files.lock${none} to block files updates during reboots"
     touch /nix/files.lock

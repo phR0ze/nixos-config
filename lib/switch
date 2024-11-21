@@ -41,7 +41,7 @@ switch::run()
     local latest="$1"
     local isVer=false
     if [[ -e "$path" ]]; then
-        latest="$(_getLatestVer)"
+        latest="$(_switch::getLatestVer)"
         link="system-${latest}-link"
         target="$(realpath -e "$path")"
     else
@@ -82,7 +82,7 @@ switch::run()
 
 # Get the latest system version
 # --------------------------------------------------------------------------------------------------
-_getLatestVer()
+_switch::getLatestVer()
 {
     # Get the system versions
     declare -a links=( $(echo $(find $NIXOS_PROFILES_PATH -type l -name 'system-*-link' | sort) ) )
@@ -91,7 +91,7 @@ _getLatestVer()
     fi
 
     # Get the latest and trim down to just the version number
-    local generation="$(_getVer "${links[-1]}")"
+    local generation="$(_switch::getVer "${links[-1]}")"
 
     # Increment the version
     local result=$((generation+1))          # e.g. 41
@@ -104,7 +104,7 @@ _getLatestVer()
 # ### Params
 # - $1 the generation directory name
 #
-_getVer()
+_switch::getVer()
 {
     local base=$(basename $1)               # e.g. system-40-link
     local trimPrefix=${base#system-}        # e.g. 40-link

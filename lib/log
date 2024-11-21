@@ -49,7 +49,7 @@ esac
 # ### Params
 # - $1 the log level to log at
 # - $2 the message to log
-_log()
+_log::log()
 {
     local level="$1"
     shift
@@ -78,7 +78,7 @@ log::fatal()
 log::error()
 {
     local msg="$@"
-    _log $_error "${red}Error:${none} ${msg}"
+    _log::log $_error "${red}Error:${none} ${msg}"
 }
 
 # Log at info level with newline
@@ -88,7 +88,7 @@ log::error()
 log::ln()
 {
     local msg="$@"
-    _log $_info "${msg}"
+    _log::log $_info "${msg}"
 }
 
 # Log at debug level with newline
@@ -99,7 +99,7 @@ log::ln()
 log::ln_d()
 {
     local msg="$@"
-    _log $_debug "${violet}>>${none} ${msg}"
+    _log::log $_debug "${violet}>>${none} ${msg}"
 }
 
 # Log 2 space indent at info level with newline
@@ -109,7 +109,7 @@ log::ln_d()
 log::subln()
 {
     local msg="$@"
-    _log $_info "  ${msg}"
+    _log::log $_info "  ${msg}"
 }
 
 # Log 3 space indent at info level with newline
@@ -119,7 +119,7 @@ log::subln()
 log::subln3()
 {
     local msg="$@"
-    _log $_info "   ${msg}"
+    _log::log $_info "   ${msg}"
 }
 
 # Internal function to print out a header
@@ -147,13 +147,13 @@ log::header()
       separator="${color}$(printf "%.0s${char}" {1..100})${none}"
     fi
 
-    _log $_info ""
+    _log::log $_info ""
     if [[ $kind > 1 ]]; then
-      _log $_info "$separator"
+      _log::log $_info "$separator"
     fi
-    _log $_info "${color}::${none} ${msg}"
+    _log::log $_info "${color}::${none} ${msg}"
     if [[ $kind > 0 ]]; then
-      _log $_info "$separator"
+      _log::log $_info "$separator"
     fi
 }
 
