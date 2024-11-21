@@ -62,7 +62,7 @@ list::versions()
     # Inspired by the `nixos-rebuild list-generations` command
     find "$NIXOS_PROFILES_PATH" -type l -name 'system-*-link' | sort -Vr |
         while read -r ver; do
-            _describeVer "$ver"
+            _list::describeVer "$ver"
         done |
             jq --slurp -r '.[] | [
                 ([.version, (if .current == true then "current" else "" end)] | join(" ")),
@@ -84,9 +84,9 @@ list::versions()
 # 
 #
 # ### Examples
-# _describeVer /nix/var/nix/profiles/system-12-link
+# _list::describeVer /nix/var/nix/profiles/system-12-link
 #
-_describeVer()
+_list::describeVer()
 {
     local version_dir="$1"
     local version="$(_getVer "$version_dir")"

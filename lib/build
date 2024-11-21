@@ -66,21 +66,35 @@ build::vm()
 
     # Switch profile if directed
     local profile="$1"
-    local opts="${SCRIPT_DIR}/flake_private.nix"
     if [[ "$profile" != "" ]]; then
-        profile="${profile%.*}" # trim off the file extension
-        log::ln "Switching VM profile to ${cyan}${profile}${none}"
-
-        utils::replace str "profile" "${profile}" "${opts}"
-        git add "${opts}"
+        _build::switch_profile "$profile"
     fi
 
     nix build .#nixosConfigurations.vm.config.system.build.vm
 
     # Restore the profile back to the original
     if [[ "$profile" != "" ]]; then
-        log::ln "Restoring profile back to original"
-        git restore --staged "${opts}"
-        git checkout "${opts}"
+        _build::restore_profile
     fi
+}
+
+# Change the profile
+# $1 - the profile to set
+_build::switch_profile()
+{
+    local profile="$1"
+    local opts="${SCRIPT_DIR}/flake_private.nix"
+    profile="${profile%.*}" # trim off the file extension
+    log::ln "Switching VM profile to ${cyan}${profile}${none}"
+    utils::replace str "profile" "${profile}" "${opts}"
+    git add "${opts}"
+}
+
+# Restore the profile back to what is was before by unstaging and resetting
+_build::restore_profile()
+{
+    local opts="${SCRIPT_DIR}/flake_private.nix"
+    log::ln "Restoring profile back to original"
+    git restore --staged "${opts}"
+    git checkout "${opts}"
 }
