@@ -26,6 +26,7 @@ USAGE
     log::subln "Build the test VM: ${green}./${SCRIPT} build vm${none}"
     log::subln "Build server test VM: ${green}./${SCRIPT} build vm generic/server${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
+    log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso generic/light${none}"
     echo
     exit
 }
@@ -89,6 +90,9 @@ _build::switch_profile()
         log::ln "Switching VM profile to ${cyan}${profile}${none}"
         utils::replace str "${varname}" "${profile}" "${opts}"
         git add "${opts}"
+
+        # Ensure the restore is always called
+        trap _build::cleanup INT KILL
     fi
 }
 
@@ -103,4 +107,10 @@ _build::restore_profile()
         git restore --staged "${opts}"
         git checkout "${opts}"
     fi
+}
+
+# Cleanup if interrupted or failed after changing the profile
+_build::cleanup()
+{
+    _build::restore_profile yes
 }
