@@ -11,7 +11,7 @@
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
-    (../. + ("/" + settings.iso_profile + ".nix"))
+    (../. + ("/" + args.settings.iso_profile + ".nix"))
   ];
 
   # ISO image configuration

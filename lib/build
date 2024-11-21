@@ -54,7 +54,12 @@ build::iso()
 {
     core::title
     log::header0 "Building installable ISO"
+
+    _build::switch_profile "iso_profile" "$1"
+
     nix build .#nixosConfigurations.iso.config.system.build.isoImage
+
+    _build::restore_profile "$1"
 }
 
 # Build the test vm
@@ -64,37 +69,38 @@ build::vm()
     core::title
     log::header0 "Building test VM"
 
-    # Switch profile if directed
-    local profile="$1"
-    if [[ "$profile" != "" ]]; then
-        _build::switch_profile "$profile"
-    fi
+    _build::switch_profile "profile" "$1"
 
     nix build .#nixosConfigurations.vm.config.system.build.vm
 
-    # Restore the profile back to the original
+    _build::restore_profile "$1"
+}
+
+# Change the profile if given
+# $1 - the name of the profile variable to change
+# $2 - the profile value to set
+_build::switch_profile()
+{
+    local varname="$1"
+    local profile="$2"
+    local opts="${SCRIPT_DIR}/flake_private.nix"
     if [[ "$profile" != "" ]]; then
-        _build::restore_profile
+        profile="${profile%.*}" # trim off the file extension
+        log::ln "Switching VM profile to ${cyan}${profile}${none}"
+        utils::replace str "${varname}" "${profile}" "${opts}"
+        git add "${opts}"
     fi
 }
 
-# Change the profile
-# $1 - the profile to set
-_build::switch_profile()
+# Restore the profile back to what is was before by unstaging and resetting
+# $1 - the profile value to trigger off from
+_build::restore_profile()
 {
     local profile="$1"
     local opts="${SCRIPT_DIR}/flake_private.nix"
-    profile="${profile%.*}" # trim off the file extension
-    log::ln "Switching VM profile to ${cyan}${profile}${none}"
-    utils::replace str "profile" "${profile}" "${opts}"
-    git add "${opts}"
-}
-
-# Restore the profile back to what is was before by unstaging and resetting
-_build::restore_profile()
-{
-    local opts="${SCRIPT_DIR}/flake_private.nix"
-    log::ln "Restoring profile back to original"
-    git restore --staged "${opts}"
-    git checkout "${opts}"
+    if [[ "$profile" != "" ]]; then
+        log::ln "Restoring profile back to original"
+        git restore --staged "${opts}"
+        git checkout "${opts}"
+    fi
 }
