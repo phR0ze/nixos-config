@@ -429,13 +429,15 @@ install::run()
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
     log::subln3 "profile=${cyan}${MACHINE}/${PROFILE}${none}"
-    log::subln3 "nfs_shares=${cyan}${NFS_SHARES}${none}"
 
-    # Networking
+    # Networking settings
     log::subln3 "hostname=${cyan}${HOSTNAME}${none}"
     log::subln3 "static_ip=${cyan}${STATIC_IP}${none}"
-    log::subln3 "bluetooth=${cyan}${BLUETOOTH}${none}"
+    log::subln3 "gateway=${cyan}${GATEWAY}${none}"
+    log::subln3 "primary_dns=${cyan}${PRIMARY_DNS}${none}"
+    log::subln3 "fallback_dns=${cyan}${FALLBACK_DNS}${none}"
 
+    # User settings
     log::subln3 "user_name=${cyan}${USER_NAME}${none}"
     log::subln3 "user_email=${cyan}${USER_EMAIL}${none}"
     if [ "x$DEFAULT" == "xy" ] || [ "x$DEFAULT_PASS" == "x$USER_PASS" ]; then
@@ -446,6 +448,10 @@ install::run()
     log::subln3 "git_user=${cyan}${GIT_USER}${none}"
     log::subln3 "git_email=${cyan}${GIT_EMAIL}${none}"
     log::subln3 "full_name=${cyan}${FULL_NAME}${none}"
+
+    # System settings
+    log::subln3 "nfs_shares=${cyan}${NFS_SHARES}${none}"
+    log::subln3 "bluetooth=${cyan}${BLUETOOTH}${none}"
     log::subln3 "timezone=${cyan}${TIMEZONE}${none}"
     log::subln3 "auto_login=${cyan}${AUTO_LOGIN}${none}"
     log::subln3 "dest_dev=${cyan}${DESTDEV}${none}"

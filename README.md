@@ -26,24 +26,27 @@ fork it and build on my work.
   * [Build the live ISO for installation](#build-the-live-iso-for-installation)
 * [Development](#development)
   * [Clone nixpkgs locally](#clone-nixpkgs-locally)
+* [Homelab research](#homelab-research)
 * [Backlog](#backlog)
 
 ## Getting started
-***clu***, is a simple bash script providing an install wizard to:
-  * Prompt you for a few simple customization selections
-  * Automate the annoying tasks like
+***clu***, is a simple bash script providing:
+  * An install wizard to walk you through customizing your system
+  * Automate annoying tasks like
     * disk paritioning and mounting
     * generation of nixos hardware configuration
     * transferring install time customizations to the underlying nix flake
     * triggering the install of the complete system via nix flakes
+  * Wrapping of many of the disparate NixOS tooling
+    * Provides a single script with documentation on common tasks
 
 ### Install from upstream ISO
+My configuration can be installed using the pre-built upstream NixOS ISOs
 
 1. Download the minimal image from [NixOS downloads](https://nixos.org/download.html#nixos-iso)
    ```bash
    $ wget https://channels.nixos.org/nixos-23.11/latest-nixos-minimal-x86_64-linux.iso
    ```
-
 2. Burn the ISO to USB 
    1. Determine the correct USB device
       ```bash
@@ -57,17 +60,14 @@ fork it and build on my work.
       ```bash
       $ sudo dd bs=4M if=latest-nixos-minimal-x86_64-linux.iso of=YOUR/DEVICE status=progress conv=fsync oflag=direct
       ```
-
 3. Boot from the new USB and start a nix shell
    ```bash
    $ nix-shell -p git jq
    ```
-
 4. Clone this repo
    ```bash
    $ git clone https://github.com/phR0ze/nixos-config
    ```
-
 5. Execute the installer
    ```bash
    $ cd nixos-config
@@ -83,18 +83,12 @@ speed up the installation tremendously as you don't need to download nearly as m
 built binaries will already be built.
 
 Of course this is really only useful if you install a lot of systems or your target system is rather 
-limited in resources.
+limited in resources while your build system is beefy.
 
 1. [Build the live ISO for installation](#build-the-live-iso-for-installation)
-
 2. Burn the ISO to USB see step 2 of [Install from upstream ISO](#install-from-upstream-iso)
-
 3. Boot from the new USB and open a shell
-
 4. You'll be greeted with the clu installer
-
-* [General use cases](#general-use-cases)
-  * [Upgrade an app](#upgrade-an-app)
 
 ## Update use cases
 After installing your system you'll need to make changes from time to time. The `clu` automation will 
@@ -104,15 +98,12 @@ have copied the original configuration to `/etc/nixos`.
    ```bash
    $ cd /etc/nixos
    ```
-
 2. Make changes as desired
    * see [Upgrade an app](#upgrade-an-app)
-  
 3. Commit or stage your configuration changes so they are visible to nix flakes
    ```bash
    $ git add .
    ```
-
 4. Update your system with the configuration changes
    ```bash
    $ sudo ./clu update system
@@ -170,22 +161,18 @@ world though this already exists.
    ```bash
    $ git clone https://github.com/phR0ze/nixos-config
    ```
-
 2. Modify the ISO profile as desired
    ```bash
    $ vim profiles/iso/default.nix
    ```
-
 3. Commit or at the least stage your changes so Nix will see them
    ```bash
    $ git add .
    ```
-
 4. Now build the iso
    ```bash
    $ ./clu build iso
    ```
-
 5. The ISO will end up in `result/iso/`
 
 ## Development
@@ -196,6 +183,10 @@ It's nice to have a copy of nixpkgs to reference for options
 ```bash
 $ git clone -b nixos-unstable --depth 1 https://github.com/NixOS/nixpkgs
 ```
+
+## Homelab research
+* Uptime Kuma
+
 
 ## Backlog
 * [ ] Add freetube

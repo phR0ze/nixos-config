@@ -12,6 +12,14 @@
     # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/x11/xserver.nix#L749-L750
     "fs.inotify.max_user_watches" = 524288;     # Increase the number of user file watches to max
     "fs.inotify.max_user_instances" = 524288;   # Increase the number of user instances to max
+
+    # Support for bridge virtual switches
+    # [netfilter is currently enabled on bridges by default](https://bugzilla.redhat.com/show_bug.cgi?id=512206#c0).
+    # This is unneeded additional overhead that can be confusing when trouble shooting. The libvirt team 
+    # recommends disabling it for all bridge devices.
+    "net.bridge.bridge-nf-call-arptables" = 0;
+    "net.bridge.bridge-nf-call-ip6tables" = 0;
+    "net.bridge.bridge-nf-call-iptables" = 0;
   };
 
   # Blacklisted modules
