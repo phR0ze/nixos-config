@@ -3,6 +3,9 @@
 # Build code
 # 
 # ## Features
+# * The ISO build target is 'develop' by default which is the heaviest profile and builds on all the 
+# other profiles which means that all packages will be included on the ISO. By changing the ISO 
+# target to something smaller like 'light' we can create a smaller ISO with less packages included.
 #
 # --------------------------------------------------------------------------------------------------
 

@@ -37,36 +37,6 @@ in
     # Enable USB passthrough support for VMs
     virtualisation.spiceUSBRedirection.enable = true;
 
-    # [netfilter is currently enabled on bridges by default](https://bugzilla.redhat.com/show_bug.cgi?id=512206#c0).
-    # This is unneeded additional overhead that can be confusing when trouble shooting. The libvirt team 
-    # recommends disabling it for all bridge devices.
-    boot.kernel.sysctl = {
-      "net.bridge.bridge-nf-call-arptables" = 0;
-      "net.bridge.bridge-nf-call-ip6tables" = 0;
-      "net.bridge.bridge-nf-call-iptables" = 0;
-    };
-
-    # Create network bridge with static IP
-#    networking.useDHCP = false;
-#    networking.bridges = {
-#      "br0" = {
-#        interfaces = [ "enp8s0" ];
-#      };
-#    };
-#    networking.interfaces.br0.ipv4.addresses = [
-#      { address = "10.10.10.10"; prefixLength = 24; }
-#    ];
-#    networking.defaultGateway = "10.10.10.1";
-
-    # Configure virt-manager initial connection
-    # Home manager settings
-#    dconf.settings = {
-#      "org/virt-manager/virt-manager/connections" = {
-#        autoconnect = ["qemu:///system"];
-#        uris = ["qemu:///system"];
-#      };
-#    };
-
     environment.systemPackages = with pkgs; [
       virt-viewer                                   # A slimmed down viewer for virtual machines
     ];
