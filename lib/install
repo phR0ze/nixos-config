@@ -278,7 +278,6 @@ install::run()
     args=($@)
     if [[ "${args[0]}" == "testing" ]]; then
         log::header0 "Testing installer with current nixos-config"
-        [[ $PROCEED != "y" ]] && exit
         NIXOS_CONFIG_DIR=.
         TESTING="y"
     fi
