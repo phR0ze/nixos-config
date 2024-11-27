@@ -76,7 +76,7 @@ Commands:
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "${green}Run installer:${none} sudo ./${SCRIPT} install"
+    log::subln "${green}Launch installer:${none} sudo ./${SCRIPT} install"
     log::subln "${green}Build the installer ISO:${none} ./${SCRIPT} build iso"
     echo
     exit
