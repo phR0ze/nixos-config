@@ -102,6 +102,8 @@ utils::help()
 #
 utils::read()
 {
+    DEFAULT="${DEFAULT:-n}"
+
     local _result=$1
     local msg=$2
     local result=$3
