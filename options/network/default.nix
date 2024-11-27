@@ -53,7 +53,7 @@ in
     # Optionally configure network bridge with static IP first
     (f.mkIfElse (args.settings.network_bridge && args.settings.static_ip != "") {
       networking.useDHCP = false;
-      networking.bridges."br0".interfaces = [ "${args.settings.nic1}" ];
+      networking.bridges."br0".interfaces = [ "${args.settings.nic0}" ];
 
       # Configure Static IP bridge
       networking.interfaces."br0".ipv4.addresses = [ static_ip ];
@@ -62,12 +62,12 @@ in
     # Otherwise configure network bridge with DHCP second
     } (f.mkIfElse (args.settings.network_bridge && args.settings.static_ip == "") {
       networking.useDHCP = false;
-      networking.bridges."br0".interfaces = [ "${args.settings.nic1}" ];
+      networking.bridges."br0".interfaces = [ "${args.settings.nic0}" ];
       networking.interfaces."br0".useDHCP = true;
 
     # Otherwise configure static IP for the primary NIC third
     } (f.mkIfElse (args.settings.static_ip != "") {
-      networking.interfaces."${args.settings.nic1}".ipv4.addresses = [ static_ip ];
+      networking.interfaces."${args.settings.nic0}".ipv4.addresses = [ static_ip ];
       networking.defaultGateway = "${args.settings.gateway}";
 
     # Finally fallback on DHCP for the primary NIC
