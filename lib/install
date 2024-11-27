@@ -236,9 +236,9 @@ install::config_system()
     utils::replace str "profile" "${MACHINE}/${PROFILE}" "${NIXOS_CONFIG_PRIVATE}"
 
     # Modules must be at least staged for the flake to recognize them
-    pushd ${NIXOS_CONFIG_DIR} 2>/dev/null
+    pushd ${NIXOS_CONFIG_DIR} &>/dev/null
     git add flake_private.nix
-    popd 2>/dev/null
+    popd &>/dev/null
 
     # Execute the NixOS install
     # ----------------------------------------------------------------------------------------------
@@ -263,9 +263,9 @@ install::config_system()
         echo -e ":: Update the swap entry to use the device UUID"
         SWAP_UUID=$(blkid -s UUID -o value ${PART_SWAP})
         utils::replace str "${PART_SWAP}" "/dev/disk/by-uuid/${SWAP_UUID}" "${NIXOS_CONFIG_DIR}/hardware-configuration.nix"
-        pushd ${NIXOS_CONFIG_DIR} 2>/dev/null
+        pushd ${NIXOS_CONFIG_DIR} &>/dev/null
         git add hardware-configuration.nix -f
-        popd 2>/dev/null
+        popd &>/dev/null
     fi
 
     echo
