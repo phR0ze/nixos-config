@@ -197,7 +197,7 @@ install::config_system()
     utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_CONFIG_PRIVATE}"
 
     [ "x${NETWORK_BRIDGE}" == "xy" ] && network_bridge="true" || network_bridge="false"
-    utils::replace bool "network_bridg" "${network_bridge}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace bool "network_bridge" "${network_bridge}" "${NIXOS_CONFIG_PRIVATE}"
     [ "x${STATIC_IP}" == "xDHCP" ] && static_ip="" || static_ip="${STATIC_IP}"
     utils::replace str "static_ip" "${static_ip}" "${NIXOS_CONFIG_PRIVATE}"
     utils::replace str "gateway" "${GATEWAY}" "${NIXOS_CONFIG_PRIVATE}"
