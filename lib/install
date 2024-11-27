@@ -137,8 +137,9 @@ install::generate_hardware_config()
     utils::check_status
 
     # Extract networking for use during install
-    pushd ${NIXOS_CONFIG_DIR}
-    NICS=($(sed -n 's|^\s*# networking.interfaces.\(.*\)\.use.*|\1|p' hardware-configuration.nix))
+    # Using an explicit path here to support testing overrides
+    HARDWARE_CONFIG="${ROOT_MOUNT}/etc/nixos/hardware-configuration.nix"
+    NICS=($(sed -n 's|^\s*# networking.interfaces.\(.*\)\.use.*|\1|p' ${HARDWARE_CONFIG}))
 
     echo -en ":: NIC0: ${cyan}${NICS[0]}${none}"
     utils::replace str "nic0" "${NICS[0]}" "${NIXOS_CONFIG_PRIVATE}"
@@ -149,8 +150,11 @@ install::generate_hardware_config()
     fi
 
     # Modules must be at least staged for the flake to recognize them
-    git add hardware-configuration.nix -f
-    popd
+    if [[ "x$TESTING" != "xy" ]]; then
+        pushd ${NIXOS_CONFIG_DIR}
+        git add hardware-configuration.nix -f
+        popd
+    fi
 }
 
 install::config_system()
@@ -279,13 +283,14 @@ install::run()
     if [[ "${args[0]}" == "testing" ]]; then
         log::header0 "Testing installer with current nixos-config"
         ROOT_MOUNT=.
+        NIXOS_CONFIG_DIR=.
         TESTING="y"
     fi
 
-    ROOT_MOUNT="${ROOT_MOUNT:-/mnt}"
     DEFAULT="${DEFAULT:-n}"
     TESTING="${TESTING:-n}"
-    NIXOS_CONFIG_DIR="${ROOT_MOUNT}/etc/nixos"
+    ROOT_MOUNT="${ROOT_MOUNT:-/mnt}"
+    NIXOS_CONFIG_DIR="${NIXOS_CONFIG_DIR:-${ROOT_MOUNT}/etc/nixos}"
     SCSI=0
     TIMEZONE='America/Boise'
 
