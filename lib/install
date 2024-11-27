@@ -137,6 +137,7 @@ install::generate_hardware_config()
     utils::check_status
 
     # Extract networking for use during install
+    pushd ${NIXOS_CONFIG_DIR}
     NICS=($(sed -n 's|^\s*# networking.interfaces.\(.*\)\.use.*|\1|p' hardware-configuration.nix))
 
     echo -en ":: NIC0: ${cyan}${NICS[0]}${none}"
@@ -148,7 +149,6 @@ install::generate_hardware_config()
     fi
 
     # Modules must be at least staged for the flake to recognize them
-    pushd ${NIXOS_CONFIG_DIR}
     git add hardware-configuration.nix -f
     popd
 }
