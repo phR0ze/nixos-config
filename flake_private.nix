@@ -13,6 +13,7 @@
   gateway = "";                     # default gateway to use for static ip addresses
   primary_dns = "";                 # primary dns server to use e.g. 1.1.1.1
   fallback_dns = "";                # fallback dns server to use e.g. 8.8.8.8
+  network_bridge = false;           # Enable a network bridge for the primary NIC
   bluetooth = false;                # flag to control bluetooth enablement
 
   profile = "generic/desktop";      # pre-defined configurations in path './profiles' selection
@@ -23,6 +24,8 @@
   # -------------------------------
   efi = true;                       # EFI system boot type, default "false"
   mbr = "nodev";                    # MBR system boot device, default "nodev"
+  nic1 = "";                        # First NIC found in hardware-configuration.nix
+  nic2 = "";                        # Second NIC found in hardware-configuration.nix
   system = "x86_64-linux";          # system architecture to use
   timezone = "America/Boise";       # time-zone selection
   locale = "en_US.UTF-8";           # locale selection

@@ -4,41 +4,6 @@
 let
   cfg = config.network.network-manager;
 
-  dhcpName = "dhcp.nmconnection";
-  staticName = "static.nmconnection";
-
-  # Higher values of autoconnect-priority will be given priority
-  connections = pkgs.runCommandLocal "connections" {} ''
-      mkdir $out
-
-      target="$out/${dhcpName}"
-      echo "[connection]" >> $target
-      echo "id=Wired dhcp" >> $target
-      echo "uuid=$(${pkgs.util-linux}/bin/uuidgen)" >> $target
-      echo "type=ethernet" >> $target
-      echo "autoconnect-priority=0" >> $target
-      echo "" >> $target
-      echo "[ipv4]" >> $target
-      echo "method=auto" >> $target
-      echo "" >> $target
-      echo "[ipv6]" >> $target
-      echo "method=disabled" >> $target
-
-      target="$out/${staticName}"
-      echo "[connection]" >> $target
-      echo "id=Wired static" >> $target
-      echo "uuid=$(${pkgs.util-linux}/bin/uuidgen)" >> $target
-      echo "type=ethernet" >> $target
-      echo "autoconnect-priority=1" >> $target
-      echo "" >> $target
-      echo "[ipv4]" >> $target
-      echo "method=manual" >> $target
-      echo "address=${args.settings.static_ip}" >> $target
-      echo "gateway=${args.settings.gateway}" >> $target
-      echo "" >> $target
-      echo "[ipv6]" >> $target
-      echo "method=disabled" >> $target
-   '';
 in
 {
   options = {
@@ -47,38 +12,10 @@ in
     };
   };
 
-     # Create network bridge with static IP
-#    networking.useDHCP = false;
-#    networking.bridges = {
-#      "br0" = {
-#        interfaces = [ "enp8s0" ];
-#      };
-#    };
-#    networking.interfaces.br0.ipv4.addresses = [
-#      { address = "10.10.10.10"; prefixLength = 24; }
-#    ];
-#    networking.defaultGateway = "10.10.10.1";
-
-    # Configure virt-manager initial connection
-    # Home manager settings
-#    dconf.settings = {
-#      "org/virt-manager/virt-manager/connections" = {
-#        autoconnect = ["qemu:///system"];
-#        uris = ["qemu:///system"];
-#      };
-#    };
- 
-  config = lib.mkMerge [
-    (lib.mkIf (args.settings.static_ip != "") {
-      environment.etc."NetworkManager/system-connections/${staticName}" = {
-        mode = "0600";
-        source = "${connections}/${staticName}";
-      };
-    })
-
-    (lib.mkIf (cfg.enable) {
-      networking.enableIPv6 = false;
-      networking.hostName = args.settings.hostname;
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    ({
+      # Enables ability for user to make network manager changes
+      users.users.${args.settings.username}.extraGroups = [ "networkmanager" ];
 
       # Enable networkmanager and nm-applet by default
       networking.networkmanager = {
@@ -90,34 +27,6 @@ in
           "interface-name:vmnet*"
         ];
       };
-
-      # Enables ability for user to make network manager changes
-      users.users.${args.settings.username}.extraGroups = [ "networkmanager" ];
-
-      # Its ok to always have dhcp set as static has higher priority when it exists
-      environment.etc."NetworkManager/system-connections/${dhcpName}" = {
-        mode = "0600";
-        source = "${connections}/${dhcpName}";
-      };
-
-      # Configure systemd-resolved
-      services.resolved = {
-        enable = true;
-
-        # using `true` will require and thus break if DNS servers don't support it like VPNs
-        dnssec = "allow-downgrade";
-      };
     })
-
-    # Configure primary and fallback DNS servers as specified in settings
-    (lib.mkIf (cfg.enable && args.settings.primary_dns != "") {
-      networking.nameservers = [ "${args.settings.primary_dns}" ];
-    })
-    (lib.mkIf (cfg.enable && args.settings.primary_dns != "" && args.settings.fallback_dns == "" ) {
-      services.resolved.fallbackDns = [ "${args.settings.primary_dns}" ];
-    })
-    (lib.mkIf (cfg.enable && args.settings.fallback_dns != "") {
-      services.resolved.fallbackDns = [ "${args.settings.fallback_dns}" ];
-    })
-  ];
+  ]);
 }
