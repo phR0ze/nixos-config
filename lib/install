@@ -162,13 +162,15 @@ install::config_system()
     # ----------------------------------------------------------------------------------------------
     log::header1 "Setup NixOS configurations files"
 
-    echo -en ":: Create the NixOS config dir ${cyan}${NIXOS_CONFIG_DIR}${none}..."
-    mkdir -p ${NIXOS_CONFIG_DIR}
-    utils::check_status
+    if [[ "x$TESTING" != "xy" ]]; then
+        echo -en ":: Create the NixOS config dir ${cyan}${NIXOS_CONFIG_DIR}${none}..."
+        mkdir -p ${NIXOS_CONFIG_DIR}
+        utils::check_status
 
-    echo -en ":: Stage NIXOS configuration files at ${cyan}${NIXOS_CONFIG_DIR}${none}..."
-    cp -r $SCRIPT_DIR/. ${NIXOS_CONFIG_DIR}
-    utils::check_status
+        echo -en ":: Stage NIXOS configuration files at ${cyan}${NIXOS_CONFIG_DIR}${none}..."
+        cp -r $SCRIPT_DIR/. ${NIXOS_CONFIG_DIR}
+        utils::check_status
+    fi
 
     install::generate_hardware_config
 
@@ -272,13 +274,13 @@ install::run()
     #utils::help "$@" "install::usage"
     core::title
 
-    # Optionally enable testing with an alternate configuration destination
+    # Optionally enable testing
     args=($@)
-    if [[ "${args[0]}" != "" ]]; then
+    if [[ "${args[0]}" == "testing" ]]; then
         log::header0 "Testing installer with alternate nixos_config destination: ${cyan}${args[0]}${none}"
         utils::read PROCEED 'Do you want to proceed with alternate install path' 'n'
-        [[ $PROCEED != "y" ]] && exit || mkdir -p "${args[0]}"
-        NIXOS_CONFIG_DIR="${args[0]}"
+        [[ $PROCEED != "y" ]] && exit
+        NIXOS_CONFIG_DIR=.
         TESTING="y"
     fi
 
