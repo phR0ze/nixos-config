@@ -132,20 +132,22 @@ install::prepare_disk()
 # - sets NICS array
 install::generate_hardware_config()
 {
+    # Using an explicit separate path here to support testing overrides
+    NIXOS_CONFIG_GEN_DIR="${ROOT_MOUNT}/etc/nixos"
+
     echo -en ":: Generating NIXOS configuration defaults..."
     nixos-generate-config --root ${ROOT_MOUNT} &>/dev/null
     utils::check_status
 
     # Extract networking for use during install
-    # Using an explicit path here to support testing overrides
-    HARDWARE_CONFIG="${ROOT_MOUNT}/etc/nixos/hardware-configuration.nix"
-    NICS=($(sed -n 's|^\s*# networking.interfaces.\(.*\)\.use.*|\1|p' ${HARDWARE_CONFIG}))
+    GEN_HARDWARE_CONFIG="${NIXOS_CONFIG_GEN_DIR}/hardware-configuration.nix"
+    NICS=($(sed -n 's|^\s*# networking.interfaces.\(.*\)\.use.*|\1|p' ${GEN_HARDWARE_CONFIG}))
 
-    echo -en ":: NIC0: ${cyan}${NICS[0]}${none}"
+    echo -e ":: NIC0: ${cyan}${NICS[0]}${none}"
     utils::replace str "nic0" "${NICS[0]}" "${NIXOS_CONFIG_PRIVATE}"
 
     if [[ ${NICS[1]} != "" ]]; then
-        echo -en ":: NIC1: ${cyan}${NICS[1]}${none}"
+        echo -e ":: NIC1: ${cyan}${NICS[1]}${none}"
         utils::replace str "nic1" "${NICS[1]}" "${NIXOS_CONFIG_PRIVATE}"
     fi
 
@@ -179,7 +181,8 @@ install::config_system()
     install::generate_hardware_config
 
     # Extract the current NIXOS version from the generated configuration.nix file
-    NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${NIXOS_CONFIG_DIR}/configuration.nix")
+    GEN_CONFIG="${NIXOS_CONFIG_GEN_DIR}/configuration.nix"
+    NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${GEN_CONFIG}")
     echo -en ":: NIXOS target version: ${cyan}${NIXOS_VER}${none}..."
     utils::check_status
     rm -f "${NIXOS_CONFIG_DIR}/configuration.nix" # clean up
