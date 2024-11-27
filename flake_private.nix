@@ -24,8 +24,8 @@
   # -------------------------------
   efi = true;                       # EFI system boot type, default "false"
   mbr = "nodev";                    # MBR system boot device, default "nodev"
-  nic1 = "";                        # First NIC found in hardware-configuration.nix
-  nic2 = "";                        # Second NIC found in hardware-configuration.nix
+  nic0 = "";                        # First NIC found in hardware-configuration.nix
+  nic1 = "";                        # Second NIC found in hardware-configuration.nix
   system = "x86_64-linux";          # system architecture to use
   timezone = "America/Boise";       # time-zone selection
   locale = "en_US.UTF-8";           # locale selection
