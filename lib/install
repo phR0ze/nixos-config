@@ -277,8 +277,7 @@ install::run()
     # Optionally enable testing
     args=($@)
     if [[ "${args[0]}" == "testing" ]]; then
-        log::header0 "Testing installer with alternate nixos_config destination: ${cyan}${args[0]}${none}"
-        utils::read PROCEED 'Do you want to proceed with alternate install path' 'n'
+        log::header0 "Testing installer with current nixos-config"
         [[ $PROCEED != "y" ]] && exit
         NIXOS_CONFIG_DIR=.
         TESTING="y"
