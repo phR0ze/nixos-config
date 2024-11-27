@@ -279,14 +279,13 @@ install::run()
     if [[ "${args[0]}" == "testing" ]]; then
         log::header0 "Testing installer with current nixos-config"
         ROOT_MOUNT=.
-        NIXOS_CONFIG_DIR=.
         TESTING="y"
     fi
 
     ROOT_MOUNT="${ROOT_MOUNT:-/mnt}"
     DEFAULT="${DEFAULT:-n}"
     TESTING="${TESTING:-n}"
-    NIXOS_CONFIG_DIR="${NIXOS_CONFIG_DIR:-${ROOT_MOUNT}/etc/nixos}"
+    NIXOS_CONFIG_DIR="${ROOT_MOUNT}/etc/nixos"
     SCSI=0
     TIMEZONE='America/Boise'
 
