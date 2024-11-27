@@ -4,7 +4,7 @@ using only a bootable NixOS image and network connectivity.
 
 Due to the number of different machines I maintain and how often I change their intended purpose I 
 find it essential to be able to take a new system from baremetal to a pre-defined, purposefully built 
-system serving in it's intended function as effortlessly as possible in a repeatable way. NixOS's 
+system serving in it's intended function as effortlessly as possible in a repoducible way. NixOS's 
 functional Nix expression language and flakes provide a fantastic platform on which to build this 
 functionality.
 
@@ -28,6 +28,9 @@ fork it and build on my work.
   * [Clone nixpkgs locally](#clone-nixpkgs-locally)
 * [Homelab research](#homelab-research)
 * [Backlog](#backlog)
+  * [Next](#next)
+  * [Sometime](#sometime)
+* [Completed](#completed)
 
 ## Getting started
 ***clu***, is a simple bash script providing:
@@ -185,29 +188,49 @@ $ git clone -b nixos-unstable --depth 1 https://github.com/NixOS/nixpkgs
 ```
 
 ## Homelab research
+Homelabs are an essential part of any tech enthusiast's set up. At its simplest, just a LAN with access 
+to the internet and a single self-hosted service, Homelabs can also scale to be rather complicated 
+with VLANs for specific needs and purpose built routers, dozens of IoT devices, numerous self hosted 
+services and VPNs to multi-site and cloud based devices. Regardless of the configuration I would 
+assert that the fundamental goals should be the same i.e. make the system, despite or perhaps because 
+of its complexity, pre-defined, purposefully built and effortlessly reproducible.
+
+Thus I'm working on supporting containers, declared in nix, as my next phase in building out my 
+homelab.
+
+**References**
+* [MicroVM.nix](https://astro.github.io/microvm.nix/intro.html)
+
 * Uptime Kuma
 
 
 ## Backlog
-* [ ] Add freetube
+
+### Next
+* [ ] Build and run containers
+
+### Sometime
 * [ ] Change image mime associatation
 * [ ] Turn off firefox's prompting to save passwords
-* [ ] wmctl not placing properly
 * [ ] gtk file picker doesn't sort directories first
-* [ ] Virtualbox or similar
-* [ ] Run a container
-* [ ] Add tiny media manager
-* [ ] Prove out Warcraft II install with wine
-
-## Sometime
 * [ ] Add vim-colorize plugin
 * [ ] Change nix flake symbol to blue in vim colorizer plugin
 * [ ] Change the kernel boot colors 
 
-* Configs to circle back to
-  * https://github.com/danth/stylix
-  * https://github.com/benetis/dotfiles-1/blob/master/nixos-config/machines/desktop/modules/android.nix
-  * https://github.com/benetis/dotfiles-1/blob/master/nixos-config/machines/desktop/modules/hardened-chromium.nix
-  * https://github.com/thexyno/nixos-config/blob/main/nixos-modules/hardware/laptop.nix
-  * https://github.com/jakehamilton/config/blob/main/modules/nixos/desktop/addons/gtk/default.nix
-  * https://github.com/librephoenix/nixos-config
+**Reference nixos-config**
+* [Norber Melzer's nixos-config](https://github.com/NobbZ/nixos-config)
+* [Hung Le's nixos-config](https://github.com/ixora-0/dotfiles.nix)
+* https://github.com/danth/stylix
+* https://github.com/benetis/dotfiles-1/blob/master/nixos-config/machines/desktop/modules/android.nix
+* https://github.com/benetis/dotfiles-1/blob/master/nixos-config/machines/desktop/modules/hardened-chromium.nix
+* https://github.com/thexyno/nixos-config/blob/main/nixos-modules/hardware/laptop.nix
+* https://github.com/jakehamilton/config/blob/main/modules/nixos/desktop/addons/gtk/default.nix
+* https://github.com/librephoenix/nixos-config
+
+## Completed
+* [x] Support network bridge on install
+* [x] Add freetube
+* [x] Add tiny media manager
+* [x] wmctl not placing properly
+* [x] 2024.09.01 - [Prove out Warcraft II install with wine](https://github.com/phR0ze/tech-docs/tree/main/src/gaming/warcraft2)
+
