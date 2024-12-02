@@ -3,7 +3,7 @@
 { ... }:
 {
   imports = [
-    ./barrier.nix
-    ./x11vnc.nix
+    #./barrier.nix
+    #./x11vnc.nix
   ];
 }

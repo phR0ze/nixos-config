@@ -6,10 +6,12 @@ let
 in
 {
   imports = [
+    ./barrier.nix
     ./filezilla.nix
     ./firefox.nix
     ./qbittorrent.nix
     ./network-manager.nix
+    ./x11vnc.nix
   ];
 
   config = lib.mkMerge [
