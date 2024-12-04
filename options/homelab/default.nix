@@ -9,5 +9,6 @@
 {
   imports = [
     ./adguard.nix
+    ./stirling-pdf.nix
   ];
 }
