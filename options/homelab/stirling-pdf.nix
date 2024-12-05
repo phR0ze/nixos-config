@@ -15,6 +15,7 @@
 # ### Deployment Features
 # - App has outbound access to the internet
 # - App is blocked from outbound connections to the LAN
+# - App has dedicated podman bridge network with port forwarding to dedicated host macvlan
 # - App is visiable on the LAN, with a dedicated host macvlan and static IP, for inbound connections
 # - App data is persisted at /var/lib/$APP
 # --------------------------------------------------------------------------------------------------
@@ -100,10 +101,9 @@ in
         "DOCKER_ENABLE_SECURITY" = "false";             # don't need to login with homelab
         "INSTALL_BOOK_AND_ADVANCED_HTML_OPS" = "false";
       };
-#      extraOptions = [
-#        "--network-alias=stirling-pdf"
-#        "--network=stirling-pdf_default"
-#      ];
+      extraOptions = [
+        "--network=${app.name}"
+      ];
 #      labels = {
 #        "diun.enable" = "true";
 #        "io.containers.autoupdate" = "registry";
@@ -112,7 +112,7 @@ in
 #      };
     };
 
-    # Create host macvlan with a dedicated static IP for the application to port forward to
+    # Create host macvlan with a dedicated static IP for the app to port forward to
     networking = {
       macvlans.${app.name} = {
         interface = "${app.nic}";
@@ -122,6 +122,19 @@ in
         { address = "${app.ip}"; prefixLength = 32; }
       ];
       firewall.interfaces.${app.name}.allowedTCPPorts = [ 80 ];
+    };
+
+    # Create a dedicated container network to keep the app isolated from other services
+    systemd.services."podman-network-${app.name}" = {
+      path = [ pkgs.podman ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStop = "podman network rm -f ${app.name}";
+      };
+      script = ''
+        podman network inspect ${app.name} || podman network create ${app.name}
+      '';
     };
 
     # Add additional configuration to the above generated app service unit i.e. acts as an overlay.
@@ -135,10 +148,12 @@ in
       wants = [
         "network-online.target"
         "network-addresses-${app.name}.service"
+        "podman-network-${app.name}.service"
       ];
       after = [
         "network-online.target"
         "network-addresses-${app.name}.service"
+        "podman-network-${app.name}.service"
       ];
 
       serviceConfig = {
