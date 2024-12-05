@@ -9,8 +9,9 @@
   git_email = "nixos@nixos.org";    # email to use for github, gitlab or other git tools
 
   hostname = "nixos";               # hostname to use for the install
+  subnet = "";                      # network cidr address e.g. 192.168.1.0/24
+  gateway = "";                     # network gateway e.g. 192.168.1.1
   static_ip = "";                   # static ip to use if set e.g. 192.168.1.2/24
-  gateway = "";                     # default gateway to use for static ip addresses
   primary_dns = "";                 # primary dns server to use e.g. 1.1.1.1
   fallback_dns = "";                # fallback dns server to use e.g. 8.8.8.8
   network_bridge = false;           # Enable a network bridge for the primary NIC

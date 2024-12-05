@@ -9,7 +9,11 @@
     ./light.nix
   ];
 
-  programs.tinyMediaManager.enable = true;
+  # Home lab services
+  homelab.adguard.enable = true;
+  homelab.stirling-pdf.enable = true;
+
+  #programs.tinyMediaManager.enable = true;
   #services.minecraft-server.enable = true;
   #virtualization.virt-manager.enable = true;
 

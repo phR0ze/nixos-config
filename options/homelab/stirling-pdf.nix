@@ -1,4 +1,4 @@
-# Stirling PDF home configuration
+# Stirling PDF configuration
 # - https://docs.stirlingpdf.com/
 # - https://github.com/Stirling-Tools/Stirling-PDF
 #
@@ -43,7 +43,7 @@ in
       ip = lib.mkOption {
         description = lib.mdDoc "IP address to use for the app macvlan";
         type = types.str;
-        default = "192.168.1.60";
+        default = "192.168.1.57";
       };
 
       port = lib.mkOption {
@@ -65,11 +65,14 @@ in
       }
     ];
 
+    # Requires podman virtualization to be configured
+    virtualization.podman.enable = true;
+
     # Create persistent directories for application
+    # - Args: type, path, mode, user, group, expiration
+    # - No group specified, i.e `-` defaults to root
+    # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
-      # type, path, mode, user, group, expiration
-      # No group specified, i.e `-` defaults to root
-      # No age specified, i.e `-` defaults to infinite
       "d /var/lib/${app.name} 0750 ${args.settings.username} - -"
       "d /var/lib/${app.name}/customFiles 0750 ${args.settings.username} - -"
       "d /var/lib/${app.name}/extraConfigs 0750 ${args.settings.username} - -"
@@ -83,6 +86,7 @@ in
     virtualisation.oci-containers.containers."${app.name}" = {
       image = "docker.io/frooodle/s-pdf:latest";
       autoStart = true;
+      hostname = "${app.name}";
       ports = [
         "${app.ip}:${toString app.port}:8080"
       ];
@@ -104,13 +108,16 @@ in
       extraOptions = [
         "--network=${app.name}"
       ];
-#      labels = {
-#        "diun.enable" = "true";
-#        "io.containers.autoupdate" = "registry";
-#        "traefik.enable" = "true";
-#        "traefik.http.services.pdf.loadbalancer.server.port" = "8080";
-#      };
     };
+
+    # Setup firewall exceptions
+    networking.firewall.interfaces.${app.name}.allowedTCPPorts = [ ${app.port} ];
+
+    # ----------------------------------------------------------------------------------------------
+    # NO NEED TO CHANGE BELOW HERE IN MOST CASES
+    #
+    # Networking configuration that shouldn't require application specific changes
+    # ----------------------------------------------------------------------------------------------
 
     # Create host macvlan with a dedicated static IP for the app to port forward to
     networking = {
@@ -121,7 +128,6 @@ in
       interfaces.${app.name}.ipv4.addresses = [
         { address = "${app.ip}"; prefixLength = 32; }
       ];
-      firewall.interfaces.${app.name}.allowedTCPPorts = [ 80 ];
     };
 
     # Create a dedicated container network to keep the app isolated from other services
