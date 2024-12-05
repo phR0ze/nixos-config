@@ -2,10 +2,6 @@
 # - https://docs.stirlingpdf.com/
 # - https://github.com/Stirling-Tools/Stirling-PDF
 #
-# ### Installation
-# - Full docker images offers more features
-# - https://docs.stirlingpdf.com/Getting%20started/Installation/Docker/Docker%20Install
-#
 # ### Description
 # Stirling PDF is a robust, locally hosted web-based PDF manipulation tool using Docker. It enables 
 # you to carry out various operations on PDF files, including splitting, mergin, converting, 
@@ -20,23 +16,52 @@
 { config, lib, pkgs, args, ... }: with lib.types;
 let
   cfg = config.homelab.stirling-pdf;
+  app = "stirling-pdf";
 in
 {
   options = {
     homelab.stirling-pdf = {
-      enable = lib.mkEnableOption "Deploy Stirling PDF";
+      enable = lib.mkEnableOption "Deploy container based Stirling PDF";
+
+      port = lib.mkOption {
+        description = lib.mdDoc "Port to use for Web Interface.";
+        type = types.port;
+        default = 80;
+        example = {
+          port = 80;
+        };
+      };
     };
   };
  
-  config = lib.mkIf (cfg.enable) {
+  config = lib.mkIf cfg.enable {
 
-    virtualisation.oci-containers.containers."stirling-pdf" = {
+    # Generate the "podman-${app}" service unit for the container
+    # https://docs.stirlingpdf.com/Getting%20started/Installation/Docker/Docker%20Install
+    virtualisation.oci-containers.containers."${app}" = {
       image = "docker.io/frooodle/s-pdf:latest";
-#      volumes = [
-#        "/workload/appdata/pdf/trainingData:/usr/share/tesseract-ocr/5/tessdata:rw"
-#        "/workload/appdata/pdf/extraConfigs:/configs:rw"
-#        "/workload/appdata/pdf/customFiles:/customFiles:rw"
-#        "/workload/appdata/pdf/logs:/logs:rw"
+      autoStart = true;
+      ports = [
+        "${toString cfg.port}:8080"
+      ];
+      volumes = [
+        "/var/lib/${app}/customFiles:/customFiles:rw"
+        "/var/lib/${app}/extraConfigs:/configs:rw"
+        "/var/lib/${app}/logs:/logs:rw"
+        "/var/lib/${app}/pipeline:/pipeline:rw"
+        "/var/lib/${app}/trainingData:/usr/share/tessdata:rw"
+      ];
+#      environment = {
+#        "DOCKER_ENABLE_SECURITY" = "false";
+#        "INSTALL_BOOK_AND_ADVANCED_HTML_OPS" = "false";
+#        "LANGS" = "en_US";
+#      };
+#      environmentFiles = [
+#        default.env
+#      ];
+#      extraOptions = [
+#        "--network-alias=stirling-pdf"
+#        "--network=stirling-pdf_default"
 #      ];
 #      labels = {
 #        "diun.enable" = "true";
@@ -44,31 +69,41 @@ in
 #        "traefik.enable" = "true";
 #        "traefik.http.services.pdf.loadbalancer.server.port" = "8080";
 #      };
-#      log-driver = "journald";
-#      extraOptions = [
-#        "--network-alias=pdf"
-#        "--network=reverse-proxy"
-#      ];
     };
 
-    systemd.services."stirling-pdf" = {
+    # Open up firewall on host for new app service
+    networking.firewall.allowedTCPPorts = [ 80 ];
+
+    # Create persistent directories for application
+    systemd.tmpfiles.rules = [
+      # type, path, mode, user, group, expiration
+      # No group specified, i.e `-` defaults to root
+      "d /var/lib/${app} 0750 ${args.settings.username} - -"
+      "d /var/lib/${app}/customFiles 0750 ${args.settings.username} - -"
+      "d /var/lib/${app}/extraConfigs 0750 ${args.settings.username} - -"
+      "d /var/lib/${app}/logs 0750 ${args.settings.username} - -"
+      "d /var/lib/${app}/pipeline 0750 ${args.settings.username} - -"
+      "d /var/lib/${app}/trainingData 0750 ${args.settings.username} - -"
+    ];
+
+    # Add additional configuration to the above generated app service unit
+    systemd.services."podman-${app}" = {
+      #wantedBy = [ "multi-user.target" ];
+      #wants = [ "network-online.target" ];
+      #after = [ "network-online.target" ];
+#      environment = {
+#        "XDG_DATA_HOME" = "/var/lib/${app}/data";
+#        "XDG_CACHE_HOME" = "/var/lib/${app}/cache";
+#        "XDG_CONFIG_HOME" = "/var/lib/${app}/config";
+#      };
       serviceConfig = {
-        Restart = lib.mkOverride 500 "always";
+        Restart = "always";
+        WorkingDirectory = "/var/lib/${app}";
+
+        # Hardening
+        # https://docs.rockylinux.org/guides/security/systemd_hardening/
+        #CapabilityBoundingSet = "";
       };
-#      after = [
-#        "zfs.target"
-#        "podman-network-reverse-proxy.service"
-#      ];
-#      requires = [
-#        "zfs.target"
-#        "podman-network-reverse-proxy.service"
-#      ];
-      partOf = [
-        "podman-compose-apps-root.target"
-      ];
-      wantedBy = [
-        "podman-compose-apps-root.target"
-      ];
     };
   };
 }
