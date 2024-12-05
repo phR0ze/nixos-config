@@ -8,6 +8,7 @@
     ./files
     ./games
     ./hardware
+    ./homelab
     ./office
     ./multimedia
     ./network
