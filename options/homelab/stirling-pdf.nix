@@ -16,12 +16,23 @@
 { config, lib, pkgs, args, ... }: with lib.types;
 let
   cfg = config.homelab.stirling-pdf;
-  app = "stirling-pdf";
 in
 {
   options = {
     homelab.stirling-pdf = {
       enable = lib.mkEnableOption "Deploy container based Stirling PDF";
+
+      name = lib.mkOption {
+        description = lib.mdDoc "App name to use for supporting components.";
+        type = types.str;
+        default = "stirling-pdf";
+      };
+
+      ip = lib.mkOption {
+        description = lib.mdDoc "IP address to use for the app macvlan.";
+        type = types.str;
+        default = "192.168.1.60";
+      };
 
       port = lib.mkOption {
         description = lib.mdDoc "Port to use for Web Interface.";
@@ -36,20 +47,20 @@ in
  
   config = lib.mkIf cfg.enable {
 
-    # Generate the "podman-${app}" service unit for the container
+    # Generate the "podman-${cfg.name}" service unit for the container
     # https://docs.stirlingpdf.com/Getting%20started/Installation/Docker/Docker%20Install
-    virtualisation.oci-containers.containers."${app}" = {
+    virtualisation.oci-containers.containers."${cfg.name}" = {
       image = "docker.io/frooodle/s-pdf:latest";
       autoStart = true;
       ports = [
-        "${toString cfg.port}:8080"
+        "${cfg.ip}:${toString cfg.port}:8080"
       ];
       volumes = [
-        "/var/lib/${app}/customFiles:/customFiles:rw"
-        "/var/lib/${app}/extraConfigs:/configs:rw"
-        "/var/lib/${app}/logs:/logs:rw"
-        "/var/lib/${app}/pipeline:/pipeline:rw"
-        "/var/lib/${app}/trainingData:/usr/share/tessdata:rw"
+        "/var/lib/${cfg.name}/customFiles:/customFiles:rw"
+        "/var/lib/${cfg.name}/extraConfigs:/configs:rw"
+        "/var/lib/${cfg.name}/logs:/logs:rw"
+        "/var/lib/${cfg.name}/pipeline:/pipeline:rw"
+        "/var/lib/${cfg.name}/trainingData:/usr/share/tessdata:rw"
       ];
 #      environment = {
 #        "DOCKER_ENABLE_SECURITY" = "false";
@@ -71,38 +82,34 @@ in
 #      };
     };
 
-    # Open up firewall on host for new app service
-    networking.firewall.allowedTCPPorts = [ 80 ];
+    # Open up firewall on host macvlan for new app service
+    networking.firewall.interfaces.${cfg.name}.allowedTCPPorts = [ 80 ];
 
     # Create persistent directories for application
     systemd.tmpfiles.rules = [
       # type, path, mode, user, group, expiration
       # No group specified, i.e `-` defaults to root
-      "d /var/lib/${app} 0750 ${args.settings.username} - -"
-      "d /var/lib/${app}/customFiles 0750 ${args.settings.username} - -"
-      "d /var/lib/${app}/extraConfigs 0750 ${args.settings.username} - -"
-      "d /var/lib/${app}/logs 0750 ${args.settings.username} - -"
-      "d /var/lib/${app}/pipeline 0750 ${args.settings.username} - -"
-      "d /var/lib/${app}/trainingData 0750 ${args.settings.username} - -"
+      "d /var/lib/${cfg.name} 0750 ${args.settings.username} - -"
+      "d /var/lib/${cfg.name}/customFiles 0750 ${args.settings.username} - -"
+      "d /var/lib/${cfg.name}/extraConfigs 0750 ${args.settings.username} - -"
+      "d /var/lib/${cfg.name}/logs 0750 ${args.settings.username} - -"
+      "d /var/lib/${cfg.name}/pipeline 0750 ${args.settings.username} - -"
+      "d /var/lib/${cfg.name}/trainingData 0750 ${args.settings.username} - -"
     ];
 
     # Add additional configuration to the above generated app service unit
-    systemd.services."podman-${app}" = {
+    systemd.services."podman-${cfg.name}" = {
       #wantedBy = [ "multi-user.target" ];
       #wants = [ "network-online.target" ];
       #after = [ "network-online.target" ];
 #      environment = {
-#        "XDG_DATA_HOME" = "/var/lib/${app}/data";
-#        "XDG_CACHE_HOME" = "/var/lib/${app}/cache";
-#        "XDG_CONFIG_HOME" = "/var/lib/${app}/config";
+#        "XDG_DATA_HOME" = "/var/lib/${cfg.name}/data";
+#        "XDG_CACHE_HOME" = "/var/lib/${cfg.name}/cache";
+#        "XDG_CONFIG_HOME" = "/var/lib/${cfg.name}/config";
 #      };
       serviceConfig = {
         Restart = "always";
-        WorkingDirectory = "/var/lib/${app}";
-
-        # Hardening
-        # https://docs.rockylinux.org/guides/security/systemd_hardening/
-        #CapabilityBoundingSet = "";
+        WorkingDirectory = "/var/lib/${cfg.name}";
       };
     };
   };
