@@ -111,7 +111,7 @@ in
     };
 
     # Setup firewall exceptions
-    networking.firewall.interfaces.${app.name}.allowedTCPPorts = [ ${app.port} ];
+    networking.firewall.interfaces.${app.name}.allowedTCPPorts = [ app.port ];
 
     # ----------------------------------------------------------------------------------------------
     # NO NEED TO CHANGE BELOW HERE IN MOST CASES
