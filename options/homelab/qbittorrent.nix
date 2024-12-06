@@ -1,37 +1,37 @@
-# Stirling PDF configuration
-# - https://docs.stirlingpdf.com/
-# - https://github.com/Stirling-Tools/Stirling-PDF
+# qBittorrent configuration
+# - https://www.qbittorrent.org/
+# - https://github.com/qbittorrent/qBittorrent/
 #
 # ### Description
-# Stirling PDF is a robust, locally hosted web-based PDF manipulation tool using Docker. It enables 
-# you to carry out various operations on PDF files, including splitting, mergin, converting, 
-# reorganizing, adding images, rotating, compressing, and more. This locally hosted web application 
-# has evolved to encompass a comprehensive set of features, addressing all your PDF requirements.
-#
-# - Stirling-PDF does not initiate any outbound calls for record-keeping or tracking purposes.
-# - All files and PDFs exist either exclusively on the client side, server memory only during task 
-#   execution, or as temporary files solely for the execution of the task.
+# qBittorrent is a bittorrent client programmed in C++/Qt that uses libtorrent. It is an open source
+# cross platform alternative to the likes of uTorrent.
+# 
+# - Polished uTorrent like interface
+# - No Ads, modern features
+# - Remote Web Interface
+# - Sequential downloading
 #
 # ### Deployment Features
-# - App has outbound access to the internet
-# - App is blocked from outbound connections to the LAN
-# - App has dedicated podman bridge network with port forwarding to dedicated host macvlan
+# - App has outbound access to the internet, but block from outbound connections to the LAN
 # - App is visiable on the LAN, with a dedicated host macvlan and static IP, for inbound connections
-# - App data is persisted at /var/lib/$APP
+#
+# ### Initial Setup
+# - Web UI temporary password for `admin` user is printed to the container log. You must change it in
+#   the Web UI or you'll have a new one on every boot.
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }: with lib.types;
 let
-  app = config.homelab.stirling-pdf;
+  app = config.homelab.qbittorrent;
 in
 {
   options = {
-    homelab.stirling-pdf = {
-      enable = lib.mkEnableOption "Deploy container based Stirling PDF";
+    homelab.qbittorrent = {
+      enable = lib.mkEnableOption "Deploy container based qBittorrent";
 
       name = lib.mkOption {
         description = lib.mdDoc "App name to use for supporting components";
         type = types.str;
-        default = "stirling-pdf";
+        default = "qbittorrent";
       };
 
       nic = lib.mkOption {
@@ -43,7 +43,7 @@ in
       ip = lib.mkOption {
         description = lib.mdDoc "IP address to use for the app macvlan";
         type = types.str;
-        default = "192.168.1.57";
+        default = "192.168.1.41";
       };
 
       port = lib.mkOption {
@@ -53,6 +53,12 @@ in
         example = {
           port = 80;
         };
+      };
+
+      downloads = lib.mkOption {
+        description = lib.mdDoc "Path where downloads should be stored";
+        type = types.str;
+        default = "/var/lib//downloads";
       };
     };
   };
@@ -74,39 +80,29 @@ in
     # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
       "d /var/lib/${app.name} 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/customFiles 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/extraConfigs 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/logs 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/pipeline 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/trainingData 0750 ${args.settings.username} - -"
+      "d /var/lib/${app.name}/config 0750 ${args.settings.username} - -"
+      "d /var/lib/${app.name}/downloads 0750 ${args.settings.username} - -"
     ];
 
     # Generate the "podman-${app.name}" service unit for the container
-    # https://docs.stirlingpdf.com/Getting%20started/Installation/Docker/Docker%20Install
     virtualisation.oci-containers.containers."${app.name}" = {
-      image = "docker.io/frooodle/s-pdf:latest";
+      image = "lscr.io/linuxserver/qbittorrent:latest";
       autoStart = true;
       hostname = "${app.name}";
       ports = [
-        "${app.ip}:${toString app.port}:8080"
+        "${app.ip}:${toString app.port}:8080"   # Web UI
       ];
       volumes = [
-        "/var/lib/${app.name}/customFiles:/customFiles:rw"
-        "/var/lib/${app.name}/extraConfigs:/configs:rw"
-        "/var/lib/${app.name}/logs:/logs:rw"
-        "/var/lib/${app.name}/pipeline:/pipeline:rw"
-        "/var/lib/${app.name}/trainingData:/usr/share/tessdata:rw"
+        "/var/lib/${app.name}/config:/config:rw"
+        "/var/lib/${app.name}/downloads:/downloads:rw"
+        #"${pkgs.vuetorrent}/share:/usr/local/share/vuetorrent"
       ];
-
-      # Configure app via overrides
       environment = {
-        "METRICS_ENABLED" = "false";                    # no need to track with homelab
-        "SYSTEM_ENABLEANALYTICS" = "false";             # not a fan of being tracked
-        "DOCKER_ENABLE_SECURITY" = "false";             # don't need to login with homelab
-        "INSTALL_BOOK_AND_ADVANCED_HTML_OPS" = "false";
+        "PUID" = "1000";                    # set user id to use
+        "PGID" = "1000";                    # set group id to use
       };
       extraOptions = [
-        "--network=${app.name}"
+        "--network=${app.name}"             # set the network to use
       ];
     };
 
