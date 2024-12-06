@@ -10,9 +10,10 @@
   ];
 
   # Home lab services
-  homelab.traefik.enable = true;
-  homelab.adguard.enable = true;
-  homelab.stirling-pdf.enable = true;
+  homelab.qbittorrent.enable = true;
+  #homelab.traefik.enable = true;
+  #homelab.adguard.enable = true;
+  #homelab.stirling-pdf.enable = true;
 
   #programs.tinyMediaManager.enable = true;
   #services.minecraft-server.enable = true;
