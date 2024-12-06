@@ -10,5 +10,6 @@
   imports = [
     ./adguard.nix
     ./stirling-pdf.nix
+    ./traefik.nix
   ];
 }
