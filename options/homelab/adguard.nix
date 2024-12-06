@@ -20,6 +20,10 @@
 # - App is exposed to the LAN as a first class citizen to allow it to log correct IP addresses
 # - App data is persisted at /var/lib/$APP
 #
+# ### Password reset
+# - Generate new password: mkpasswd -m bcrypt -R 10 <super-strong-password>
+# - https://github.com/AdguardTeam/AdGuardHome/wiki/Configuration#password-reset
+#
 # ### Services
 # - podman-adguard
 # - podman-network-adguard
@@ -246,6 +250,12 @@ in
           port = 80;
         };
       };
+
+      skipConfig = lib.mkOption {
+        description = lib.mdDoc "Skip the default configuration to give a clean setup";
+        type = types.bool;
+        default = false;
+      };
     };
   };
  
@@ -319,8 +329,6 @@ in
       interfaces.${app.name}.ipv4.addresses = [
         { address = "${app.hostIP}"; prefixLength = 32; }
       ];
-
-      # Setup route to containerIP
     };
 
     # Create a dedicated container network to keep the app isolated from other services
@@ -338,6 +346,8 @@ in
         if ! podman network exists ${app.name}; then
           podman network create -d macvlan --subnet=${app.subnet} --gateway=${app.gateway} -o parent=${app.nic} ${app.name}
         fi
+
+        # Setup host to container access by adding an explicit route
         ip route add ${app.containerIP} dev ${app.name} &>/dev/null || true
       '';
     };
@@ -363,13 +373,15 @@ in
 
       # Merge in the persisted configuration file
       preStart = ''
-        if [ -e "/var/lib/${app.name}/conf/AdGuardHome.yaml" ]; then
-          ${pkgs.yaml-merge}/bin/yaml-merge "/var/lib/${app.name}/conf/AdGuardHome.yaml" "${configFile}" > "/var/lib/${app.name}/conf/AdGuardHome.yaml.tmp"
-          # Writing directly to AdGuardHome.yaml seems to result in an empty file
-          mv "/var/lib/${app.name}/conf/AdGuardHome.yaml.tmp" "/var/lib/${app.name}/conf/AdGuardHome.yaml"
-        else
-          cp --force "${configFile}" "/var/lib/${app.name}/conf/AdGuardHome.yaml"
-          chmod 600 "/var/lib/${app.name}/conf/AdGuardHome.yaml"
+        if [ "${f.boolToIntStr app.skipConfig}" = "0" ]; then
+          if [ -e "/var/lib/${app.name}/conf/AdGuardHome.yaml" ]; then
+            ${pkgs.yaml-merge}/bin/yaml-merge "/var/lib/${app.name}/conf/AdGuardHome.yaml" "${configFile}" > "/var/lib/${app.name}/conf/AdGuardHome.yaml.tmp"
+            # Writing directly to AdGuardHome.yaml seems to result in an empty file
+            mv "/var/lib/${app.name}/conf/AdGuardHome.yaml.tmp" "/var/lib/${app.name}/conf/AdGuardHome.yaml"
+          else
+            cp --force "${configFile}" "/var/lib/${app.name}/conf/AdGuardHome.yaml"
+            chmod 600 "/var/lib/${app.name}/conf/AdGuardHome.yaml"
+          fi
         fi
       '';
 

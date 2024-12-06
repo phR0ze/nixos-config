@@ -10,6 +10,7 @@
   ];
 
   # Home lab services
+  homelab.traefik.enable = true;
   homelab.adguard.enable = true;
   homelab.stirling-pdf.enable = true;
 

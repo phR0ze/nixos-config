@@ -47,8 +47,8 @@ in
     # Enable and configure podman
     virtualisation.podman = {
       enable = true;
-      dockerCompat = true; # provide docker alias
-      #dockerSocket.enable = true;
+      dockerCompat = true;            # provide docker alias
+      dockerSocket.enable = true;     # link podman socket as /var/run/docker.sock requires restart
 
       # Allows docker containers to refer to each other by name
       defaultNetwork.settings.dns_enabled = true;
