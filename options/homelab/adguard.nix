@@ -19,6 +19,10 @@
 # ### Deployment Features
 # - App is exposed to the LAN as a first class citizen to allow it to log correct IP addresses
 # - App data is persisted at /var/lib/$APP
+#
+# ### Services
+# - podman-adguard
+# - podman-network-adguard
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
@@ -321,14 +325,20 @@ in
 
     # Create a dedicated container network to keep the app isolated from other services
     systemd.services."podman-network-${app.name}" = {
-      path = [ pkgs.podman ];
+      path = [ pkgs.podman pkgs.iproute2 ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStop = "podman network rm -f ${app.name}";
+        ExecStop = [
+          "podman network rm -f ${app.name}"
+          "ip route del ${app.containerIP} dev ${app.name} &>/dev/null || true"
+        ];
       };
       script = ''
-        podman network inspect ${app.name} || podman network create -d macvlan --subnet=${app.subnet} --gateway=${app.gateway} -o parent=${app.nic} ${app.name}
+        if ! podman network exists ${app.name}; then
+          podman network create -d macvlan --subnet=${app.subnet} --gateway=${app.gateway} -o parent=${app.nic} ${app.name}
+        fi
+        ip route add ${app.containerIP} dev ${app.name} &>/dev/null || true
       '';
     };
 
@@ -356,7 +366,7 @@ in
         if [ -e "/var/lib/${app.name}/conf/AdGuardHome.yaml" ]; then
           ${pkgs.yaml-merge}/bin/yaml-merge "/var/lib/${app.name}/conf/AdGuardHome.yaml" "${configFile}" > "/var/lib/${app.name}/conf/AdGuardHome.yaml.tmp"
           # Writing directly to AdGuardHome.yaml seems to result in an empty file
-          mv "/var/lib/${app.home}/conf/AdGuardHome.yaml.tmp" "/var/lib/${app.name}/conf/AdGuardHome.yaml"
+          mv "/var/lib/${app.name}/conf/AdGuardHome.yaml.tmp" "/var/lib/${app.name}/conf/AdGuardHome.yaml"
         else
           cp --force "${configFile}" "/var/lib/${app.name}/conf/AdGuardHome.yaml"
           chmod 600 "/var/lib/${app.name}/conf/AdGuardHome.yaml"
