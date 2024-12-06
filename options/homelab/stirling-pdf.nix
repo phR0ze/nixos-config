@@ -136,10 +136,14 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStop = "podman network rm -f ${app.name}";
+        ExecStop = [
+          "podman network rm -f ${app.name}"
+        ];
       };
       script = ''
-        podman network inspect ${app.name} || podman network create ${app.name}
+        if ! podman network exists ${app.name}; then
+          podman network create ${app.name}
+        fi
       '';
     };
 
