@@ -15,9 +15,9 @@
   #homelab.adguard.enable = true;
   #homelab.stirling-pdf.enable = true;
 
+  virtualization.incus.enable = true;
   #programs.tinyMediaManager.enable = true;
   #services.minecraft-server.enable = true;
-  #virtualization.virt-manager.enable = true;
 
   environment.systemPackages = with pkgs; [
     mdadm                               # Linux Software RAID management

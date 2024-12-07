@@ -23,16 +23,14 @@ in
 {
   options = {
     virtualization.podman = {
-      enable = lib.mkEnableOption "Install and configure podman";
+      enable = lib.mkEnableOption "Install and configure Podman";
     };
   };
 
   config = lib.mkIf (cfg.enable) {
 
-    # Allow primary user access to podman
-    users.users.${args.username} = {
-      extraGroups = [ "podman" ];
-    };
+    # Configure primary user permissions
+    users.users.${args.username}.extraGroups = [ "podman" ];
 
     # Install dependencies
     environment.systemPackages = [
