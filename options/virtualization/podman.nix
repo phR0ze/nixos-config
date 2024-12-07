@@ -30,7 +30,7 @@ in
   config = lib.mkIf (cfg.enable) {
 
     # Allow primary user access to podman
-    users.users.${args.settings.username}.extraGroups = [ "podman" ];
+    users.users.${args.username}.extraGroups = [ "podman" ];
 
     # Install dependencies
     environment.systemPackages = [

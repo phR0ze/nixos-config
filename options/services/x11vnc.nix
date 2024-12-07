@@ -21,7 +21,7 @@ let
 
   vncpass = pkgs.runCommandLocal "x11vnc-passwd" {} ''
     mkdir $out
-    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${args.settings.userpass}" "$out/pass"
+    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${args.userpass}" "$out/pass"
   '';
 in
 {

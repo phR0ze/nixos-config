@@ -70,9 +70,11 @@
       ];
     };
 
-    # Import all custom functions to be use throughout
+    # Combine all input args, custom function and types together in special args
+    # ----------------------------------------------------------------------------------------------
     f = pkgs.callPackage ./options/funcs.nix { lib = nixpkgs.lib; };
-    args = inputs // { inherit settings; } // {
+    #types = pkgs.callPackage ./options/funcs.nix { lib = nixpkgs.lib; };
+    args = inputs // settings // {
       iso = false;
       userHome = "/home/${settings.username}";
       configHome = "/home/${settings.username}/.config";

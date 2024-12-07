@@ -40,7 +40,7 @@
   services.gvfs.enable = true;          # GVfs virtual filesystem
 
   # Optionally enable client nfs shares
-  services.nfs.client.shares.enable = args.settings.nfs_shares;
+  services.nfs.client.shares.enable = args.nfs_shares;
 
   # Configure gnome keyring for VPN and Copilot and automatically unlock on login
   services.gnome.gnome-keyring.enable = true;

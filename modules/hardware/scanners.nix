@@ -18,5 +18,5 @@
     pkgs.utsushi
   ];
 
-  users.users.${args.settings.username}.extraGroups = [ "scanner" "lp" ];
+  users.users.${args.username}.extraGroups = [ "scanner" "lp" ];
 }

@@ -19,13 +19,17 @@
 # - Web UI temporary password for `admin` user is printed to the container log. You must change it in
 #   the Web UI or you'll have a new one on every boot.
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, args, f, ... }: with lib.types;
 let
+#  userType = (import ../types/user.nix {
+#    inherit options config lib pkgs args;
+#  }).userType;
+
   app = config.homelab.qbittorrent;
 in
 {
   options = {
-    homelab.qbittorrent = {
+    homelab.qbittorrent = rec {
       enable = lib.mkEnableOption "Deploy container based qBittorrent";
 
       name = lib.mkOption {
@@ -34,10 +38,27 @@ in
         default = "qbittorrent";
       };
 
+#      user = lib.mkOption {
+#        description = lib.mdDoc "User to use for the application";
+#        type = config.types.user;
+#      };
+
+      uid = lib.mkOption {
+        description = lib.mdDoc "User id to use for the application";
+        type = types.int;
+        default = config.users.users.${args.username}.uid;
+      };
+
+      gid = lib.mkOption {
+        description = lib.mdDoc "Group id to use for the application";
+        type = types.int;
+        default = config.users.groups."users".gid;
+      };
+
       nic = lib.mkOption {
         description = lib.mdDoc "Parent NIC for the app macvlan";
         type = types.str;
-        default = "${args.settings.nic0}";
+        default = "${args.nic0}";
       };
 
       ip = lib.mkOption {
@@ -58,7 +79,7 @@ in
       downloads = lib.mkOption {
         description = lib.mdDoc "Path where downloads should be stored";
         type = types.str;
-        default = "/var/lib//downloads";
+        default = "/var/lib/${app.name}/downloads";
       };
     };
   };
@@ -79,9 +100,8 @@ in
     # - No group specified, i.e `-` defaults to root
     # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
-      "d /var/lib/${app.name} 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/config 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/downloads 0750 ${args.settings.username} - -"
+      "d /var/lib/${app.name} 0750 ${toString app.uid} ${toString app.gid} -"
+      "d ${app.downloads} 0750 ${toString app.uid} ${toString app.gid} -"
     ];
 
     # Generate the "podman-${app.name}" service unit for the container
@@ -90,24 +110,28 @@ in
       autoStart = true;
       hostname = "${app.name}";
       ports = [
-        "${app.ip}:${toString app.port}:8080"   # Web UI
+        "${app.ip}:${toString app.port}:8080"                 # Web UI
+        "${app.ip}:6881:6881/tcp" "${app.ip}:6881:6881/udp"   # torrenting ports
       ];
       volumes = [
-        "/var/lib/${app.name}/config:/config:rw"
-        "/var/lib/${app.name}/downloads:/downloads:rw"
-        #"${pkgs.vuetorrent}/share:/usr/local/share/vuetorrent"
+        "/var/lib/${app.name}:/config:rw"                     # configuration directory
+        "${app.downloads}:/downloads:rw"                      # downloads directory
       ];
       environment = {
-        "PUID" = "1000";                    # set user id to use
-        "PGID" = "1000";                    # set group id to use
+        "PUID" = "${toString app.uid}";                  # set user id to use
+        "PGID" = "${toString app.gid}";                  # set group id to use
+        "TORRENTING_PORT" = "6881";                           # port for torrenting
       };
       extraOptions = [
-        "--network=${app.name}"             # set the network to use
+        "--network=${app.name}"                               # set the network to use
       ];
     };
 
     # Setup firewall exceptions
-    networking.firewall.interfaces.${app.name}.allowedTCPPorts = [ app.port ];
+    networking.firewall.interfaces.${app.name}.allowedTCPPorts = [
+      app.port
+      6881
+    ];
 
     # Create host macvlan with a dedicated static IP for the app to port forward to
     networking = {

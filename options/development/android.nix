@@ -14,6 +14,6 @@ in
  
   config = lib.mkIf (cfg.enable) {
     programs.adb.enable = true;
-    users.users.${args.settings.username}.extraGroups = [ "adbusers" ];
+    users.users.${args.username}.extraGroups = [ "adbusers" ];
   };
 }

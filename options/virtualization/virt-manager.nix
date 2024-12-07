@@ -42,6 +42,6 @@ in
     ];
 
     environment.sessionVariables.LIBVIRT_DEFAULT_URI = [ "qemu:///system" ];
-    users.users.${args.settings.username}.extraGroups = [ "libvirtd" "kvm" "qemu-libvirtd" ];
+    users.users.${args.username}.extraGroups = [ "libvirtd" "kvm" "qemu-libvirtd" ];
   };
 }

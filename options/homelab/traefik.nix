@@ -45,7 +45,7 @@ in
       nic = lib.mkOption {
         description = lib.mdDoc "Parent NIC for the app macvlan";
         type = types.str;
-        default = "${args.settings.nic0}";
+        default = "${args.nic0}";
       };
 
       ip = lib.mkOption {
@@ -87,8 +87,8 @@ in
     # - No group specified, i.e `-` defaults to root
     # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
-      "d /var/lib/${app.name} 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/conf.d 0750 ${args.settings.username} - -"
+      "d /var/lib/${app.name} 0750 ${args.username} - -"
+      "d /var/lib/${app.name}/conf.d 0750 ${args.username} - -"
     ];
 
     # Generate the "podman-${app.name}" service unit for the container

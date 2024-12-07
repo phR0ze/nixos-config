@@ -22,6 +22,8 @@
 { config, lib, pkgs, args, ... }: with lib.types;
 let
   app = config.homelab.stirling-pdf;
+  uid = config.users.users.${args.username}.uid;
+  gid = config.users.groups."users".gid;
 in
 {
   options = {
@@ -37,7 +39,7 @@ in
       nic = lib.mkOption {
         description = lib.mdDoc "Parent NIC for the app macvlan";
         type = types.str;
-        default = "${args.settings.nic0}";
+        default = "${args.nic0}";
       };
 
       ip = lib.mkOption {
@@ -73,12 +75,12 @@ in
     # - No group specified, i.e `-` defaults to root
     # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
-      "d /var/lib/${app.name} 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/customFiles 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/extraConfigs 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/logs 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/pipeline 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/trainingData 0750 ${args.settings.username} - -"
+      "d /var/lib/${app.name} 0750 ${args.username} - -"
+      "d /var/lib/${app.name}/customFiles 0750 ${args.username} - -"
+      "d /var/lib/${app.name}/extraConfigs 0750 ${args.username} - -"
+      "d /var/lib/${app.name}/logs 0750 ${args.username} - -"
+      "d /var/lib/${app.name}/pipeline 0750 ${args.username} - -"
+      "d /var/lib/${app.name}/trainingData 0750 ${args.username} - -"
     ];
 
     # Generate the "podman-${app.name}" service unit for the container

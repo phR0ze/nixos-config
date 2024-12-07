@@ -31,6 +31,8 @@
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
   app = config.homelab.adguard;
+  uid = config.users.users.${args.username}.uid;
+  gid = config.users.groups."users".gid;
 
   configFile = pkgs.writeTextFile {
     name = "AdGuardHome.yaml";
@@ -215,19 +217,19 @@ in
       nic = lib.mkOption {
         description = lib.mdDoc "Parent NIC for the app macvlan";
         type = types.str;
-        default = "${args.settings.nic0}";
+        default = "${args.nic0}";
       };
 
       subnet = lib.mkOption {
         description = lib.mdDoc "Network subnet to use for container macvlan";
         type = types.str;
-        default = "${args.settings.subnet}";
+        default = "${args.subnet}";
       };
 
       gateway = lib.mkOption {
         description = lib.mdDoc "Network gateway to use for container macvlan";
         type = types.str;
-        default = "${args.settings.gateway}";
+        default = "${args.gateway}";
       };
 
       hostIP = lib.mkOption {
@@ -281,9 +283,9 @@ in
     # - No group specified, i.e `-` defaults to root
     # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
-      "d /var/lib/${app.name} 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/conf 0750 ${args.settings.username} - -"
-      "d /var/lib/${app.name}/work 0750 ${args.settings.username} - -"
+      "d /var/lib/${app.name} 0750 ${toString uid} ${toString gid} -"
+      "d /var/lib/${app.name}/conf 0750 ${toString uid} ${toString gid} -"
+      "d /var/lib/${app.name}/work 0750 ${toString uid} ${toString gid} -"
     ];
 
     # Generate the "podman-${app.name}" service unit for the container

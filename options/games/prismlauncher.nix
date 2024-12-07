@@ -11,7 +11,7 @@ let
     IconTheme=pe_colored
     JavaPath=${cfg.javaPath}
     Language=en_US
-    LastHostname=${args.settings.hostname}
+    LastHostname=${args.hostname}
     MaxMemAlloc=${toString cfg.maxMemAlloc}
     MinMemAlloc=${toString cfg.minMemAlloc}
   '');
