@@ -3,7 +3,7 @@
 { config, lib, pkgs, args, ... }:
 {
   # Set the short git revision and comment to be used in the system version `clu list versions`
-  system.configurationRevision = lib.mkIf (args.settings.comment != "") args.settings.comment;
+  system.configurationRevision = lib.mkIf (args.comment != "") args.comment;
 
   nix = {
     package = pkgs.nixFlakes;

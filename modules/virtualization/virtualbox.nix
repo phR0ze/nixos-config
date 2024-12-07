@@ -18,6 +18,6 @@ in
     virtualisation.virtualbox.host.addNetworkInterface = true;
 
     # Add user to the vboxusers group
-    users.extraGroups.vboxusers.members = [ args.settings.username ];
+    users.extraGroups.vboxusers.members = [ args.username ];
   };
 }

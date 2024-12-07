@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  static_ip = f.toIP "${args.settings.static_ip}";
+  static_ip = f.toIP "${args.static_ip}";
 in
 {
   imports = [
@@ -18,7 +18,7 @@ in
     # ----------------------------------------------------------------------------------------------
     {
       networking.enableIPv6 = false;
-      networking.hostName = args.settings.hostname;
+      networking.hostName = args.hostname;
     }
 
     # Configure DNS. resolved works well with network manager
@@ -29,15 +29,15 @@ in
         dnssec = "allow-downgrade"; # using `true` will break DNS if VPN DNS servers don't support
       };
     }
-    (lib.mkIf (args.settings.primary_dns != "") {
-      networking.nameservers = [ "${args.settings.primary_dns}" ];
-      services.resolved.fallbackDns = [ "${args.settings.primary_dns}" ];
+    (lib.mkIf (args.primary_dns != "") {
+      networking.nameservers = [ "${args.primary_dns}" ];
+      services.resolved.fallbackDns = [ "${args.primary_dns}" ];
     })
-    (lib.mkIf (args.settings.primary_dns != "" && args.settings.fallback_dns == "") {
-      services.resolved.fallbackDns = [ "${args.settings.primary_dns}" ];
+    (lib.mkIf (args.primary_dns != "" && args.fallback_dns == "") {
+      services.resolved.fallbackDns = [ "${args.primary_dns}" ];
     })
-    (lib.mkIf (args.settings.fallback_dns != "") {
-      services.resolved.fallbackDns = [ "${args.settings.fallback_dns}" ];
+    (lib.mkIf (args.fallback_dns != "") {
+      services.resolved.fallbackDns = [ "${args.fallback_dns}" ];
     })
 
     # Configure IP address for primary interface
@@ -51,24 +51,24 @@ in
 #    };
 
     # Optionally configure network bridge with static IP first
-    (f.mkIfElse (args.settings.network_bridge && args.settings.static_ip != "") {
+    (f.mkIfElse (args.network_bridge && args.static_ip != "") {
       networking.useDHCP = false;
-      networking.bridges."br0".interfaces = [ "${args.settings.nic0}" ];
+      networking.bridges."br0".interfaces = [ "${args.nic0}" ];
 
       # Configure Static IP bridge
       networking.interfaces."br0".ipv4.addresses = [ static_ip ];
-      networking.defaultGateway = "${args.settings.gateway}";
+      networking.defaultGateway = "${args.gateway}";
 
     # Otherwise configure network bridge with DHCP second
-    } (f.mkIfElse (args.settings.network_bridge && args.settings.static_ip == "") {
+    } (f.mkIfElse (args.network_bridge && args.static_ip == "") {
       networking.useDHCP = false;
-      networking.bridges."br0".interfaces = [ "${args.settings.nic0}" ];
+      networking.bridges."br0".interfaces = [ "${args.nic0}" ];
       networking.interfaces."br0".useDHCP = true;
 
     # Otherwise configure static IP for the primary NIC third
-    } (f.mkIfElse (args.settings.static_ip != "") {
-      networking.interfaces."${args.settings.nic0}".ipv4.addresses = [ static_ip ];
-      networking.defaultGateway = "${args.settings.gateway}";
+    } (f.mkIfElse (args.static_ip != "") {
+      networking.interfaces."${args.nic0}".ipv4.addresses = [ static_ip ];
+      networking.defaultGateway = "${args.gateway}";
 
     # Finally fallback on DHCP for the primary NIC
     } {

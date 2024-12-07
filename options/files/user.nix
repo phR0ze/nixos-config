@@ -41,7 +41,7 @@ in
           ".dircolors".copy = ../include/home/.dircolors;
         };
       '';
-      type = fileType "${args.settings.username}" "users" "home/${args.settings.username}/";
+      type = fileType "${args.username}" "users" "home/${args.username}/";
     };
   };
 }

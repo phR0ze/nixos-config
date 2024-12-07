@@ -11,7 +11,7 @@
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
-    (../. + ("/" + args.settings.iso_profile + ".nix"))
+    (../. + ("/" + args.iso_profile + ".nix"))
   ];
 
   # ISO image configuration
@@ -29,7 +29,7 @@
 
   # Some more help text.
   services.getty.helpLine = lib.mkForce ''
-    The "nixos" and "root" account passwords are set to ${args.settings.userpass}.
+    The "nixos" and "root" account passwords are set to ${args.userpass}.
 
     If you need a wireless connection, type
     `sudo systemctl start wpa_supplicant` and configure a

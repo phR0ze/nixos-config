@@ -2,17 +2,17 @@
 #---------------------------------------------------------------------------------------------------
 { args, ... }:
 {
-  time.timeZone = args.settings.timezone;
-  i18n.defaultLocale = args.settings.locale;
+  time.timeZone = args.timezone;
+  i18n.defaultLocale = args.locale;
   i18n.extraLocaleSettings = {
-    LC_ADDRESS = args.settings.locale;
-    LC_IDENTIFICATION = args.settings.locale;
-    LC_MEASUREMENT = args.settings.locale;
-    LC_MONETARY = args.settings.locale;
-    LC_NAME = args.settings.locale;
-    LC_NUMERIC = args.settings.locale;
-    LC_PAPER = args.settings.locale;
-    LC_TELEPHONE = args.settings.locale;
-    LC_TIME = args.settings.locale;
+    LC_ADDRESS = args.locale;
+    LC_IDENTIFICATION = args.locale;
+    LC_MEASUREMENT = args.locale;
+    LC_MONETARY = args.locale;
+    LC_NAME = args.locale;
+    LC_NUMERIC = args.locale;
+    LC_PAPER = args.locale;
+    LC_TELEPHONE = args.locale;
+    LC_TIME = args.locale;
   };
 }

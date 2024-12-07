@@ -12,7 +12,7 @@
     };
   };
 
-  users.users.${args.settings.username} = {
+  users.users.${args.username} = {
     extraGroups = [ "docker" ];
   };
 }

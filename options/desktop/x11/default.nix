@@ -54,8 +54,8 @@ in
             '';
           };
         };
-        autoLogin.enable = args.settings.autologin;
-        autoLogin.user = args.settings.username;
+        autoLogin.enable = args.autologin;
+        autoLogin.user = args.username;
       };
 
       # Arch Linux recommends libinput and Xfce uses it in its settings manager

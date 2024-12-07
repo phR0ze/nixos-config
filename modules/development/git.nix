@@ -6,8 +6,8 @@
     enable = true;
     config = {
       user = {
-        name = args.settings.git_user;
-        email = args.settings.git_email;
+        name = args.git_user;
+        email = args.git_email;
       };
       core = {
         editor = "vim";
