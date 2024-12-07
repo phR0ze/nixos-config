@@ -22,7 +22,6 @@ in
         enable = true;
         dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
         unmanaged = [                       # Ignore virtualization networks
-          "interface-name:docker*"
           "interface-name:podman*"
           "interface-name:vboxnet*"
           "interface-name:vmnet*"
