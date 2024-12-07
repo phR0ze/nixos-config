@@ -8,7 +8,6 @@
 {
   imports = [
     ../generic/develop.nix
-    ../../modules/virtualization/docker.nix
   ];
 
   # Hardware
@@ -19,6 +18,7 @@
 
   # Utilities
   programs.freecad.enable = true;
+  virtualization.podman.enable = true;
   virtualization.virt-manager.enable = true;
 
   # Games
