@@ -22,6 +22,39 @@ in
     # Enable and configure the app
     virtualisation.incus = {
       enable = true;
+      preseed = {
+        networks = [{
+          config = {
+            "ipv4.address" = "auto";
+            "ipv6.address" = "none";
+            "ipv4.nat" = "true";
+          };
+          name = "incusbr0";
+          type = "bridge";
+        }];
+        profiles = [{
+          devices = {
+            eth0 = {
+              name = "eth0";
+              network = "incusbr0";
+              type = "nic";
+            };
+            root = {
+              path = "/";
+              pool = "default";
+              type = "disk";
+            };
+          };
+          name = "default";
+        }];
+        storage_pools = [{
+          config = {
+            source = "/var/lib/incus/storage-pools/default";
+          };
+          driver = "dir";
+          name = "default";
+        }];
+      };
     };
   };
 }
