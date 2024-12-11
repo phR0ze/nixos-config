@@ -21,50 +21,51 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, ... }: with lib.types;
 let
-  app = config.homelab.stirling-pdf;
-  uid = config.users.users.${args.username}.uid;
-  gid = config.users.groups."users".gid;
+  cfg = config.homelab.stirling-pdf;
+  app = config.homelab.stirling-pdf.app;
+  appOpts = (import ../types/app.nix { inherit lib; }).appOpts;
 in
 {
   options = {
     homelab.stirling-pdf = {
       enable = lib.mkEnableOption "Deploy container based Stirling PDF";
 
-      name = lib.mkOption {
-        description = lib.mdDoc "App name to use for supporting components";
-        type = types.str;
-        default = "stirling-pdf";
-      };
-
-      nic = lib.mkOption {
-        description = lib.mdDoc "Parent NIC for the app macvlan";
-        type = types.str;
-        default = "${args.nic0}";
-      };
-
-      ip = lib.mkOption {
-        description = lib.mdDoc "IP address to use for the app macvlan";
-        type = types.str;
-        default = "192.168.1.57";
-      };
-
-      port = lib.mkOption {
-        description = lib.mdDoc "Port to use for Web Interface on the macvlan";
-        type = types.port;
-        default = 80;
-        example = {
-          port = 80;
+      app = lib.mkOption {
+        description = lib.mdDoc "Containerized app options";
+        type = types.submodule appOpts;
+        default = {
+          name = "stirling-pdf";
+          user = {
+            name = args.username;
+            uid = config.users.users.${args.username}.uid;
+            gid = config.users.groups."users".gid;
+          };
+          nic = {
+            name = args.nic0;
+            ip = "192.168.1.57";
+            port = 80;
+          };
         };
       };
     };
   };
  
-  config = lib.mkIf app.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
-      {
-        assertion = ("${app.nic}" != "");
-        message = "Application parent NIC not specified, please set 'nic'";
-      }
+      { assertion = (app.name != null && app.name != "");
+        message = "Application name not specified, please set 'app.name'"; }
+      { assertion = (app.user.name != null && app.user.name != "");
+        message = "Application user name not specified, please set 'app.user.name'"; }
+      { assertion = (app.user.uid != null);
+        message = "Application user uid not specified, please set 'app.user.uid'"; }
+      { assertion = (app.user.gid != null);
+        message = "Application user gid not specified, please set 'app.user.gid'"; }
+      { assertion = (app.nic.name != null && app.nic.name != "");
+        message = "Application nic name not specified, please set 'app.nic.name'"; }
+      { assertion = (app.nic.ip != null);
+        message = "Application nic ip not specified, please set 'app.nic.ip'"; }
+      { assertion = (app.nic.port != null);
+        message = "Application nic port not specified, please set 'app.nic.port'"; }
     ];
 
     # Requires podman virtualization to be configured
@@ -75,12 +76,12 @@ in
     # - No group specified, i.e `-` defaults to root
     # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
-      "d /var/lib/${app.name} 0750 ${args.username} - -"
-      "d /var/lib/${app.name}/customFiles 0750 ${args.username} - -"
-      "d /var/lib/${app.name}/extraConfigs 0750 ${args.username} - -"
-      "d /var/lib/${app.name}/logs 0750 ${args.username} - -"
-      "d /var/lib/${app.name}/pipeline 0750 ${args.username} - -"
-      "d /var/lib/${app.name}/trainingData 0750 ${args.username} - -"
+      "d /var/lib/${app.name} 0750 ${toString app.user.uid} ${toString app.user.gid} -"
+      "d /var/lib/${app.name}/customFiles 0750 ${toString app.user.uid} ${toString app.user.gid} -"
+      "d /var/lib/${app.name}/extraConfigs 0750 ${toString app.user.uid} ${toString app.user.gid} -"
+      "d /var/lib/${app.name}/logs 0750 ${toString app.user.uid} ${toString app.user.gid} -"
+      "d /var/lib/${app.name}/pipeline 0750 ${toString app.user.uid} ${toString app.user.gid} -"
+      "d /var/lib/${app.name}/trainingData 0750 ${toString app.user.uid} ${toString app.user.gid} -"
     ];
 
     # Generate the "podman-${app.name}" service unit for the container
@@ -90,7 +91,7 @@ in
       autoStart = true;
       hostname = "${app.name}";
       ports = [
-        "${app.ip}:${toString app.port}:8080"
+        "${app.nic.ip}:${toString app.nic.port}:8080"
       ];
       volumes = [
         "/var/lib/${app.name}/customFiles:/customFiles:rw"
@@ -113,16 +114,16 @@ in
     };
 
     # Setup firewall exceptions
-    networking.firewall.interfaces.${app.name}.allowedTCPPorts = [ app.port ];
+    networking.firewall.interfaces.${app.name}.allowedTCPPorts = [ app.nic.port ];
 
     # Create host macvlan with a dedicated static IP for the app to port forward to
     networking = {
       macvlans.${app.name} = {
-        interface = "${app.nic}";
+        interface = "${app.nic.name}";
         mode = "bridge";
       };
       interfaces.${app.name}.ipv4.addresses = [
-        { address = "${app.ip}"; prefixLength = 32; }
+        { address = "${app.nic.ip}"; prefixLength = 32; }
       ];
     };
 

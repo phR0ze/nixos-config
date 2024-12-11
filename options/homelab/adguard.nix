@@ -30,9 +30,9 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  app = config.homelab.adguard;
-  uid = config.users.users.${args.username}.uid;
-  gid = config.users.groups."users".gid;
+  cfg = config.homelab.adguard;
+  app = config.homelab.adguard.app;
+  appOpts = (import ../types/app.nix { inherit lib; }).appOpts;
 
   configFile = pkgs.writeTextFile {
     name = "AdGuardHome.yaml";
@@ -208,71 +208,51 @@ in
     homelab.adguard = {
       enable = lib.mkEnableOption "Deploy container based Adguard Home";
 
-      name = lib.mkOption {
-        description = lib.mdDoc "App name to use for supporting components";
-        type = types.str;
-        default = "adguard";
-      };
-
-      nic = lib.mkOption {
-        description = lib.mdDoc "Parent NIC for the app macvlan";
-        type = types.str;
-        default = "${args.nic0}";
-      };
-
-      subnet = lib.mkOption {
-        description = lib.mdDoc "Network subnet to use for container macvlan";
-        type = types.str;
-        default = "${args.subnet}";
-      };
-
-      gateway = lib.mkOption {
-        description = lib.mdDoc "Network gateway to use for container macvlan";
-        type = types.str;
-        default = "${args.gateway}";
-      };
-
-      hostIP = lib.mkOption {
-        description = lib.mdDoc "IP address to use for the host app macvlan";
-        type = types.str;
-        default = "192.168.1.52";
-      };
-
-      containerIP = lib.mkOption {
-        description = lib.mdDoc "IP address to use for the container app macvlan";
-        type = types.str;
-        default = "192.168.1.53";
-      };
-
-      port = lib.mkOption {
-        description = lib.mdDoc "Port to use for Web Interface on the macvlan";
-        type = types.port;
-        default = 80;
-        example = {
-          port = 80;
+      app = lib.mkOption {
+        description = lib.mdDoc "Containerized app options";
+        type = types.submodule appOpts;
+        default = {
+          name = "adguard";
+          user = {
+            name = args.username;
+            uid = config.users.users.${args.username}.uid;
+            gid = config.users.groups."users".gid;
+          };
+          nic = {
+            name = args.nic0;
+            subnet = args.subnet;
+            gateway = args.gateway;
+            ip = "192.168.1.52";  # Host IP
+            ip2 = "192.168.1.53"; # Container IP
+            port = 80;            # Web interface ip
+          };
         };
-      };
-
-      skipConfig = lib.mkOption {
-        description = lib.mdDoc "Skip the default configuration to give a clean setup";
-        type = types.bool;
-        default = false;
       };
     };
   };
  
-  config = lib.mkIf app.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
-      { assertion = ("${app.nic}" != "");
-        message = "Application parent NIC not specified, please set 'nic'"; }
-      { assertion = ("${app.subnet}" != "");
-        message = "Network subnet not specified, please set 'subnet'"; }
-      { assertion = ("${app.gateway}" != "");
-        message = "Network gateway not specified, please set 'gateway'"; }
-      { assertion = ("${app.hostIP}" != "");
-        message = "Host macvlan IP not specified, please set 'hostIP'"; }
-      { assertion = ("${app.containerIP}" != "");
-        message = "Container macvlan IP not specified, please set 'containerIP'"; }
+      { assertion = (app.name != null && app.name != "");
+        message = "Application name not specified, please set 'app.name'"; }
+      { assertion = (app.user.name != null && app.user.name != "");
+        message = "Application user name not specified, please set 'app.user.name'"; }
+      { assertion = (app.user.uid != null);
+        message = "Application user uid not specified, please set 'app.user.uid'"; }
+      { assertion = (app.user.gid != null);
+        message = "Application user gid not specified, please set 'app.user.gid'"; }
+      { assertion = (app.nic.name != null && app.nic.name != "");
+        message = "Application parent NIC not specified, please set 'app.nic.name'"; }
+      { assertion = (app.nic.subnet != null && app.nic.subnet != "");
+        message = "Network subnet not specified, please set 'app.nic.subnet'"; }
+      { assertion = (app.nic.gateway != null && app.nic.gateway != "");
+        message = "Network gateway not specified, please set 'app.nic.gateway'"; }
+      { assertion = (app.nic.ip != null && app.nic.ip != "");
+        message = "Host macvlan IP not specified, please set 'app.nic.ip'"; }
+      { assertion = (app.nic.ip2 != null && app.nic.ip2 != "");
+        message = "Container macvlan IP not specified, please set 'app.nic.ip2'"; }
+      { assertion = (app.nic.port != null && app.nic.port != "");
+        message = "Nic port not specified, please set 'app.nic.port'"; }
     ];
 
     # Requires podman virtualization to be configured
@@ -283,9 +263,9 @@ in
     # - No group specified, i.e `-` defaults to root
     # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
-      "d /var/lib/${app.name} 0750 ${toString uid} ${toString gid} -"
-      "d /var/lib/${app.name}/conf 0750 ${toString uid} ${toString gid} -"
-      "d /var/lib/${app.name}/work 0750 ${toString uid} ${toString gid} -"
+      "d /var/lib/${app.name} 0750 ${toString app.user.uid} ${toString app.user.gid} -"
+      "d /var/lib/${app.name}/conf 0750 ${toString app.user.uid} ${toString app.user.gid} -"
+      "d /var/lib/${app.name}/work 0750 ${toString app.user.uid} ${toString app.user.gid} -"
     ];
 
     # Generate the "podman-${app.name}" service unit for the container
@@ -296,15 +276,15 @@ in
       hostname = "${app.name}";
       # No need for port forwarding as were using a macvlan to expose the service directly
 #      ports = [
-#        "${app.ip}:53:53/tcp" "${app.ip}:53:53/udp"         # plain DNS
-#        "${app.ip}:${toString app.port}:80/tcp"             # web interface
-#        "${app.ip}:3000:3000/tcp"                           # setup web interface
-#        #"${app.ip}:67:67/udp" "${app.ip}:68:68/udp"         # add if using as DHCP server
-#        #"${app.ip}:443:443/tcp" "${app.ip}:443:443/udp"     # add if using as HTTPS/DNS over HTTPS server
-#        #"${app.ip}:853:853/tcp"                             # add if using as DNS over TLS server
-#        #"${app.ip}:853:853/udp"                             # add if using as DNS over QUIC server
-#        #"${app.ip}:5443:5443/tcp" "${app.ip}:5443:5443/udp" # add if using AdGuard as DNSCrypt server
-#        #"${app.ip}:6060:6060/tcp"                           # debugging profiles
+#        "${app.nic.ip}:53:53/tcp" "${app.nic.ip}:53:53/udp"         # plain DNS
+#        "${app.nic.ip}:${toString app.nic.port}:80/tcp"             # web interface
+#        "${app.nic.ip}:3000:3000/tcp"                           # setup web interface
+#        #"${app.nic.ip}:67:67/udp" "${app.nic.ip}:68:68/udp"         # add if using as DHCP server
+#        #"${app.nic.ip}:443:443/tcp" "${app.nic.ip}:443:443/udp"     # add if using as HTTPS/DNS over HTTPS server
+#        #"${app.nic.ip}:853:853/tcp"                             # add if using as DNS over TLS server
+#        #"${app.nic.ip}:853:853/udp"                             # add if using as DNS over QUIC server
+#        #"${app.nic.ip}:5443:5443/tcp" "${app.nic.ip}:5443:5443/udp" # add if using AdGuard as DNSCrypt server
+#        #"${app.nic.ip}:6060:6060/tcp"                           # debugging profiles
 #      ];
       volumes = [
         "/var/lib/${app.name}/conf:/opt/adguardhome/conf:rw"
@@ -312,24 +292,24 @@ in
       ];
       extraOptions = [
         "--network=${app.name}"
-        "--ip=${app.containerIP}"
+        "--ip=${app.nic.ip2}"
       ];
     };
 
     # No need for firewall exceptions because the macvlan is exposed directly on the LAN
     #networking.firewall.interfaces.${app.name}.allowedTCPPorts = [
-    #  ${app.port} 3000 53 # 67 68 443 853 5443 6060
+    #  ${app.nic.port} 3000 53 # 67 68 443 853 5443 6060
     #];
 
     # Create host macvlan with a dedicated static IP to allow connections back to the container
     # from the host. This is for a different purpose that the other services.
     networking = {
       macvlans.${app.name} = {
-        interface = "${app.nic}";
+        interface = "${app.nic.name}";
         mode = "bridge";
       };
       interfaces.${app.name}.ipv4.addresses = [
-        { address = "${app.hostIP}"; prefixLength = 32; }
+        { address = "${app.nic.ip}"; prefixLength = 32; }
       ];
     };
 
@@ -341,16 +321,16 @@ in
         RemainAfterExit = true;
         ExecStop = [
           "podman network rm -f ${app.name}"
-          "ip route del ${app.containerIP} dev ${app.name} &>/dev/null || true"
+          "ip route del ${app.nic.ip2} dev ${app.name} &>/dev/null || true"
         ];
       };
       script = ''
         if ! podman network exists ${app.name}; then
-          podman network create -d macvlan --subnet=${app.subnet} --gateway=${app.gateway} -o parent=${app.nic} ${app.name}
+          podman network create -d macvlan --subnet=${app.nic.subnet} --gateway=${app.nic.gateway} -o parent=${app.nic.name} ${app.name}
         fi
 
         # Setup host to container access by adding an explicit route
-        ip route add ${app.containerIP} dev ${app.name} &>/dev/null || true
+        ip route add ${app.nic.ip2} dev ${app.name} &>/dev/null || true
       '';
     };
 
@@ -375,7 +355,7 @@ in
 
       # Merge in the persisted configuration file
       preStart = ''
-        if [ "${f.boolToIntStr app.skipConfig}" = "0" ]; then
+        if [ "${f.boolToIntStr app.configure}" = "1" ]; then
           if [ -e "/var/lib/${app.name}/conf/AdGuardHome.yaml" ]; then
             ${pkgs.yaml-merge}/bin/yaml-merge "/var/lib/${app.name}/conf/AdGuardHome.yaml" "${configFile}" > "/var/lib/${app.name}/conf/AdGuardHome.yaml.tmp"
             # Writing directly to AdGuardHome.yaml seems to result in an empty file
