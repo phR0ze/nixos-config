@@ -1,20 +1,28 @@
-# Declares user type for reusability
+# Declares user options type for reusability
+#
+# https://nixos.org/manual/nixos/stable/#ex-submodule-direct
 #---------------------------------------------------------------------------------------------------
-{ config, lib, args, ... }:
+{ lib, ... }: with lib.types;
 {
-  userType = with lib.types; attrsOf (submodule ({ config, options, ... }: {
+  userOpts = {
     options = {
-#      uid = lib.mkOption {
-#        description = lib.mdDoc "User id for the user";
-#        type = types.int;
-#        default = config.users.users.${args.username}.uid;
-#      };
+      name = lib.mkOption {
+        description = lib.mdDoc "User name";
+        type = types.nullOr types.str;
+        default = null;
+      };
+
+      uid = lib.mkOption {
+        description = lib.mdDoc "User id for the user";
+        type = types.nullOr types.int;
+        default = null;
+      };
 
       gid = lib.mkOption {
         description = lib.mdDoc "Group id for the user";
-        type = types.int;
-        default = config.users.groups."users".gid;
+        type = types.nullOr types.int;
+        default = null;
       };
     };
-  }));
+  };
 }
