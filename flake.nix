@@ -73,7 +73,6 @@
     # Combine all input args, custom function and types together in special args
     # ----------------------------------------------------------------------------------------------
     f = pkgs.callPackage ./options/funcs.nix { lib = nixpkgs.lib; };
-    #types = pkgs.callPackage ./options/funcs.nix { lib = nixpkgs.lib; };
     args = inputs // settings // {
       iso = false;
       userHome = "/home/${settings.username}";
