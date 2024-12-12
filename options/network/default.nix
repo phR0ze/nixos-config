@@ -4,6 +4,7 @@
 let
   cfg = config.networking;
   static_ip = f.toIP "${args.static_ip}";
+  macvlanOpts = (import ../types/macvlan.nix { inherit lib; }).macvlanOpts;
 in
 {
   imports = [
@@ -13,25 +14,36 @@ in
     ./network-manager.nix
   ];
 
+  # Homelab bridge to allow host and containerized apps to interact and see each other on the LAN
   options = {
-    networking = {
-      bridge = {
-        enable = lib.mkEnableOption "Convert the main interface into a bridge";
-        name = lib.mkOption {
-          type = types.str;
-          description = lib.mdDoc "Bridge name to use";
-          default = "br0";
+    networking.bridge = {
+      enable = lib.mkEnableOption "Convert the main interface into a bridge";
+      name = lib.mkOption {
+        type = types.str;
+        description = lib.mdDoc "Bridge name to use";
+        default = "br0";
+      };
+ 
+      macvlan = lib.mkOption {
+        description = lib.mdDoc ''
+          Host MacVLAN to communicate with containers on bridge. This only necessary for the host and 
+          not needed for other devices on the LAN.
+        '';
+        type = types.submodule macvlanOpts;
+        default = {
+          name = "host";
+          ip = "192.168.1.49";
         };
       };
-      vnic0 = lib.mkOption {
-        type = types.str;
-        description = lib.mdDoc ''
-          Primary interface to use for network access. This will typically just be the physical nic 
-          e.g. ens18, but when networking.bridge is enabled it will be set to networking.bridge.name 
-          to match the bridge.
-        '';
-        default = args.nic0;
-      };
+    };
+    networking.vnic0 = lib.mkOption {
+      type = types.str;
+      description = lib.mdDoc ''
+        Primary interface to use for network access. This will typically just be the physical nic 
+        e.g. ens18, but when networking.bridge is enabled it will be set to networking.bridge.name 
+        to match the bridge.
+      '';
+      default = args.nic0;
     };
   };
 
@@ -64,6 +76,21 @@ in
     })
     (lib.mkIf (args.fallback_dns != "") {
       services.resolved.fallbackDns = [ "${args.fallback_dns}" ];
+    })
+
+    # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
+    # interacted with by every device on the LAN except the host due to local virtual oddities
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf cfg.bridge.enable {
+      networking = {
+        macvlans."${cfg.bridge.macvlan.name}" = {
+          interface = "${cfg.bridge.name}";
+          mode = "bridge";
+        };
+        interfaces."${cfg.bridge.macvlan.name}".ipv4.addresses = [
+          { address = "${cfg.bridge.macvlan.ip}"; prefixLength = 32; }
+        ];
+      };
     })
 
     # Configure IP address for primary interface

@@ -39,6 +39,8 @@ in
           };
           nic = {
             name = config.networking.vnic0;
+            subnet = args.subnet;
+            gateway = args.gateway;
             ip = "192.168.1.40";
             port = 80;
           };
@@ -66,8 +68,7 @@ in
     ];
 
     # Requires podman virtualization to be configured
-    networking.bridge.enable = true;
-    #virtualization.incus.enable = true;
+    virtualization.incus.enable = true;
     virtualization.podman.enable = true;
 
     # Create persistent directories for application
@@ -86,17 +87,17 @@ in
       image = "docker.io/penninglabs/lxconsole:latest";
       autoStart = true;
       hostname = "${app.name}";
-      ports = [
-        "${app.nic.ip}:${toString app.nic.port}:5000"     # Web UI
-      ];
+#      ports = [
+#        "${app.nic.ip}:${toString app.nic.port}:5000"     # Web UI
+#      ];
       volumes = [
         "/var/lib/${app.name}/backups:/opt/lxconsole/backups:rw"
         "/var/lib/${app.name}/certs:/opt/lxconsole/certs:rw"
         "/var/lib/${app.name}/instance:/opt/lxconsole/instance:rw"
       ];
       extraOptions = [
-        "--network=${app.name}"                           # set the network to use
-        #"--ip=${app.name}"                                # set the ip to use
+        "--network=${app.name}"                           # Set the network to use
+        "--ip=${app.nic.ip}"                              # IP address to use for the app's MacVLAN
       ];
     };
 
@@ -105,18 +106,7 @@ in
       app.nic.port
     ];
 
-    # Create host macvlan with a dedicated static IP for the app to port forward to
-    networking = {
-      macvlans.${app.name} = {
-        interface = "${app.nic.name}";
-        mode = "bridge";
-      };
-      interfaces.${app.name}.ipv4.addresses = [
-        { address = "${app.nic.ip}"; prefixLength = 32; }
-      ];
-    };
-
-    # Create a dedicated container network to keep the app isolated from other services
+    # Create a Docker MacVLAN to allow this app to get an IP assigned and function on the LAN
     systemd.services."podman-network-${app.name}" = {
       path = [ pkgs.podman ];
       serviceConfig = {
@@ -124,12 +114,16 @@ in
         RemainAfterExit = true;
         ExecStop = [
           "podman network rm -f ${app.name}"
+          "ip route del ${app.nic.ip} dev ${config.networking.bridge.macvlan.name} &>/dev/null || true"
         ];
       };
       script = ''
         if ! podman network exists ${app.name}; then
-          podman network create ${app.name}
+          podman network create -d macvlan --subnet=${app.nic.subnet} --gateway=${app.nic.gateway} -o parent=${app.nic.name} ${app.name}
         fi
+
+        # Setup host to container access by adding an explicit route
+        ip route add ${app.nic.ip} dev ${config.networking.bridge.macvlan.name} &>/dev/null || true
       '';
     };
 
