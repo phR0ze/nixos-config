@@ -28,6 +28,6 @@ in
 
     # Allow remote control through the firewall
     # View rules with: sudo iptables -S
-    networking.firewall.allowedTCPPorts = lib.optional cfg.remoteControlHTTP cfg.port;
+    networking.firewall.interfaces."${config.networking.vnic0}".allowedTCPPorts = lib.optional cfg.remoteControlHTTP cfg.port;
   };
 }

@@ -9,6 +9,7 @@
 {
   imports = [
     ./adguard.nix
+    ./lxconsole.nix
     ./qbittorrent.nix
     ./stirling-pdf.nix
     ./traefik.nix

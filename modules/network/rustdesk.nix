@@ -7,7 +7,7 @@
 #---------------------------------------------------------------------------------------------------
 { args, ... }:
 {
-  networking.firewall = {
+  networking.firewall.interfaces."${config.networking.vnic0}" = {
     # 8000 = Rustdesk?
     # 21115-21117 = Rustdesk  https://rustdesk.com/docs/en/self-host/
     # 21118 and 21119 = Rustdesk Web Client

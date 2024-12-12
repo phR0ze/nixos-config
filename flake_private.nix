@@ -14,7 +14,6 @@
   static_ip = "";                   # static ip to use if set e.g. 192.168.1.2/24
   primary_dns = "";                 # primary dns server to use e.g. 1.1.1.1
   fallback_dns = "";                # fallback dns server to use e.g. 8.8.8.8
-  network_bridge = false;           # Enable a network bridge for the primary NIC
   bluetooth = false;                # flag to control bluetooth enablement
 
   profile = "generic/desktop";      # pre-defined configurations in path './profiles' selection

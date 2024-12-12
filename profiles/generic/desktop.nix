@@ -22,6 +22,9 @@
     remoteControlHTTP = true;
   };
 
+  # Networking
+  programs.qbittorrent.enable = true;   # Excellent bittorrent client
+
   environment.systemPackages = with pkgs; [
 
     # Network

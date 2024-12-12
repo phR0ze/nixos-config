@@ -30,7 +30,6 @@
   # Network
   programs.firefox.enable = true;       # Mozilla browser
   programs.filezilla.enable = true;     # Network/Transfer
-  programs.qbittorrent.enable = true;   # Excellent bittorrent client
 
   # System
   programs.dmenu.enable = true;         # Configure dmenu
