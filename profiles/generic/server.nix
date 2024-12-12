@@ -10,12 +10,12 @@
   ];
 
   # Home lab services
-  homelab.qbittorrent.enable = true;
+  homelab.lxconsole.enable = true;
+  #homelab.qbittorrent.enable = true;
   #homelab.traefik.enable = true;
   #homelab.adguard.enable = true;
   #homelab.stirling-pdf.enable = true;
 
-  virtualization.incus.enable = true;
   #programs.tinyMediaManager.enable = true;
   #services.minecraft-server.enable = true;
 

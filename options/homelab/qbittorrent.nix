@@ -41,7 +41,7 @@ in
             gid = config.users.groups."users".gid;
           };
           nic = {
-            name = args.nic0;
+            name = config.networking.vnic0;
             ip = "192.168.1.41";
             port = 80;
           };
@@ -111,7 +111,7 @@ in
     };
 
     # Setup firewall exceptions
-    networking.firewall.interfaces.${app.name}.allowedTCPPorts = [
+    networking.firewall.interfaces."${app.name}".allowedTCPPorts = [
       app.nic.port
       6881
     ];

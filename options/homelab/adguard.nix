@@ -297,7 +297,7 @@ in
     };
 
     # No need for firewall exceptions because the macvlan is exposed directly on the LAN
-    #networking.firewall.interfaces.${app.name}.allowedTCPPorts = [
+    #networking.firewall.interfaces."${app.name}".allowedTCPPorts = [
     #  ${app.nic.port} 3000 53 # 67 68 443 853 5443 6060
     #];
 

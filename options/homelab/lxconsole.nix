@@ -1,40 +1,37 @@
-# Stirling PDF configuration
-# - https://docs.stirlingpdf.com/
-# - https://github.com/Stirling-Tools/Stirling-PDF
+# LXConsole configuration
+# - https://github.com/PenningLabs/lxconsole
 #
 # ### Description
-# Stirling PDF is a robust, locally hosted web-based PDF manipulation tool using Docker. It enables 
-# you to carry out various operations on PDF files, including splitting, mergin, converting, 
-# reorganizing, adding images, rotating, compressing, and more. This locally hosted web application 
-# has evolved to encompass a comprehensive set of features, addressing all your PDF requirements.
-#
-# - Stirling-PDF does not initiate any outbound calls for record-keeping or tracking purposes.
-# - All files and PDFs exist either exclusively on the client side, server memory only during task 
-#   execution, or as temporary files solely for the execution of the task.
+# lxconsole is an open source python application that uses flask as a framework and provides a 
+# web-based user interface capable of managing mutiple Incus and LXD servers from a single location. 
+# 
+# - Connect and manage multiple servers
+# - Create container and virtual machine instances from either a from or JSON input
+# - Start, stop, rename and delete instances
+# - Copy instances to create new instances
+# - Create, restore and delete snapshots of instances
+# - Create instances from snapshots
+# - Download container and virtual machine images to hosts
 #
 # ### Deployment Features
-# - App has outbound access to the internet
-# - App is blocked from outbound connections to the LAN
-# - App has dedicated podman bridge network with port forwarding to dedicated host macvlan
-# - App is visiable on the LAN, with a dedicated host macvlan and static IP, for inbound connections
-# - App data is persisted at /var/lib/$APP
+# -
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, args, f, t, ... }: with lib.types;
 let
-  cfg = config.homelab.stirling-pdf;
-  app = config.homelab.stirling-pdf.app;
+  cfg = config.homelab.lxconsole;
+  app = config.homelab.lxconsole.app;
   appOpts = (import ../types/app.nix { inherit lib; }).appOpts;
 in
 {
   options = {
-    homelab.stirling-pdf = {
-      enable = lib.mkEnableOption "Deploy container based Stirling PDF";
+    homelab.lxconsole= {
+      enable = lib.mkEnableOption "Deploy container based LXConsole";
 
       app = lib.mkOption {
         description = lib.mdDoc "Containerized app options";
         type = types.submodule appOpts;
         default = {
-          name = "stirling-pdf";
+          name = "lxconsole";
           user = {
             name = args.username;
             uid = config.users.users.${args.username}.uid;
@@ -42,7 +39,7 @@ in
           };
           nic = {
             name = config.networking.vnic0;
-            ip = "192.168.1.57";
+            ip = "192.168.1.40";
             port = 80;
           };
         };
@@ -69,6 +66,8 @@ in
     ];
 
     # Requires podman virtualization to be configured
+    networking.bridge.enable = true;
+    #virtualization.incus.enable = true;
     virtualization.podman.enable = true;
 
     # Create persistent directories for application
@@ -77,44 +76,34 @@ in
     # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
       "d /var/lib/${app.name} 0750 ${toString app.user.uid} ${toString app.user.gid} -"
-      "d /var/lib/${app.name}/customFiles 0750 ${toString app.user.uid} ${toString app.user.gid} -"
-      "d /var/lib/${app.name}/extraConfigs 0750 ${toString app.user.uid} ${toString app.user.gid} -"
-      "d /var/lib/${app.name}/logs 0750 ${toString app.user.uid} ${toString app.user.gid} -"
-      "d /var/lib/${app.name}/pipeline 0750 ${toString app.user.uid} ${toString app.user.gid} -"
-      "d /var/lib/${app.name}/trainingData 0750 ${toString app.user.uid} ${toString app.user.gid} -"
+      "d /var/lib/${app.name}/backups 0750 ${toString app.user.uid} ${toString app.user.gid} -"
+      "d /var/lib/${app.name}/certs 0750 ${toString app.user.uid} ${toString app.user.gid} -"
+      "d /var/lib/${app.name}/instance 0750 ${toString app.user.uid} ${toString app.user.gid} -"
     ];
 
     # Generate the "podman-${app.name}" service unit for the container
-    # https://docs.stirlingpdf.com/Getting%20started/Installation/Docker/Docker%20Install
     virtualisation.oci-containers.containers."${app.name}" = {
-      image = "docker.io/frooodle/s-pdf:latest";
+      image = "docker.io/penninglabs/lxconsole:latest";
       autoStart = true;
       hostname = "${app.name}";
       ports = [
-        "${app.nic.ip}:${toString app.nic.port}:8080"
+        "${app.nic.ip}:${toString app.nic.port}:5000"     # Web UI
       ];
       volumes = [
-        "/var/lib/${app.name}/customFiles:/customFiles:rw"
-        "/var/lib/${app.name}/extraConfigs:/configs:rw"
-        "/var/lib/${app.name}/logs:/logs:rw"
-        "/var/lib/${app.name}/pipeline:/pipeline:rw"
-        "/var/lib/${app.name}/trainingData:/usr/share/tessdata:rw"
+        "/var/lib/${app.name}/backups:/opt/lxconsole/backups:rw"
+        "/var/lib/${app.name}/certs:/opt/lxconsole/certs:rw"
+        "/var/lib/${app.name}/instance:/opt/lxconsole/instance:rw"
       ];
-
-      # Configure app via overrides
-      environment = {
-        "METRICS_ENABLED" = "false";                    # no need to track with homelab
-        "SYSTEM_ENABLEANALYTICS" = "false";             # not a fan of being tracked
-        "DOCKER_ENABLE_SECURITY" = "false";             # don't need to login with homelab
-        "INSTALL_BOOK_AND_ADVANCED_HTML_OPS" = "false";
-      };
       extraOptions = [
-        "--network=${app.name}"
+        "--network=${app.name}"                           # set the network to use
+        #"--ip=${app.name}"                                # set the ip to use
       ];
     };
 
     # Setup firewall exceptions
-    networking.firewall.interfaces."${app.name}".allowedTCPPorts = [ app.nic.port ];
+    networking.firewall.interfaces."${app.name}".allowedTCPPorts = [
+      app.nic.port
+    ];
 
     # Create host macvlan with a dedicated static IP for the app to port forward to
     networking = {
