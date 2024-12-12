@@ -111,10 +111,8 @@ in
     };
 
     # Setup firewall exceptions
-    networking.firewall.interfaces."${app.name}".allowedTCPPorts = [
-      app.nic.port
-      6881
-    ];
+    networking.firewall.interfaces."${app.name}".allowedTCPPorts = [ app.nic.port 6881 ];
+    networking.firewall.interfaces."${app.name}".allowedUDPPorts = [ 6881 ];
 
     # Create host macvlan with a dedicated static IP for the app to port forward to
     networking = {
