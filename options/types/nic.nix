@@ -32,13 +32,6 @@
         example = "192.168.1.41";
       };
 
-      ip2 = lib.mkOption {
-        description = lib.mdDoc "Secondary IP address";
-        type = types.nullOr types.str;
-        default = null;
-        example = "192.168.1.42";
-      };
-
       port = lib.mkOption {
         description = lib.mdDoc "Primary port";
         type = types.nullOr types.port;

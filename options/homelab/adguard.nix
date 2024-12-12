@@ -223,7 +223,6 @@ in
             subnet = args.subnet;
             gateway = args.gateway;
             ip = "192.168.1.52";  # Host IP
-            ip2 = "192.168.1.53"; # Container IP
             port = 80;            # Web interface ip
           };
         };
@@ -249,8 +248,6 @@ in
         message = "Network gateway not specified, please set 'app.nic.gateway'"; }
       { assertion = (app.nic.ip != null && app.nic.ip != "");
         message = "Host macvlan IP not specified, please set 'app.nic.ip'"; }
-      { assertion = (app.nic.ip2 != null && app.nic.ip2 != "");
-        message = "Container macvlan IP not specified, please set 'app.nic.ip2'"; }
       { assertion = (app.nic.port != null && app.nic.port != "");
         message = "Nic port not specified, please set 'app.nic.port'"; }
     ];
@@ -292,7 +289,7 @@ in
       ];
       extraOptions = [
         "--network=${app.name}"
-        "--ip=${app.nic.ip2}"
+        "--ip=${app.nic.ip}"
       ];
     };
 
@@ -300,18 +297,6 @@ in
     #networking.firewall.interfaces."${app.name}".allowedTCPPorts = [
     #  ${app.nic.port} 3000 53 # 67 68 443 853 5443 6060
     #];
-
-    # Create host macvlan with a dedicated static IP to allow connections back to the container
-    # from the host. This is for a different purpose that the other services.
-    networking = {
-      macvlans.${app.name} = {
-        interface = "${app.nic.name}";
-        mode = "bridge";
-      };
-      interfaces.${app.name}.ipv4.addresses = [
-        { address = "${app.nic.ip}"; prefixLength = 32; }
-      ];
-    };
 
     # Create a dedicated container network to keep the app isolated from other services
     systemd.services."podman-network-${app.name}" = {
@@ -321,7 +306,7 @@ in
         RemainAfterExit = true;
         ExecStop = [
           "podman network rm -f ${app.name}"
-          "ip route del ${app.nic.ip2} dev ${app.name} &>/dev/null || true"
+          "ip route del ${app.nic.ip} dev ${config.networking.bridge.macvlan.name} &>/dev/null || true"
         ];
       };
       script = ''

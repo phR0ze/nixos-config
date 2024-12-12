@@ -42,53 +42,53 @@ in
     virtualisation.incus = {
       enable = true;
       preseed = {
-        config = [{
-          core = {
-            https_address = "${static_ip.address}:${toString cfg.port}";
-          };
-          # images.auto_update_interval = 15;
-        }];
-        networks = [{
-          name = "incusbr0";
-          type = "bridge";
-          config = {
-            "ipv4.address" = "auto";
-            "ipv6.address" = "none";
-            "ipv4.nat" = "true";
-          };
-        }];
-        storage_pools = [{
-          name = "default";
-          driver = "dir";
-          config = {
-            source = "/var/lib/incus/storage-pools/default";
-          };
-        }];
-        profiles = [{
-          name = "default";
-#          config = {
-#            "security.nesting" = true;
-#            "security.privileged" = true;
-#          };
-          devices = {
-            eth0 = {
-              name = "eth0";
-              network = "incusbr0";
-              type = "nic";
+        networks = [
+          {
+            name = "incusbr0";
+            type = "bridge";
+            config = {
+              "ipv4.address" = "auto";
+              "ipv6.address" = "none";
+              "ipv4.nat" = "true";
             };
-            root = {
-              pool = "default";
-              path = "/";
-              type = "disk";
+          }
+        ];
+        storage_pools = [
+          {
+            name = "default";
+            driver = "dir";
+            config = {
+              source = "/var/lib/incus/storage-pools/default";
             };
-            nix_store = {
-              type = "disk";
-              path = "/nix/store";
-              readonly = true;
-              source = "path";
+          }
+        ];
+        profiles = [
+          {
+            name = "default";
+            devices = {
+              eth0 = {
+                name = "eth0";
+                network = "incusbr0";
+                type = "nic";
+              };
+              root = {
+                path = "/";
+                type = "disk";
+                pool = "default";
+              };
             };
-          };
-        }];
+          }
+          {
+            name = "bridged";
+            devices = {
+              eth0 = {
+                type = "nic";
+                nictype = "bridged";
+                parent = "${config.networking.bridge.name}";
+              };
+            };
+          }
+        ];
       };
     };
   };
