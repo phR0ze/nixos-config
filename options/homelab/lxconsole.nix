@@ -87,28 +87,23 @@ in
       image = "docker.io/penninglabs/lxconsole:latest";
       autoStart = true;
       hostname = "${app.name}";
-#      ports = [
-#        "${app.nic.ip}:${toString app.nic.port}:5000"     # Web UI
-#      ];
       volumes = [
         "/var/lib/${app.name}/backups:/opt/lxconsole/backups:rw"
         "/var/lib/${app.name}/certs:/opt/lxconsole/certs:rw"
         "/var/lib/${app.name}/instance:/opt/lxconsole/instance:rw"
       ];
+      environment = {
+        "FLASK_RUN_PORT" = "${toString app.nic.port}";    # Set the port for the web interface
+      };
       extraOptions = [
         "--network=${app.name}"                           # Set the network to use
         "--ip=${app.nic.ip}"                              # IP address to use for the app's MacVLAN
       ];
     };
 
-    # Setup firewall exceptions
-    networking.firewall.interfaces."${app.name}".allowedTCPPorts = [
-      app.nic.port
-    ];
-
     # Create a Docker MacVLAN to allow this app to get an IP assigned and function on the LAN
     systemd.services."podman-network-${app.name}" = {
-      path = [ pkgs.podman ];
+      path = [ pkgs.podman pkgs.iproute2 ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;

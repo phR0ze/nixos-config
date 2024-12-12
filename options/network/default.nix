@@ -14,7 +14,11 @@ in
     ./network-manager.nix
   ];
 
-  # Homelab bridge to allow host and containerized apps to interact and see each other on the LAN
+  # Networking bridge to allow host and containerized apps to interact and see each other on the LAN.
+  # Although a Docker macvlan container will show up on the LAN and other devices on the LAN can
+  # interact with it an additional macvlan for the host and specific routing is needed for the host
+  # to communicate with the container directly. This is true regardless of the use of a bridge
+  # actually but I really only need the container connection in the server case.
   options = {
     networking.bridge = {
       enable = lib.mkEnableOption "Convert the main interface into a bridge";
@@ -23,12 +27,8 @@ in
         description = lib.mdDoc "Bridge name to use";
         default = "br0";
       };
- 
       macvlan = lib.mkOption {
-        description = lib.mdDoc ''
-          Host MacVLAN to communicate with containers on bridge. This only necessary for the host and 
-          not needed for other devices on the LAN.
-        '';
+        description = lib.mdDoc "Host macvlan interface";
         type = types.submodule macvlanOpts;
         default = {
           name = "host";

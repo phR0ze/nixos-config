@@ -35,8 +35,11 @@ in
     # Setup firewall exceptions:
     # https://wiki.nixos.org/wiki/Incus
     # - allow DHCP and DNS to the incus networks
-    networking.firewall.interfaces.${config.networking.vnic0}.allowedTCPPorts = [ cfg.port ];
     networking.firewall.interfaces."incusbr0".allowedTCPPorts = [ 53 67 ];
+
+    # Due to the host routing for the host macvlan we need the firewall on that interface
+    networking.firewall.interfaces.${config.networking.bridge.name}.allowedTCPPorts = [ cfg.port ];
+    networking.firewall.interfaces.${config.networking.bridge.macvlan.name}.allowedTCPPorts = [ cfg.port ];
 
     # Enable and configure the app
     virtualisation.incus = {
@@ -80,6 +83,7 @@ in
           }
           {
             name = "bridged";
+            description = "Allow machines access to the LAN":
             devices = {
               eth0 = {
                 type = "nic";
