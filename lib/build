@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 
 # Build code
 # 
@@ -19,8 +20,8 @@ Usage:
 
 Options:
   -h, --help                Print out usage
-  --service=[NAME]          Configure VM as systemd service when set to name
-  --ip=VALUE                IP Address to use for the VM
+  --vm.service=[NAME]       Configure VM as systemd service when set to name
+  --vm.ip=VALUE             IP Address to use for the VM
   --vm.spice=VALUE          Use SPICE for this VM (default=false) [true|false]
   --vm.spicePort=VALUE      SPICE port to use (default=5901)
   --vm.cores=VALUE          Cores to use (default=4)
@@ -53,7 +54,7 @@ build::run()
     case "$command" in
         iso) build::iso "$@" ;;
         vm) build::vm "$@" ;;
-        *) log::error "Invalid build command: ${cyan}${command}${none}"; build::usage ;;
+        *) log::error "Invalid build command: ${cyan}${command}${none}"; echo; build::usage ;;
     esac
 }
  
@@ -86,11 +87,11 @@ build::vm()
     log::header0 "Building VM"
 
     # Set arg overrides as directed
-    while test $# -gt 0; do
+    while [ $# -gt 0 ]; do
         local arg=$1; shift
         case "$arg" in
 #      --service=[NAME]          Configure VM as systemd service when set to name
-            --ip*) _build::update_flake_args "static_ip" "$arg" true ;;
+            --vm.ip*) _build::update_flake_args "static_ip" "$arg" true ;;
             --vm.spice*) _build::update_flake_args "vm.spice" "$arg" true ;;
             --vm.spicePort*) _build::update_flake_args "vm.spicePort" "$arg" true ;;
             --vm.cores*) _build::update_flake_args "vm.cores" "$arg" true ;;
@@ -98,11 +99,10 @@ build::vm()
             --vm.memorySize*) _build::update_flake_args "vm.memorySize" "$arg" true ;;
             --vm.resolution.x*) _build::update_flake_args "vm.resolution.x" "$arg" true ;;
             --vm.resolution.y*) _build::update_flake_args "vm.resolution.y" "$arg" true ;;
-            *) log::error "Invalid build command: ${cyan}${command}${none}"; build::usage ;;
+            --*) log::error "Invalid vm argument: ${cyan}${arg}${none}"; echo; build::usage ;;
+            *) _build::update_flake_args "profile" "$arg" ;;
         esac
     done
-
-    #_build::update_flake_args "profile" "$1"
 
     #nix build .#nixosConfigurations.vm.config.system.build.vm
 
@@ -118,19 +118,25 @@ _build::update_flake_args()
     local var="$1"
     local value="$2"
     local pair="$3"
+    local kind="str"
     local args="${SCRIPT_DIR}/flake_private.nix"
 
     # Parse out the value from the pair
     if [[ "$pair" == "true" ]]; then
-        value=
+        value="${value#*=}"     # trim the prefix including the '='
     fi
 
-    log::ln "Updating flake args - ${var} => ${value}"
-    utils::replace str "${var}" "${value}" "${args}"
-    git add "${args}"
+    # Set replacement kind
+    if [[ "$value" == "true" || "$value" == "false" ]]; then
+        kind="bool"
+    fi
+
+    log::ln "Updating flake args: ${cyan}${var}${none} => ${cyan}${value}${none}"
+    utils::replace "${type}" "${var}" "${value}" "${args}"
+    #git add "${args}"
 
     # Ensure the restore is always called
-    trap _build::cleanup INT KILL
+    #trap _build::cleanup INT KILL
 }
 
 # Restore the flake args back to what is was before

@@ -29,7 +29,6 @@
   system = "x86_64-linux";          # system architecture to use
   timezone = "America/Boise";       # time-zone selection
   locale = "en_US.UTF-8";           # locale selection
-  iso_profile = "generic/develop";  # profile to use for building the ISO image
   stateVersion = "24.05";           # Base install version, not sure this matters when on flake
   comment = "";                     # Placeholder for injected nixos-config comment
 
