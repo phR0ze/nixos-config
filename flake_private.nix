@@ -32,4 +32,14 @@
   iso_profile = "generic/develop";  # profile to use for building the ISO image
   stateVersion = "24.05";           # Base install version, not sure this matters when on flake
   comment = "";                     # Placeholder for injected nixos-config comment
+
+  # Virtual machine options
+  # -------------------------------
+  vm.spice = false;                 # SPICE support for remote viewing
+  vm.spicePort = 5901;              # port to use for the VM being created
+  vm.cores = 4;                     # cores to use for the VM being crated
+  vm.diskSize = 20;                 # disk size in GiB for the VM being created
+  vm.memorySize = 4;                # memory size in GiB for the VM being created
+  vm.resolution.x = 1920;           # resolution x dimension
+  vm.resolution.y = 1080;           # resolution y dimension
 }

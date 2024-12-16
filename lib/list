@@ -6,7 +6,7 @@ list::usage()
 {
     cat <<USAGE
 Usage:
-  list [OPTIONS] [COMMAND] [ARGS...]
+  list [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

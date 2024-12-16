@@ -15,19 +15,28 @@ build::usage()
 {
     cat <<USAGE
 Usage:
-  build [OPTIONS] [COMMAND] [ARGS...]
+  build [COMMAND] [ARGS...] [OPTIONS] 
 
 Options:
-  -h, --help        Print out usage
+  -h, --help                Print out usage
+  --service=[NAME]          Configure VM as systemd service when set to name
+  --ip=VALUE                IP Address to use for the VM
+  --vm.spice=VALUE          Use SPICE for this VM (default=false) [true|false]
+  --vm.spicePort=VALUE      SPICE port to use (default=5901)
+  --vm.cores=VALUE          Cores to use (default=4)
+  --vm.diskSize=VALUE       Disk size in GiB to use (default=20)
+  --vm.memorySize=VALUE     Memory size in GiB to use (default=4)
+  --vm.resolution.x=VALUE   Y Resolution value to use (default=1920)
+  --vm.resolution.y=VALUE   Y Resolution value to use (default=1080)
 
 Commands:
-  iso               Build the installable ISO
-  vm [PROFILE]      Build the test VM with an optional profile override
+  iso [PROFILE]             Build the installable ISO with an optional profile override
+  vm [PROFILE]              Build the VM with an optional profile override
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "Build the test VM: ${green}./${SCRIPT} build vm${none}"
-    log::subln "Build server test VM: ${green}./${SCRIPT} build vm generic/server${none}"
+    log::subln "Build the VM: ${green}./${SCRIPT} build vm${none}"
+    log::subln "Build server VM: ${green}./${SCRIPT} build vm generic/server${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso generic/light${none}"
     echo
@@ -58,61 +67,85 @@ build::iso()
     core::title
     log::header0 "Building installable ISO"
 
-    _build::switch_profile "iso_profile" "$1"
+    local profile="$1"
+    if [[ "$profile" != "" ]]; then
+        profile="${profile%.*}" # trim off the file extension
+        _build::update_flake_args "profile" "$profile"
+    fi
 
     nix build .#nixosConfigurations.iso.config.system.build.isoImage
 
-    _build::restore_profile "$1"
+    [[ "$profile" != "" ]] && _build::restore_flake_args
 }
 
-# Build the test vm
+# Build the vm
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
     core::title
-    log::header0 "Building test VM"
+    log::header0 "Building VM"
 
-    _build::switch_profile "profile" "$1"
+    # Set arg overrides as directed
+    while test $# -gt 0; do
+        local arg=$1; shift
+        case "$arg" in
+#      --service=[NAME]          Configure VM as systemd service when set to name
+            --ip*) _build::update_flake_args "static_ip" "$arg" true ;;
+            --vm.spice*) _build::update_flake_args "vm.spice" "$arg" true ;;
+            --vm.spicePort*) _build::update_flake_args "vm.spicePort" "$arg" true ;;
+            --vm.cores*) _build::update_flake_args "vm.cores" "$arg" true ;;
+            --vm.diskSize*) _build::update_flake_args "vm.diskSize" "$arg" true ;;
+            --vm.memorySize*) _build::update_flake_args "vm.memorySize" "$arg" true ;;
+            --vm.resolution.x*) _build::update_flake_args "vm.resolution.x" "$arg" true ;;
+            --vm.resolution.y*) _build::update_flake_args "vm.resolution.y" "$arg" true ;;
+            *) log::error "Invalid build command: ${cyan}${command}${none}"; build::usage ;;
+        esac
+    done
 
-    nix build .#nixosConfigurations.vm.config.system.build.vm
+    #_build::update_flake_args "profile" "$1"
 
-    _build::restore_profile "$1"
+    #nix build .#nixosConfigurations.vm.config.system.build.vm
+
+    #_build::restore_flake_args "$1"
 }
 
-# Change the profile if given
-# $1 - the name of the profile variable to change
-# $2 - the profile value to set
-_build::switch_profile()
+# Change the given variable in the flake args file
+# $1 - the name of the variable to change
+# $2 - the value to set
+# $3 - the value is a name=value pair
+_build::update_flake_args()
 {
-    local varname="$1"
-    local profile="$2"
-    local opts="${SCRIPT_DIR}/flake_private.nix"
-    if [[ "$profile" != "" ]]; then
-        profile="${profile%.*}" # trim off the file extension
-        log::ln "Switching VM profile to ${cyan}${profile}${none}"
-        utils::replace str "${varname}" "${profile}" "${opts}"
-        git add "${opts}"
+    local var="$1"
+    local value="$2"
+    local pair="$3"
+    local args="${SCRIPT_DIR}/flake_private.nix"
 
-        # Ensure the restore is always called
-        trap _build::cleanup INT KILL
+    # Parse out the value from the pair
+    if [[ "$pair" == "true" ]]; then
+        value=
     fi
+
+    log::ln "Updating flake args - ${var} => ${value}"
+    utils::replace str "${var}" "${value}" "${args}"
+    git add "${args}"
+
+    # Ensure the restore is always called
+    trap _build::cleanup INT KILL
 }
 
-# Restore the profile back to what is was before by unstaging and resetting
-# $1 - the profile value to trigger off from
-_build::restore_profile()
+# Restore the flake args back to what is was before
+_build::restore_flake_args()
 {
-    local profile="$1"
-    local opts="${SCRIPT_DIR}/flake_private.nix"
-    if [[ "$profile" != "" ]]; then
-        log::ln "Restoring profile back to original"
-        git restore --staged "${opts}"
-        git checkout "${opts}"
-    fi
+    local args="${SCRIPT_DIR}/flake_private.nix"
+
+    log::ln "Restoring flake args back to original"
+    git restore --staged "${args}"
+    git checkout "${args}"
 }
 
-# Cleanup if interrupted or failed after changing the profile
+# Cleanup if interrupted or failed after changing variables
 _build::cleanup()
 {
-    _build::restore_profile yes
+    _build::restore_flake_args
+    exit 0
 }

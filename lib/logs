@@ -6,7 +6,7 @@ logs::usage()
 {
     cat <<USAGE
 Usage:
-  logs [OPTIONS] [COMMAND] [ARGS...]
+  logs [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

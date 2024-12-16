@@ -12,7 +12,7 @@ update::usage()
 {
     cat <<USAGE
 Usage:
-  update [OPTIONS] [COMMAND] [ARGS...]
+  update [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

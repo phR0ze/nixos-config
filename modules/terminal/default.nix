@@ -29,7 +29,7 @@
     ../services/systemd.nix
 
   # conditionally exclude grub for iso builds
-  ] ++ lib.optional (!args.iso) ../boot/grub.nix;
+  ] ++ lib.optional (!args.isISO) ../boot/grub.nix;
 
   network.network-manager.enable = true;
   programs.tmux.enable = true;

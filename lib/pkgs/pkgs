@@ -12,7 +12,7 @@ pkgs::usage()
 {
     cat <<USAGE
 Usage:
-  pkgs [OPTIONS] [COMMAND] [ARGS...]
+  pkgs [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

@@ -11,7 +11,7 @@ clean::usage()
 {
     cat <<USAGE
 Usage:
-  clean [OPTIONS] [COMMAND] [ARGS...]
+  clean [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

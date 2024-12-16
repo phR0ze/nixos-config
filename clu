@@ -46,7 +46,7 @@ core::usage()
     core::title
     cat <<USAGE
 Usage:
-  ./clu [OPTIONS] [COMMAND] [ARGS...]
+  ./clu [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   --debug           Debug mode with verbose output

@@ -6,7 +6,7 @@ manage::usage()
 {
     cat <<USAGE
 Usage:
-  manage [OPTIONS] [COMMAND] [ARGS...]
+  manage [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

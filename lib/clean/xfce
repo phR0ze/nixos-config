@@ -6,7 +6,7 @@ clean::xfce::usage()
 {
     cat <<USAGE
 Usage:
-  xfce [OPTIONS] [COMMAND] [ARGS...]
+  xfce [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

@@ -83,7 +83,7 @@ in
           }
           {
             name = "bridged";
-            description = "Allow machines access to the LAN":
+            description = "Allow machines access to the LAN";
             devices = {
               eth0 = {
                 type = "nic";

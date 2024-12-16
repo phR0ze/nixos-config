@@ -10,7 +10,8 @@
   ];
 
   # Home lab services
-  homelab.lxconsole.enable = true;
+  virtualization.virt-manager.enable = true;
+  #homelab.lxconsole.enable = true;
   #homelab.qbittorrent.enable = true;
   #homelab.traefik.enable = true;
   #homelab.adguard.enable = true;
