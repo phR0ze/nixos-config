@@ -6,7 +6,7 @@ shell::usage()
 {
     cat <<USAGE
 Usage:
-  shell [OPTIONS] [COMMAND] [ARGS...]
+  shell [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

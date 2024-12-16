@@ -11,7 +11,7 @@
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
-    (../. + ("/" + args.iso_profile + ".nix"))
+    (../. + ("/" + args.profile + ".nix"))
   ];
 
   # ISO image configuration
@@ -26,6 +26,7 @@
   # The passwords are set in the ../../modules/users.nix file via the flake_private.nix
   users.users.root.initialHashedPassword = lib.mkForce null;
   users.users.nixos.initialHashedPassword = lib.mkForce null;
+  services.openssh.settings.PermitRootLogin = "yes";
 
   # Some more help text.
   services.getty.helpLine = lib.mkForce ''

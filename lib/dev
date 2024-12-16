@@ -6,7 +6,7 @@ dev::usage()
 {
     cat <<USAGE
 Usage:
-  dev [OPTIONS] [COMMAND] [ARGS...]
+  dev [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

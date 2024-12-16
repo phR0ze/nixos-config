@@ -12,7 +12,7 @@ upgrade::usage()
 {
     cat <<USAGE
 Usage:
-  upgrade [OPTIONS] [COMMAND] [ARGS...]
+  upgrade [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

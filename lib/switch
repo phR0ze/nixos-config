@@ -8,7 +8,7 @@ switch::usage()
 {
     cat <<USAGE
 Usage:
-  switch [OPTIONS] [ARGS...]
+  switch [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

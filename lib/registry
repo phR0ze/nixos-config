@@ -12,7 +12,7 @@ registry::usage()
 {
     cat <<USAGE
 Usage:
-  registry [OPTIONS] [COMMAND] [ARGS...]
+  registry [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage

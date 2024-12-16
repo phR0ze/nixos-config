@@ -74,13 +74,14 @@
     # ----------------------------------------------------------------------------------------------
     f = pkgs.callPackage ./options/funcs.nix { lib = nixpkgs.lib; };
     args = inputs // settings // {
-      iso = false;
+      isVM = false;
+      isISO = false;
       userHome = "/home/${settings.username}";
       configHome = "/home/${settings.username}/.config";
     };
     system = settings.system;
     specialArgs = { inherit args f; };
-    
+    otherSpecialArgs = { inherit args f; };
   in {
     # These are the configurations for different use cases a.k.a. systems
     nixosConfigurations = {
@@ -91,44 +92,34 @@
         modules = [
           ./options
           ./hardware-configuration.nix
-          (./. + "/profiles" + ("/" + settings.profile + ".nix"))
+          (./. + "/profiles" + ("/" + args.profile + ".nix"))
         ];
       };
 
       # Defines configuration for the test vm
       vm = nixpkgs.lib.nixosSystem {
-        inherit pkgs system specialArgs;
+        inherit pkgs system;
+        specialArgs = specialArgs // {
+          args = args // {
+            isVM = true;
+            nic0 = "eth0";
+          };
+        };
         modules = [
           ./options
-          (./. + "/profiles" + ("/" + settings.profile + ".nix"))
-          ({
-            virtualisation.vmVariant = {
-              # nixpkgs/nixos/modules/virtualisation/qemu-vm.nix
-              virtualisation = {
-                cores = 4;
-                diskSize = 20 * 1024;   # 20 GB
-                memorySize = 4 * 1024;  # 4 GB
-                resolution = { x = 1920; y = 1080; };
-
-                # Allows for sftp, ssh etc... to the guest via localhost:2222
-                forwardPorts = [ { from = "host"; host.port = 2222; guest.port = 22; } ];
-              };
-            };
-          })
+          (./. + "/profiles" + ("/" + args.profile + ".nix"))
+          ./profiles/vm/default.nix
         ];
       };
 
       # Defines configuration for building an ISO
       iso = nixpkgs.lib.nixosSystem {
         inherit pkgs system;
-        # Update the args.iso field to be true and set username for ISO builds
         specialArgs = specialArgs // {
           args = args // {
-            iso = true;
-            settings = settings // {
-              username = "nixos";
-              autologin = true;
-            };
+            isIso = true;
+            username = "nixos";
+            autologin = true;
           };
         };
         modules = [

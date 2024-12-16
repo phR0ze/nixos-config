@@ -48,8 +48,8 @@ in
         };
       };
 
-      downloads = lib.mkOption {
-        description = lib.mdDoc "Path where downloads should be stored";
+      downloads = lib.mkoption {
+        description = lib.mddoc "path where downloads should be stored";
         type = types.str;
         default = "/var/lib/qbittorrent/downloads";
       };

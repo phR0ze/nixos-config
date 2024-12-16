@@ -23,22 +23,50 @@ in
   };
  
   config = lib.mkIf (cfg.enable) {
+    networking.bridge.enable = true;
     programs.virt-manager.enable = true;
 
     # libvirtd enable qemu by default
     virtualisation.libvirtd = {
       enable = true;
-      allowedBridges = [ "virbr0" ];                # default option
-      qemu.ovmf.enable = true;                      # support for UEFI
-      qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];    # support for UEFI
-      qemu.swtpm.enable = true;                     # support for windows
+      allowedBridges = [ config.networking.bridge.name ];
+
+      # Configure UEFI support
+      qemu.ovmf.enable = true;
+      qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];
+
+      # Configure windows swtpm
+      qemu.swtpm.enable = true;
+
+      #qemu.vhostUserPackages = [ pkgs.virtiofsd ];  # virtiofs support
     };
 
-    # Enable USB passthrough support for VMs
-    virtualisation.spiceUSBRedirection.enable = true;
+    # Allow nested virtualization
+    boot.extraModprobeConfig = "options kvm_intel nested=1";
 
+    # Configure SPICE guest service and QEMU accelerated graphics
+    # - supports SPICE access remoting
+    # - supports copy and pasting between host and guest
+    services.spice-vdagentd.enable = true;
+    virtualisation.spiceUSBRedirection.enable = true; # USB passthrough for VMs
+
+    # Additional packages
     environment.systemPackages = with pkgs; [
-      virt-viewer                                   # A slimmed down viewer for virtual machines
+
+      # SPICE enabled viewer for virtual machines
+      # - can be used in conjunction with libvirtd for a QEMU VM console OR
+      # - installs remote-viewer which can be used directly for a QEMU VM console without libvirtd
+      # - remote-viewer spice://<host>:5900
+      virt-viewer
+
+      spice-gtk         # Spicy GTK SPICE client
+      spice-protocol    # SPICE support
+      win-virtio        # QEMU support for windows
+      win-spice         # SPICE support for windows
+
+      # Quickly create and run optimized Windows, macOS and Linux virtual machines
+      # - bash scripts wrapping and controlling QEMU
+      # quickemu
     ];
 
     environment.sessionVariables.LIBVIRT_DEFAULT_URI = [ "qemu:///system" ];

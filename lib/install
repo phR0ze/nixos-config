@@ -12,7 +12,7 @@ install::usage()
 {
     cat <<USAGE
 Usage:
-  install [OPTIONS] [COMMAND] [ARGS...]
+  install [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   -h, --help        Print out usage
