@@ -217,7 +217,7 @@ utils::replace()
     local value=$3
     local file=$4
 
-    if [ "x$kind" == "xbool" ]; then
+    if [[ "x$kind" == "xbool" || "x$kind" == "xint" ]]; then
         sed -i -e "s|\(^.*${target} = \).*\(;.*$\)|\1${value}\2|" "${file}"
     elif [ "x$kind" == "xstr" ]; then
         sed -i -e "s|\(^.*${target} = \"\).*\(\";.*$\)|\1${value}\2|" "${file}"
