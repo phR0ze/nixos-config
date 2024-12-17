@@ -4,10 +4,12 @@
 # Build code
 # 
 # ## Features
-# * The ISO build target is 'develop' by default which is the heaviest profile and builds on all the 
-# other profiles which means that all packages will be included on the ISO. By changing the ISO 
-# target to something smaller like 'light' we can create a smaller ISO with less packages included.
+# - The ISO build target is 'develop' by default which is the heaviest profile and builds on all the 
+#   other profiles which means that all packages will be included on the ISO. By changing the ISO 
+#   target to something smaller like 'light' we can create a smaller ISO with less packages included.
 #
+# - VM hard disk can be tiny e.g. 1 GiB as all the predefined apps and configs are in the host's nix 
+#   store and mounted readonly in the VM.
 # --------------------------------------------------------------------------------------------------
 
 # Usage for the build command and its sub commands
@@ -124,8 +126,7 @@ build::vm()
 
     # Move the service files 
     if [[ "${service}" == "true" ]]; then
-        mkdir -p "/var/lib/vm-${hostname}"
-        mv "$SCRIPT_DIR/result" "/var/lib/vm-${hostname}/"
+        _build::create_vm_service "${hostname}"
     fi
 
     _build::restore_flake_args
@@ -168,6 +169,34 @@ _build::update_flake_args()
 
     # Ensure the flake args are reset
     trap _build::cleanup INT KILL
+}
+
+# Create the systemd service for the given VM
+# - $1 - hostname, e.g. nixos71 used to launch and name the service
+_build::create_vm_service()
+{
+    local hostname="$1"
+
+    # Ensure the built vm is moved to the proper location
+    mkdir -p "/var/lib/vm-${hostname}"
+    mv "$SCRIPT_DIR/result" "/var/lib/vm-${hostname}/"
+
+    # Generate the service unit file
+    cat <<- EOF > /etc/systemd/system/vm-${hostname}
+[Unit]
+Description=vm-${hostname} service
+After=network-online.target
+
+[Service]
+Environment=
+Type=oneshot
+RemainAfterExit=true
+WorkingDirectory=/var/lib/vm-${hostname}
+ExecStart=./result/bin/run-${hostname}-vm
+
+[Install]
+WantedBy=multi-user.target
+EOF
 }
 
 # Restore the flake args back to what is was before
