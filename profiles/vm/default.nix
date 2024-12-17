@@ -2,7 +2,7 @@
 # --------------------------------------------------------------------------------------------------
 { modulesPath, config, lib, pkgs, args, f, ... }:
 let
-  vm = "vm-${args.vm.service}";
+  vm = "vm-${args.hostname}";
   cfg = config.virtualization.virt-manager;
   username = args.username;
   uid = config.users.users.${args.username}.uid;
@@ -56,7 +56,7 @@ in {
     })
 
     # Optionally setup systemd service for VM
-    (lib.mkIf (args.vm.service != "") {
+    (lib.mkIf args.vm.service {
       systemd.tmpfiles.rules = [
         "d /var/lib/${vm} 0750 ${toString uid} ${toString gid} -"
       ];
