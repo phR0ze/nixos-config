@@ -34,19 +34,19 @@
 
   # Virtual machine deployments
   # - any argument in the host configuration above can be used in the VM as well otherwise it will
-  #   default to the value specified by the host arguments
+  #   default to the value specified by the host configuration
   # -----------------------------------------------------------------------------------------------
   vms = [
     {
-      hostname = "";               # Populating this value will trigger the VMs creation
-      service = false;             # Deploy as systemd service
-      spice = false;               # SPICE support for remote viewing
-      spicePort = 5901;            # SPICE port to use
-      cores = 4;                   # Cores to use
-      diskSize = 20;               # Disk size in GiB
-      memorySize = 4;              # Memory size in GiB
-      resolution.x = 1920;         # Resolution x dimension
-      resolution.y = 1080;         # Resolution y dimension
+      hostname = "";                # Populating this value will trigger the VMs creation
+      service = false;              # Deploy as systemd service
+      spice = false;                # SPICE support for remote viewing
+      spicePort = 5901;             # SPICE port to use
+      cores = 4;                    # Cores to use
+      diskSize = 20;                # Disk size in GiB
+      memorySize = 4;               # Memory size in GiB
+      resolution.x = 1920;          # Resolution x dimension
+      resolution.y = 1080;          # Resolution y dimension
     };
   ];
 }
