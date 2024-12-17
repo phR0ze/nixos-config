@@ -145,10 +145,12 @@ _build::update_flake_args()
     log::ln "Updating flake args ${args}: ${cyan}${var}${none} => ${cyan}${value}${none}"
     utils::replace "${kind}" "${var}" "${value}" "$args" 
 
-    # Switch out the flake args
+    # Switch out the flake args target ./flake_private.nix with
+    # ./flake_vm_args.nix or ./flake_iso_args.nix depending
     local from=$(basename ${FLAKE_ARGS})
     local to=$(basename ${args})
     sed -i -e "s|\(^.*\)${from}\(.*$\)|\1${to}\2|" "${FLAKE}"
+    git add "${FLAKE}"
 
     # Ensure the flake args are reset
     trap _build::cleanup INT KILL
@@ -157,9 +159,11 @@ _build::update_flake_args()
 # Restore the flake args back to what is was before
 _build::restore_flake_args()
 {
-    log::ln "Restoring flake args back to original"
-    git restore --staged "${FLAKE}"
-    git checkout "${FLAKE}"
+    if [[ "$(git diff --staged --name-only -- ${FLAKE})" != "" ]]; then
+        log::ln "Restoring flake args back to original"
+        git restore --staged "${FLAKE}"
+        git checkout "${FLAKE}"
+    fi
 }
 
 # Cleanup if interrupted or failed after changing variables
