@@ -197,6 +197,7 @@ ExecStart=./result/bin/run-${hostname}-vm
 [Install]
 WantedBy=multi-user.target
 EOF
+    systemctl daemon-reload
 }
 
 # Restore the flake args back to what is was before
