@@ -29,6 +29,7 @@ Options:
   --vm.memorySize=VALUE     Memory size in GiB to use (default=4)
   --vm.resolution.x=VALUE   Y Resolution value to use (default=1920)
   --vm.resolution.y=VALUE   Y Resolution value to use (default=1080)
+  --no-clean                Don't clean up the args file afterward
 
 Commands:
   iso [PROFILE]             Build the installable ISO with an optional profile override
@@ -83,6 +84,8 @@ build::iso()
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
+    NO_CLEAN="${NO_CLEAN:-0}"
+
     local service=""
     local args="$FLAKE_VM_ARGS"
 
@@ -105,6 +108,7 @@ build::vm()
             --vm.memorySize*) _build::update_flake_args "$args" "int" "vm.memorySize" "$arg" true ;;
             --vm.resolution.x*) _build::update_flake_args "$args" "int" "vm.resolution.x" "$arg" true ;;
             --vm.resolution.y*) _build::update_flake_args "$args" "int" "vm.resolution.y" "$arg" true ;;
+            --no-clean) NO_CLEAN=1 ;;
             --*) log::error "Invalid vm argument: ${cyan}${arg}${none}"; echo; build::usage ;;
             *) _build::update_flake_args "$args" "str" "profile" "$arg" ;;
         esac
@@ -163,6 +167,8 @@ _build::update_flake_args()
 # Restore the flake args back to what is was before
 _build::restore_flake_args()
 {
+    [ $NO_CLEAN -eq 1 ] && return
+
     if [[ "$(git diff --staged --name-only -- ${FLAKE})" != "" ]]; then
         log::ln "Restoring flake args back to original"
         git restore --staged "${FLAKE}"
