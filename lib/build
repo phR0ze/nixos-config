@@ -37,7 +37,7 @@ USAGE
 
     log::ln "\nExamples:"
     log::subln "Build the VM: ${green}./${SCRIPT} build vm${none}"
-    log::subln "Build spice VM: ${green}./${SCRIPT} build vm generic/server --vm.service=nixos71 --vm.ip=192.168.1.71 --vm.spice=true --vm.spicePort=5971 --vm.diskSize=2${none}"
+    log::subln "Build spice VM: ${green}./${SCRIPT} build vm generic/server --vm.service=nixos71 --vm.ip=192.168.1.71/24 --vm.spice=true --vm.spicePort=5971 --vm.diskSize=2${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso generic/light${none}"
     echo

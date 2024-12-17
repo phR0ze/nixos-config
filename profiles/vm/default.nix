@@ -67,7 +67,6 @@ in {
 
         serviceConfig = {
           Type = "oneshot";
-          Restart = "always";
           RemainAfterExit = true;
           WorkingDirectory = "/var/lib/${vm}";
           ExecStart = [
