@@ -70,7 +70,7 @@ in {
           RemainAfterExit = true;
           WorkingDirectory = "/var/lib/${vm}";
           ExecStart = [
-            ./result/bin/run-nixos-vm
+            "./result/bin/run-${args.hostname}-vm"
           ];
           ExecStop = [
             #"podman network rm -f ${app.name}"
