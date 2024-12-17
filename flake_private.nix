@@ -47,6 +47,6 @@
       memorySize = 4;               # Memory size in GiB
       resolution.x = 1920;          # Resolution x dimension
       resolution.y = 1080;          # Resolution y dimension
-    };
+    }
   ];
 }
