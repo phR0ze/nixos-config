@@ -18,10 +18,10 @@
     let
       ip = lib.splitString "/" x;
     in {
-      assertions = [
-        { assertion = (builtins.length ip != 2);
-          message = "IP address is invalid, please include the cidr value e.g. 192.168.1.71/24"; }
-      ];
+#      assertions = [
+#        { assertion = (builtins.length ip != 2);
+#          message = "IP address is invalid, please include the cidr value e.g. 192.168.1.71/24"; }
+#      ];
 
       address = builtins.elemAt ip 0;
       prefixLength = lib.toInt (builtins.elemAt ip 1);
