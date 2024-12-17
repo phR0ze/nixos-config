@@ -37,7 +37,7 @@ USAGE
 
     log::ln "\nExamples:"
     log::subln "Build the VM: ${green}./${SCRIPT} build vm${none}"
-    log::subln "Build server VM: ${green}./${SCRIPT} build vm generic/server${none}"
+    log::subln "Build spice VM: ${green}./${SCRIPT} build vm generic/server --vm.service=nixos71 --vm.ip=192.168.1.71 --vm.spice=true --vm.spicePort=5971 --vm.diskSize=2${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso generic/light${none}"
     echo
@@ -93,7 +93,10 @@ build::vm()
     while [ $# -gt 0 ]; do
         local arg=$1; shift
         case "$arg" in
-            --vm.service*) _build::update_flake_args "$args" "str" "vm.service" "$arg" true; service="$arg" ;;
+            --vm.service*)
+                _build::update_flake_args "$args" "str" "vm.service" "$arg" true
+                service="${arg#*=}"     # trim the prefix including the '='
+                ;;
             --vm.ip*) _build::update_flake_args "$args" "str" "static_ip" "$arg" true ;;
             --vm.spicePort*) _build::update_flake_args "$args" "int" "vm.spicePort" "$arg" true ;;
             --vm.spice*) _build::update_flake_args "$args" "bool" "vm.spice" "$arg" true ;;
