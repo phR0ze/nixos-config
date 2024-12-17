@@ -83,7 +83,7 @@ build::iso()
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
-    local service="false"
+    local service=""
 
     core::title
     log::header0 "Building VM"
@@ -92,7 +92,7 @@ build::vm()
     while [ $# -gt 0 ]; do
         local arg=$1; shift
         case "$arg" in
-            --vm.service*) _build::update_flake_args "str" "vm.service" "$arg" true; service="true" ;;
+            --vm.service*) _build::update_flake_args "str" "vm.service" "$arg" true; service="$arg" ;;
             --vm.ip*) _build::update_flake_args "str" "static_ip" "$arg" true ;;
             --vm.spicePort*) _build::update_flake_args "int" "vm.spicePort" "$arg" true ;;
             --vm.spice*) _build::update_flake_args "bool" "vm.spice" "$arg" true ;;
@@ -106,7 +106,7 @@ build::vm()
         esac
     done
 
-    #nix build .#nixosConfigurations.vm.config.system.build.vm
+    nix build .#nixosConfigurations.vm.config.system.build.vm
 
     # Move the service files 
     if [[ "${service}" != "" ]]; then
