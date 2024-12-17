@@ -1,6 +1,6 @@
 {
   # User set installer options
-  # -------------------------------
+  # -----------------------------------------------------------------------------------------------
   fullname = "admin";               # user's full name to use for general purposes
   email = "nixos@nixos.org";        # email to use for general configuration
   username = "admin";               # initial admin user to create during install
@@ -21,7 +21,7 @@
   autologin = false;                # automatically log the user in after boot when true
 
   # Automated installer options
-  # -------------------------------
+  # -----------------------------------------------------------------------------------------------
   efi = false;                      # EFI system boot type, default "false"
   mbr = "nodev";                    # MBR system boot device, e.g. /dev/sda, default "nodev"
   nic0 = "";                        # First NIC found in hardware-configuration.nix
@@ -32,14 +32,21 @@
   stateVersion = "24.05";           # Base install version, not sure this matters when on flake
   comment = "";                     # Placeholder for injected nixos-config comment
 
-  # Virtual machine options
-  # -------------------------------
-  vm.service = false;               # Deploy as systemd service
-  vm.spice = false;                 # SPICE support for remote viewing
-  vm.spicePort = 5901;              # port to use for the VM being created
-  vm.cores = 4;                     # cores to use for the VM being crated
-  vm.diskSize = 20;                 # disk size in GiB for the VM being created
-  vm.memorySize = 4;                # memory size in GiB for the VM being created
-  vm.resolution.x = 1920;           # resolution x dimension
-  vm.resolution.y = 1080;           # resolution y dimension
+  # Virtual machine deployments
+  # - any argument in the host configuration above can be used in the VM as well otherwise it will
+  #   default to the value specified by the host arguments
+  # -----------------------------------------------------------------------------------------------
+  vms = [
+    {
+      hostname = "";               # Populating this value will trigger the VMs creation
+      service = false;             # Deploy as systemd service
+      spice = false;               # SPICE support for remote viewing
+      spicePort = 5901;            # SPICE port to use
+      cores = 4;                   # Cores to use
+      diskSize = 20;               # Disk size in GiB
+      memorySize = 4;              # Memory size in GiB
+      resolution.x = 1920;         # Resolution x dimension
+      resolution.y = 1080;         # Resolution y dimension
+    };
+  ];
 }
