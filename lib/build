@@ -107,7 +107,7 @@ build::vm()
         esac
     done
 
-    #nix build .#nixosConfigurations.vm.config.system.build.vm
+    nix build .#nixosConfigurations.vm.config.system.build.vm
 
     # Move the service files 
     if [[ "${service}" != "" ]]; then
