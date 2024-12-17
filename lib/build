@@ -123,7 +123,7 @@ build::vm()
     nix build .#nixosConfigurations.vm.config.system.build.vm
 
     # Move the service files 
-    if [[ "${hostname}" == "true" ]]; then
+    if [[ "${service}" == "true" ]]; then
         mkdir -p "/var/lib/vm-${hostname}"
         mv "$SCRIPT_DIR/result" "/var/lib/vm-${hostname}/"
     fi
