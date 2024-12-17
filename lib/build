@@ -95,7 +95,7 @@ build::vm()
         case "$arg" in
             --vm.service*)
                 _build::update_flake_args "$args" "str" "vm.service" "$arg" true
-                service="${arg#*=}"     # trim the prefix including the '='
+                service="${arg#*=}" # trim the prefix including the '='
                 ;;
             --vm.ip*) _build::update_flake_args "$args" "str" "static_ip" "$arg" true ;;
             --vm.spicePort*) _build::update_flake_args "$args" "int" "vm.spicePort" "$arg" true ;;
@@ -147,6 +147,7 @@ _build::update_flake_args()
 
     log::ln "Updating flake args ${args}: ${cyan}${var}${none} => ${cyan}${value}${none}"
     utils::replace "${kind}" "${var}" "${value}" "$args" 
+    git add "${args}" -f
 
     # Switch out the flake args target ./flake_private.nix with
     # ./flake_vm_args.nix or ./flake_iso_args.nix depending
@@ -166,6 +167,16 @@ _build::restore_flake_args()
         log::ln "Restoring flake args back to original"
         git restore --staged "${FLAKE}"
         git checkout "${FLAKE}"
+    fi
+
+    # Restore the temp args file as well
+    if [[ "$(git diff --staged --name-only -- ${FLAKE_VM_ARGS})" != "" ]]; then
+        git restore --staged "${FLAKE_VM_ARGS}"
+        rm -f "${FLAKE_VM_ARGS}"
+    fi
+    if [[ "$(git diff --staged --name-only -- ${FLAKE_ISO_ARGS})" != "" ]]; then
+        git restore --staged "${FLAKE_ISO_ARGS}"
+        rm -f "${FLAKE_ISO_ARGS}"
     fi
 }
 
