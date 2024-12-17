@@ -22,8 +22,8 @@
 
   # Automated installer options
   # -------------------------------
-  efi = true;                       # EFI system boot type, default "false"
-  mbr = "nodev";                    # MBR system boot device, default "nodev"
+  efi = false;                      # EFI system boot type, default "false"
+  mbr = "nodev";                    # MBR system boot device, e.g. /dev/sda, default "nodev"
   nic0 = "";                        # First NIC found in hardware-configuration.nix
   nic1 = "";                        # Second NIC found in hardware-configuration.nix
   system = "x86_64-linux";          # system architecture to use
