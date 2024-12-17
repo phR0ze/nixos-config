@@ -2,7 +2,12 @@
 # --------------------------------------------------------------------------------------------------
 { modulesPath, config, lib, pkgs, args, f, ... }:
 let
+  vm = "vm-${args.vm.service}";
   cfg = config.virtualization.virt-manager;
+  username = args.username;
+  uid = config.users.users.${args.username}.uid;
+  gid = config.users.groups."users".gid;
+
 in {
   imports = [
     (modulesPath + "/profiles/qemu-guest.nix")  # Imports a number of VM kernel modules
@@ -34,7 +39,7 @@ in {
     (lib.mkIf args.vm.spice {
       services.spice-vdagentd.enable = true;        # support SPICE clients
       services.spice-autorandr.enable = true;       # automatically adjust resolution to client size
-      #services.spice-webdavd.enable = true;         # File sharing support between Host and Guest
+      services.spice-webdavd.enable = true;         # File sharing support between Host and Guest
 
       # Configure higher performance graphics for for SPICE
       services.xserver.videoDrivers = [ "qxl" ];
@@ -48,6 +53,31 @@ in {
         "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
         "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
       ];
+    })
+
+    # Optionally setup systemd service for VM
+    (lib.mkIf (args.vm.service != "") {
+      systemd.tmpfiles.rules = [
+        "d /var/lib/${vm} 0750 ${toString uid} ${toString gid} -"
+      ];
+      systemd.services."${vm}" = {
+        wantedBy = [ "multi-user.target" ];
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ];
+
+        serviceConfig = {
+          Type = "oneshot";
+          Restart = "always";
+          RemainAfterExit = true;
+          WorkingDirectory = "/var/lib/${vm}";
+          ExecStart = [
+            ./result/bin/run-nixos-vm
+          ];
+          ExecStop = [
+            #"podman network rm -f ${app.name}"
+          ];
+        };
+      };
     })
   ];
 }
