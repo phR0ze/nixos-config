@@ -34,7 +34,7 @@
 
   # Virtual machine options
   # -------------------------------
-  vm.service = "";                  # Deploy as systemd 'vm-NAME' service
+  vm.service = false;               # Deploy as systemd service
   vm.spice = false;                 # SPICE support for remote viewing
   vm.spicePort = 5901;              # port to use for the VM being created
   vm.cores = 4;                     # cores to use for the VM being crated
