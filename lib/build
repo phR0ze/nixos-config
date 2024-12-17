@@ -83,6 +83,8 @@ build::iso()
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
+    local service="false"
+
     core::title
     log::header0 "Building VM"
 
@@ -90,7 +92,7 @@ build::vm()
     while [ $# -gt 0 ]; do
         local arg=$1; shift
         case "$arg" in
-            --vm.service*) _build::update_flake_args "bool" "vm.service" "$arg" true ;;
+            --vm.service*) _build::update_flake_args "str" "vm.service" "$arg" true; service="true" ;;
             --vm.ip*) _build::update_flake_args "str" "static_ip" "$arg" true ;;
             --vm.spicePort*) _build::update_flake_args "int" "vm.spicePort" "$arg" true ;;
             --vm.spice*) _build::update_flake_args "bool" "vm.spice" "$arg" true ;;
@@ -106,7 +108,13 @@ build::vm()
 
     #nix build .#nixosConfigurations.vm.config.system.build.vm
 
-    #_build::restore_flake_args "$1"
+    # Move the service files 
+    if [[ "${service}" != "" ]]; then
+        mkdir -p "/var/lib/vm-${service}"
+        mv "$SCRIPT_DIR/result" "/var/lib/vm-${service}/"
+    fi
+
+    _build::restore_flake_args
 }
 
 # Change the given variable in the flake args file
@@ -129,10 +137,10 @@ _build::update_flake_args()
 
     log::ln "Updating flake args: ${cyan}${var}${none} => ${cyan}${value}${none}"
     utils::replace "${kind}" "${var}" "${value}" "${args}"
-    #git add "${args}"
+    git add "${args}"
 
     # Ensure the restore is always called
-    #trap _build::cleanup INT KILL
+    trap _build::cleanup INT KILL
 }
 
 # Restore the flake args back to what is was before

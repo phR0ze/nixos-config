@@ -48,6 +48,7 @@ in
     # - supports SPICE access remoting
     # - supports copy and pasting between host and guest
     services.spice-vdagentd.enable = true;
+    services.spice-webdavd.enable = true;         # File sharing support between Host and Guest
     virtualisation.spiceUSBRedirection.enable = true; # USB passthrough for VMs
 
     # Additional packages
