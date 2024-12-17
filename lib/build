@@ -20,7 +20,8 @@ Usage:
 
 Options:
   -h, --help                Print out usage
-  --vm.service=NAME         Configure VM as systemd service when set to name
+  --vm.service=VALUE        Configure VM as systemd service (default=false) [true|false]
+  --vm.hostname=VALUE       Configure VM hostname also used as systemd unit name (default=nixos)
   --vm.ip=VALUE             IP Address to use for the VM
   --vm.spice=VALUE          Use SPICE for this VM (default=false) [true|false]
   --vm.spicePort=VALUE      SPICE port to use (default=5901)
@@ -38,7 +39,7 @@ USAGE
 
     log::ln "\nExamples:"
     log::subln "Build the VM: ${green}./${SCRIPT} build vm${none}"
-    log::subln "Build spice VM: ${green}./${SCRIPT} build vm generic/server --vm.service=nixos71 --vm.ip=192.168.1.71/24 --vm.spice=true --vm.spicePort=5971 --vm.diskSize=2${none}"
+    log::subln "Build spice VM: ${green}./${SCRIPT} build vm generic/server --vm.service=true --vm.hostname=nixos71 --vm.ip=192.168.1.71/24 --vm.spice=true --vm.spicePort=5971 --vm.diskSize=2${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso generic/light${none}"
     echo
@@ -86,7 +87,8 @@ build::vm()
 {
     NO_CLEAN="${NO_CLEAN:-0}"
 
-    local service=""
+    local service="false"
+    local hostname="nixos"
     local args="$FLAKE_VM_ARGS"
 
     core::title
@@ -96,8 +98,12 @@ build::vm()
     while [ $# -gt 0 ]; do
         local arg=$1; shift
         case "$arg" in
+            --vm.hostname*)
+                _build::update_flake_args "$args" "str" "hostname" "$arg" true
+                hostname="${arg#*=}" # trim the prefix including the '='
+                ;;
             --vm.service*)
-                _build::update_flake_args "$args" "str" "vm.service" "$arg" true
+                _build::update_flake_args "$args" "bool" "vm.service" "$arg" true
                 service="${arg#*=}" # trim the prefix including the '='
                 ;;
             --vm.ip*) _build::update_flake_args "$args" "str" "static_ip" "$arg" true ;;
@@ -117,9 +123,9 @@ build::vm()
     nix build .#nixosConfigurations.vm.config.system.build.vm
 
     # Move the service files 
-    if [[ "${service}" != "" ]]; then
-        mkdir -p "/var/lib/vm-${service}"
-        mv "$SCRIPT_DIR/result" "/var/lib/vm-${service}/"
+    if [[ "${hostname}" == "true" ]]; then
+        mkdir -p "/var/lib/vm-${hostname}"
+        mv "$SCRIPT_DIR/result" "/var/lib/vm-${hostname}/"
     fi
 
     _build::restore_flake_args
@@ -128,7 +134,7 @@ build::vm()
 # Change the given variable in the flake args file
 # $1 - target args file
 # $2 - the kind of value [str|bool|int]
-# $3 - the name of the variable to change
+# $3 - the name of the variable to change in the args file e.g. flake_private.nix
 # $4 - the value to set
 # $5 - the value is a name=value pair
 _build::update_flake_args()
