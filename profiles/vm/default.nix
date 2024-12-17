@@ -2,11 +2,7 @@
 # --------------------------------------------------------------------------------------------------
 { modulesPath, config, lib, pkgs, args, f, ... }:
 let
-  vm = "vm-${args.hostname}";
   cfg = config.virtualization.virt-manager;
-  username = args.username;
-  uid = config.users.users.${args.username}.uid;
-  gid = config.users.groups."users".gid;
 
 in {
   imports = [
@@ -53,30 +49,6 @@ in {
         "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
         "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
       ];
-    })
-
-    # Optionally setup systemd service for VM
-    (lib.mkIf args.vm.service {
-      systemd.tmpfiles.rules = [
-        "d /var/lib/${vm} 0750 ${toString uid} ${toString gid} -"
-      ];
-      systemd.services."${vm}" = {
-        wantedBy = [ "multi-user.target" ];
-        wants = [ "network-online.target" ];
-        after = [ "network-online.target" ];
-
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          WorkingDirectory = "/var/lib/${vm}";
-          ExecStart = [
-            "./result/bin/run-${args.hostname}-vm"
-          ];
-          ExecStop = [
-            #"podman network rm -f ${app.name}"
-          ];
-        };
-      };
     })
   ];
 }
