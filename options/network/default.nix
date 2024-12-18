@@ -54,6 +54,9 @@ in
     {
       networking.enableIPv6 = false;
       networking.hostName = args.hostname;
+      networking.firewall = {
+        allowPing = true;
+      };
     }
     (lib.mkIf (cfg.bridge.enable) {
       networking.vnic0 = cfg.bridge.name;
