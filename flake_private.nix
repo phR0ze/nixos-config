@@ -11,7 +11,7 @@
   hostname = "nixos";               # hostname to use for the install
   subnet = "";                      # network cidr address e.g. 192.168.1.0/24
   gateway = "";                     # network gateway e.g. 192.168.1.1
-  static_ip = "";                   # static ip to use if set e.g. 192.168.1.2/24
+  ip = "";                          # static ip to use if set e.g. 192.168.1.2/24
   primary_dns = "";                 # primary dns server to use e.g. 1.1.1.1
   fallback_dns = "";                # fallback dns server to use e.g. 8.8.8.8
   bluetooth = false;                # flag to control bluetooth enablement
@@ -39,11 +39,15 @@
   vms = [
     {
       enable = false;               # Enable or disable the creation of the VM service
-      hostname = "";                # Hostname to use as an override to the host machine's name
+      profile = "generic/server";   # Profile override for vm
+      hostname = "nixos70";         # Hostname to use as an override to the host machine's name
+      ip = "192.168.1.70";          # static ip
+      nic0 = "eth0";                # Nic override for vm
+      autologin = true;             # autologing to the vm
       spice = false;                # SPICE support for remote viewing
-      spicePort = 5901;             # SPICE port to use
+      spicePort = 5970;             # SPICE port to use
       cores = 4;                    # Cores to use
-      diskSize = 20;                # Disk size in GiB
+      diskSize = 1;                 # Disk size in GiB
       memorySize = 4;               # Memory size in GiB
       resolution.x = 1920;          # Resolution x dimension
       resolution.y = 1080;          # Resolution y dimension

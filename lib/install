@@ -205,8 +205,8 @@ install::config_system()
     utils::replace str "git_user" "${GIT_USER}" "${NIXOS_CONFIG_PRIVATE}"
     utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_CONFIG_PRIVATE}"
 
-    [ "x${STATIC_IP}" == "xDHCP" ] && static_ip="" || static_ip="${STATIC_IP}"
-    utils::replace str "static_ip" "${static_ip}" "${NIXOS_CONFIG_PRIVATE}"
+    [ "x${IP}" == "xDHCP" ] && ip="" || ip="${IP}"
+    utils::replace str "ip" "${ip}" "${NIXOS_CONFIG_PRIVATE}"
     utils::replace str "subnet" "${SUBNET}" "${NIXOS_CONFIG_PRIVATE}"
     utils::replace str "gateway" "${GATEWAY}" "${NIXOS_CONFIG_PRIVATE}"
     utils::replace str "primary_dns" "${PRIMARY_DNS}" "${NIXOS_CONFIG_PRIVATE}"
@@ -300,7 +300,7 @@ install::run()
 
     # Network settings
     HOSTNAME='nixos'
-    STATIC_IP='DHCP'
+    IP='DHCP'
 
     # User settings
     GIT_USER='admin'
@@ -437,12 +437,12 @@ install::run()
     if [ "x$DEFAULT" != "xy" ]; then
         log::header0 "Configure networking:"
         utils::read HOSTNAME 'Enter hostname' $HOSTNAME
-        utils::read STATIC_IP 'Enter static IP, e.g. 192.168.1.2/24' 'DHCP'
-        if [ "x${STATIC_IP}" != "xDHCP" ]; then
-            utils::read SUBNET 'Enter subnet' $(echo $STATIC_IP | awk -F. '{print $1"."$2"."$3".0/24"}')
-            utils::read GATEWAY 'Enter gateway' $(echo $STATIC_IP | awk -F. '{print $1"."$2"."$3".1"}')
-            utils::read PRIMARY_DNS 'Enter primary dns' $(echo $STATIC_IP | awk -F. '{print $1"."$2"."$3".53"}')
-            utils::read FALLBACK_DNS 'Enter fallback dns' $(echo $STATIC_IP | awk -F. '{print $1"."$2"."$3".53"}')
+        utils::read IP 'Enter static IP, e.g. 192.168.1.2/24' 'DHCP'
+        if [ "x${IP}" != "xDHCP" ]; then
+            utils::read SUBNET 'Enter subnet' $(echo $IP | awk -F. '{print $1"."$2"."$3".0/24"}')
+            utils::read GATEWAY 'Enter gateway' $(echo $IP | awk -F. '{print $1"."$2"."$3".1"}')
+            utils::read PRIMARY_DNS 'Enter primary dns' $(echo $IP | awk -F. '{print $1"."$2"."$3".53"}')
+            utils::read FALLBACK_DNS 'Enter fallback dns' $(echo $IP | awk -F. '{print $1"."$2"."$3".53"}')
         fi
         utils::read BLUETOOTH 'Enable bluetooth support' 'n'
     fi
@@ -500,7 +500,7 @@ install::run()
 
     # Networking settings
     log::subln3 "hostname=${cyan}${HOSTNAME}${none}"
-    log::subln3 "static_ip=${cyan}${STATIC_IP}${none}"
+    log::subln3 "ip=${cyan}${IP}${none}"
     log::subln3 "subnet=${cyan}${SUBNET}${none}"
     log::subln3 "gateway=${cyan}${GATEWAY}${none}"
     log::subln3 "primary_dns=${cyan}${PRIMARY_DNS}${none}"

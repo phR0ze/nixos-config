@@ -3,7 +3,7 @@
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
   cfg = config.networking;
-  static_ip = f.toIP "${args.static_ip}";
+  ip = f.toIP "${args.ip}";
   macvlanOpts = (import ../types/macvlan.nix { inherit lib; }).macvlanOpts;
 in
 {
@@ -100,7 +100,7 @@ in
     # ----------------------------------------------------------------------------------------------
 
     # Optionally configure network bridge with static IP
-    (f.mkIfElse (cfg.bridge.enable && args.static_ip != "") {
+    (f.mkIfElse (cfg.bridge.enable && args.ip != "") {
       assertions = [
         { assertion = (args.nic0 != "");
           message = "NIC0 was not specified, please set 'args.nic0'"; }
@@ -108,11 +108,11 @@ in
 
       networking.useDHCP = false;
       networking.bridges."${cfg.bridge.name}".interfaces = [ "${args.nic0}" ];
-      networking.interfaces."${cfg.bridge.name}".ipv4.addresses = [ static_ip ];
+      networking.interfaces."${cfg.bridge.name}".ipv4.addresses = [ ip ];
       networking.defaultGateway = "${args.gateway}";
 
     # Otherwise configure network bridge with DHCP second
-    } (f.mkIfElse (cfg.bridge.enable && args.static_ip == "") {
+    } (f.mkIfElse (cfg.bridge.enable && args.ip == "") {
       assertions = [
         { assertion = (args.nic0 != "");
           message = "NIC0 was not specified, please set 'args.nic0'"; }
@@ -123,8 +123,8 @@ in
       networking.interfaces."${cfg.bridge.name}".useDHCP = true;
 
     # Otherwise configure static IP for the primary NIC third
-    } (f.mkIfElse (args.static_ip != "") {
-      networking.interfaces."${args.nic0}".ipv4.addresses = [ static_ip ];
+    } (f.mkIfElse (args.ip != "") {
+      networking.interfaces."${args.nic0}".ipv4.addresses = [ ip ];
       networking.defaultGateway = "${args.gateway}";
 
     # Finally fallback on DHCP for the primary NIC

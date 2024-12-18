@@ -8,7 +8,6 @@
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
   cfg = config.virtualization.incus;
-  static_ip = f.toIP "${args.static_ip}";
 in
 {
   options = {

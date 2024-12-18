@@ -21,27 +21,27 @@ Usage:
   build [COMMAND] [ARGS...] [OPTIONS] 
 
 Options:
-  -h, --help                Print out usage
-  --vm.service=VALUE        Configure VM as systemd service (default=false) [true|false]
-  --vm.hostname=VALUE       Configure VM hostname also used as systemd unit name (default=nixos)
-  --vm.ip=VALUE             IP Address to use for the VM
-  --vm.spice=VALUE          Use SPICE for this VM (default=false) [true|false]
-  --vm.spicePort=VALUE      SPICE port to use (default=5901)
-  --vm.cores=VALUE          Cores to use (default=4)
-  --vm.diskSize=VALUE       Disk size in GiB to use (default=20)
-  --vm.memorySize=VALUE     Memory size in GiB to use (default=4)
-  --vm.resolution.x=VALUE   Y Resolution value to use (default=1920)
-  --vm.resolution.y=VALUE   Y Resolution value to use (default=1080)
-  --no-clean                Don't clean up the args file afterward
+  -h, --help            Print out usage
+  --service=VALUE       Configure VM as systemd service (default=false) [true|false]
+  --hostname=VALUE      Configure VM hostname also used as systemd unit name (default=nixos)
+  --ip=VALUE            IP Address to use for the VM
+  --spice=VALUE         Use SPICE for this VM (default=false) [true|false]
+  --spicePort=VALUE     SPICE port to use (default=5901)
+  --cores=VALUE         Cores to use (default=4)
+  --diskSize=VALUE      Disk size in GiB to use (default=20)
+  --memorySize=VALUE    Memory size in GiB to use (default=4)
+  --resolution.x=VALUE  Y Resolution value to use (default=1920)
+  --resolution.y=VALUE  Y Resolution value to use (default=1080)
+  --no-clean            Don't clean up the args file afterward
 
 Commands:
-  iso [PROFILE]             Build the installable ISO with an optional profile override
-  vm [PROFILE]              Build the VM with an optional profile override
+  iso [PROFILE]         Build the installable ISO with an optional profile override
+  vm [PROFILE]          Build the VM with an optional profile override
 USAGE
 
     log::ln "\nExamples:"
     log::subln "Build the VM: ${green}./${SCRIPT} build vm${none}"
-    log::subln "Build spice VM: ${green}./${SCRIPT} build vm generic/server --vm.service=true --vm.hostname=nixos71 --vm.ip=192.168.1.71/24 --vm.spice=true --vm.spicePort=5971 --vm.diskSize=2${none}"
+    log::subln "Build spice VM: ${green}./${SCRIPT} build vm generic/server --service=true --hostname=nixos70 --ip=192.168.1.70/24 --spice=true --spicePort=5971 --diskSize=1${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso generic/light${none}"
     echo
@@ -100,22 +100,22 @@ build::vm()
     while [ $# -gt 0 ]; do
         local arg=$1; shift
         case "$arg" in
-            --vm.hostname*)
+            --hostname*)
                 _build::update_flake_args "$args" "str" "hostname" "$arg" true
                 hostname="${arg#*=}" # trim the prefix including the '='
                 ;;
-            --vm.service*)
-                _build::update_flake_args "$args" "bool" "vm.service" "$arg" true
+            --service*)
+                _build::update_flake_args "$args" "bool" "service" "$arg" true
                 service="${arg#*=}" # trim the prefix including the '='
                 ;;
-            --vm.ip*) _build::update_flake_args "$args" "str" "static_ip" "$arg" true ;;
-            --vm.spicePort*) _build::update_flake_args "$args" "int" "vm.spicePort" "$arg" true ;;
-            --vm.spice*) _build::update_flake_args "$args" "bool" "vm.spice" "$arg" true ;;
-            --vm.cores*) _build::update_flake_args "$args" "int" "vm.cores" "$arg" true ;;
-            --vm.diskSize*) _build::update_flake_args "$args" "int" "vm.diskSize" "$arg" true ;;
-            --vm.memorySize*) _build::update_flake_args "$args" "int" "vm.memorySize" "$arg" true ;;
-            --vm.resolution.x*) _build::update_flake_args "$args" "int" "vm.resolution.x" "$arg" true ;;
-            --vm.resolution.y*) _build::update_flake_args "$args" "int" "vm.resolution.y" "$arg" true ;;
+            --ip*) _build::update_flake_args "$args" "str" "ip" "$arg" true ;;
+            --spicePort*) _build::update_flake_args "$args" "int" "spicePort" "$arg" true ;;
+            --spice*) _build::update_flake_args "$args" "bool" "spice" "$arg" true ;;
+            --cores*) _build::update_flake_args "$args" "int" "cores" "$arg" true ;;
+            --diskSize*) _build::update_flake_args "$args" "int" "diskSize" "$arg" true ;;
+            --memorySize*) _build::update_flake_args "$args" "int" "memorySize" "$arg" true ;;
+            --resolution.x*) _build::update_flake_args "$args" "int" "resolution.x" "$arg" true ;;
+            --resolution.y*) _build::update_flake_args "$args" "int" "resolution.y" "$arg" true ;;
             --no-clean) NO_CLEAN=1 ;;
             --*) log::error "Invalid vm argument: ${cyan}${arg}${none}"; echo; build::usage ;;
             *) _build::update_flake_args "$args" "str" "profile" "$arg" ;;
@@ -126,7 +126,8 @@ build::vm()
 
     # Move the service files 
     if [[ "${service}" == "true" ]]; then
-        _build::create_vm_service "${hostname}"
+        mkdir -p "/var/lib/vm-${hostname}"
+        mv "$SCRIPT_DIR/result" "/var/lib/vm-${hostname}/"
     fi
 
     _build::restore_flake_args
@@ -169,35 +170,6 @@ _build::update_flake_args()
 
     # Ensure the flake args are reset
     trap _build::cleanup INT KILL
-}
-
-# Create the systemd service for the given VM
-# - $1 - hostname, e.g. nixos71 used to launch and name the service
-_build::create_vm_service()
-{
-    local hostname="$1"
-
-    # Ensure the built vm is moved to the proper location
-    mkdir -p "/var/lib/vm-${hostname}"
-    mv "$SCRIPT_DIR/result" "/var/lib/vm-${hostname}/"
-
-    # Generate the service unit file
-    cat <<- EOF > /etc/systemd/system/vm-${hostname}
-[Unit]
-Description=vm-${hostname} service
-After=network-online.target
-
-[Service]
-Environment=
-Type=oneshot
-RemainAfterExit=true
-WorkingDirectory=/var/lib/vm-${hostname}
-ExecStart=./result/bin/run-${hostname}-vm
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    systemctl daemon-reload
 }
 
 # Restore the flake args back to what is was before
