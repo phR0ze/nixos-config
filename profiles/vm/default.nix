@@ -7,6 +7,7 @@ let
 in {
   imports = [
     (modulesPath + "/profiles/qemu-guest.nix")  # Imports a number of VM kernel modules
+    (../. + ("/" + args.profile + ".nix"))
   ];
 
   config = lib.mkMerge [
