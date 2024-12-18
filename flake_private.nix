@@ -38,8 +38,8 @@
   # -----------------------------------------------------------------------------------------------
   vms = [
     {
-      hostname = "";                # Populating this value will trigger the VMs creation
-      service = false;              # Deploy as systemd service
+      enable = false;               # Enable or disable the creation of the VM service
+      hostname = "";                # Hostname to use as an override to the host machine's name
       spice = false;                # SPICE support for remote viewing
       spicePort = 5901;             # SPICE port to use
       cores = 4;                    # Cores to use
