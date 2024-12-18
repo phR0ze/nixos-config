@@ -102,7 +102,6 @@
         specialArgs = specialArgs // {
           args = args // {
             isVM = true;
-            nic0 = "eth0";
           };
         };
         modules = [
