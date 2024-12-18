@@ -1,34 +1,19 @@
-# NixOS system configuration
-# --------------------------------------------------------------------------------------------------
 {
   description = "System Configuration";
 
   # ### inputs specifies other flakes to be used in the outputs as dependencies.
-  # After inputs are resolved they are passed to the outputs function and map to the explicit and 
-  # implicit arguments as defined by the outputs function.
+  # After inputs are downloaded and cached they are passed to the outputs function and map to the 
+  # explicit and implicit arguments as defined by the outputs function.
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/1536926ef5621b09bba54035ae2bb6d806d72ac8";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
-  # ### Implicit arguments
-  # In nix function syntax we can require arguments by name explicitly as 'self' is below and using 
-  # the '...' allow for additional implicit arguments that will be gathered into a set named 'NAME' 
-  # with the '@NAME' syntax. Flake syntax specifies that once 'inputs' are resolved they are passed 
-  # to the outputs function as arguments. Thus by naming the implicit arguments '@inputs' we are not 
-  # referring to the original inputs attribute set but rather naming the implicit arguments to our 
-  # function 'inputs' which happens to also be the name of a flakes inputs attribute set. In the end
-  # it works out function the same but is a mistake to conflate the two for general nix cases.
-  #
-  # ### Explicit arguments
-  # Although it is nice to gather all implicit arguments together this means to use them without the 
-  # dot notation would require an 'inherit (inputs) nixpkgs' to bring them into scope. Another option 
-  # is to just call them out explicitly as required named arguments which does this scoping for you.
   outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
 
     # Configurable system options
     # ----------------------------------------------------------------------------------------------
-    settings = { } // import ./flake_private.nix;      # include external configuration set
+    settings = (import ./flake_private.nix);      # include external configuration set
 
     # Allow for package patches, overrides and additions
     # * [allowUnfree](https://nixos.wiki/wiki/Unfree_Software)
@@ -81,7 +66,6 @@
     };
     system = settings.system;
     specialArgs = { inherit args f; };
-    otherSpecialArgs = { inherit args f; };
   in {
     # These are the configurations for different use cases a.k.a. systems
     nixosConfigurations = {
@@ -106,7 +90,6 @@
         };
         modules = [
           ./options
-          (./. + "/profiles" + ("/" + args.profile + ".nix"))
           ./profiles/vm/default.nix
         ];
       };
