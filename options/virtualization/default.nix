@@ -9,34 +9,22 @@
     ./winetricks.nix
   ];
 
-  config = lib.mkMerge [
-#    {
-#      assertions = [
-#        { assertion = (builtins.length vms == 2);
-#          message = "Args length: ${toString (builtins.length vms)}"; }
-#      ];
-#    }
+  # Generate systemd services for each VM as directed
+  config.systemd = lib.mkMerge (lib.lists.forEach args.vms (x:
+    {
+      services."vm-${x.hostname}" = {
+        wantedBy = [ "multi-user.target" ];
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ];
 
-    # Create a systemd unit file for the first described VM
-    (lib.mkIf (builtins.length args.vms > 0 && (builtins.elemAt args.vms 0).enable) (
-      let
-        vm = (builtins.elemAt args.vms 0);
-      in
-      {
-        systemd.services."vm-${vm.hostname}" = {
-          path = [ pkgs.util-linux ];
-          wantedBy = [ "multi-user.target" ];
-          wants = [ "network-online.target" ];
-          after = [ "network-online.target" ];
-
-          serviceConfig = {
-            Type = "simple";
-            KillSignal = "SIGINT";
-            WorkingDirectory = "/var/lib/vm-${vm.hostname}";
-            ExecStart = "/var/lib/vm-${vm.hostname}/result/bin/run-${vm.hostname}-vm";
-          };
+        serviceConfig = {
+          Type = "simple";
+          KillSignal = "SIGINT";
+          WorkingDirectory = "/var/lib/vm-${x.hostname}";
+          ExecStart = "/var/lib/vm-${x.hostname}/result/bin/run-${x.hostname}-vm";
         };
-      })
-    )
-  ];
+      };
+    }
+  ));
+#    (lib.mkIf (builtins.length args.vms > 0 && (builtins.elemAt args.vms 0).enable) (
 }
