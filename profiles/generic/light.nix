@@ -77,6 +77,7 @@
     gnome-multi-writer                  # Tool for writing an ISO file to multiple USB devices at once
     htop                                # Better top tool
     light                               # Control backlights for screen and keyboard
+    sops                                # Industry standard encryption at rest
     veracrypt                           # Free Open-Source filesystem encryption
   ];
 }
