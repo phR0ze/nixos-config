@@ -25,6 +25,7 @@ fork it and build on my work.
   * [Build and run test VM](#build-and-run-test-vm)
   * [Build the live ISO for installation](#build-the-live-iso-for-installation)
 * [Development](#development)
+  * [Agenix](#agenix)
   * [Clone nixpkgs locally](#clone-nixpkgs-locally)
 * [Homelab research](#homelab-research)
 * [Backlog](#backlog)
@@ -180,6 +181,16 @@ world though this already exists.
 
 ## Development
 
+### Agenix
+`git-crypt` secrets end up in the /nix/store in plain text while `agenix` ensures they are encrypted 
+in the nix store.
+
+**References**
+* [Agenix - NixOS Wiki](https://nixos.wiki/wiki/Agenix)
+* [Agenix - lgug2z](https://lgug2z.com/articles/handling-secrets-in-nixos-an-overview/)
+* [Manually inject](https://www.reddit.com/r/NixOS/comments/17vejd0/handling_secrets_in_nixos_an_overview_gitcrypt/)
+
+
 ### Clone nixpkgs locally
 It's nice to have a copy of nixpkgs to reference for options
 
@@ -207,7 +218,8 @@ homelab.
 ## Backlog
 
 ### Next
-* [ ] Build and run containers
+* [ ] Use age for secrets
+* [ ] Build and run vms
 
 ### Sometime
 * [ ] Change image mime associatation
