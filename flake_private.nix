@@ -32,9 +32,7 @@
   stateVersion = "24.05";           # Base install version, not sure this matters when on flake
   comment = "";                     # Placeholder for injected nixos-config comment
 
-  # Virtual machine deployments
-  # - any argument in the host configuration above can be used in the VM as well otherwise it will
-  #   default to the value specified by the host configuration
+  # Virtual machine systemd units
   # -----------------------------------------------------------------------------------------------
   vms = [
     {

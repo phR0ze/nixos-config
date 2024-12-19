@@ -13,7 +13,7 @@ in
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
-    ({
+    {
       # Enables ability for user to make network manager changes
       users.users.${args.username}.extraGroups = [ "networkmanager" ];
 
@@ -27,6 +27,6 @@ in
           "interface-name:vmnet*"
         ];
       };
-    })
+    }
   ]);
 }
