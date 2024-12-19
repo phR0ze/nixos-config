@@ -10,6 +10,7 @@
   ];
 
   # Home lab services
+  virtualization.host.enable = true;
   virtualization.virt-manager.enable = true;
   #homelab.lxconsole.enable = true;
   #homelab.qbittorrent.enable = true;
