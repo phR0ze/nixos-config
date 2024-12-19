@@ -32,7 +32,11 @@
   stateVersion = "24.05";           # Base install version, not sure this matters when on flake
   comment = "";                     # Placeholder for injected nixos-config comment
 
-  # Virtual machine systemd units
+  # Virtual machines
+  # - overrides below will be used rather than the host values when building vms
+  # - `clu update system` will only create the systemd unit files and attempt to start them
+  # - prior to `clu update system` build the vms with `clu build vm --help`
+  # - vm defaults are in flake.nix
   # -----------------------------------------------------------------------------------------------
   vms = [
     {
@@ -40,15 +44,16 @@
       profile = "generic/server";   # Profile override for vm
       hostname = "nixos70";         # Hostname to use as an override to the host machine's name
       ip = "192.168.1.70";          # static ip
-      nic0 = "eth0";                # Nic override for vm
-      autologin = true;             # autologing to the vm
       spice = false;                # SPICE support for remote viewing
       spicePort = 5970;             # SPICE port to use
-      cores = 4;                    # Cores to use
-      diskSize = 1;                 # Disk size in GiB
-      memorySize = 4;               # Memory size in GiB
-      resolution.x = 1920;          # Resolution x dimension
-      resolution.y = 1080;          # Resolution y dimension
+    }
+    {
+      enable = false;               # Enable or disable the creation of the VM service
+      profile = "generic/server";   # Profile override for vm
+      hostname = "nixos71";         # Hostname to use as an override to the host machine's name
+      ip = "192.168.1.71";          # static ip
+      spice = false;                # SPICE support for remote viewing
+      spicePort = 5971;             # SPICE port to use
     }
   ];
 }

@@ -86,6 +86,13 @@
         specialArgs = specialArgs // {
           args = args // {
             isVM = true;
+            autologin = true;
+            nic0 = "eth0";                # Nic override for vm
+            cores = 4;                    # Cores to use
+            diskSize = 1;                 # Disk size in GiB
+            memorySize = 4;               # Memory size in GiB
+            resolution.x = 1920;          # Resolution x dimension
+            resolution.y = 1080;          # Resolution y dimension
           };
         };
         modules = [
