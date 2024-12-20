@@ -2,8 +2,7 @@
 set -e -u  # Exit on non-zero status or unset variables
 
 # Change to the root of the repo
-GITHOOKS_DIR=$(readlink -f $(dirname $BASH_SOURCE[0]))
-cd "$GITHOOKS_DIR/.." || exit 1
+REPO_ROOT="$(readlink -f $(dirname $BASH_SOURCE[0]))/.."
 echo "decrypting all encrypted files..."
 
 # Create the target file name: <name>.dec.yaml
