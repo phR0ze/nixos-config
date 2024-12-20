@@ -8,7 +8,7 @@
     _args = (import ./flake_args.nix);
 
     # Allow for package patches, overrides and additions
-    system = args.system;
+    system = _args.system;
     pkgs-unstable = import nixpkgs-unstable {
       inherit system;
       config.allowUnfree = true;
@@ -48,14 +48,15 @@
     specialArgs = { inherit args f; };
   in
   {
-    # Homelab configuration
-    nixosConfigurations.homelab = nixpkgs.lib.nixosSystem {
+    # Local system configuration, usually the hostname of the machine, but using this in a way to 
+    # make it reusable for all my machines via links in the root of the repo.
+    nixosConfigurations.system = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
-      modules = [ machines/homelab ];
+      modules = [ ./configuration.nix ];
     };
 
-    # Generic host configuration based on a generic profile
-    nixosConfigurations.generic = nixpkgs.lib.nixosSystem {
+    # Generic install host configuration based on a generic profile
+    nixosConfigurations.install = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
       modules = [
         ./hardware-configuration.nix

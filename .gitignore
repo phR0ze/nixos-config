@@ -1,11 +1,19 @@
+# Ignore temp files
 *.swp
+/temp
+/files.log
+/files.tmp
+/flake_vm_args.nix
+/flake_iso_args.nix
+/nixos.qcow2
+/result
+
+# Ignore decrypted files to avoid security breaches
 *.dec.*
-temp
-files.log
-files.tmp
-flake_args.nix
-flake_vm_args.nix
-flake_iso_args.nix
-nixos.qcow2
-hardware-configuration.nix
-result
+
+# Ignore flake and configuration files that are only linked at the root
+/args.nix
+/flake.nix
+/flake.lock
+/configuration.nix
+/hardware-configuration.nix

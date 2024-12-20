@@ -181,14 +181,15 @@ world though this already exists.
 
 ## Development
 
-### Git hooks
-```bash
-git config --local core.hooksPath .githooks
-git config --local alias.decrypt '!decrypt() { .githooks/decrypt; }; decrypt'
-
-# Decrypt with
-git decrypt
-```
+### Dev environment
+1. Clone this repo
+   ```bash
+   $ git clone https://github.com/phR0ze/nixos-config
+   ```
+2. Configure git hooks
+   ```bash
+   $ ./clu init
+   ```
 
 ### Clone nixpkgs locally
 It's nice to have a copy of nixpkgs to reference for options
