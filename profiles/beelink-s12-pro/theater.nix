@@ -7,7 +7,7 @@
 { lib, pkgs, ... }:
 {
   imports = [
-    ../generic/theater.nix
+    ../theater.nix
   ];
 
   # Hardware

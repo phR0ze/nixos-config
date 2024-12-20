@@ -6,7 +6,7 @@
 { lib, pkgs, ... }:
 {
   imports = [
-    ../generic/develop.nix
+    ../develop.nix
   ];
 
   hardware.intel-graphics.enable = true;

@@ -7,7 +7,7 @@
 { lib, pkgs, ... }:
 {
   imports = [
-    ../generic/develop.nix
+    ../develop.nix
   ];
 
   # Hardware
