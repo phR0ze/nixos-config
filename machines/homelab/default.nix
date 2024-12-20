@@ -14,8 +14,14 @@ in
     ./hardware-configuration.nix
   ];
 
+  # Assert all values are accounted for
   assertions = [
-    { assertion = (builtins.length local_args.username == "");
-      message = "username: ${local_args.username}"; }
+    { assertion = (local_args.username != "");
+      message = "local args username needs to be set"; }
   ];
+
+  # Configure deployment
+  deployment.user.name = local_args.username;
+  deployment.user.fullname = local_args.fullname;
+  deployment.user.email = local_args.email;
 }
