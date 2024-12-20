@@ -11,6 +11,16 @@
   # Convert a bool into an integer then to a string
   boolToIntStr = x: if x then "1" else "0";
 
+  # Convert the given yaml file into nix attribute set
+  fromYAML = yaml:
+    builtins.fromJSON (builtins.readFile (pkgs.stdenv.mkDerivation {
+      name = "fromYAML";
+      phases = ["buildPhase"];
+      buildPhase = "${pkgs.yaml2json}/bin/yaml2json < ${
+        builtins.toFile "yaml" yaml
+      } > $out";
+    }));
+
   # Convert an IP address prefix length combination to an object
   # Usage:
   # let ip = f.toIP "192.168.1.50/24"; in { address = ip.address; }
