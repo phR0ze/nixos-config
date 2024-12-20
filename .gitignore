@@ -6,4 +6,5 @@ flake_args.nix
 flake_vm_args.nix
 flake_iso_args.nix
 nixos.qcow2
+hardware-configuration.nix
 result

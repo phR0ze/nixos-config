@@ -4,25 +4,23 @@
 #---------------------------------------------------------------------------------------------------
 { lib, ... }: with lib.types;
 {
-  userOpts = {
-    options = {
-      name = lib.mkOption {
-        description = lib.mdDoc "User name";
-        type = types.nullOr types.str;
-        default = null;
-      };
+  options = {
+    name = lib.mkOption {
+      description = lib.mdDoc "User name";
+      type = types.nullOr types.str;
+      default = null;
+    };
 
-      uid = lib.mkOption {
-        description = lib.mdDoc "User id for the user";
-        type = types.nullOr types.int;
-        default = null;
-      };
+    uid = lib.mkOption {
+      description = lib.mdDoc "User id for the user";
+      type = types.nullOr types.int;
+      default = null;
+    };
 
-      gid = lib.mkOption {
-        description = lib.mdDoc "Group id for the user";
-        type = types.nullOr types.int;
-        default = null;
-      };
+    gid = lib.mkOption {
+      description = lib.mdDoc "Group id for the user";
+      type = types.nullOr types.int;
+      default = null;
     };
   };
 }

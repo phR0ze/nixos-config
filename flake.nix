@@ -28,11 +28,11 @@
         "freeimage-unstable-2021-11-01"     # Allowing this for wii tools
       ];
 
-      # Modify packages: 'self' is before and 'super' is after
+      # Modify package defaults with overlays
       overlays = [
 
         # Upgrade select packages to the latest unstable bits
-        (self: super: {
+        (before: after: {
           go = pkgs-unstable.go;
           go-bindata = pkgs-unstable.go-bindata;
           golangci-lint = pkgs-unstable.golangci-lint;
@@ -48,16 +48,16 @@
     specialArgs = { inherit args inputs f; };
   in
   {
+    # Homelab configuration
     nixosConfigurations.homelab = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
-      modules = [ ./options ./machines/homelab/hardware-configuration.nix ];
+      modules = [ machines/homelab ];
     };
 
     # Generic host configuration based on a generic profile
     nixosConfigurations.generic = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
       modules = [
-        ./options
         ./hardware-configuration.nix
         (./. + "/profiles" + ("/" + args.profile + ".nix"))
       ];

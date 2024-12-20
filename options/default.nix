@@ -1,6 +1,9 @@
 # Import all the options
 #---------------------------------------------------------------------------------------------------
 { lib, ... }: with lib.types;
+let
+  opts = import ./types { inherit lib; };
+in
 {
   imports = [
     ./desktop
@@ -17,18 +20,18 @@
     ./virtualization
   ];
 
-  options = {
-    deployment.type = {
-      develop = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Develop deployment type";
-      };
-      theater = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Theater deployment type";
-      };
+  options.deployment = {
+
+    type = lib.mkOption {
+      description = lib.mdDoc "Type of deployment";
+      type = types.submodule opts.type;
+      default = { };
+    };
+
+    user = lib.mkOption {
+      description = lib.mdDoc "User options for the containerized app";
+      type = types.submodule opts.user;
+      default = { };
     };
   };
 }
