@@ -136,7 +136,7 @@ build::vm()
 # Change the given variable in the flake args file
 # $1 - target args file
 # $2 - the kind of value [str|bool|int]
-# $3 - the name of the variable to change in the args file e.g. flake_private.nix
+# $3 - the name of the variable to change in the args file e.g. flake_args.nix
 # $4 - the value to set
 # $5 - the value is a name=value pair
 _build::update_flake_args()
@@ -161,7 +161,7 @@ _build::update_flake_args()
     utils::replace "${kind}" "${var}" "${value}" "$args" 
     git add "${args}" -f
 
-    # Switch out the flake args target ./flake_private.nix with
+    # Switch out the flake args target ./flake_args.nix with
     # ./flake_vm_args.nix or ./flake_iso_args.nix depending
     local from=$(basename ${FLAKE_ARGS})
     local to=$(basename ${args})

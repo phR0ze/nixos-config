@@ -68,8 +68,8 @@ utils::check_status()
 # Execute the given help function if the commands arguments contain help flags anywhere
 # 
 # ### Params
-# - $1 command arguments for original command
-# - $2 
+# - `zero` is a special indicator that zero args are expected and shouldn't fail
+# - last argument should always be the usage function to run
 #
 # ### Examples
 # utils::help "$@" update::usage
@@ -79,7 +79,13 @@ utils::help()
     local args=($@)
 
     # Check for zero args
-    if [[ ${#args[@]} -eq 1 ]]; then eval "${args[-1]}"; fi
+    local zero=0
+    for x in ${args[@]}; do
+      [[ "$x" == "zero" ]] && zero=1
+    done
+    if [ $zero -eq 0 ]; then
+        if [[ ${#args[@]} -eq 1 ]]; then eval "${args[-1]}"; fi
+    fi
 
     # Check for help anywhere in the args
     for x in ${args[@]}; do

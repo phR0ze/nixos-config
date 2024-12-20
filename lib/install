@@ -128,7 +128,7 @@ install::prepare_disk()
 }
 
 # Generate the `hardware-configuration.nix` using nixos tooling.
-# Extract key values and make them available in the settings file `flake_private.nix`.
+# Extract key values and make them available in the settings file `flake_args.nix`.
 # - sets NICS array
 install::generate_hardware_config()
 {
@@ -144,12 +144,12 @@ install::generate_hardware_config()
     NICS=($(sed -n 's|^\s*# networking.interfaces.\(.*\)\.use.*|\1|p' ${GEN_HARDWARE_CONFIG}))
 
     echo -en ":: Storing NIC0 setting: ${cyan}${NICS[0]}${none}..."
-    utils::replace str "nic0" "${NICS[0]}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "nic0" "${NICS[0]}" "${NIXOS_ARGS}"
     utils::check_status
 
     if [[ ${NICS[1]} != "" ]]; then
         echo -en ":: Storing NIC1 setting: ${cyan}${NICS[1]}${none}..."
-        utils::replace str "nic1" "${NICS[1]}" "${NIXOS_CONFIG_PRIVATE}"
+        utils::replace str "nic1" "${NICS[1]}" "${NIXOS_ARGS}"
         utils::check_status
     fi
 
@@ -163,12 +163,12 @@ install::generate_hardware_config()
 
 install::config_system()
 {
-    NIXOS_CONFIG_PRIVATE="${NIXOS_CONFIG_DIR}/flake_private.nix"
+    NIXOS_ARGS="${NIXOS_CONFIG_DIR}/flake_args.nix"
 
     # Setup the NixOS configuration files
     # This must be done after the disk partioning so that the system picks up the new partitions
     # ----------------------------------------------------------------------------------------------
-    log::header1 "Configure settings file: ${NIXOS_CONFIG_PRIVATE}"
+    log::header1 "Configure settings file: ${NIXOS_ARGS}"
 
     if [[ "x$TESTING" != "xy" ]]; then
         echo -en ":: Create the NixOS config dir ${cyan}${NIXOS_CONFIG_DIR}${none}..."
@@ -188,7 +188,7 @@ install::config_system()
     echo -en ":: Storing NIXOS target version setting: ${cyan}${NIXOS_VER}${none}..."
     utils::check_status
     rm -f "${NIXOS_CONFIG_DIR}/configuration.nix" # clean up
-    utils::replace str "stateVersion" "${NIXOS_VER}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "stateVersion" "${NIXOS_VER}" "${NIXOS_ARGS}"
 
     # Configuring user set values
     # ----------------------------------------------------------------------------------------------
@@ -198,45 +198,45 @@ install::config_system()
     [ "x$DEFAULT" == "xy" ] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
     echo -en ":: Storing new ${cyan}${USER_NAME}${none} and ${cyan}root${none} passwords${pass}..."
 
-    utils::replace str "fullname" "${FULL_NAME}" "${NIXOS_CONFIG_PRIVATE}"
-    utils::replace str "email" "${USER_EMAIL}" "${NIXOS_CONFIG_PRIVATE}"
-    utils::replace str "username" "${USER_NAME}" "${NIXOS_CONFIG_PRIVATE}"
-    utils::replace str "userpass" "${USER_PASS}" "${NIXOS_CONFIG_PRIVATE}"
-    utils::replace str "git_user" "${GIT_USER}" "${NIXOS_CONFIG_PRIVATE}"
-    utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "fullname" "${FULL_NAME}" "${NIXOS_ARGS}"
+    utils::replace str "email" "${USER_EMAIL}" "${NIXOS_ARGS}"
+    utils::replace str "username" "${USER_NAME}" "${NIXOS_ARGS}"
+    utils::replace str "userpass" "${USER_PASS}" "${NIXOS_ARGS}"
+    utils::replace str "git_user" "${GIT_USER}" "${NIXOS_ARGS}"
+    utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_ARGS}"
 
     [ "x${IP}" == "xDHCP" ] && ip="" || ip="${IP}"
-    utils::replace str "ip" "${ip}" "${NIXOS_CONFIG_PRIVATE}"
-    utils::replace str "subnet" "${SUBNET}" "${NIXOS_CONFIG_PRIVATE}"
-    utils::replace str "gateway" "${GATEWAY}" "${NIXOS_CONFIG_PRIVATE}"
-    utils::replace str "primary_dns" "${PRIMARY_DNS}" "${NIXOS_CONFIG_PRIVATE}"
-    utils::replace str "fallback_dns" "${FALLBACK_DNS}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "ip" "${ip}" "${NIXOS_ARGS}"
+    utils::replace str "subnet" "${SUBNET}" "${NIXOS_ARGS}"
+    utils::replace str "gateway" "${GATEWAY}" "${NIXOS_ARGS}"
+    utils::replace str "primary_dns" "${PRIMARY_DNS}" "${NIXOS_ARGS}"
+    utils::replace str "fallback_dns" "${FALLBACK_DNS}" "${NIXOS_ARGS}"
 
     [ "x${BLUETOOTH}" == "xy" ] && bluetooth="true" || bluetooth="false"
-    utils::replace str "bluetooth" "${bluetooth}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "bluetooth" "${bluetooth}" "${NIXOS_ARGS}"
     [ "x${AUTO_LOGIN}" == "xy" ] && autologin="true" || autologin="false"
-    utils::replace bool "autologin" "${autologin}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace bool "autologin" "${autologin}" "${NIXOS_ARGS}"
     [ "x${NFS_SHARES}" == "xy" ] && nfsshares="true" || nfsshares="false"
-    utils::replace bool "nfs_shares" "${nfsshares}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace bool "nfs_shares" "${nfsshares}" "${NIXOS_ARGS}"
     utils::check_status
 
     # Configure boot device target
     echo -en ":: Storing boot device type setting..."
     [ "x${EFI}" == "x1" ] && efi_str="true" || efi_str="false"
-    utils::replace bool "efi" "${efi_str}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace bool "efi" "${efi_str}" "${NIXOS_ARGS}"
 
     [ "x${EFI}" == "x1" ] && mbr_str="nodev" || mbr_str="${DESTDEV}"
-    utils::replace str "mbr" "${mbr_str}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "mbr" "${mbr_str}" "${NIXOS_ARGS}"
     utils::check_status
 
     # Configure system settings
-    utils::replace str "timezone" "${TIMEZONE}" "${NIXOS_CONFIG_PRIVATE}"
-    utils::replace str "hostname" "${HOSTNAME}" "${NIXOS_CONFIG_PRIVATE}"
-    utils::replace str "profile" "${MACHINE}/${PROFILE}" "${NIXOS_CONFIG_PRIVATE}"
+    utils::replace str "timezone" "${TIMEZONE}" "${NIXOS_ARGS}"
+    utils::replace str "hostname" "${HOSTNAME}" "${NIXOS_ARGS}"
+    utils::replace str "profile" "${MACHINE}/${PROFILE}" "${NIXOS_ARGS}"
 
     # Modules must be at least staged for the flake to recognize them
     pushd ${NIXOS_CONFIG_DIR} &>/dev/null
-    git add flake_private.nix
+    git add "${NIXOS_ARGS}"
     popd &>/dev/null
 
     # Execute the NixOS install

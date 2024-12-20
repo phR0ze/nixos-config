@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+#set -x
+
+# Initialize clu and or the nixos-config flake repo
+# 
+# ## Features
+# - setting up git hooks so decrypt secrets locally on git events
+# --------------------------------------------------------------------------------------------------
+
+# Usage for the init command and its sub commands
+# --------------------------------------------------------------------------------------------------
+init::usage()
+{
+    cat <<USAGE
+Usage:
+  init [COMMAND] [ARGS...] [OPTIONS] 
+
+Options:
+  -h, --help            Print out usage
+
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "Init: ${green}./${SCRIPT} init${none}"
+    echo
+    exit
+}
+
+# Parse the init commands and execute
+# --------------------------------------------------------------------------------------------------
+init::run()
+{
+    utils::help "$@" zero "init::usage"
+
+    core::title
+    log::header0 "Initializing nixos-config repo"
+
+    log::ln "Configuring core.hooksPath: ${cyan}.githooks${none}"
+    git config --local core.hooksPath .githooks
+
+    log::ln "Configuring decrypt alias: ${cyan}git decrypt${none}"
+    git config --local alias.decrypt '!decrypt() { .githooks/decrypt; }; decrypt'
+}
