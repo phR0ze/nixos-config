@@ -1,0 +1,1 @@
+*secrets.yaml filter=sops diff=sops

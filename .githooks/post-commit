@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+PROJECT_ROOT=$(readlink -f $(dirname $BASH_SOURCE[0]))
+echo "post-commit: $PROJECT_ROOT"
+#cd "$PROJECT_ROOT" || exit 1
+
+#~/.githooks/decrypt_files.sh
+

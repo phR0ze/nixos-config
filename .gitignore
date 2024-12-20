@@ -1,4 +1,5 @@
 *.swp
+*.dec.*
 temp
 files.log
 files.tmp
