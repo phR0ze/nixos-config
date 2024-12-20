@@ -7,7 +7,7 @@
 { lib, pkgs, ... }:
 {
   imports = [
-    ../generic/desktop.nix
+    ../desktop.nix
   ];
 
   hardware.intel-graphics.enable = true;

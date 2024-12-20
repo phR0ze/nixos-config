@@ -6,14 +6,14 @@
 { pkgs, args, ... }:
 {
   imports = [
-    ../../modules/terminal
-    ../../modules/hardware/audio.nix
-    ../../modules/hardware/bluetooth.nix
-    ../../modules/hardware/firmware.nix
-    ../../modules/hardware/printers.nix
-    ../../modules/hardware/video.nix
-    ../../modules/desktop/backgrounds/opt.nix
-    ../../modules/desktop/icons.nix
+    ../modules/terminal
+    ../modules/hardware/audio.nix
+    ../modules/hardware/bluetooth.nix
+    ../modules/hardware/firmware.nix
+    ../modules/hardware/printers.nix
+    ../modules/hardware/video.nix
+    ../modules/desktop/backgrounds/opt.nix
+    ../modules/desktop/icons.nix
   ];
 
   # Enable XFCE and all needed components

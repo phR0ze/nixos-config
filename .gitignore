@@ -2,6 +2,7 @@
 temp
 files.log
 files.tmp
+flake_args.nix
 flake_vm_args.nix
 flake_iso_args.nix
 nixos.qcow2
