@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#GITHOOKS_DIR=$(readlink -f $(dirname $BASH_SOURCE[0]))
-#echo "post-commit: $GITHOOKS_DIR"
+GITHOOKS_DIR=$(readlink -f $(dirname $BASH_SOURCE[0]))
+echo "post-commit: $GITHOOKS_DIR"
 #cd "$PROJECT_ROOT" || exit 1
-./decrypt
+$GITHOOKS_DIR/decrypt
