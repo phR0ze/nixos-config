@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Import core functions
+source "${SCRIPT_DIR}/lib/init"
 source "${SCRIPT_DIR}/lib/build"
 source "${SCRIPT_DIR}/lib/dev"
 source "${SCRIPT_DIR}/lib/clean/clean"
