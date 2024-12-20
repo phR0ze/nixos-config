@@ -2,6 +2,8 @@
 #---------------------------------------------------------------------------------------------------
 { pkgs, lib, ... }:
 {
+  # Simple functions
+  #-------------------------------------------------------------------------------------------------
   # Convert a bool into an int
   boolToInt = x: if x then 1 else 0;
 
@@ -12,6 +14,9 @@
   boolToIntStr = x: if x then "1" else "0";
 
   # Convert the given yaml file into nix attribute set
+  #-------------------------------------------------------------------------------------------------
+  # Usage:
+  # local_args = f.fromYAML ./args.dec.yaml;
   fromYAML = yamlFile:
     let
       json = pkgs.runCommand "converted.json" { } ''
@@ -21,6 +26,7 @@
     builtins.fromJSON (builtins.readFile json);
 
   # Convert an IP address prefix length combination to an object
+  #-------------------------------------------------------------------------------------------------
   # Usage:
   # let ip = f.toIP "192.168.1.50/24"; in { address = ip.address; }
   toIP = x:
@@ -37,7 +43,7 @@
     };
 
   # Provide mkIf support for an else clause
-  #
+  #-------------------------------------------------------------------------------------------------
   # Usage: 
   #   config.xdg.configFile = (f.mkIfElse cfg.vesktop.enable
   #     { "vesktop/themes".source = catppuccinThemesSrc; }    
