@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-REPO_ROOT=$(readlink -f $(dirname $BASH_SOURCE[0]))
-echo "post-commit: $REPO_ROOT"
+#GITHOOKS_DIR=$(readlink -f $(dirname $BASH_SOURCE[0]))
+#echo "post-commit: $GITHOOKS_DIR"
 #cd "$PROJECT_ROOT" || exit 1
-
-#~/.githooks/decrypt_files.sh
-
+./decrypt
