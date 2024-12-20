@@ -183,8 +183,8 @@ world though this already exists.
 
 ### Git hooks
 ```bash
-git config --local core.hooksPath ~/.githooks
-git config --local alias.decrypt '!decrypt() { ~/.githooks/decrypt; }; decrypt'
+git config --local core.hooksPath .githooks
+git config --local alias.decrypt '!decrypt() { .githooks/decrypt; }; decrypt'
 
 # Decrypt with
 git decrypt

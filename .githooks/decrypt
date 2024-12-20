@@ -29,6 +29,7 @@ for ENCRYPTED in $(find "$REPO_ROOT" -type f -name '*.enc.yaml'); do
     NAME="${FILE_NAME%%.*}"             # trim off the file extension
     EXT="${FILE_NAME##*.}"              # trim off the prefix including the '.'
     DECRYPTED="$DIR/${NAME}.dec.${EXT}"
+    echo "> $DECRYPTED"
     sops --decrypt "$ENCRYPTED" > "$DECRYPTED"
 done
 unset IFS  # Reset the internal field separator
