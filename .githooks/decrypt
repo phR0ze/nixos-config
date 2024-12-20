@@ -8,7 +8,7 @@ NAME="${FILE_NAME%%.*}"             # trim off the file extension
 EXT="${FILE_NAME##*.}"              # trim off the prefix including the '.'
 TARGET="$DIR/${NAME}.dec.${EXT}"
 
-echo "decrypting test"
+echo "decrypting testing"
 
 # 
 #PARENT_PID=$(ps -o ppid= -p $$)
