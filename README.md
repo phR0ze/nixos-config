@@ -181,15 +181,14 @@ world though this already exists.
 
 ## Development
 
-### Agenix
-`git-crypt` secrets end up in the /nix/store in plain text while `agenix` ensures they are encrypted 
-in the nix store.
+### Git hooks
+```bash
+git config --local core.hooksPath ~/.githooks
+git config --local alias.decrypt '!decrypt() { ~/.githooks/decrypt; }; decrypt'
 
-**References**
-* [Agenix - NixOS Wiki](https://nixos.wiki/wiki/Agenix)
-* [Agenix - lgug2z](https://lgug2z.com/articles/handling-secrets-in-nixos-an-overview/)
-* [Manually inject](https://www.reddit.com/r/NixOS/comments/17vejd0/handling_secrets_in_nixos_an_overview_gitcrypt/)
-
+# Decrypt with
+git decrypt
+```
 
 ### Clone nixpkgs locally
 It's nice to have a copy of nixpkgs to reference for options
