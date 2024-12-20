@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -e -u  # Exit on non-zero status or unset variables
 
-REPO_ROOT=$(readlink -f $(dirname $BASH_SOURCE[0]))
-echo "post-commit: $REPO_ROOT"
+# Change to the root of the repo
+GITHOOKS_DIR=$(readlink -f $(dirname $BASH_SOURCE[0]))
+cd "$GITHOOKS_DIR/.." || exit 1
+echo "decrypt: $(pwd)"
 
 # Create the target file name: <name>.dec.yaml
 DIR=$(dirname "$1")                 # get the diretory name
