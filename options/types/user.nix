@@ -11,6 +11,18 @@
       default = null;
     };
 
+    fullname = lib.mkOption {
+      description = lib.mdDoc "Fullname of the user";
+      type = types.nullOr types.str;
+      default = null;
+    };
+
+    email = lib.mkOption {
+      description = lib.mdDoc "Email address of the user";
+      type = types.nullOr types.str;
+      default = null;
+    };
+
     uid = lib.mkOption {
       description = lib.mdDoc "User id for the user";
       type = types.nullOr types.int;

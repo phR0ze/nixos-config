@@ -1,11 +1,10 @@
 # Import all the types
 #---------------------------------------------------------------------------------------------------
-{ lib, ... }: {
-let
-  userOpts = import ./types/user.nix { inherit lib; };
-  typeOpts = import ./types/deployment.nix { inherit lib; };
-in
+{ lib, ... }:
 {
-  user = userOpts;
-  type = typeOpts;
+  app = import ./app.nix { inherit lib; };
+  nic = import ./nic.nix { inherit lib; };
+  user = import ./user.nix { inherit lib; };
+  macvlan = import ./macvlan.nix { inherit lib; };
+  deployment = import ./deployment.nix { inherit lib; };
 }
