@@ -1,10 +1,10 @@
 # Import all the options
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, args, f, ... }:
 let
   cfg = config.networking;
   ip = f.toIP "${args.ip}";
-  macvlanOpts = (import ../types/macvlan.nix { inherit lib; }).macvlanOpts;
+  types = import ../types { inherit lib; };
 in
 {
   imports = [
@@ -23,13 +23,13 @@ in
     networking.bridge = {
       enable = lib.mkEnableOption "Convert the main interface into a bridge";
       name = lib.mkOption {
-        type = types.str;
+        type = lib.types.str;
         description = lib.mdDoc "Bridge name to use";
         default = "br0";
       };
       macvlan = lib.mkOption {
         description = lib.mdDoc "Host macvlan interface";
-        type = types.submodule macvlanOpts;
+        type = lib.types.submodule types.macvlan;
         default = {
           name = "host";
           ip = "192.168.1.49";
@@ -37,7 +37,7 @@ in
       };
     };
     networking.vnic0 = lib.mkOption {
-      type = types.str;
+      type = lib.types.str;
       description = lib.mdDoc ''
         Primary interface to use for network access. This will typically just be the physical nic 
         e.g. ens18, but when networking.bridge is enabled it will be set to networking.bridge.name 

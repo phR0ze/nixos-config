@@ -5,13 +5,7 @@
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
-    args = (import ./flake_args.nix);
-    args = args // {
-      isVM = false;
-      isISO = false;
-      userHome = "/home/${args.username}";
-      configHome = "/home/${args.username}/.config";
-    };
+    _args = (import ./flake_args.nix);
 
     # Allow for package patches, overrides and additions
     system = args.system;
@@ -45,7 +39,13 @@
     };
 
     f = pkgs.callPackage ./options/funcs.nix { lib = nixpkgs.lib; };
-    specialArgs = { inherit args inputs f; };
+    args = _args // inputs // {
+      isVM = false;
+      isISO = false;
+      userHome = "/home/${args.username}";
+      configHome = "/home/${args.username}/.config";
+    };
+    specialArgs = { inherit args f; };
   in
   {
     # Homelab configuration

@@ -4,8 +4,8 @@
 #---------------------------------------------------------------------------------------------------
 { lib, ... }: with lib.types;
 let
-  nicOpts = (import ./nic.nix { inherit lib; }).nicOpts;
-  userOpts = (import ./user.nix { inherit lib; }).userOpts;
+  nicOpts = import ./nic.nix { inherit lib; };
+  userOpts = import ./user.nix { inherit lib; };
 in
 {
   appOpts = {

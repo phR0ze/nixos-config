@@ -10,4 +10,4 @@
     ../../profiles/server.nix
     ./hardware-configuration.nix
   ];
-};
+}

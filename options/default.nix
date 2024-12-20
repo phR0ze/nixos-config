@@ -1,8 +1,8 @@
 # Import all the options
 #---------------------------------------------------------------------------------------------------
-{ lib, ... }: with lib.types;
+{ lib, ... }:
 let
-  opts = import ./types { inherit lib; };
+  types = import ./types { inherit lib; };
 in
 {
   imports = [
@@ -21,16 +21,15 @@ in
   ];
 
   options.deployment = {
-
     type = lib.mkOption {
-      description = lib.mdDoc "Type of deployment";
-      type = types.submodule opts.type;
+      description = lib.mdDoc "Deployment type";
+      type = lib.types.submodule types.deployment;
       default = { };
     };
 
     user = lib.mkOption {
-      description = lib.mdDoc "User options for the containerized app";
-      type = types.submodule opts.user;
+      description = lib.mdDoc "User options";
+      type = lib.types.submodule types.user;
       default = { };
     };
   };
