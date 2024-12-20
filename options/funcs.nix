@@ -1,6 +1,6 @@
 # Import all functions
 #---------------------------------------------------------------------------------------------------
-{ lib, ... }:
+{ pkgs, lib, ... }:
 {
   # Convert a bool into an int
   boolToInt = x: if x then 1 else 0;
@@ -12,14 +12,13 @@
   boolToIntStr = x: if x then "1" else "0";
 
   # Convert the given yaml file into nix attribute set
-  fromYAML = yaml:
-    builtins.fromJSON (builtins.readFile (pkgs.stdenv.mkDerivation {
-      name = "fromYAML";
-      phases = ["buildPhase"];
-      buildPhase = "${pkgs.yaml2json}/bin/yaml2json < ${
-        builtins.toFile "yaml" yaml
-      } > $out";
-    }));
+  fromYAML = yamlFile:
+    let
+      json = pkgs.runCommand "converted.json" { } ''
+        ${lib.getExe pkgs.yj} < ${yamlFile} > $out
+      '';
+    in
+    builtins.fromJSON (builtins.readFile json);
 
   # Convert an IP address prefix length combination to an object
   # Usage:
