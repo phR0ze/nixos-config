@@ -31,10 +31,13 @@ echo "decrypting all encrypted files..."
 #
 #ACTION=0  # Initialize an ACTION variable to track if any files were decrypted
 #REPO_ROOT=$(git rev-parse --show-toplevel)
+decrypt() {
+    local target="$1"
+    echo "$target"
+}
 
 # Find all the files to decrypt
-FILES_TO_DECRYPT=$(find "${REPO_ROOT}" -type f -iname "*.enc.*" -exec realpath '{}' \;)
-echo $FILES_TO_DECRYPT
+find "${REPO_ROOT}" -type f -iname "*.enc.*" -exec decrypt {} \;
 
 #IFS=$'\n'  # Set the internal field separator to newline to handle filenames with spaces
 #
