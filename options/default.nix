@@ -1,6 +1,6 @@
 # Import all the options
 #---------------------------------------------------------------------------------------------------
-{ lib, ... }:
+{ lib, args, ... }:
 let
   types = import ./types { inherit lib; };
 in
@@ -26,11 +26,17 @@ in
       type = lib.types.submodule types.deployment;
       default = { };
     };
+  };
 
-    user = lib.mkOption {
-      description = lib.mdDoc "User options";
-      type = lib.types.submodule types.user;
-      default = { };
-    };
+  # Validate flake user args are set
+  config = {
+    assertions = [
+      { assertion = (args.username != ""); message = "args.username needs to be set"; }
+      { assertion = (args.comment != ""); message = "args.comment needs to be set"; }
+
+      # Networking args
+      { assertion = (args.hostname != ""); message = "args.hostname needs to be set"; }
+      { assertion = (args.nic0 != ""); message = "args.nic0 needs to be set"; }
+    ];
   };
 }
