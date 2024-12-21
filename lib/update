@@ -96,13 +96,6 @@ update::system()
 
 _update::preUpdate()
 {
-    log::ln "Updating local git repo"
-
-    log::ln "Injecting HEAD short SHA and comment"
-    local gitMsg="$(git log -1 --pretty="%h: %B" | xargs)"
-    utils::replace str "comment" "${gitMsg}" "$FLAKE_ARGS"
-    git add .
-
     log::ln "Removing ${cyan}/nix/files.lock${none} to permit files update"
     rm -f /nix/files.lock
 
