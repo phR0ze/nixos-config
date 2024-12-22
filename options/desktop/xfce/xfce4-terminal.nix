@@ -2,7 +2,7 @@
 #
 # Generate the ~/.config/xfce/xfconf/xfce-perchannel-xml/xfce4-terminal.xml configuration file
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, f, ... }: with lib.types;
+{ options, config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.xserver.desktopManager.xfce.terminal;
   xfceCfg = config.services.xserver.desktopManager.xfce;

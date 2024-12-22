@@ -1,7 +1,7 @@
 # XFCE Thunar options
 #
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, f, ... }: with lib.types;
+{ options, config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.xserver.desktopManager.xfce.thunar;
   xfceCfg = config.services.xserver.desktopManager.xfce;

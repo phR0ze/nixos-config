@@ -1,13 +1,14 @@
 # Lite VM configuration
 # --------------------------------------------------------------------------------------------------
-{ modulesPath, config, lib, pkgs, args, f, ... }:
+{ modulesPath, config, lib, pkgs, f, ... }:
 let
   cfg = config.virtualization.virt-manager;
+  machine = config.machine;
 
 in {
   imports = [
     (modulesPath + "/profiles/qemu-guest.nix")  # Imports a number of VM kernel modules
-    (./. + args.profile + ".nix")
+    (./. + machine.profile + ".nix")
   ];
 
   config = lib.mkMerge [
@@ -20,11 +21,11 @@ in {
       # - nixpkgs/nixos/modules/virtualisation/qemu-vm.nix
       virtualisation.vmVariant = {
         virtualisation = {
-          cores = args.vm.cores;
-          diskSize = args.vm.diskSize * 1024;
-          memorySize = args.vm.memorySize * 1024;
-          graphics = true;
-          resolution = { x = args.vm.resolution.x; y = args.vm.resolution.y; };
+          cores = machine.cores;
+          diskSize = machine.diskSize;
+          memorySize = machine.memorySize;
+          graphics = machine.graphics;
+          resolution = machine.resolution;
 
           # Allows for sftp, ssh etc... to the guest via localhost:2222
           #forwardPorts = [ { from = "host"; host.port = 2222; guest.port = 22; } ];
@@ -33,7 +34,7 @@ in {
     }
 
     # Optionally enable SPICE support
-    (lib.mkIf args.vm.spice {
+    (lib.mkIf machine.spice {
       services.spice-vdagentd.enable = true;        # support SPICE clients
       services.spice-autorandr.enable = true;       # automatically adjust resolution to client size
       services.spice-webdavd.enable = true;         # File sharing support between Host and Guest
@@ -45,7 +46,7 @@ in {
       # Configure SPICE
       virtualisation.vmVariant.virtualisation.qemu.options = [
         "-vga qxl"
-        "-spice port=${toString args.vm.spicePort},disable-ticketing=on"
+        "-spice port=${toString machine.spicePort},disable-ticketing=on"
         "-device virtio-serial"
         "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
         "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"

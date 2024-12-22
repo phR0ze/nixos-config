@@ -10,10 +10,10 @@
 #
 # - libvirt uses a virtual network switch `virbr0` that all the virtual machines "plug in" to.
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.virtualization.virt-manager;
-
+  machine = config.machine;
 in
 {
   options = {
@@ -41,6 +41,6 @@ in
     };
 
     environment.sessionVariables.LIBVIRT_DEFAULT_URI = [ "qemu:///system" ];
-    users.users.${args.username}.extraGroups = [ "libvirtd" "qemu-libvirtd" ];
+    users.users.${machine.user.name}.extraGroups = [ "libvirtd" "qemu-libvirtd" ];
   };
 }

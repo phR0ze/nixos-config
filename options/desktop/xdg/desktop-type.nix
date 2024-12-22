@@ -1,6 +1,6 @@
 # Declares the desktop entry type for options
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib.types;
+{ options, config, lib, pkgs, ... }: with lib.types;
 {
   desktopType = submodule {
     options = {

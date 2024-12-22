@@ -4,7 +4,7 @@
 # - Automation for installing missing DLLs and configuration for Wine
 # - No options available in nixos
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.programs.winetricks;
 

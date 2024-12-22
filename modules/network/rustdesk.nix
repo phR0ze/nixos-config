@@ -5,7 +5,7 @@
 # - DHCP systemd-networkd networking
 # - Configures CloudFlare DNS
 #---------------------------------------------------------------------------------------------------
-{ args, ... }:
+{ config, ... }:
 {
   networking.firewall.interfaces."${config.networking.vnic0}" = {
     # 8000 = Rustdesk?

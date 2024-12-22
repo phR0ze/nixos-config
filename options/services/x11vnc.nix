@@ -15,13 +15,13 @@
 # - display     Which display to show. Even with multiple monitors it's 0
 # - no6         Disable IPV6 support
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.services.x11vnc;
-
+  machine = config.machine;
   vncpass = pkgs.runCommandLocal "x11vnc-passwd" {} ''
     mkdir $out
-    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${args.userpass}" "$out/pass"
+    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${machine.user.pass}" "$out/pass"
   '';
 in
 {

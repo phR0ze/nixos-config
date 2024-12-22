@@ -2,10 +2,10 @@
 #
 # ### Details
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, f, ... }: with lib.types;
+{ options, config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.xdg;
-  desktopType = (import ./desktop-type.nix { inherit options config lib pkgs args; }).desktopType;
+  desktopType = (import ./desktop-type.nix { inherit options config lib pkgs; }).desktopType;
 
   # Handle overrides for XDG menu items
   menuItems = pkgs.runCommandLocal "menu-items" {} ''

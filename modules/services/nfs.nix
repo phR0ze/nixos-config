@@ -1,10 +1,10 @@
 # NFS configuration
 #
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.nfs.client.shares;
-
+  machine = config.machine;
 in
 {
   options = {

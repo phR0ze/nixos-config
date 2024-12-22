@@ -17,7 +17,7 @@
 # ### Deployment Features
 # - 
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.homelab.traefik;
   app = config.homelab.traefik.app;
@@ -44,12 +44,12 @@ in
         default = {
           name = "traefik";
           user = {
-            name = args.username;
-            uid = config.users.users.${args.username}.uid;
+            name = machine.user.name;
+            uid = config.users.users.${machine.user.name}.uid;
             gid = config.users.groups."users".gid;
           };
           nic = {
-            name = args.nic0;
+            name = machine.nic0.name;
             ip = "192.168.1.51";
             port = 80;
           };

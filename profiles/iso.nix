@@ -7,11 +7,14 @@
 # - Automation for installing NixOS including partitioning and customization
 # - Packages included on ISO for optimimal install speed and offline installations
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, modulesPath, ... }:
+{ config, lib, pkgs, modulesPath, ... }:
+let
+  machine = config.machine;
+in
 {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
-    (./. + args.profile + ".nix")
+    (./. + machine.profile + ".nix")
   ];
 
   # ISO image configuration
@@ -30,7 +33,7 @@
 
   # Some more help text.
   services.getty.helpLine = lib.mkForce ''
-    The "nixos" and "root" account passwords are set to ${args.userpass}.
+    The "nixos" and "root" account passwords are set to ${machine.user.pass}.
 
     If you need a wireless connection, type
     `sudo systemctl start wpa_supplicant` and configure a

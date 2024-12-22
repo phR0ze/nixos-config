@@ -5,7 +5,7 @@
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, ... }:
 let
-  machine = config.machine; 
+  machine = config.machine;
 in
 {
   imports = [

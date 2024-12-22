@@ -16,7 +16,7 @@
 # ### Deployment Features
 # -
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, t, ... }: with lib.types;
+{ config, lib, pkgs, f, t, ... }: with lib.types;
 let
   cfg = config.homelab.lxconsole;
   app = config.homelab.lxconsole.app;
@@ -33,14 +33,14 @@ in
         default = {
           name = "lxconsole";
           user = {
-            name = args.username;
-            uid = config.users.users.${args.username}.uid;
+            name = machine.user.name;
+            uid = config.users.users.${machine.user.name}.uid;
             gid = config.users.groups."users".gid;
           };
           nic = {
             name = config.networking.vnic0;
-            subnet = args.subnet;
-            gateway = args.gateway;
+            subnet = machine.nic0.subnet;
+            gateway = machine.nic0.gateway;
             ip = "192.168.1.40";
             port = 80;
           };

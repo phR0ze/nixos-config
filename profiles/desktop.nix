@@ -3,7 +3,7 @@
 # ### Features
 # - Directly installable: full general purpose desktop environment
 # --------------------------------------------------------------------------------------------------
-{ pkgs, args, ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./light.nix

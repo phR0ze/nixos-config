@@ -3,7 +3,7 @@
 # ### Details
 # - options nixos/modules/programs/neovim.nix
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.programs.neovim;
 

@@ -1,7 +1,7 @@
 # hardinfo configuration
 #
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.programs.hardinfo;
 

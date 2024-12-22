@@ -1,6 +1,6 @@
 # Android options
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.development.android;
   
@@ -14,6 +14,6 @@ in
  
   config = lib.mkIf (cfg.enable) {
     programs.adb.enable = true;
-    users.users.${args.username}.extraGroups = [ "adbusers" ];
+    users.users.${machine.user.name}.extraGroups = [ "adbusers" ];
   };
 }

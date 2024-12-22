@@ -4,7 +4,7 @@
 # - A simple wrapper for running Winetricks commands for Proton-enabled games
 # - No options available in nixos
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.programs.protontricks;
 

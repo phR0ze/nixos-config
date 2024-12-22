@@ -2,13 +2,13 @@
 #
 # Gnerate the ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml configuration file
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, f, ... }: with lib.types;
+{ options, config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.xserver.desktopManager.xfce.panel;
   xfceCfg = config.services.xserver.desktopManager.xfce;
 
   desktopType = (import ../xdg/desktop-type.nix {
-    inherit options config lib pkgs args;
+    inherit options config lib pkgs;
   }).desktopType;
 
   # Define the xml file contents

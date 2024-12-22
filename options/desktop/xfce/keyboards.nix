@@ -2,7 +2,7 @@
 #
 # Generate the ~/.config/xfce/xfconf/xfce-perchannel-xml/keyboards.xml configuration file
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }: with lib.types;
+{ options, config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.services.xserver.desktopManager.xfce.keyboards;
   xfceCfg = config.services.xserver.desktopManager.xfce;
