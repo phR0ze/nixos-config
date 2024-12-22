@@ -1,8 +1,8 @@
 {
   hostname = "nixos";               # hostname for the machine
   bluetooth = false;                # flag to control bluetooth enablement
-  nfs_shares = false;               # enable the nfs client shares for this system
   autologin = false;                # automatically log the user in after boot when true
+  nfs = false;                      # enable pre-configured nfs shares for this system
 
   profile = "generic/desktop";      # pre-defined configurations in path './profiles' selection
   efi = false;                      # EFI system boot type, default "false"
@@ -13,4 +13,6 @@
   timezone = "America/Boise";       # time-zone selection
   locale = "en_US.UTF-8";           # locale selection
   stateVersion = "24.05";           # Base install version, not sure this matters when on flake
+
+  vms = [];
 }

@@ -1,16 +1,19 @@
 # Nix configuration
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }:
+{ config, lib, pkgs, inputs, ... }:
+let
+  machine = config.machine;
+in
 {
   # Set the short git revision and comment to be used in the system version `clu list versions`
-  system.configurationRevision = lib.mkIf (args.comment != "") args.comment;
+  system.configurationRevision = lib.mkIf (machine.git.comment != "") machine.git.comment;
 
   nix = {
     package = pkgs.nixFlakes;
 
     # Used in conjunction with registry.nixpkgs.flake below this sets up the NIX_PATH environment 
     # variable for older v2 binaries so they are using the correct nixpkgs and config versions.
-    nixPath = [ "nixpkgs=${args.nixpkgs.outPath}" ];
+    nixPath = [ "nixpkgs=${inputs.nixpkgs.outPath}" ];
 
     # Enable experimental features
     extraOptions = "experimental-features = nix-command flakes";
@@ -19,7 +22,7 @@
     # across the system which version fo nixpkgs to use. This will keep things clean and avoid 
     # downloading a new version constantly. Both using different versions and downloading the now 
     # 40Mb tarball are awful. This fixes that.
-    registry.nixpkgs.flake = args.nixpkgs;
+    registry.nixpkgs.flake = inputs.nixpkgs;
 
     # Nix settings
     # https://nixos.org/manual/nix/stable/command-ref/conf-file.html

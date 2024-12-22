@@ -1,6 +1,6 @@
 {
   hostname = "homelab";             # hostname for the machine
-  nfs_shares = false;               # enable the nfs client shares for this system
+  nfs = false;                      # enable the nfs client shares for this system
   autologin = false;                # automatically log the user in after boot when true
 
   efi = false;                      # EFI system boot type, default "false"

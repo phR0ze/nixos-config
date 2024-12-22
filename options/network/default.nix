@@ -1,9 +1,9 @@
 # Import all the options
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }:
+{ config, lib, pkgs, f, ... }:
 let
   cfg = config.networking;
-  ip = f.toIP "${args.ip}";
+  nic0 = config.machine.nic0;
   types = import ../types { inherit lib; };
 in
 {
@@ -43,7 +43,7 @@ in
         e.g. ens18, but when networking.bridge is enabled it will be set to networking.bridge.name 
         to match the bridge.
       '';
-      default = args.nic0;
+      default = nic0.name;
     };
   };
 
@@ -53,7 +53,7 @@ in
     # ----------------------------------------------------------------------------------------------
     {
       networking.enableIPv6 = false;
-      networking.hostName = args.hostname;
+      networking.hostName = config.machine.hostname;
       networking.firewall = {
         allowPing = true;
       };
@@ -70,15 +70,15 @@ in
         dnssec = "allow-downgrade"; # using `true` will break DNS if VPN DNS servers don't support
       };
     }
-    (lib.mkIf (args.primary_dns != "") {
-      networking.nameservers = [ "${args.primary_dns}" ];
-      services.resolved.fallbackDns = [ "${args.primary_dns}" ];
+    (lib.mkIf (nic0.dns.primary != "") {
+      networking.nameservers = [ "${nic0.dns.primary}" ];
+      services.resolved.fallbackDns = [ "${nic0.dns.primary}" ];
     })
-    (lib.mkIf (args.primary_dns != "" && args.fallback_dns == "") {
-      services.resolved.fallbackDns = [ "${args.primary_dns}" ];
+    (lib.mkIf (nic0.dns.primary != "" && nic0.dns.fallback == "") {
+      services.resolved.fallbackDns = [ "${nic0.dns.primary}" ];
     })
-    (lib.mkIf (args.fallback_dns != "") {
-      services.resolved.fallbackDns = [ "${args.fallback_dns}" ];
+    (lib.mkIf (nic0.dns.fallback != "") {
+      services.resolved.fallbackDns = [ "${nic0.dns.fallback}" ];
     })
 
     # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
@@ -100,32 +100,32 @@ in
     # ----------------------------------------------------------------------------------------------
 
     # Optionally configure network bridge with static IP
-    (f.mkIfElse (cfg.bridge.enable && args.ip != "") {
+    (f.mkIfElse (cfg.bridge.enable && nic0.ip.full != "") {
       assertions = [
-        { assertion = (args.nic0 != "");
-          message = "NIC0 was not specified, please set 'args.nic0'"; }
+        { assertion = (nic0.name != "");
+          message = "NIC0 was not specified, please set 'nic0.name'"; }
       ];
 
       networking.useDHCP = false;
-      networking.bridges."${cfg.bridge.name}".interfaces = [ "${args.nic0}" ];
-      networking.interfaces."${cfg.bridge.name}".ipv4.addresses = [ ip ];
-      networking.defaultGateway = "${args.gateway}";
+      networking.bridges."${cfg.bridge.name}".interfaces = [ "${nic0.name}" ];
+      networking.interfaces."${cfg.bridge.name}".ipv4.addresses = [ nic0.ip.attrs ];
+      networking.defaultGateway = "${nic0.gateway}";
 
     # Otherwise configure network bridge with DHCP second
-    } (f.mkIfElse (cfg.bridge.enable && args.ip == "") {
+    } (f.mkIfElse (cfg.bridge.enable && nic0.ip.full == "") {
       assertions = [
-        { assertion = (args.nic0 != "");
-          message = "NIC0 was not specified, please set 'args.nic0'"; }
+        { assertion = (nic0.name != "");
+          message = "NIC0 was not specified, please set 'nic0.name'"; }
       ];
 
       networking.useDHCP = false;
-      networking.bridges."${cfg.bridge.name}".interfaces = [ "${args.nic0}" ];
+      networking.bridges."${cfg.bridge.name}".interfaces = [ "${nic0.name}" ];
       networking.interfaces."${cfg.bridge.name}".useDHCP = true;
 
     # Otherwise configure static IP for the primary NIC third
-    } (f.mkIfElse (args.ip != "") {
-      networking.interfaces."${args.nic0}".ipv4.addresses = [ ip ];
-      networking.defaultGateway = "${args.gateway}";
+    } (f.mkIfElse (nic0.ip.full != "") {
+      networking.interfaces."${nic0.name}".ipv4.addresses = [ nic0.ip.attrs ];
+      networking.defaultGateway = "${nic0.gateway}";
 
     # Finally fallback on DHCP for the primary NIC
     } {

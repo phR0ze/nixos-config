@@ -1,8 +1,8 @@
 # Import all the options
 #---------------------------------------------------------------------------------------------------
-{ lib, args, ... }:
+{ config, lib, ... }: with lib.types;
 let
-  types = import ./types { inherit lib; };
+  #machine = config.machine;
 in
 {
   imports = [
@@ -20,23 +20,23 @@ in
     ./virtualization
   ];
 
-  options.deployment = {
-    type = lib.mkOption {
-      description = lib.mdDoc "Deployment type";
-      type = lib.types.submodule types.deployment;
+  options = {
+    machine = lib.mkOption {
+      description = lib.mdDoc "Machine external arguments";
+      type = types.submodule (import ./types/machine.nix { inherit lib; });
       default = { };
     };
   };
 
   # Validate flake user args are set
-  config = {
-    assertions = [
-      { assertion = (args.username != ""); message = "args.username needs to be set"; }
-      { assertion = (args.comment != ""); message = "args.comment needs to be set"; }
-
-      # Networking args
-      { assertion = (args.hostname != ""); message = "args.hostname needs to be set"; }
-      { assertion = (args.nic0 != ""); message = "args.nic0 needs to be set"; }
-    ];
-  };
+#  config = {
+#    assertions = [
+#      { assertion = (machine.user.name != ""); message = "machine.user.name needs to be set"; }
+#      { assertion = (machine.comment != ""); message = "machine.comment needs to be set"; }
+#
+#      # Networking args
+#      { assertion = (machine.hostname != ""); message = "machine.hostname needs to be set"; }
+#      { assertion = (machine.nic0.name != ""); message = "machine.nic0.name needs to be set"; }
+#    ];
+#  };
 }
