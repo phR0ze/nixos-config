@@ -13,9 +13,10 @@
 # ### Details
 # - microvm was built to allow for keeping configuration and vm settings together
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }:
+{ config, lib, pkgs, f, ... }:
 let
   cfg = config.virtualization.host;
+  machine = config.machine;
 in
 {
   options = {
@@ -27,22 +28,22 @@ in
   config = lib.mkIf cfg.enable {
 
     # Generate systemd services for each enabled VM
-    systemd = lib.mkMerge (lib.lists.forEach args.vms (x:
-      (lib.mkIf x.enable {
-        services."vm-${x.hostname}" = {
-          wantedBy = [ "multi-user.target" ];
-          wants = [ "network-online.target" ];
-          after = [ "network-online.target" ];
-
-          serviceConfig = {
-            Type = "simple";
-            KillSignal = "SIGINT";
-            WorkingDirectory = "/var/lib/vm-${x.hostname}";
-            ExecStart = "/var/lib/vm-${x.hostname}/result/bin/run-${x.hostname}-vm";
-          };
-        };
-      })
-    ));
+#    systemd = lib.mkMerge (lib.lists.forEach machine.vms (x:
+#      (lib.mkIf x.enable {
+#        services."vm-${x.hostname}" = {
+#          wantedBy = [ "multi-user.target" ];
+#          wants = [ "network-online.target" ];
+#          after = [ "network-online.target" ];
+#
+#          serviceConfig = {
+#            Type = "simple";
+#            KillSignal = "SIGINT";
+#            WorkingDirectory = "/var/lib/vm-${x.hostname}";
+#            ExecStart = "/var/lib/vm-${x.hostname}/result/bin/run-${x.hostname}-vm";
+#          };
+#        };
+#      })
+#    ));
 
     # Enables the use of qemu-bridge-helper for `type = "bridge"` interface.
     environment.etc."qemu/bridge.conf".text = lib.mkDefault ''
@@ -78,6 +79,6 @@ in
       # quickemu
     ];
 
-    users.users.${args.username}.extraGroups = [ "kvm" ];
+    users.users.${machine.user.name}.extraGroups = [ "kvm" ];
   };
 }

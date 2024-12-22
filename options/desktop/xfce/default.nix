@@ -5,7 +5,7 @@ let
   cfg = config.services.xserver.desktopManager.xfce;
   backgrounds = pkgs.callPackage ../../../modules/desktop/backgrounds { };
   wmctl = pkgs.callPackage ../../../modules/desktop/wmctl { };
-
+  machine = config.machine;
 in 
 {
   imports = [
@@ -40,7 +40,7 @@ in
           { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
         ]
         ++
-          lib.optional config.deployment.type.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
+          lib.optional machine.type.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
         ++ [
           { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
           { name = "HandBrake"; exec = "ghb"; icon = "fr.handbrake.ghb"; }
@@ -51,7 +51,7 @@ in
           { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; 
           }]
         ++
-          lib.optional config.deployment.type.develop { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
+          lib.optional machine.type.develop { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
       };
     };
 

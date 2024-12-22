@@ -6,5 +6,6 @@
   nic = import ./nic.nix { inherit lib; };
   user = import ./user.nix { inherit lib; };
   macvlan = import ./macvlan.nix { inherit lib; };
-  deployment = import ./deployment.nix { inherit lib; };
+  machine = import ./machine.nix { inherit lib; };
+  vm = import ./vm.nix { inherit lib; };
 }

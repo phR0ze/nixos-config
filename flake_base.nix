@@ -43,20 +43,12 @@
     # Configure special args with our argument overrides
     # ----------------------------------------------------------------------------------------------
     f = pkgs.callPackage ./options/funcs { lib = nixpkgs.lib; };
-    _private_args = f.fromYAML ./args.dec.yaml;
-    _private_flake_args = f.fromYAML ./flake_args.dec.yaml;
-    _args = _flake_args // (import ./args.nix) // _private_flake_args // _private_args;
-
-    # order of merging precedence is important for overrides
-    args = _args // inputs // {
+    args = _flake_args // (f.fromYAML ./flake_args.dec.yaml) // {
       isVM = false;
       isISO = false;
-      #comment = pkgs.callPackage ./options/funcs/git-message.nix { path = ./.; };
       comment = f.gitMessage ./.;
-      userHome = "/home/${_args.username}";
-      configHome = "/home/${_args.username}/.config";
     };
-    specialArgs = { inherit args f; };
+    specialArgs = { inherit args f inputs; };
   in
   {
     # Local system configuration, usually the hostname of the machine, but using this in a way to 

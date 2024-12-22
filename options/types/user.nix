@@ -11,26 +11,32 @@
       default = null;
     };
 
+    pass = lib.mkOption {
+      description = lib.mdDoc "User password to be populated from secrets securely";
+      type = types.nullOr types.str;
+      default = null;
+    };
+
     fullname = lib.mkOption {
-      description = lib.mdDoc "Fullname of the user";
+      description = lib.mdDoc "User fullname";
       type = types.nullOr types.str;
       default = null;
     };
 
     email = lib.mkOption {
-      description = lib.mdDoc "Email address of the user";
+      description = lib.mdDoc "User email address";
       type = types.nullOr types.str;
       default = null;
     };
 
     uid = lib.mkOption {
-      description = lib.mdDoc "User id for the user";
+      description = lib.mdDoc "User id";
       type = types.nullOr types.int;
       default = null;
     };
 
     gid = lib.mkOption {
-      description = lib.mdDoc "Group id for the user";
+      description = lib.mdDoc "User group id";
       type = types.nullOr types.int;
       default = null;
     };
