@@ -15,10 +15,9 @@
 # - purposefully renaming `virtualization` to give me a new namespace to work in
 #
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.virtualization.podman;
-
 in
 {
   options = {
@@ -30,7 +29,7 @@ in
   config = lib.mkIf (cfg.enable) {
 
     # Configure primary user permissions
-    users.users.${args.username}.extraGroups = [ "podman" ];
+    users.users.${machine.user.name}.extraGroups = [ "podman" ];
 
     # Install dependencies
     environment.systemPackages = [

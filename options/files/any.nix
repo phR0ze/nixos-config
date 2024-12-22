@@ -35,12 +35,12 @@
 #     filesPackage as a parameter
 #  9. The activation install script then uses the filesPackage to install the files
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }:
+{ options, config, lib, pkgs, ... }:
 let
 
   # Import the shared fileType
   fileType = (import ./file-type.nix {
-    inherit options config lib pkgs args;
+    inherit options config lib pkgs;
   }).fileType;
 
   # Filter the files options down to just those that are enabled.

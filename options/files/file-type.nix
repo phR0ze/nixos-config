@@ -1,6 +1,6 @@
 # Declares files fileType for use in various files options
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }:
+{ options, config, lib, pkgs, ... }:
 {
   # Constructs a files type.
   #

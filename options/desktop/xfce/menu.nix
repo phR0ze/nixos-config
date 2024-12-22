@@ -6,7 +6,7 @@
 #   populate with the various menu items.
 # - By providing our own toplevel template we can modify the layout
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, f, ... }: with lib.types;
+{ options, config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.xserver.desktopManager.xfce;
 

@@ -4,7 +4,7 @@
 # - implemented in nixpkgs/nixos/modules/programs/dconf.nix
 # - run `dconf watch /` to monitor changes
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, f, ... }: with lib.types;
+{ options, config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.programs.dconf;
 

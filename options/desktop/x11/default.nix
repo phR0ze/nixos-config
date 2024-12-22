@@ -24,10 +24,10 @@
 # %T  Time as %H:%M:%S
 # %Z  Time Zone Name 
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.services.xserver;
-
+  machine = config.machine;
 in
 {
   imports = [
@@ -54,8 +54,8 @@ in
             '';
           };
         };
-        autoLogin.enable = args.autologin;
-        autoLogin.user = args.username;
+        autoLogin.enable = machine.autologin;
+        autoLogin.user = machine.user.name;
       };
 
       # Arch Linux recommends libinput and Xfce uses it in its settings manager

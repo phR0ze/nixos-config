@@ -1,13 +1,16 @@
 # Git configuration
 #---------------------------------------------------------------------------------------------------
-{ args, ... }:
+{ config, ... }:
+let
+  machine = config.machine;
+in
 {
   programs.git = {
     enable = true;
     config = {
       user = {
-        name = args.git_user;
-        email = args.git_email;
+        name = machine.git.user;
+        email = machine.git.email;
       };
       core = {
         editor = "vim";

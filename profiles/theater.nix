@@ -3,7 +3,7 @@
 # ### Features
 # - Directly installable: desktop with additional media apps and configuration
 # --------------------------------------------------------------------------------------------------
-{ lib, pkgs, args, ... }:
+{ lib, pkgs, ... }:
 let
   backgrounds = pkgs.callPackage ../../modules/desktop/backgrounds { };
 

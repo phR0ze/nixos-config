@@ -4,12 +4,12 @@
 #
 # see ./any.nix for warnings and instructions
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }:
+{ options, config, lib, pkgs, ... }:
 let
 
   # Import the shared fileType
   fileType = (import ./file-type.nix {
-    inherit options config lib pkgs args;
+    inherit options config lib pkgs;
   }).fileType;
 
 in

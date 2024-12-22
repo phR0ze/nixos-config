@@ -2,7 +2,7 @@
 #
 # Gnerate the ~/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml configuration file
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, f, ... }: with lib.types;
+{ options, config, lib, pkgs, f, ... }: with lib.types;
 let
   xcfg = config.services.xserver;
   xfceCfg = xcfg.desktopManager.xfce;

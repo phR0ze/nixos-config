@@ -1,6 +1,6 @@
 # Import all the options
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }:
+{ config, lib, pkgs, f, ... }:
 {
   imports = [
     ./incus.nix

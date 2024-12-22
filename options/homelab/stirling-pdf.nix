@@ -19,7 +19,7 @@
 # - App is visiable on the LAN, with a dedicated host macvlan and static IP, for inbound connections
 # - App data is persisted at /var/lib/$APP
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.homelab.stirling-pdf;
   app = config.homelab.stirling-pdf.app;
@@ -36,8 +36,8 @@ in
         default = {
           name = "stirling-pdf";
           user = {
-            name = args.username;
-            uid = config.users.users.${args.username}.uid;
+            name = machine.user.name;
+            uid = config.users.users.${machine.user.name}.uid;
             gid = config.users.groups."users".gid;
           };
           nic = {

@@ -3,7 +3,7 @@
 # ### Notes:
 # - alterntive to the default xfce4-appfinder
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.programs.dmenu;
 

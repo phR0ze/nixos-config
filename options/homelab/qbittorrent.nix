@@ -19,7 +19,7 @@
 # - Web UI temporary password for `admin` user is printed to the container log. You must change it in
 #   the Web UI or you'll have a new one on every boot.
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, t, ... }: with lib.types;
+{ config, lib, pkgs, f, t, ... }: with lib.types;
 let
   cfg = config.homelab.qbittorrent;
   app = config.homelab.qbittorrent.app;
@@ -36,8 +36,8 @@ in
         default = {
           name = "qbittorrent";
           user = {
-            name = args.username;
-            uid = config.users.users.${args.username}.uid;
+            name = machine.user.name;
+            uid = config.users.users.${machine.user.name}.uid;
             gid = config.users.groups."users".gid;
           };
           nic = {

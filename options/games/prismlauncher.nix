@@ -1,6 +1,6 @@
 # Prismlauncher options
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.programs.prismlauncher;
 
@@ -11,7 +11,7 @@ let
     IconTheme=pe_colored
     JavaPath=${cfg.javaPath}
     Language=en_US
-    LastHostname=${args.hostname}
+    LastHostname=${config.machine.hostname}
     MaxMemAlloc=${toString cfg.maxMemAlloc}
     MinMemAlloc=${toString cfg.minMemAlloc}
   '');

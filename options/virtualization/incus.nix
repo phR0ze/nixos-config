@@ -5,9 +5,10 @@
 # - makes use of the `incus admin init --preseed` to configure incus programmatically
 #
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.virtualization.incus;
+  machine = config.machine;
 in
 {
   options = {
@@ -29,7 +30,7 @@ in
     networking.bridge.enable = true;
 
     # Configure primary user permissions
-    users.users.${args.username}.extraGroups = [ "incus-admin" ];
+    users.users.${machine.user.name}.extraGroups = [ "incus-admin" ];
 
     # Setup firewall exceptions:
     # https://wiki.nixos.org/wiki/Incus

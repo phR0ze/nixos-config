@@ -3,7 +3,7 @@
 # ### Details
 # - Enabled by x11/default.nix
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, f, ... }: with lib.types;
+{ options, config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.xdg;
 

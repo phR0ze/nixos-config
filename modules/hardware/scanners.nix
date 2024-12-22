@@ -3,7 +3,10 @@
 # ### Details
 # - https://nixos.wiki/wiki/Scanners
 #---------------------------------------------------------------------------------------------------
-{ pkgs, args, ... }:
+{ config, pkgs, ... }:
+let
+  machine = config.machine;
+in
 {
   hardware.sane = {
     enable = true; 
@@ -18,5 +21,5 @@
     pkgs.utsushi
   ];
 
-  users.users.${args.username}.extraGroups = [ "scanner" "lp" ];
+  users.users.${machine.user.name}.extraGroups = [ "scanner" "lp" ];
 }

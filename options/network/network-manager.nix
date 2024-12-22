@@ -1,6 +1,6 @@
 # Network manager configuration
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.network.network-manager;
 
@@ -15,7 +15,7 @@ in
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
       # Enables ability for user to make network manager changes
-      users.users.${args.username}.extraGroups = [ "networkmanager" ];
+      users.users.${config.machine.user.name}.extraGroups = [ "networkmanager" ];
 
       # Enable networkmanager and nm-applet by default
       networking.networkmanager = {

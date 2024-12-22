@@ -2,7 +2,7 @@
 #
 # Generate the ~/.config/xfce/xfconf/xfce-perchannel-xml/pointers.xml configuration file
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, f, ... }: with lib.types;
+{ options, config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.xserver.desktopManager.xfce.pointers;
   xfceCfg = config.services.xserver.desktopManager.xfce;

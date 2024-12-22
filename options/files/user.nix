@@ -4,12 +4,13 @@
 #
 # see ./any.nix for warnings and instructions
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, args, ... }:
+{ options, config, lib, pkgs, ... }:
 let
+  machine = config.machine;
 
   # Import the shared fileType
   fileType = (import ./file-type.nix {
-    inherit options config lib pkgs args;
+    inherit options config lib pkgs;
   }).fileType;
 
 in
@@ -41,7 +42,7 @@ in
           ".dircolors".copy = ../include/home/.dircolors;
         };
       '';
-      type = fileType "${args.username}" "users" "home/${args.username}/";
+      type = fileType "${machine.user.name}" "users" "home/${machine.user.name}/";
     };
   };
 }

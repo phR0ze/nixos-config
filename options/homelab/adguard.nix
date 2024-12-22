@@ -28,7 +28,7 @@
 # - podman-adguard
 # - podman-network-adguard
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.homelab.adguard;
   app = config.homelab.adguard.app;
@@ -214,14 +214,14 @@ in
         default = {
           name = "adguard";
           user = {
-            name = args.username;
-            uid = config.users.users.${args.username}.uid;
+            name = machine.user.name;
+            uid = config.users.users.${machine.user.name}.uid;
             gid = config.users.groups."users".gid;
           };
           nic = {
-            name = args.nic0;
-            subnet = args.subnet;
-            gateway = args.gateway;
+            name = machine.nic0.name;
+            subnet = machine.nic0.subnet;
+            gateway = machine.nic0.gateway;
             ip = "192.168.1.52";  # Host IP
             port = 80;            # Web interface ip
           };
