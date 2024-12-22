@@ -81,5 +81,5 @@
   ];
 
   # Set the NixOS version that this was installed with
-  system.stateVersion = args.stateVersion;
+  system.stateVersion = config.machine.stateVersion;
 }

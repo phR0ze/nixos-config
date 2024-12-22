@@ -16,8 +16,6 @@ in
 
   # Once the external args are transferred into the system options should be used
   machine.hostname = _args.hostname;
-  machine.isVM = _args.isVM;
-  machine.isISO = _args.isISO;
 
   # User arguments
   machine.user.name = _args.username;
