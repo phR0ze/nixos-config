@@ -18,18 +18,6 @@ in
       default = null;
     };
 
-    isVM = lib.mkOption {
-      description = lib.mdDoc "Is this machine a VM";
-      type = types.bool;
-      default = false;
-    };
-
-    isISO = lib.mkOption {
-      description = lib.mdDoc "Is this machine an ISO build";
-      type = types.bool;
-      default = false;
-    };
-
     type = lib.mkOption {
       description = lib.mdDoc "Machine type";
       type = types.submodule type;
