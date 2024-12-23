@@ -1,8 +1,9 @@
 # Declares a machine type for reusability
 #
-# Used as the top level input arguments for the entire physical or virtual machine
+# ### Features
+# - _args is the composed/overridden set of user arguments for this machine
 #---------------------------------------------------------------------------------------------------
-{ lib, ... }: with lib.types;
+{ lib, _args, ... }: with lib.types;
 let
   nic = import ./nic.nix { inherit lib; };
   user = import ./user.nix { inherit lib; };
@@ -15,7 +16,7 @@ in
     hostname = lib.mkOption {
       description = lib.mdDoc "Hostname";
       type = types.nullOr types.str;
-      default = null;
+      default = _args.hostname;
     };
 
     type = lib.mkOption {
@@ -27,7 +28,12 @@ in
     user = lib.mkOption {
       description = lib.mdDoc "User options";
       type = types.submodule user;
-      default = { };
+      default = {
+        name = _args.username;
+        fullname = _args.fullname;
+        email = _args.email;
+        pass = _args.userpass;
+      };
     };
 
     nic0 = lib.mkOption {
