@@ -4,14 +4,12 @@
 {
   options = {
     name = lib.mkOption {
-      type = types.nullOr types.str;
+      type = types.str;
       description = lib.mdDoc "MacVLAN name";
-      default = null;
     };
     ip = lib.mkOption {
-      type = types.nullOr types.str;
+      type = types.str;
       description = lib.mdDoc "MacVLAN IP address";
-      default = null;
     };
   };
 }

@@ -6,6 +6,7 @@
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let
   # Apply external arg precedence to form the final set for the machine
+  cfg = config.machine;
   _args = args // (import ./args.nix) // (f.fromYAML ./args.dec.yaml);
 in
 {
@@ -27,25 +28,29 @@ in
   # Validate flake user args are set
   config = lib.mkMerge [
     {
-    assertions = [
-#      { assertion = (machine.user.name != ""); message = "machine.user.name needs to be set"; }
-#      { assertion = (machine.comment != ""); message = "machine.comment needs to be set"; }
-#
-#      # Networking args
-      #{ assertion = (machine.hostname != "foobar"); message = "machine.hostname needs to be set"; }
-      { assertion = (config.machine.drive1-uuid == "foobar"); message = "${config.machine.drive1-uuid}"; }
-#      { assertion = (machine.nic0.name != ""); message = "machine.nic0.name needs to be set"; }
-    ];
+      assertions = [
+        # Validate user arguments
+        { assertion = (cfg.user.name != ""); message = "Machine user.name not set"; }
+        { assertion = (cfg.user.fullname != ""); message = "Machine user.fullname not set"; }
+        { assertion = (cfg.user.email != ""); message = "Machine user.email not set"; }
+        { assertion = (cfg.user.pass != ""); message = "Machine user.pass not set"; }
+
+        # Validate user arguments
+        { assertion = (cfg.hostname != ""); message = "Machine hostname not set"; }
+
+        # System arguments
+        { assertion = (cfg.drive1-uuid != ""); message = "Machine drive1-uuid not set"; }
+      ];
+
+        # Once the external args are transferred into the system options should be used
+      #machine.hostname = _args.hostname;
+
+      # User arguments
+      machine.user.name = _args.username;
+      machine.user.fullname = _args.fullname;
+      machine.user.email = _args.email;
+      machine.user.pass = _args.userpass;
     }
-
-    # Once the external args are transferred into the system options should be used
-    #machine.hostname = _args.hostname;
-
-    # User arguments
-    #machine.user.name = _args.username;
-    #machine.user.fullname = _args.fullname;
-    #machine.user.email = _args.email;
-    #machine.user.pass = _args.userpass;
 
     # Networking arguments
     (lib.mkIf (_args.nic0 != "" && _args.ip0 != "") {
@@ -62,7 +67,7 @@ in
     {
       machine.drive1-uuid = _args.drive1-uuid;
       machine.efi = _args.efi;
-      machine.mbr = lib.mkIf (_args.mbr != "nodev") _args.mbr;
+      machine.mbr = _args.mbr;
       machine.arch = _args.system;
       machine.locale = _args.locale;
       machine.profile = _args.profile;
@@ -75,15 +80,6 @@ in
       machine.git.user = _args.git_user;
       machine.git.email = _args.git_email;
       machine.git.comment = _args.comment;
-
-      # Virtual machine arguments
-      machine.cores = _args.cores;
-      machine.diskSize = _args.diskSize * 1024;
-      machine.memorySize = _args.memorySize * 1024;
-      machine.graphics = _args.graphics;
-      machine.resolution = { x = _args.resolution.x; y = _args.resolution.y; };
-
-      machine.vms = [];
     }
   ];
 }

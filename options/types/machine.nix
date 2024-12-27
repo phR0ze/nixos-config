@@ -15,7 +15,7 @@ in
   options = {
     hostname = lib.mkOption {
       description = lib.mdDoc "Hostname";
-      type = types.nullOr types.str;
+      type = types.str;
       default = _args.hostname;
     };
 
@@ -39,13 +39,13 @@ in
     nic0 = lib.mkOption {
       description = lib.mdDoc "Nic options";
       type = types.submodule nic;
-      default = { };
+      default = { ip.full = ""; };
     };
 
     nic1 = lib.mkOption {
       description = lib.mdDoc "Nic options";
       type = types.submodule nic;
-      default = { };
+      default = { ip.full = ""; };
     };
 
     drive1-uuid = lib.mkOption {
@@ -62,31 +62,31 @@ in
 
     mbr = lib.mkOption {
       description = lib.mdDoc "BIOS mbr is enabled when not 'nodev'";
-      type = types.nullOr types.str;
+      type = types.str;
       default = "nodev";
     };
 
     arch = lib.mkOption {
       description = lib.mdDoc "System architecture";
-      type = types.nullOr types.str;
+      type = types.str;
       default = "x86_64-linux";
     };
 
     locale = lib.mkOption {
       description = lib.mdDoc "System locale";
-      type = types.nullOr types.str;
+      type = types.str;
       default = "en_US.UTF-8";
     };
 
     timezone = lib.mkOption {
       description = lib.mdDoc "System timezone";
-      type = types.nullOr types.str;
+      type = types.str;
       default = "America/Boise";
     };
 
     profile = lib.mkOption {
       description = lib.mdDoc "System profile used for original install";
-      type = types.nullOr types.str;
+      type = types.str;
       default = "generic/desktop";
     };
 
@@ -116,7 +116,7 @@ in
 
     stateVersion = lib.mkOption {
       description = lib.mdDoc "System state version";
-      type = types.nullOr types.str;
+      type = types.str;
       default = "24.05";
     };
 
@@ -125,22 +125,21 @@ in
         options = {
           user = lib.mkOption {
             description = lib.mdDoc "Git user name";
-            type = types.nullOr types.str;
-            default = null;
+            type = types.str;
+            default = "";
           };
           email = lib.mkOption {
             description = lib.mdDoc "Git email address";
-            type = types.nullOr types.str;
-            default = null;
+            type = types.str;
+            default = "";
           };
           comment = lib.mkOption {
             description = lib.mdDoc "System build comment";
-            type = types.nullOr types.str;
-            default = null;
+            type = types.str;
+            default = "";
           };
         };
       };
-      default = null;
     };
 
     vms = lib.mkOption {

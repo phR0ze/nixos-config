@@ -11,8 +11,7 @@ in
   options = {
     name = lib.mkOption {
       description = lib.mdDoc "App name to use for supporting components";
-      type = types.nullOr types.str;
-      default = null;
+      type = types.str;
     };
 
     user = lib.mkOption {

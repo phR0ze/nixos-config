@@ -7,8 +7,7 @@
   options = {
     hostname = lib.mkOption {
       description = lib.mdDoc "VM hostname";
-      type = types.nullOr types.str;
-      default = null;
+      type = types.str;
     };
   };
 }
