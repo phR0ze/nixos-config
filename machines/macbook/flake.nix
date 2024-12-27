@@ -42,7 +42,7 @@
 
     # Configure special args with our argument overrides
     # ----------------------------------------------------------------------------------------------
-    f = pkgs.callPackage ./options/funcs { lib = nixpkgs.lib; };
+    f = pkgs.callPackage ../../options/funcs { lib = nixpkgs.lib; };
     args = _flake_args // (f.fromYAML ../../flake_args.dec.yaml) // {
       isVM = false;
       isISO = false;
