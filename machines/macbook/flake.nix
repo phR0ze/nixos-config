@@ -56,7 +56,7 @@
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.system = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
-      modules = [ ./options ./configuration.nix ];
+      modules = [ ../../options ./configuration.nix ];
     };
   };
 }
