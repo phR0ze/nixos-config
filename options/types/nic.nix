@@ -5,22 +5,19 @@
   options = {
     name = lib.mkOption {
       description = lib.mdDoc "NIC name";
-      type = types.nullOr types.str;
-      default = null;
+      type = types.str;
       example = "ens18";
     };
 
     subnet = lib.mkOption {
       description = lib.mdDoc "Network subnet/CIDR";
-      type = types.nullOr types.str;
-      default = null;
+      type = types.str;
       example = "192.168.1.0/24";
     };
 
     gateway = lib.mkOption {
       description = lib.mdDoc "Network gateway";
-      type = types.nullOr types.str;
-      default = null;
+      type = types.str;
       example = "192.168.1.1";
     };
 
@@ -30,8 +27,7 @@
         options = {
           full = lib.mkOption {
             description = lib.mdDoc "Full IP and CIDR combination";
-            type = types.nullOr types.str;
-            default = null;
+            type = types.str;
             example = "192.168.1.41/24";
           };
           attrs = lib.mkOption {
@@ -45,7 +41,6 @@
           };
         };
       };
-      default = { };
     };
 
     dns = lib.mkOption {
@@ -69,8 +64,7 @@
 
     port = lib.mkOption {
       description = lib.mdDoc "Primary port";
-      type = types.nullOr types.port;
-      default = null;
+      type = types.port;
       example = 80;
     };
   };

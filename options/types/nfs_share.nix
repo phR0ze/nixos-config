@@ -8,15 +8,13 @@
 
     mountPoint = lib.mkOption {
       description = lib.mdDoc "NFS Share mount point";
-      type = types.nullOr types.str;
-      default = null;
+      type = types.str;
       example = "/mnt/Media";
     };
 
     remotePath = lib.mkOption {
       description = lib.mdDoc "Remote path to use for the NFS Share";
-      type = types.nullOr types.str;
-      default = null;
+      type = types.str;
       example = "192.168.1.2:/srv/nfs/Media";
     };
   };
