@@ -8,6 +8,7 @@
   efi = false;                      # EFI system boot type, default "false"
   mbr = "nodev";                    # MBR system boot device, e.g. /dev/sda, default "nodev"
   nic0 = "";                        # First NIC found in hardware-configuration.nix
+  ip0 = "";                         # IP address for nic 0 if given else DHCP, e.g. 192.168.1.12/24
   nic1 = "";                        # Second NIC found in hardware-configuration.nix
   system = "x86_64-linux";          # system architecture to use
   timezone = "America/Boise";       # time-zone selection
