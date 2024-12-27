@@ -48,6 +48,12 @@ in
       default = { };
     };
 
+    drive1-uuid = lib.mkOption {
+      description = lib.mdDoc "Hard drive 1 UUID";
+      type = types.nullOr types.str;
+      default = "";
+    };
+
     efi = lib.mkOption {
       description = lib.mdDoc "EFI is enabled";
       type = types.bool;

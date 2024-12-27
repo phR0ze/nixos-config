@@ -1,4 +1,5 @@
-# Machines
+# Machines <img style="margin: 6px 13px 0px 0px" align="left" src="../art/logo_36x36.png" />
+
 Machines are independent system configurations for physical or virtual machines. The machine has its 
 own configuration `flake.nix`, `flake.nix`, `configuration.nix`, `hardward-configuration.nix` and 
 local arguments `args.nix` and `args.enc.yaml` allowing for complete declarative management of the 
