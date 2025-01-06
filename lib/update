@@ -24,6 +24,7 @@ Commands:
 
 system args:
   reset-xfce        Remove existing xfce configuration
+  impure            Pass impure into the flake system
 USAGE
 
     log::ln "\nExamples:"
@@ -87,10 +88,11 @@ update::system()
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
     _update::preUpdate
-    if [[ "$@" == "reset-xfce" ]]; then
+    local arg=$1; shift
+    if [[ "$arg" == "reset-xfce" ]]; then
         _update::removeUserXfceConfigs
     fi
-    _update::updateSystem
+    _update::updateSystem $@
     _update::postUpdate
 }
 
@@ -118,7 +120,10 @@ _update::removeUserXfceConfigs()
 # Trigger the Nix flake based system update
 _update::updateSystem()
 {
-    nixos-rebuild switch --flake "path:/etc/nixos#system"
+    local impure=""
+    [[ "$@" == "impure" ]] && impure="--impure"
+
+    nixos-rebuild switch $impure --flake "path:/etc/nixos#system"
 }
 
 _update::postUpdate()
