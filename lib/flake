@@ -8,13 +8,13 @@
 # --------------------------------------------------------------------------------------------------
 FLAKE="$SOURCE_DIR/flake.nix"
 FLAKE_LOCK="$SOURCE_DIR/flake.lock"
-FLAKE_BASE="$SOURCE_DIR/flake_base.nix"
-FLAKE_BASE_LOCK="$SOURCE_DIR/flake_base.lock"
+FLAKE_BASE="$SOURCE_DIR/base.nix"
+FLAKE_BASE_LOCK="$SOURCE_DIR/base.lock"
+MACHINES_DIR="$SOURCE_DIR/machines"
 
 # Ensure that flake related commands are executed from the root of the nixos-config directory
 flake::ensure_origin()
 {
-    local path="$(basename $SOURCE_DIR)"
     if [[ "$path" != "nixos-config" ]]; then
         log::fatal "Flake commands must be run from the root of the ${cyan}nixos-config${none} repo"
     fi
@@ -29,7 +29,7 @@ flake::switch()
     flake::ensure_origin
 
     local machine="$1"
-    local machine_path="$SCRIPT_DIR/machines/$machine"
+    local machine_path="$MACHINES_DIR/$machine"
     local flake_local="$machine_path/flake.nix"
     local flake_local_lock="$machine_path/flake.lock"
 
@@ -51,5 +51,6 @@ flake::switch()
     fi
 
     # Create the configuration link
+    # - Using relative path here on purpose
     ln -sf "machines/$machine/configuration.nix" "$SOURCE_DIR/configuration.nix"
 }

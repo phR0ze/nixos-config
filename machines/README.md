@@ -17,8 +17,8 @@ be used to compose and manage a machine or overridden as necessary.
 * `args.enc.yaml` - private arguments to be shared by all machines or overridden locally
 * `args.nix` - non-private arguments to be shared by all machines or overridden locally
 * `configuration.nix` - link to the specific `machines/<machine>/configuration.nix`
-* `flake_base.lock` - shared flake lock for all machines or overridden locally
-* `flake_base.nix` - shared flake management for all machines or overridden locally
+* `base.lock` - shared flake lock for all machines or overridden locally
+* `base.nix` - shared flake management for all machines or overridden locally
 * `flake.lock` - machine specific flake lock or copy of base flake lock
 * `flake.nix` - machine specific flake or copy of base flake
 
@@ -33,8 +33,10 @@ Each machine in `nixos-config/machines/` is composed of:
 ## Flake switch
 `clu` will copy the target machine's flake files to the root of the project to control the flake such 
 that the machine is the target. This consists of:
-* copying the `nixos-config/machines/<machine>/flake.nix` if present to the root
-* copying the `nixos-config/machines/<machine>/flake.lock` if present to the root
+* copying the `nixos-config/machines/<machine>/flake.nix` if present to the root else copy the 
+  `nixos-config/base.nix` to the root as `flake.nix`
+* copying the `nixos-config/machines/<machine>/flake.lock` if present to the root else copy the
+  `nixos-config/base.lock` to the root as `flake.lock`
 * creating a link in the root to `nixos-config/machines/<machine>/configuration.nix`
 
 <!-- 
