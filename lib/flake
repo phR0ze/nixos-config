@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------------------
 FLAKE="$SOURCE_DIR/flake.nix"
 FLAKE_LOCK="$SOURCE_DIR/flake.lock"
+CONFIGURATION="$SOURCE_DIR/configuration.nix"
 FLAKE_BASE="$SOURCE_DIR/base.nix"
 FLAKE_BASE_LOCK="$SOURCE_DIR/base.lock"
 MACHINES_DIR="$SOURCE_DIR/machines"
@@ -15,7 +16,7 @@ MACHINES_DIR="$SOURCE_DIR/machines"
 # Ensure that flake related commands are executed from the root of the nixos-config directory
 flake::ensure_origin()
 {
-    if [[ "$path" != "nixos-config" ]]; then
+    if [[ "$(grep '# nixos-config' $SOURCE_DIR/README.md)" == "" ]]; then
         log::fatal "Flake commands must be run from the root of the ${cyan}nixos-config${none} repo"
     fi
 }
@@ -50,7 +51,31 @@ flake::switch()
         cp "$FLAKE_BASE_LOCK" "$FLAKE_LOCK"
     fi
 
+    # Add the flake files but setup a trap to remove them again
+    git add flake.nix -f
+    git add flake.lock -f
+
     # Create the configuration link
     # - Using relative path here on purpose
-    ln -sf "machines/$machine/configuration.nix" "$SOURCE_DIR/configuration.nix"
+    ln -sf "machines/$machine/configuration.nix" configuration.nix
+    git add configuration.nix -f
+}
+
+# Restore the standard flake files back to prestine in git
+flake::restore()
+{
+    if [[ "$(git diff --staged --name-only -- $FLAKE $FLAKE_LOCK $CONFIGURATION)" != "" ]]; then
+        log::ln "Restoring back to original:"
+        log::ln "> ${cyan}${FLAKE}${none}"
+        log::ln "> ${cyan}${FLAKE_LOCK}${none}"
+        log::ln "> ${cyan}${CONFIGURATION}${none}"
+        git restore --staged "$FLAKE" "$FLAKE_LOCK" "$CONFIGURATION"
+    fi
+}
+
+# Cleanup if interrupted or failed after changing variables
+flake::cleanup()
+{
+    flake::restore
+    exit 0
 }

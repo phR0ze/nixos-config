@@ -5,11 +5,11 @@
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
-    _flake_args = import ./flake_args.nix;
+    _args = import ./args.nix;
 
     # Allow for package patches, overrides and additions
     # ----------------------------------------------------------------------------------------------
-    system = _flake_args.system;
+    system = _args.system;
     pkgs-unstable = import nixpkgs-unstable {
       inherit system;
       config.allowUnfree = true;
@@ -43,16 +43,15 @@
     # Configure special args with our argument overrides
     # ----------------------------------------------------------------------------------------------
     f = pkgs.callPackage ./options/funcs { lib = nixpkgs.lib; };
-    args = _flake_args // (f.fromYAML ./flake_args.dec.yaml) // {
-      isVM = false;
-      isISO = false;
+    args = _args // (f.fromYAML ./args.dec.yaml) // {
       comment = f.gitMessage ./.;
     };
     specialArgs = { inherit args f inputs; };
   in
   {
-    # Local system configuration, usually the hostname of the machine; but using this in a way to 
-    # make it reusable for all my machines via links in the root of the repo including the test VM
+    # Usually the configuration is the hostname of the machine but in this case I'm using a generic 
+    # value as an entry point with the hostname being set lower down based on the configuration 
+    # linked from the machine's sub-directory.
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.system = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
