@@ -51,8 +51,8 @@
     specialArgs = { inherit args f inputs; };
   in
   {
-    # Local system configuration, usually the hostname of the machine, but using this in a way to 
-    # make it reusable for all my machines via links in the root of the repo.
+    # Local system configuration, usually the hostname of the machine; but using this in a way to 
+    # make it reusable for all my machines via links in the root of the repo including the test VM
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.system = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
@@ -66,25 +66,6 @@
         ./hardware-configuration.nix
         (./. + "/profiles" + ("/" + args.profile + ".nix"))
       ];
-    };
-
-    # Defines configuration for the test vm
-    # ----------------------------------------------------------------------------------------------
-    nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
-      inherit pkgs system;
-      specialArgs = specialArgs // {
-        args = args // {
-          isVM = true;
-          autologin = true;
-          nic0 = "eth0";                # Nic override for vm
-          cores = 4;                    # Cores to use
-          diskSize = 1;                 # Disk size in GiB
-          memorySize = 4;               # Memory size in GiB
-          resolution.x = 1920;          # Resolution x dimension
-          resolution.y = 1080;          # Resolution y dimension
-        };
-      };
-      modules = [ ./options ./profiles/vm/default.nix ];
     };
 
     # Defines configuration for building an ISO

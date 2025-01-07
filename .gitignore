@@ -12,7 +12,6 @@
 *.dec.*
 
 # Ignore flake and configuration files that are only linked at the root
-/args.nix
 /flake.nix
 /flake.lock
 /configuration.nix

@@ -1,47 +1,41 @@
 # Machines <img style="margin: 6px 13px 0px 0px" align="left" src="../art/logo_36x36.png" />
 
 Machines are independent system configurations for physical or virtual machines. The machine has its 
-own configuration `flake.nix`, `flake.nix`, `configuration.nix`, `hardward-configuration.nix` and 
+own configuration `flake.nix`, `flake.nix`, `configuration.nix`, `hardware-configuration.nix` and 
 local arguments `args.nix` and `args.enc.yaml` allowing for complete declarative management of the 
 machine. The `nixos-config` repo is setup as a single flake with supporting options, modules and 
 profiles that are used to compose the different machines being managed. The flake is then setup 
-during installation to manage the specific machine it was installed to. At the top level of the repo 
+during installation to manage the specific machine it was installed on. At the top level of the repo 
 there are reusable shared flake and flake arguments that can then be overridden at the machine level 
 if specific customization is desired. This setup makes it both reusable, composable and customizable 
-per machine as needed.
+per machine as needed while still retaining complete versioned declarative behavior.
 
 ## Shared setup
 The root of the project provides a set of reusable shared flake configuration and arguments that may 
 be used to compose and manage a machine or overridden as necessary.
 
-* `flake_args.enc.yaml` for private arguments to be shared by all machines or overridden locally
-* `flake_args.nix` for non-private arguments to be shared by all machines or overridden locally
-* `flake_base.nix` shared flake management for all machines or overridden locally
-* `flake_base.lock` shared flake lock for all machines or overridden locally
-
-**Example**
-* `nixos-config/configuration.nix` => `machines/<machine>/configuration.nix`
-* `nixos-config/flake_args.enc.yaml`
-* `nixos-config/flake_args.nix`
-* `nixos-config/flake.lock` => `machines/<machine>/flake.lock`
-* `nixos-config/flake.nix` => `machines/<machine>/flake.nix`
-* `nixos-config/hardware-configuration.nix` => `machines/<machine>/hardware-configuration.nix`
+* `args.enc.yaml` - private arguments to be shared by all machines or overridden locally
+* `args.nix` - non-private arguments to be shared by all machines or overridden locally
+* `configuration.nix` - link to the specific `machines/<machine>/configuration.nix`
+* `flake_base.lock` - shared flake lock for all machines or overridden locally
+* `flake_base.nix` - shared flake management for all machines or overridden locally
+* `flake.lock` - machine specific flake lock or copy of base flake lock
+* `flake.nix` - machine specific flake or copy of base flake
 
 ## Machine setup
-Each machine is composed of:
-* `args.enc.yaml` for private machine arguments and will override `flake_args.enc.yaml`
-* `args.nix` for non-private machine arguments and will override `flake_args.nix`
+Each machine in `nixos-config/machines/` is composed of:
+* `args.enc.yaml` private machine arguments and will override `nixos-config/args.enc.yaml`
+* `args.nix` for non-private machine arguments and will override `nixos-config/args.nix`
 * `configuration.nix` for the main machine configuration and used to import the arguments 
-* `flake.nix` loccal machine flake configuration or simply a link back to `flake_base.nix`
-* `flake.lock` local machine flake lock or a link back to `flake_base.lock`
+* `flake.nix` optional local machine flake configuration to use
+* `flake.lock` optional local machine flake lock to use
 
-**Example**
-* `nixos-config/machines/<machine>/args.enc.yaml`
-* `nixos-config/machines/<machine>/args.nix`
-* `nixos-config/machines/<machine>/configuration.nix`
-* `nixos-config/machines/<machine>/flake.lock` => `../../flake_base.lock`
-* `nixos-config/machines/<machine>/flake.nix` => `../../flake_base.nix`
-* `nixos-config/machines/<machine>/hardware-configuration.nix`
+## Flake switch
+`clu` will copy the target machine's flake files to the root of the project to control the flake such 
+that the machine is the target. This consists of:
+* copying the `nixos-config/machines/<machine>/flake.nix` if present to the root
+* copying the `nixos-config/machines/<machine>/flake.lock` if present to the root
+* creating a link in the root to `nixos-config/machines/<machine>/configuration.nix`
 
 <!-- 
 vim: ts=2:sw=2:sts=2

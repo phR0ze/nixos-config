@@ -5,6 +5,11 @@
 { lib, ... }: with lib.types;
 {
   options = {
+    vm = lib.mkOption {
+      type = types.bool;
+      default = false;
+      description = lib.mdDoc "VM deployment type";
+    };
     develop = lib.mkOption {
       type = types.bool;
       default = false;
