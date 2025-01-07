@@ -99,6 +99,7 @@ build::vm()
     core::title
     log::header0 "Building VM"
     flake::switch "$machine"
+    trap flake::cleanup INT KILL
 
     # Set arg overrides as directed
     while [ $# -gt 0 ]; do
@@ -135,6 +136,8 @@ build::vm()
 #        mv "$SCRIPT_DIR/result" "/var/lib/vm-${hostname}/"
 #    fi
 
+    # Clean up any changes
+    [ $NO_CLEAN -eq 0 ] && flake::restore
     _build::restore_args
 }
 
@@ -158,26 +161,12 @@ _build::update_args()
     log::ln "Updating args ${ARGS}: ${cyan}${var}${none} => ${cyan}${value}${none}"
     utils::replace "${kind}" "${var}" "${value}" "$ARGS" 
     git add "${ARGS}"
-
-    # Ensure the args are reset
-    trap _build::cleanup INT KILL
 }
 
-# Restore the args back to what is was before
 _build::restore_args()
 {
-    [ $NO_CLEAN -eq 1 ] && return
-
     if [[ "$(git diff --staged --name-only -- ${ARGS})" != "" ]]; then
-        log::ln "Restoring args back to original"
+        log::ln "Restoring back to original: ${ARGS}"
         git restore --staged "${ARGS}"
-        git checkout "${ARGS}"
     fi
-}
-
-# Cleanup if interrupted or failed after changing variables
-_build::cleanup()
-{
-    _build::restore_args
-    exit 0
 }
