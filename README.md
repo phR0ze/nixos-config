@@ -19,8 +19,10 @@ fork it and build on my work.
 * [Getting Started](#getting-started)
   * [Install from upstream ISO](#install-from-upstream-iso)
   * [Install from custom ISO](#install-from-custom-iso)
-* [Update use cases](#update-use-cases)
+* [Update and Upgrade](#update-and-upgrade)
+  * [Update configuration](#update-configuration)
   * [Upgrade an app](#upgrade-an-app)
+  * [Upgrade the full system](#upgrade-the-full-system)
 * [Advanced use cases](#advanced-use-cases)
   * [Build and run test VM](#build-and-run-test-vm)
   * [Build the live ISO for installation](#build-the-live-iso-for-installation)
@@ -94,16 +96,21 @@ limited in resources while your build system is beefy.
 3. Boot from the new USB and open a shell
 4. You'll be greeted with the clu installer
 
-## Update use cases
-After installing your system you'll need to make changes from time to time. The `clu` automation will 
-have copied the original configuration to `/etc/nixos`.
+* [Update and Upgrade](#update-and-upgrade)
+  * [Update configuration](#update-configuration)
+  * [Upgrade an app](#upgrade-an-app)
+  * [Upgrade the full system](#upgrade-the-full-system)
+## Update and Upgrade
+I'm defining `update` as configuration changes while an `upgrade` would be changing the versions of 
+apps or the full system.
 
-1. Change directory to the configuration folder
+### Update configuration
+1. Switch to the configuration folder
    ```bash
    $ cd /etc/nixos
    ```
 2. Make changes as desired
-   * see [Upgrade an app](#upgrade-an-app)
+   * e.g. perhaps you want to [Upgrade an app](#upgrade-an-app)
 3. Commit or stage your configuration changes so they are visible to nix flakes
    ```bash
    $ git add .
@@ -127,6 +134,21 @@ for `vscode`.
    vscode = pkgs-unstable.vscode;`
    ```
 2. Update the lock file with
+   ```bash
+   $ ./clu update flake
+   ```
+3. Build and test the vm
+   ```bash
+   $ ./clu build vm generic/develop
+   $ ./clu run vm
+   ```
+
+### Upgrade the full system
+1. Modifying `flake.nix` to use your preferred nixpkgs sha
+   ```
+   nixpkgs.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
+   ```
+2. Update the lock file to use this new sha version and get the latest for `nixos-unstable`
    ```bash
    $ ./clu update flake
    ```
