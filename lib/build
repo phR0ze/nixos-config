@@ -87,6 +87,8 @@ build::iso()
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
+    flake::switch testvm1
+
     NO_CLEAN="${NO_CLEAN:-0}"
 
     local service="false"
