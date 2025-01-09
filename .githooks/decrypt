@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 set -e -u  # Exit on non-zero status or unset variables
 
+none="\e[m"
+red="\e[1;31m"
+green="\e[1;32m"
+
 # Change to the root of the repo
 REPO_ROOT=$(git rev-parse --show-toplevel)
-echo "decrypting all encrypted files..."
+echo -n "Decrypting all encrypted files..."
 
 # Skip if rebase is in progress
 is_rebase_in_progress() {
@@ -15,26 +19,20 @@ is_rebase_in_progress() {
 }
 
 if is_rebase_in_progress; then
-    echo "Rebase in action - skip"
+    echo "skipping"
     exit 0
 fi
 
 # Find all the files to decrypt
-ANY_DECRYPTED=0
 IFS=$'\n'  # find requires a little help to handle spaces
 for ENCRYPTED in $(find "$REPO_ROOT" -type f -name '*.enc.yaml'); do
-    ANY_DECRYPTED=1
     DIR=$(dirname "$ENCRYPTED")         # get the diretory name
     FILE_NAME=$(basename "$ENCRYPTED")  # get the full file name
     NAME="${FILE_NAME%%.*}"             # trim off the file extension
     EXT="${FILE_NAME##*.}"              # trim off the prefix including the '.'
     DECRYPTED="$DIR/${NAME}.dec.${EXT}"
-    echo "> $DECRYPTED"
     sops --decrypt "$ENCRYPTED" > "$DECRYPTED"
 done
 unset IFS  # Reset the internal field separator
 
-if [ ${ANY_DECRYPTED} -eq 0 ]; then
-    echo "Nothing was decrypted"
-fi
-
+echo -e "${green}success${none}"

@@ -187,6 +187,17 @@ log::header0()
     log::header "${cyan}" "${msg}" 0
 }
 
+# Log out status of the last command
+# --------------------------------------------------------------------------------------------------
+log::status()
+{
+    if [ $? -eq 0 ]; then
+        echo -e "${green}success${none}"
+    else
+        echo -e "${red}failure${none}"
+    fi
+}
+
 # Dump out debug variables
 log::vars()
 {
