@@ -129,7 +129,7 @@ build::vm()
     done
 
     # Build the vm
-    nix build --impure .#nixosConfigurations.system.config.system.build.vm
+    nix build .#nixosConfigurations.system.config.system.build.vm
 
     # Move the service files 
 #    if [[ "${service}" == "true" ]]; then
