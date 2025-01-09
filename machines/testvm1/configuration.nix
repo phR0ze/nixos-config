@@ -3,78 +3,73 @@
 # ### Features
 # - ?
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, lib, args, f, ... }: with lib.types;
+{ modulesPath, config, pkgs, lib, args, f, ... }: with lib.types;
 let
-  # Apply external arg precedence to form the final set for the machine
+  cfg = config.machine;
   _args = args // (import ./args.nix) // (f.fromYAML ./args.dec.yaml);
 in
 {
   imports = [
-    ../../profiles/vm.nix 
+    (modulesPath + "/profiles/qemu-guest.nix")
     (../../. + "/profiles" + ("/" + args.profile + ".nix"))
   ];
-#
-#  options = {
-#    machine = lib.mkOption {
-#      description = lib.mdDoc "Machine arguments";
-#      type = types.submodule (import ../../options/types/machine.nix { inherit lib _args; });
-#    };
-#  };
-#
-#  # Validate flake user args are set
-#  config = {
-#    assertions = [
-##      { assertion = (machine.user.name != ""); message = "machine.user.name needs to be set"; }
-##      { assertion = (machine.comment != ""); message = "machine.comment needs to be set"; }
-##
-##      # Networking args
-#      #{ assertion = (machine.hostname != "foobar"); message = "machine.hostname needs to be set"; }
-#      { assertion = (config.machine.user.name == "foobar"); message = "${config.machine.user.name}"; }
-##      { assertion = (machine.nic0.name != ""); message = "machine.nic0.name needs to be set"; }
-#    ];
-#
-#    machine.type.vm = true;
-#
-#    #machine.hostname = _args.hostname;
-#
-#    # User arguments
-#    #machine.user.name = _args.username;
-#    #machine.user.fullname = _args.fullname;
-#    #machine.user.email = _args.email;
-#    #machine.user.pass = _args.userpass;
-#
-#    # Networking arguments
-#    machine.nic0.name = _args.nic0;
-#    machine.nic0.ip.full = _args.ip0;
-#    machine.nic0.ip.attrs = f.toIP _args.ip0;
-#    machine.nic0.subnet = _args.subnet;
-#    machine.nic0.gateway = _args.gateway;
-#    machine.nic0.dns.primary = _args.primary_dns;
-#    machine.nic0.dns.fallback = _args.fallback_dns;
-#
-#    # System arguments
-#    machine.efi = _args.efi;
-#    machine.mbr = _args.mbr;
-#    machine.arch = _args.system;
-#    machine.locale = _args.locale;
-#    machine.profile = _args.profile;
-#    machine.timezone = _args.timezone;
-#    machine.autologin = _args.autologin;
-#    machine.bluetooth = _args.bluetooth;
-#    machine.nfs = _args.nfs;
-#    machine.stateVersion = _args.stateVersion;
-#
-#    machine.git.user = _args.git_user;
-#    machine.git.email = _args.git_email;
-#    machine.git.comment = _args.comment;
-#
-#    # Virtual machine arguments
-#    machine.cores = _args.cores;
-#    machine.diskSize = _args.diskSize * 1024;
-#    machine.memorySize = _args.memorySize * 1024;
-#    machine.graphics = _args.graphics;
-#    machine.resolution = { x = _args.resolution.x; y = _args.resolution.y; };
-#
-#    machine.vms = [];
-#  };
+
+  options = {
+    machine = lib.mkOption {
+      description = lib.mdDoc "Machine arguments";
+      type = types.submodule (import ../../options/types/machine.nix { inherit lib _args f; });
+    };
+  };
+
+  config = lib.mkMerge [
+    {
+      assertions = [
+        { assertion = (cfg.shares.enable == false); message = "machine.shares.enable: ${f.boolToStr cfg.shares.enable}"; }
+#      machine.vms = [];
+      ];
+
+      # Activate the machine options based on the derived arguments above
+      machine.enable = true;
+
+      # Guest machine overrides for virtual machine
+      services.openssh.settings.PermitRootLogin = "yes";
+      services.qemuGuest.enable = true;             # qemu guest support
+
+      # Virtual machine configuration
+      # - nixpkgs/nixos/modules/virtualisation/qemu-vm.nix
+      virtualisation.vmVariant = {
+        virtualisation = {
+          cores = cfg.vm.cores;
+          diskSize = cfg.vm.diskSize;
+          memorySize = cfg.vm.memorySize;
+          graphics = cfg.vm.graphics;
+          resolution = cfg.resolution;
+
+          # Allows for sftp, ssh etc... to the guest via localhost:2222
+          #forwardPorts = [ { from = "host"; host.port = 2222; guest.port = 22; } ];
+        };
+      };
+    }
+
+    # Optionally enable SPICE support
+    # Connect by launching `remote-viewer` and running `spice://localhost:5970`
+    (lib.mkIf cfg.vm.spice {
+      services.spice-vdagentd.enable = true;        # support SPICE clients
+      services.spice-autorandr.enable = true;       # automatically adjust resolution to client size
+      services.spice-webdavd.enable = true;         # File sharing support between Host and Guest
+
+      # Configure higher performance graphics for for SPICE
+      services.xserver.videoDrivers = [ "qxl" ];
+      environment.systemPackages = [ pkgs.xorg.xf86videoqxl ];
+
+      # Configure SPICE
+      virtualisation.vmVariant.virtualisation.qemu.options = [
+        "-vga qxl"
+        "-spice port=${toString cfg.vm.spicePort},disable-ticketing=on"
+        "-device virtio-serial"
+        "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
+        "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
+      ];
+    })
+  ];
 }

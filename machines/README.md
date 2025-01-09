@@ -39,6 +39,76 @@ that the machine is the target. This consists of:
   `nixos-config/base.lock` to the root as `flake.lock`
 * creating a link in the root to `nixos-config/machines/<machine>/configuration.nix`
 
+## Machine Args
+The `args.nix` and `args.enc.yaml` argument files provide an mechanism to keep simple customization 
+separate from the actual configuartion to allow for better reuse across my different machines.
+
+### General configuration
+| Argument        | Type  | Default         | Description
+| --------------- | ----- | --------------- | --------------------------------------
+| `hostname`      | str   | `nixos`         | Hostname for the machine
+| `vm_enable`     | bool  | `false`         | Enable or disable VM mode
+| `iso_enable`    | bool  | `false`         | Enable or disable ISO mode
+| `profile`       | str   | `xfce/desktop`  | Pre-defined configurations in path './profiles' selection
+| `efi`           | bool  | `false`         | EFI system boot type set during installation
+| `mbr`           | str   | `nodev`         | MBR system boot device set during installation, e.g. `/dev/sda`
+| `arch`          | str   | `x86_64-linux`  | System architecture to use
+| `locale`        | str   | `en_US.UTF-8`   | Locale selection
+| `timezone`      | str   | `America/Boise` | Time-zone selection
+| `bluetooth`     | bool  | `false`         | Enable or disable bluetooth by default
+| `autologin`     | bool  | `false`         | Automatically log the user in or not after boot
+| `resolution_x`  | int   | `0`             | Resolution x dimension, e.g. 1920
+| `resolution_y`  | int   | `0`             | Resolution y dimension, e.g. 1080
+| `nixos_base`    | str   | `24.05`         | Base install version, not sure this matters
+
+### Shares configuration
+| Argument        | Type  | Default         | Description
+| --------------- | ----- | --------------- | --------------------------------------
+| `shares_enable` | bool  | `false`         | Enable pre-configured nfs shares for this system
+| `shares_entries`| list  | [ ]             | List of share entries
+| `mountPoint`    | str   |                 | Share entry mount point e.g. `/mnt/Media`
+| `remotePath`    | str   |                 | Share remote path e.g. `192.168.1.2:/srv/nfs/Media` 
+
+### User configuration
+| Argument        | Type  | Default         | Description
+| --------------- | ----- | --------------- | --------------------------------------
+| `user_fullname` | str   |                 | User's fullname 
+| `user_email`    | str   |                 | User's email address
+| `user_name`     | str   | `admin`         | User's user name
+| `user_pass`     | str   | `admin`         | User's password
+
+### Git configuration
+| Argument        | Type  | Default         | Description
+| --------------- | ----- | --------------- | --------------------------------------
+| `git_user`      | str   |                 | Git user name to use as global configuration
+| `git_email`     | str   |                 | Git email to use as global configuration
+| `git_comment`   | str   |                 | Commit message for simple version tracking
+
+### Network configuration
+| Argument        | Type  | Default         | Description
+| --------------- | ----- | --------------- | --------------------------------------
+| `nic0_name`     | str   |                 | First NIC found in hardware-configuration.nix
+| `nic0_ip`       | str   |                 | IP address for nic 0 if given else DHCP, e.g. 192.168.1.12/24
+| `nic0_subnet`   | str   |                 | Subnet to use for machine e.g. `192.168.1.0/24`
+| `nic0_gateway`  | str   |                 | Gateway to use for machine e.g. `192.168.1.1`
+| `nic1_name`     | str   |                 | Second NIC found in hardware-configuration.nix
+| `nic1_ip`       | str   |                 | IP address for nic 0 if given else DHCP, e.g. 192.168.1.12/24
+| `nic1_subnet`   | str   |                 | Subnet to use for machine e.g. `192.168.1.0/24`
+| `nic1_gateway`  | str   |                 | Gateway to use for machine e.g. `192.168.1.1`
+| `dns_primary`   | str   | `1.1.1.1`       | Primary DNS to use for machine e.g. `1.1.1.1`
+| `dns_fallback`  | str   | `8.8.8.8`       | Fallback DNS to use for machine e.g. `8.8.8.8`
+
+### VM configuration
+| Argument        | Type  | Default         | Description
+| --------------- | ----- | --------------- | --------------------------------------
+| `vm_cores`      | int   | `1`             | Cores to use
+| `vm_disk_size`  | int   | `1`             | Disk size in GiB
+| `vm_memory_size`| int   | `4`             | Memory size in GiB
+| `vm_spice`      | bool  | `true`          | Enable SPICE for VM
+| `vm_spice_port` | int   | `5970`          | SPICE port for VM
+| `vm_graphics`   | bool  | `true`          | Enable VM video display
+| `vms`           |
+
 <!-- 
 vim: ts=2:sw=2:sts=2
 -->

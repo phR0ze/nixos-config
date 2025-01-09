@@ -9,14 +9,14 @@ let
 in
 {
   imports = [
-    ../modules/terminal
-    ../modules/hardware/audio.nix
-    ../modules/hardware/bluetooth.nix
-    ../modules/hardware/firmware.nix
-    ../modules/hardware/printers.nix
-    ../modules/hardware/video.nix
-    ../modules/desktop/backgrounds/opt.nix
-    ../modules/desktop/icons.nix
+    ../../modules/terminal
+    ../../modules/hardware/audio.nix
+    ../../modules/hardware/bluetooth.nix
+    ../../modules/hardware/firmware.nix
+    ../../modules/hardware/printers.nix
+    ../../modules/hardware/video.nix
+    ../../modules/desktop/backgrounds/opt.nix
+    ../../modules/desktop/icons.nix
   ];
 
   # Enable XFCE and all needed components
@@ -42,7 +42,7 @@ in
   services.gvfs.enable = true;          # GVfs virtual filesystem
 
   # Optionally enable client nfs shares
-  services.nfs.client.shares.enable = machine.nfs;
+  services.nfs.client.shares.enable = machine.shares.enable;
 
   # Configure gnome keyring for VPN and Copilot and automatically unlock on login
   services.gnome.gnome-keyring.enable = true;

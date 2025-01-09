@@ -37,7 +37,7 @@
     audacity                            # Audio editor - cross platform, tried and tested
     brasero                             # Burning tool, alt: k3b, xfburn
     devede                              # A program to create VideoDVDs and CDs
-    gnome.cheese                        # Take photos and videos with your webcam, with fun graphical effects
+    cheese                              # Take photos and videos with your webcam, with fun graphical effects
     dvdbackup                           # Command line tool for ripping DVDs
     gimp                                # Excellent image editor
     inkscape                            # Vector graphics editor

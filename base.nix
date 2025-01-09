@@ -9,7 +9,7 @@
 
     # Allow for package patches, overrides and additions
     # ----------------------------------------------------------------------------------------------
-    system = _args.system;
+    system = _args.arch;
     pkgs-unstable = import nixpkgs-unstable {
       inherit system;
       config.allowUnfree = true;

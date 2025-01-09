@@ -11,7 +11,7 @@
     enableLsColors = false;
 
     # Installs 'bash_completion' package and configures it in '/etc/bashrc'.
-    enableCompletion = true;
+    completion.enable = true;
 
     # Adds this to /etc/profile for all shells
     shellInit = ''
