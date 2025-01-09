@@ -28,6 +28,7 @@ flake::switch()
     local machine_path="machines/$MACHINE"
     local flake_local="$machine_path/flake.nix"
     local flake_local_lock="$machine_path/flake.lock"
+    log::header0 "Switching to machine ${cyan}$MACHINE${none}"
 
     # Check if the given machine exists
     [[ "$MACHINE" == "" ]] && log::fatal "Machine name not given"
@@ -66,9 +67,10 @@ flake::restore()
     fi
 }
 
-# Cleanup if interrupted or failed after changing variables
-flake::cleanup()
+# Cleanup trap function. Typically not used as the local functions will have their own which will
+# call flake::restore directly
+flake::trap()
 {
     flake::restore
-    exit 0
+    exit 1
 }

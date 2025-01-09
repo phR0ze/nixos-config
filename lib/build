@@ -81,7 +81,7 @@ build::iso()
 
     nix build .#nixosConfigurations.iso.config.system.build.isoImage
 
-    [[ "$profile" != "" ]] && _build::restore_args
+    [[ "$profile" != "" ]] && _build::post
 }
 
 # Build the vm
@@ -92,15 +92,14 @@ build::vm()
     NO_CLEAN="${NO_CLEAN:-0}"
 
     # TODO: pass in name?
-    local machine="testvm1"
+    MACHINE="testvm1"
     local service="false"
     local hostname="nixos"
-    ARGS="$MACHINES_DIR/$machine/args.nix"
+    ARGS="$MACHINES_DIR/$MACHINE/args.nix"
 
     core::title
-    log::header0 "Building VM"
-    flake::switch "$machine"
-    trap flake::cleanup INT KILL
+    log::header1 "Building VM"
+    _build::pre
 
     # Set arg overrides as directed
     while [ $# -gt 0 ]; do
@@ -137,9 +136,7 @@ build::vm()
 #        mv "$SCRIPT_DIR/result" "/var/lib/vm-${hostname}/"
 #    fi
 
-    # Clean up any changes
-    [ $NO_CLEAN -eq 0 ] && flake::restore
-    [ $BUILD_UPDATE_ARGS -eq 1 ] && _build::restore_args
+    _build::post
 }
 
 # Change the given variable in the given args file
@@ -166,10 +163,30 @@ _build::update_args()
     git add "${ARGS}"
 }
 
-_build::restore_args()
+# Pre build operations
+_build::pre()
 {
-    if [[ "$(git diff --staged --name-only -- ${ARGS})" != "" ]]; then
-        log::ln "Restoring back to original: ${ARGS}"
-        git restore --staged "${ARGS}"
+    flake::switch "$MACHINE"
+
+    trap _build::trap INT KILL
+}
+
+# Post build operations
+_build::post()
+{
+    flake::restore
+
+    if [[ $BUILD_UPDATE_ARGS == 1 && $NO_CLEAN == 0 ]]; then
+        if [[ "$(git diff --staged --name-only -- ${ARGS})" != "" ]]; then
+            log::ln "Restoring back to original: ${ARGS}"
+            git restore --staged "${ARGS}"
+        fi
     fi
+}
+
+# Cleanup trap function
+_build::trap()
+{
+    _build::post
+    exit 1
 }
