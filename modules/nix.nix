@@ -9,7 +9,6 @@ in
   system.configurationRevision = lib.mkIf (machine.git.comment != "") machine.git.comment;
 
   nix = {
-    package = pkgs.nixFlakes;
 
     # Used in conjunction with registry.nixpkgs.flake below this sets up the NIX_PATH environment 
     # variable for older v2 binaries so they are using the correct nixpkgs and config versions.
@@ -53,7 +52,6 @@ in
       experimental-features = [
         "nix-command"    # 2.0 cli
         "flakes"         # flakes support
-        "repl-flake"     # 2.0 cli support for 'nix repl'
       ];
     };
 

@@ -65,7 +65,7 @@ flake::switch()
 flake::restore()
 {
     if [[ "$(git diff --staged --name-only -- $FLAKE $FLAKE_LOCK $CONFIGURATION)" != "" ]]; then
-        log::ln "Restoring back to original:"
+        log::ln "Restoring flake files back to prestine:"
         log::ln "> ${cyan}${FLAKE}${none}"
         log::ln "> ${cyan}${FLAKE_LOCK}${none}"
         log::ln "> ${cyan}${CONFIGURATION}${none}"

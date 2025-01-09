@@ -37,23 +37,27 @@ in
   config = lib.mkIf cfg.enable {
     services.xdg.enable = true;
 
-    services.xserver = {
-      displayManager = {
-        lightdm = {
-          enable = true;
-          greeters.slick = {
+    services = {
+      xserver = {
+        displayManager = {
+          lightdm = {
             enable = true;
-            draw-user-backgrounds = true;
-            theme.name = "Adwaita-dark";
-            extraConfig = ''
-              enable-hidpi=on
-              show-a11y=false
-              show-hostname=false
-              show-keyboard=false
-              clock-format=%a  %b  %d    %I:%M %P
-            '';
+            greeters.slick = {
+              enable = true;
+              draw-user-backgrounds = true;
+              theme.name = "Adwaita-dark";
+              extraConfig = ''
+                enable-hidpi=on
+                show-a11y=false
+                show-hostname=false
+                show-keyboard=false
+                clock-format=%a  %b  %d    %I:%M %P
+              '';
+            };
           };
         };
+      };
+      displayManager = {
         autoLogin.enable = machine.autologin;
         autoLogin.user = machine.user.name;
       };

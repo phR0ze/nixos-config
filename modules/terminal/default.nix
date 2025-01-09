@@ -13,7 +13,10 @@
 # - SSHD custom configuration
 # - Nix flake and commands configuration
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, ... }:
+{ config, lib, pkgs, ... }:
+let
+  #machine = config.machine;
+in
 {
   imports = [
     ../locale.nix
@@ -29,7 +32,8 @@
     ../services/systemd.nix
 
   # conditionally exclude grub for iso builds
-  ] ++ lib.optional (!args.isISO) ../boot/grub.nix;
+  ] ++ lib.optional (true) ../boot/grub.nix;
+  #] ++ lib.optional (!machine.type.iso) ../boot/grub.nix;
 
   network.network-manager.enable = true;
   programs.tmux.enable = true;
@@ -81,5 +85,5 @@
   ];
 
   # Set the NixOS version that this was installed with
-  system.stateVersion = config.machine.stateVersion;
+  system.stateVersion = config.machine.nixos_base;
 }

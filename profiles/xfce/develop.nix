@@ -7,7 +7,7 @@
 {
   imports = [
     ./desktop.nix
-    ../modules/development/vscode
+    ../../modules/development/vscode
   ];
 
   deployment.type.develop = true;

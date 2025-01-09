@@ -10,6 +10,11 @@
       default = false;
       description = lib.mdDoc "VM deployment type";
     };
+    iso = lib.mkOption {
+      type = types.bool;
+      default = false;
+      description = lib.mdDoc "ISO image type";
+    };
     develop = lib.mkOption {
       type = types.bool;
       default = false;

@@ -88,6 +88,7 @@ build::iso()
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
+    BUILD_UPDATE_ARGS=0
     NO_CLEAN="${NO_CLEAN:-0}"
 
     # TODO: pass in name?
@@ -128,7 +129,7 @@ build::vm()
     done
 
     # Build the vm
-    nix build .#nixosConfigurations.system.config.system.build.vm
+    nix build --impure .#nixosConfigurations.system.config.system.build.vm
 
     # Move the service files 
 #    if [[ "${service}" == "true" ]]; then
@@ -138,7 +139,7 @@ build::vm()
 
     # Clean up any changes
     [ $NO_CLEAN -eq 0 ] && flake::restore
-    _build::restore_args
+    [ $BUILD_UPDATE_ARGS -eq 1 ] && _build::restore_args
 }
 
 # Change the given variable in the given args file
@@ -148,6 +149,8 @@ build::vm()
 # $4 - the value is a name=value pair
 _build::update_args()
 {
+    BUILD_UPDATE_ARGS=1
+
     local kind="$1"
     local var="$2"
     local value="$3"

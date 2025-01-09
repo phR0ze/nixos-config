@@ -37,9 +37,9 @@
 #---------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
-  # OpenGL configuration
+  # Graphics configuration
   #-------------------------------------------------------------------------------------------------
-  hardware.opengl = {
+  hardware.graphics = {
     enable = true;                      # Installs mesa, mesa_drivers, mesa-demos
 
     # Defaults from the opengl option, also aliased with 'mesa_drivers'

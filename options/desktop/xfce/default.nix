@@ -24,34 +24,37 @@ in
   ];
 
   config = lib.mkIf cfg.enable {
-    services.xserver = {
-      enable = true;
+    services = {
       displayManager = {
         defaultSession = "xfce";
-        # mkDefault is 1000 so this should take priority over defaults but allow for more overrides
-        lightdm.background = lib.mkOverride 900 "${backgrounds}/share/backgrounds/sector-8_1600x900.jpg";
       };
-      desktopManager = {
-        xfce.enableXfwm = true;
-        xfce.enableScreensaver = true;
-        xfce.desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/sector-8_1600x900.jpg";
-        xfce.panel.launchers = [
-          { name = "Alacritty"; exec = "alacritty"; icon = "Alacritty"; }
-          { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
-        ]
-        ++
-          lib.optional machine.type.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
-        ++ [
-          { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
-          { name = "HandBrake"; exec = "ghb"; icon = "fr.handbrake.ghb"; }
-          { name = "VLC Media Player"; exec = "vlc"; icon = "vlc"; }
-          { name = "FileZilla"; exec = "filezilla"; icon = "filezilla"; }
-          { name = "Firefox"; exec = "firefox"; icon = "firefox"; }
-          { name = "LibreOffice Calc"; exec = "libreoffice --calc"; icon = "libreoffice-calc"; }
-          { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; 
-          }]
-        ++
-          lib.optional machine.type.develop { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
+      xserver = {
+        enable = true;
+        displayManager = {
+          lightdm.background = lib.mkOverride 900 "${backgrounds}/share/backgrounds/sector-8_1600x900.jpg";
+        };
+        desktopManager = {
+          xfce.enableXfwm = true;
+          xfce.enableScreensaver = true;
+          xfce.desktop.background = lib.mkDefault "/run/current-system/sw/share/backgrounds/sector-8_1600x900.jpg";
+          xfce.panel.launchers = [
+            { name = "Alacritty"; exec = "alacritty"; icon = "Alacritty"; }
+            { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
+          ]
+          ++
+            lib.optional machine.type.theater { name = "Kodi"; exec = "kodi"; icon = "kodi"; }
+          ++ [
+            { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
+            { name = "HandBrake"; exec = "ghb"; icon = "fr.handbrake.ghb"; }
+            { name = "VLC Media Player"; exec = "vlc"; icon = "vlc"; }
+            { name = "FileZilla"; exec = "filezilla"; icon = "filezilla"; }
+            { name = "Firefox"; exec = "firefox"; icon = "firefox"; }
+            { name = "LibreOffice Calc"; exec = "libreoffice --calc"; icon = "libreoffice-calc"; }
+            { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; 
+            }]
+          ++
+            lib.optional machine.type.develop { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
+        };
       };
     };
 
@@ -78,7 +81,7 @@ in
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; name = "Terminal"; }
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
       { source = "${pkgs.veracrypt}/share/applications/veracrypt.desktop"; categories = "System"; }
-      { source = "${pkgs.libsForQt5.qtstyleplugin-kvantum}/share/applications/kvantummanager.desktop"; categories = "Settings"; }
+      #{ source = "${pkgs.libsForQt5.qtstyleplugin-kvantum}/share/applications/kvantummanager.desktop"; categories = "Settings"; }
     ];
 
     environment.systemPackages = with pkgs.xfce // pkgs; [
