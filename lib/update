@@ -58,7 +58,8 @@ update::flake()
     core::title
     log::header1 "Update flake"
 
-    nix flake update
+    echo "${orange}TODO: not implemented!${none}" && exit 1
+    #nix flake update
 }
 
 
@@ -68,15 +69,11 @@ update::profile()
 {
     core::title
     log::header1 "Update install profile"
+    echo "${orange}TODO: not implemented!${none}" && exit 1
 
     log::ln "Switching install profile to ${cyan}${@}${none}"
     utils::replace str "profile" "${@}" "${FLAKE_ARGS}"
     git add "${FLAKE_ARGS}"
-
-    _update::preUpdate
-    _update::removeUserXfceConfigs
-    _update::updateSystem
-    _update::postUpdate
 }
 
 # Update the system with the system configuration changes
@@ -85,24 +82,34 @@ update::system()
 {
     core::title
     log::header1 "Update system version"
+    _update::pre
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
-    _update::preUpdate
     local arg=$1; shift
     if [[ "$arg" == "reset-xfce" ]]; then
         _update::removeUserXfceConfigs
     fi
-    _update::updateSystem $@
-    _update::postUpdate
+
+    # Execute update
+    local impure=""
+    [[ "$@" == "impure" ]] && impure="--impure"
+    nixos-rebuild switch $impure --flake "path:/etc/nixos#system"
+
+    _update::post
 }
 
-_update::preUpdate()
+# Pre update operations
+_update::pre()
 {
     log::ln "Removing ${cyan}/nix/files.lock${none} to permit files update"
     rm -f /nix/files.lock
 
     log::ln "Shutting down ${cyan}xfconfd${none} to avoid conflicts"
     pkill xfconfd
+
+    flake::switch "$MACHINE"
+
+    trap _update::trap INT KILL
 }
 
 # Remove user xfce configurations to get a clean point to start from
@@ -117,17 +124,18 @@ _update::removeUserXfceConfigs()
     done
 }
 
-# Trigger the Nix flake based system update
-_update::updateSystem()
+# Post update operations
+_update::post()
 {
-    local impure=""
-    [[ "$@" == "impure" ]] && impure="--impure"
+    flake::restore
 
-    nixos-rebuild switch $impure --flake "path:/etc/nixos#system"
-}
-
-_update::postUpdate()
-{
     log::ln "Adding ${cyan}/nix/files.lock${none} to block files updates during reboots"
     touch /nix/files.lock
+}
+
+# Cleanup trap function
+_update::trap()
+{
+    _update::post
+    exit 1
 }
