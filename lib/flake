@@ -46,23 +46,22 @@ flake::switch()
         cp base.lock flake.lock
     fi
 
-    # Add the flake files but setup a trap to remove them again
+    # Decrypt and temporarily add the flake files
+    git decrypt
     git add flake.nix -f
     git add flake.lock -f
-
-    # Create the configuration link
     # - Using relative path here on purpose
     ln -sf "machines/$MACHINE/configuration.nix" configuration.nix
     git add configuration.nix -f
+    git add "args.dec.yaml" -f
+    git add "machines/$MACHINE/args.dec.yaml" -f
 }
 
 # Restore the standard flake files back to prestine in git
 flake::restore()
 {
     if [[ "$(git diff --staged --name-only -- flake.nix flake.lock configuration.nix *.dec* */*.dec*)" != "" ]]; then
-        log::ln "Restoring flake files back to prestine:"
-        log::ln "> ${cyan}flake.nix${none}, ${cyan}flake.lock${none}, ${cyan}configuration.nix${none}"
-        log::ln "> ${cyan}args.dec.yaml${none}, ${cyan}machines/$MACHINE/args.dec.yaml${none}"
+        echo -n "Restoring flake files back to prestine"
         git restore --staged flake.nix flake.lock configuration.nix *.dec* */*.dec*
     fi
 }
