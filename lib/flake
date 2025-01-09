@@ -6,12 +6,7 @@
 # ## Features
 # - Set machine as flake controller
 # --------------------------------------------------------------------------------------------------
-FLAKE="$SOURCE_DIR/flake.nix"
-FLAKE_LOCK="$SOURCE_DIR/flake.lock"
-CONFIGURATION="$SOURCE_DIR/configuration.nix"
-FLAKE_BASE="$SOURCE_DIR/base.nix"
-FLAKE_BASE_LOCK="$SOURCE_DIR/base.lock"
-MACHINES_DIR="$SOURCE_DIR/machines"
+MACHINE=""
 
 # Ensure that flake related commands are executed from the root of the nixos-config directory
 flake::ensure_origin()
@@ -29,13 +24,13 @@ flake::switch()
 {
     flake::ensure_origin
 
-    local machine="$1"
-    local machine_path="$MACHINES_DIR/$machine"
+    MACHINE="$1"
+    local machine_path="machines/$MACHINE"
     local flake_local="$machine_path/flake.nix"
     local flake_local_lock="$machine_path/flake.lock"
 
     # Check if the given machine exists
-    [[ "$machine" == "" ]] && log::fatal "Machine name not given"
+    [[ "$MACHINE" == "" ]] && log::fatal "Machine name not given"
     if [ ! -d "$machine_path" ]; then
         log::fatal "Invalid machine path: ${cyan}${machine_path}${none}"
     fi
@@ -43,12 +38,12 @@ flake::switch()
     # Stage the flake files
     if [ -e "$flake_local" ]; then
         # Use the machine specific flake files if they exist
-        cp "$flake_local" "$FLAKE"
-        cp "$flake_local_lock" "$FLAKE_LOCK"
+        cp "$flake_local" flake.nix 
+        cp "$flake_local_lock" flake.lock
     else
         # Use the shared flake base files if they exist
-        cp "$FLAKE_BASE" "$FLAKE"
-        cp "$FLAKE_BASE_LOCK" "$FLAKE_LOCK"
+        cp base.nix flake.nix
+        cp base.lock flake.lock
     fi
 
     # Add the flake files but setup a trap to remove them again
@@ -57,19 +52,18 @@ flake::switch()
 
     # Create the configuration link
     # - Using relative path here on purpose
-    ln -sf "machines/$machine/configuration.nix" configuration.nix
+    ln -sf "machines/$MACHINE/configuration.nix" configuration.nix
     git add configuration.nix -f
 }
 
 # Restore the standard flake files back to prestine in git
 flake::restore()
 {
-    if [[ "$(git diff --staged --name-only -- $FLAKE $FLAKE_LOCK $CONFIGURATION)" != "" ]]; then
+    if [[ "$(git diff --staged --name-only -- flake.nix flake.lock configuration.nix *.dec* */*.dec*)" != "" ]]; then
         log::ln "Restoring flake files back to prestine:"
-        log::ln "> ${cyan}${FLAKE}${none}"
-        log::ln "> ${cyan}${FLAKE_LOCK}${none}"
-        log::ln "> ${cyan}${CONFIGURATION}${none}"
-        git restore --staged "$FLAKE" "$FLAKE_LOCK" "$CONFIGURATION"
+        log::ln "> ${cyan}flake.nix${none}, ${cyan}flake.lock${none}, ${cyan}configuration.nix${none}"
+        log::ln "> ${cyan}args.dec.yaml${none}, ${cyan}machines/$MACHINE/args.dec.yaml${none}"
+        git restore --staged flake.nix flake.lock configuration.nix *.dec* */*.dec*
     fi
 }
 
