@@ -7,7 +7,7 @@ let
 in
 {
   imports = [
-    ../../profiles/xfce/laptop.nix
+    ../../profiles/xfce/develop.nix
     ./hardware-configuration.nix
     inputs.nixos-hardware.nixosModules.apple-t2
   ];
@@ -21,14 +21,18 @@ in
 
   config = {
     machine.enable = true;
+
+    # Increase the default DPI size
     machine.resolution = { x = 1920; y = 1200; } ;
+    services.xserver.xft.dpi = lib.mkForce 120;
+
+    # Disable x11vnc for laptops
+    services.x11vnc.enable = lib.mkForce false;
 
     # Fix default power governor to run at a lower frequency and boost as needed
     powerManagement.cpuFreqGovernor = "schedutil";
 
-    # Increase the default DPI size
-    services.xserver.xft.dpi = lib.mkForce 120;
-
+    # Apple firmware configuration
     nix.settings = {
       trusted-substituters = [ "https://t2linux.cachix.org" ];
       trusted-public-keys = [ "t2linux.cachix.org-1:P733c5Gt1qTcxsm+Bae0renWnT8OLs0u9+yfaK2Bejw=" ];

@@ -237,7 +237,6 @@ homelab.
 ## Backlog
 
 ### Next
-* [ ] Use age for secrets
 * [ ] Build and run vms
 
 ### Sometime
@@ -257,11 +256,4 @@ homelab.
 * https://github.com/thexyno/nixos-config/blob/main/nixos-modules/hardware/laptop.nix
 * https://github.com/jakehamilton/config/blob/main/modules/nixos/desktop/addons/gtk/default.nix
 * https://github.com/librephoenix/nixos-config
-
-## Completed
-* [x] Support network bridge on install
-* [x] Add freetube
-* [x] Add tiny media manager
-* [x] wmctl not placing properly
-* [x] 2024.09.01 - [Prove out Warcraft II install with wine](https://github.com/phR0ze/tech-docs/tree/main/src/gaming/warcraft2)
 

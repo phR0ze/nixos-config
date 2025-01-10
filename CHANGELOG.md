@@ -1,4 +1,10 @@
 # Completed
+* [x] SOPS encrypted secrets
+* [x] Support network bridge on install
+* [x] Add freetube
+* [x] Add tiny media manager
+* [x] wmctl not placing properly
+* [x] 2024.09.01 - [Prove out Warcraft II install with wine](https://github.com/phR0ze/tech-docs/tree/main/src/gaming/warcraft2)
 * [x] xclip solved my nvim copy paste issues
 * [x] Visual Studio Extensions
 * [x] Remote Desktop
