@@ -10,10 +10,9 @@
 #
 # - libvirt uses a virtual network switch `virbr0` that all the virtual machines "plug in" to.
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.virtualization.virt-manager;
-  machine = config.machine;
 in
 {
   options = {
@@ -23,7 +22,7 @@ in
   };
  
   config = lib.mkIf (cfg.enable) {
-    virtualization.host = true;
+    virtualization.host.enable = true;
     networking.bridge.enable = true;
     programs.virt-manager.enable = true;
   };
