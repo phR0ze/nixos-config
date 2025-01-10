@@ -6,7 +6,7 @@
 { lib, pkgs, f, ... }:
 let
   bashrc = (pkgs.writeText ".bashrc" ''
-    export PATH=$PATH:$HOME/.cargo/bin
+    # See modules/terminal/env.nix for PATH changes
   '');
 in
 {

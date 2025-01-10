@@ -5,8 +5,9 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
-  env = lib.optional config.development.rust.enable ''export PATH="$HOME/.cargo/bin:$PATH"'';
-
+  env = lib.optional config.development.rust.enable ''
+    export PATH="$HOME/.cargo/bin:$PATH"
+  '';
 in
 {
   # Add ~/.local/bin to the PATH in /etc/set-environment
