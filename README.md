@@ -1,6 +1,6 @@
 # nixos-config
-A simpler approach to deploying a number of different pre-defined system profiles at install time 
-using only a bootable NixOS image and network connectivity.
+A simpler approach to deploying pre-defined machines or profiles at install time using only a 
+bootable NixOS image and network connectivity.
 
 Due to the number of different machines I maintain and how often I change their intended purpose I 
 find it essential to be able to take a new system from baremetal to a pre-defined, purposefully built 
@@ -37,14 +37,15 @@ fork it and build on my work.
 
 ## Getting started
 ***clu***, is a simple bash script providing:
-  * An install wizard to walk you through customizing your system
-  * Automate annoying tasks like
-    * disk paritioning and mounting
-    * generation of nixos hardware configuration
-    * transferring install time customizations to the underlying nix flake
-    * triggering the install of the complete system via nix flakes
-  * Wrapping of many of the disparate NixOS tooling
-    * Provides a single script with documentation on common tasks
+
+* An install wizard to walk you through simple system customization
+* Automation for annoying tasks like
+  * disk paritioning and mounting
+  * generation of nixos hardware configuration
+  * transferring install time customizations to the underlying nix flake
+  * triggering the install of the complete system via nix flakes
+* Wrapping of many of the disparate NixOS tooling
+  * Provides a single script with documentation on common tasks
 
 ### Install from upstream ISO
 My configuration can be installed using the pre-built upstream NixOS ISOs
@@ -96,10 +97,6 @@ limited in resources while your build system is beefy.
 3. Boot from the new USB and open a shell
 4. You'll be greeted with the clu installer
 
-* [Update and Upgrade](#update-and-upgrade)
-  * [Update configuration](#update-configuration)
-  * [Upgrade an app](#upgrade-an-app)
-  * [Upgrade the full system](#upgrade-the-full-system)
 ## Update and Upgrade
 I'm defining `update` as configuration changes while an `upgrade` would be changing the versions of 
 apps or the full system.
