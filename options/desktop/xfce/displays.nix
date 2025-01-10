@@ -2,20 +2,21 @@
 #
 # Gnerate the ~/.config/xfce4/xfconf/xfce-perchannel-xml/displays.xml configuration file
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   xfceCfg = config.services.xserver.desktopManager.xfce;
+  resolution = config.machine.resolution;
   cfg = xfceCfg.displays;
 
   xmlfile = lib.mkIf (xfceCfg.enable)
     (pkgs.writeText "displays.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="displays" version="1.0">
-        ${lib.optionalString (cfg.resolution.x != 0 && cfg.resolution.y != 0) ''
+        ${lib.optionalString (resolution.x != 0 && resolution.y != 0) ''
           <property name="ActiveProfile" type="string" value="Default"/>
           <property name="Default" type="empty">
             <property name="Default" type="string" value="Default">
-              <property name="Resolution" type="string" value="${toString cfg.resolution.x}x${toString cfg.resolution.y}"/>
+              <property name="Resolution" type="string" value="${toString resolution.x}x${toString resolution.y}"/>
             </property>
           </property>''}
         <property name="Notify" type="int" value="${toString cfg.connectingDisplay}"/>
@@ -36,26 +37,14 @@ in
           3 = Extend
         '';
       };
-      resolution = {
-        x = lib.mkOption {
-          type = types.int;
-          default = 0;
-          description = lib.mdDoc "Horizontal resolution component";
-        };
-        y = lib.mkOption {
-          type = types.int;
-          default = 0;
-          description = lib.mdDoc "Vertical resolution component";
-        };
-      };
     };
   };
 
   config = lib.mkMerge [
 
     # Set the xserver resolution if set
-    (lib.mkIf (cfg.resolution.x != 0 && cfg.resolution.y != 0) {
-      services.xserver.resolutions = [ { x = cfg.resolution.x; y = cfg.resolution.y; } ];
+    (lib.mkIf (resolution.x != 0 && resolution.y != 0) {
+      services.xserver.resolutions = [ resolution ];
     })
 
     # Set the displays configuration file

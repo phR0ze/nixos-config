@@ -13,7 +13,7 @@ in
     ./desktop.nix
   ];
 
-  deployment.type.theater = true;
+  machine.type.theater = true;
 
   # High dpi settings
   services.xserver.xft.dpi = 120; # 25% higher recommended by Arch Linux
@@ -22,8 +22,8 @@ in
   services.xserver.desktopManager.xfce.panel.launcher.size = 52;
 
   # Display configuration
+  machine.resolution = { x = 1920; y = 1080; };
   services.xserver.desktopManager.xfce.displays.connectingDisplay = 0;
-  services.xserver.desktopManager.xfce.displays.resolution = { x = 1920; y = 1080; };
 
   # Configure theater system background
   services.xserver.desktopManager.xfce.desktop.background = lib.mkOverride 500
