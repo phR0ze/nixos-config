@@ -16,15 +16,13 @@ Usage:
 
 Options:
   -h, --help        Print out usage
+  --impure          Pass impure into the system update
+  --reset-xfce      Remove existing xfce configuration during system update
 
 Commands:
   flake             Update the flake.lock file with the latest
   profile PROFILE   Change the system profile to the given one
   system [MACHINE]  Update the system with any configuration changes for the given machine or hostname
-
-system args:
-  reset-xfce        Remove existing xfce configuration
-  impure            Pass impure into the flake system
 USAGE
 
     log::ln "\nExamples:"
@@ -32,7 +30,7 @@ USAGE
     log::subln "Update system using hostname: ${green}./${SCRIPT} update system${none}"
     log::subln "Update system by name: ${green}./${SCRIPT} update system macbook${none}"
     log::subln "Update to the given profile: ${green}./${SCRIPT} update profile xfce/develop${none}"
-    log::subln "Update the system, resetting xfce: ${green}./${SCRIPT} update system reset-xfce${none}"
+    log::subln "Update the system, resetting xfce: ${green}./${SCRIPT} update system --reset-xfce${none}"
     echo
     exit
 }
@@ -93,19 +91,31 @@ update::system()
 {
     core::title
     log::header1 "Update system version"
-    [[ "$1" == "" ]] && MACHINE=$(hostname) || MACHINE="$1"
-    log::ln "Using hostname ${cyan}${MACHINE}${none}"
+
+    # Set additional flags as specified
+    local impure=""
+    local reset_xfce=0
+    while [ $# -gt 0 ]; do
+        local arg=$1; shift
+        case "$arg" in
+            --impure*) impure=1 ;;
+            --reset-xfce*) reset_xfce=1 ;;
+            *) MACHINE="$arg" ;;
+        esac
+    done
+
+    # Optionally set the machine being used and log it
+    [[ "$1" == "" ]] && MACHINE=$(hostname)
+    log::header0 "Using hostname ${cyan}${MACHINE}${none}"
     _update::pre
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
-    local arg=$1; shift
-    if [[ "$arg" == "reset-xfce" ]]; then
+    if [ $reset_xfce -eq 1 ]; then
         _update::removeUserXfceConfigs
     fi
 
     # Execute update
-    local impure=""
-    [[ "$@" == "impure" ]] && impure="--impure"
+    [[ $impure == 1 ]] && impure="--impure"
     nixos-rebuild switch $impure --flake "path:/etc/nixos#system"
 }
 
