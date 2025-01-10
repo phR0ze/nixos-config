@@ -3,6 +3,8 @@
     nixpkgs.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:nixos/nixos-hardware/cf737e2eba82b603f54f71b10cb8fd09d22ce3f5";
+    microvm.url = "github:astro/microvm.nix";
+    microvm.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   nixConfig = {
@@ -11,7 +13,7 @@
     extra-trusted-public-keys = [ "cache.soopy.moe-1:0RZVsQeR+GOh0VQI9rvnHz55nVXkFardDqfm4+afjPo=" ];
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, ... }@inputs: let
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, microvm, ... }@inputs: let
     _args = import ./args.nix;
 
     # Allow for package patches, overrides and additions
@@ -62,7 +64,11 @@
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.system = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
-      modules = [ ./options ./configuration.nix ];
+      modules = [
+        microvm.nixosModules.host
+        ./options
+        ./configuration.nix
+      ];
     };
   };
 }
