@@ -32,12 +32,14 @@ in
     # Fix default power governor to run at a lower frequency and boost as needed
     powerManagement.cpuFreqGovernor = "schedutil";
 
+    # Blacklist open source broadcom drivers
+    boot.blacklistedKernelModules = [ "b43" "bcma" ];
+
     # Apple firmware configuration
     nix.settings = {
       trusted-substituters = [ "https://t2linux.cachix.org" ];
       trusted-public-keys = [ "t2linux.cachix.org-1:P733c5Gt1qTcxsm+Bae0renWnT8OLs0u9+yfaK2Bejw=" ];
     };
-
     hardware.firmware = [
       (pkgs.stdenvNoCC.mkDerivation (final: {
         name = "brcm-firmware";
@@ -48,7 +50,6 @@ in
         '';
       }))
     ];
-
     environment.systemPackages = with pkgs; [
       python3
       dmg2img

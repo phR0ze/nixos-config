@@ -12,12 +12,18 @@ output with audio, keyboard, and touch pad.
 * [Configure NixOS](#configure-nixos)
   * [Install get-apple-firmware script](#install-get-apple-firmware-script)
   * [Install correct WiFi driver](#install-correct-wifi-driver)
+  * [Other config](#other-config)
 
 ## Install NixOS
-Note: I installed using an external USB WiFi adapter, mouse and keyboard as the MacBook Pro hardware 
-wasn't recognized out of the box. That said it installed fine using external devices.
+Note: I originally installed using an external USB WiFi adapter, mouse and keyboard as the MacBook 
+Pro hardware wasn't recognized out of the box. That said it installed fine using external devices.
 
 ***NOTE*** you need an Intel based MacBook Pro with administrator access for this to work.
+
+* 6-core Intel Core i7-8750H
+* Broadcom 802.11ac WiFi BCM4364 rev 3
+* Intel CoffeeLake-H GT2 [UHD Graphics 630]
+* AMD Baffin [Radeon RX 460/560D Pro 450/455/460/555/555X/560/560X]
 
 ### Enable booting from external media
 MacBooks are locked down by default and only allow booting from the internal HDD with a signed ISO. 
@@ -113,10 +119,9 @@ recovery image and install it from there using the T2Linux project's `get-apple-
    ];
    ```
 
-### Notes not used
-I saw these in the reference configurations, but didn't end up using them because I didn't see them 
-in the T2Linux changes else they have them in their hardware configuration which I haven't examined 
-yet.
+### Other config
+I saw these in the reference configurations. I did end up using the `schedutil` setting and 
+blacklisted the broadcom drivers, but used the T2Linux project's firmware path for the Wifi.
 
 1. Enable propriety broadcom driver
    ```nix
