@@ -21,6 +21,7 @@ in
 
   config = {
     machine.enable = true;
+    machine.resolution = { x = 1920; y = 1200; } ;
 
     # Increase the default DPI size
     services.xserver.xft.dpi = lib.mkForce 120;

@@ -7,6 +7,11 @@ output with audio, keyboard, and touch pad.
 ### Quick links
 * [.. up dir](../../README.md)
 * [Install NixOS](#install-nixos)
+  * [Enable booting from exteranl media](#enable-booting-from-external-media)
+  * [Install from bootable USB](#install-from-bootable-usb)
+* [Configure NixOS](#configure-nixos)
+  * [Install get-apple-firmware script](#install-get-apple-firmware-script)
+  * [Install correct WiFi driver](#install-correct-wifi-driver)
 
 ## Install NixOS
 Note: I installed using an external USB WiFi adapter, mouse and keyboard as the MacBook Pro hardware 
@@ -83,9 +88,6 @@ environment.systemPackages = [
   };
 })
 ```
-
-### Install Apple Firmware
-See flake changes
 
 ### Install correct WiFi driver
 NixOS does not have the correct `brcm` firmware, so we have to extract it from the upstream macOS 
