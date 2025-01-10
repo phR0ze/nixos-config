@@ -57,9 +57,18 @@ update::flake()
 {
     core::title
     log::header1 "Update flake"
+    flake::ensure_origin
 
-    echo "${orange}TODO: not implemented!${none}" && exit 1
-    #nix flake update
+    # Stage the base flake files
+    cp base.nix flake.nix
+    cp base.lock flake.lock
+    git add flake.nix flake.lock -f
+
+    nix flake update
+
+    # Clean up after
+    cp flake.lock base.lock
+    git restore --staged flake.nix flake.lock
 }
 
 

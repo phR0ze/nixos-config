@@ -2,9 +2,10 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixos-hardware.url = "github:nixos/nixos-hardware/cf737e2eba82b603f54f71b10cb8fd09d22ce3f5";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, ... }@inputs: let
     _args = import ./args.nix;
 
     # Allow for package patches, overrides and additions
