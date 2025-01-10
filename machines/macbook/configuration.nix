@@ -46,5 +46,5 @@ in
       dmg2img
       (pkgs.callPackage ../../modules/hardware/apple.nix {})
     ];
-  }
+  };
 }
