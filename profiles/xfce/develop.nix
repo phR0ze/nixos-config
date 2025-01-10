@@ -10,7 +10,7 @@
     ../../modules/development/vscode
   ];
 
-  deployment.type.develop = true;
+  machine.type.develop = true;
 
   development.rust.enable = true;
   development.android.enable = true;
