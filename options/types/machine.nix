@@ -69,6 +69,7 @@
 { lib, _args, f, ... }: with lib.types;
 let
   nic = import ./nic.nix { inherit lib; };
+  drive = import ./drive.nix { inherit lib; };
   user = import ./user.nix { inherit lib; };
   type = import ./machine_type.nix { inherit lib; };
   vm = import ./vm.nix { inherit lib; };
@@ -120,6 +121,15 @@ in
       type = types.str;
       default = if (!builtins.hasAttr "mbr" _args || _args.mbr == null || _args.mbr == "")
         then "nodev" else _args.mbr;
+    };
+
+    drive0 = lib.mkOption {
+      description = lib.mdDoc "Drive options";
+      type = types.submodule drive;
+      default = {
+        uuid = if (!builtins.hasAttr "drive0_uuid" _args || _args.drive0_uuid == null)
+          then "" else _args.drive0_uuid;
+      };
     };
 
     arch = lib.mkOption {

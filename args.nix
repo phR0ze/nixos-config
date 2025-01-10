@@ -6,6 +6,7 @@
   efi = false;                      # EFI system boot type set during installation
   mbr = "nodev";                    # MBR system boot device set during installation, e.g. /dev/sda
   arch = "x86_64-linux";            # System architecture to use
+  drive0_uuid = "";                 # Drive 0 identifier used in hardware-configuration.nix
   locale = "en_US.UTF-8";           # Locale selection
   timezone = "America/Boise";       # Time-zone selection
   bluetooth = false;                # Enable or disable bluetooth by default
