@@ -3,8 +3,17 @@
 # ### Details
 # - These changes get saved in /etc/bashrc which is loaded by /etc/profile
 #---------------------------------------------------------------------------------------------------
-{ lib, pkgs, ... }:
+{ lib, pkgs, f, ... }
+let
+  bashrc = (pkgs.writeText ".bashrc" ''
+    export PATH=$PATH:$HOME/.cargo/bin
+  '');
+in
 {
+  # Custom user bash configuration
+  files.all.".bashrc".copy = bashrc;
+
+  # System wide bash configuration
   programs.bash = {
 
     # Configures 'dircolors -b' but doesn't allow for a custom config so manually doing this below.
