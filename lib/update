@@ -20,7 +20,7 @@ Options:
   --reset-xfce      Remove existing xfce configuration during system update
 
 Commands:
-  flake             Update the flake.lock file with the latest
+  flake [MACHINE]   Update the given machines flake.lock or root base.lock if not given
   profile PROFILE   Change the system profile to the given one
   system [MACHINE]  Update the system with any configuration changes for the given machine or hostname
 USAGE
@@ -56,18 +56,32 @@ update::flake()
 {
     core::title
     log::header1 "Update flake"
-    flake::ensure_origin
 
-    # Stage the base flake files
-    cp base.nix flake.nix
-    cp base.lock flake.lock
-    git add flake.nix flake.lock -f
+    MACHINE="$1"
+    local machine_path="machines/$MACHINE"
 
+    # Switch to target flake
+    if [[ "$MACHINE" != "" ]]; then
+        flake::switch $MACHINE
+        trap flake::restore EXIT
+    else
+        flake::ensure_origin
+        cp base.nix flake.nix
+        cp base.lock flake.lock
+        git add flake.nix flake.lock -f
+    fi
+
+    # Update flake
     nix flake update
 
     # Clean up after
-    cp flake.lock base.lock
-    git restore --staged flake.nix flake.lock
+    if [[ "$MACHINE" != "" ]]; then
+        cp flake.lock "$machine_path"
+        # cleanup will be done by trap
+    else
+        cp flake.lock base.lock
+        git restore --staged flake.nix flake.lock
+    fi
 }
 
 

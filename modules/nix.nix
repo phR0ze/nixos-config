@@ -43,10 +43,10 @@ in
       auto-optimise-store = lib.mkDefault true;
 
       # Add custom binary caches
+      # - https://cache.nixos.org is added by default
       #substituters = lib.mkBefore [ "https.mirrors.somesite.com/nix-channels/store" ]
 #      substituters = [
 #        "https://nix-community.cachix.org/"
-#        "https://cache.nixos.org/"
 #      ];
 
       experimental-features = [
