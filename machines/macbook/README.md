@@ -1,4 +1,4 @@
-# MacBook Pro <img style="margin: 6px 13px 0px 0px" align="left" src="../art/logo_36x36.png" />
+# MacBook Pro <img style="margin: 6px 13px 0px 0px" align="left" src="../../art/logo_36x36.png" />
 
 Documenting the steps I went through to deploy ***NixOS*** onto a MacBook Pro with the T2 chip. This 
 configuration enabled full functionality including: touch bar, WiFi, ethernet, speaker sound and HDMI 
