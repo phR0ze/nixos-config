@@ -3,7 +3,7 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.development.android;
-  
+  machine = config.machine;
 in
 {
   options = {
