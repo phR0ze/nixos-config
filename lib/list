@@ -95,7 +95,7 @@ _list::describeVer()
     local kernel_dir="$(dirname "$(realpath "$version_dir/kernel")")"
     local kernel_version="$(ls "$kernel_dir/lib/modules" || echo "Unknown")"
 
-    # Get the 
+    # Get the git message for the commit associated with the configuration revision
     local configurationRevision="$("$version_dir/sw/bin/nixos-version" --configuration-revision 2> /dev/null || true)"
 
     # jq automatically quotes the output => don't try to quote it in output!
