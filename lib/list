@@ -89,7 +89,7 @@ list::versions()
 _list::describeVer()
 {
     local version_dir="$1"
-    local version="$(_getVer "$version_dir")"
+    local version="$(switch::getVer "$version_dir")"
     local nixos_version="$(cat "$version_dir/nixos-version" 2> /dev/null || echo "Unknown")"
 
     local kernel_dir="$(dirname "$(realpath "$version_dir/kernel")")"
