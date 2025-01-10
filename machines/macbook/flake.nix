@@ -5,6 +5,12 @@
     nixos-hardware.url = "github:nixos/nixos-hardware/cf737e2eba82b603f54f71b10cb8fd09d22ce3f5";
   };
 
+  nixConfig = {
+    extra-trusted-substituters = [ "https://cache.soopy.moe" ];
+    extra-substituters = [ "https://cache.soopy.moe" ];
+    extra-trusted-public-keys = [ "cache.soopy.moe-1:0RZVsQeR+GOh0VQI9rvnHz55nVXkFardDqfm4+afjPo=" ];
+  };
+
   outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, ... }@inputs: let
     _args = import ./args.nix;
 
@@ -57,29 +63,6 @@
     nixosConfigurations.system = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
       modules = [ ./options ./configuration.nix ];
-    };
-
-    # Generic install host configuration based on a generic profile
-    nixosConfigurations.install = nixpkgs.lib.nixosSystem {
-      inherit pkgs system specialArgs;
-      modules = [
-        ./hardware-configuration.nix
-        (./. + "/profiles" + ("/" + args.profile + ".nix"))
-      ];
-    };
-
-    # Defines configuration for building an ISO
-    # ----------------------------------------------------------------------------------------------
-    nixosConfigurations.iso = nixpkgs.lib.nixosSystem {
-      inherit pkgs system;
-      specialArgs = specialArgs // {
-        args = args // {
-          isIso = true;
-          username = "nixos";
-          autologin = true;
-        };
-      };
-      modules = [ ./options ./profiles/iso/default.nix ];
     };
   };
 }
