@@ -26,24 +26,20 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    virtualisation.libvirtd = {
+      enable = true;
 
-    # Generate systemd services for each enabled VM
-#    systemd = lib.mkMerge (lib.lists.forEach machine.vms (x:
-#      (lib.mkIf x.enable {
-#        services."vm-${x.hostname}" = {
-#          wantedBy = [ "multi-user.target" ];
-#          wants = [ "network-online.target" ];
-#          after = [ "network-online.target" ];
-#
-#          serviceConfig = {
-#            Type = "simple";
-#            KillSignal = "SIGINT";
-#            WorkingDirectory = "/var/lib/vm-${x.hostname}";
-#            ExecStart = "/var/lib/vm-${x.hostname}/result/bin/run-${x.hostname}-vm";
-#          };
-#        };
-#      })
-#    ));
+      # Configure UEFI support
+      qemu.ovmf.enable = true;
+      qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];
+
+      # Configure windows swtpm
+      qemu.swtpm.enable = true;
+
+      qemu.vhostUserPackages = [ pkgs.virtiofsd ];  # virtiofs support
+    };
+
+    environment.sessionVariables.LIBVIRT_DEFAULT_URI = [ "qemu:///system" ];
 
     # Enables the use of qemu-bridge-helper for `type = "bridge"` interface.
     environment.etc."qemu/bridge.conf".text = lib.mkDefault ''
@@ -79,6 +75,6 @@ in
       # quickemu
     ];
 
-    users.users.${machine.user.name}.extraGroups = [ "kvm" ];
+    users.users.${machine.user.name}.extraGroups = [ "kvm" "libvirtd" "qemu-libvirtd" ];
   };
 }
