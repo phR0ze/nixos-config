@@ -1,15 +1,16 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/1536926ef5621b09bba54035ae2bb6d806d72ac8";
+    nixpkgs.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixos-hardware.url = "github:nixos/nixos-hardware/cf737e2eba82b603f54f71b10cb8fd09d22ce3f5";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
-    _flake_args = import ../../flake_args.nix;
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, ... }@inputs: let
+    _args = import ./args.nix;
 
     # Allow for package patches, overrides and additions
     # ----------------------------------------------------------------------------------------------
-    system = _flake_args.system;
+    system = _args.arch;
     pkgs-unstable = import nixpkgs-unstable {
       inherit system;
       config.allowUnfree = true;
@@ -42,19 +43,43 @@
 
     # Configure special args with our argument overrides
     # ----------------------------------------------------------------------------------------------
-    f = pkgs.callPackage ../../options/funcs { lib = nixpkgs.lib; };
-    args = _flake_args // (f.fromYAML ../../flake_args.dec.yaml) // {
+    f = pkgs.callPackage ./options/funcs { lib = nixpkgs.lib; };
+    args = _args // (f.fromYAML ./args.dec.yaml) // {
       comment = f.gitMessage ./.;
     };
     specialArgs = { inherit args f inputs; };
   in
   {
-    # Local system configuration, usually the hostname of the machine, but using this in a way to 
-    # make it reusable for all my machines via links in the root of the repo.
+    # Usually the configuration is the hostname of the machine but in this case I'm using a generic 
+    # value as an entry point with the hostname being set lower down based on the configuration 
+    # linked from the machine's sub-directory.
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.system = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
-      modules = [ ../../options ./configuration.nix ];
+      modules = [ ./options ./configuration.nix ];
+    };
+
+    # Generic install host configuration based on a generic profile
+    nixosConfigurations.install = nixpkgs.lib.nixosSystem {
+      inherit pkgs system specialArgs;
+      modules = [
+        ./hardware-configuration.nix
+        (./. + "/profiles" + ("/" + args.profile + ".nix"))
+      ];
+    };
+
+    # Defines configuration for building an ISO
+    # ----------------------------------------------------------------------------------------------
+    nixosConfigurations.iso = nixpkgs.lib.nixosSystem {
+      inherit pkgs system;
+      specialArgs = specialArgs // {
+        args = args // {
+          isIso = true;
+          username = "nixos";
+          autologin = true;
+        };
+      };
+      modules = [ ./options ./profiles/iso/default.nix ];
     };
   };
 }
