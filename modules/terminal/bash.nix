@@ -3,7 +3,7 @@
 # ### Details
 # - These changes get saved in /etc/bashrc which is loaded by /etc/profile
 #---------------------------------------------------------------------------------------------------
-{ lib, pkgs, f, ... }
+{ lib, pkgs, f, ... }:
 let
   bashrc = (pkgs.writeText ".bashrc" ''
     export PATH=$PATH:$HOME/.cargo/bin
