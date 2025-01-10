@@ -100,7 +100,6 @@ build::vm()
     core::title
     log::header1 "Building VM"
     _build::pre
-    trap _build::trap INT KILL
 
     # Set arg overrides as directed
     while [ $# -gt 0 ]; do
@@ -136,8 +135,6 @@ build::vm()
 #        mkdir -p "/var/lib/vm-${hostname}"
 #        mv "$SCRIPT_DIR/result" "/var/lib/vm-${hostname}/"
 #    fi
-
-    _build::post
 }
 
 # Change the given variable in the given args file
@@ -168,6 +165,8 @@ _build::update_args()
 _build::pre()
 {
     flake::switch "$MACHINE"
+
+    trap _build::post EXIT
 }
 
 # Post build operations
@@ -181,11 +180,4 @@ _build::post()
             git restore --staged "${ARGS}"
         fi
     fi
-}
-
-# Cleanup trap function
-_build::trap()
-{
-    _build::post
-    exit 1
 }
