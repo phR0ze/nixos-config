@@ -96,6 +96,7 @@ update::system()
     [[ "$1" == "" ]] && MACHINE=$(hostname) || MACHINE="$1"
     log::ln "Using hostname ${cyan}${MACHINE}${none}"
     _update::pre
+    trap _update::trap INT KILL
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
     local arg=$1; shift
@@ -121,8 +122,6 @@ _update::pre()
     pkill xfconfd
 
     flake::switch "$MACHINE"
-
-    trap _update::trap INT KILL
 }
 
 # Remove user xfce configurations to get a clean point to start from
