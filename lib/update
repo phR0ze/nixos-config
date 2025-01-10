@@ -96,7 +96,6 @@ update::system()
     [[ "$1" == "" ]] && MACHINE=$(hostname) || MACHINE="$1"
     log::ln "Using hostname ${cyan}${MACHINE}${none}"
     _update::pre
-    trap _update::trap INT KILL
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
     local arg=$1; shift
@@ -108,8 +107,6 @@ update::system()
     local impure=""
     [[ "$@" == "impure" ]] && impure="--impure"
     nixos-rebuild switch $impure --flake "path:/etc/nixos#system"
-
-    _update::post
 }
 
 # Pre update operations
@@ -122,6 +119,8 @@ _update::pre()
     pkill xfconfd
 
     flake::switch "$MACHINE"
+
+    trap _update::post EXIT
 }
 
 # Remove user xfce configurations to get a clean point to start from
@@ -143,11 +142,4 @@ _update::post()
 
     log::ln "Adding ${cyan}/nix/files.lock${none} to block files updates during reboots"
     touch /nix/files.lock
-}
-
-# Cleanup trap function
-_update::trap()
-{
-    _update::post
-    exit 1
 }
