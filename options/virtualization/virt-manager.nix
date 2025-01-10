@@ -23,24 +23,8 @@ in
   };
  
   config = lib.mkIf (cfg.enable) {
+    virtualization.host = true;
     networking.bridge.enable = true;
     programs.virt-manager.enable = true;
-
-    # libvirtd enable qemu by default
-    virtualisation.libvirtd = {
-      enable = true;
-
-      # Configure UEFI support
-      qemu.ovmf.enable = true;
-      qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];
-
-      # Configure windows swtpm
-      qemu.swtpm.enable = true;
-
-      #qemu.vhostUserPackages = [ pkgs.virtiofsd ];  # virtiofs support
-    };
-
-    environment.sessionVariables.LIBVIRT_DEFAULT_URI = [ "qemu:///system" ];
-    users.users.${machine.user.name}.extraGroups = [ "libvirtd" "qemu-libvirtd" ];
   };
 }
