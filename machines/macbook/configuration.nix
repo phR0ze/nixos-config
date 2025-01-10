@@ -7,7 +7,7 @@ let
 in
 {
   imports = [
-    ../../profiles/laptop.nix
+    ../../profiles/xfce/laptop.nix
     ./hardware-configuration.nix
     inputs.nixos-hardware.nixosModules.apple-t2
   ];
