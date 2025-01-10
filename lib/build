@@ -88,11 +88,10 @@ build::iso()
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
+    MACHINE="vm-test1"
     BUILD_UPDATE_ARGS=0
     NO_CLEAN="${NO_CLEAN:-0}"
 
-    # TODO: pass in name?
-    MACHINE="testvm1"
     local service="false"
     local hostname="nixos"
     ARGS="$MACHINES_DIR/$MACHINE/args.nix"
