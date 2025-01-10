@@ -20,9 +20,9 @@ Options:
   --reset-xfce      Remove existing xfce configuration during system update
 
 Commands:
-  flake [MACHINE]   Update the given machines flake.lock or root base.lock if not given
+  flake [MACHINE]   Update the given machine's flake.lock or root base.lock if not given
   profile PROFILE   Change the system profile to the given one
-  system [MACHINE]  Update the system with any configuration changes for the given machine or hostname
+  system [MACHINE]  Update system with given machine's configuration or hostname's if not given
 USAGE
 
     log::ln "\nExamples:"
@@ -43,7 +43,7 @@ update::run()
 
     local command=$1; shift
     case "$command" in
-        flake) update::flake ;;
+        flake) update::flake "$@" ;;
         profile) update::profile "$@" ;;
         system) update::system "$@" ;;
         *) log::error "Invalid update command: ${cyan}${command}${none}"; update::usage ;;
@@ -65,6 +65,7 @@ update::flake()
         flake::switch $MACHINE
         trap flake::restore EXIT
     else
+        log::header0 "Switching to base flake"
         flake::ensure_origin
         cp base.nix flake.nix
         cp base.lock flake.lock
