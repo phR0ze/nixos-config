@@ -20,7 +20,7 @@ Options:
 Commands:
   flake             Update the flake.lock file with the latest
   profile PROFILE   Change the system profile to the given one
-  system            Update the system with the configuration changes
+  system [MACHINE]  Update the system with any configuration changes for the given machine or hostname
 
 system args:
   reset-xfce        Remove existing xfce configuration
@@ -29,7 +29,8 @@ USAGE
 
     log::ln "\nExamples:"
     log::subln "Update flake: ${green}./${SCRIPT} update flake${none}"
-    log::subln "Update the system: ${green}./${SCRIPT} update system${none}"
+    log::subln "Update system using hostname: ${green}./${SCRIPT} update system${none}"
+    log::subln "Update system by name: ${green}./${SCRIPT} update system macbook${none}"
     log::subln "Update to the given profile: ${green}./${SCRIPT} update profile xfce/develop${none}"
     log::subln "Update the system, resetting xfce: ${green}./${SCRIPT} update system reset-xfce${none}"
     echo
@@ -87,10 +88,13 @@ update::profile()
 
 # Update the system with the system configuration changes
 # --------------------------------------------------------------------------------------------------
+# - $1 - optional hostname to use
 update::system()
 {
     core::title
     log::header1 "Update system version"
+    [[ "$1" == "" ]] && MACHINE=$(hostname) || MACHINE="$1"
+    log::ln "Using hostname ${cyan}${MACHINE}${none}"
     _update::pre
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
