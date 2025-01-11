@@ -24,7 +24,7 @@ in
     # Configure nix-serve to serve up the nix store as a binary cache with package signing
     services.nix-serve = {
       enable = true;
-      secretKeyFile = ${decrypted_key_pkg}/${decrypted_key_path};
+      secretKeyFile = "${decrypted_key_pkg}/${decrypted_key_path}";
     };
 
     services.nginx = {
