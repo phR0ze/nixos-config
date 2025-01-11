@@ -3,6 +3,7 @@
 { ... }:
 {
   imports = [
+    ./boot
     ./desktop
     ./development
     ./files

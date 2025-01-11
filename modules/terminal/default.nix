@@ -22,7 +22,6 @@ in
     ../locale.nix
     ../nix.nix
     ../users.nix
-    ../boot/kernel.nix
     ./env.nix
     ./bash.nix
     ./starship.nix
@@ -30,10 +29,7 @@ in
     ../services/nfs.nix
     ../services/sshd.nix
     ../services/systemd.nix
-
-  # conditionally exclude grub for iso builds
-  ] ++ lib.optional (true) ../boot/grub.nix;
-  #] ++ lib.optional (!machine.type.iso) ../boot/grub.nix;
+  ];
 
   network.network-manager.enable = true;
   programs.tmux.enable = true;
