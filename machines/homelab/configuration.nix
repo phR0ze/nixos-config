@@ -20,6 +20,7 @@ in
 
   config = {
     machine.enable = true;
+    services.cache.enable = true;
     services.x11vnc.enable = lib.mkForce false;
   };
 }
