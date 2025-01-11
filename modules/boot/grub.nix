@@ -6,7 +6,8 @@ let
 in
 {
   # Configure default kernel modules
-  boot.loader = {
+  
+  boot.loader = lib.optional (!machine.type.vm) {
     grub.enable = true;
 
     # Defaults to '/boot' and only gets used if efiSupport is true
