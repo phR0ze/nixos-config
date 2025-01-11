@@ -1,4 +1,5 @@
-ip0: ENC[AES256_GCM,data:eduslw2gxmMiN/x2Y9Bj,iv:63/1N5KVX8+aUT597ZqN8UNq6EtqPCSBe+2x7h3cyQE=,tag:7ZD1fw7zaI2gkEhsfqQA0g==,type:str]
+nic0_ip: ENC[AES256_GCM,data:IYE200Bol46F8fmQcVmg,iv:45eBNnTjjqzohOOGl4hV+WLaw0aMGcHn5IPrUPmXNGU=,tag:0pvThXaf8GhLgDW8rmUL7Q==,type:str]
+drive0_uuid: ENC[AES256_GCM,data:ek9Ur1HKDMTU/55mwXBHm/EvLdkP2zWe0k5cecngTKd5TCSE,iv:teLKj+gwi74yuVvHLVmX/4CnthTEx0C97PogtVzuAUs=,tag:UmqY1bDuui1J8lV9V7/ayw==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -14,8 +15,8 @@ sops:
             OWxmbVd3R0tITXBERWsvUFRYSlNWekEK087/CcZzPCKsq+g3H7moc6Dm5E0vATRe
             ZuMXRk6JeJvpX6aIeYIMgVal4SzFRUCz2x2V7LTIIJ8Q3MMF3hTvsQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-12-21T18:50:47Z"
-    mac: ENC[AES256_GCM,data:JEiTYNMzw5ZEnUi2Ub+HO84xPkvx9waEwQhv2iAPZHNGPd72HoWGY651QYgzND8DVW9Rtr8GLOJTcQfQq0WzqbmktkVSLICQGVt2Y0THbV8k3WaxwwHEK/IpPQGAE4rCfuWFhLFx1GL//P+rL95c7Cl3QhgPRA0AQQoAPE9wLuc=,iv:dK8oLcYmALWQTvgYm3jcJxAoZ1Q21VIOI3AnVPQEFNo=,tag:pwCxUUzoZTOpPj89TBQ3WQ==,type:str]
+    lastmodified: "2025-01-11T21:36:52Z"
+    mac: ENC[AES256_GCM,data:VEcnu47l3CAL80QUfjqBz79qLe4n4ZoF1VYkLBM/J1bsTKhq2tMJ0t5dmMEhgB26iWh3Ixiyc4eoRPBEE9cQrMx0Qq5undjmGY9S3tHHII4BAf0fGB4PNkgCPNbKB/XycGHCpuMDi2oGAaIPQXKvCy2jTPFo0UG0hgn5Wy9rvUo=,iv:/+lUBM1w8VATs4FCfXpH55bWzNGOwZ3fpNFywy3WaNQ=,tag:OnlZWSJNA5Fgb6DBejFwHw==,type:str]
     pgp: []
     unencrypted_suffix: _unencrypted
     version: 3.8.1
