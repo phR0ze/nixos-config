@@ -32,7 +32,7 @@ in
     }
 
     # Grub configuration for non VM/ISO machines
-    (lib.mkIf !machine.type.vm && !machine.type.iso {
+    (lib.mkIf (!machine.type.vm && !machine.type.iso) {
       boot.loader = {
         grub.enable = true;
 
@@ -48,4 +48,5 @@ in
         grub.device = machine.mbr;
       };
     })
+  ];
 }
