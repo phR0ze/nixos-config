@@ -42,7 +42,7 @@
     specialArgs = { inherit args f inputs; };
   in
   {
-    nixosConfigurations.system = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.target = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
       modules = [
         microvm.nixosModules.microvm

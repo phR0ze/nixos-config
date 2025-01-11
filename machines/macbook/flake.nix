@@ -16,8 +16,6 @@
   outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, microvm, ... }@inputs: let
     _args = import ./args.nix;
 
-    # Allow for package patches, overrides and additions
-    # ----------------------------------------------------------------------------------------------
     system = _args.arch;
     pkgs-unstable = import nixpkgs-unstable {
       inherit system;
@@ -33,10 +31,7 @@
       ];
 
       # Modify package defaults with overlays
-      # --------------------------------------------------------------------------------------------
       overlays = [
-
-        # Upgrade select packages to the latest unstable bits
         (before: after: {
           go = pkgs-unstable.go;
           go-bindata = pkgs-unstable.go-bindata;
@@ -50,7 +45,6 @@
     };
 
     # Configure special args with our argument overrides
-    # ----------------------------------------------------------------------------------------------
     f = pkgs.callPackage ./options/funcs { lib = nixpkgs.lib; };
     args = _args // (f.fromYAML ./args.dec.yaml) // {
       comment = f.gitMessage ./.;
@@ -58,11 +52,7 @@
     specialArgs = { inherit args f inputs; };
   in
   {
-    # Usually the configuration is the hostname of the machine but in this case I'm using a generic 
-    # value as an entry point with the hostname being set lower down based on the configuration 
-    # linked from the machine's sub-directory.
-    # ----------------------------------------------------------------------------------------------
-    nixosConfigurations.system = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.target = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
       modules = [
         microvm.nixosModules.host

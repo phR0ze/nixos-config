@@ -50,10 +50,10 @@
   in
   {
     # Usually the configuration is the hostname of the machine but in this case I'm using a generic 
-    # value as an entry point with the hostname being set lower down based on the configuration 
-    # linked from the machine's sub-directory.
+    # value 'target' as an entry point with the hostname being set lower down based on the 
+    # configuration linked from the machine's sub-directory.
     # ----------------------------------------------------------------------------------------------
-    nixosConfigurations.system = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.target = nixpkgs.lib.nixosSystem {
       inherit pkgs system specialArgs;
       modules = [ ./options ./configuration.nix ];
     };
