@@ -6,11 +6,6 @@ let
   cfg = config.services.cache;
   virtualhost = "cache";
   decrypted_key_path = "/var/lib/cache/private.dec.pem";
-  decrypted_key_pkg = pkgs.runCommandLocal "decrypted_key" {} ''
-    mkdir $out
-    decrypted="$out${decrypted_key_path}"
-    ${pkgs.sops}/bin/sops decrypt --output "$decrypted" "${../../include/var/lib/cache/private.enc.pem}" 
-  '';
 in
 {
   options = {
@@ -24,7 +19,7 @@ in
     # Configure nix-serve to serve up the nix store as a binary cache with package signing
     services.nix-serve = {
       enable = true;
-      secretKeyFile = "${decrypted_key_pkg}/${decrypted_key_path}";
+      secretKeyFile = decrypted_key_path;
     };
 
     services.nginx = {
