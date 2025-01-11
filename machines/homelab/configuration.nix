@@ -7,7 +7,7 @@ let
 in
 {
   imports = [
-    ../../profiles/server.nix
+    ../../profiles/xfce/server.nix
     ./hardware-configuration.nix
   ];
 
