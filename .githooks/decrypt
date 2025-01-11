@@ -25,7 +25,7 @@ fi
 
 # Find all the files to decrypt
 IFS=$'\n'  # find requires a little help to handle spaces
-for ENCRYPTED in $(find "$REPO_ROOT" -type f -name '*.enc.yaml'); do
+for ENCRYPTED in $(find "$REPO_ROOT" -type f -name '*.enc.*'); do
     DIR=$(dirname "$ENCRYPTED")         # get the diretory name
     FILE_NAME=$(basename "$ENCRYPTED")  # get the full file name
     NAME="${FILE_NAME%%.*}"             # trim off the file extension
