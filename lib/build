@@ -125,8 +125,9 @@ build::vm()
 
     # Build the vm
     core::title
-    log::header1 "Building VM ${cyan}${MACHINE}${none}"
-    _build::pre
+    log::header1 "Building ${cyan}${MACHINE}${none}"
+    flake::switch "$MACHINE"
+    trap flake::restore EXIT
 
     if [[ "$MACHINE" == "vm-test" ]]; then
         nix build .#nixosConfigurations.target.config.system.build.vm
@@ -165,19 +166,9 @@ _build::update_args()
     git add "${ARGS}"
 }
 
-# Pre build operations
-_build::pre()
-{
-    flake::switch "$MACHINE"
-
-    trap _build::post EXIT
-}
-
 # Post build operations
 _build::post()
 {
-    flake::restore
-
     if [[ $BUILD_UPDATE_ARGS == 1 && $NO_CLEAN == 0 ]]; then
         if [[ "$(git diff --staged --name-only -- ${ARGS})" != "" ]]; then
             log::ln "Restoring back to original: ${ARGS}"
