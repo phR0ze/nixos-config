@@ -131,7 +131,7 @@ update::system()
 
     # Execute update
     [[ $impure == 1 ]] && impure="--impure"
-    nixos-rebuild switch $impure --flake "path:/etc/nixos#system"
+    nixos-rebuild switch $impure --flake "path:/etc/nixos#target"
 }
 
 # Pre update operations

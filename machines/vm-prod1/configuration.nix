@@ -29,28 +29,28 @@ in
 
       # Create the interface before starting the MicroVM
       # sudo ip tuntap add $IFACE_NAME mode tap user $USER
-      interfaces = [ {
-        type = "tap";
-        id = cfg.hostname;                        # i.e. vm-prod1
-        mac = "02:00:00:00:00:01";                # Locally administered MACs use '02' prefix
-      }];
+#      interfaces = [ {
+#        type = "tap";
+#        id = cfg.hostname;                        # i.e. vm-prod1
+#        mac = "02:00:00:00:00:01";                # Locally administered MACs use '02' prefix
+#      }];
 
-      # Need a volume or VM data won't be persisted
-      volumes = [
-        # Preserve appliation data
-        {
-          image = "${machine_dir}/var.img";       # Path to the image on the host
-          mountPoint = "/var";                    # Mount point inside the guest
-          size = 256;
-        }
-
-        # Preserve configuration and passwords
-        {
-          image = "${machine_dir}/etc.img";       # Path to the image on the host
-          mountPoint = "/etc";                    # Mount point inside the guest
-          size = 256;
-        }
-      ];
+#      # Need a volume or VM data won't be persisted
+#      volumes = [
+#        # Preserve appliation data
+#        {
+#          image = "${machine_dir}/var.img";       # Path to the image on the host
+#          mountPoint = "/var";                    # Mount point inside the guest
+#          size = 256;
+#        }
+#
+#        # Preserve configuration and passwords
+#        {
+#          image = "${machine_dir}/etc.img";       # Path to the image on the host
+#          mountPoint = "/etc";                    # Mount point inside the guest
+#          size = 256;
+#        }
+#      ];
 
       # Sharing the host /nix/store will save a lot of space
       shares = [ {
@@ -60,14 +60,14 @@ in
         mountPoint = "/nix/.ro-store";
       } ];
 
-      # SPICE configuration
-      qemu.extraArgs = [
-        "-vga qxl"
-        "-spice port=${toString cfg.vm.spicePort},disable-ticketing=on"
-        "-device virtio-serial"
-        "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
-        "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
-      ];
+#      # SPICE configuration
+#      qemu.extraArgs = [
+#        "-vga qxl"
+#        "-spice port=${toString cfg.vm.spicePort},disable-ticketing=on"
+#        "-device virtio-serial"
+#        "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
+#        "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
+#      ];
     };
   };
 }

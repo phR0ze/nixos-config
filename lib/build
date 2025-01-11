@@ -37,11 +37,12 @@ Options:
 
 Commands:
   iso [PROFILE]         Build the installable ISO with an optional profile override
-  vm [PROFILE]          Build the VM with an optional profile override
+  vm [MACHINE]          Build the given VM machine or the default test vm 'vm-test'
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "Build the VM: ${green}./${SCRIPT} build vm${none}"
+    log::subln "Build the test VM: ${green}./${SCRIPT} build vm${none}"
+    log::subln "Build the prod1 VM: ${green}./${SCRIPT} build vm prod1${none}"
     log::subln "Build spice VM: ${green}./${SCRIPT} build vm generic/server --service=true --hostname=nixos70 --ip=192.168.1.70/24 --spice=true --spicePort=5971 --diskSize=1${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso generic/light${none}"
@@ -88,46 +89,50 @@ build::iso()
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
-    MACHINE="vm-test1"
+    # Process arguments
     BUILD_UPDATE_ARGS=0
     NO_CLEAN="${NO_CLEAN:-0}"
 
-    local service="false"
-    local hostname="nixos"
-    ARGS="$MACHINES_DIR/$MACHINE/args.nix"
-
-    core::title
-    log::header1 "Building VM"
-    _build::pre
-
-    # Set arg overrides as directed
     while [ $# -gt 0 ]; do
         local arg=$1; shift
         case "$arg" in
-            --hostname*)
-                _build::update_args "str" "hostname" "$arg" true
-                hostname="${arg#*=}" # trim the prefix including the '='
-                ;;
-            --service*)
-                _build::update_args "bool" "service" "$arg" true
-                service="${arg#*=}" # trim the prefix including the '='
-                ;;
-            --ip*) _build::update_args "str" "ip" "$arg" true ;;
-            --spicePort*) _build::update_args "int" "spicePort" "$arg" true ;;
-            --spice*) _build::update_args "bool" "spice" "$arg" true ;;
-            --cores*) _build::update_args "int" "cores" "$arg" true ;;
-            --diskSize*) _build::update_args "int" "diskSize" "$arg" true ;;
-            --memorySize*) _build::update_args "int" "memorySize" "$arg" true ;;
-            --resolution.x*) _build::update_args "int" "resolution.x" "$arg" true ;;
-            --resolution.y*) _build::update_args "int" "resolution.y" "$arg" true ;;
-            --no-clean) NO_CLEAN=1 ;;
-            --*) log::error "Invalid vm argument: ${cyan}${arg}${none}"; echo; build::usage ;;
-            *) _build::update_args "str" "profile" "$arg" ;;
+#            --hostname*)
+#                _build::update_args "str" "hostname" "$arg" true
+#                hostname="${arg#*=}" # trim the prefix including the '='
+#                ;;
+#            --service*)
+#                _build::update_args "bool" "service" "$arg" true
+#                service="${arg#*=}" # trim the prefix including the '='
+#                ;;
+#            --ip*) _build::update_args "str" "ip" "$arg" true ;;
+#            --spicePort*) _build::update_args "int" "spicePort" "$arg" true ;;
+#            --spice*) _build::update_args "bool" "spice" "$arg" true ;;
+#            --cores*) _build::update_args "int" "cores" "$arg" true ;;
+#            --diskSize*) _build::update_args "int" "diskSize" "$arg" true ;;
+#            --memorySize*) _build::update_args "int" "memorySize" "$arg" true ;;
+#            --resolution.x*) _build::update_args "int" "resolution.x" "$arg" true ;;
+#            --resolution.y*) _build::update_args "int" "resolution.y" "$arg" true ;;
+#            --no-clean) NO_CLEAN=1 ;;
+#            --*) log::error "Invalid vm argument: ${cyan}${arg}${none}"; echo; build::usage ;;
+            *) MACHINE="$arg" ;;
         esac
     done
 
+    # Correctly format machine name
+    MACHINE="${MACHINE#vm-}"  # trim vm- prefix
+    [[ "$MACHINE" == "" ]] && MACHINE="test"
+    MACHINE="vm-${MACHINE}"
+
     # Build the vm
-    nix build .#nixosConfigurations.system.config.system.build.vm
+    core::title
+    log::header1 "Building VM ${cyan}${MACHINE}${none}"
+    _build::pre
+
+    if [[ "$MACHINE" == "vm-test" ]]; then
+        nix build .#nixosConfigurations.target.config.system.build.vm
+    else
+        nix run .#nixosConfigurations.target.config.microvm.declaredRunner
+    fi
 
     # Move the service files 
 #    if [[ "${service}" == "true" ]]; then

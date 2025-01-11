@@ -5,8 +5,8 @@ Building out a Micro VM as a Portainer containerization solution.
 ### Quick links
 * [.. up dir](../../README.md)
 
-## Prepare Host
-* `/var/lib/microvms` stores the vms with a directory per MicroVM
+## Overview
+MicroVM stores the VMs at `/var/lib/microvms` a directory per MicroVM.
 
 ## Setup
 1. Create the machine files
