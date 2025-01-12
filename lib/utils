@@ -211,21 +211,44 @@ utils::pad_suffix()
 # Replace the given value in the given file
 # --------------------------------------------------------------------------------------------------
 # ### Params
-# - $1 type of replacement [str | bool]
-# - $2 value to search for
-# - $3 value to replace with
-# - $4 file to target
+# - $1 file to target
+# - $2 type of replacement [str | bool | int]
+# - $3 value to search for
+# - $4 value to replace with
 #
 utils::replace()
 {
-    local kind=$1
-    local target=$2
-    local value=$3
-    local file=$4
+    local file=$1
+    local kind=$2
+    local target=$3
+    local value=$4
 
     if [[ "x$kind" == "xbool" || "x$kind" == "xint" ]]; then
         sed -i -e "s|\(^.*${target} = \).*\(;.*$\)|\1${value}\2|" "${file}"
     elif [ "x$kind" == "xstr" ]; then
         sed -i -e "s|\(^.*${target} = \"\).*\(\";.*$\)|\1${value}\2|" "${file}"
     fi
+}
+
+# Builds on utils::replace to update an argument pair name=value
+# --------------------------------------------------------------------------------------------------
+# $1 - file to target
+# $2 - the kind of value [str | bool | int]
+# $3 - the name of the variable to change in the args file
+# $4 - the value to set
+# $5 - the value is a pair to split [ true ]
+utils::update()
+{
+    local file="$1"
+    local kind="$2"
+    local var="$3"
+    local value="$4"
+    local pair="$5"
+
+    # Parse the value from the pair, triming the prefix including the '='
+    [[ "$pair" == "true" ]] && value="${value#*=}"
+
+    # Update the value in the arg file
+    log::ln "Updating ${file}: ${cyan}${var}${none} => ${cyan}${value}${none}"
+    utils::replace "$file" "${kind}" "${var}" "${value}"
 }

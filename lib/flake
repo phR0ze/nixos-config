@@ -65,6 +65,12 @@ flake::restore()
         echo -n "Restoring flake files back to prestine"
         git restore --staged flake.nix flake.lock configuration.nix *.dec* */*.dec*
     fi
+
+    if [[ "$(git diff --staged --name-only -- args.nix)" != "" ]]; then
+        echo -n "Restoring args.nix to prestine"
+        git restore --staged args.nix
+        git checkout args.nix
+    fi
 }
 
 # Cleanup trap function. Typically not used as the local functions will have their own which will
