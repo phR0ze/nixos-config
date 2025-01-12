@@ -129,8 +129,14 @@ update::system()
         _update::removeUserXfceConfigs
     fi
 
-    # Execute update
+    # Pass along the impure param if given
     [[ $impure == 1 ]] && impure="--impure"
+
+    # Update the git comment for tracking versions
+    utils::update "args.nix" str git_comment "$(git log -1 --oneline --no-decorate)"
+    git add "args.nix"
+
+    # Execute update
     nixos-rebuild switch $impure --flake "path:/etc/nixos#target"
 }
 
