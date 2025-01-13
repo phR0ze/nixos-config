@@ -14,7 +14,7 @@ in
     };
   };
  
-  config = lib.mkIf (cfg.enable) {
+  config = lib.mkIf (cfg.host) {
 
     # Configure nix-serve to serve up the nix store as a binary cache with package signing
     services.nix-serve = {
