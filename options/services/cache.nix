@@ -10,7 +10,7 @@ in
 {
   options = {
     services.cache = {
-      enable = lib.mkEnableOption "Install and configure Nix Binary Cache";
+      host = lib.mkEnableOption "Install and configure Nix Binary Cache";
     };
   };
  

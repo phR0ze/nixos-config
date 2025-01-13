@@ -60,11 +60,13 @@ separate from the actual configuartion to allow for better reuse across my diffe
 | `autologin`     | bool  | `false`         | Automatically log the user in or not after boot
 | `resolution_x`  | int   | `0`             | Resolution x dimension, e.g. 1920
 | `resolution_y`  | int   | `0`             | Resolution y dimension, e.g. 1080
-| `nixos_base`    | str   | `24.05`         | Base install version, not sure this matters
+| `nix_base`      | str   | `24.05`         | Base install version, not sure this matters
 
-### Shares configuration
+### Services configuration
 | Argument        | Type  | Default         | Description
 | --------------- | ----- | --------------- | --------------------------------------
+| `cache_enable`  | str   |                 | IP of the local Nix Binary Cache
+| `cache_ip`      | str   |                 | IP of the local Nix Binary Cache
 | `shares_enable` | bool  | `false`         | Enable pre-configured nfs shares for this system
 | `shares_entries`| list  | [ ]             | List of share entries
 | `mountPoint`    | str   |                 | Share entry mount point e.g. `/mnt/Media`

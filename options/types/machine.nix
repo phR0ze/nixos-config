@@ -21,7 +21,7 @@
 #        { assertion = (cfg.autologin == true); message = "machine.autologin: ${f.boolToStr cfg.autologin}"; }
 #        { assertion = (cfg.resolution.x == 0); message = "machine.resolution.x: ${toString cfg.resolution.x}"; }
 #        { assertion = (cfg.resolution.y == 0); message = "machine.resolution.y: ${toString cfg.resolution.y}"; }
-#        { assertion = (cfg.nixos_base == "24.05"); message = "machine.nixos_base: ${cfg.nixos_base}"; }
+#        { assertion = (cfg.nix_base == "24.05"); message = "machine.nix_base: ${cfg.nix_base}"; }
 #
 #        # Shares args
 #        { assertion = (cfg.shares.enable == false); message = "machine.shares.enable: ${f.boolToStr cfg.shares.enable}"; }
@@ -178,11 +178,32 @@ in
       };
     };
 
-    nixos_base = lib.mkOption {
+    nix_base = lib.mkOption {
       description = lib.mdDoc "NixOS base installed version";
       type = types.str;
-      default = if (!builtins.hasAttr "nixos_base" _args || _args.nixos_base == null || _args.nixos_base == "")
-        then "24.05" else _args.nixos_base;
+      default = if (!builtins.hasAttr "nix_base" _args || _args.nix_base == null || _args.nix_base == "")
+        then "24.05" else _args.nix_base;
+    };
+
+    cache = lib.mkOption {
+      type = types.submodule {
+        options = {
+          enable = lib.mkOption {
+            description = lib.mdDoc "Enable using a custom Nix binary cache";
+            type = types.bool;
+          };
+          ip = lib.mkOption {
+            description = lib.mdDoc "IP address of the custom Nix binary cache";
+            type = types.str;
+          };
+        };
+      };
+      default = {
+        enable = if (!builtins.hasAttr "cache_enable" _args || _args.cache_enable == null || _args.cache_enable == false)
+          then false else true;
+        ip = if (!builtins.hasAttr "cache_ip" _args || _args.cache_ip == null)
+          then "" else _args.cache_ip;
+      };
     };
 
     shares = lib.mkOption {
