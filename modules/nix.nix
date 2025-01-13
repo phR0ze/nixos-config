@@ -7,14 +7,16 @@ in
 {
   config = lib.mkMerge [
     (lib.mkIf machine.cache.enable {
-      # Add custom binary caches
-      # - https://cache.nixos.org is added by default
-      substituters = lib.mkBefore [ "http://${machine.cache.ip}" ];
+      nix.settings = {
+        # Add custom binary caches
+        # - https://cache.nixos.org is added by default
+        substituters = lib.mkBefore [ "http://${machine.cache.ip}" ];
 
-      # Signing keys for custom substituters
-      trusted-public-keys = [
-        "cache:s+KGb+puY2fSjkJ0IB6B1UPEDW0CeUd1GlsN8Yb6UMw="
-      ];
+        # Signing keys for custom substituters
+        trusted-public-keys = [
+          "cache:s+KGb+puY2fSjkJ0IB6B1UPEDW0CeUd1GlsN8Yb6UMw="
+        ];
+      };
     })
     {
       # Set the short git revision and comment to be used in the system version `clu list versions`
