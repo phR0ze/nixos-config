@@ -9,7 +9,7 @@ in
     (lib.mkIf machine.cache.enable {
       # Add custom binary caches
       # - https://cache.nixos.org is added by default
-      substituters = lib.mkBefore [ "http://${machine.cache.ip}" ]
+      substituters = lib.mkBefore [ "http://${machine.cache.ip}" ];
 
       # Signing keys for custom substituters
       trusted-public-keys = [
