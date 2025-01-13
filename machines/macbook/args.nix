@@ -1,5 +1,6 @@
 {
-  hostname = "macbook";             # hostname for the machine
-  efi = true;                       # EFI system boot type, default "false"
-  nic0_name = "enp125s0u1u2u1";     # First NIC found in hardware-configuration.nix
+  hostname = "macbook";
+  efi = true;
+  nic0_name = "enp125s0u1u2u1";
+  cache_enable = true;
 }
