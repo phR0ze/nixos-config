@@ -10,6 +10,7 @@ nic0_subnet: ENC[AES256_GCM,data:eQQY8/2OaiUwlspCT98=,iv:wnevKu1dVOBnwxXgfT6VeBE
 nic0_gateway: ENC[AES256_GCM,data:2ye4xn9SzgQbOcA=,iv:X0772KgGpLId7PHrRTsDJ0Ivip3pfdEEFtVUVzoEmkg=,tag:9tTD8oeLhTbmwydlozA82A==,type:str]
 dns_primary: ENC[AES256_GCM,data:Vz+dBIJBDA==,iv:guc7qUUPQKtjFmEinFgovXFn+H5ZSOGC33EZhcGUBW0=,tag:aOP4bidv0ZOLQglmFUE+ig==,type:str]
 dns_fallback: ENC[AES256_GCM,data:Ne8MiT0gRw==,iv:nj0p8ADtrqlH0KCg4wNK+OnrdaCEP/fJsMFzwwk67oI=,tag:uYdb9x4Hb9odiy5DQ6W5Gg==,type:str]
+cache_ip: ENC[AES256_GCM,data:H7IWjhYR8W6PEf1c,iv:L81KjtKX1gAl8jJke9tHgo/J3elx6iOjekFjwA+QEJc=,tag:ipUaYj6Az/AXC2W9lUV22g==,type:str]
 shares_entries:
     - mountPoint: ENC[AES256_GCM,data:gADShOnB1aA0P3M=,iv:8tu5iwfDpgHQCnYb7gVlgv/TQ/FpDuIX2ibXjFBEaNE=,tag:MraLGbwvB32hIf/rzHsa4Q==,type:str]
       remotePath: ENC[AES256_GCM,data:GfyU4Q0K1rMalzP7eo0YBMTYQ5w8zW/nXxxG,iv:qC1a/jBW/XYrrznAGrgow6OS8c9PWMGdC9rRvuv8p/Q=,tag:ssRFHv+N0eC9/tUPsm2Ueg==,type:str]
@@ -48,8 +49,8 @@ sops:
             QVRlaDBHQjQyUmVtdHBnSVE3bDVwNU0K4bhHfhkxTll1UUuEICXzRry0uFg+BmRF
             eb72AwuqFL0MD6iDb0IUYVXB7Q2Ghm+EWXIYXZNeWT90lt5/mWU2sQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-01-08T23:08:58Z"
-    mac: ENC[AES256_GCM,data:6cK5eWpDWzlRK8vigYLplmsx2etQBwLRZBFhTjnCxvFl07lawfR2ZZA/zu1tyRVyiZthYfB9Xk1YrRzYsI19u0TBv9l1HRKvDBS8XRu00so5oOJB2oQqLmLNy2xu8u8F/fSLLuMHg3fwzSvGn22hiIzAReAl946oyV9K0pItBCw=,iv:WEM/CBd5yUB4oMeh9X9zWOmB7Fs42idw5sa6ocK1XJM=,tag:4N5svLsP6t2j8GRjPAzfYg==,type:str]
+    lastmodified: "2025-01-13T01:16:54Z"
+    mac: ENC[AES256_GCM,data:/Sxq2OxAP2kUxcoPABCTEOYQlb2h2C4l6WsR9Ls93luEvfXRY8RlDcF+YNxgQtO9xISC7n+Jr12xRTdIbsf8AlrI59pXY9O+h11eBAXfM9T4PRayLJ8RrpFboMgNN8PwzyG3Om9GmfA3Wx1K70WnsDtYk8QP9NbmQRcuL35dnZw=,iv:jAXWXf9fPhJV/Ax6FRaayPPIGpvkgpzgt8kLVBppCWM=,tag:A/MMtNdhhzw6vChknSaTHw==,type:str]
     pgp: []
     unencrypted_suffix: _unencrypted
     version: 3.8.1

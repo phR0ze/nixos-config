@@ -11,11 +11,16 @@
   timezone = "America/Boise";       # Time-zone selection
   bluetooth = false;                # Enable or disable bluetooth by default
   autologin = false;                # Automatically log the user in or not after boot
-  shares_enable = false;            # Enable pre-configured nfs shares for this system
   resolution_x = 0;                 # Resolution x dimension, e.g. 1920
   resolution_y = 0;                 # Resolution y dimension, e.g. 1080
   iso_enable = false;               # Enable or disable ISO mode
-  nixos_base = "24.05";             # NixOS base install version
+  nix_base = "24.05";               # NixOS base install version
+
+  # Services configuration
+  # ------------------------------------------------------------------------------------------------
+  shares_enable = false;            # Enable pre-configured nfs shares for this system
+  cache_enable = "";                # Enable using the local Nix binary cache
+  cache_ip = "";                    # IP address of the local Nix binary cache
 
   # User configuration
   # ------------------------------------------------------------------------------------------------
