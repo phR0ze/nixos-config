@@ -8,7 +8,7 @@ let
 in
 {
   imports = [
-    (../../. + "/profiles" + ("/" + args.profile + ".nix"))
+    (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
   options = {
@@ -19,13 +19,15 @@ in
 
   config = {
     machine.enable = true;
-    services.x11vnc.enable = lib.mkForce false;
+    services.qemuGuest.enable = true;
+
+    #services.x11vnc.enable = lib.mkForce false;
 
     microvm = {
       hypervisor = "qemu";                        # "qemu" has 9p built-in!
-      vcpu = 2;
-      mem = 4 * 1024;
-      graphics.enable = true;
+      #vcpu = 2;
+      #mem = 4 * 1024;
+      #graphics.enable = true;
 
       # Create the interface before starting the MicroVM
       # sudo ip tuntap add $IFACE_NAME mode tap user $USER
@@ -54,7 +56,8 @@ in
 
       # Sharing the host /nix/store will save a lot of space
       shares = [ {
-        proto = "virtiofs";                       # Requires the host run the virtiofsd service
+        #proto = "virtiofs";                       # Requires the host run the virtiofsd service
+        proto = "9p";                       # Requires the host run the virtiofsd service
         tag = "ro-store";
         source = "/nix/store";
         mountPoint = "/nix/.ro-store";

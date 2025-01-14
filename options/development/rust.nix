@@ -3,7 +3,6 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.development.rust;
-  
 in
 {
   options = {
@@ -13,6 +12,12 @@ in
   };
  
   config = lib.mkIf (cfg.enable) {
+
+    # Add cargo installed binaries to the path
+    environment.extraInit = ''
+      export PATH="$HOME/.cargo/bin:$PATH"
+    '';
+
     environment.systemPackages = with pkgs; [
       clang                               # A C language family frontend for LLVM
       lldb                                # Next gen high-performance debugger for Rust

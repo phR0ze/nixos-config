@@ -3,7 +3,7 @@
 # ### Details
 # - These changes get saved in /etc/bashrc which is loaded by /etc/profile
 #---------------------------------------------------------------------------------------------------
-{ lib, pkgs, f, ... }:
+{ pkgs, lib, ... }:
 let
   bashrc = (pkgs.writeText ".bashrc" ''
     # See modules/terminal/env.nix for PATH changes

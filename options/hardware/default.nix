@@ -3,8 +3,10 @@
 { ... }:
 {
   imports = [
-    ./amd-graphics.nix
-    ./intel-graphics.nix
-    ./nvidia-graphics.nix
+    ./boot.nix
+    ./firmware.nix
+    ./graphics-amd.nix
+    ./graphics-intel.nix
+    ./graphics-nvidia.nix
   ];
 }

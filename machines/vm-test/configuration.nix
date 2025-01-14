@@ -11,7 +11,7 @@ in
 {
   imports = [
     (modulesPath + "/profiles/qemu-guest.nix")
-    (../../. + "/profiles" + ("/" + args.profile + ".nix"))
+    (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
   options = {
