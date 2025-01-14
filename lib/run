@@ -17,6 +17,7 @@ USAGE
 
     log::ln "\nExamples:"
     log::subln "Run the test VM: ${green}./${SCRIPT} run vm${none}"
+    log::subln "Run the prod1 VM: ${green}./${SCRIPT} run vm prod1${none}"
     echo
     exit
 }
@@ -36,17 +37,27 @@ run::run()
 }
  
 # Run the test vm
+# - $1 - optional machine name to target
 # --------------------------------------------------------------------------------------------------
 run::vm()
 {
-    core::title
-    log::header0 "Running test VM"
+    local machine="${1#vm-}"  # trim vm- prefix
+    [[ "$machine" == "" ]] && machine="test"
+    MACHINE="vm-${machine}"
 
-    local runner="$SCRIPT_DIR/result/bin/run-nixos-vm"
-    if [[ -f "$runner" ]]; then
+    # Build the vm
+    core::title
+    log::header1 "Running VM ${cyan}${MACHINE}${none}"
+    flake::switch "$MACHINE"
+    trap flake::restore EXIT
+
+    if [[ "$MACHINE" == "vm-test" ]]; then
+        local runner="./result/bin/run-nixos-vm"
+        [[ ! -f "$runner" ]] && nix build .#nixosConfigurations.target.config.system.build.vm
         log::ln "Running ${cyan}${runner}${none}"
         $runner
     else
-        log::ln "VM doesn't exist, check: $runner"
+        log::ln "Running ${cyan}${MACHINE}${none}"
+        nix run .#nixosConfigurations.target.config.microvm.declaredRunner
     fi
 }

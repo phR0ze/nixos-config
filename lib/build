@@ -86,10 +86,11 @@ build::iso()
 }
 
 # Build the vm
+# - $1 - optional machine name to target
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
-    # Process arguments
+    local machine=""
     BUILD_UPDATE_ARGS=0
     NO_CLEAN="${NO_CLEAN:-0}"
 
@@ -114,14 +115,13 @@ build::vm()
 #            --resolution.y*) _build::update_args "int" "resolution.y" "$arg" true ;;
 #            --no-clean) NO_CLEAN=1 ;;
 #            --*) log::error "Invalid vm argument: ${cyan}${arg}${none}"; echo; build::usage ;;
-            *) MACHINE="$arg" ;;
+            *) machine="$arg" ;;
         esac
     done
 
     # Correctly format machine name
-    MACHINE="${MACHINE#vm-}"  # trim vm- prefix
-    [[ "$MACHINE" == "" ]] && MACHINE="test"
-    MACHINE="vm-${MACHINE}"
+    [[ "$machine" == "" ]] && machine="test"
+    MACHINE="vm-${machine}"
 
     # Build the vm
     core::title
@@ -132,7 +132,8 @@ build::vm()
     if [[ "$MACHINE" == "vm-test" ]]; then
         nix build .#nixosConfigurations.target.config.system.build.vm
     else
-        nix run .#nixosConfigurations.target.config.microvm.declaredRunner
+        nix build .#nixosConfigurations.target.config.microvm.declaredRunner
+        #nix run .#nixosConfigurations.target.config.microvm.declaredRunner
     fi
 
     # Move the service files 
