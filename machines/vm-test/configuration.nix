@@ -1,7 +1,5 @@
 # Test VM configuration
 #
-# ### Features
-# - ?
 # --------------------------------------------------------------------------------------------------
 { modulesPath, config, pkgs, lib, args, f, ... }: with lib.types;
 let
@@ -23,17 +21,8 @@ in
 
   config = lib.mkMerge [
     {
-      assertions = [
-        { assertion = (cfg.shares.enable == false); message = "machine.shares.enable: ${f.boolToStr cfg.shares.enable}"; }
-#      machine.vms = [];
-      ];
-
-      # Activate the machine options based on the derived arguments above
       machine.enable = true;
-
-      # Guest machine overrides for virtual machine
       services.openssh.settings.PermitRootLogin = "yes";
-      services.qemuGuest.enable = true;             # qemu guest support
 
       # Virtual machine configuration
       # - nixpkgs/nixos/modules/virtualisation/qemu-vm.nix
@@ -54,15 +43,6 @@ in
     # Optionally enable SPICE support
     # Connect by launching `remote-viewer` and running `spice://localhost:5970`
     (lib.mkIf cfg.vm.spice {
-      services.spice-vdagentd.enable = true;        # support SPICE clients
-      services.spice-autorandr.enable = true;       # automatically adjust resolution to client size
-      services.spice-webdavd.enable = true;         # File sharing support between Host and Guest
-
-      # Configure higher performance graphics for for SPICE
-      services.xserver.videoDrivers = [ "qxl" ];
-      environment.systemPackages = [ pkgs.xorg.xf86videoqxl ];
-
-      # Configure SPICE
       virtualisation.vmVariant.virtualisation.qemu.options = [
         "-vga qxl"
         "-spice port=${toString cfg.vm.spicePort},disable-ticketing=on"

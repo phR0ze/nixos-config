@@ -1,22 +1,10 @@
-# Configure the host for VM hosting
+# Configure the QEMU host and guest
 #
-# ### Research
-# - nixos-rebuild build-vm is made for testing with limited configuration capabilities i.e. 
-#   essentially just build your existing configuration as a vm which is nice but not meant for 
-#   declaratively building and hosting your vms.
-# - https://github.com/astro/microvm.nix
-#   - https://www.youtube.com/watch?v=iGteDsnlCoY
-#   - creates systemd units for tap, macvtap, virtiofsd and others
-# - qemu introduced the microvm type which removes legacy clutter and is optimized for VirtIO which 
-#   now makes it possible to use VMs much like containers only with more isolation and protection
-# 
-# ### Details
-# - microvm was built to allow for keeping configuration and vm settings together
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }:
 let
-  cfg = config.virtualization.host;
   machine = config.machine;
+  cfg = config.virtualization;
 in
 {
   options = {
@@ -25,56 +13,77 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    virtualisation.libvirtd = {
-      enable = true;
+  config = lib.mkMerge [
 
-      # Configure UEFI support
-      qemu.ovmf.enable = true;
-      qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];
+    # Shared standard nix vm and Micro VM configuration
+    (lib.mkIf (machine.type.vm) {
+      services.qemuGuest.enable = true;
+      services.x11vnc.enable = lib.mkForce false;
+    })
 
-      # Configure windows swtpm
-      qemu.swtpm.enable = true;
+    # Shared standard nix vm and Micro VM SPICE configuration
+    (lib.mkIf (machine.type.vm && machine.vm.spice) {
+      services.spice-vdagentd.enable = true;  # SPICE agent to be run on the guest OS
+      services.spice-autorandr.enable = true; # Automatically adjust resolution of guest to spice client size
+      services.spice-webdavd.enable = true;   # Enable file sharing on guest to allow access from host
 
-      qemu.vhostUserPackages = [ pkgs.virtiofsd ];  # virtiofs support
-    };
+      # Configure higher performance graphics for for SPICE
+      services.xserver.videoDrivers = [ "qxl" ];
+      environment.systemPackages = [ pkgs.xorg.xf86videoqxl ];
+    })
 
-    environment.sessionVariables.LIBVIRT_DEFAULT_URI = [ "qemu:///system" ];
+    # Virtualization host configuration
+    (lib.mkIf cfg.host.enable {
+      virtualisation.libvirtd = {
+        enable = true;
 
-    # Enables the use of qemu-bridge-helper for `type = "bridge"` interface.
-    environment.etc."qemu/bridge.conf".text = lib.mkDefault ''
-      allow all
-    '';
+        # Configure UEFI support
+        qemu.ovmf.enable = true;
+        qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];
 
-    # Allow nested virtualization
-    boot.extraModprobeConfig = "options kvm_intel nested=1";
+        # Configure windows swtpm
+        qemu.swtpm.enable = true;
 
-    # Configure SPICE guest service and QEMU accelerated graphics
-    # - supports SPICE access remoting
-    # - supports copy and pasting between host and guest
-    services.spice-vdagentd.enable = true;
-    services.spice-webdavd.enable = true;         # File sharing support between Host and Guest
-    virtualisation.spiceUSBRedirection.enable = true; # USB passthrough for VMs
+        qemu.vhostUserPackages = [ pkgs.virtiofsd ];  # virtiofs support
+      };
 
-    # Additional packages
-    environment.systemPackages = with pkgs; [
+      environment.sessionVariables.LIBVIRT_DEFAULT_URI = [ "qemu:///system" ];
 
-      # SPICE enabled viewer for virtual machines
-      # - can be used in conjunction with libvirtd for a QEMU VM console OR
-      # - installs remote-viewer which can be used directly for a QEMU VM console without libvirtd
-      # - remote-viewer spice://<host>:5900
-      virt-viewer
+      # Enables the use of qemu-bridge-helper for `type = "bridge"` interface.
+      environment.etc."qemu/bridge.conf".text = lib.mkDefault ''
+        allow all
+      '';
 
-      spice-gtk         # Spicy GTK SPICE client
-      spice-protocol    # SPICE support
-      win-virtio        # QEMU support for windows
-      win-spice         # SPICE support for windows
+      # Allow nested virtualization
+      boot.extraModprobeConfig = "options kvm_intel nested=1";
 
-      # Quickly create and run optimized Windows, macOS and Linux virtual machines
-      # - bash scripts wrapping and controlling QEMU
-      # quickemu
-    ];
+      # Configure SPICE guest service and QEMU accelerated graphics
+      # - supports SPICE access remoting
+      # - supports copy and pasting between host and guest
+      services.spice-vdagentd.enable = true;
+      services.spice-webdavd.enable = true;         # File sharing support between Host and Guest
+      virtualisation.spiceUSBRedirection.enable = true; # USB passthrough for VMs
 
-    users.users.${machine.user.name}.extraGroups = [ "kvm" "libvirtd" "qemu-libvirtd" ];
-  };
+      # Additional packages
+      environment.systemPackages = with pkgs; [
+
+        # SPICE enabled viewer for virtual machines
+        # - can be used in conjunction with libvirtd for a QEMU VM console OR
+        # - installs remote-viewer which can be used directly for a QEMU VM console without libvirtd
+        # - remote-viewer spice://<host>:5900
+        virt-viewer
+
+        spice-gtk         # Spicy GTK SPICE client
+        spice-protocol    # SPICE support
+        win-virtio        # QEMU support for windows
+        win-spice         # SPICE support for windows
+
+        # Quickly create and run optimized Windows, macOS and Linux virtual machines
+        # - bash scripts wrapping and controlling QEMU
+        # quickemu
+      ];
+
+      users.users.${machine.user.name}.extraGroups = [ "kvm" "libvirtd" "qemu-libvirtd" ];
+    })
+  ];
 }
