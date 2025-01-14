@@ -7,7 +7,9 @@
 {
   imports = [
     ./barrier.nix
-    ./x11vnc.nix
     ./cache.nix
+    ./nfs.nix
+    ./sshd.nix
+    ./x11vnc.nix
   ];
 }

@@ -3,19 +3,9 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  cfg = config.services.nfs.client.shares;
+  cfg = config.machine.shares;
 in
 {
-  options = {
-    services.nfs.client.shares = {
-      enable = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc "Whether to enable NFS client shares on this system.";
-      };
-    };
-  };
-
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       nfs-utils                           # Linux user-space NFS utilities

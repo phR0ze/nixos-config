@@ -4,19 +4,9 @@
 # - These changes get saved in /etc/set-environment or the session variables
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
-let
-  env = lib.optional config.development.rust.enable ''
-    export PATH="$HOME/.cargo/bin:$PATH"
-  '';
-in
 {
   # Add ~/.local/bin to the PATH in /etc/set-environment
   environment.localBinInPath = true;
-
-  # Add additional environment configuration to /etc/set-environment
-  environment.extraInit = ''
-    ${lib.concatStringsSep "\n" env}
-  '';
 
   # Environment variables
   environment.variables = {

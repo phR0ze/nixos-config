@@ -3,7 +3,7 @@
 { ... }:
 {
   imports = [
-    ./dconf
+    ./dconf.nix
     ./x11
     ./xdg
     ./xfce
