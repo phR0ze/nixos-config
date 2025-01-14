@@ -1,6 +1,6 @@
 {
   hostname = "vm-prod1";
-  profile = "base";
+  profile = "xfce/desktop";
   vm_enable = true;
   vm_cores = 1;
   vm_disk_size = 1;

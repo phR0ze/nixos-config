@@ -25,9 +25,9 @@ in
 
     microvm = {
       hypervisor = "qemu";                        # "qemu" has 9p built-in!
-      #vcpu = 2;
-      #mem = 4 * 1024;
-      #graphics.enable = true;
+      vcpu = 2;
+      mem = 4 * 1024;
+      graphics.enable = true;
 
       # Create the interface before starting the MicroVM
       # sudo ip tuntap add $IFACE_NAME mode tap user $USER
