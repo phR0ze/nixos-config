@@ -120,7 +120,7 @@ update::system()
     done
 
     # Optionally set the machine being used and log it
-    [[ "$1" == "" ]] && MACHINE=$(hostname)
+    [[ "$MACHINE" == "" ]] && MACHINE=$(hostname)
     log::header0 "Using hostname ${cyan}${MACHINE}${none}"
     _update::pre
 
