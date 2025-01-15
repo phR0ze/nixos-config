@@ -6,10 +6,10 @@
 { lib, pkgs, ... }:
 {
   imports = [
-    ../develop.nix
+    ../xfce/develop.nix
   ];
 
-  hardware.intel-graphics.enable = true;
+  hardware.graphics.intel = true;
   services.xserver.xft.dpi = 115;
   services.x11vnc.enable = lib.mkForce false;
   virtualization.virt-manager.enable = true;

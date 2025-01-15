@@ -5,8 +5,6 @@
   imports = [
     ./boot.nix
     ./firmware.nix
-    ./graphics-amd.nix
-    ./graphics-intel.nix
-    ./graphics-nvidia.nix
+    ./graphics.nix
   ];
 }

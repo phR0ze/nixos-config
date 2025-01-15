@@ -7,11 +7,11 @@
 { lib, pkgs, ... }:
 {
   imports = [
-    ../theater.nix
+    ../xfce/theater.nix
   ];
 
   # Hardware
-  hardware.intel-graphics.enable = true;
+  hardware.graphics.intel = true;
 
   # Games
   programs.hedgewars.enable = true;
