@@ -7,9 +7,9 @@ let
 in
 {
   imports = [
-    ../../profiles/xfce/develop.nix
     ./hardware-configuration.nix
     inputs.nixos-hardware.nixosModules.apple-t2
+    (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
   options = {

@@ -11,8 +11,8 @@ let
 in
 {
   imports = [
-    ../../profiles/xfce/develop.nix
     ./hardware-configuration.nix
+    (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
   options = {
