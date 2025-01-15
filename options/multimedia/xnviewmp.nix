@@ -19,7 +19,7 @@ let
 
   # Build XnViewMP from AppImage
   xnviewmp = pkgs.appimageTools.wrapType2 rec {
-    name = "xnviewmp";
+    pname = "xnviewmp";
     version = "1.7.0";
     src = pkgs.fetchurl {
       url = "https://download.xnview.com/XnView_MP.glibc2.17-x86_64.AppImage";
