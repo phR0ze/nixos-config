@@ -100,6 +100,7 @@ separate from the actual configuartion to allow for better reuse across my diffe
 | `nic1_gateway`  | str   |                 | Gateway to use for machine e.g. `192.168.1.1`
 | `dns_primary`   | str   | `1.1.1.1`       | Primary DNS to use for machine e.g. `1.1.1.1`
 | `dns_fallback`  | str   | `8.8.8.8`       | Fallback DNS to use for machine e.g. `8.8.8.8`
+| `macvtap_host`  | str   |                 | NIC name of the macvtap host, e.g. `wlp3s0`
 
 ### VM configuration
 | Argument        | Type  | Default         | Description
