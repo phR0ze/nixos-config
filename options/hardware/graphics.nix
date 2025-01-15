@@ -1,35 +1,60 @@
-# Nvidia graphics configuration
-# - https://nixos.wiki/wiki/Nvidia
+# AMD graphics configuration
 #
 # ### Supported systems
-# - GeForce GTX 1050 Ti
-#   - stable, beta and production should work
+# - AMD Lexa PRO
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.hardware.nvidia-graphics;
+  cfg = config.hardware.graphics;
   x11 = config.services.xserver;
-
 in
 {
   options = {
-    hardware.nvidia-graphics = {
-      enable = lib.mkEnableOption "Install and configure Nvidia graphics";
+    hardware.graphics = {
+      amd = lib.mkEnableOption "Install and configure AMD graphics";
+      intel = lib.mkEnableOption "Install and configure Intel graphics";
+      nvidia = lib.mkEnableOption "Install and configure Nvidia graphics";
     };
   };
 
   config = lib.mkMerge [
 
-    # Configure X11 video driver
-    (lib.mkIf (cfg.enable && x11.enable) {
+    # AMD graphics
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf cfg.amd {
+      # Have the kernel load the correct GPU driver as soon as possible
+      boot.initrd.kernelModules = [ "amdgpu" ];
+    })
+    (lib.mkIf (cfg.amd && x11.enable) {
+      # Configure X11 video driver
+      services.xserver.videoDrivers = [ "amdgpu" ];
+    })
+
+    # Intel graphics
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf cfg.intel {
+      hardware.opengl.extraPackages = with pkgs; [
+        intel-media-driver          # VA-API for Intel iHD Broadwell (2014) or newer
+        intel-vaapi-driver          # VA-API for Intel i965 Broadwell (2014), better for Firefox?
+        vaapiVdpau                  # VDPAU driver for the VAAPI library
+        libvdpau-va-gl              # VDPAU driver with OpenGL/VAAPI backend
+      ];
+      environment.systemPackages = with pkgs; [
+        intel-gpu-tools
+      ];
+    });
+
+    # Nvidia graphics
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf (cfg.nvidia && x11.enable) {
+      # Configure X11 video driver
       services.xserver.videoDrivers = [ "nvidia" ];
       #services.xserver.videoDrivers = [ "nvidiaLegacy470" ];
       #services.xserver.videoDrivers = [ "nvidiaLegacy390" ];
       #services.xserver.videoDrivers = [ "nvidiaLegacy340" ];
     })
-
-    # Have the kernel load the correct GPU driver as soon as possible
-    (lib.mkIf (cfg.enable) {
+    (lib.mkIf cfg.nvidia {
+      # Have the kernel load the correct GPU driver as soon as possible
       hardware.nvidia = {
 
         # Modesetting is required.
@@ -47,8 +72,7 @@ in
 
         # Use the NVidia open source kernel module (not to be confused with the
         # independent third-party "nouveau" open source driver).
-        # Support is limited to the Turing and later architectures. Full list of 
-        # supported GPUs is at: 
+        # Support is limited to the Turing and later architectures. Full list of supported GPUs is at: 
         # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus 
         # Only available from driver 515.43.04+
         # Currently alpha-quality/buggy, so false is currently the recommended setting.
