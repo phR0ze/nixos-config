@@ -124,11 +124,29 @@ in
     };
 
     drive0 = lib.mkOption {
-      description = lib.mdDoc "Drive options";
+      description = lib.mdDoc "Drive 0 options";
       type = types.submodule drive;
       default = {
         uuid = if (!builtins.hasAttr "drive0_uuid" _args || _args.drive0_uuid == null)
           then "" else _args.drive0_uuid;
+      };
+    };
+
+    drive1 = lib.mkOption {
+      description = lib.mdDoc "Drive 1 options";
+      type = types.submodule drive;
+      default = {
+        uuid = if (!builtins.hasAttr "drive1_uuid" _args || _args.drive1_uuid == null)
+          then "" else _args.drive1_uuid;
+      };
+    };
+
+    drive2 = lib.mkOption {
+      description = lib.mdDoc "Drive 2 options";
+      type = types.submodule drive;
+      default = {
+        uuid = if (!builtins.hasAttr "drive2_uuid" _args || _args.drive2_uuid == null)
+          then "" else _args.drive2_uuid;
       };
     };
 

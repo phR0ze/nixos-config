@@ -53,7 +53,9 @@ separate from the actual configuartion to allow for better reuse across my diffe
 | `efi`           | bool  | `false`         | EFI system boot type set during installation
 | `mbr`           | str   | `nodev`         | MBR system boot device set during installation, e.g. `/dev/sda`
 | `arch`          | str   | `x86_64-linux`  | System architecture to use
-| `drive0_uuid`   | str   |                 | Drive identifier used in `hardware-configuration.nix`
+| `drive0_uuid`   | str   |                 | Drive 0 identifier used in `hardware-configuration.nix`
+| `drive1_uuid`   | str   |                 | Drive 1 identifier used in `hardware-configuration.nix`
+| `drive2_uuid`   | str   |                 | Drive 2 identifier used in `hardware-configuration.nix`
 | `locale`        | str   | `en_US.UTF-8`   | Locale selection
 | `timezone`      | str   | `America/Boise` | Time-zone selection
 | `bluetooth`     | bool  | `false`         | Enable or disable bluetooth by default
