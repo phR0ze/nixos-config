@@ -6,7 +6,9 @@
   vm_disk_size = 1;
   vm_memory_size = 4;
   vm_spice = true;
-  vm_spice_port = 5970;
+  vm_spice_port = 5971;
+  vm_graphics = false;
+  macvtap_host = "wlp3s0";
   resolution_x = 1920;
   resolution_y = 1080;
   autologin = true;

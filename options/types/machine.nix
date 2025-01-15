@@ -320,6 +320,23 @@ in
       };
     };
 
+    macvtap = lib.mkOption {
+      type = types.submodule {
+        options = {
+          host = lib.mkOption {
+            description = lib.mdDoc "NIC of the Macvtap host";
+            type = types.str;
+            default = "";
+            example = "wlp3s0";
+          };
+        };
+      };
+      default = {
+        host = if (!builtins.hasAttr "macvtap_host" _args || _args.macvtap_host == null)
+          then "" else _args.macvtap_host;
+      };
+    };
+
     drive1-uuid = lib.mkOption {
       description = lib.mdDoc "Hard drive 1 UUID";
       type = types.str;
