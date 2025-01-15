@@ -22,6 +22,9 @@
 #        { assertion = (cfg.resolution.x == 0); message = "machine.resolution.x: ${toString cfg.resolution.x}"; }
 #        { assertion = (cfg.resolution.y == 0); message = "machine.resolution.y: ${toString cfg.resolution.y}"; }
 #        { assertion = (cfg.nix_base == "24.05"); message = "machine.nix_base: ${cfg.nix_base}"; }
+#        { assertion = (cfg.drive0.uuid == ""); message = "drive0.uuid: ${cfg.drive0.uuid}"; }
+#        { assertion = (cfg.drive1.uuid == ""); message = "drive1.uuid: ${cfg.drive1.uuid}"; }
+#        { assertion = (cfg.drive2.uuid == ""); message = "drive2.uuid: ${cfg.drive2.uuid}"; }
 #
 #        # Shares args
 #        { assertion = (cfg.shares.enable == false); message = "machine.shares.enable: ${f.boolToStr cfg.shares.enable}"; }
@@ -353,12 +356,6 @@ in
         host = if (!builtins.hasAttr "macvtap_host" _args || _args.macvtap_host == null)
           then "" else _args.macvtap_host;
       };
-    };
-
-    drive1-uuid = lib.mkOption {
-      description = lib.mdDoc "Hard drive 1 UUID";
-      type = types.str;
-      default = "";
     };
 
     vms = lib.mkOption {

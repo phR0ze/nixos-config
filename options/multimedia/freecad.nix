@@ -19,7 +19,7 @@ in
     services.xdg.menu.itemOverrides = [
       {
         categories = "Graphics";
-        source = "${pkgs.freecad}/share/applications/org.freecadweb.FreeCAD.desktop";
+        source = "${pkgs.freecad}/share/applications/org.freecad.FreeCAD.desktop";
       }
     ];
   };
