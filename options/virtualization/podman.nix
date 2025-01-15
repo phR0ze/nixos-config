@@ -17,6 +17,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
+  machine = config.machine;
   cfg = config.virtualization.podman;
 in
 {
