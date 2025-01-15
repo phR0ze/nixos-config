@@ -23,7 +23,7 @@ let
     version = "1.7.0";
     src = pkgs.fetchurl {
       url = "https://download.xnview.com/XnView_MP.glibc2.17-x86_64.AppImage";
-      hash = "sha256-0yj4wo0iWhvsAKsIUHzZOpouTOkcLU3gJMkq0Hmrqpw=";
+      hash = "sha256-dGibPkzugkxP9x437eMc5hM+tQ4zBABoiM9UrqSSPWI=";
     };
     extraPkgs = pkgs: with pkgs; [
       qt5.qtbase
