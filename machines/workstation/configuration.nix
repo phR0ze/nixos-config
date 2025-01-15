@@ -41,7 +41,7 @@ in
     programs.superTuxKart.enable = true;
 
     # Multimedia
-    programs.xnviewmp.enable = true;
+    #programs.xnviewmp.enable = true;
 
     # Misc
     environment.systemPackages = [
