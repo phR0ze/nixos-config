@@ -7,8 +7,8 @@ let
 in
 {
   imports = [
-    ../../profiles/xfce/server.nix
     ./hardware-configuration.nix
+    (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
   options = {
