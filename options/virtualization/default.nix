@@ -5,7 +5,7 @@
   imports = [
     ./incus.nix
     ./podman.nix
-    ./qemu.nix
+    ./microvm.nix
     ./virt-manager.nix
     ./winetricks.nix
   ];

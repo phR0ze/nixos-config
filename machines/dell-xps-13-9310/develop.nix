@@ -11,6 +11,6 @@
 
   hardware.graphics.intel = true;
   services.xserver.xft.dpi = 115;
-  virtualization.host.enable = true;
+  virtualization.microvm.host.enable = true;
   services.x11vnc.enable = lib.mkForce false;
 }

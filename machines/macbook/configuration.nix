@@ -21,7 +21,7 @@ in
 
   config = {
     machine.enable = true;
-    virtualization.host.enable = true;
+    virtualization.microvm.host.enable = true;
     services.x11vnc.enable = lib.mkForce false;
 
     # Increase the default DPI size
