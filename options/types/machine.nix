@@ -22,12 +22,15 @@
 #        { assertion = (cfg.resolution.x == 0); message = "machine.resolution.x: ${toString cfg.resolution.x}"; }
 #        { assertion = (cfg.resolution.y == 0); message = "machine.resolution.y: ${toString cfg.resolution.y}"; }
 #        { assertion = (cfg.nix_base == "24.05"); message = "machine.nix_base: ${cfg.nix_base}"; }
-#        { assertion = (cfg.drive0.uuid == ""); message = "drive0.uuid: ${cfg.drive0.uuid}"; }
-#        { assertion = (cfg.drive1.uuid == ""); message = "drive1.uuid: ${cfg.drive1.uuid}"; }
-#        { assertion = (cfg.drive2.uuid == ""); message = "drive2.uuid: ${cfg.drive2.uuid}"; }
+#        { assertion = (builtins.length cfg.drives == 3); message = "drives: ${toString (builtins.length cfg.drives)}"; }
+#        { assertion = ((builtins.elemAt cfg.drives 0).uuid == ""); message = "drives: ${(builtins.elemAt cfg.drives 0).uuid}"; }
 #
 #        # Shares args
 #        { assertion = (cfg.shares.enable == false); message = "machine.shares.enable: ${f.boolToStr cfg.shares.enable}"; }
+#        { assertion = (builtins.length cfg.shares.entries == 3); message = "shares.len:
+#          ${toString (builtins.length cfg.shares.entries)}"; }
+#        { assertion = ((builtins.elemAt cfg.shares.entries 0).mountPoint == ""); message = "shares[0]: 
+#          ${(builtins.elemAt cfg.shares.entries 0).mountPoint}"; }
 #
 #        # User args
 #        { assertion = (cfg.user.fullname == "admin"); message = "machine.user.fullname: ${cfg.user.fullname}"; }
@@ -72,11 +75,9 @@
 { lib, _args, f, ... }: with lib.types;
 let
   nic = import ./nic.nix { inherit lib; };
-  drive = import ./drive.nix { inherit lib; };
   user = import ./user.nix { inherit lib; };
   type = import ./machine_type.nix { inherit lib; };
   vm = import ./vm.nix { inherit lib; };
-  share = import ./share.nix { inherit lib; };
 in
 {
   options = {
@@ -126,31 +127,19 @@ in
         then "nodev" else _args.mbr;
     };
 
-    drive0 = lib.mkOption {
-      description = lib.mdDoc "Drive 0 options";
-      type = types.submodule drive;
-      default = {
-        uuid = if (!builtins.hasAttr "drive0_uuid" _args || _args.drive0_uuid == null)
-          then "" else _args.drive0_uuid;
-      };
-    };
-
-    drive1 = lib.mkOption {
-      description = lib.mdDoc "Drive 1 options";
-      type = types.submodule drive;
-      default = {
-        uuid = if (!builtins.hasAttr "drive1_uuid" _args || _args.drive1_uuid == null)
-          then "" else _args.drive1_uuid;
-      };
-    };
-
-    drive2 = lib.mkOption {
-      description = lib.mdDoc "Drive 2 options";
-      type = types.submodule drive;
-      default = {
-        uuid = if (!builtins.hasAttr "drive2_uuid" _args || _args.drive2_uuid == null)
-          then "" else _args.drive2_uuid;
-      };
+    drives = lib.mkOption {
+      description = lib.mdDoc "Drive options";
+      type = types.listOf (types.submodule {
+        options = {
+          uuid = lib.mkOption {
+            description = lib.mdDoc "Drive identifier";
+            type = types.str;
+            default = "";
+          };
+        };
+      });
+      default = if (!builtins.hasAttr "drives" _args || _args.drives == null)
+        then [ ] else _args.drives;
     };
 
     arch = lib.mkOption {
@@ -231,21 +220,43 @@ in
       type = types.submodule {
         options = {
           enable = lib.mkOption {
-            description = lib.mdDoc "Enable NFS shares";
+            description = lib.mdDoc "Enable shares";
             type = types.bool;
           };
           entries = lib.mkOption {
-            description = lib.mdDoc "NFS shares to configure";
-            type = types.listOf share;
+            description = lib.mdDoc "Share entries to configure";
+            type = types.listOf (types.submodule {
+              options = {
+                mountPoint = lib.mkOption {
+                  description = lib.mdDoc "Share mount point";
+                  type = types.str;
+                  example = "/mnt/Media";
+                };
+                remotePath = lib.mkOption {
+                  description = lib.mdDoc "Remote path to use for the share";
+                  type = types.str;
+                  example = "192.168.1.2:/srv/nfs/Media";
+                };
+                fsType = lib.mkOption {
+                  description = lib.mdDoc "Share file system type";
+                  type = types.listOf types.str;
+                  example = "nfs";
+                };
+                options = lib.mkOption {
+                  description = lib.mdDoc "Share options";
+                  type = types.listOf types.str;
+                  example = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+                };
+              };
+            });
           };
         };
       };
       default = {
         enable = if (!builtins.hasAttr "shares_enable" _args || _args.shares_enable == null || _args.shares_enable == false)
           then false else true;
-
-        # TODO: need to set defalts from yaml
-        entries = [ ];
+        entries = if (!builtins.hasAttr "shares_entries" _args || _args.shares_entries == null)
+          then [ ] else _args.shares_entries;
       };
     };
 

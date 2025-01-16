@@ -3,10 +3,10 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  cfg = config.machine.shares;
+  machine = config.machine;
 in
 {
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf (machine.shares.enable) {
     environment.systemPackages = with pkgs; [
       nfs-utils                           # Linux user-space NFS utilities
     ];
