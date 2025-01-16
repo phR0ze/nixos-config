@@ -70,15 +70,11 @@ in
         dnssec = "allow-downgrade"; # using `true` will break DNS if VPN DNS servers don't support
       };
     }
-    (lib.mkIf (nic0.dns.primary != "") {
+    (f.mkIfElse (nic0.dns.primary != "" && nic0.dns.fallback != "") {
       networking.nameservers = [ "${nic0.dns.primary}" ];
-      services.resolved.fallbackDns = [ "${nic0.dns.primary}" ];
-    })
-    (lib.mkIf (nic0.dns.primary != "" && nic0.dns.fallback == "") {
-      services.resolved.fallbackDns = [ "${nic0.dns.primary}" ];
-    })
-    (lib.mkIf (nic0.dns.fallback != "") {
       services.resolved.fallbackDns = [ "${nic0.dns.fallback}" ];
+    } lib.mkIf (nice0.dns.primary != "") {
+      networking.nameservers = [ "${nic0.dns.primary}" ];
     })
 
     # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
