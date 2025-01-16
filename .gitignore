@@ -7,6 +7,7 @@
 /flake_vm_args.nix
 /flake_iso_args.nix
 /result
+/run-test-vm
 
 # Ignore decrypted files to avoid security breaches
 *.dec.*

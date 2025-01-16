@@ -73,9 +73,9 @@ in
     (f.mkIfElse (nic0.dns.primary != "" && nic0.dns.fallback != "") {
       networking.nameservers = [ "${nic0.dns.primary}" ];
       services.resolved.fallbackDns = [ "${nic0.dns.fallback}" ];
-    } lib.mkIf (nic0.dns.primary != "") {
+    } (lib.mkIf (nic0.dns.primary != "") {
       networking.nameservers = [ "${nic0.dns.primary}" ];
-    })
+    }))
 
     # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
     # interacted with by every device on the LAN except the host due to local virtual oddities
