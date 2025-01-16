@@ -8,7 +8,7 @@
   vm_spice = true;
   vm_spice_port = 5971;
   vm_graphics = false;
-  macvtap_host = "wlp3s0";
+  macvtap_host = "enp1s0";
   resolution_x = 1920;
   resolution_y = 1080;
   autologin = true;
