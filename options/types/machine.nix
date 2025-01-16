@@ -239,7 +239,7 @@ in
                 };
                 fsType = lib.mkOption {
                   description = lib.mdDoc "Share file system type";
-                  type = types.listOf types.str;
+                  type = types.str;
                   example = "nfs";
                 };
                 options = lib.mkOption {
