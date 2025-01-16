@@ -36,7 +36,7 @@ source "${SCRIPT_DIR}/lib/all"
 
 core::title()
 {
-    VERSION=0.0.1
+    VERSION=0.1.0
     #VERSION=$(cat VERSION)
     log::header "${cyan}" "Codified Likeness Utility - clu v${VERSION}" 2 '='
     echo -e "${green}that is to say, build me a NixOS that I like${none}"
