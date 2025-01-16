@@ -1,4 +1,6 @@
 {
+  hostname = "test";
+  profile = "xfce/desktop";
   vm_enable = true;
   vm_cores = 1;
   vm_disk_size = 1;
@@ -6,11 +8,9 @@
   vm_spice = false;
   vm_spice_port = 5970;
   vm_graphics = true;
+  mbr = "/dev/sda";
+  nic0_name = "eth0";
   resolution_x = 1920;
   resolution_y = 1080;
-
-  profile = "xfce/desktop";
-  mbr = "/dev/sda";
-  nic0 = "eth0";
   autologin = true;
 }
