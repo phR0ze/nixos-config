@@ -22,8 +22,7 @@ in
   };
  
   config = lib.mkIf (cfg.enable) {
-    virtualization.host.enable = true;
-    networking.bridge.enable = true;
+    #networking.bridge.enable = true;
     programs.virt-manager.enable = true;
   };
 }
