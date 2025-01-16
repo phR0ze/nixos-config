@@ -1,13 +1,10 @@
 {
   inputs.nixpkgs.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
   inputs.nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+
+  # Microvm support
   inputs.microvm.url = "github:astro/microvm.nix";
   inputs.microvm.inputs.nixpkgs.follows = "nixpkgs";
-
-  nixConfig = {
-    extra-substituters = [ "https://microvm.cachix.org" ];
-    extra-trusted-public-keys = [ "microvm.cachix.org-1:oXnBc6hRE3eX5rSYdRyMYXnfzcCxC7yKPTbZXALsqys=" ];
-  };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, microvm, ... }@inputs: let
     _args = import ./args.nix;
