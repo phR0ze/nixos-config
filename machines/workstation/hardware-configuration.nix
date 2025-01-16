@@ -13,7 +13,7 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" = {
-    device = "/dev/disk/by-uuid/${config.machine.drive0.uuid}";
+    device = "/dev/disk/by-uuid/${(builtins.elemAt config.machine.drives 0).uuid}";
     fsType = "ext4";
   };
 
@@ -27,12 +27,12 @@
   ];
 
   fileSystems."/mnt/storage1" = {
-    device = "/dev/disk/by-uuid/${config.machine.drive1.uuid}";
+    device = "/dev/disk/by-uuid/${(builtins.elemAt config.machine.drives 1).uuid}";
     fsType = "ext4";
   };
 
   fileSystems."/mnt/storage2" = {
-    device = "/dev/disk/by-uuid/${config.machine.drive2.uuid}";
+    device = "/dev/disk/by-uuid/${(builtins.elemAt config.machine.drives 2).uuid}";
     fsType = "ext4";
   };
 

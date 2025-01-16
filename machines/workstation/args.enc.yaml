@@ -1,7 +1,8 @@
 nic0_ip: ENC[AES256_GCM,data:VBzGStilf9vtdVACLR4=,iv:H5oT0NNA/1yldBSqiE/xE6nQR3TiA9zvlp7S1zfQL18=,tag:5VDy4ChhnUSuOompR5AhGQ==,type:str]
-drive0_uuid: ENC[AES256_GCM,data:YLhh6Opst9lCWydOXpGs64Mr5OAJfrf4vQfGmhibD8LwJeK/,iv:jVpLY0DfrykSLHmgYXf6Q1qrPuqjHEkvoc9fY4VqTgw=,tag:d/OB0nytSMzH/61xG03M9g==,type:str]
-drive1_uuid: ENC[AES256_GCM,data:hn3ZYpIyICEMQal9hZA/4iXUcxFH+Gm9qamgY9rF+f4AoSNH,iv:rXXGtYfaXQ4ihaWxpPEjM4LZHPclsmn46OVNoTOprV4=,tag:u8XGQbUJKIGUbtxP2QKD4w==,type:str]
-drive2_uuid: ENC[AES256_GCM,data:1QNFfitZ9gJFEEgmOKAMI0LzrSe1iQh9TeRlPhj9+J7FUKgk,iv:QcOG6aTSVs39TGGt3TNcOR8oz000wFoOVwo/Xt9c+fo=,tag:gEcCoTILF7woDSbgcURRBg==,type:str]
+drives:
+    - uuid: ENC[AES256_GCM,data:gYeR/LvkEmXtgiD6XXd3LNz7KWyP+T4mAV2HD1CHl+NoX93h,iv:eHK/STaDPkaBlui4TCBqEjgJxpC89MpKTkZuPBYObw4=,tag:ehNoXWXnH5yPwVckVw+Lng==,type:str]
+    - uuid: ENC[AES256_GCM,data:Rajjr3ADhGFAb0d+aPJhc2eOZdCXeUDw2Tg/22T8/zYrJozR,iv:0yUcIbUbG6ZWZfou5N0ZG4KezYjgx2sgXPY85W+9+nQ=,tag:4yT5hTYHn2/jsaL+TVO+VQ==,type:str]
+    - uuid: ENC[AES256_GCM,data:doLj+bK26mfQGPMk+gA2Mzep49ofS0+nodsDV+hHRuHcLcJy,iv:MNKvWKX+F+z+8SCltIoFUshSdAdWKBqRlqU0kdSaHOA=,tag:iVf2gR23qXK54qW2EYJ9Ug==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -17,8 +18,8 @@ sops:
             OWxmbVd3R0tITXBERWsvUFRYSlNWekEK087/CcZzPCKsq+g3H7moc6Dm5E0vATRe
             ZuMXRk6JeJvpX6aIeYIMgVal4SzFRUCz2x2V7LTIIJ8Q3MMF3hTvsQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-01-15T19:43:18Z"
-    mac: ENC[AES256_GCM,data:HUSocx93oL/ZYW5BxG/J5DRgJ9Fl8coCQf7QzNkFt8ImPEhTUcSaM4xbdYG9F8h/fKzapA6+hDbXRqjjRFpbPFJQ73zmBx3tqR5wLRrzJ8p03lPtfiqgpO44j8AWauGaxM6MLsxeO+ucP2RGy8yf2dimfWyCUNk7Ef/Erhs00Is=,iv:viV27HjOs3sDAtBXrLidifZhbkm+0iY9nb/SrzFROYA=,tag:UaekQyMKgLznAcA4lDhrJg==,type:str]
+    lastmodified: "2025-01-15T23:39:01Z"
+    mac: ENC[AES256_GCM,data:DAjaCIDNAtPpTJL6umjYvT0CGOT3kV8OJ+1Ee21Z4K69x1yBjLXpEGdVGrd3bpvo3H9nJB7PxpQBIby/2CgB7jjaS0KaL2J0CHN/3kl9ajYMQuH7fLby6auao6IshJZrqFKLmio0qlRIa/6I41FuxJoQrhJFWAMsG6TBL3kqZBI=,iv:UJzlhDv3gZ/AritQfOSp2RNfAktyN1YUXrGoD6ivSHg=,tag:NyLC9LU+byQDFEHjKFSH9g==,type:str]
     pgp: []
     unencrypted_suffix: _unencrypted
     version: 3.9.2
