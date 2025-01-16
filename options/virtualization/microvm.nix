@@ -8,8 +8,8 @@ let
 in
 {
   options = {
-    virtualization.host = {
-      enable = lib.mkEnableOption "Install QEMU and configuration to host VMs";
+    virtualization.microvm.host = {
+      enable = lib.mkEnableOption "Install QEMU and configuration to host Micro VMs";
     };
   };
 
@@ -33,7 +33,14 @@ in
     })
 
     # Virtualization host configuration
-    (lib.mkIf cfg.host.enable {
+    (lib.mkIf cfg.microvm.host.enable {
+
+      # Add microvm cache
+      nix.settings = {
+        substituters = lib.mkBefore [ "https://cache.soopy.moe" ];
+        trusted-public-keys = [ "cache.soopy.moe-1:0RZVsQeR+GOh0VQI9rvnHz55nVXkFardDqfm4+afjPo=" ];
+      };
+
       virtualisation.libvirtd = {
         enable = true;
 
