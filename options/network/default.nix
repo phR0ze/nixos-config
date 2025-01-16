@@ -73,7 +73,7 @@ in
     (f.mkIfElse (nic0.dns.primary != "" && nic0.dns.fallback != "") {
       networking.nameservers = [ "${nic0.dns.primary}" ];
       services.resolved.fallbackDns = [ "${nic0.dns.fallback}" ];
-    } lib.mkIf (nice0.dns.primary != "") {
+    } lib.mkIf (nic0.dns.primary != "") {
       networking.nameservers = [ "${nic0.dns.primary}" ];
     })
 
