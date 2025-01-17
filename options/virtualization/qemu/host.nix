@@ -1,31 +1,12 @@
 # QEMU host configuration
 #
-# Research:
-# - system.build.vm 
-#
 # Sources:
 # - nixos/modules/system/build.nix
-#   - ?
 # - nixos/modules/virtualisation/build-vm.nix
-#   - virtualisation.vmVariant
 # - nixos/modules/profiles/qemu-guest.nix
-#   - sets up kernel and initrd with virtio drivers
 # - nixos/modules/virtualisation/qemu-guest-agent.nix
-#   - services.qemuGuest.enable
-#   - services.qemuGuest.package
 # - nixos/lib/qemu-common.nix
-#   - shared qemu utility functions
 # - nixos/modules/virtualisation/qemu-vm.nix
-#   - defines the result/bin/run-${hostname}-vm run script
-#   - virtualisation.PROPETY properties
-#     - msize memorySize diskSize diskImage bootLoaderDevice bootPartition rootDevice emptyDiskImages 
-#     - graphics resolution cores sharedDirectories additionalPaths forwardPorts restrictNetwork 
-#     - vlans interfaces writableStore ...
-#   - virtualisation.qemu.networkingOptions
-#   - virtualisation.qemu.guestAgent.enable
-#   - virtualisation.useNixStoreImage is way faster
-#   - virtualisation.directBoot to avoid the bootloader
-#   - 
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let

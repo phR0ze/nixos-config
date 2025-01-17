@@ -8,7 +8,7 @@ let
 in
 {
   imports = [
-    (modulesPath + "/profiles/qemu-guest.nix")
+    (modulesPath + "/virtualisation/qemu-vm.nix")
     (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
@@ -22,34 +22,15 @@ in
   config = lib.mkMerge [
     {
       machine.enable = true;
-      services.openssh.settings.PermitRootLogin = "yes";
 
-      # Virtual machine configuration
-      # - nixpkgs/nixos/modules/virtualisation/qemu-vm.nix
-      virtualisation.vmVariant = {
-        virtualisation = {
-          cores = cfg.vm.cores;
-          diskSize = cfg.vm.diskSize;
-          memorySize = cfg.vm.memorySize;
-          graphics = cfg.vm.graphics;
-          resolution = cfg.resolution;
-
-          # Allows for sftp, ssh etc... to the guest via localhost:2222
-          #forwardPorts = [ { from = "host"; host.port = 2222; guest.port = 22; } ];
-        };
-      };
+      # [Macvtap](https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking#macvtap)
+      virtualization.qemu.guest.interfaces = [ {
+        type = "macvtap";
+        name = machine.hostname;
+        macvtap.mode = "bridge";
+        macvtap.link = machine.macvtap.host;
+        mac = "02:00:00:00:00:01";
+      }];
     }
-
-    # Optionally enable SPICE support
-    # Connect by launching `remote-viewer` and running `spice://localhost:5970`
-    (lib.mkIf cfg.vm.spice {
-      virtualisation.vmVariant.virtualisation.qemu.options = [
-        "-vga qxl"
-        "-spice port=${toString cfg.vm.spicePort},disable-ticketing=on"
-        "-device virtio-serial"
-        "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
-        "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
-      ];
-    })
   ];
 }

@@ -129,12 +129,7 @@ build::vm()
     flake::switch "$MACHINE"
     trap flake::restore EXIT
 
-    if [[ "$MACHINE" == "vm-test" ]]; then
-        nix build .#nixosConfigurations.target.config.system.build.vm
-    else
-        nix build .#nixosConfigurations.target.config.microvm.declaredRunner
-        #nix run .#nixosConfigurations.target.config.microvm.declaredRunner
-    fi
+    nix build .#nixosConfigurations.target.config.system.build.vm
 
     # Move the service files 
 #    if [[ "${service}" == "true" ]]; then
