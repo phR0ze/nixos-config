@@ -1,5 +1,31 @@
-# Configure the QEMU host and guest
+# Configure QEMU host and guest
 #
+# Research:
+# - system.build.vm 
+#
+# Sources:
+# - nixos/modules/system/build.nix
+#   - ?
+# - nixos/modules/virtualisation/build-vm.nix
+#   - virtualisation.vmVariant
+# - nixos/modules/profiles/qemu-guest.nix
+#   - sets up kernel and initrd with virtio drivers
+# - nixos/modules/virtualisation/qemu-guest-agent.nix
+#   - services.qemuGuest.enable
+#   - services.qemuGuest.package
+# - nixos/lib/qemu-common.nix
+#   - shared qemu utility functions
+# - nixos/modules/virtualisation/qemu-vm.nix
+#   - defines the result/bin/run-${hostname}-vm run script
+#   - virtualisation.PROPETY properties
+#     - msize memorySize diskSize diskImage bootLoaderDevice bootPartition rootDevice emptyDiskImages 
+#     - graphics resolution cores sharedDirectories additionalPaths forwardPorts restrictNetwork 
+#     - vlans interfaces writableStore ...
+#   - virtualisation.qemu.networkingOptions
+#   - virtualisation.qemu.guestAgent.enable
+#   - virtualisation.useNixStoreImage is way faster
+#   - virtualisation.directBoot to avoid the bootloader
+#   - 
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }:
 let
@@ -17,7 +43,7 @@ in
 
     # Shared standard nix vm and Micro VM configuration
     (lib.mkIf (machine.type.vm) {
-      services.qemuGuest.enable = true;
+      services.qemuGuest.enable = true;             # Install and run the QEMU guest agent
       services.x11vnc.enable = lib.mkForce false;
     })
 
@@ -41,6 +67,8 @@ in
         trusted-public-keys = [ "cache.soopy.moe-1:0RZVsQeR+GOh0VQI9rvnHz55nVXkFardDqfm4+afjPo=" ];
       };
 
+      # MicroVM use libvirtd's qemu-bridge-helper to create tap interfaces and attache them to a
+      # bridge for QEMU. MicroVM has settings that key of libvirtd.enable for the host.
       virtualisation.libvirtd = {
         enable = true;
 
