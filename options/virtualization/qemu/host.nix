@@ -1,4 +1,4 @@
-# Configure QEMU host and guest
+# QEMU host configuration
 #
 # Research:
 # - system.build.vm 
@@ -27,48 +27,21 @@
 #   - virtualisation.directBoot to avoid the bootloader
 #   - 
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }:
+{ config, lib, pkgs, ... }:
 let
   machine = config.machine;
-  cfg = config.virtualization;
+  cfg = config.virtualization.qemu.host;
 in
 {
   options = {
-    virtualization.microvm.host = {
-      enable = lib.mkEnableOption "Install QEMU and configuration to host Micro VMs";
+    virtualization.qemu.host = {
+      enable = lib.mkEnableOption "Install and configure QEMU on the host system";
     };
   };
 
   config = lib.mkMerge [
 
-    # Shared standard nix vm and Micro VM configuration
-    (lib.mkIf (machine.type.vm) {
-      services.qemuGuest.enable = true;             # Install and run the QEMU guest agent
-      services.x11vnc.enable = lib.mkForce false;
-    })
-
-    # Shared standard nix vm and Micro VM SPICE configuration
-    (lib.mkIf (machine.type.vm && machine.vm.spice) {
-      services.spice-vdagentd.enable = true;  # SPICE agent to be run on the guest OS
-      services.spice-autorandr.enable = true; # Automatically adjust resolution of guest to spice client size
-      services.spice-webdavd.enable = true;   # Enable file sharing on guest to allow access from host
-
-      # Configure higher performance graphics for for SPICE
-      services.xserver.videoDrivers = [ "qxl" ];
-      environment.systemPackages = [ pkgs.xorg.xf86videoqxl ];
-    })
-
-    # Virtualization host configuration
-    (lib.mkIf cfg.microvm.host.enable {
-
-      # Add microvm cache
-      nix.settings = {
-        substituters = lib.mkBefore [ "https://cache.soopy.moe" ];
-        trusted-public-keys = [ "cache.soopy.moe-1:0RZVsQeR+GOh0VQI9rvnHz55nVXkFardDqfm4+afjPo=" ];
-      };
-
-      # MicroVM use libvirtd's qemu-bridge-helper to create tap interfaces and attache them to a
-      # bridge for QEMU. MicroVM has settings that key of libvirtd.enable for the host.
+    (lib.mkIf cfg.enable {
       virtualisation.libvirtd = {
         enable = true;
 
@@ -92,12 +65,8 @@ in
       # Allow nested virtualization
       boot.extraModprobeConfig = "options kvm_intel nested=1";
 
-      # Configure SPICE guest service and QEMU accelerated graphics
-      # - supports SPICE access remoting
-      # - supports copy and pasting between host and guest
-      services.spice-vdagentd.enable = true;
-      services.spice-webdavd.enable = true;         # File sharing support between Host and Guest
-      virtualisation.spiceUSBRedirection.enable = true; # USB passthrough for VMs
+      services.spice-webdavd.enable = true;             # File sharing support between Host and Guest
+      virtualisation.spiceUSBRedirection.enable = true; # Support USB passthrough to VMs from host
 
       # Additional packages
       environment.systemPackages = with pkgs; [
