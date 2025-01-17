@@ -51,13 +51,8 @@ run::vm()
     flake::switch "$MACHINE"
     trap flake::restore EXIT
 
-    if [[ "$MACHINE" == "vm-test" ]]; then
-        local runner="./result/bin/run-${machine}-vm"
-        [[ ! -f "$runner" ]] && nix build .#nixosConfigurations.target.config.system.build.vm
-        log::ln "Running ${cyan}${runner}${none}"
-        $runner
-    else
-        log::ln "Running ${cyan}${MACHINE}${none}"
-        nix run .#nixosConfigurations.target.config.microvm.declaredRunner
-    fi
+    local runner="./result/bin/run-${machine}-vm"
+    [[ ! -f "$runner" ]] && nix build .#nixosConfigurations.target.config.system.build.vm
+    log::ln "Running ${cyan}${runner}${none}"
+    $runner
 }

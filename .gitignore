@@ -8,6 +8,7 @@
 /flake_iso_args.nix
 /result
 /run-test-vm
+/run-prod1
 
 # Ignore decrypted files to avoid security breaches
 *.dec.*
