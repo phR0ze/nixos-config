@@ -135,8 +135,8 @@ let
       -enable-kvm \
       -machine accel=kvm:tcg \
       -cpu host,+x2apic,-sgx \
-      -m ${toString config.virtualisation.memorySize} \
-      -smp ${toString config.virtualisation.cores} \
+      -m ${toString machine.vm.memorySize} \
+      -smp ${toString machine.vm.cores} \
       -device virtio-rng-pci \
       ${networkingOptLine config.virtualization.qemu.guest.interfaces} \
       ${lib.concatStringsSep " \\\n  "
