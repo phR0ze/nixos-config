@@ -6,7 +6,7 @@ let
 in
 {
   imports = [
-    ../../profiles/microvm.nix
+    ../../options/virtualization/qemu/guest.nix
     (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
