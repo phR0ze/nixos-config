@@ -150,6 +150,10 @@ let
   '';
 in
 {
+  imports = [
+    (modulesPath + "/virtualisation/qemu-vm.nix")
+  ];
+
   options = {
     virtualization.qemu.guest = {
       enable = lib.mkEnableOption "Configure the VM's guest OS";

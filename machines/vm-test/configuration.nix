@@ -8,7 +8,7 @@ let
 in
 {
   imports = [
-    (modulesPath + "/virtualisation/qemu-vm.nix")
+    ../../options/virtualization/qemu/guest.nix
     (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
