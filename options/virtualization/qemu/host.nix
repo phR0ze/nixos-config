@@ -8,7 +8,7 @@
 # - nixos/lib/qemu-common.nix
 # - nixos/modules/virtualisation/qemu-vm.nix
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }: with lib.types;
 let
   machine = config.machine;
   cfg = config.virtualization.qemu.host;
@@ -17,12 +17,56 @@ in
   options = {
     virtualization.qemu.host = {
       enable = lib.mkEnableOption "Install and configure QEMU on the host system";
+
+      stateDir = lib.mkOption {
+        type = types.path;
+        default = "/var/lib/vms";
+        description = "Directory that contains the VMs";
+      };
+
+      user = lib.mkOption {
+        type = types.str;
+        description = "User to use for VMs when running as system services";
+        default = "vmuser";
+      };
+
+      group = lib.mkOption {
+        type = types.str;
+        description = "Group to use for VMs when running as system services";
+        default = "kvm";
+      };
     };
   };
 
   config = lib.mkMerge [
 
     (lib.mkIf cfg.enable {
+      # Create an activation script to ensure that the VM state directory exists
+      system.activationScripts.vm-host = ''
+        mkdir -p ${cfg.stateDir}
+        chown ${cfg.user}:${cfg.group} ${cfg.stateDir}
+        chmod g+w ${cfg.stateDir}
+      '';
+
+      # Create user VMs when runnng as system services
+      users.users.${cfg.user} = {
+        isSystemUser = true;
+        group = cfg.group;
+      };
+
+      # Remove memory constraints for the vm user
+      security.pam.loginLimits = [ {
+        domain = user;
+        item = "memlock";
+        type = "hard";
+        value = "infinity";
+      } {
+        domain = user;
+        item = "memlock";
+        type = "soft";
+        value = "infinity";
+      } ];
+
       virtualisation.libvirtd = {
         enable = true;
 

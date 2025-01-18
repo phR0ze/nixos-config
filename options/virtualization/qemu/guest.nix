@@ -41,6 +41,22 @@ let
       lib.concatStringsSep " " config.virtualisation.qemu.networkingOptions
     else lib.concatStringsSep " " lines;
 
+  # Script to start the macvtap
+  macvtapUp = ''
+    set -eou pipefail
+    '' + lib.concatMapStrings ({ id, mac, macvtap, ... }: ''
+      if [ -e /sys/class/net/${id} ]; then
+        ${lib.getExe' pkgs.iproute2 "ip"} link delete '${id}'
+      fi
+      ${lib.getExe' pkgs.iproute2 "ip"} link add link '${macvtap.link}' name '${id}' address '${mac}' type macvtap mode '${macvtap.mode}'
+      ${lib.getExe' pkgs.iproute2 "ip"} link set '${id}' allmulticast on
+      if [ -f "/proc/sys/net/ipv6/conf/${id}/disable_ipv6" ]; then
+        echo 1 > "/proc/sys/net/ipv6/conf/${id}/disable_ipv6"
+      fi
+      ${lib.getExe' pkgs.iproute2 "ip"} link set '${id}' up
+      ${pkgs.coreutils-full}/bin/chown '${user}:${group}' /dev/tap$(< "/sys/class/net/${id}/ifindex")
+    '') config.virtualization.qemu.guest.interfaces;
+
   # Script to run the VM
   runVM = ''
     #! ${pkgs.runtimeShell}
@@ -207,6 +223,7 @@ in
         mkdir -p $out/bin
         ln -s ${config.system.build.toplevel} $out/system
         ln -s ${pkgs.writeScript "run-vm-${config.system.name}" runVM} $out/bin/run
+        ln -s ${pkgs.writeScript "macvtap-up" macvtapUp} $out/bin/macvtap-up
       '');
     })
 
