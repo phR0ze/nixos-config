@@ -1,14 +1,16 @@
 # QEMU guest configuration
 #
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }:
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
   cfg = config.virtualisation;
   qemu = cfg.qemu.package;
   rootFilesystemLabel = "nixos";
 
-  driveCmdline = idx: { file, driveExtraOpts, deviceExtraOpts, ... }:
+  # Drive qemu option line generation
+  # --------------------------------------
+  driveOptLine = idx: { file, driveExtraOpts, deviceExtraOpts, ... }:
     let
       drvId = "drive${toString idx}";
       mkKeyValue = lib.generators.mkKeyValueDefault {} "=";
@@ -24,8 +26,20 @@ let
       });
     in
       "-drive ${driveOpts} \\\n  -device virtio-blk-pci,${deviceOpts}";
+  drivesOptLine = drives: lib.concatStringsSep "\\\n    " (lib.imap1 driveOptLine drives);
 
-  drivesCmdLine = drives: lib.concatStringsSep "\\\n    " (lib.imap1 driveCmdline drives);
+  # Networking qemu option line generation
+  # --------------------------------------
+  # -netdev 'tap,id=vm-prod1,fd=3' \
+  # -device 'virtio-net-pci,netdev=vm-prod1,mac=02:00:00:00:00:01' \
+  networkingOptLine = interfaces: let
+    lines = builtins.concatMap (x: [
+      "-netdev tap,id=${x.id},fd=${toString x.fd}"
+      "-device virtio-net-pci,netdev=${x.id},mac=${x.mac}"
+    ] ) interfaces;
+  in if (builtins.length interfaces == 0) then
+      lib.concatStringsSep " " config.virtualisation.qemu.networkingOptions
+    else lib.concatStringsSep " " lines;
 
   # Script to run the VM
   runVM = ''
@@ -82,25 +96,38 @@ let
     # -device i8042                         # Add keyboard controller i8042 to handle CtrlAltDel
     # -sandbox on                           # Disable system calls not needed by QEMU
     # -qmp unix:my-vm.sock,server,nowait    # Control socket to use
+    # -object 'memory-backend-memfd,id=mem,size=4096M,share=on'
     # -numa 'node,memdev=mem'               # Simulate a multi node NUMA system
-
+    #
     # Binary choice
     # qemu-kvm is an older packaging concept, use qemu-system-x86_64 -enable-kvm instead
-
+    #
+    # -append 'earlyprintk=ttyS0 console=ttyS0 reboot=t panic=-1 root=fstab loglevel=4 init=/nix/store/z6s85j7d6xmg32wkfnkqy0llgrxcqdv2-nixos-system-vm-prod1-25.05.20241213.3566ab7/init regInfo=/nix/store/0h2vqibxaimm3km7d8h81v62fjvknlr0-closure-info/registration' \
+    #
+    # -fsdev 'local,id=fs0,path=/nix/store,security_model=none' \
+    # -device 'virtio-9p-pci,fsdev=fs0,mount_tag=ro-store' \
+    # 
+    # Macvtap interface
+    # -netdev 'tap,id=vm-prod1,fd=3' \
+    # -device 'virtio-net-pci,netdev=vm-prod1,mac=02:00:00:00:00:01,romfile=' \
+    # 
+    # User nat interface
+    # -net nic,netdev=user.0,model=virtio -netdev user,id=user.0,"$QEMU_NET_OPTS" \
+    #
     exec ${qemu}/bin/qemu-system-x86_64 \
       -name ${config.system.name} \
       -enable-kvm \
-      -machine microvm,accel=kvm:tcg \
+      -machine accel=kvm:tcg \
       -cpu host,+x2apic,-sgx \
       -m ${toString config.virtualisation.memorySize} \
       -smp ${toString config.virtualisation.cores} \
       -device virtio-rng-pci \
-      ${lib.concatStringsSep " " config.virtualisation.qemu.networkingOptions} \
+      ${networkingOptLine config.virtualization.qemu.guest.interfaces} \
       ${lib.concatStringsSep " \\\n  "
         (lib.mapAttrsToList
           (tag: share: "-virtfs local,path=${share.source},security_model=none,mount_tag=${tag}")
           config.virtualisation.sharedDirectories)} \
-      ${drivesCmdLine config.virtualisation.qemu.drives} \
+      ${drivesOptLine config.virtualisation.qemu.drives} \
       ${lib.concatStringsSep " \\\n  " config.virtualisation.qemu.options} \
       $QEMU_OPTS \
       "$@"
@@ -114,26 +141,36 @@ in
       interfaces = lib.mkOption {
         description = "Network interfaces";
         default = [];
-        type = with lib.types; lib.listOf (lib.submodule {
+        type = types.listOf (types.submodule {
           options = {
             type = lib.mkOption {
-              type = lib.enum [ "macvtap" ];
+              type = types.enum [ "macvtap" ];
               description = "Interface type";
             };
-            name = lib.mkOption {
-              type = lib.str;
-              description = "Interface name on the host";
+            id = lib.mkOption {
+              type = types.str;
+              description = ''
+                Interface name on the host. Shows up in the `ip a` listing e.g. `vm-prod1@enp1s0`
+              '';
+              example = "vm-prod1";
+            };
+            fd = lib.mkOption {
+              type = types.int;
+              description = ''
+                Macvtap file descriptor number. Use something unique and count up e.g. 3
+              '';
+              example = 3;
             };
             macvtap.link = lib.mkOption {
-              type = lib.str;
+              type = types.str;
               description = "Host NIC to attach to";
             };
             macvtap.mode = lib.mkOption {
-              type = lib.enum [ "bridge" ];
+              type = types.enum [ "bridge" ];
               description = "The MACVTAP mode to use";
             };
             mac = lib.mkOption {
-              type = lib.str;
+              type = types.str;
               description = ''
                 MAC address of the guest's network interface. Setting it to a prefix of 02 indicates 
                 that it is being adminstered locally. Then you can simply increment the final nibble 
