@@ -51,7 +51,7 @@ run::vm()
     flake::switch "$MACHINE"
     trap flake::restore EXIT
 
-    local runner="./result/bin/run-${machine}-vm"
+    local runner="./result/bin/run"
     [[ ! -f "$runner" ]] && nix build .#nixosConfigurations.target.config.system.build.vm
     log::ln "Running ${cyan}${runner}${none}"
     $runner

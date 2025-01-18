@@ -26,9 +26,10 @@ in
       # [Macvtap](https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking#macvtap)
       virtualization.qemu.guest.interfaces = [ {
         type = "macvtap";
-        name = machine.hostname;
+        id = cfg.hostname;
+        fd = 3;
         macvtap.mode = "bridge";
-        macvtap.link = machine.macvtap.host;
+        macvtap.link = cfg.macvtap.host;
         mac = "02:00:00:00:00:01";
       }];
     }
