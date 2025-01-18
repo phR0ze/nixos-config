@@ -56,12 +56,12 @@ in
 
       # Remove memory constraints for the vm user
       security.pam.loginLimits = [ {
-        domain = user;
+        domain = cfg.user;
         item = "memlock";
         type = "hard";
         value = "infinity";
       } {
-        domain = user;
+        domain = cfg.user;
         item = "memlock";
         type = "soft";
         value = "infinity";
