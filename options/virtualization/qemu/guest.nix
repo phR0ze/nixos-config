@@ -7,6 +7,7 @@ let
   cfg = config.virtualisation;
   qemu = cfg.qemu.package;
   host = config.virtualization.qemu.host;
+  guest = config.virtualization.qemu.guest;
   rootFilesystemLabel = "nixos";
 
   # Drive qemu option line generation
@@ -42,6 +43,9 @@ let
       lib.concatStringsSep " " config.virtualisation.qemu.networkingOptions
     else lib.concatStringsSep " " lines;
 
+  # Flag signalling the macvtap scripts should be created
+  macvtapEnabled = if (builtins.length guest.interfaces > 0) then 1 else 0;
+
   # Script to start the macvtap
   macvtapUp = ''
     #! ${pkgs.runtimeShell}
@@ -58,7 +62,7 @@ let
       fi
       ${lib.getExe' pkgs.iproute2 "ip"} link set '${id}' up
       ${pkgs.coreutils-full}/bin/chown '${host.user}:${host.group}' /dev/tap$(< "/sys/class/net/${id}/ifindex")
-    '') config.virtualization.qemu.guest.interfaces;
+    '') guest.interfaces;
 
   # Script to stop the macvtap
   macvtapDown = ''
@@ -69,7 +73,7 @@ let
       if [ -e /sys/class/net/${id} ]; then
         ${lib.getExe' pkgs.iproute2 "ip"} link delete '${id}'
       fi
-    '') config.virtualization.qemu.guest.interfaces;
+    '') guest.interfaces;
 
   # Script to run the VM
   runVM = ''
@@ -77,6 +81,13 @@ let
 
     export PATH=${lib.makeBinPath [ pkgs.coreutils ]}''${PATH:+:}$PATH
     set -e
+
+    ${if (builtins.length guest.interfaces > 0) then ''
+    # Open macvtap interface file descriptors as needed
+    # ----------------------------------------------------------------------------------------------
+    '' + lib.concatMapStrings ({id, fd, ...}:
+      "exec ${toString fd}<>/dev/tap$(< /sys/class/net/${id}/ifindex)"
+    ) guest.interfaces else ""}
 
     # Create an empty ext4 filesystem image to store VM state
     # ----------------------------------------------------------------------------------------------
@@ -241,8 +252,10 @@ in
         mkdir -p $out/bin
         ln -s ${config.system.build.toplevel} $out/system
         ln -s ${pkgs.writeScript "run-${machine.hostname}" runVM} $out/bin/run
-        ln -s ${pkgs.writeScript "macvtap-up" macvtapUp} $out/bin/macvtap-up
-        ln -s ${pkgs.writeScript "macvtap-down" macvtapDown} $out/bin/macvtap-down
+        if [[ "${toString macvtapEnabled}" == "1" ]]; then
+          ln -s ${pkgs.writeScript "macvtap-up" macvtapUp} $out/bin/macvtap-up
+          ln -s ${pkgs.writeScript "macvtap-down" macvtapDown} $out/bin/macvtap-down
+        fi
       '');
     })
 
