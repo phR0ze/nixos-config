@@ -47,6 +47,7 @@
   nic1_ip = "";                     # IP address for nic 0 if given else DHCP, e.g. 192.168.1.12/24
   nic1_subnet = "";                 # Subnet to use for machine e.g. `192.168.1.0/24`
   nic1_gateway = "";                # Gateway to use for machine e.g. `192.168.1.1`
+  macvtap_host = "";                # NIC name on the host to attach taps to e.g. 'enp1s0'
   dns_primary = "1.1.1.1";          # Primary DNS to use for machine e.g. `1.1.1.1`
   dns_fallback = "8.8.8.8";         # Fallback DNS to use for machine e.g. `8.8.8.8`
 

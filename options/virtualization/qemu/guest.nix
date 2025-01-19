@@ -1,11 +1,12 @@
 # QEMU guest configuration
 #
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ modulesPath, config, lib, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
   cfg = config.virtualisation;
   qemu = cfg.qemu.package;
+  host = config.virtualization.qemu.host;
   rootFilesystemLabel = "nixos";
 
   # Drive qemu option line generation
@@ -43,6 +44,8 @@ let
 
   # Script to start the macvtap
   macvtapUp = ''
+    #! ${pkgs.runtimeShell}
+
     set -eou pipefail
     '' + lib.concatMapStrings ({ id, mac, macvtap, ... }: ''
       if [ -e /sys/class/net/${id} ]; then
@@ -54,7 +57,18 @@ let
         echo 1 > "/proc/sys/net/ipv6/conf/${id}/disable_ipv6"
       fi
       ${lib.getExe' pkgs.iproute2 "ip"} link set '${id}' up
-      ${pkgs.coreutils-full}/bin/chown '${user}:${group}' /dev/tap$(< "/sys/class/net/${id}/ifindex")
+      ${pkgs.coreutils-full}/bin/chown '${host.user}:${host.group}' /dev/tap$(< "/sys/class/net/${id}/ifindex")
+    '') config.virtualization.qemu.guest.interfaces;
+
+  # Script to stop the macvtap
+  macvtapDown = ''
+    #! ${pkgs.runtimeShell}
+
+    set -eou pipefail
+    '' + lib.concatMapStrings ({ id, ... }: ''
+      if [ -e /sys/class/net/${id} ]; then
+        ${lib.getExe' pkgs.iproute2 "ip"} link delete '${id}'
+      fi
     '') config.virtualization.qemu.guest.interfaces;
 
   # Script to run the VM
@@ -226,8 +240,9 @@ in
       system.build.vm = lib.mkForce (pkgs.runCommand "vm-${config.system.name}" { preferLocalBuild = true; } ''
         mkdir -p $out/bin
         ln -s ${config.system.build.toplevel} $out/system
-        ln -s ${pkgs.writeScript "run-vm-${config.system.name}" runVM} $out/bin/run
+        ln -s ${pkgs.writeScript "run-${machine.hostname}" runVM} $out/bin/run
         ln -s ${pkgs.writeScript "macvtap-up" macvtapUp} $out/bin/macvtap-up
+        ln -s ${pkgs.writeScript "macvtap-down" macvtapDown} $out/bin/macvtap-down
       '');
     })
 
