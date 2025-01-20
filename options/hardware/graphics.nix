@@ -1,7 +1,44 @@
-# AMD graphics configuration
+# Graphics configuration
 #
 # ### Supported systems
 # - AMD Lexa PRO
+#
+# ### Research
+# - https://wiki.archlinux.org/title/Hardware_video_acceleration
+# - https://wiki.archlinux.org/title/Hardware_video_acceleration#Comparison_tables
+#
+# ### Background
+# There are are few different hardware accelerated video APIs: VA-API and VDPAU are the most common:
+# - Video Acceleration API (VA-API) is a specification developed by Intel for both hardware 
+#   accelerated video encoding and decoding. Much more widely supported than VDPAU.
+# - Video Decode and Presentation API for Unix (VDPAU) is an open source library and API to offload 
+#   portions of the video decoding process and video post-processing to the GPU developed by Nvidia.
+#   Primarily used by Nvidia cards and has limited support in applications.
+#
+# - Mesa is an open source implementation for the various API specifications including VA-API, VDPAU, 
+#   OpenGL, Vulkan, OpenCL and other 3D graphics specification. AMD, Intel and Nouveau all use Mesa, 
+#   but Nvidia's proprietary driver doesn't.
+#
+# ### Discovery
+# 1. Determmine your Video card with `lspci | grep VGA`
+#
+# ### General config steps
+# 1. Make the kernel use the correct driver early
+#    boot.kernelModules = lib.mkForce [ "kvm-intel" ];
+#    boot.initrd.kernelModules = [ "amdgpu" ];
+#
+# 2. Make Xserver use the correct driver e.g.
+#    services.xserver.videoDrivers = [ "amdgpu" ];
+#
+# ### Testing
+# - OpenGL with: `glxgears`
+# - Check VA-API support: `nix-shell -p libva-utils --run vainfo`
+# - OpenCL with: `clinfo | head -n3`
+# - Vulkan with: `vulkaninfo | grep GPU` or `vkcube`
+#
+# - https://nixos.wiki/wiki/OpenGL
+# - https://nixos.org/manual/nixos/unstable/#sec-gpu-accel
+
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -19,6 +56,32 @@ in
 
   config = lib.mkMerge [
 
+    # Common configuration
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf (x11.enable) {
+      hardware.graphics = {
+        enable = true;                      # Installs mesa, mesa_drivers, mesa-demos
+
+        # Defaults from the opengl option, also aliased with 'mesa_drivers'
+        package = pkgs.mesa.drivers;
+        package32 = pkgs.pkgsi686Linux.mesa.drivers;
+      };
+
+      # Supporting system packages
+      #-------------------------------------------------------------------------------------------------
+      environment.systemPackages = with pkgs; [
+        libva-utils                 # A collection of utilities and examples for VA-API e.g. vainfo
+        mesa                        # Open-source 3D graphics library
+        mesa.drivers                # An open source 3D graphics library
+        mesa-demos                  # Collection of demos and test programs for OpenGL and Mesa
+        pciutils                    # Collection of utilities for inspecting and manipulating PCI devices
+        vdpauinfo                   # Tool to query the Video Decode and Presentation API (VDPAU)
+
+        # Doesn't seem to recognize the GPU even exists
+        #nvtop                      # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
+      ];
+    })
+
     # AMD graphics
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf cfg.amd {
@@ -26,14 +89,13 @@ in
       boot.initrd.kernelModules = [ "amdgpu" ];
     })
     (lib.mkIf (cfg.amd && x11.enable) {
-      # Configure X11 video driver
       services.xserver.videoDrivers = [ "amdgpu" ];
     })
 
     # Intel graphics
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf cfg.intel {
-      hardware.opengl.extraPackages = with pkgs; [
+      hardware.graphics.extraPackages = with pkgs; [
         intel-media-driver          # VA-API for Intel iHD Broadwell (2014) or newer
         intel-vaapi-driver          # VA-API for Intel i965 Broadwell (2014), better for Firefox?
         vaapiVdpau                  # VDPAU driver for the VAAPI library
@@ -46,19 +108,10 @@ in
 
     # Nvidia graphics
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.nvidia && x11.enable) {
-      # Configure X11 video driver
-      services.xserver.videoDrivers = [ "nvidia" ];
-      #services.xserver.videoDrivers = [ "nvidiaLegacy470" ];
-      #services.xserver.videoDrivers = [ "nvidiaLegacy390" ];
-      #services.xserver.videoDrivers = [ "nvidiaLegacy340" ];
-    })
     (lib.mkIf cfg.nvidia {
       # Have the kernel load the correct GPU driver as soon as possible
       hardware.nvidia = {
-
-        # Modesetting is required.
-        modesetting.enable = true;
+        modesetting.enable = true;  # Modesetting is required.
 
         # Nvidia power management. Experimental, and can cause sleep/suspend to fail.
         # Enable this if you have graphical corruption issues or application crashes after waking
@@ -85,6 +138,12 @@ in
         # Optionally, you may need to select the appropriate driver version for your specific GPU.
         package = config.boot.kernelPackages.nvidiaPackages.stable;
       };
+    })
+    (lib.mkIf (cfg.nvidia && x11.enable) {
+      services.xserver.videoDrivers = [ "nvidia" ];
+      #services.xserver.videoDrivers = [ "nvidiaLegacy470" ];
+      #services.xserver.videoDrivers = [ "nvidiaLegacy390" ];
+      #services.xserver.videoDrivers = [ "nvidiaLegacy340" ];
     })
   ];
 }
