@@ -14,6 +14,6 @@
     ./network
     ./services
     ./utils
-    ./virtualization
+    ./virtualisation
   ];
 }

@@ -53,6 +53,10 @@ run::vm()
 
     local runner="./result/bin/run"
     [[ ! -f "$runner" ]] && nix build .#nixosConfigurations.target.config.system.build.vm
+
+    local tap="./result/bin/macvtap-up"
+    [[ -f "$tap" ]] && $tap && log::ln "Running tap ${cyan}${tap}${none}"
+
     log::ln "Running ${cyan}${runner}${none}"
     $runner
 }

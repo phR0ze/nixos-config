@@ -68,8 +68,8 @@ in
     ];
 
     # Requires podman virtualization to be configured
-    virtualization.incus.enable = true;
-    virtualization.podman.enable = true;
+    virtualisation.incus.enable = true;
+    virtualisation.podman.enable = true;
 
     # Create persistent directories for application
     # - Args: type, path, mode, user, group, expiration

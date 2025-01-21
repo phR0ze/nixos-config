@@ -33,8 +33,8 @@ in
 
     # Utilities
     programs.freecad.enable = true;
-    virtualization.podman.enable = true;
-    virtualization.qemu.host.enable = true;
+    virtualisation.podman.enable = true;
+    virtualisation.qemu.host.enable = true;
 
     # Games
     programs.hedgewars.enable = true;

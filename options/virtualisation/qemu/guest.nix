@@ -6,8 +6,8 @@ let
   machine = config.machine;
   cfg = config.virtualisation;
   qemu = cfg.qemu.package;
-  host = config.virtualization.qemu.host;
-  guest = config.virtualization.qemu.guest;
+  host = config.virtualisation.qemu.host;
+  guest = config.virtualisation.qemu.guest;
   rootFilesystemLabel = "nixos";
 
   # Drive qemu option line generation
@@ -83,7 +83,8 @@ let
     set -e
 
     ${if (builtins.length guest.interfaces > 0) then ''
-    # Open macvtap interface file descriptors as needed
+    # Open the tap device with the given file descriptor for read/write. Starting with 3 is typical
+    # since 0, 1, and 2 are used for standard input, output and error.
     # ----------------------------------------------------------------------------------------------
     '' + lib.concatMapStrings ({id, fd, ...}:
       "exec ${toString fd}<>/dev/tap$(< /sys/class/net/${id}/ifindex)"
@@ -156,14 +157,14 @@ let
     # -net nic,netdev=user.0,model=virtio -netdev user,id=user.0,"$QEMU_NET_OPTS" \
     #
     exec ${qemu}/bin/qemu-system-x86_64 \
-      -name ${config.system.name} \
+      -name ${machine.hostname} \
       -enable-kvm \
       -machine accel=kvm:tcg \
       -cpu host,+x2apic,-sgx \
-      -m ${toString machine.vm.memorySize} \
-      -smp ${toString machine.vm.cores} \
+      -m ${toString cfg.memorySize} \
+      -smp ${toString cfg.cores} \
       -device virtio-rng-pci \
-      ${networkingOptLine config.virtualization.qemu.guest.interfaces} \
+      ${networkingOptLine guest.interfaces} \
       ${lib.concatStringsSep " \\\n  "
         (lib.mapAttrsToList
           (tag: share: "-virtfs local,path=${share.source},security_model=none,mount_tag=${tag}")
@@ -180,9 +181,18 @@ in
   ];
 
   options = {
-    virtualization.qemu.guest = {
+    virtualisation.qemu.guest = {
       enable = lib.mkEnableOption "Configure the VM's guest OS";
-
+      spice = lib.mkOption {
+        description = lib.mdDoc "Enable SPICE for VM";
+        type = types.bool;
+        default = true;
+      };
+      spicePort = lib.mkOption {
+        description = lib.mdDoc "SPICE port for VM";
+        type = types.int;
+        default = 5970;
+      };
       interfaces = lib.mkOption {
         description = "Network interfaces";
         default = [];
@@ -194,16 +204,12 @@ in
             };
             id = lib.mkOption {
               type = types.str;
-              description = ''
-                Interface name on the host. Shows up in the `ip a` listing e.g. `vm-prod1@enp1s0`
-              '';
+              description = "Interface name on the host. e.g. `vm-prod1@enp1s0`";
               example = "vm-prod1";
             };
             fd = lib.mkOption {
               type = types.int;
-              description = ''
-                Macvtap file descriptor number. Use something unique and count up e.g. 3
-              '';
+              description = "File descriptor number";
               example = 3;
             };
             macvtap.link = lib.mkOption {
@@ -236,10 +242,6 @@ in
       services.x11vnc.enable = lib.mkForce false;   # We'll use SPICE instead
 
       virtualisation = {
-        cores = machine.vm.cores;                   # VM cores
-        diskSize = machine.vm.diskSize;             # VM disk size
-        memorySize = machine.vm.memorySize;         # VM memory size
-        graphics = machine.vm.graphics;             # Enable or disable local window UI
         resolution = machine.resolution;            # Configure system resolution
         qemu.package = lib.mkForce pkgs.qemu_kvm;  # Ensure we have the standard KVM supported qemu
 
@@ -248,7 +250,7 @@ in
       };
 
       # Override and provide custom VM helper scripts
-      system.build.vm = lib.mkForce (pkgs.runCommand "vm-${config.system.name}" { preferLocalBuild = true; } ''
+      system.build.vm = lib.mkForce (pkgs.runCommand "${machine.hostname}" { preferLocalBuild = true; } ''
         mkdir -p $out/bin
         ln -s ${config.system.build.toplevel} $out/system
         ln -s ${pkgs.writeScript "run-${machine.hostname}" runVM} $out/bin/run
@@ -261,12 +263,12 @@ in
 
     # Optionally enable SPICE support
     # Connect by launching `remote-viewer` and running `spice://localhost:5970`
-    (lib.mkIf (machine.type.vm && machine.vm.spice) {
+    (lib.mkIf (machine.type.vm && guest.spice) {
 
       # Configure QEMU for SPICE
       virtualisation.qemu.options = [
         "-vga qxl"
-        "-spice port=${toString machine.vm.spicePort},disable-ticketing=on"
+        "-spice port=${toString guest.spicePort},disable-ticketing=on"
         "-device virtio-serial"
         "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
         "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
@@ -282,7 +284,7 @@ in
       environment.systemPackages = [ pkgs.xorg.xf86videoqxl ];
 
       # Open up the firewall for machine.vm.spicePort
-      networking.firewall.allowedTCPPorts = [ machine.vm.spicePort ];
+      networking.firewall.allowedTCPPorts = [ guest.spicePort ];
     })
   ];
 }

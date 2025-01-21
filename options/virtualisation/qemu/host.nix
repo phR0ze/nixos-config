@@ -11,11 +11,11 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.virtualization.qemu.host;
+  cfg = config.virtualisation.qemu.host;
 in
 {
   options = {
-    virtualization.qemu.host = {
+    virtualisation.qemu.host = {
       enable = lib.mkEnableOption "Install and configure QEMU on the host system";
 
       stateDir = lib.mkOption {
@@ -87,7 +87,7 @@ in
         allow all
       '';
 
-      # Allow nested virtualization
+      # Allow nested virtualisation
       boot.extraModprobeConfig = "options kvm_intel nested=1";
 
       services.spice-webdavd.enable = true;             # File sharing support between Host and Guest
