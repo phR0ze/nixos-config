@@ -21,8 +21,8 @@
   # Services configuration
   # ------------------------------------------------------------------------------------------------
   shares_enable = false;            # Enable pre-configured nfs shares for this system
-  cache_enable = false;             # Enable using the local Nix binary cache
-  cache_ip = "";                    # IP address of the local Nix binary cache
+  nix_cache_enable = false;         # Enable using the local Nix binary cache
+  nix_cache_ip = "";                # IP address of the local Nix binary cache
 
   # User configuration
   # ------------------------------------------------------------------------------------------------

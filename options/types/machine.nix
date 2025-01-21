@@ -188,31 +188,39 @@ in
       };
     };
 
-    nix_base = lib.mkOption {
-      description = lib.mdDoc "NixOS base installed version";
-      type = types.str;
-      default = if (!builtins.hasAttr "nix_base" _args || _args.nix_base == null || _args.nix_base == "")
-        then "24.05" else _args.nix_base;
-    };
-
-    cache = lib.mkOption {
+    nix = lib.mkOption {
       type = types.submodule {
         options = {
-          enable = lib.mkOption {
-            description = lib.mdDoc "Enable using a custom Nix binary cache";
-            type = types.bool;
-          };
-          ip = lib.mkOption {
-            description = lib.mdDoc "IP address of the custom Nix binary cache";
+          base = lib.mkOption {
+            description = lib.mdDoc "NixOS base installed version";
             type = types.str;
+          };
+          cache = lib.mkOption {
+            description = lib.mdDoc "Nix Binary cache configuration";
+            type = types.submodule {
+              options = {
+                enable = lib.mkOption {
+                  description = lib.mdDoc "Enable using a custom Nix binary cache";
+                  type = types.bool;
+                };
+                ip = lib.mkOption {
+                  description = lib.mdDoc "IP address of the custom Nix binary cache";
+                  type = types.str;
+                };
+              };
+            };
           };
         };
       };
       default = {
-        enable = if (!builtins.hasAttr "cache_enable" _args || _args.cache_enable == null || _args.cache_enable == false)
-          then false else true;
-        ip = if (!builtins.hasAttr "cache_ip" _args || _args.cache_ip == null)
-          then "" else _args.cache_ip;
+        base = if (!builtins.hasAttr "nix_base" _args || _args.nix_base == null || _args.nix_base == "")
+          then "24.05" else _args.nix_base;
+        cache = {
+          enable = if (!builtins.hasAttr "nix_cache_enable" _args || _args.nix_cache_enable == null)
+            then false else _args.nix_cache_enable;
+          ip = if (!builtins.hasAttr "nix_cache_ip" _args || _args.nix_cache_ip == null)
+            then "" else _args.nix_cache_ip;
+        };
       };
     };
 
