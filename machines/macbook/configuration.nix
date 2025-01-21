@@ -21,7 +21,7 @@ in
 
   config = {
     machine.enable = true;
-    virtualization.qemu.host.enable = true;
+    virtualisation.qemu.host.enable = true;
     services.x11vnc.enable = lib.mkForce false;
 
     # Increase the default DPI size

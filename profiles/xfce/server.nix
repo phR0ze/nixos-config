@@ -10,7 +10,7 @@
   ];
 
   # Home lab services
-  virtualization.qemu.host.enable = true;
+  virtualisation.qemu.host.enable = true;
   #homelab.lxconsole.enable = true;
   #homelab.qbittorrent.enable = true;
   #homelab.traefik.enable = true;

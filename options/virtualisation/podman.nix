@@ -12,21 +12,14 @@
 # ```
 #
 # ### Features
-# - purposefully renaming `virtualization` to give me a new namespace to work in
 #
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.virtualization.podman;
+  cfg = config.virtualisation.podman;
 in
 {
-  options = {
-    virtualization.podman = {
-      enable = lib.mkEnableOption "Install and configure Podman";
-    };
-  };
-
   config = lib.mkIf (cfg.enable) {
 
     # Configure primary user permissions
@@ -46,7 +39,6 @@ in
 
     # Enable and configure podman
     virtualisation.podman = {
-      enable = true;
       dockerCompat = true;            # provide docker alias
       dockerSocket.enable = true;     # link podman socket as /var/run/docker.sock requires restart
 

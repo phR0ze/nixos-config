@@ -253,7 +253,7 @@ in
     ];
 
     # Requires podman virtualization to be configured
-    virtualization.podman.enable = true;
+    virtualisation.podman.enable = true;
 
     # Create persistent directories for application
     # - Args: type, path, mode, user, group, expiration

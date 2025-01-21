@@ -3,74 +3,6 @@
 # ### Features
 # - _args is the composed/overridden set of user arguments for this machine
 #
-# - Easy assertions for debugging, just copy and paste
-#  config = lib.mkMerge [
-#    {
-#      assertions = [
-#        # General args
-#        { assertion = (cfg.hostname == "nixos"); message = "machine.hostname: ${cfg.hostname}"; }
-#        { assertion = (cfg.type.vm == true); message = "machine.type.vm: ${f.boolToStr cfg.type.vm}"; }
-#        { assertion = (cfg.type.iso == false); message = "machine.type.iso: ${f.boolToStr cfg.type.iso}"; }
-#        { assertion = (cfg.profile == "xfce/desktop"); message = "machine.profile: ${cfg.profile}"; }
-#        { assertion = (cfg.efi == false); message = "machine.efi: ${f.boolToStr cfg.efi}"; }
-#        { assertion = (cfg.mbr == "/dev/sda"); message = "machine.mbr: ${cfg.mbr}"; }
-#        { assertion = (cfg.arch == "x86_64-linux"); message = "machine.arch: ${cfg.arch}"; }
-#        { assertion = (cfg.locale == "en_US.UTF-8"); message = "machin.locale: ${cfg.locale}"; }
-#        { assertion = (cfg.timezone == "America/Boise"); message = "machine.timezone: ${cfg.timezone}"; }
-#        { assertion = (cfg.bluetooth == false); message = "machine.bluetooth: ${f.boolToStr cfg.bluetooth}"; }
-#        { assertion = (cfg.autologin == true); message = "machine.autologin: ${f.boolToStr cfg.autologin}"; }
-#        { assertion = (cfg.resolution.x == 0); message = "machine.resolution.x: ${toString cfg.resolution.x}"; }
-#        { assertion = (cfg.resolution.y == 0); message = "machine.resolution.y: ${toString cfg.resolution.y}"; }
-#        { assertion = (cfg.nix_base == "24.05"); message = "machine.nix_base: ${cfg.nix_base}"; }
-#        { assertion = (builtins.length cfg.drives == 3); message = "drives: ${toString (builtins.length cfg.drives)}"; }
-#        { assertion = ((builtins.elemAt cfg.drives 0).uuid == ""); message = "drives: ${(builtins.elemAt cfg.drives 0).uuid}"; }
-#
-#        # Shares args
-#        { assertion = (cfg.shares.enable == false); message = "machine.shares.enable: ${f.boolToStr cfg.shares.enable}"; }
-#        { assertion = (builtins.length cfg.shares.entries == 3); message = "shares.len:
-#          ${toString (builtins.length cfg.shares.entries)}"; }
-#        { assertion = ((builtins.elemAt cfg.shares.entries 0).mountPoint == ""); message = "shares[0]: 
-#          ${(builtins.elemAt cfg.shares.entries 0).mountPoint}"; }
-#
-#        # User args
-#        { assertion = (cfg.user.fullname == "admin"); message = "machine.user.fullname: ${cfg.user.fullname}"; }
-#        { assertion = (cfg.user.email == "admin"); message = "machine.user.email: ${cfg.user.email}"; }
-#        { assertion = (cfg.user.name == "admin"); message = "machine.user.name: ${cfg.user.name}"; }
-#        { assertion = (cfg.user.pass == "admin"); message = "machine.user.pass: ${cfg.user.pass}"; }
-#
-#        # Git args
-#        { assertion = (cfg.git.user == "admin"); message = "machine.git.user: ${cfg.git.user}"; }
-#        { assertion = (cfg.git.email == "admin"); message = "machine.git.email: ${cfg.git.email}"; }
-#        { assertion = (cfg.git.comment == ""); message = "machine.git.comment: ${cfg.git.comment}"; }
-#
-#        # Network args
-#        { assertion = (cfg.nic0.name == ""); message = "machine.nic0.name: ${cfg.nic0.name}"; }
-#        { assertion = (cfg.nic0.subnet == "192.168.1.0/24"); message = "machine.nic0.subnet: ${cfg.nic0.subnet}"; }
-#        { assertion = (cfg.nic0.gateway == "192.168.1.1"); message = "machine.nic0.gateway: ${cfg.nic0.gateway}"; }
-#        { assertion = (cfg.nic0.ip.full == ""); message = "machine.nic0.ip.full: ${cfg.nic0.ip.full}"; }
-#        { assertion = (cfg.nic0.ip.attrs.address == ""); message = "machine.nic0.ip.attrs.address: ${cfg.nic0.ip.attrs.address}"; }
-#        { assertion = (cfg.nic0.ip.attrs.prefixLength == 24); message = "machine.nic0.ip.attrs.prefixLength: ${toString cfg.nic0.ip.attrs.prefixLength}"; }
-#        { assertion = (cfg.nic0.dns.primary == "1.1.1.1"); message = "machine.nic0.dns.primary: ${cfg.nic0.dns.primary}"; }
-#        { assertion = (cfg.nic0.dns.fallback == "8.8.8.8"); message = "machine.nic0.dns.fallback: ${cfg.nic0.dns.fallback}"; }
-#
-#        { assertion = (cfg.nic1.name == ""); message = "machine.nic1.name: ${cfg.nic1.name}"; }
-#        { assertion = (cfg.nic1.subnet == ""); message = "machine.nic1.subnet: ${cfg.nic1.subnet}"; }
-#        { assertion = (cfg.nic1.gateway == ""); message = "machine.nic1.gateway: ${cfg.nic1.gateway}"; }
-#        { assertion = (cfg.nic1.ip.full == ""); message = "machine.nic1.ip.full: ${cfg.nic1.ip.full}"; }
-#        { assertion = (cfg.nic1.ip.attrs.address == ""); message = "machine.nic1.ip.attrs.address: ${cfg.nic1.ip.attrs.address}"; }
-#        { assertion = (cfg.nic1.ip.attrs.prefixLength == 24); message = "machine.nic1.ip.attrs.prefixLength: ${toString cfg.nic1.ip.attrs.prefixLength}"; }
-#        { assertion = (cfg.nic1.dns.primary == "1.1.1.1"); message = "machine.nic1.dns.primary: ${cfg.nic1.dns.primary}"; }
-#        { assertion = (cfg.nic1.dns.fallback == "8.8.8.8"); message = "machine.nic1.dns.fallback: ${cfg.nic1.dns.fallback}"; }
-#
-#        # VM args
-#        { assertion = (cfg.vm.cores == 1); message = "machine.vm.cores: ${toString cfg.vm.cores}"; }
-#        { assertion = (cfg.vm.diskSize == 1024); message = "machine.vm.diskSize: ${toString cfg.vm.diskSize}"; }
-#        { assertion = (cfg.vm.memorySize == 4096); message = "machine.vm.memorySize: ${toString cfg.vm.memorySize}"; }
-#        { assertion = (cfg.vm.spice == true); message = "machine.vm.spice: ${f.boolToStr cfg.vm.spice}"; }
-#        { assertion = (cfg.vm.spicePort == 5970); message = "machine.vm.spicePort: ${toString cfg.vm.spicePort}"; }
-#        { assertion = (cfg.vm.graphics == true); message = "machine.vm.graphics: ${f.boolToStr cfg.vm.graphics}"; }
-#      ];
-#
 #---------------------------------------------------------------------------------------------------
 { lib, _args, f, ... }: with lib.types;
 let
@@ -360,76 +292,78 @@ in
       };
     };
 
-    macvtap = lib.mkOption {
-      type = types.submodule {
-        options = {
-          host = lib.mkOption {
-            description = lib.mdDoc "NIC of the Macvtap host";
-            type = types.str;
-            default = "";
-            example = "wlp3s0";
-          };
-        };
-      };
-      default = {
-        host = if (!builtins.hasAttr "macvtap_host" _args || _args.macvtap_host == null)
-          then "" else _args.macvtap_host;
-      };
-    };
-
     vms = lib.mkOption {
       description = lib.mdDoc "Virtual Machine definitions to host on this machine";
       type = types.listOf vm;
       default = [ ];
     };
-
-    # Only applicable to VMs
-    # ----------------------------------------------------------------------------------------------
-    vm = lib.mkOption {
-      type = types.submodule {
-        options = {
-          cores = lib.mkOption {
-            description = lib.mdDoc "VM cores";
-            type = types.int;
-          };
-          diskSize = lib.mkOption {
-            description = lib.mdDoc "VM disk size in MiB";
-            type = types.int;
-          };
-          memorySize = lib.mkOption {
-            description = lib.mdDoc "VM memory size in MiB";
-            type = types.int;
-          };
-          spice = lib.mkOption {
-            description = lib.mdDoc "Enable SPICE for vm";
-            type = types.bool;
-            default = true;
-          };
-          spicePort = lib.mkOption {
-            description = lib.mdDoc "SPICE port for vm";
-            type = types.int;
-            default = 5970;
-          };
-          graphics = lib.mkOption {
-            description = lib.mdDoc "Enable VM video display";
-            type = types.bool;
-          };
-        };
-      };
-      default = {
-        cores = if (!builtins.hasAttr "vm_cores" _args || _args.vm_cores == null)
-          then 1 else _args.vm_cores;
-        diskSize = if (!builtins.hasAttr "vm_disk_size" _args || _args.vm_disk_size == null)
-          then 1 * 1024 else _args.vm_disk_size * 1024;
-        memorySize = if (!builtins.hasAttr "vm_memory_size" _args || _args.vm_memory_size == null)
-          then 4 * 1024 else _args.vm_memory_size * 1024;
-        spice = if (!builtins.hasAttr "vm_spice" _args || _args.vm_spice == null)
-          then true else _args.vm_spice;
-        spicePort = if (!builtins.hasAttr "vm_spice_port" _args || _args.vm_spice_port == null)
-          then 5970 else _args.vm_spice_port;
-        graphics = if (!builtins.hasAttr "vm_graphics" _args || _args.vm_graphics == null)
-          then true else _args.vm_graphics;
-      };
-    };
   };
 }
+
+# - Easy assertions for debugging, just copy and paste
+#  config = lib.mkMerge [
+#    {
+#      assertions = [
+#        # General args
+#        { assertion = (cfg.hostname == "nixos"); message = "machine.hostname: ${cfg.hostname}"; }
+#        { assertion = (cfg.type.vm == true); message = "machine.type.vm: ${f.boolToStr cfg.type.vm}"; }
+#        { assertion = (cfg.type.iso == false); message = "machine.type.iso: ${f.boolToStr cfg.type.iso}"; }
+#        { assertion = (cfg.profile == "xfce/desktop"); message = "machine.profile: ${cfg.profile}"; }
+#        { assertion = (cfg.efi == false); message = "machine.efi: ${f.boolToStr cfg.efi}"; }
+#        { assertion = (cfg.mbr == "/dev/sda"); message = "machine.mbr: ${cfg.mbr}"; }
+#        { assertion = (cfg.arch == "x86_64-linux"); message = "machine.arch: ${cfg.arch}"; }
+#        { assertion = (cfg.locale == "en_US.UTF-8"); message = "machin.locale: ${cfg.locale}"; }
+#        { assertion = (cfg.timezone == "America/Boise"); message = "machine.timezone: ${cfg.timezone}"; }
+#        { assertion = (cfg.bluetooth == false); message = "machine.bluetooth: ${f.boolToStr cfg.bluetooth}"; }
+#        { assertion = (cfg.autologin == true); message = "machine.autologin: ${f.boolToStr cfg.autologin}"; }
+#        { assertion = (cfg.resolution.x == 0); message = "machine.resolution.x: ${toString cfg.resolution.x}"; }
+#        { assertion = (cfg.resolution.y == 0); message = "machine.resolution.y: ${toString cfg.resolution.y}"; }
+#        { assertion = (cfg.nix_base == "24.05"); message = "machine.nix_base: ${cfg.nix_base}"; }
+#        { assertion = (builtins.length cfg.drives == 3); message = "drives: ${toString (builtins.length cfg.drives)}"; }
+#        { assertion = ((builtins.elemAt cfg.drives 0).uuid == ""); message = "drives: ${(builtins.elemAt cfg.drives 0).uuid}"; }
+#
+#        # Shares args
+#        { assertion = (cfg.shares.enable == false); message = "machine.shares.enable: ${f.boolToStr cfg.shares.enable}"; }
+#        { assertion = (builtins.length cfg.shares.entries == 3); message = "shares.len:
+#          ${toString (builtins.length cfg.shares.entries)}"; }
+#        { assertion = ((builtins.elemAt cfg.shares.entries 0).mountPoint == ""); message = "shares[0]: 
+#          ${(builtins.elemAt cfg.shares.entries 0).mountPoint}"; }
+#
+#        # User args
+#        { assertion = (cfg.user.fullname == "admin"); message = "machine.user.fullname: ${cfg.user.fullname}"; }
+#        { assertion = (cfg.user.email == "admin"); message = "machine.user.email: ${cfg.user.email}"; }
+#        { assertion = (cfg.user.name == "admin"); message = "machine.user.name: ${cfg.user.name}"; }
+#        { assertion = (cfg.user.pass == "admin"); message = "machine.user.pass: ${cfg.user.pass}"; }
+#
+#        # Git args
+#        { assertion = (cfg.git.user == "admin"); message = "machine.git.user: ${cfg.git.user}"; }
+#        { assertion = (cfg.git.email == "admin"); message = "machine.git.email: ${cfg.git.email}"; }
+#        { assertion = (cfg.git.comment == ""); message = "machine.git.comment: ${cfg.git.comment}"; }
+#
+#        # Network args
+#        { assertion = (cfg.nic0.name == ""); message = "machine.nic0.name: ${cfg.nic0.name}"; }
+#        { assertion = (cfg.nic0.subnet == "192.168.1.0/24"); message = "machine.nic0.subnet: ${cfg.nic0.subnet}"; }
+#        { assertion = (cfg.nic0.gateway == "192.168.1.1"); message = "machine.nic0.gateway: ${cfg.nic0.gateway}"; }
+#        { assertion = (cfg.nic0.ip.full == ""); message = "machine.nic0.ip.full: ${cfg.nic0.ip.full}"; }
+#        { assertion = (cfg.nic0.ip.attrs.address == ""); message = "machine.nic0.ip.attrs.address: ${cfg.nic0.ip.attrs.address}"; }
+#        { assertion = (cfg.nic0.ip.attrs.prefixLength == 24); message = "machine.nic0.ip.attrs.prefixLength: ${toString cfg.nic0.ip.attrs.prefixLength}"; }
+#        { assertion = (cfg.nic0.dns.primary == "1.1.1.1"); message = "machine.nic0.dns.primary: ${cfg.nic0.dns.primary}"; }
+#        { assertion = (cfg.nic0.dns.fallback == "8.8.8.8"); message = "machine.nic0.dns.fallback: ${cfg.nic0.dns.fallback}"; }
+#
+#        { assertion = (cfg.nic1.name == ""); message = "machine.nic1.name: ${cfg.nic1.name}"; }
+#        { assertion = (cfg.nic1.subnet == ""); message = "machine.nic1.subnet: ${cfg.nic1.subnet}"; }
+#        { assertion = (cfg.nic1.gateway == ""); message = "machine.nic1.gateway: ${cfg.nic1.gateway}"; }
+#        { assertion = (cfg.nic1.ip.full == ""); message = "machine.nic1.ip.full: ${cfg.nic1.ip.full}"; }
+#        { assertion = (cfg.nic1.ip.attrs.address == ""); message = "machine.nic1.ip.attrs.address: ${cfg.nic1.ip.attrs.address}"; }
+#        { assertion = (cfg.nic1.ip.attrs.prefixLength == 24); message = "machine.nic1.ip.attrs.prefixLength: ${toString cfg.nic1.ip.attrs.prefixLength}"; }
+#        { assertion = (cfg.nic1.dns.primary == "1.1.1.1"); message = "machine.nic1.dns.primary: ${cfg.nic1.dns.primary}"; }
+#        { assertion = (cfg.nic1.dns.fallback == "8.8.8.8"); message = "machine.nic1.dns.fallback: ${cfg.nic1.dns.fallback}"; }
+#
+#        # VM args
+#        { assertion = (cfg.vm.cores == 1); message = "machine.vm.cores: ${toString cfg.vm.cores}"; }
+#        { assertion = (cfg.vm.diskSize == 1024); message = "machine.vm.diskSize: ${toString cfg.vm.diskSize}"; }
+#        { assertion = (cfg.vm.memorySize == 4096); message = "machine.vm.memorySize: ${toString cfg.vm.memorySize}"; }
+#        { assertion = (cfg.vm.spice == true); message = "machine.vm.spice: ${f.boolToStr cfg.vm.spice}"; }
+#        { assertion = (cfg.vm.spicePort == 5970); message = "machine.vm.spicePort: ${toString cfg.vm.spicePort}"; }
+#        { assertion = (cfg.vm.graphics == true); message = "machine.vm.graphics: ${f.boolToStr cfg.vm.graphics}"; }
+#      ];

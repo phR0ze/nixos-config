@@ -12,11 +12,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.virtualization.virt-manager;
+  cfg = config.virtualisation.virt-manager;
 in
 {
   options = {
-    virtualization.virt-manager = {
+    virtualisation.virt-manager = {
       enable = lib.mkEnableOption "Install and configure virt-manager";
     };
   };

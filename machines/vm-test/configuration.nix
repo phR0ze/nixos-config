@@ -1,37 +1,42 @@
-# Test VM configuration
-#
+# vm-test configuration
 # --------------------------------------------------------------------------------------------------
-{ modulesPath, config, pkgs, lib, args, f, ... }: with lib.types;
+{ config, pkgs, lib, args, f, ... }: with lib.types;
 let
   cfg = config.machine;
   _args = args // (import ./args.nix) // (f.fromYAML ./args.dec.yaml);
 in
 {
   imports = [
-    ../../options/virtualization/qemu/guest.nix
+    ../../options/virtualisation/qemu/guest.nix
     (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
   options = {
     machine = lib.mkOption {
-      description = lib.mdDoc "Machine arguments";
       type = types.submodule (import ../../options/types/machine.nix { inherit lib _args f; });
     };
   };
 
-  config = lib.mkMerge [
-    {
-      machine.enable = true;
+  config = {
+    machine.enable = true;
 
-      # [Macvtap](https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking#macvtap)
-      virtualization.qemu.guest.interfaces = [ {
-        type = "macvtap";
-        id = cfg.hostname;
-        fd = 3;
-        macvtap.mode = "bridge";
-        macvtap.link = cfg.macvtap.host;
-        mac = "02:00:00:00:00:01";
-      }];
-    }
-  ];
+    virtualisation = {
+      cores = 1;
+      diskSize = 2 * 1024;
+      memorySize = 4 * 1024;
+      graphics = true;
+      qemu.guest = {
+        spice = false;
+        spicePort = 5979;
+        interfaces = [ {
+          type = "macvtap";
+          id = cfg.hostname;
+          fd = 3;
+          macvtap.mode = "bridge";
+          macvtap.link = "enp1s0";
+          mac = "02:00:00:00:00:99";
+        }];
+      };
+    };
+  };
 }

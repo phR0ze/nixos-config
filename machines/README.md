@@ -102,18 +102,6 @@ separate from the actual configuartion to allow for better reuse across my diffe
 | `nic1_gateway`    | str   |                 | Gateway to use for machine e.g. `192.168.1.1`
 | `dns_primary`     | str   | `1.1.1.1`       | Primary DNS to use for machine e.g. `1.1.1.1`
 | `dns_fallback`    | str   | `8.8.8.8`       | Fallback DNS to use for machine e.g. `8.8.8.8`
-| `macvtap_host`    | str   |                 | NIC name of the macvtap host, e.g. `wlp3s0`
-
-### VM configuration
-| Argument          | Type  | Default         | Description
-| ----------------- | ----- | --------------- | --------------------------------------
-| `vm_cores`        | int   | `1`             | Cores to use
-| `vm_disk_size`    | int   | `1`             | Disk size in GiB
-| `vm_memory_size`  | int   | `4`             | Memory size in GiB
-| `vm_spice`        | bool  | `true`          | Enable SPICE for VM
-| `vm_spice_port`   | int   | `5970`          | SPICE port for VM
-| `vm_graphics`     | bool  | `true`          | Enable VM video display
-| `vms`             |
 
 <!-- 
 vim: ts=2:sw=2:sts=2

@@ -6,11 +6,11 @@ let
 in
 {
   config = lib.mkMerge [
-    (lib.mkIf machine.cache.enable {
+    (lib.mkIf machine.nix.cache.enable {
       nix.settings = {
         # Add custom binary caches
         # - https://cache.nixos.org is added by default
-        substituters = lib.mkBefore [ "http://${machine.cache.ip}" ];
+        substituters = lib.mkBefore [ "http://${machine.nix.cache.ip}" ];
 
         # Signing keys for custom substituters
         trusted-public-keys = [
