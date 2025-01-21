@@ -1,10 +1,8 @@
 # Beelink S12 Pro <img style="margin: 6px 13px 0px 0px" align="left" src="../../art/logo_36x36.png" />
 
-Documenting the steps I went through to deploy, my **NixOS** based system ***cyberlinux***
-onto the [Beelink S12 Pro](https://www.notebookcheck.net/Intel-N100-performance-debut-Beelink-Mini-S12-Pro-mini-PC-review.758950.0.html)
-
 ### Quick links
 * [.. up dir](../../README.md)
+* [Device specs](#device-specs)
 * [Install cyberlinux](#install-cyberlinux)
 * [Configure cyberlinux](#configure-cyberlinux)
   * [WiFi](#wifi)
@@ -13,7 +11,11 @@ onto the [Beelink S12 Pro](https://www.notebookcheck.net/Intel-N100-performance-
   * [Kodi](#kodi)
   * [Warcraft 2](#warcraft-2)
 
-# Install cyberlinux
+## Device specs
+* [Beelink S12 Pro](https://www.notebookcheck.net/Intel-N100-performance-debut-Beelink-Mini-S12-Pro-mini-PC-review.758950.0.html)
+* 
+
+## Install cyberlinux
 
 1. Boot the S12 from the USB:
    1. Plug in the [Install USB](../../README.md#install-from-custom-iso)  
@@ -26,19 +28,19 @@ onto the [Beelink S12 Pro](https://www.notebookcheck.net/Intel-N100-performance-
    3. Choose the `beelink-s12-pro` machine option then complete the wizard
    4. Power off the machine `sudo poweroff`, unplug the USB and then power back up
 
-# Configure cyberlinux
+## Configure cyberlinux
 
-## WiFi
+### WiFi
 NetworkManager makes configuring Wifi a breeze
 
 1. Left click on the NetworkManager applet in the system tray
 2. Select your WiFi endpoint
 3. Enter in your password and done
 
-## Graphics
+### Graphics
 Graphics are taken care of automatically by selecting the correct profile during install
 
-## Kodi
+### Kodi
 Optional example step for configuring the use of a pre-existing local NFS share for media on Kodi
 
 1. Hover over selecting `Remove this main menu item` for those not used `Muic Videos, TV, Radio, Games, Favourites`  
@@ -54,7 +56,7 @@ Optional example step for configuring the use of a pre-existing local NFS share 
 11. Set `Movies are in separate folders that match the movie title` and select `OK`  
 12. Repeat for any other NFS share paths your server has  
 
-## Warcraft 2
+### Warcraft 2
 Optional example step for configuring a wine based game on your system
 
 1. Follow the [instructions here](https://github.com/phR0ze/tech-docs/gaming/warcraft2/README.md)
