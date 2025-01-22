@@ -39,20 +39,29 @@ in
       vms = lib.mkOption {
         description = "Virtual machines";
         default = [];
-        type = types.listOf (types.submodule {
+        type = with types; attrsOf (submodule ({name, ...}: {
           options = {
-            name = lib.mkOption {
+            hostname = lib.mkOption {
               type = types.str;
               description = "VM hostname";
               example = "vm-prod1";
+              default = name;
             };
             spicePort = lib.mkOption {
               type = types.int;
               description = "SPICE port to open for external access";
               example = 5971;
             };
+            interface = lib.mkOption {
+              description = lib.mdDoc "Interface type to use";
+              type = types.enum [ "user" "macvtap" ];
+            };
+            autostart = lib.mkOption {
+              description = lib.mdDoc "Start the VM when the host system boots";
+              type = types.bool;
+            };
           };
-        });
+        }));
       };
     };
   };
@@ -132,6 +141,25 @@ in
       ];
 
       users.users.${machine.user.name}.extraGroups = [ "kvm" "libvirtd" "qemu-libvirtd" ];
+
+      # The @ symbol turns the unit file into a template. The value after the @ symbol is passed 
+      # into the unit as %i. In this way the unit can be instantiated multiple times.
+      systemd.services = {
+        "macvtap@" = lib.mkIf (cfg.host.vms != []) {
+          description = "Setup '%i' MACVTAP interfaces";
+          before = [ "nixos@%i.service" ];
+          partOf = [ "nixos@%i.service" ];
+          unitConfig.ConditionPathExists = "${cfg.stateDir}/%i/result/bin/macvtap-up";
+          restartIfChanged = false;
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+            SyslogIdentifier = "macvtap@%i";
+            ExecStart = "${stateDir}/%i/result/bin/macvtap-up";
+            ExecStop = "${stateDir}/%i/result/bin/macvtap-down";
+          };
+        };
+      };
     })
   ];
 }
