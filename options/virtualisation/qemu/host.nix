@@ -35,6 +35,25 @@ in
         description = "Group to use for VMs when running as system services";
         default = "kvm";
       };
+
+      vms = lib.mkOption {
+        description = "Virtual machines";
+        default = [];
+        type = types.listOf (types.submodule {
+          options = {
+            name = lib.mkOption {
+              type = types.str;
+              description = "VM hostname";
+              example = "vm-prod1";
+            };
+            spicePort = lib.mkOption {
+              type = types.int;
+              description = "SPICE port to open for external access";
+              example = 5971;
+            };
+          };
+        });
+      };
     };
   };
 
