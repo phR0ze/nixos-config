@@ -59,7 +59,7 @@ in
         type = types.listOf (types.submodule {
           options = {
             type = lib.mkOption {
-              type = types.enum [ "macvtap" ];
+              type = types.enum [ "user" "macvtap" ];
               description = "Interface type";
             };
             id = lib.mkOption {
