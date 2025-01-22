@@ -4,180 +4,18 @@
 { modulesPath, config, lib, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.virtualisation;
-  qemu = cfg.qemu.package;
-  host = config.virtualisation.qemu.host;
   guest = config.virtualisation.qemu.guest;
-  rootFilesystemLabel = "nixos";
 
-  # Drive qemu option line generation
-  # --------------------------------------
-  driveOptLine = idx: { file, driveExtraOpts, deviceExtraOpts, ... }:
-    let
-      drvId = "drive${toString idx}";
-      mkKeyValue = lib.generators.mkKeyValueDefault {} "=";
-      mkOpts = opts: lib.concatStringsSep "," (lib.mapAttrsToList mkKeyValue opts);
-      driveOpts = mkOpts (driveExtraOpts // {
-        index = idx;
-        id = drvId;
-        "if" = "none";
-        inherit file;
-      });
-      deviceOpts = mkOpts (deviceExtraOpts // {
-        drive = drvId;
-      });
-    in
-      "-drive ${driveOpts} \\\n  -device virtio-blk-pci,${deviceOpts}";
-  drivesOptLine = drives: lib.concatStringsSep "\\\n    " (lib.imap1 driveOptLine drives);
-
-  # Networking qemu option line generation
-  # --------------------------------------
-  # -netdev 'tap,id=vm-prod1,fd=3' \
-  # -device 'virtio-net-pci,netdev=vm-prod1,mac=02:00:00:00:00:01' \
-  networkingOptLine = interfaces: let
-    lines = builtins.concatMap (x: [
-      "-netdev tap,id=${x.id},fd=${toString x.fd}"
-      "-device virtio-net-pci,netdev=${x.id},mac=${x.mac}"
-    ] ) interfaces;
-  in if (builtins.length interfaces == 0) then
-      lib.concatStringsSep " " config.virtualisation.qemu.networkingOptions
-    else lib.concatStringsSep " " lines;
-
-  # Flag signalling the macvtap scripts should be created
-  macvtapEnabled = if (builtins.length guest.interfaces > 0) then 1 else 0;
-
-  # Script to start the macvtap
-  macvtapUp = ''
-    #! ${pkgs.runtimeShell}
-
-    set -eou pipefail
-    '' + lib.concatMapStrings ({ id, mac, macvtap, ... }: ''
-      if [ -e /sys/class/net/${id} ]; then
-        ${lib.getExe' pkgs.iproute2 "ip"} link delete '${id}'
-      fi
-      ${lib.getExe' pkgs.iproute2 "ip"} link add link '${macvtap.link}' name '${id}' address '${mac}' type macvtap mode '${macvtap.mode}'
-      ${lib.getExe' pkgs.iproute2 "ip"} link set '${id}' allmulticast on
-      if [ -f "/proc/sys/net/ipv6/conf/${id}/disable_ipv6" ]; then
-        echo 1 > "/proc/sys/net/ipv6/conf/${id}/disable_ipv6"
-      fi
-      ${lib.getExe' pkgs.iproute2 "ip"} link set '${id}' up
-      ${pkgs.coreutils-full}/bin/chown '${host.user}:${host.group}' /dev/tap$(< "/sys/class/net/${id}/ifindex")
-    '') guest.interfaces;
-
-  # Script to stop the macvtap
-  macvtapDown = ''
-    #! ${pkgs.runtimeShell}
-
-    set -eou pipefail
-    '' + lib.concatMapStrings ({ id, ... }: ''
-      if [ -e /sys/class/net/${id} ]; then
-        ${lib.getExe' pkgs.iproute2 "ip"} link delete '${id}'
-      fi
-    '') guest.interfaces;
-
-  # Script to run the VM
-  runVM = ''
-    #! ${pkgs.runtimeShell}
-
-    export PATH=${lib.makeBinPath [ pkgs.coreutils ]}''${PATH:+:}$PATH
-    set -e
-
-    ${if (builtins.length guest.interfaces > 0) then ''
-    # Open the tap device with the given file descriptor for read/write. Starting with 3 is typical
-    # since 0, 1, and 2 are used for standard input, output and error.
-    # ----------------------------------------------------------------------------------------------
-    '' + lib.concatMapStrings ({id, fd, ...}:
-      "exec ${toString fd}<>/dev/tap$(< /sys/class/net/${id}/ifindex)"
-    ) guest.interfaces else ""}
-
-    # Create an empty ext4 filesystem image to store VM state
-    # ----------------------------------------------------------------------------------------------
-    NIX_DISK_IMAGE=$(readlink -f "${toString cfg.diskImage}")
-    if ! test -e "$NIX_DISK_IMAGE"; then
-      echo "Disk image does not exist, creating $NIX_DISK_IMAGE..."
-      temp=$(mktemp)
-      size="${toString cfg.diskSize}M"
-      ${qemu}/bin/qemu-img create -f raw "$temp" "$size"
-      ${pkgs.e2fsprogs}/bin/mkfs.ext4 -L ${rootFilesystemLabel} "$temp"
-      ${qemu}/bin/qemu-img convert -f raw -O qcow2 "$temp" "$NIX_DISK_IMAGE"
-      rm "$temp"
-      echo "Virtualisation disk image created."
-    fi
-
-    # Create dir storing VM running data and a sub-dir for exchanging data with the VM
-    # ----------------------------------------------------------------------------------------------
-    TMPDIR=$(mktemp -d nix-vm.XXXXXXXXXX --tmpdir)
-    mkdir -p "$TMPDIR/xchg"
-    cd "$TMPDIR"
-
-    # Launch QEMU
-    # ----------------------------------------------------------------------------------------------
-    # -name my-vm                           # VM name shown in windows and used as an identifier
-    # -m 4096                               # Memory in megabytes
-    # -smp 1                                # Virtual CPUs
-    # -nographic                            # Disable the local GUI window
-    # -device virtio-rng-pci                # Use a virtio driver for randomness
-    # -nodefaults                           # Don't include any default devices to contend with
-    # -no-user-config                       # Don't include any system configuration to contend with
-    # -no-reboot                            # Exit instead of rebooting
-    # -chardev 'stdio,id=stdio,signal=off'  # Connect QEMU Stdin/Stdout to shell
-    # -serial chardev:stdio                 # Redirect serial to 'stdio' instead of 'vc' for graphical mode
-    # -enable-kvm                           # Enable full KVM virtualzation support
-    #
-    # MicroVM mode allows for higher performance
-    # -M 'microvm,accel=kvm:tcg,acpi=on,mem-merge=on,pcie=on,pic=off,pit=off,usb=off'
-    #
-    # Optimal performance is found with host cpu type and x2apic enabled. x2apic is a performance and 
-    # scalabilty feature available in many modern intel CPUs. Regardless of host support KVM can 
-    # emulate it for x86 guests with no downside, so always enable it.
-    # * enable x2apic: https://blog.wikichoon.com/2014/11/x2apic-on-by-default-with-qemu-20-and.html
-    # * disabling sgx: https://gitlab.com/qemu-project/qemu/-/issues/2142
-    # * -cpu max means emulate all features limited by host support, not as performant as -cpu host
-    # -cpu host,+x2apic,-sgx
-    #
-    # -device i8042                         # Add keyboard controller i8042 to handle CtrlAltDel
-    # -sandbox on                           # Disable system calls not needed by QEMU
-    # -qmp unix:my-vm.sock,server,nowait    # Control socket to use
-    # -object 'memory-backend-memfd,id=mem,size=4096M,share=on'
-    # -numa 'node,memdev=mem'               # Simulate a multi node NUMA system
-    #
-    # Binary choice
-    # qemu-kvm is an older packaging concept, use qemu-system-x86_64 -enable-kvm instead
-    #
-    # -append 'earlyprintk=ttyS0 console=ttyS0 reboot=t panic=-1 root=fstab loglevel=4 init=/nix/store/z6s85j7d6xmg32wkfnkqy0llgrxcqdv2-nixos-system-vm-prod1-25.05.20241213.3566ab7/init regInfo=/nix/store/0h2vqibxaimm3km7d8h81v62fjvknlr0-closure-info/registration' \
-    #
-    # -fsdev 'local,id=fs0,path=/nix/store,security_model=none' \
-    # -device 'virtio-9p-pci,fsdev=fs0,mount_tag=ro-store' \
-    # 
-    # Macvtap interface
-    # -netdev 'tap,id=vm-prod1,fd=3' \
-    # -device 'virtio-net-pci,netdev=vm-prod1,mac=02:00:00:00:00:01,romfile=' \
-    # 
-    # User nat interface
-    # -net nic,netdev=user.0,model=virtio -netdev user,id=user.0,"$QEMU_NET_OPTS" \
-    #
-    exec ${qemu}/bin/qemu-system-x86_64 \
-      -name ${machine.hostname} \
-      -enable-kvm \
-      -machine accel=kvm:tcg \
-      -cpu host,+x2apic,-sgx \
-      -m ${toString cfg.memorySize} \
-      -smp ${toString cfg.cores} \
-      -device virtio-rng-pci \
-      ${networkingOptLine guest.interfaces} \
-      ${lib.concatStringsSep " \\\n  "
-        (lib.mapAttrsToList
-          (tag: share: "-virtfs local,path=${share.source},security_model=none,mount_tag=${tag}")
-          config.virtualisation.sharedDirectories)} \
-      ${drivesOptLine config.virtualisation.qemu.drives} \
-      ${lib.concatStringsSep " \\\n  " config.virtualisation.qemu.options} \
-      $QEMU_OPTS \
-      "$@"
-  '';
+  # Filter down the interfaces to the given type
+  interfacesByType = wantedType:
+    builtins.filter ({ type, ... }: type == wantedType) guest.interfaces;
+  macvtapInterfaces = interfacesByType "macvtap";
 in
 {
   imports = [
     (modulesPath + "/virtualisation/qemu-vm.nix")
+    ./macvtap.nix
+    ./run.nix
   ];
 
   options = {
@@ -192,6 +30,28 @@ in
         description = lib.mdDoc "SPICE port for VM";
         type = types.int;
         default = 5970;
+      };
+      scripts = lib.mkOption {
+        description = "VM startup scripts";
+        type = types.submodule {
+          options = {
+            run = lib.mkOption {
+              type = types.str;
+              description = "QEMU startup script";
+              default = "";
+            };
+            macvtap-up = lib.mkOption {
+              type = types.str;
+              description = "Macvtap startup script";
+              default = "";
+            };
+            macvtap-down = lib.mkOption {
+              type = types.str;
+              description = "Macvtap shutdown script";
+              default = "";
+            };
+          };
+        };
       };
       interfaces = lib.mkOption {
         description = "Network interfaces";
@@ -253,10 +113,12 @@ in
       system.build.vm = lib.mkForce (pkgs.runCommand "${machine.hostname}" { preferLocalBuild = true; } ''
         mkdir -p $out/bin
         ln -s ${config.system.build.toplevel} $out/system
-        ln -s ${pkgs.writeScript "run-${machine.hostname}" runVM} $out/bin/run
-        if [[ "${toString macvtapEnabled}" == "1" ]]; then
-          ln -s ${pkgs.writeScript "macvtap-up" macvtapUp} $out/bin/macvtap-up
-          ln -s ${pkgs.writeScript "macvtap-down" macvtapDown} $out/bin/macvtap-down
+        ln -s ${pkgs.writeScript "run-${machine.hostname}" guest.scripts.run} $out/bin/run
+
+        # Optionally configure macvtap scripts
+        if [[ "${if macvtapInterfaces != [] then "1" else "0"}" == "1" ]]; then
+          ln -s ${pkgs.writeScript "macvtap-up" guest.scripts.macvtap-up} $out/bin/macvtap-up
+          ln -s ${pkgs.writeScript "macvtap-down" guest.scripts.macvtap-down} $out/bin/macvtap-down
         fi
       '');
     })
