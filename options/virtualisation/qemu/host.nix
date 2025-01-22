@@ -12,6 +12,10 @@
 let
   machine = config.machine;
   cfg = config.virtualisation.qemu.host;
+
+  macvtapInterfaces = builtins.filter (vmName:
+    cfg.vms.${vmName}.interface == "macvtap"
+  ) (builtins.attrNames cfg.vms);
 in
 {
   options = {
@@ -38,7 +42,7 @@ in
 
       vms = lib.mkOption {
         description = "Virtual machines";
-        default = [];
+        default = {};
         type = with types; attrsOf (submodule ({name, ...}: {
           options = {
             hostname = lib.mkOption {
@@ -144,19 +148,19 @@ in
 
       # The @ symbol turns the unit file into a template. The value after the @ symbol is passed 
       # into the unit as %i. In this way the unit can be instantiated multiple times.
-      systemd.services = {
-        "macvtap@" = lib.mkIf (cfg.host.vms != []) {
+      systemd.services = lib.mkIf (cfg.vms != {}) {
+        "qemu-macvtap@" = lib.mkIf (macvtapInterfaces != []) {
           description = "Setup '%i' MACVTAP interfaces";
-          before = [ "nixos@%i.service" ];
-          partOf = [ "nixos@%i.service" ];
+          before = [ "qemu@%i.service" ];
+          partOf = [ "qemu@%i.service" ];
           unitConfig.ConditionPathExists = "${cfg.stateDir}/%i/result/bin/macvtap-up";
           restartIfChanged = false;
           serviceConfig = {
             Type = "oneshot";
             RemainAfterExit = true;
-            SyslogIdentifier = "macvtap@%i";
-            ExecStart = "${stateDir}/%i/result/bin/macvtap-up";
-            ExecStop = "${stateDir}/%i/result/bin/macvtap-down";
+            SyslogIdentifier = "qemu-macvtap@%i";
+            ExecStart = "${cfg.stateDir}/%i/result/bin/macvtap-up";
+            ExecStop = "${cfg.stateDir}/%i/result/bin/macvtap-down";
           };
         };
       };
