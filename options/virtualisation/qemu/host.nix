@@ -52,10 +52,17 @@ in
             interface = lib.mkOption {
               description = lib.mdDoc "Interface type to use";
               type = types.enum [ "user" "macvtap" ];
+              default = "user";
+            };
+            deploy = lib.mkOption {
+              description = lib.mdDoc "Deploy the VM if it doesn't exist on the host yet";
+              type = types.bool;
+              default = false;
             };
             autostart = lib.mkOption {
               description = lib.mdDoc "Start the VM when the host system boots";
               type = types.bool;
+              default = false;
             };
           };
         }));
@@ -64,7 +71,6 @@ in
   };
 
   config = lib.mkMerge [
-
     (lib.mkIf cfg.enable {
       # Create an activation script to ensure that the VM state directory exists
       system.activationScripts.vm-host = ''
@@ -94,14 +100,9 @@ in
 
       virtualisation.libvirtd = {
         enable = true;
-
-        # Configure UEFI support
-        qemu.ovmf.enable = true;
-        qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];
-
-        # Configure windows swtpm
-        qemu.swtpm.enable = true;
-
+        qemu.swtpm.enable = true;                   # Configure windows swtpm
+        qemu.ovmf.enable = true;                    # Configure UEFI support
+        qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];  # Configure UEFI support
         qemu.vhostUserPackages = [ pkgs.virtiofsd ];  # virtiofs support
       };
 
@@ -129,21 +130,12 @@ in
 
       # Additional packages
       environment.systemPackages = with pkgs; [
-
-        # SPICE enabled viewer for virtual machines
-        # - can be used in conjunction with libvirtd for a QEMU VM console OR
-        # - installs remote-viewer which can be used directly for a QEMU VM console without libvirtd
-        # - remote-viewer spice://<host>:5900
-        virt-viewer
-
-        spice-gtk         # Spicy GTK SPICE client
+        virt-viewer       # Provides SPICE client `remote-viewer spice:://<host>:5900`
+        spice-gtk         # Provides GTK SPICE client `spicy`
         spice-protocol    # SPICE support
         win-virtio        # QEMU support for windows
         win-spice         # SPICE support for windows
-
-        # Quickly create and run optimized Windows, macOS and Linux virtual machines
-        # - bash scripts wrapping and controlling QEMU
-        # quickemu
+        # quickemu        # Create Windows VM easily
       ];
 
       users.users.${machine.user.name}.extraGroups = [ "kvm" "libvirtd" "qemu-libvirtd" ];
@@ -159,13 +151,25 @@ in
         vm = cfg.vms.${hostname};
       in
       {
-        "qemu@" = {
-
+        "qemu-deploy-${hostname}" = {
+          description = "Deploy QEMU '${hostname}'";
+          before = [
+            "qemu-run@${hostname}.service"
+            "qemu-macvtap@${name}.service"
+          ];
+          wantedBy = [ "qemu-vms.target" ];
+          serviceConfig.Type = "oneshot";
+          script = ''
+            mkdir -p ${cfg.stateDir}/${hostname}
+            cd ${cfg.stateDir}/${hostname}
+            chown -h ${cfg.user}:${cfg.group} .
+          '';
+          serviceConfig.SyslogIdentifier = "qemu-deploy-${hostname}";
         };
       })) {
         # Main 
-        "qemu@" = {
-          description = "QEMU VM '%i'";
+        "qemu-run@" = {
+          description = "Run QEMU '%i'";
 
           # Requiring something that doesn't exist won't stop it from starting only log a warning
           requires = [
@@ -180,10 +184,7 @@ in
           unitConfig.ConditionPathExists = "${cfg.stateDir}/%i/result/bin/run";
           restartIfChanged = false;
           serviceConfig = {
-            Type =
-              if config.microvm.host.useNotifySockets
-              then "notify"
-              else "simple";
+            Type = "simple";
             WorkingDirectory = "${cfg.stateDir}/%i";
             ExecStart = "${cfg.stateDir}/%i/result/bin/run";
             ExecStop = "${cfg.stateDir}/%i/result/bin/shutdown";
@@ -192,7 +193,7 @@ in
             RestartSec = "5s";
             User = cfg.user;
             Group = cfg.group;
-            SyslogIdentifier = "qemu@%i";
+            SyslogIdentifier = "qemu-run@%i";
             LimitNOFILE = 1048576;
             NotifyAccess = "all";
             LimitMEMLOCK = "infinity";
@@ -200,9 +201,9 @@ in
         };
 
         "qemu-macvtap@" = lib.mkIf (macvtapInterfaces != []) {
-          description = "Setup '%i' MACVTAP interfaces";
-          before = [ "qemu@%i.service" ];
-          partOf = [ "qemu@%i.service" ];
+          description = "Setup QEMU '%i' MACVTAP interfaces";
+          before = [ "qemu-run@%i.service" ];
+          partOf = [ "qemu-run@%i.service" ];
           unitConfig.ConditionPathExists = "${cfg.stateDir}/%i/result/bin/macvtap-up";
           restartIfChanged = false;
           serviceConfig = {

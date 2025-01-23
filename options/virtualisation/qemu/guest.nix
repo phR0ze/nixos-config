@@ -1,5 +1,7 @@
 # QEMU guest configuration
 #
+# ### References:
+# - [SPICE User manual](https://www.spice-space.org/spice-user-manual.html)
 #---------------------------------------------------------------------------------------------------
 { modulesPath, config, lib, pkgs, f, ... }: with lib.types;
 let
