@@ -6,8 +6,8 @@ let
   machine = config.machine;
   cfg = config.virtualisation.qemu.host;
 
-  macvtapInterfaces = builtins.filter (vmName:
-    cfg.vms.${vmName}.interface == "macvtap"
+  macvtapInterfaces = builtins.filter (hostname:
+    cfg.vms.${hostname}.interface == "macvtap"
   ) (builtins.attrNames cfg.vms);
 in
 {
@@ -154,8 +154,15 @@ in
 
       # The @ symbol turns the unit file into a template. The value after the @ symbol is passed 
       # into the unit as %i. In this way the unit can be instantiated multiple times.
-      systemd.services = {
+      systemd.services = builtins.foldl' (result: hostname: result // (
+      let
+        vm = cfg.vms.${hostname};
+      in
+      {
+        "qemu@" = {
 
+        };
+      })) {
         # Main 
         "qemu@" = {
           description = "QEMU VM '%i'";
@@ -206,7 +213,7 @@ in
             ExecStop = "${cfg.stateDir}/%i/result/bin/macvtap-down";
           };
         };
-      };
+      } (builtins.attrNames cfg.vms);
     })
   ];
 }
