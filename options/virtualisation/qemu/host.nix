@@ -1,12 +1,5 @@
 # QEMU host configuration
 #
-# Sources:
-# - nixos/modules/system/build.nix
-# - nixos/modules/virtualisation/build-vm.nix
-# - nixos/modules/profiles/qemu-guest.nix
-# - nixos/modules/virtualisation/qemu-guest-agent.nix
-# - nixos/lib/qemu-common.nix
-# - nixos/modules/virtualisation/qemu-vm.nix
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -119,6 +112,15 @@ in
         allow all
       '';
 
+      # Allow qemu-bridge-helper to create tap interfaces and attach them to
+      # a bridge without being root
+      security.wrappers.qemu-bridge-helper = {
+        source = "${pkgs.qemu-utils}/libexec/qemu-bridge-helper";
+        owner = "root";
+        group = "root";
+        capabilities = "cap_net_admin+ep";
+      };
+
       # Allow nested virtualisation
       boot.extraModprobeConfig = "options kvm_intel nested=1";
 
@@ -145,10 +147,51 @@ in
       ];
 
       users.users.${machine.user.name}.extraGroups = [ "kvm" "libvirtd" "qemu-libvirtd" ];
+    })
+
+    (lib.mkIf (cfg.vms != {}) {
+      hardware.ksm.enable = lib.mkDefault true;
 
       # The @ symbol turns the unit file into a template. The value after the @ symbol is passed 
       # into the unit as %i. In this way the unit can be instantiated multiple times.
-      systemd.services = lib.mkIf (cfg.vms != {}) {
+      systemd.services = {
+
+        # Main 
+        "qemu@" = {
+          description = "QEMU VM '%i'";
+
+          # Requiring something that doesn't exist won't stop it from starting only log a warning
+          requires = [
+            "qemu-macvtap@%i.service"
+          ];
+
+          # Configuring after for a unit that doesn't exist will just be ignored
+          after = [
+            "network.target"
+            "qemu-macvtap@%i.service"
+          ];
+          unitConfig.ConditionPathExists = "${cfg.stateDir}/%i/result/bin/run";
+          restartIfChanged = false;
+          serviceConfig = {
+            Type =
+              if config.microvm.host.useNotifySockets
+              then "notify"
+              else "simple";
+            WorkingDirectory = "${cfg.stateDir}/%i";
+            ExecStart = "${cfg.stateDir}/%i/result/bin/run";
+            ExecStop = "${cfg.stateDir}/%i/result/bin/shutdown";
+            TimeoutStopSec = 150;
+            Restart = "always";
+            RestartSec = "5s";
+            User = cfg.user;
+            Group = cfg.group;
+            SyslogIdentifier = "qemu@%i";
+            LimitNOFILE = 1048576;
+            NotifyAccess = "all";
+            LimitMEMLOCK = "infinity";
+          };
+        };
+
         "qemu-macvtap@" = lib.mkIf (macvtapInterfaces != []) {
           description = "Setup '%i' MACVTAP interfaces";
           before = [ "qemu@%i.service" ];
