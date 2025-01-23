@@ -115,12 +115,12 @@ in
 
       # Allow qemu-bridge-helper to create tap interfaces and attach them to
       # a bridge without being root
-      security.wrappers.qemu-bridge-helper = {
-        source = "${pkgs.qemu-utils}/libexec/qemu-bridge-helper";
-        owner = "root";
-        group = "root";
-        capabilities = "cap_net_admin+ep";
-      };
+#      security.wrappers.qemu-bridge-helper = {
+#        source = "${pkgs.qemu-utils}/libexec/qemu-bridge-helper";
+#        owner = "root";
+#        group = "root";
+#        capabilities = "cap_net_admin+ep";
+#      };
 
       # Allow nested virtualisation
       boot.extraModprobeConfig = "options kvm_intel nested=1";
@@ -141,21 +141,23 @@ in
       users.users.${machine.user.name}.extraGroups = [ "kvm" "libvirtd" "qemu-libvirtd" ];
     })
 
+    # Configure the VMs to be run on the host including systemd integration
+    #
+    # - The @ symbol turns the unit file into a template. The value after the @ symbol is passed
+    #   into the unit as %i. In this way the unit can be instantiated multiple times.
     (lib.mkIf (cfg.vms != {}) {
       hardware.ksm.enable = lib.mkDefault true;
 
-      # The @ symbol turns the unit file into a template. The value after the @ symbol is passed 
-      # into the unit as %i. In this way the unit can be instantiated multiple times.
       systemd.services = builtins.foldl' (result: hostname: result // (
       let
         vm = cfg.vms.${hostname};
       in
       {
-        "qemu-deploy-${hostname}" = {
-          description = "Deploy QEMU '${hostname}'";
+        "qemu-${hostname}" = {
+          description = "Deploy QEMU ${hostname}";
           before = [
             "qemu-run@${hostname}.service"
-            "qemu-macvtap@${name}.service"
+            "qemu-macvtap@${hostname}.service"
           ];
           wantedBy = [ "qemu-vms.target" ];
           serviceConfig.Type = "oneshot";
@@ -164,12 +166,12 @@ in
             cd ${cfg.stateDir}/${hostname}
             chown -h ${cfg.user}:${cfg.group} .
           '';
-          serviceConfig.SyslogIdentifier = "qemu-deploy-${hostname}";
+          serviceConfig.SyslogIdentifier = "qemu-${hostname}";
         };
       })) {
         # Main 
         "qemu-run@" = {
-          description = "Run QEMU '%i'";
+          description = "Run QEMU %i";
 
           # Requiring something that doesn't exist won't stop it from starting only log a warning
           requires = [
@@ -201,7 +203,7 @@ in
         };
 
         "qemu-macvtap@" = lib.mkIf (macvtapInterfaces != []) {
-          description = "Setup QEMU '%i' MACVTAP interfaces";
+          description = "Setup QEMU %i MACVTAP interfaces";
           before = [ "qemu-run@%i.service" ];
           partOf = [ "qemu-run@%i.service" ];
           unitConfig.ConditionPathExists = "${cfg.stateDir}/%i/result/bin/macvtap-up";
