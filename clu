@@ -34,7 +34,7 @@ SCRIPT_DIR=$(readlink -f $(dirname $BASH_SOURCE[0]))
 SOURCE_DIR=$(pwd)
 source "${SCRIPT_DIR}/lib/all"
 
-core::title()
+core::preamble()
 {
     VERSION=0.1.0
     #VERSION=$(cat VERSION)
@@ -44,7 +44,7 @@ core::title()
 
 core::usage()
 {
-    core::title
+    core::preamble
     cat <<USAGE
 Usage:
   ./clu [COMMAND] [ARGS...] [OPTIONS]
@@ -87,43 +87,49 @@ USAGE
 
 # Parse commands
 # --------------------------------------------------------------------------------------------------
-[[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]] && core::usage
-
-# Handle debug mode
-if [[ $1 == "--debug" ]]; then
-    LOG_LEVEL="debug"
-    _log_level=$_debug
-    shift
-fi
-
-# Handle programmatic output mode
+[[ $# -eq 0 ]] && core::usage
+ARGS=("$@")
 QUIET=0
-if [[ $1 == "-q" || $1 == "--quiet" ]]; then
-    QUIET=1
-    LOG_LEVEL="error"
-    _log_level=$_error
-    shift
-fi
 
-command=$1; shift
-case "$command" in
-    init) init::run "$@" ;;
-    build) build::run "$@" ;;
-    clean) clean::run "$@" ;;
-    deploy) deploy::run "$@" ;;
-    dev) dev::run "$@" ;;
-    install) install::run "$@" ;;
-    list) list::run "$@" ;;
-    ll) list::run "$@" ;;   # list alias
-    manage) manage::run "$@" ;;
-    pkgs) pkgs::run "$@" ;;
-    registry) registry::run "$@" ;;
+# Handle globals by detecting them, taking action then removing them from the array.
+for i in "${!ARGS[@]}"; do
+    [[ "${ARGS[i]}" == "-h" || "${ARGS[i]}" == "--help" ]] && core::usage
+
+    if [[ "${ARGS[i]}" == "--debug" ]]; then
+        LOG_LEVEL="debug"
+        _log_level=$_debug
+        unset 'ARGS[i]'
+    fi
+
+    if [[ "${ARGS[i]}" == "-q" || "${ARGS[i]}" == "--quiet" ]]; then
+        QUIET=1
+        LOG_LEVEL="error"
+        _log_level=$_error
+        unset 'ARGS[i]'
+    fi
+done
+ARGS=("${ARGS[@]}") # rebuild to remove deleted items
+
+# Extract the first argument
+CMD="${ARGS[0]}" && unset 'ARGS[0]'
+case "$CMD" in
+    init) init::run "${ARGS[@]}" ;;
+    build) build::run "${ARGS[@]}" ;;
+    clean) clean::run "${ARGS[@]}" ;;
+    deploy) deploy::run "${ARGS[@]}" ;;
+    dev) dev::run "${ARGS[@]}" ;;
+    install) install::run "${ARGS[@]}" ;;
+    list) list::run "${ARGS[@]}" ;;
+    ll) list::run "${ARGS[@]}" ;;   # list alias
+    manage) manage::run "${ARGS[@]}" ;;
+    pkgs) pkgs::run "${ARGS[@]}" ;;
+    registry) registry::run "${ARGS[@]}" ;;
     repl) nix repl -f '<nixpkgs>' ;;
-    run) run::run "$@" ;;
-    shell) shell::run "$@" ;;
-    switch) switch::run "$@" ;;
-    test) test::run "$@" ;;
-    update) update::run "$@" ;;
-    upgrade) upgrade::run "$@" ;;
+    run) run::run "${ARGS[@]}" ;;
+    shell) shell::run "${ARGS[@]}" ;;
+    switch) switch::run "${ARGS[@]}" ;;
+    test) test::run "${ARGS[@]}" ;;
+    update) update::run "${ARGS[@]}" ;;
+    upgrade) upgrade::run "${ARGS[@]}" ;;
     *) log::error "Invalid command: ${cyan}${command}${none}"; core::usage ;;
 esac

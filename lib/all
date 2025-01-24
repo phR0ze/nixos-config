@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-# Import core functions
+# Import sub commands
 source "${SCRIPT_DIR}/lib/init"
 source "${SCRIPT_DIR}/lib/build"
+source "${SCRIPT_DIR}/lib/clean/clean"
 source "${SCRIPT_DIR}/lib/dev"
 source "${SCRIPT_DIR}/lib/deploy"
-source "${SCRIPT_DIR}/lib/clean/clean"
 source "${SCRIPT_DIR}/lib/flake"
 source "${SCRIPT_DIR}/lib/install"
 source "${SCRIPT_DIR}/lib/list"
@@ -20,6 +20,6 @@ source "${SCRIPT_DIR}/lib/test"
 source "${SCRIPT_DIR}/lib/update"
 source "${SCRIPT_DIR}/lib/upgrade"
 
-# Import utilities
+# Import utility functions
 source "${SCRIPT_DIR}/lib/log"
 source "${SCRIPT_DIR}/lib/utils"

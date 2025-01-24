@@ -26,7 +26,8 @@ flake::ensure_machine()
 
     MACHINE="$1"
     local machine_path="machines/$MACHINE"
-    log::header0 "Validating machine ${cyan}$MACHINE${none} exists"
+    log::ls -n "Validating machine ${cyan}$MACHINE${none} exists..."
+    log::status
 
     [[ "$MACHINE" == "" ]] && log::fatal "Machine name not given"
     if [ ! -d "$machine_path" ]; then

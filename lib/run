@@ -41,12 +41,12 @@ run::run()
 # --------------------------------------------------------------------------------------------------
 run::vm()
 {
+    core::preamble
+
     local machine="${1#vm-}"  # trim vm- prefix
     [[ "$machine" == "" ]] && machine="test"
     MACHINE="vm-${machine}"
 
-    # Build the vm
-    core::title
     log::header1 "Running VM ${cyan}${MACHINE}${none}"
     flake::switch "$MACHINE"
     trap flake::restore EXIT
