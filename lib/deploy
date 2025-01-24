@@ -53,9 +53,22 @@ deploy::vm()
     log::header1 "Deploying ${cyan}${machine}${none}"
     flake::ensure_machine "$machine"
 
-    # Copy over the machine files to /var/lib/vms/$MACHINE
-    local machine_path="/var/lib/vms/$MACHINE"
-    log::ls -n "Deploying machine $MACHINE to ${cyan}${machine_path}${none}..."
-    mkdir -p "${machine_path}"
+    # Create dirs
+    local machine_dst="/var/lib/vms/$MACHINE"
+    log::ls -n "Deploying machine $MACHINE to ${cyan}${machine_dst}${none}..."
+    mkdir -p "${machine_dst}"
     log::status
+
+    # Copy over latest
+    local machine_src="machines/$MACHINE"
+    log::ls -n "Copying ${cyan}${machine_src}${none}..."
+    rm -rf "$machine_dst/.git"
+    cp -r . "$machine_dst"
+    log::status
+
+    # Build the deployed vm
+    log::ls "Switching to ${cyan}${machine_dst}${none} to build VM"
+    pushd "$machine_dst"
+    ./clu build vm $machine
+    popd
 }

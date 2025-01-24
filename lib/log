@@ -211,9 +211,13 @@ log::header0()
 
 # Log out status of the last command
 # --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 optional status to use instead
 log::status()
 {
-    if [ $? -eq 0 ]; then
+    local status="$1"
+    [[ "$status" == "" ]] && status=$?
+    if [ $status -eq 0 ]; then
         echo -e "${green}success${none}"
     else
         echo -e "${red}failure${none}"
