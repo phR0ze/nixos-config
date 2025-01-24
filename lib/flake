@@ -41,12 +41,12 @@ flake::ensure_machine()
 # Example: flake::switch homelab
 flake::switch()
 {
-    flake::ensure_machine
+    flake::ensure_machine $MACHINE
 
     local machine_path="machines/$MACHINE"
     local flake_local="$machine_path/flake.nix"
     local flake_local_lock="$machine_path/flake.lock"
-    log::header0 "Switching to machine ${cyan}$MACHINE${none}"
+    log::ls "Switching to machine ${cyan}$MACHINE${none}"
 
     # Stage the flake files
     if [ -e "$flake_local" ]; then

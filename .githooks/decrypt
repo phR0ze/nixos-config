@@ -7,7 +7,7 @@ green="\e[1;32m"
 
 # Change to the root of the repo
 REPO_ROOT=$(git rev-parse --show-toplevel)
-echo -n "Decrypting all encrypted files..."
+echo -n ">> Decrypting all encrypted files..."
 
 # Skip if rebase is in progress
 is_rebase_in_progress() {
