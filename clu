@@ -60,6 +60,7 @@ Commands:
   init              Configure the current git repo with sops git hooks
   build             Build components
   clean             Clean various system components
+  deploy            Deploy Virtual Machine
   dev               Setup a shell environment
   help              Get help for a command
   install           Install system configuration
@@ -109,6 +110,7 @@ case "$command" in
     init) init::run "$@" ;;
     build) build::run "$@" ;;
     clean) clean::run "$@" ;;
+    deploy) deploy::run "$@" ;;
     dev) dev::run "$@" ;;
     install) install::run "$@" ;;
     list) list::run "$@" ;;

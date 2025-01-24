@@ -143,8 +143,6 @@ in
 
     # Configure the VMs to be run on the host including systemd integration
     #
-    # - The @ symbol turns the unit file into a template. The value after the @ symbol is passed
-    #   into the unit as %i. In this way the unit can be instantiated multiple times.
     (lib.mkIf (cfg.vms != {}) {
       hardware.ksm.enable = lib.mkDefault true;
 
@@ -154,69 +152,51 @@ in
       in
       {
         "qemu-${hostname}" = {
-          description = "Deploy QEMU ${hostname}";
-          before = [
-            "qemu-run@${hostname}.service"
-            "qemu-macvtap@${hostname}.service"
-          ];
-          wantedBy = [ "qemu-vms.target" ];
-          serviceConfig.Type = "oneshot";
-          script = ''
-            mkdir -p ${cfg.stateDir}/${hostname}
-            cd ${cfg.stateDir}/${hostname}
-            chown -h ${cfg.user}:${cfg.group} .
-          '';
-          serviceConfig.SyslogIdentifier = "qemu-${hostname}";
-        };
-      })) {
-        # Main 
-        "qemu-run@" = {
-          description = "Run QEMU %i";
+          description = "Run QEMU ${hostname}";
 
           # Requiring something that doesn't exist won't stop it from starting only log a warning
           requires = [
-            "qemu-macvtap@%i.service"
+            "qemu-macvtap-${hostname}.service"
           ];
 
           # Configuring after for a unit that doesn't exist will just be ignored
           after = [
             "network.target"
-            "qemu-macvtap@%i.service"
+            "qemu-macvtap-${hostname}.service"
           ];
-          unitConfig.ConditionPathExists = "${cfg.stateDir}/%i/result/bin/run";
+          unitConfig.ConditionPathExists = "${cfg.stateDir}/${hostname}/result/bin/run";
           restartIfChanged = false;
           serviceConfig = {
             Type = "simple";
-            WorkingDirectory = "${cfg.stateDir}/%i";
-            ExecStart = "${cfg.stateDir}/%i/result/bin/run";
-            ExecStop = "${cfg.stateDir}/%i/result/bin/shutdown";
+            WorkingDirectory = "${cfg.stateDir}/${hostname}";
+            ExecStart = "${cfg.stateDir}/${hostname}/result/bin/run";
+            ExecStop = "${cfg.stateDir}/${hostname}/result/bin/shutdown";
             TimeoutStopSec = 150;
             Restart = "always";
             RestartSec = "5s";
             User = cfg.user;
             Group = cfg.group;
-            SyslogIdentifier = "qemu-run@%i";
+            SyslogIdentifier = "qemu-${hostname}";
             LimitNOFILE = 1048576;
             NotifyAccess = "all";
             LimitMEMLOCK = "infinity";
           };
         };
-
-        "qemu-macvtap@" = lib.mkIf (macvtapInterfaces != []) {
-          description = "Setup QEMU %i MACVTAP interfaces";
-          before = [ "qemu-run@%i.service" ];
-          partOf = [ "qemu-run@%i.service" ];
-          unitConfig.ConditionPathExists = "${cfg.stateDir}/%i/result/bin/macvtap-up";
+        "qemu-macvtap-${hostname}" = lib.mkIf (vm.interface == "macvtap") {
+          description = "Setup QEMU ${hostname} MACVTAP interfaces";
+          before = [ "qemu-${hostname}.service" ];
+          partOf = [ "qemu-${hostname}.service" ];
+          unitConfig.ConditionPathExists = "${cfg.stateDir}/${hostname}/result/bin/macvtap-up";
           restartIfChanged = false;
           serviceConfig = {
             Type = "oneshot";
             RemainAfterExit = true;
-            SyslogIdentifier = "qemu-macvtap@%i";
-            ExecStart = "${cfg.stateDir}/%i/result/bin/macvtap-up";
-            ExecStop = "${cfg.stateDir}/%i/result/bin/macvtap-down";
+            SyslogIdentifier = "qemu-macvtap-${hostname}";
+            ExecStart = "${cfg.stateDir}/${hostname}/result/bin/macvtap-up";
+            ExecStop = "${cfg.stateDir}/${hostname}/result/bin/macvtap-down";
           };
         };
-      } (builtins.attrNames cfg.vms);
+      })) { } (builtins.attrNames cfg.vms);
     })
   ];
 }

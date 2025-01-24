@@ -16,25 +16,36 @@ flake::ensure_origin()
     fi
 }
 
+# Ensure machine name was given and exists
+# - $1 - target machine
+#
+# Example: flake::ensure_machine homelab
+flake::ensure_machine()
+{
+    flake::ensure_origin
+
+    MACHINE="$1"
+    local machine_path="machines/$MACHINE"
+    log::header0 "Validating machine ${cyan}$MACHINE${none} exists"
+
+    [[ "$MACHINE" == "" ]] && log::fatal "Machine name not given"
+    if [ ! -d "$machine_path" ]; then
+        log::fatal "Invalid machine path: ${cyan}${machine_path}${none}"
+    fi
+}
+
 # Switch flake
 # - $1 - target machine
 #
 # Example: flake::switch homelab
 flake::switch()
 {
-    flake::ensure_origin
+    flake::ensure_machine
 
-    MACHINE="$1"
     local machine_path="machines/$MACHINE"
     local flake_local="$machine_path/flake.nix"
     local flake_local_lock="$machine_path/flake.lock"
     log::header0 "Switching to machine ${cyan}$MACHINE${none}"
-
-    # Check if the given machine exists
-    [[ "$MACHINE" == "" ]] && log::fatal "Machine name not given"
-    if [ ! -d "$machine_path" ]; then
-        log::fatal "Invalid machine path: ${cyan}${machine_path}${none}"
-    fi
 
     # Stage the flake files
     if [ -e "$flake_local" ]; then
