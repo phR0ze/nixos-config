@@ -31,7 +31,7 @@ switch::run()
 {
     utils::help "$@" "switch::usage"
 
-    core::title
+    core::preamble
     log::header1 "Update ${NIXOS_PROFILES_PATH} for system version switch"
 
     # Determine if the argument is a path or generation number

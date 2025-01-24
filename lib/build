@@ -71,7 +71,7 @@ build::run()
 # --------------------------------------------------------------------------------------------------
 build::iso()
 {
-    core::title
+    core::preamble
     log::header0 "Building installable ISO"
 
     local profile="$1"
@@ -90,52 +90,21 @@ build::iso()
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
+    core::preamble
+
     local machine=""
     BUILD_UPDATE_ARGS=0
     NO_CLEAN="${NO_CLEAN:-0}"
 
-    while [ $# -gt 0 ]; do
-        local arg=$1; shift
-        case "$arg" in
-#            --hostname*)
-#                _build::update_args "str" "hostname" "$arg" true
-#                hostname="${arg#*=}" # trim the prefix including the '='
-#                ;;
-#            --service*)
-#                _build::update_args "bool" "service" "$arg" true
-#                service="${arg#*=}" # trim the prefix including the '='
-#                ;;
-#            --ip*) _build::update_args "str" "ip" "$arg" true ;;
-#            --spicePort*) _build::update_args "int" "spicePort" "$arg" true ;;
-#            --spice*) _build::update_args "bool" "spice" "$arg" true ;;
-#            --cores*) _build::update_args "int" "cores" "$arg" true ;;
-#            --diskSize*) _build::update_args "int" "diskSize" "$arg" true ;;
-#            --memorySize*) _build::update_args "int" "memorySize" "$arg" true ;;
-#            --resolution.x*) _build::update_args "int" "resolution.x" "$arg" true ;;
-#            --resolution.y*) _build::update_args "int" "resolution.y" "$arg" true ;;
-#            --no-clean) NO_CLEAN=1 ;;
-#            --*) log::error "Invalid vm argument: ${cyan}${arg}${none}"; echo; build::usage ;;
-            *) machine="$arg" ;;
-        esac
-    done
-
-    # Correctly format machine name
+    local machine="${1#vm-}"  # trim vm- prefix
     [[ "$machine" == "" ]] && machine="test"
     MACHINE="vm-${machine}"
 
-    # Build the vm
-    core::title
     log::header1 "Building ${cyan}${MACHINE}${none}"
     flake::switch "$MACHINE"
     trap flake::restore EXIT
 
     nix build .#nixosConfigurations.target.config.system.build.vm
-
-    # Move the service files 
-#    if [[ "${service}" == "true" ]]; then
-#        mkdir -p "/var/lib/vm-${hostname}"
-#        mv "$SCRIPT_DIR/result" "/var/lib/vm-${hostname}/"
-#    fi
 }
 
 # Post build operations

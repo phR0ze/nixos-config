@@ -45,18 +45,27 @@ esac
 # ### Features
 # - indents 2 spaces
 # - logs at given level unless LOG_LEVEL cuts it off
-#
 # ### Params
+# - optional newline argument before log level
 # - $1 the log level to log at
 # - $2 the message to log
 _log::log()
 {
-    local level="$1"
-    shift
-    local msg="$@"
+    local args=("$@")
 
+    # Extract optional newline and required level
+    local newline="${args[0]}" && args=("${args[@]:1}")
+    local level="$newline"
+    if [[ "$newline" == "-n" ]]; then
+        level="${args[0]}" && args=("${args[@]:1}")
+    else
+        newline=""
+    fi
+
+    # Log if level is sufficient
     if [ $_log_level -ge $level ]; then
-        echo -e "${msg}"
+        local msg="${args[@]}"
+        echo -e ${newline} "${msg}"
     fi
 }
 
@@ -91,6 +100,19 @@ log::ln()
     _log::log $_info "${msg}"
 }
 
+# Log list item at info level
+# - Adds a >> to give a listing feel
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $@ the message to log
+log::ls()
+{
+    local args=("$@")
+    local newline="${args[0]}"
+    [[ "$newline" == "-n" ]] && args=("${args[@]:1}")
+    _log::log $newline $_info ">> ${args[@]}"
+}
+
 # Log at debug level with newline
 # - Adds a violet >> to distinguish debug lines
 # --------------------------------------------------------------------------------------------------
@@ -99,7 +121,7 @@ log::ln()
 log::ln_d()
 {
     local msg="$@"
-    _log::log $_debug "${violet}>>${none} ${msg}"
+    _log::log $_debug "${purple}>>${none} ${msg}"
 }
 
 # Log 2 space indent at info level with newline
@@ -128,7 +150,7 @@ log::subln3()
 # - $1 color to use
 # - $2 header message
 # - $3 header kind: 0 (no separator), 1 (single separator), 2 (double separator)
-# - $4 char to use for the separation line
+# - $4 optional char to use for the separation line
 log::header()
 {
     local color=$1

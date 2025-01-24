@@ -9,7 +9,7 @@
 # Parse the test commands and execute
 test::run()
 {
-    core::title
+    core::preamble
     log::header1 "Test command invoked"
 
     # Extract the nixpkgs input pieces and build the URL

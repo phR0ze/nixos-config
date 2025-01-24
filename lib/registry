@@ -45,7 +45,7 @@ registry::run()
 # --------------------------------------------------------------------------------------------------
 registry::list()
 {
-    core::title
+    core::preamble
     log::header0 "Registry list"
 
     nix registry list

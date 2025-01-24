@@ -21,16 +21,10 @@ in
         description = "Directory that contains the VMs";
       };
 
-      user = lib.mkOption {
-        type = types.str;
-        description = "User to use for VMs when running as system services";
-        default = "vmuser";
-      };
-
       group = lib.mkOption {
         type = types.str;
         description = "Group to use for VMs when running as system services";
-        default = "kvm";
+        default = "users";
       };
 
       vms = lib.mkOption {
@@ -75,24 +69,18 @@ in
       # Create an activation script to ensure that the VM state directory exists
       system.activationScripts.vm-host = ''
         mkdir -p ${cfg.stateDir}
-        chown ${cfg.user}:${cfg.group} ${cfg.stateDir}
+        chown ${cfg.machine.user.name}:${cfg.group} ${cfg.stateDir}
         chmod g+w ${cfg.stateDir}
       '';
 
-      # Create user VMs when runnng as system services
-      users.users.${cfg.user} = {
-        isSystemUser = true;
-        group = cfg.group;
-      };
-
       # Remove memory constraints for the vm user
       security.pam.loginLimits = [ {
-        domain = cfg.user;
+        domain = cfg.machine.user.name;
         item = "memlock";
         type = "hard";
         value = "infinity";
       } {
-        domain = cfg.user;
+        domain = cfg.machine.user.name;
         item = "memlock";
         type = "soft";
         value = "infinity";
@@ -174,7 +162,7 @@ in
             TimeoutStopSec = 150;
             Restart = "always";
             RestartSec = "5s";
-            User = cfg.user;
+            User = cfg.machine.user.name;
             Group = cfg.group;
             SyslogIdentifier = "qemu-${hostname}";
             LimitNOFILE = 1048576;

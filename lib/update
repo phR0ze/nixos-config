@@ -54,7 +54,7 @@ update::run()
 # --------------------------------------------------------------------------------------------------
 update::flake()
 {
-    core::title
+    core::preamble
     log::header1 "Update flake"
 
     MACHINE="$1"
@@ -90,7 +90,7 @@ update::flake()
 # --------------------------------------------------------------------------------------------------
 update::profile()
 {
-    core::title
+    core::preamble
     log::header1 "Update install profile"
     echo "${orange}TODO: not implemented!${none}" && exit 1
 
@@ -104,7 +104,7 @@ update::profile()
 # - $1 - optional hostname to use
 update::system()
 {
-    core::title
+    core::preamble
     log::header1 "Update system version"
 
     # Set additional flags as specified
