@@ -147,9 +147,8 @@ _update::pre()
     rm -f /nix/files.lock
     log::status
 
-    log::ls -n "Shutting down ${cyan}xfconfd${none} to avoid conflicts..."
-    pkill xfconfd
-    log::status
+    log::ls "Shutting down ${cyan}xfconfd${none} to avoid conflicts"
+    pgrep xfconfd
 
     flake::switch "$MACHINE"
 
