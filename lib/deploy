@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+#set -x
+
+# Deploy Virtual Machine
+# 
+# ## Features
+# -
+# --------------------------------------------------------------------------------------------------
+ARGS=""
+
+# Usage for the deploy command and its sub commands
+# --------------------------------------------------------------------------------------------------
+deploy::usage()
+{
+    cat <<USAGE
+Usage:
+  deploy [COMMAND] [ARGS...] [OPTIONS] 
+
+Options:
+  -h, --help            Print out usage
+
+Commands:
+  vm MACHINE            Deploy the given VM machine
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "Deploy prod1 VM: ${green}./${SCRIPT} deploy vm prod1${none}"
+    echo
+    exit
+}
+
+# Parse the deploy commands and execute
+# --------------------------------------------------------------------------------------------------
+deploy::run()
+{
+    utils::help "$@" "deploy::usage"
+
+    local command=$1; shift
+    case "$command" in
+        vm) deploy::vm "$@" ;;
+        *) log::error "Invalid deploy command: ${cyan}${command}${none}"; echo; deploy::usage ;;
+    esac
+}
+ 
+# Deploy the vm
+# - $1 - optional machine name to target
+# --------------------------------------------------------------------------------------------------
+deploy::vm()
+{
+    local machine="${1#vm-}"  # trim vm- prefix
+    machine="vm-${machine}"
+    [[ "$machine" == "vm-" ]] && log::fatal "machine name is required" 
+    flake::ensure_machine "$machine"
+
+    # Deploy the vm
+    core::title
+    log::header1 "Deploying ${cyan}${MACHINE}${none}"
+}
