@@ -54,10 +54,10 @@ _log::log()
     local args=("$@")
 
     # Extract optional newline and required level
-    local newline="${args[0]}" && args=("${args[@]:1}")
-    local level="$newline"
+    local newline=${args[0]} && args=("${args[@]:1}")
+    local level=$newline
     if [[ "$newline" == "-n" ]]; then
-        level="${args[0]}" && args=("${args[@]:1}")
+        local level=${args[0]} && args=("${args[@]:1}")
     else
         newline=""
     fi
@@ -109,7 +109,7 @@ log::ls()
 {
     local args=("$@")
     local newline="${args[0]}"
-    [[ "$newline" == "-n" ]] && args=("${args[@]:1}")
+    [[ "$newline" == "-n" ]] && args=("${args[@]:1}") || newline=""
     _log::log $newline $_info ">> ${args[@]}"
 }
 

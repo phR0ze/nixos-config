@@ -94,7 +94,7 @@ update::profile()
     log::header1 "Update install profile"
     echo "${orange}TODO: not implemented!${none}" && exit 1
 
-    log::ln "Switching install profile to ${cyan}${@}${none}"
+    log::ls "Switching install profile to ${cyan}${@}${none}"
     utils::replace str "profile" "${@}" "${FLAKE_ARGS}"
     git add "${FLAKE_ARGS}"
 }
@@ -121,7 +121,7 @@ update::system()
 
     # Optionally set the machine being used and log it
     [[ "$MACHINE" == "" ]] && MACHINE=$(hostname)
-    log::header0 "Using hostname ${cyan}${MACHINE}${none}"
+    log::ls "Using hostname ${cyan}${MACHINE}${none}"
     _update::pre
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
@@ -143,11 +143,13 @@ update::system()
 # Pre update operations
 _update::pre()
 {
-    log::ln "Removing ${cyan}/nix/files.lock${none} to permit files update"
+    log::ls -n "Removing ${cyan}/nix/files.lock${none} to permit files update..."
     rm -f /nix/files.lock
+    log::status
 
-    log::ln "Shutting down ${cyan}xfconfd${none} to avoid conflicts"
+    log::ls -n "Shutting down ${cyan}xfconfd${none} to avoid conflicts..."
     pkill xfconfd
+    log::status
 
     flake::switch "$MACHINE"
 
@@ -161,7 +163,7 @@ _update::removeUserXfceConfigs()
     users+=('/root')
     for x in ${users[@]}; do
       local target="${x}/.config/xfce4"
-      log::ln "Cleaning up: ${cyan}${target}${none}"
+      log::ls "Cleaning up: ${cyan}${target}${none}"
       rm -rf "$target"
     done
 }
@@ -171,6 +173,6 @@ _update::post()
 {
     flake::restore
 
-    log::ln "Adding ${cyan}/nix/files.lock${none} to block files updates during reboots"
+    log::ls "Adding ${cyan}/nix/files.lock${none} to block files updates during reboots"
     touch /nix/files.lock
 }

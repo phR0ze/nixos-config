@@ -69,18 +69,18 @@ in
       # Create an activation script to ensure that the VM state directory exists
       system.activationScripts.vm-host = ''
         mkdir -p ${cfg.stateDir}
-        chown ${cfg.machine.user.name}:${cfg.group} ${cfg.stateDir}
+        chown ${machine.user.name}:${cfg.group} ${cfg.stateDir}
         chmod g+w ${cfg.stateDir}
       '';
 
       # Remove memory constraints for the vm user
       security.pam.loginLimits = [ {
-        domain = cfg.machine.user.name;
+        domain = machine.user.name;
         item = "memlock";
         type = "hard";
         value = "infinity";
       } {
-        domain = cfg.machine.user.name;
+        domain = machine.user.name;
         item = "memlock";
         type = "soft";
         value = "infinity";
@@ -162,7 +162,7 @@ in
             TimeoutStopSec = 150;
             Restart = "always";
             RestartSec = "5s";
-            User = cfg.machine.user.name;
+            User = machine.user.name;
             Group = cfg.group;
             SyslogIdentifier = "qemu-${hostname}";
             LimitNOFILE = 1048576;

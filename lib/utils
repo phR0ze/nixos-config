@@ -249,6 +249,6 @@ utils::update()
     [[ "$pair" == "true" ]] && value="${value#*=}"
 
     # Update the value in the arg file
-    log::ln "Updating ${file}: ${cyan}${var}${none} => ${cyan}${value}${none}"
+    log::ls "Updating ${file}: ${cyan}${var}${none} => ${cyan}${value}${none}"
     utils::replace "$file" "${kind}" "${var}" "${value}"
 }
