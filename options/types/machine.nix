@@ -358,12 +358,4 @@ in
 #        { assertion = (cfg.nic1.ip.attrs.prefixLength == 24); message = "machine.nic1.ip.attrs.prefixLength: ${toString cfg.nic1.ip.attrs.prefixLength}"; }
 #        { assertion = (cfg.nic1.dns.primary == "1.1.1.1"); message = "machine.nic1.dns.primary: ${cfg.nic1.dns.primary}"; }
 #        { assertion = (cfg.nic1.dns.fallback == "8.8.8.8"); message = "machine.nic1.dns.fallback: ${cfg.nic1.dns.fallback}"; }
-#
-#        # VM args
-#        { assertion = (cfg.vm.cores == 1); message = "machine.vm.cores: ${toString cfg.vm.cores}"; }
-#        { assertion = (cfg.vm.diskSize == 1024); message = "machine.vm.diskSize: ${toString cfg.vm.diskSize}"; }
-#        { assertion = (cfg.vm.memorySize == 4096); message = "machine.vm.memorySize: ${toString cfg.vm.memorySize}"; }
-#        { assertion = (cfg.vm.spice == true); message = "machine.vm.spice: ${f.boolToStr cfg.vm.spice}"; }
-#        { assertion = (cfg.vm.spicePort == 5970); message = "machine.vm.spicePort: ${toString cfg.vm.spicePort}"; }
-#        { assertion = (cfg.vm.graphics == true); message = "machine.vm.graphics: ${f.boolToStr cfg.vm.graphics}"; }
 #      ];
