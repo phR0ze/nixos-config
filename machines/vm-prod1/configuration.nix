@@ -20,23 +20,23 @@ in
   config = {
     machine.enable = true;
 
-    virtualisation = {
+    virtualisation.qemu.guest = {
       cores = 2;
-      diskSize = 1 * 1024;
-      memorySize = 4 * 1024;
-      graphics = false;
-      qemu.guest = {
-        spice = true;
-        spicePort = 5971;
-        interfaces = [ {
-          type = "macvtap";
-          id = cfg.hostname;
-          fd = 3;
-          macvtap.mode = "bridge";
-          macvtap.link = "enp1s0";
-          mac = "02:00:00:00:00:01";
-        }];
+      diskSize = 1;
+      memorySize = 4;
+      sound = true;
+      spice = {
+        enable = true;
+        port = 5971;
       };
+      interfaces = [ {
+        type = "macvtap";
+        id = cfg.hostname;
+        fd = 3;
+        macvtap.mode = "bridge";
+        macvtap.link = "enp1s0";
+        mac = "02:00:00:00:00:01";
+      }];
     };
   };
 }

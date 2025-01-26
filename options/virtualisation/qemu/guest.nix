@@ -23,15 +23,43 @@ in
   options = {
     virtualisation.qemu.guest = {
       enable = lib.mkEnableOption "Configure the VM's guest OS";
-      spice = lib.mkOption {
-        description = lib.mdDoc "Enable SPICE for VM";
+      cores = lib.mkOption {
+        description = lib.mdDoc "Number of virtual cores for VM";
+        type = types.int;
+        default = 1;
+      };
+      diskSize = lib.mkOption {
+        description = lib.mdDoc "Disk size in GB for VM";
+        type = types.int;
+        default = 1;
+      };
+      memorySize = lib.mkOption {
+        description = lib.mdDoc "Memory size in GB for VM";
+        type = types.int;
+        default = 4;
+      };
+      graphics = lib.mkOption {
+        description = lib.mdDoc "Enable graphics for VM";
         type = types.bool;
         default = true;
       };
-      spicePort = lib.mkOption {
-        description = lib.mdDoc "SPICE port for VM";
-        type = types.int;
-        default = 5970;
+      sound = lib.mkOption {
+        description = lib.mdDoc "Enable sound for VM";
+        type = types.bool;
+        default = false;
+      };
+      spice = lib.mkOption {
+        description = "SPICE configuration";
+        type = types.submodule {
+          options = {
+            enable = lib.mkEnableOption "Enable SPICE";
+            port = lib.mkOption {
+              description = lib.mdDoc "SPICE port for VM";
+              type = types.int;
+              default = 5970;
+            };
+          };
+        };
       };
       scripts = lib.mkOption {
         description = "VM startup scripts";
@@ -104,8 +132,12 @@ in
       services.x11vnc.enable = lib.mkForce false;   # We'll use SPICE instead
 
       virtualisation = {
+        cores = guest.cores;                        # Configure number of cores for VM
+        diskSize = guest.diskSize * 1024;           # Configure disk size for the VM
+        memorySize = guest.memorySize * 1024;       # Configure memory size for the VM
         resolution = machine.resolution;            # Configure system resolution
-        qemu.package = lib.mkForce pkgs.qemu_kvm;  # Ensure we have the standard KVM supported qemu
+        graphics = !guest.spice.enable;             # Graphics is the inverse of SPICE enablement
+        qemu.package = lib.mkForce pkgs.qemu_kvm;   # Ensure we have the standard KVM supported qemu
 
         # Allows for sftp, ssh etc... to the guest via localhost:2222
         #forwardPorts = [ { from = "host"; host.port = 2222; guest.port = 22; } ];
@@ -125,15 +157,20 @@ in
       '');
     })
 
+    # Enable sound for the VM
+    (lib.mkIf (machine.type.vm && guest.sound) {
+      virtualisation.qemu.options = [
+        "-device intel-hda -device hda-duplex"
+      ];
+    })
+
     # Optionally enable SPICE support
     # Connect by launching `remote-viewer` and running `spice://localhost:5970`
-    (lib.mkIf (machine.type.vm && guest.spice) {
-
-      # Configure QEMU for SPICE
+    (lib.mkIf (machine.type.vm && guest.spice.enable) {
       virtualisation.qemu.options = [
         "-vga qxl"
-        "-spice port=${toString guest.spicePort},disable-ticketing=on"
         "-device virtio-serial"
+        "-spice port=${toString guest.spice.port},disable-ticketing=on"
         "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
         "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
       ];
@@ -148,7 +185,7 @@ in
       environment.systemPackages = [ pkgs.xorg.xf86videoqxl ];
 
       # Open up the firewall for machine.vm.spicePort
-      networking.firewall.allowedTCPPorts = [ guest.spicePort ];
+      networking.firewall.allowedTCPPorts = [ guest.spice.port ];
     })
   ];
 }
