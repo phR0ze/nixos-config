@@ -113,12 +113,12 @@ in
       exec ${cfg.qemu.package}/bin/qemu-system-x86_64 \
         -name ${config.machine.hostname} \
         -enable-kvm \
-        -machine accel=kvm:tcg \
+        -machine accel=kvm \
         -cpu host,+x2apic,-sgx \
-        -m ${toString cfg.memorySize} \
-        -smp ${toString cfg.cores} \
+        -m ${toString guest.memorySize} \
+        -smp ${toString guest.cores} \
         -device virtio-rng-pci \
-        ${lib.concatStringsSep " \\\n  " cfg.qemu.guest.networkingArgs} \
+        ${lib.concatStringsSep " \\\n  " guest.networkingArgs} \
         ${lib.concatStringsSep " \\\n  "
           (lib.mapAttrsToList
             (tag: share: "-virtfs local,path=${share.source},security_model=none,mount_tag=${tag}")
