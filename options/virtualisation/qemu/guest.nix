@@ -11,6 +11,7 @@ let
   # Filter down the interfaces to the given type
   interfacesByType = wantedType:
     builtins.filter ({ type, ... }: type == wantedType) guest.interfaces;
+  userInterfaces = interfacesByType "user";
   macvtapInterfaces = interfacesByType "macvtap";
 in
 {
@@ -38,10 +39,22 @@ in
         type = types.int;
         default = 4;
       };
-      graphics = lib.mkOption {
-        description = lib.mdDoc "Enable graphics for VM";
-        type = types.bool;
-        default = true;
+      display = lib.mkOption {
+        description = lib.mdDoc "Configure display for VM";
+        type = types.submodule {
+          options = {
+            enable = lib.mkEnableOption "Enable display";
+            memory = lib.mkOption {
+              description = lib.mdDoc ''
+                Video memory size in MB for VM.
+                - This value must be in powers of two.
+                - The valid range is 1 MB to 256 MB.
+              '';
+              type = types.int;
+              default = 16;
+            };
+          };
+        };
       };
       sound = lib.mkOption {
         description = lib.mdDoc "Enable sound for VM";
@@ -84,7 +97,11 @@ in
         };
       };
       interfaces = lib.mkOption {
-        description = "Network interfaces";
+        description = ''
+          Network interface options. 
+          - Use `type = "user"` for a simple NAT experience. 
+          - Use `type = "macvtap"` for a full presence on the LAN.
+        '';
         default = [];
         type = types.listOf (types.submodule {
           options = {
@@ -122,28 +139,28 @@ in
           };
         });
       };
+
+      networkingArgs = lib.mkOption {
+        type = types.listOf types.str;
+        description = lib.mdDoc ''
+          Pass through arguments to the QEMU run function call. Will be filled out by configuration 
+          automation down below based on guest input options.
+        '';
+        example = [
+          "-net nic,netdev=vm-prod1,model=virtio"
+          "-netdev user,id=vm-prod1"
+        ];
+        default = [ ];
+      };
     };
   };
 
   config = lib.mkMerge [
-
     (lib.mkIf (machine.type.vm) {
       services.qemuGuest.enable = true;             # Install and run the QEMU guest agent
       services.x11vnc.enable = lib.mkForce false;   # We'll use SPICE instead
 
-      virtualisation = {
-        cores = guest.cores;                        # Configure number of cores for VM
-        diskSize = guest.diskSize * 1024;           # Configure disk size for the VM
-        memorySize = guest.memorySize * 1024;       # Configure memory size for the VM
-        resolution = machine.resolution;            # Configure system resolution
-        graphics = !guest.spice.enable;             # Graphics is the inverse of SPICE enablement
-        qemu.package = lib.mkForce pkgs.qemu_kvm;   # Ensure we have the standard KVM supported qemu
-
-        # Allows for sftp, ssh etc... to the guest via localhost:2222
-        #forwardPorts = [ { from = "host"; host.port = 2222; guest.port = 22; } ];
-      };
-
-      # Override and provide custom VM helper scripts
+      # Create result startup/shutdown scripts
       system.build.vm = lib.mkForce (pkgs.runCommand "${machine.hostname}" { preferLocalBuild = true; } ''
         mkdir -p $out/bin
         ln -s ${config.system.build.toplevel} $out/system
@@ -155,21 +172,75 @@ in
           ln -s ${pkgs.writeScript "macvtap-down" guest.scripts.macvtap-down} $out/bin/macvtap-down
         fi
       '');
+
+      # Virtual machine resource configuration
+      # --------------------------------------------
+      virtualisation = {
+        cores = guest.cores;                        # Configure number of cores for VM
+        diskSize = guest.diskSize * 1024;           # Configure disk size for the VM
+        memorySize = guest.memorySize * 1024;       # Configure memory size for the VM
+        resolution = machine.resolution;            # Configure system resolution
+        qemu.package = lib.mkForce pkgs.qemu_kvm;   # Ensure we have the standard KVM supported qemu
+
+        # Turn off display if SPICE is enabled
+        graphics = if guest.spice.enable then false else guest.display.enable;
+
+        # Allows for sftp, ssh etc... to the guest via localhost:2222
+        #forwardPorts = [ { from = "host"; host.port = 2222; guest.port = 22; } ];
+      };
+
+      # Networking configuration
+      # --------------------------------------------
+      # user: -net nic,netdev=vm-prod1,model=virtio -netdev user,id=vm-prod1
+      # macvtap: -netdev tap,id=vm-prod1,fd=3 -device virtio-net-pci,netdev=vm-prod1,mac=02:00:00:00:00:01
+      virtualisation.qemu.guest.networkingArgs =
+        lib.optionals (macvtapInterfaces != [])
+          (builtins.concatMap (x: [
+            "-netdev tap,id=${x.id},fd=${toString x.fd}"
+            "-device virtio-net-pci,netdev=${x.id},mac=${x.mac}"
+          ]) macvtapInterfaces)
+        ++
+        lib.optionals (userInterfaces != [])
+          (builtins.concatMap (x: [
+            "-net nic,netdev=${x.id},model=virtio"
+            "-netdev user,id=${x.id}"
+          ]) userInterfaces);
+
+      # Sound configuration
+      # --------------------------------------------
+      # https://www.kraxel.org/blog/2020/01/qemu-sound-audiodev/
+      # -device provides the sound card while -audiodev maps to the host's backend
+      # 
+      # Other notes:
+      # -audiodev pipewire,id=snd0
+      # -audio driver=pa,model=virtio,server=/run/user/1000/pulse/
+      # -device intel-hda -device hda-output,audiodev=snd0
+      # -device ich9-intel-hda -device hda-output,audiodev=snd0
+      virtualisation.qemu.options = lib.optionals (guest.sound) (
+        if (guest.spice.enable) then [
+          # Mostly works, but tends to sputter some times
+          "-audiodev spice,id=snd0"                     # SPICE as the host backend
+          "-device virtio-sound-pci,audiodev=snd0"
+        ] else [
+          "-audiodev pipewire,id=snd0"                  # Pipewire as the host backend
+          "-device virtio-sound-pci,audiodev=snd0"      # Virtio sound card
+        ]
+      );
     })
 
-    # Enable sound for the VM
-    (lib.mkIf (machine.type.vm && guest.sound) {
-      virtualisation.qemu.options = [
-        "-device intel-hda -device hda-duplex"
-      ];
-    })
-
-    # Optionally enable SPICE support
-    # Connect by launching `remote-viewer` and running `spice://localhost:5970`
+    # SPICE configuration
+    # ----------------------------------------------
+    # https://www.kraxel.org/blog/2016/09/using-virtio-gpu-with-libvirt-and-spice/
+    # - QXL defaults to 16 MB video memory, but needs 32MB min for high quality 
+    # - QXL supports VGA, VGA BIOS, UEFI and has a kernel module
+    # - -vga qxl vs -device qxl-vga
+    # - Connect by launching `remote-viewer` and running `spice://localhost:5970`
+    # -spice port=5900,addr=127.0.0.1,disable-ticketing=on"
     (lib.mkIf (machine.type.vm && guest.spice.enable) {
       virtualisation.qemu.options = [
         "-vga qxl"
-        "-device virtio-serial"
+        #"-vga qxl"
+        "-device virtio-serial-pci"
         "-spice port=${toString guest.spice.port},disable-ticketing=on"
         "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
         "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
@@ -180,7 +251,7 @@ in
       services.spice-autorandr.enable = true;       # Automatically adjust resolution of guest to spice client size
       services.spice-webdavd.enable = true;         # Enable file sharing on guest to allow access from host
 
-      # Configure higher performance graphics for SPICE
+      # Install and configure higher performance display driver QXL for SPICE
       services.xserver.videoDrivers = [ "qxl" ];
       environment.systemPackages = [ pkgs.xorg.xf86videoqxl ];
 
