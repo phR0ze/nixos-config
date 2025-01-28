@@ -159,6 +159,9 @@ in
     (lib.mkIf (machine.type.vm) {
       services.qemuGuest.enable = true;             # Install and run the QEMU guest agent
       services.x11vnc.enable = lib.mkForce false;   # We'll use SPICE instead
+      environment.systemPackages = [
+        pkgs.virglrenderer                          # Virtio OpenGL dependency
+      ];
 
       # Create result startup/shutdown scripts
       system.build.vm = lib.mkForce (pkgs.runCommand "${machine.hostname}" { preferLocalBuild = true; } ''
@@ -216,12 +219,21 @@ in
       # -audio driver=pa,model=virtio,server=/run/user/1000/pulse/
       # -device intel-hda -device hda-output,audiodev=snd0
       # -device ich9-intel-hda -device hda-output,audiodev=snd0
+      #
+      # Displays
+      # https://www.qemu.org/docs/master/system/qemu-manpage.html#hxtool-3
+      # -display gtk
+      # -display spice-app,gl=on
       virtualisation.qemu.options = lib.optionals (guest.sound) (
         if (guest.spice.enable) then [
           # Mostly works, but tends to sputter some times
           "-audiodev spice,id=snd0"                     # SPICE as the host backend
           "-device virtio-sound-pci,audiodev=snd0"
         ] else [
+          # Host display backend, gtk window with options
+          #"-display gtk,gl=on,grab-on-hover=on,window-close=on,zoom-to-fit=on"
+          #"-device virtio-gpu-gl"                       # Virtio OpenGL accelerated video card
+
           "-audiodev pipewire,id=snd0"                  # Pipewire as the host backend
           "-device virtio-sound-pci,audiodev=snd0"      # Virtio sound card
         ]
@@ -230,7 +242,11 @@ in
 
     # SPICE configuration
     # ----------------------------------------------
+    # - working copy and past to and from the VM via remote-viewer
+    # - https://www.qemu.org/docs/master/system/devices/virtio-gpu.html
     # https://www.kraxel.org/blog/2016/09/using-virtio-gpu-with-libvirt-and-spice/
+    # - SPICE needs a unix socket connection for opengl to work
+    # - glxinfo | grep virgl
     # - QXL defaults to 16 MB video memory, but needs 32MB min for high quality 
     # - QXL supports VGA, VGA BIOS, UEFI and has a kernel module
     # - -vga qxl vs -device qxl-vga
@@ -239,11 +255,10 @@ in
     (lib.mkIf (machine.type.vm && guest.spice.enable) {
       virtualisation.qemu.options = [
         "-vga qxl"
-        #"-vga qxl"
         "-device virtio-serial-pci"
         "-spice port=${toString guest.spice.port},disable-ticketing=on"
-        "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
-        "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
+        "-chardev spicevmc,id=${machine.hostname},debug=0,name=vdagent"
+        "-device virtserialport,chardev=${machine.hostname},name=com.redhat.spice.0"
       ];
 
       # Configure SPICE related services
@@ -252,8 +267,10 @@ in
       services.spice-webdavd.enable = true;         # Enable file sharing on guest to allow access from host
 
       # Install and configure higher performance display driver QXL for SPICE
-      services.xserver.videoDrivers = [ "qxl" ];
-      environment.systemPackages = [ pkgs.xorg.xf86videoqxl ];
+      # services.xserver.videoDrivers = [ "qxl" ];
+      # environment.systemPackages = [ pkgs.xorg.xf86videoqxl ];
+      services.xserver.videoDrivers = [ "virtio" ];
+      environment.systemPackages = [ pkgs.virglrenderer ];
 
       # Open up the firewall for machine.vm.spicePort
       networking.firewall.allowedTCPPorts = [ guest.spice.port ];

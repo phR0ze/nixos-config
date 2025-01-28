@@ -30,7 +30,7 @@ in
         memory = 32;
       };
       spice = {
-        enable = true;
+        enable = false;
         port = 5971;
       };
       interfaces = [{
