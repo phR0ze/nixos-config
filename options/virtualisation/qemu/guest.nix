@@ -176,9 +176,7 @@ in
       # Virtual machine resource configuration
       # --------------------------------------------
       virtualisation = {
-        cores = guest.cores;                        # Configure number of cores for VM
         diskSize = guest.diskSize * 1024;           # Configure disk size for the VM
-        memorySize = guest.memorySize * 1024;       # Configure memory size for the VM
         resolution = machine.resolution;            # Configure system resolution
         qemu.package = lib.mkForce pkgs.qemu_kvm;   # Ensure we have the standard KVM supported qemu
 
@@ -258,9 +256,9 @@ in
         "-device virtserialport,chardev=${machine.hostname},name=com.redhat.spice.0"
       ];
 
-      # Configure SPICE related services
-      services.spice-vdagentd.enable = true;        # SPICE agent to be run on the guest OS
+      # Configure SPICE services on the Guest OS
       services.spice-autorandr.enable = true;       # Automatically adjust resolution of guest to spice client size
+      services.spice-vdagentd.enable = true;        # SPICE agent to be run on the guest OS
       services.spice-webdavd.enable = true;         # Enable file sharing on guest to allow access from host
 
       # Install and configure higher performance display driver QXL for SPICE
