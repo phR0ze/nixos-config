@@ -123,7 +123,8 @@ in
         spice-protocol    # SPICE support
         win-virtio        # QEMU support for windows
         win-spice         # SPICE support for windows
-        # quickemu        # Create Windows VM easily
+        quickemu          # QEMU wrapper that gives good insights
+        virglrenderer     # Support Guests using Virtio ro get host OpenGL acceleration
       ];
 
       users.users.${machine.user.name}.extraGroups = [ "kvm" "libvirtd" "qemu-libvirtd" ];
