@@ -159,9 +159,6 @@ in
     (lib.mkIf (machine.type.vm) {
       services.qemuGuest.enable = true;             # Install and run the QEMU guest agent
       services.x11vnc.enable = lib.mkForce false;   # We'll use SPICE instead
-      environment.systemPackages = [
-        pkgs.virglrenderer                          # Virtio OpenGL dependency
-      ];
 
       # Create result startup/shutdown scripts
       system.build.vm = lib.mkForce (pkgs.runCommand "${machine.hostname}" { preferLocalBuild = true; } ''
