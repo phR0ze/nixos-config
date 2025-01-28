@@ -28,19 +28,6 @@ let
     in
       "-drive ${driveOpts} \\\n  -device virtio-blk-pci,${deviceOpts}";
   drivesOptLine = drives: lib.concatStringsSep "\\\n    " (lib.imap1 driveOptLine drives);
-
-  # Networking qemu option line generation
-  # --------------------------------------
-  # -netdev 'tap,id=vm-prod1,fd=3' \
-  # -device 'virtio-net-pci,netdev=vm-prod1,mac=02:00:00:00:00:01' \
-  networkingOptLine = interfaces: let
-    lines = builtins.concatMap (x: [
-      "-netdev tap,id=${x.id},fd=${toString x.fd}"
-      "-device virtio-net-pci,netdev=${x.id},mac=${x.mac}"
-    ] ) interfaces;
-  in if (builtins.length interfaces == 0) then
-      lib.concatStringsSep " " cfg.qemu.networkingOptions
-    else lib.concatStringsSep " " lines;
 in
 {
   config = {
@@ -114,15 +101,14 @@ in
       #
       # -append 'earlyprintk=ttyS0 console=ttyS0 reboot=t panic=-1 root=fstab loglevel=4 init=/nix/store/z6s85j7d6xmg32wkfnkqy0llgrxcqdv2-nixos-system-vm-prod1-25.05.20241213.3566ab7/init regInfo=/nix/store/0h2vqibxaimm3km7d8h81v62fjvknlr0-closure-info/registration' \
       #
-      # -fsdev 'local,id=fs0,path=/nix/store,security_model=none' \
-      # -device 'virtio-9p-pci,fsdev=fs0,mount_tag=ro-store' \
+      # -fsdev local,id=fs0,path=/nix/store,security_model=none
+      # -device virtio-9p-pci,fsdev=fs0,mount_tag=ro-store
       # 
-      # Macvtap interface
-      # -netdev 'tap,id=vm-prod1,fd=3' \
-      # -device 'virtio-net-pci,netdev=vm-prod1,mac=02:00:00:00:00:01,romfile=' \
+      # Macvtap interface:
+      # -netdev tap,id=vm-prod1,fd=3 -device 'virtio-net-pci,netdev=vm-prod1,mac=02:00:00:00:00:01
       # 
-      # User nat interface
-      # -net nic,netdev=user.0,model=virtio -netdev user,id=user.0,"$QEMU_NET_OPTS" \
+      # User nat interface:
+      # -net nic,netdev=vm-prod1,model=virtio -netdev user,id=vm-prod1
       #
       exec ${cfg.qemu.package}/bin/qemu-system-x86_64 \
         -name ${config.machine.hostname} \
@@ -132,7 +118,7 @@ in
         -m ${toString cfg.memorySize} \
         -smp ${toString cfg.cores} \
         -device virtio-rng-pci \
-        ${networkingOptLine guest.interfaces} \
+        ${lib.concatStringsSep " \\\n  " cfg.qemu.guest.networkingArgs} \
         ${lib.concatStringsSep " \\\n  "
           (lib.mapAttrsToList
             (tag: share: "-virtfs local,path=${share.source},security_model=none,mount_tag=${tag}")

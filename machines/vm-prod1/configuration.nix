@@ -25,12 +25,16 @@ in
       diskSize = 1;
       memorySize = 4;
       sound = true;
+      display = {
+        enable = true;
+        memory = 32;
+      };
       spice = {
         enable = true;
         port = 5971;
       };
-      interfaces = [ {
-        type = "macvtap";
+      interfaces = [{
+        type = "user";
         id = cfg.hostname;
         fd = 3;
         macvtap.mode = "bridge";
