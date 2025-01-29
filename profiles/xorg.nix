@@ -37,7 +37,14 @@ in
   programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
   programs.hardinfo.enable = true;      # A system information and benchmark tool
   services.fwupd.enable = true;         # Firmware update tool for BIOS, etc...
-  services.gvfs.enable = true;          # GVfs virtual filesystem
+
+  # XFCE comes with a slimmed down version of GVFS by default so we need to set a package override
+  # to include smb:// support in Thunar
+  services.gvfs = {
+    enable = true;
+    package = lib.mkForce pkgs.gnome.gvfs;
+  };
+
 
   # Configure gnome keyring for VPN and Copilot and automatically unlock on login
   services.gnome.gnome-keyring.enable = true;
