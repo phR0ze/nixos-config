@@ -20,7 +20,7 @@ in
           #"credentials=/etc/nixos/smb-secrets"
 
           # Use specific uid and gid for file ownership
-          "uid=${config.users.users.${machine.user.name}.uid},gid=${config.users.groups.users.gid}"
+          "uid=${toString config.users.users.${machine.user.name}.uid},gid=${toString config.users.groups.users.gid}"
         ];
       };
     } // a) {} machine.samba.entries);
