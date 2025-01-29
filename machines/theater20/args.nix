@@ -3,6 +3,6 @@
   profile = "xfce/theater";
   efi = true;
   nic0_name = "enp1s0";
-  shares_enable = true;
+  nfs_enable = true;
   autologin = true;
 }

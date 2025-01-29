@@ -156,11 +156,11 @@ in
       };
     };
 
-    shares = lib.mkOption {
+    nfs = lib.mkOption {
       type = types.submodule {
         options = {
           enable = lib.mkOption {
-            description = lib.mdDoc "Enable shares";
+            description = lib.mdDoc "Enable NFS shares";
             type = types.bool;
           };
           entries = lib.mkOption {
@@ -193,10 +193,49 @@ in
         };
       };
       default = {
-        enable = if (!builtins.hasAttr "shares_enable" _args || _args.shares_enable == null || _args.shares_enable == false)
-          then false else true;
-        entries = if (!builtins.hasAttr "shares_entries" _args || _args.shares_entries == null)
-          then [ ] else _args.shares_entries;
+        enable = if (!builtins.hasAttr "nfs_enable" _args || _args.nfs_enable == null)
+          then false else _args.nfs_enable;
+        entries = if (!builtins.hasAttr "nfs_entries" _args || _args.nfs_entries == null)
+          then [ ] else _args.nfs_entries;
+      };
+    };
+
+    samba = lib.mkOption {
+      type = types.submodule {
+        options = {
+          enable = lib.mkOption {
+            description = lib.mdDoc "Enable Samba shares";
+            type = types.bool;
+          };
+          entries = lib.mkOption {
+            description = lib.mdDoc "Share entries to configure";
+            type = types.listOf (types.submodule {
+              options = {
+                mountPoint = lib.mkOption {
+                  description = lib.mdDoc "Share mount point";
+                  type = types.str;
+                  example = "/mnt/Media";
+                };
+                remotePath = lib.mkOption {
+                  description = lib.mdDoc "Remote path to use for the share";
+                  type = types.str;
+                  example = "//<IP_OR_HOST>/path/to/share";
+                };
+                options = lib.mkOption {
+                  description = lib.mdDoc "Share options";
+                  type = types.listOf types.str;
+                  example = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+                };
+              };
+            });
+          };
+        };
+      };
+      default = {
+        enable = if (!builtins.hasAttr "samba_enable" _args || _args.samba_enable == null)
+          then false else _args.samba_enable;
+        entries = if (!builtins.hasAttr "samba_entries" _args || _args.samba_entries == null)
+          then [ ] else _args.samba_entries;
       };
     };
 
@@ -321,13 +360,6 @@ in
 #        { assertion = (cfg.nix_base == "24.05"); message = "machine.nix_base: ${cfg.nix_base}"; }
 #        { assertion = (builtins.length cfg.drives == 3); message = "drives: ${toString (builtins.length cfg.drives)}"; }
 #        { assertion = ((builtins.elemAt cfg.drives 0).uuid == ""); message = "drives: ${(builtins.elemAt cfg.drives 0).uuid}"; }
-#
-#        # Shares args
-#        { assertion = (cfg.shares.enable == false); message = "machine.shares.enable: ${f.boolToStr cfg.shares.enable}"; }
-#        { assertion = (builtins.length cfg.shares.entries == 3); message = "shares.len:
-#          ${toString (builtins.length cfg.shares.entries)}"; }
-#        { assertion = ((builtins.elemAt cfg.shares.entries 0).mountPoint == ""); message = "shares[0]: 
-#          ${(builtins.elemAt cfg.shares.entries 0).mountPoint}"; }
 #
 #        # User args
 #        { assertion = (cfg.user.fullname == "admin"); message = "machine.user.fullname: ${cfg.user.fullname}"; }
