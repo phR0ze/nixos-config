@@ -70,8 +70,10 @@ separate from the actual configuartion to allow for better reuse across my diffe
 | `nix_base`        | str   | `24.05`         | Base install version, not sure this matters
 | `nix_cache_enable`| str   |                 | IP of the local Nix Binary Cache
 | `nix_cache_ip`    | str   |                 | IP of the local Nix Binary Cache
-| `shares_enable`   | bool  | `false`         | Enable pre-configured nfs shares for this system
-| `shares_entries`  | list  | [ ]             | List of share entries
+| `nfs_enable`      | bool  | `false`         | Enable pre-configured nfs shares for this system
+| `nfs_entries`     | list  | [ ]             | List of nfs entries
+| `samba_enable`    | bool  | `false`         | Enable pre-configured nfs shares for this system
+| `samba_entries`   | list  | [ ]             | List of samba entries
 | `mountPoint`      | str   |                 | Share entry mount point e.g. `/mnt/Media`
 | `remotePath`      | str   |                 | Share remote path e.g. `192.168.1.2:/srv/nfs/Media` 
 

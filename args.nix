@@ -20,7 +20,8 @@
 
   # Services configuration
   # ------------------------------------------------------------------------------------------------
-  shares_enable = false;            # Enable pre-configured nfs shares for this system
+  samba_enable = false;             # Enable pre-configured samba shares for this system
+  nfs_enable = false;               # Enable pre-configured nfs shares for this system
   nix_cache_enable = false;         # Enable using the local Nix binary cache
   nix_cache_ip = "";                # IP address of the local Nix binary cache
 
