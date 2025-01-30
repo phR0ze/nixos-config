@@ -24,13 +24,13 @@ in
       cores = 2;
       diskSize = 1;
       memorySize = 4;
-      sound = true;
+      audio = true;
       display = {
-        enable = false;
+        enable = true;
         memory = 32;
       };
       spice = {
-        enable = true;
+        enable = false;
         port = 5971;
       };
       interfaces = [{

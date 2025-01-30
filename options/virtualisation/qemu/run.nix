@@ -129,7 +129,6 @@ in
         -smp ${toString guest.cores} -cpu host,+x2apic,-sgx \
         -m ${toString guest.memorySize}G -device virtio-balloon \
         -device virtio-rng-pci \
-        ${lib.concatStringsSep " \\\n  " guest.networkingArgs} \
         ${lib.concatStringsSep " \\\n  "
           (lib.mapAttrsToList
             (tag: share: "-virtfs local,path=${share.source},security_model=none,mount_tag=${tag}")
