@@ -65,23 +65,18 @@ in
       mkdir -p "$TMPDIR/xchg"
       cd "$TMPDIR"
 
-      # Launch QEMU
+      # [QEMU launch options](https://qemu-project.gitlab.io/qemu/system/invocation.html)
       # ----------------------------------------------------------------------------------------------
-      # -name my-vm                           # VM name shown in windows and used as an identifier
-      # -m 4096                               # Memory in megabytes
-      # -smp 1                                # Virtual CPUs
-      # -nographic                            # Disable the local GUI window
-      # -device virtio-rng-pci                # Use a virtio driver for randomness
-      # -nodefaults                           # Don't include any default devices to contend with
-      # -no-user-config                       # Don't include any system configuration to contend with
-      # -no-reboot                            # Exit instead of rebooting
-      # -chardev 'stdio,id=stdio,signal=off'  # Connect QEMU Stdin/Stdout to shell
-      # -serial chardev:stdio                 # Redirect serial to 'stdio' instead of 'vc' for graphical mode
-      # -enable-kvm                           # Enable full KVM virtualzation support
-      #
-      # MicroVM mode allows for higher performance
-      # -M 'microvm,accel=kvm:tcg,acpi=on,mem-merge=on,pcie=on,pic=off,pit=off,usb=off'
-      #
+      # Name of the guest used in the default SDL window caption or the VNC window and Linux process
+      # -name my-vm
+
+      # QEMU suupport two x86 chipsets. The ancient (1996) i440FX and the more recent (2007) Q35. Q35 
+      # is the go forward strategy supporting PCIe natively. 
+      # * System Management Mode (SMM) is part of secure boot and not needed for typical VMs.
+      # * '--enable-kvm' is the old way and 'accel=kvm' is the new way but they are the same.
+      # * 'vmport=off' to disable VMWare IO port emulation
+      # -machine q35,smm=off,vmport=off,accel=kvm
+
       # Optimal performance is found with host cpu type and x2apic enabled. x2apic is a performance and 
       # scalabilty feature available in many modern intel CPUs. Regardless of host support KVM can 
       # emulate it for x86 guests with no downside, so always enable it.
@@ -89,7 +84,26 @@ in
       # * disabling sgx: https://gitlab.com/qemu-project/qemu/-/issues/2142
       # * -cpu max means emulate all features limited by host support, not as performant as -cpu host
       # -cpu host,+x2apic,-sgx
+
+      # VirtIO Memory Ballooning allows the host and guest to more intelligently manage memory such 
+      # that the host can reclaim and negociate with the guest how much is used.
+      # -device virtio-balloon
+
+      # Although you can specify cores,threads,sockets there isn't any benefit performance wise.
+      # -smp 4                                # Number of virtual CPUs
+
+      # -m 4G                                 # Memory in GB
+      # -nographic                            # Disable the local GUI window
+      # -device virtio-rng-pci                # Use a virtio driver for randomness
+      # -nodefaults                           # Don't include any default devices to contend with
+      # -no-user-config                       # Don't include any system configuration to contend with
+      # -no-reboot                            # Exit instead of rebooting
+      # -chardev 'stdio,id=stdio,signal=off'  # Connect QEMU Stdin/Stdout to shell
+      # -serial chardev:stdio                 # Redirect serial to 'stdio' instead of 'vc' for graphical mode
       #
+      # MicroVM mode allows for higher performance
+      # -M 'microvm,accel=kvm:tcg,acpi=on,mem-merge=on,pcie=on,pic=off,pit=off,usb=off'
+          
       # -device i8042                         # Add keyboard controller i8042 to handle CtrlAltDel
       # -sandbox on                           # Disable system calls not needed by QEMU
       # -qmp unix:my-vm.sock,server,nowait    # Control socket to use
@@ -111,12 +125,9 @@ in
       # -net nic,netdev=vm-prod1,model=virtio -netdev user,id=vm-prod1
       #
       exec ${cfg.qemu.package}/bin/qemu-system-x86_64 \
-        -name ${config.machine.hostname} \
-        -enable-kvm \
-        -machine accel=kvm \
-        -cpu host,+x2apic,-sgx \
-        -m ${toString guest.memorySize} \
-        -smp ${toString guest.cores} \
+        -name ${config.machine.hostname} -machine q35,smm=off,vmport=off,accel=kvm \
+        -smp ${toString guest.cores} -cpu host,+x2apic,-sgx \
+        -m ${toString guest.memorySize}G -device virtio-balloon \
         -device virtio-rng-pci \
         ${lib.concatStringsSep " \\\n  " guest.networkingArgs} \
         ${lib.concatStringsSep " \\\n  "
