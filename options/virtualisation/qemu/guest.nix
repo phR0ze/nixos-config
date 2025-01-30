@@ -160,19 +160,6 @@ in
       services.qemuGuest.enable = true;             # Install and run the QEMU guest agent
       services.x11vnc.enable = lib.mkForce false;   # We'll use SPICE instead
 
-      # Create result startup/shutdown scripts
-      system.build.vm = lib.mkForce (pkgs.runCommand "${machine.hostname}" { preferLocalBuild = true; } ''
-        mkdir -p $out/bin
-        ln -s ${config.system.build.toplevel} $out/system
-        ln -s ${pkgs.writeScript "run-${machine.hostname}" guest.scripts.run} $out/bin/run
-
-        # Optionally configure macvtap scripts
-        if [[ "${if macvtapInterfaces != [] then "1" else "0"}" == "1" ]]; then
-          ln -s ${pkgs.writeScript "macvtap-up" guest.scripts.macvtap-up} $out/bin/macvtap-up
-          ln -s ${pkgs.writeScript "macvtap-down" guest.scripts.macvtap-down} $out/bin/macvtap-down
-        fi
-      '');
-
       # Virtual machine resource configuration
       # --------------------------------------------
       virtualisation = {
@@ -233,6 +220,19 @@ in
           "-device virtio-sound-pci,audiodev=snd0"      # Virtio sound card
         ]
       );
+
+      # Create result startup/shutdown scripts
+      system.build.vm = lib.mkForce (pkgs.runCommand "${machine.hostname}" { preferLocalBuild = true; } ''
+        mkdir -p $out/bin
+        ln -s ${config.system.build.toplevel} $out/system
+        ln -s ${pkgs.writeScript "run-${machine.hostname}" guest.scripts.run} $out/bin/run
+
+        # Optionally configure macvtap scripts
+        if [[ "${if macvtapInterfaces != [] then "1" else "0"}" == "1" ]]; then
+          ln -s ${pkgs.writeScript "macvtap-up" guest.scripts.macvtap-up} $out/bin/macvtap-up
+          ln -s ${pkgs.writeScript "macvtap-down" guest.scripts.macvtap-down} $out/bin/macvtap-down
+        fi
+      '');
     })
 
     # SPICE configuration

@@ -26,11 +26,11 @@ in
       memorySize = 4;
       sound = true;
       display = {
-        enable = true;
+        enable = false;
         memory = 32;
       };
       spice = {
-        enable = false;
+        enable = true;
         port = 5971;
       };
       interfaces = [{
