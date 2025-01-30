@@ -200,12 +200,25 @@ in
       };
     };
 
-    samba = lib.mkOption {
+    smb = lib.mkOption {
       type = types.submodule {
         options = {
           enable = lib.mkOption {
-            description = lib.mdDoc "Enable Samba shares";
+            description = lib.mdDoc "Enable SMB shares";
             type = types.bool;
+          };
+          user = lib.mkOption {
+            description = lib.mdDoc "Defalt access user if not overriden";
+            type = types.str;
+          };
+          pass = lib.mkOption {
+            description = lib.mdDoc "Defalt access pass if not overriden";
+            type = types.str;
+          };
+          domain = lib.mkOption {
+            description = lib.mdDoc "Default domain or workgroup to use";
+            type = types.str;
+            example = "WORKGROUP";
           };
           entries = lib.mkOption {
             description = lib.mdDoc "Share entries to configure";
@@ -221,10 +234,28 @@ in
                   type = types.str;
                   example = "//<IP_OR_HOST>/path/to/share";
                 };
+                user = lib.mkOption {
+                  description = lib.mdDoc "Access user";
+                  type = types.str;
+                };
+                pass = lib.mkOption {
+                  description = lib.mdDoc "Access password";
+                  type = types.str;
+                };
+                domain = lib.mkOption {
+                  description = lib.mdDoc "Set the domain or workgroup to use";
+                  type = types.str;
+                  example = "WORKGROUP";
+                };
+                writable = lib.mkOption {
+                  description = lib.mdDoc "Enable writing to the share";
+                  type = types.bool;
+                };
                 options = lib.mkOption {
                   description = lib.mdDoc "Share options";
                   type = types.listOf types.str;
-                  example = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+                  example = [ "x-systemd.automount" "noauto" "x-systemd.idle-timeout=60" 
+                    "x-systemd.device-timeout=5s" "x-systemd.mount-timeout=5s" ];
                 };
               };
             });
@@ -232,10 +263,29 @@ in
         };
       };
       default = {
-        enable = if (!builtins.hasAttr "samba_enable" _args || _args.samba_enable == null)
-          then false else _args.samba_enable;
-        entries = if (!builtins.hasAttr "samba_entries" _args || _args.samba_entries == null)
-          then [ ] else _args.samba_entries;
+        enable = if (!builtins.hasAttr "smb_enable" _args || _args.smb_enable == null)
+          then false else _args.smb_enable;
+        user = if (!builtins.hasAttr "user_name" _args || _args.user_name == null || _args.user_name == "")
+          then "admin" else _args.user_name;
+        pass = if (!builtins.hasAttr "smb_pass" _args || _args.smb_pass == null || _args.smb_pass == "")
+          then "admin" else _args.smb_pass;
+        domain = if (!builtins.hasAttr "smb_domain" _args || _args.smb_domain == null || _args.smb_domain == "")
+          then "WORKGROUP" else _args.smb_domain;
+        entries = if (!builtins.hasAttr "smb_entries" _args || _args.smb_entries == null)
+          then [ ] else (builtins.concatMap (x: [ {
+            mountPoint = x.mountPoint;
+            remotePath = x.remotePath;
+            user = if (!builtins.hasAttr "user" x || x.user == null || x.user == "")
+              then _args.user_name else x.user;
+            pass = if (!builtins.hasAttr "pass" x || x.pass == null || x.pass == "")
+              then _args.smb_pass else x.pass;
+            domain = if (!builtins.hasAttr "domain" x || x.domain == null || x.domain == "")
+              then _args.smb_domain else x.domain;
+            writable = if (!builtins.hasAttr "writable" x || x.writable == null)
+              then false else x.writable;
+            options = if (!builtins.hasAttr "options" x || x.options == null)
+              then [ ] else x.options;
+          }]) _args.smb_entries);
       };
     };
 

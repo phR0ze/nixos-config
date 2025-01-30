@@ -72,8 +72,11 @@ separate from the actual configuartion to allow for better reuse across my diffe
 | `nix_cache_ip`    | str   |                 | IP of the local Nix Binary Cache
 | `nfs_enable`      | bool  | `false`         | Enable pre-configured nfs shares for this system
 | `nfs_entries`     | list  | [ ]             | List of nfs entries
-| `samba_enable`    | bool  | `false`         | Enable pre-configured nfs shares for this system
-| `samba_entries`   | list  | [ ]             | List of samba entries
+| `smb_enable`      | bool  | `false`         | Enable pre-configured nfs shares for this system
+| `smb_user`        | str   |                 | Default SMB user if override not given
+| `smb_pass`        | str   |                 | Default SMB pass if override not given
+| `smb_domain`      | str   |                 | Default SMB domain/workgroup if override not given
+| `smb_entries`     | list  | [ ]             | List of SMB entries
 | `mountPoint`      | str   |                 | Share entry mount point e.g. `/mnt/Media`
 | `remotePath`      | str   |                 | Share remote path e.g. `192.168.1.2:/srv/nfs/Media` 
 
