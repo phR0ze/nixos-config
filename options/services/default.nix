@@ -9,7 +9,7 @@
     ./barrier.nix
     ./cache.nix
     ./nfs.nix
-    ./samba.nix
+    ./smb.nix
     ./sshd.nix
     ./x11vnc.nix
   ];

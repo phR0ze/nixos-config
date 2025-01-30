@@ -40,10 +40,11 @@ in
 
   # XFCE comes with a slimmed down version of GVFS by default so we need to set a package override
   # to include smb:// support in Thunar
-  services.gvfs = {
-    enable = true;
-    package = lib.mkForce pkgs.gnome.gvfs;
-  };
+  services.gvfs.enable = true;
+#  services.gvfs = {
+#    enable = true;
+#    package = lib.mkForce pkgs.gnome.gvfs;
+#  };
 
 
   # Configure gnome keyring for VPN and Copilot and automatically unlock on login
