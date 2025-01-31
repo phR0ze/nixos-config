@@ -1,33 +1,16 @@
 { config, pkgs, lib, ... }: with lib.types;
 let
   cfg = config.virtualisation;
+  machine = config.machine;
   guest = config.virtualisation.qemu.guest;
+
+  # Block device labels for identification
   rootFilesystemLabel = "nixos";
 
   # Filter down the interfaces to the given type
   interfacesByType = wantedType:
     builtins.filter ({ type, ... }: type == wantedType) guest.interfaces;
   macvtapInterfaces = interfacesByType "macvtap";
-
-  # Drive qemu option line generation
-  # --------------------------------------
-  driveOptLine = idx: { file, driveExtraOpts, deviceExtraOpts, ... }:
-    let
-      drvId = "drive${toString idx}";
-      mkKeyValue = lib.generators.mkKeyValueDefault {} "=";
-      mkOpts = opts: lib.concatStringsSep "," (lib.mapAttrsToList mkKeyValue opts);
-      driveOpts = mkOpts (driveExtraOpts // {
-        index = idx;
-        id = drvId;
-        "if" = "none";
-        inherit file;
-      });
-      deviceOpts = mkOpts (deviceExtraOpts // {
-        drive = drvId;
-      });
-    in
-      "-drive ${driveOpts} \\\n  -device virtio-blk-pci,${deviceOpts}";
-  drivesOptLine = drives: lib.concatStringsSep "\\\n    " (lib.imap1 driveOptLine drives);
 in
 {
   config = {
@@ -36,6 +19,14 @@ in
 
       export PATH=${lib.makeBinPath [ pkgs.coreutils ]}''${PATH:+:}$PATH
       set -e
+
+      # Create dir storing VM running data and a sub-dir for exchanging data with the VM
+      # ----------------------------------------------------------------------------------------------
+      [ ! -d result ] && echo "Must be run from the VM directory" && exit 1
+      VMDIR="${machine.hostname}"
+      mkdir -p "$VMDIR/shared"
+      cd "$VMDIR"
+      VMDIR="$(pwd)"
 
       ${if (macvtapInterfaces != []) then ''
       # Open the tap device with the given file descriptor for read/write. Starting with 3 is typical
@@ -47,23 +38,17 @@ in
 
       # Create an empty ext4 filesystem image to store VM state
       # ----------------------------------------------------------------------------------------------
-      NIX_DISK_IMAGE=$(readlink -f "${toString cfg.diskImage}")
+      NIX_DISK_IMAGE=$(readlink -f "${toString guest.diskImage}")
       if ! test -e "$NIX_DISK_IMAGE"; then
         echo "Disk image does not exist, creating $NIX_DISK_IMAGE..."
         temp=$(mktemp)
-        size="${toString cfg.diskSize}M"
-        ${cfg.qemu.package}/bin/qemu-img create -f raw "$temp" "$size"
+        size="${toString (guest.diskSize * 1024)}M"
+        ${guest.package}/bin/qemu-img create -f raw "$temp" "$size"
         ${pkgs.e2fsprogs}/bin/mkfs.ext4 -L ${rootFilesystemLabel} "$temp"
-        ${cfg.qemu.package}/bin/qemu-img convert -f raw -O qcow2 "$temp" "$NIX_DISK_IMAGE"
+        ${guest.package}/bin/qemu-img convert -f raw -O qcow2 "$temp" "$NIX_DISK_IMAGE"
         rm "$temp"
         echo "Virtualisation disk image created."
       fi
-
-      # Create dir storing VM running data and a sub-dir for exchanging data with the VM
-      # ----------------------------------------------------------------------------------------------
-      TMPDIR=$(mktemp -d nix-vm.XXXXXXXXXX --tmpdir)
-      mkdir -p "$TMPDIR/xchg"
-      cd "$TMPDIR"
 
       # [QEMU launch options](https://qemu-project.gitlab.io/qemu/system/invocation.html)
       # ----------------------------------------------------------------------------------------------
@@ -102,7 +87,7 @@ in
       # -serial chardev:stdio                 # Redirect serial to 'stdio' instead of 'vc' for graphical mode
       #
       # MicroVM mode allows for higher performance
-      # -M 'microvm,accel=kvm:tcg,acpi=on,mem-merge=on,pcie=on,pic=off,pit=off,usb=off'
+      # -M 'microvm,accel=kvm,acpi=on,mem-merge=on,pcie=on,pic=off,pit=off,usb=off'
           
       # -device i8042                         # Add keyboard controller i8042 to handle CtrlAltDel
       # -sandbox on                           # Disable system calls not needed by QEMU
@@ -124,16 +109,12 @@ in
       # User nat interface:
       # -net nic,netdev=vm-prod1,model=virtio -netdev user,id=vm-prod1
       #
-      exec ${cfg.qemu.package}/bin/qemu-system-x86_64 \
-        -name ${config.machine.hostname} -machine q35,smm=off,vmport=off,accel=kvm \
+      exec ${guest.package}/bin/qemu-system-x86_64 \
+        -name ${machine.hostname} -machine q35,smm=off,vmport=off,accel=kvm \
         -smp ${toString guest.cores} -cpu host,+x2apic,-sgx \
         -m ${toString guest.memorySize}G -device virtio-balloon \
+        -pidfile ${machine.hostname}.pid \
         -device virtio-rng-pci \
-        ${lib.concatStringsSep " \\\n  "
-          (lib.mapAttrsToList
-            (tag: share: "-virtfs local,path=${share.source},security_model=none,mount_tag=${tag}")
-            config.virtualisation.sharedDirectories)} \
-        ${drivesOptLine cfg.qemu.drives} \
         ${lib.concatStringsSep " \\\n  " cfg.qemu.options} \
         $QEMU_OPTS \
         "$@"
