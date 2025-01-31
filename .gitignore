@@ -1,14 +1,12 @@
 # Ignore temp files
 *.swp
+*.pid
 *.qcow2
 /temp
 /files.log
 /files.tmp
-/flake_vm_args.nix
-/flake_iso_args.nix
 /result
-/run-test-vm
-/run-prod1
+/vm-*
 
 # Ignore decrypted files to avoid security breaches
 *.dec.*
