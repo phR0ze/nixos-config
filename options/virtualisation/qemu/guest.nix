@@ -20,12 +20,8 @@ let
   fixme = config.virtualisation;
   cfg = config.virtualisation.qemu.guest;
 
-  # The root drive is a raw disk which does not necessarily contain a filesystem or partition table. 
-  # It thus cannot be identified via the typical persistent naming schemes (e.g. /dev/disk/by-{label, 
-  # uuid, partlabel, partuuid}. Instead, we're using a well-defined and persistent serial attribute 
-  # via QEMU. Inside the running system, the disk can then be identified via the /dev/disk/by-id 
-  # scheme.
-  rootDriveLabel = "root";
+  # Identifiers
+  nixStoreLabel = "nix-store";
 
   # Filter down the interfaces to the given type
   interfacesByType = wantedType:
@@ -77,21 +73,34 @@ in
           useImage = false;
         };
       };
-      diskSize = lib.mkOption {
-        description = lib.mdDoc "Disk size in GB for VM";
-        type = types.int;
-        default = 1;
-      };
-      diskImage = lib.mkOption {
-        type = types.nullOr types.str;
-        default = "./${machine.hostname}.qcow2";
-        description = lib.mdDoc ''
-          Path to the disk image containing the root filesystem. The image will be created on 
-          startup if it does not exist.
-
-          If null, a tmpfs will be used as the root filesystem and the VM's state will not be 
-          persistent.
-        '';
+      rootDrive = lib.mkOption {
+        description = "Configure the root drive";
+        type = (types.submodule {
+          options = {
+            size = lib.mkOption {
+              description = "Root disk size in GB";
+              type = types.int;
+            };
+            image = lib.mkOption {
+              description = "Root image name";
+              type = types.str;
+            };
+            label = lib.mkOption {
+              description = "Root drive label";
+              type = types.str;
+            };
+            pathVar = lib.mkOption {
+              description = "Root drive runtime path variable";
+              type = types.str;
+            };
+          };
+        });
+        default = {
+          size = 1;
+          image = "./${machine.hostname}.qcow2";
+          label = "nixos";
+          pathVar = "ROOT_IMAGE";
+        };
       };
       memorySize = lib.mkOption {
         description = lib.mdDoc "Memory size in GB for VM";
@@ -211,7 +220,7 @@ in
 
       # QEMU VM kernel configuration
       # --------------------------------------------
-      boot.loader.grub.device = "/dev/disk/by-id/virtio-${rootDriveLabel}";
+      boot.loader.grub.device = "/dev/disk/by-id/virtio-${cfg.rootDrive.label}";
       boot.initrd.availableKernelModules = [
         "virtio_net" "virtio_pci" "virtio_mmio" "virtio_blk" "virtio_scsi"
         "9p" "9pnet_virtio"
@@ -269,7 +278,7 @@ in
       # --------------------------------------------
       fileSystems = lib.mkForce {
         "/" = {
-          device = fixme.rootDevice;
+          device = cfg.rootDrive.label;
           fsType = "ext4";
         };
         "/tmp" = lib.mkIf config.boot.tmp.useTmpfs {
@@ -297,7 +306,7 @@ in
         # Mount the host store as read only and then create a writable non-persistent tmpfs
         # mount point that will then be layered over it during the boot.initrd.postMountCommands
         "/nix/.ro-store" = lib.mkIf (cfg.store.mountHost) {
-          device = "nix-store";
+          device = nixStoreLabel;
           fsType = "9p";
           neededForBoot = true;
           options = [ "trans=virtio" "version=9p2000.L"  "msize=${toString fixme.msize}" "cache=loose" ];
@@ -314,8 +323,8 @@ in
         # Drive configuration
         # --------------------------------------------
         [ # Root drive created by the run script and passed into QEMU here
-          ''-drive cache=writeback,file="$NIX_DISK_IMAGE",id=drive1,if=none,index=1,werror=report''
-          "-device virtio-blk-pci,bootindex=1,drive=drive1,serial=${rootDriveLabel}"
+          ''-drive cache=writeback,file="''$${cfg.rootDrive.pathVar}",id=drive1,if=none,index=1,werror=report''
+          "-device virtio-blk-pci,bootindex=1,drive=drive1,serial=${cfg.rootDrive.label}"
         ]
         #(mkIf guest.store.useImage [{ name = "nix-store"; file = ''"$TMPDIR"/store.img'';
         #  deviceExtraOpts.bootindex = "2"; driveExtraOpts.format = "raw";
@@ -336,7 +345,7 @@ in
           ''-virtfs local,path="$VMDIR"/shared,security_model=none,mount_tag=shared''
         ]
         ++ lib.optionals (cfg.store.mountHost) [
-          "-virtfs local,path=${builtins.storeDir},security_model=none,mount_tag=nix-store"
+          "-virtfs local,path=${builtins.storeDir},security_model=none,mount_tag=${nixStoreLabel}"
         ]
         # TODO: add support for optional shares if I have a need
         #(lib.mapAttrsToList (tag: share:
