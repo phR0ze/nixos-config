@@ -11,41 +11,6 @@ let
 
   # Use well-defined and persistent filesystem labels to identify block devices.
   rootFilesystemLabel = "nixos";
-  espFilesystemLabel = "ESP"; # Hard-coded by make-disk-image.nix
-  nixStoreFilesystemLabel = "nix-store";
-
-  # System image is akin to a complete NixOS install with
-  # a boot partition and root partition.
-  systemImage = import (modulesPath + "../lib/make-disk-image.nix") {
-    inherit pkgs config lib;
-    additionalPaths = [ regInfo ];
-    format = "qcow2";
-    onlyNixStore = false;
-    label = rootFilesystemLabel;
-    partitionTableType = "legacy";
-    installBootLoader = false;
-    touchEFIVars = false;
-    diskSize = "auto";
-    additionalSpace = "0M";
-    copyChannel = false;
-    OVMF = cfg.efi.OVMF;
-  };
-
-  storeImage = import (modulesPath + "../lib/make-disk-image.nix") {
-    name = "nix-store-image";
-    inherit pkgs config lib;
-    additionalPaths = [ regInfo ];
-    format = "qcow2";
-    onlyNixStore = true;
-    label = nixStoreFilesystemLabel;
-    partitionTableType = "none";
-    installBootLoader = false;
-    touchEFIVars = false;
-    diskSize = "auto";
-    additionalSpace = "0M";
-    copyChannel = false;
-  };
-
 in
 
 {
@@ -61,30 +26,6 @@ in
             The msize (maximum packet size) option passed to 9p file systems, in
             bytes. Increasing this should increase performance significantly,
             at the cost of higher RAM usage.
-          '';
-      };
-
-    virtualisation.rootDevice =
-      mkOption {
-        type = types.nullOr types.path;
-        default = "/dev/disk/by-label/${rootFilesystemLabel}";
-        defaultText = literalExpression ''/dev/disk/by-label/${rootFilesystemLabel}'';
-        example = "/dev/disk/by-label/nixos";
-        description =
-          lib.mdDoc ''
-            The path (inside the VM) to the device containing the root filesystem.
-          '';
-      };
-
-    virtualisation.emptyDiskImages =
-      mkOption {
-        type = types.listOf types.ints.positive;
-        default = [];
-        description =
-          lib.mdDoc ''
-            Additional disk images to provide to the VM. The value is
-            a list of size in megabytes of each disk. These disks are
-            writeable by the VM.
           '';
       };
 
@@ -111,7 +52,6 @@ in
     virtualisation.host.pkgs = mkOption {
       type = options.nixpkgs.pkgs.type;
       default = pkgs;
-      defaultText = literalExpression "pkgs";
       example = literalExpression ''
         import pkgs.path { system = "x86_64-darwin"; }
       '';
@@ -173,12 +113,10 @@ in
   };
 
   config = {
-    # After booting, register the closure of the paths in
-    # `virtualisation.additionalPaths' in the Nix database in the VM.  This
-    # allows Nix operations to work in the VM.  The path to the
-    # registration file is passed through the kernel command line to
-    # allow `system.build.toplevel' to be included.  (If we had a direct
-    # reference to ${regInfo} here, then we would get a cyclic
+    # After booting, register the closure of the paths in `virtualisation.additionalPaths' in the Nix 
+    # database in the VM.  This allows Nix operations to work in the VM.  The path to the 
+    # registration file is passed through the kernel command line to allow `system.build.toplevel' to 
+    # be included.  (If we had a direct reference to ${regInfo} here, then we would get a cyclic 
     # dependency.)
     boot.postBootCommands = lib.mkIf config.nix.enable
       ''

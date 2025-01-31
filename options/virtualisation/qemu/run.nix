@@ -1,15 +1,15 @@
 { config, pkgs, lib, ... }: with lib.types;
 let
-  cfg = config.virtualisation;
   machine = config.machine;
-  guest = config.virtualisation.qemu.guest;
+  cfg = config.virtualisation.qemu.guest;
+  fixme = config.virtualisation;
 
   # Block device labels for identification
   rootFilesystemLabel = "nixos";
 
   # Filter down the interfaces to the given type
   interfacesByType = wantedType:
-    builtins.filter ({ type, ... }: type == wantedType) guest.interfaces;
+    builtins.filter ({ type, ... }: type == wantedType) cfg.interfaces;
   macvtapInterfaces = interfacesByType "macvtap";
 in
 {
@@ -38,16 +38,16 @@ in
 
       # Create an empty ext4 filesystem image to store VM state
       # ----------------------------------------------------------------------------------------------
-      NIX_DISK_IMAGE=$(readlink -f "${toString guest.diskImage}")
-      if ! test -e "$NIX_DISK_IMAGE"; then
-        echo "Disk image does not exist, creating $NIX_DISK_IMAGE..."
+      ${cfg.rootDrive.pathVar}=$(readlink -f "${cfg.rootDrive.image}")
+      if ! test -e "''$${cfg.rootDrive.pathVar}"; then
+        echo "Root disk image does not exist, creating ''$${cfg.rootDrive.pathVar}..."
         temp=$(mktemp)
-        size="${toString (guest.diskSize * 1024)}M"
-        ${guest.package}/bin/qemu-img create -f raw "$temp" "$size"
+        size="${toString (cfg.rootDrive.size * 1024)}M"
+        ${cfg.package}/bin/qemu-img create -f raw "$temp" "$size"
         ${pkgs.e2fsprogs}/bin/mkfs.ext4 -L ${rootFilesystemLabel} "$temp"
-        ${guest.package}/bin/qemu-img convert -f raw -O qcow2 "$temp" "$NIX_DISK_IMAGE"
+        ${cfg.package}/bin/qemu-img convert -f raw -O qcow2 "$temp" "''$${cfg.rootDrive.pathVar}"
         rm "$temp"
-        echo "Virtualisation disk image created."
+        echo "Root disk image created."
       fi
 
       # [QEMU launch options](https://qemu-project.gitlab.io/qemu/system/invocation.html)
@@ -109,13 +109,13 @@ in
       # User nat interface:
       # -net nic,netdev=vm-prod1,model=virtio -netdev user,id=vm-prod1
       #
-      exec ${guest.package}/bin/qemu-system-x86_64 \
+      exec ${cfg.package}/bin/qemu-system-x86_64 \
         -name ${machine.hostname} -machine q35,smm=off,vmport=off,accel=kvm \
-        -smp ${toString guest.cores} -cpu host,+x2apic,-sgx \
-        -m ${toString guest.memorySize}G -device virtio-balloon \
+        -smp ${toString cfg.cores} -cpu host,+x2apic,-sgx \
+        -m ${toString cfg.memorySize}G -device virtio-balloon \
         -pidfile ${machine.hostname}.pid \
         -device virtio-rng-pci \
-        ${lib.concatStringsSep " \\\n  " cfg.qemu.options} \
+        ${lib.concatStringsSep " \\\n  " fixme.qemu.options} \
         $QEMU_OPTS \
         "$@"
     '';
