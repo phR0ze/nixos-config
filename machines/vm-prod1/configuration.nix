@@ -18,13 +18,9 @@ in
   };
 
   config = {
-    machine.enable = true;
-
+    machine.vm.local = true;
     virtualisation.qemu.guest = {
-      cores = 2;
-      #rootDrive.size = 1;
-      memorySize = 4;
-      audio = true;
+      cores = 4;
       display = {
         enable = true;
         memory = 32;

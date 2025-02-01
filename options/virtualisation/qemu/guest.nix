@@ -39,15 +39,6 @@ in
 
   options = {
     virtualisation.qemu.guest = {
-      enable = lib.mkEnableOption "Configure the VM's guest OS";
-      micro = lib.mkOption {
-        description = ''
-          Enables micro virtual machine mode which is a headless system and disables:
-          - Display, USB
-        '';
-        type = types.bool;
-        default = false;
-      };
       package = lib.mkOption {
         description = ''
           There are a few binaries available. `qemu-kvm` is an older packaging concept. For NixOS use
@@ -58,7 +49,7 @@ in
       };
       store = lib.mkOption {
         description = "Configure the nix store";
-        type = (types.submodule {
+        type = types.submodule {
           options = {
             mountHost = lib.mkOption {
               description = ''
@@ -78,7 +69,7 @@ in
               default = false;
             };
           };
-        });
+        };
         default = {
           mountHost = true;
           useImage = false;
@@ -86,7 +77,7 @@ in
       };
       rootDrive = lib.mkOption {
         description = "Configure the root drive";
-        type = (types.submodule {
+        type = types.submodule {
           options = {
             size = lib.mkOption {
               description = "Root disk size in GB";
@@ -109,7 +100,7 @@ in
               default = "ROOT_IMAGE";
             };
           };
-        });
+        };
         default = {
           size = 1;
           image = "./${machine.hostname}.qcow2";
@@ -120,7 +111,7 @@ in
       cores = lib.mkOption {
         description = lib.mdDoc "Number of virtual cores for VM";
         type = types.int;
-        default = 1;
+        default = 2;
       };
       memorySize = lib.mkOption {
         description = lib.mdDoc "Memory size in GB for VM";
@@ -153,7 +144,10 @@ in
             };
           };
         };
-        default = {
+        default = if (machine.vm.local) then {
+          enable = true;
+          memory = 32;
+        } else {
           enable = false;
           memory = 16;
         };
@@ -161,7 +155,7 @@ in
       audio = lib.mkOption {
         description = lib.mdDoc "Enable sound for VM";
         type = types.bool;
-        default = false;
+        default = if (machine.vm.local) then true else false;
       };
       spice = lib.mkOption {
         description = "SPICE configuration";
@@ -186,7 +180,6 @@ in
           - Use `type = "user"` for a simple NAT experience. 
           - Use `type = "macvtap"` for a full presence on the LAN.
         '';
-        default = [];
         type = types.listOf (types.submodule {
           options = {
             type = lib.mkOption {
@@ -222,6 +215,12 @@ in
             };
           };
         });
+
+        # Default the networking to use a user mode NAT device
+        default = [
+          type = "user";
+          id = machine.hostname;
+        ];
       };
       registeredPaths = lib.mkOption {
         type = types.listOf types.path;
@@ -274,7 +273,7 @@ in
   };
 
   config = lib.mkMerge [
-    (lib.mkIf (machine.type.vm) {
+    (lib.mkIf (machine.vm != {}) {
       services.qemuGuest.enable = true;                   # Install and run the QEMU guest agent
       services.x11vnc.enable = lib.mkForce false;         # We'll use SPICE instead
       networking.wireless.enable = lib.mkForce false;     # Wireless networking won't work in VM
@@ -435,7 +434,7 @@ in
         # * System Management Mode (SMM) is part of secure boot and not needed for typical VMs.
         # * --enable-kvm is the old way and accel=kvm is the new way but they are the same.
         # * vmport=off to disable VMWare IO port emulation which is obviously not needed
-        ++ lib.optionals (!cfg.micro) [ "-machine q35,smm=off,vmport=off,accel=kvm" ]
+        ++ lib.optionals (!machine.vm.micro) [ "-machine q35,smm=off,vmport=off,accel=kvm" ]
 
         # Optimal performance is found with host cpu type and x2apic enabled. x2apic is a performance
         # and scalabilty feature available in many modern intel CPUs. Regardless of host support KVM
@@ -562,7 +561,7 @@ in
     })
 
     # Configure SPICE services on the Guest OS
-    (lib.mkIf (machine.type.vm && cfg.spice.enable) {
+    (lib.mkIf (machine.vm.spice || cfg.spice.enable) {
       services.spice-autorandr.enable = true;       # Automatically adjust resolution of guest to spice client size
       services.spice-vdagentd.enable = true;        # SPICE agent to be run on the guest OS
       services.spice-webdavd.enable = true;         # Enable file sharing on guest to allow access from host
@@ -578,7 +577,7 @@ in
     })
 
     # Build the VM and create the startup/shutdown scripts
-    (lib.mkIf (machine.type.vm) {
+    (lib.mkIf (machine.vm != {}) {
       system.build.vm = lib.mkForce (pkgs.runCommand "${machine.hostname}" { preferLocalBuild = true; } ''
         mkdir -p $out/bin
         ln -s ${config.system.build.toplevel} $out/system

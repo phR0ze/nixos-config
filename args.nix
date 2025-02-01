@@ -15,7 +15,7 @@
   autologin = false;                # Automatically log the user in or not after boot
   resolution_x = 0;                 # Resolution x dimension, e.g. 1920
   resolution_y = 0;                 # Resolution y dimension, e.g. 1080
-  iso_enable = false;               # Enable or disable ISO mode
+  iso_mode = false;                 # Enable or disable ISO mode
   nix_base = "24.05";               # NixOS base install version
 
   # Services configuration
@@ -51,15 +51,4 @@
   macvtap_host = "";                # NIC name on the host to attach taps to e.g. 'enp1s0'
   dns_primary = "1.1.1.1";          # Primary DNS to use for machine e.g. `1.1.1.1`
   dns_fallback = "8.8.8.8";         # Fallback DNS to use for machine e.g. `8.8.8.8`
-
-  # VM configuration
-  # ------------------------------------------------------------------------------------------------
-  vm_enable = false;                # Enable or disable VM mode
-  vm_cores = 1;                     # Cores to use
-  vm_disk_size = 1;                 # Disk size in GiB
-  vm_memory_size = 4;               # Memory size in GiB
-  vm_spice = true;                  # Enable SPICE for VM
-  vm_spice_port = 5970;             # SPICE port for VM
-  vm_graphics = true;               # Enable VM video display
-  vms = [];
 }

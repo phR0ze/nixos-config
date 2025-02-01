@@ -18,25 +18,6 @@ in
   };
 
   config = {
-    machine.enable = true;
-
-    virtualisation.qemu.guest = {
-      cores = 1;
-      diskSize = 1;
-      memorySize = 4;
-      sound = true;
-      spice = {
-        enable = false;
-        port = 5970;
-      };
-      interfaces = [ {
-        type = "macvtap";
-        id = cfg.hostname;
-        fd = 3;
-        macvtap.mode = "bridge";
-        macvtap.link = "enp1s0";
-        mac = "02:00:00:00:00:99";
-      }];
-    };
+    machine.vm.local = true;
   };
 }
