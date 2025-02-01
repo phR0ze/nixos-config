@@ -436,7 +436,8 @@ in
         # * System Management Mode (SMM) is part of secure boot and not needed for typical VMs.
         # * --enable-kvm is the old way and accel=kvm is the new way but they are the same.
         # * vmport=off to disable VMWare IO port emulation which is obviously not needed
-        ++ lib.optionals (!machine.vm.micro) [ "-machine q35,smm=off,vmport=off,accel=kvm" ]
+        #++ lib.optionals (!machine.vm.micro) [ "-machine q35,smm=off,vmport=off,accel=kvm" ]
+        ++ [ "-machine q35,smm=off,vmport=off,accel=kvm" ]
 
         # Optimal performance is found with host cpu type and x2apic enabled. x2apic is a performance
         # and scalabilty feature available in many modern intel CPUs. Regardless of host support KVM
@@ -531,15 +532,15 @@ in
         # * -display gtk
         # * -display spice-app,gl=on
         # * -display gtk,gl=on,grab-on-hover=on,window-close=on,zoom-to-fit=on
-        ++ lib.optionals (cfg.display.enable) [
+        ++ lib.optionals (machine.vm.local && cfg.display.enable) [
           "-vga none -device virtio-vga-gl"
           "-display sdl,gl=on"
         ]
 
         # Hmm, seems to collide with my serial output settings below
-        #++ lib.optionals (machine.vm.micro || !cfg.display.enable) [
-        #  "-nographic"                                    # Disable the local GUI window
-        #]
+        ++ lib.optionals (machine.vm.micro || !cfg.display.enable) [
+          "-nographic"                                    # Disable the local GUI window
+        ]
 
         # SPICE configuration
         # ----------------------------------------------
@@ -550,7 +551,7 @@ in
         # - glxgears --info
         # - QXL defaults to 16 MB video memory, but needs 32MB min for high quality 
         # - -vga qxl vs -device qxl-vga
-        ++ lib.optionals (cfg.spice.enable) [
+        ++ lib.optionals (machine.vm.spice || cfg.spice.enable) [
           "-vga qxl"
           "-device virtio-serial-pci"
           "-spice port=${toString cfg.spice.port},disable-ticketing=on"
@@ -564,11 +565,6 @@ in
         ++ [
           "-kernel ${config.system.build.toplevel}/kernel"
           "-initrd ${config.system.build.initialRamdisk}/${config.system.boot.loader.initrdFile}"
-
-          # By redirection all output to serial then redirecting serial to the host stdio we get
-          # all VM output showing up on stdio like a normal application.
-          "-chardev 'stdio,id=stdio,signal=off'"          # Create char device for stdio
-          "-serial chardev:stdio"                         # Redirect all VM's serial output named chardev
           (''-append "'' + (lib.concatStringsSep " " [
             "earlyprintk=ttyS0"                           # Redirect early kernel logging to vm's first serial port ttyS0
             "console=ttyS0"                               # Redirect kernel output to vm's first serial port ttyS0
@@ -576,6 +572,14 @@ in
             "init=${config.system.build.toplevel}/init"   # Init
             "regInfo=${regInfo}/registration"             # Nix store registration
           ]) + ''"'')
+        ]
+
+        # By redirection all output to serial above in the 'append' section then redirecting serial 
+        # to the host stdio below we get all VM output showing up on stdio like a normal application.
+        # Note: this collides with the -nographic which does something similar
+        ++ lib.optionals (!machine.vm.micro) [
+          "-chardev 'stdio,id=stdio,signal=off'"          # Create char device for stdio
+          "-serial chardev:stdio"                         # Redirect all VM's serial output named chardev
         ];
 
       # Build the VM and create the startup/shutdown scripts

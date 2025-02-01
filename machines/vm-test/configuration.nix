@@ -18,6 +18,6 @@ in
   };
 
   config = {
-    machine.vm.local = true;
+    machine.vm.micro = true;
   };
 }

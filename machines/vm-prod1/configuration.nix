@@ -18,7 +18,7 @@ in
   };
 
   config = {
-    machine.vm.spice = true;
+    machine.vm.local = true;
 #    virtualisation.qemu.guest = {
 #      cores = 4;
 #      display = {
