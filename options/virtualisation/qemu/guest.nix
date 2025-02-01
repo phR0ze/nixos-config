@@ -155,7 +155,7 @@ in
       audio = lib.mkOption {
         description = lib.mdDoc "Enable sound for VM";
         type = types.bool;
-        default = if (machine.vm.local) then true else false;
+        default = if (!machine.vm.micro) then true else false;
       };
       spice = lib.mkOption {
         description = "SPICE configuration";
@@ -170,7 +170,7 @@ in
           };
         };
         default = {
-          enable = false;
+          enable = if (machine.vm.spice) then true else false;
           port = 5970;
         };
       };
@@ -217,10 +217,10 @@ in
         });
 
         # Default the networking to use a user mode NAT device
-        default = [
+        default = [{
           type = "user";
           id = machine.hostname;
-        ];
+        }];
       };
       registeredPaths = lib.mkOption {
         type = types.listOf types.path;
@@ -273,7 +273,7 @@ in
   };
 
   config = lib.mkMerge [
-    (lib.mkIf (machine.vm != {}) {
+    {
       services.qemuGuest.enable = true;                   # Install and run the QEMU guest agent
       services.x11vnc.enable = lib.mkForce false;         # We'll use SPICE instead
       networking.wireless.enable = lib.mkForce false;     # Wireless networking won't work in VM
@@ -426,8 +426,10 @@ in
       # [QEMU launch options](https://qemu-project.gitlab.io/qemu/system/invocation.html)
       # --------------------------------------------------------------------------------------------
       virtualisation.qemu.guest.options =
-        # Name to use for GUI windows and process names
-        [ "-name ${machine.hostname}" ]
+        [
+          "-name ${machine.hostname}"             # Name to use for GUI windows and process names
+          "-pidfile ${machine.hostname}.pid"      # Store the QEMU process PID in this file
+        ]
 
         # QEMU supports two x86 chipsets. The ancient (1996) i440FX and the more recent (2007) Q35.
         # Q35 is the go forward strategy supporting PCIe natively.
@@ -473,9 +475,11 @@ in
         # 1. QEMU configuration to make make it available
         # 2. Guest OS configuration so it know what to do with it
         # ----------------------------------------------
-        ++ [ # Simple mapping between host $pwd/$vm/shared and guest /tmp/shared
+        # Simple mapping between host $pwd/$vm/shared and guest /tmp/shared
+        ++ [
           ''-virtfs local,path="$VMDIR"/shared,security_model=none,mount_tag=shared''
         ]
+        # Mount the nix store as a share
         ++ lib.optionals (cfg.store.mountHost) [
           "-virtfs local,path=${builtins.storeDir},security_model=none,mount_tag=nix-store"
         ]
@@ -531,9 +535,11 @@ in
           "-vga none -device virtio-vga-gl"
           "-display sdl,gl=on"
         ]
-        ++ lib.optionals (!cfg.display.enable) [
-          "-nographic"                                    # Disable the local GUI window
-        ]
+
+        # Hmm, seems to collide with my serial output settings below
+        #++ lib.optionals (machine.vm.micro || !cfg.display.enable) [
+        #  "-nographic"                                    # Disable the local GUI window
+        #]
 
         # SPICE configuration
         # ----------------------------------------------
@@ -553,12 +559,39 @@ in
         ]
 
         # Kernel configuration
+        # ----------------------------------------------
+        # -device i8042 supports ctrl+alt+del
         ++ [
           "-kernel ${config.system.build.toplevel}/kernel"
           "-initrd ${config.system.build.initialRamdisk}/${config.system.boot.loader.initrdFile}"
-          ''-append "$(cat ${config.system.build.toplevel}/kernel-params) init=${config.system.build.toplevel}/init regInfo=${regInfo}/registration ${if cfg.display.enable then "tty0" else "ttyS0,115200n8"}"''
+
+          # By redirection all output to serial then redirecting serial to the host stdio we get
+          # all VM output showing up on stdio like a normal application.
+          "-chardev 'stdio,id=stdio,signal=off'"          # Create char device for stdio
+          "-serial chardev:stdio"                         # Redirect all VM's serial output named chardev
+          (''-append "'' + (lib.concatStringsSep " " [
+            "earlyprintk=ttyS0"                           # Redirect early kernel logging to vm's first serial port ttyS0
+            "console=ttyS0"                               # Redirect kernel output to vm's first serial port ttyS0
+            "loglevel=4"                                  # Set kernel log level to 4 
+            "init=${config.system.build.toplevel}/init"   # Init
+            "regInfo=${regInfo}/registration"             # Nix store registration
+          ]) + ''"'')
         ];
-    })
+
+      # Build the VM and create the startup/shutdown scripts
+      # --------------------------------------------------------------------------------------------
+      system.build.vm = lib.mkForce (pkgs.runCommand "${machine.hostname}" { preferLocalBuild = true; } ''
+        mkdir -p $out/bin
+        ln -s ${config.system.build.toplevel} $out/system
+        ln -s ${pkgs.writeScript "run-${machine.hostname}" cfg.scripts.run} $out/bin/run
+
+        # Optionally configure macvtap scripts
+        if [[ "${if macvtapInterfaces != [] then "1" else "0"}" == "1" ]]; then
+          ln -s ${pkgs.writeScript "macvtap-up" cfg.scripts.macvtap-up} $out/bin/macvtap-up
+          ln -s ${pkgs.writeScript "macvtap-down" cfg.scripts.macvtap-down} $out/bin/macvtap-down
+        fi
+      '');
+    }
 
     # Configure SPICE services on the Guest OS
     (lib.mkIf (machine.vm.spice || cfg.spice.enable) {
@@ -574,21 +607,6 @@ in
 
       # Open up the firewall for machine.vm.spicePort
       networking.firewall.allowedTCPPorts = [ cfg.spice.port ];
-    })
-
-    # Build the VM and create the startup/shutdown scripts
-    (lib.mkIf (machine.vm != {}) {
-      system.build.vm = lib.mkForce (pkgs.runCommand "${machine.hostname}" { preferLocalBuild = true; } ''
-        mkdir -p $out/bin
-        ln -s ${config.system.build.toplevel} $out/system
-        ln -s ${pkgs.writeScript "run-${machine.hostname}" cfg.scripts.run} $out/bin/run
-
-        # Optionally configure macvtap scripts
-        if [[ "${if macvtapInterfaces != [] then "1" else "0"}" == "1" ]]; then
-          ln -s ${pkgs.writeScript "macvtap-up" cfg.scripts.macvtap-up} $out/bin/macvtap-up
-          ln -s ${pkgs.writeScript "macvtap-down" cfg.scripts.macvtap-down} $out/bin/macvtap-down
-        fi
-      '');
     })
   ];
 }

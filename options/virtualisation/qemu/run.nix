@@ -18,7 +18,7 @@ in
 
       # Create dir storing VM running data and a sub-dir for exchanging data with the VM
       # ----------------------------------------------------------------------------------------------
-      [ ! -d result ] && echo "Must be run from the VM directory" && exit 1
+      [ ! -d "${machine.hostname}" ] && echo "Must be run from the flake directory" && exit 1
       VMDIR="${machine.hostname}"
       mkdir -p "$VMDIR/shared"
       cd "$VMDIR"
@@ -51,8 +51,6 @@ in
       # -nodefaults                           # Don't include any default devices to contend with
       # -no-user-config                       # Don't include any system configuration to contend with
       # -no-reboot                            # Exit instead of rebooting
-      # -chardev 'stdio,id=stdio,signal=off'  # Connect QEMU Stdin/Stdout to shell
-      # -serial chardev:stdio                 # Redirect serial to 'stdio' instead of 'vc' for graphical mode
       #
       # MicroVM mode allows for higher performance
       # -M 'microvm,accel=kvm,acpi=on,mem-merge=on,pcie=on,pic=off,pit=off,usb=off'

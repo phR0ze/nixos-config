@@ -92,6 +92,11 @@ build::vm()
     trap flake::restore EXIT
 
     nix build .#nixosConfigurations.target.config.system.build.vm
+
+    # Install the vm in its own directory
+    log::ls "Installing at ${cyan}./${MACHINE}${none}"
+    mkdir -p "$MACHINE"
+    [ -d result ] && mv result "$MACHINE"
 }
 
 # Post build operations
