@@ -8,16 +8,59 @@
 let
   nic = import ./nic.nix { inherit lib; };
   user = import ./user.nix { inherit lib; };
-  type = import ./machine_type.nix { inherit lib; };
   vm = import ./vm.nix { inherit lib; };
 in
 {
   options = {
-
     enable = lib.mkOption {
-      description = lib.mdDoc "Enable machine option";
+      description = lib.mdDoc ''
+        Enable machine option simply allows for at least one option to be set otherwise the defaults 
+        don't seem to take effect.
+      '';
       type = types.bool;
       default = false;
+    };
+
+    type = lib.mkOption {
+      description = lib.mdDoc ''
+        Machine types are descriptive capabilities of a machine. These types are not mutually 
+        exclusive. For instance a machine might be both an ISO and also a development machine. 
+      '';
+      type = types.submodule {
+        options = {
+          iso = lib.mkOption {
+            description = lib.mdDoc "Machine is intended to be used as an ISO image";
+            type = types.bool;
+            default = false;
+          };
+          develop = lib.mkOption {
+            description = lib.mdDoc "Machine is intended to be used as a Development system";
+            type = types.bool;
+            default = false;
+          };
+          theater = lib.mkOption {
+            description = lib.mdDoc "Machine is intended to be used as a Theater system";
+            type = types.bool;
+            default = false;
+          };
+        };
+      };
+      default = {
+        iso = if (!builtins.hasAttr "iso_mode" _args || _args.iso_mode == null || !_args.iso_mode)
+          then false else true;
+      };
+    };
+
+    vm = lib.mkOption {
+      description = lib.mdDoc "Virtual machine type";
+      type = types.submodule {
+        options = {
+          micro = lib.mkEnableOption "Minimal headless system";
+          local = lib.mkEnableOption "Full desktop system with local graphical display";
+          spice = lib.mkEnableOption "Full desktop system with remote SPICE display";
+        };
+      };
+      default = {};
     };
 
     hostname = lib.mkOption {
@@ -25,17 +68,6 @@ in
       type = types.str;
       default = if (!builtins.hasAttr "hostname" _args || _args.hostname == null || _args.hostname == "")
         then "nixos" else _args.hostname;
-    };
-
-    type = lib.mkOption {
-      description = lib.mdDoc "Machine type";
-      type = types.submodule type;
-      default = {
-        vm = if (!builtins.hasAttr "vm_enable" _args || _args.vm_enable == null || !_args.vm_enable)
-          then false else true;
-        iso = if (!builtins.hasAttr "iso_enable" _args || _args.iso_enable == null || !_args.iso_enable)
-          then false else true;
-      };
     };
 
     profile = lib.mkOption {
@@ -395,7 +427,6 @@ in
 #      assertions = [
 #        # General args
 #        { assertion = (cfg.hostname == "nixos"); message = "machine.hostname: ${cfg.hostname}"; }
-#        { assertion = (cfg.type.vm == true); message = "machine.type.vm: ${f.boolToStr cfg.type.vm}"; }
 #        { assertion = (cfg.type.iso == false); message = "machine.type.iso: ${f.boolToStr cfg.type.iso}"; }
 #        { assertion = (cfg.profile == "xfce/desktop"); message = "machine.profile: ${cfg.profile}"; }
 #        { assertion = (cfg.efi == false); message = "machine.efi: ${f.boolToStr cfg.efi}"; }
