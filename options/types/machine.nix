@@ -8,7 +8,6 @@
 let
   nic = import ./nic.nix { inherit lib; };
   user = import ./user.nix { inherit lib; };
-  vm = import ./vm.nix { inherit lib; };
 in
 {
   options = {
@@ -49,18 +48,6 @@ in
         iso = if (!builtins.hasAttr "iso_mode" _args || _args.iso_mode == null || !_args.iso_mode)
           then false else true;
       };
-    };
-
-    vm = lib.mkOption {
-      description = lib.mdDoc "Virtual machine type";
-      type = types.submodule {
-        options = {
-          micro = lib.mkEnableOption "Minimal headless system";
-          local = lib.mkEnableOption "Full desktop system with local graphical display";
-          spice = lib.mkEnableOption "Full desktop system with remote SPICE display";
-        };
-      };
-      default = {};
     };
 
     hostname = lib.mkOption {
@@ -413,10 +400,16 @@ in
       };
     };
 
-    vms = lib.mkOption {
-      description = lib.mdDoc "Virtual Machine definitions to host on this machine";
-      type = types.listOf vm;
-      default = [ ];
+    vm = lib.mkOption {
+      description = lib.mdDoc "Virtual machine type for this machine";
+      type = types.submodule {
+        options = {
+          micro = lib.mkEnableOption "Minimal headless system";
+          local = lib.mkEnableOption "Full desktop system with local graphical display";
+          spice = lib.mkEnableOption "Full desktop system with remote SPICE display";
+        };
+      };
+      default = {};
     };
   };
 }
