@@ -22,6 +22,7 @@ in
 
     virtualisation.qemu.guest = {
       cores = 2;
+      #rootDrive.size = 1;
       memorySize = 4;
       audio = true;
       display = {
