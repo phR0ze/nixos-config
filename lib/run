@@ -51,12 +51,20 @@ run::vm()
     flake::switch "$MACHINE"
     trap flake::restore EXIT
 
-    local runner="./result/bin/run"
-    [[ ! -f "$runner" ]] && nix build .#nixosConfigurations.target.config.system.build.vm
+    local runner="./${MACHINE}/result/bin/run"
 
-    local tap="./result/bin/macvtap-up"
+    # Build and install if needed
+    if [[ ! -f "$runner" ]]; then
+        log::ls "Building ${cyan}${MACHINE}${none}"
+        nix build .#nixosConfigurations.target.config.system.build.vm
+        log::ls "Installing at ${cyan}./${MACHINE}${none}"
+        mkdir -p "$MACHINE"
+        mv result "$MACHINE"
+    fi
+
+    local tap="./${MACHINE}/result/bin/macvtap-up"
     [[ -f "$tap" ]] && $tap && log::ln "Running tap ${cyan}${tap}${none}"
 
-    log::ln "Running ${cyan}${runner}${none}"
+    log::ls "Running ${cyan}${runner}${none}"
     $runner
 }
