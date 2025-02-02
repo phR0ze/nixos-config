@@ -76,12 +76,11 @@ build::iso()
 
 # Build the vm
 # - $1 - optional machine name to target
+# - $2 - optional no preamble flage
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
-    core::preamble
-
-    local machine=""
+    [[ $NO_PREAMBLE -eq 0 ]] && core::preamble
 
     local machine="${1#vm-}"  # trim vm- prefix
     [[ "$machine" == "" ]] && machine="test"
