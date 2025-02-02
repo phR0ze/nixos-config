@@ -3,7 +3,7 @@
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let
   cfg = config.machine;
-  _args = args // (import ./args.nix) // (f.fromYAML ./args.dec.yaml);
+  _args = args // (f.fromYAML ./args.dec.yaml);
 in
 {
   imports = [
@@ -19,5 +19,10 @@ in
 
   config = {
     machine.vm.micro = true;
+    machine.hostname = "vm-test";
+    machine.profile = "xfce/desktop";
+    machine.resolution = { x = 1920; y = 1080; };
+    machine.autologin = true;
+    machine.nic0.name = "eth0";
   };
 }

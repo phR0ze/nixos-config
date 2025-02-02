@@ -279,7 +279,6 @@ in
       networking.wireless.enable = lib.mkForce false;     # Wireless networking won't work in VM
       services.connman.enable = lib.mkForce false;        # Wireless networking won't work in VM
       networking.dhcpcd.extraConfig = "noarp";            # Speed up booting by not waiting for ARP
-      networking.usePredictableInterfaceNames = false;    # ???
       services.timesyncd.enable = false;                  # VM should get correct time from KVM
       swapDevices = lib.mkForce [ ];                      # Disable swap for vms
       boot.initrd.luks.devices = lib.mkForce {};          # Disable luks for vms
@@ -568,6 +567,7 @@ in
           (''-append "'' + (lib.concatStringsSep " " [
             "earlyprintk=ttyS0"                           # Redirect early kernel logging to vm's first serial port ttyS0
             "console=ttyS0"                               # Redirect kernel output to vm's first serial port ttyS0
+            "net.ifnames=0"                               # Use predictable interface names
             "loglevel=4"                                  # Set kernel log level to 4 
             "init=${config.system.build.toplevel}/init"   # Init
             "regInfo=${regInfo}/registration"             # Nix store registration
