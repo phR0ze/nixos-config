@@ -470,17 +470,15 @@ in
         # that the host can reclaim and negociate with the guest how much is used.
         ++ [ "-m ${toString cfg.memorySize}G -device virtio-balloon" ]
 
-        # Use a virtio driver for randomness
-        ++ [ "-device virtio-rng-pci" ]
+        ++ [ "-device virtio-rng-pci" ]       # Use a virtio driver for randomness
 
-        #++ lib.optionals (!machine.vm.micro && cfg.virtioKeyboard) [
-        #  "-device i8042"                     # Keyboard controller supporting ctrl+alt+del
-        #]
-
-        ++ lib.optionals (cfg.virtioKeyboard) [
+        ++ lib.optionals (machine.vm.micro && cfg.virtioKeyboard) [
+          "-device i8042"                     # Keyboard controller supporting ctrl+alt+del
+        ]
+        ++ lib.optionals (!machine.vm.micro && cfg.virtioKeyboard) [
           "-device virtio-keyboard"           # ?
         ]
-        ++ lib.optionals (cfg.usb) [
+        ++ lib.optionals (!machine.vm.micro && cfg.usb) [
           "-usb -device usb-tablet,bus=usb-bus.0"
         ]
 
@@ -499,9 +497,8 @@ in
         # 2. Guest OS configuration so it know what to do with it
         # ----------------------------------------------
         # Simple mapping between host $pwd/$vm/shared and guest /tmp/shared
-        ++ [
-          ''-virtfs local,path="$VMDIR"/shared,security_model=none,mount_tag=shared''
-        ]
+        ++ [ ''-virtfs local,path="$VMDIR"/shared,security_model=none,mount_tag=shared'' ]
+
         # Mount the nix store as a share
         ++ lib.optionals (cfg.store.mountHost) [
           "-virtfs local,path=${builtins.storeDir},security_model=none,mount_tag=nix-store"
@@ -557,9 +554,9 @@ in
         ]
 
         # Hmm, seems to collide with my serial output settings below
-        #++ lib.optionals (machine.vm.micro || !cfg.display.enable) [
-        #  "-nographic"                                    # Disable the local GUI window
-        #]
+        ++ lib.optionals (machine.vm.micro || !cfg.display.enable) [
+          "-nographic"                                    # Disable the local GUI window
+        ]
 
         # SPICE configuration
         # ----------------------------------------------
