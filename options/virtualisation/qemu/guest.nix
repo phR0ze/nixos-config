@@ -302,7 +302,12 @@ in
         "9p" "9pnet_virtio"
       ] ++ lib.optionals (cfg.store.mountHost) [ "overlay" ];
 
-      boot.initrd.kernelModules = [ "virtio_balloon" "virtio_console" "virtio_rng" ];
+      boot.initrd.kernelModules = [
+        "virtio_balloon"
+        "virtio_console"
+        "virtio_pci"
+        "virtio_rng"
+      ];
       boot.initrd.postDeviceCommands = lib.mkIf (!config.boot.initrd.systemd.enable) ''
         # Set the system time from the hardware clock to work around a bug in qemu-kvm > 1.5.2 (where
         # the VM clock is initialised to the *boot time* of the host).
@@ -426,26 +431,40 @@ in
       # --------------------------------------------------------------------------------------------
       virtualisation.qemu.guest.options =
         [
-          "-name ${machine.hostname}"             # Name to use for GUI windows and process names
-          "-pidfile ${machine.hostname}.pid"      # Store the QEMU process PID in this file
+          "-name ${machine.hostname}"         # Name to use for GUI windows and process names
+          "-pidfile ${machine.hostname}.pid"  # Store the QEMU process PID in this file
+          "-nodefaults -no-user-config"       # Disable any defaults or pass throughs for a clean env
         ]
 
-        # QEMU supports two x86 chipsets. The ancient (1996) i440FX and the more recent (2007) Q35.
-        # Q35 is the go forward strategy supporting PCIe natively.
-        # * System Management Mode (SMM) is part of secure boot and not needed for typical VMs.
-        # * --enable-kvm is the old way and accel=kvm is the new way but they are the same.
-        # * vmport=off to disable VMWare IO port emulation which is obviously not needed
-        #++ lib.optionals (!machine.vm.micro) [ "-machine q35,smm=off,vmport=off,accel=kvm" ]
-        ++ [ "-machine q35,smm=off,vmport=off,accel=kvm" ]
+        # QEMU supports two full x86 chipsets; the ancient (1996) i440FX and the more recent (2007) Q35. 
+        # Q35 is the defacto standard for anything modern looking for performance.
+        ++ lib.optionals (!machine.vm.micro) [("-machine " + (lib.concatStringsSep "," [
+          "q35"                               # Q35 is modern solution supporting PCIe natively
+          "accel=kvm"                         # Means the same as older --enable-kvm form
+          "smm=off"                           # System Mgmt Mode is part of secure boot and not needed
+          "vmport=off"                        # Disables VMWare IO port emulation
+        ]))]
 
-        # Optimal performance is found with host cpu type and x2apic enabled. x2apic is a performance
-        # and scalabilty feature available in many modern intel CPUs. Regardless of host support KVM
-        # can emulate it for x86 guests with no downside, so always enable it.
-        # * enable x2apic: https://blog.wikichoon.com/2014/11/x2apic-on-by-default-with-qemu-20-and.html
-        # * disabling sgx: https://gitlab.com/qemu-project/qemu/-/issues/2142
-        # * -cpu max means emulate all features limited by host support, not as performant as -cpu host
+        # QEMU also supports the [microvm](https://www.qemu.org/docs/master/system/i386/microvm.html)
+        # machine type which is a modern slimmed down x86 that can be used for headless servers.
+        ++ lib.optionals (machine.vm.micro) [("-machine " + (lib.concatStringsSep "," [
+          "microvm"                           # Modern minimal type without PCI or ACPI
+          "accel=kvm"                         # Means the same as older --enable-kvm form
+          "acpi=on"                           # Allow event handling of shutdown
+          "mem-merge=on"                      # Enable memory merge support optimization
+          "pcie=on"                           # Ensure PCIe support is on
+          "pic=off"                           # Disable i8259 PIC and use kvmclock instead
+          "pit=off"                           # Disable i8254 PIT and use kvmclock instead
+          "usb=off"                           # No need for usb in a microvm
+        ]))]
+
+        # Optimal performance is found with host cpu type and x2apic enabled.
         # * -smp has other options but using them provides no added performance
-        ++ [ "-smp ${toString cfg.cores} -cpu host,+x2apic,-sgx" ]
+        ++ [("-smp ${toString cfg.cores} -cpu " + (lib.concatStringsSep "," [
+          "host"                              # Optimal performance setting even over -cpu max
+          "+x2apic"                           # performance feature that has no downs for x86 guests
+          "-sgx"                              # disabling: https://gitlab.com/qemu-project/qemu/-/issues/2142
+        ]))]
 
         # VirtIO Memory Ballooning allows the host and guest to more intelligently manage memory such
         # that the host can reclaim and negociate with the guest how much is used.
@@ -454,11 +473,15 @@ in
         # Use a virtio driver for randomness
         ++ [ "-device virtio-rng-pci" ]
 
+        #++ lib.optionals (!machine.vm.micro && cfg.virtioKeyboard) [
+        #  "-device i8042"                     # Keyboard controller supporting ctrl+alt+del
+        #]
+
         ++ lib.optionals (cfg.virtioKeyboard) [
-          "-device virtio-keyboard"
+          "-device virtio-keyboard"           # ?
         ]
         ++ lib.optionals (cfg.usb) [
-          "-usb" "-device usb-tablet,bus=usb-bus.0"
+          "-usb -device usb-tablet,bus=usb-bus.0"
         ]
 
         # Drive configuration
@@ -489,18 +512,15 @@ in
         #) cfg.sharedDirectories)
 
         # Networking configuration
-        # user: -net nic,netdev=vm-prod1,model=virtio -netdev user,id=vm-prod1
-        # macvtap: -netdev tap,id=vm-prod1,fd=3 -device virtio-net-pci,netdev=vm-prod1,mac=02:00:00:00:00:01
         ++ lib.optionals (macvtapInterfaces != [])
           (builtins.concatMap (x: [
             "-netdev tap,id=${x.id},fd=${toString x.fd}"
             "-device virtio-net-pci,netdev=${x.id},mac=${x.mac}"
           ]) macvtapInterfaces)
-        ++
-        lib.optionals (userInterfaces != [])
+        ++ lib.optionals (userInterfaces != [])
           (builtins.concatMap (x: [
             "-netdev user,id=${x.id}"
-            "-net nic,netdev=${x.id},model=virtio"
+            "-device virtio-net-pci,netdev=${x.id}"
           ]) userInterfaces)
 
         # Audio configuration
@@ -537,9 +557,9 @@ in
         ]
 
         # Hmm, seems to collide with my serial output settings below
-        ++ lib.optionals (machine.vm.micro || !cfg.display.enable) [
-          "-nographic"                                    # Disable the local GUI window
-        ]
+        #++ lib.optionals (machine.vm.micro || !cfg.display.enable) [
+        #  "-nographic"                                    # Disable the local GUI window
+        #]
 
         # SPICE configuration
         # ----------------------------------------------
@@ -560,7 +580,6 @@ in
 
         # Kernel configuration
         # ----------------------------------------------
-        # -device i8042 supports ctrl+alt+del
         ++ [
           "-kernel ${config.system.build.toplevel}/kernel"
           "-initrd ${config.system.build.initialRamdisk}/${config.system.boot.loader.initrdFile}"
@@ -577,7 +596,8 @@ in
         # By redirection all output to serial above in the 'append' section then redirecting serial 
         # to the host stdio below we get all VM output showing up on stdio like a normal application.
         # Note: this collides with the -nographic which does something similar
-        ++ lib.optionals (!machine.vm.micro) [
+        #++ lib.optionals (!machine.vm.micro) [
+        ++ [
           "-chardev 'stdio,id=stdio,signal=off'"          # Create char device for stdio
           "-serial chardev:stdio"                         # Redirect all VM's serial output named chardev
         ];

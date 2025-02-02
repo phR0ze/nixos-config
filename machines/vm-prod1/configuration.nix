@@ -3,12 +3,12 @@
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let
   cfg = config.machine;
-  _args = args // (import ./args.nix) // (f.fromYAML ./args.dec.yaml);
+  _args = args // (f.fromYAML ./args.dec.yaml);
 in
 {
   imports = [
+    ../../profiles/xfce/desktop.nix
     ../../options/virtualisation/qemu/guest.nix
-    (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
   options = {
@@ -19,6 +19,9 @@ in
 
   config = {
     machine.vm.local = true;
+    machine.hostname = "vm-prod1";
+    machine.resolution = { x = 1920; y = 1080; };
+    machine.autologin = true;
 #    virtualisation.qemu.guest = {
 #      cores = 4;
 #      display = {

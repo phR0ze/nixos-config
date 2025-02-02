@@ -7,8 +7,8 @@ let
 in
 {
   imports = [
+    ../../profiles/base.nix
     ../../options/virtualisation/qemu/guest.nix
-    (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
   options = {
@@ -20,9 +20,7 @@ in
   config = {
     machine.vm.micro = true;
     machine.hostname = "vm-test";
-    machine.profile = "xfce/desktop";
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
-    machine.nic0.name = "eth0";
   };
 }
