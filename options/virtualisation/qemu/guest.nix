@@ -593,7 +593,6 @@ in
         # By redirection all output to serial above in the 'append' section then redirecting serial 
         # to the host stdio below we get all VM output showing up on stdio like a normal application.
         # Note: this collides with the -nographic which does something similar
-        #++ lib.optionals (!machine.vm.micro) [
         ++ [
           "-chardev 'stdio,id=stdio,signal=off'"          # Create char device for stdio
           "-serial chardev:stdio"                         # Redirect all VM's serial output named chardev
