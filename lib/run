@@ -10,13 +10,14 @@ Usage:
 
 Options:
   -h, --help        Print out usage
+  -c, --clean       Delete the VM before running to trigger a build first
 
 Commands:
-  vm                Run the test VM, depends on '${SCRIPT} build vm'"
+  vm                Run the given VM with the given arguments
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "Run the test VM: ${green}./${SCRIPT} run vm${none}"
+    log::subln "Run a clean test VM: ${green}./${SCRIPT} run vm -c${none}"
     log::subln "Run the prod1 VM: ${green}./${SCRIPT} run vm prod1${none}"
     echo
     exit
@@ -29,9 +30,19 @@ run::run()
 {
     utils::help "$@" "run::usage"
 
-    local command=$1; shift
-    case "$command" in
-        vm) run::vm "$@" ;;
+    # Process any flags and remove them from the ARGS
+    CLEAN=0
+    for i in "${!ARGS[@]}"; do
+        if [[ "${ARGS[i]}" == "-c" || "${ARGS[i]}" == "--clean" ]]; then
+            CLEAN=1
+            unset 'ARGS[i]'
+        fi
+    done
+    ARGS=("${ARGS[@]}")
+
+    local cmd="${ARGS[0]}" && unset 'ARGS[0]'
+    case "$cmd" in
+        vm) run::vm "${ARGS[@]}" ;;
         *) log::error "Invalid run command: ${cyan}${command}${none}"; run::usage ;;
     esac
 }
@@ -49,6 +60,12 @@ run::vm()
 
     log::header1 "Running VM ${cyan}${MACHINE}${none}"
     flake::ensure_origin
+
+    # Optionally clean first
+    if [[ $CLEAN -eq 1 ]]; then
+        log::ls "Cleaning ${cyan}${MACHINE}${none}"
+        rm -rf "./${MACHINE}"
+    fi
 
     local runner="./${MACHINE}/result/bin/run"
 
