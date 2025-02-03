@@ -4,7 +4,7 @@ let
 in
 {
   # Grub configuration for non VM/ISO machines
-  config = lib.mkIf (!machine.vm.any && !machine.type.iso) {
+  config = lib.mkIf (!machine.type.vm && !machine.type.iso) {
     boot.loader = {
       grub.enable = true;
 

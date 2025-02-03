@@ -18,10 +18,17 @@ in
   };
 
   config = {
+    machine.type.vm = true;
     machine.vm.local = true;
     machine.hostname = "vm-prod1";
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
+
+    #services.x2goserver.enable = true;
+    #environment.systemPackages = [
+    #  pkgs.x2goserver
+    #];
+
 #    virtualisation.qemu.guest = {
 #      cores = 4;
 #      display = {

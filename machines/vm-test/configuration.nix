@@ -8,6 +8,7 @@ in
 {
   imports = [
     ../../profiles/base.nix
+    #../../profiles/xfce/desktop.nix
     ../../options/virtualisation/qemu/guest.nix
   ];
 
@@ -18,9 +19,15 @@ in
   };
 
   config = {
+    machine.type.vm = true;
     machine.vm.micro = true;
+    #machine.vm.local = true;
     machine.hostname = "vm-test";
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
+
+    #environment.systemPackages = [
+    #  pkgs.x2goclient
+    #];
   };
 }
