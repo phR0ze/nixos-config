@@ -399,12 +399,6 @@ in
       };
     };
   };
-
-  config = {
-
-    # Set Virtual Machine default
-    machine.vm.any = if (cfg.vm.micro || cfg.vm.local || cfg.vm.spice) then true else false;
-  };
 }
 
 # - Easy assertions for debugging, just copy and paste
