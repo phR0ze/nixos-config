@@ -404,13 +404,25 @@ in
       description = lib.mdDoc "Virtual machine type for this machine";
       type = types.submodule {
         options = {
+          any = lib.mkEnableOption "Any VM type is set";
           micro = lib.mkEnableOption "Minimal headless system";
           local = lib.mkEnableOption "Full desktop system with local graphical display";
           spice = lib.mkEnableOption "Full desktop system with remote SPICE display";
         };
       };
-      default = {};
+      default = {
+        any = false;
+        micro = false;
+        local = false;
+        spice = false;
+      };
     };
+  };
+
+  config = {
+
+    # Set Virtual Machine default
+    machine.vm.any = if (cfg.vm.micro || cfg.vm.local || cfg.vm.spice) then true else false;
   };
 }
 

@@ -52,7 +52,7 @@ in
     vopono                        # Run applications through VPN connections in network namespaces
     update-systemd-resolved       # OpenVPN systemd-resolved updater
   ]
-  ++ lib.optional (machine.vm == {}) efibootmgr
-  ++ lib.optional (machine.vm == {}) efivar
+  ++ lib.optional (!machine.vm.any) efibootmgr
+  ++ lib.optional (!machine.vm.any) efivar
   ;
 }

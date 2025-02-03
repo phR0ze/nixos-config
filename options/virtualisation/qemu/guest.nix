@@ -511,13 +511,13 @@ in
         # Networking configuration
         ++ lib.optionals (macvtapInterfaces != [])
           (builtins.concatMap (x: [
-            "-netdev tap,id=${x.id},fd=${toString x.fd}"
-            "-device virtio-net-pci,netdev=${x.id},mac=${x.mac}"
+            "-netdev tap,id=nic0,fd=${toString x.fd}"
+            "-device virtio-net-pci,netdev=nic0,mac=${x.mac}"
           ]) macvtapInterfaces)
         ++ lib.optionals (userInterfaces != [])
           (builtins.concatMap (x: [
-            "-netdev user,id=${x.id}"
-            "-device virtio-net-pci,netdev=${x.id}"
+            "-netdev user,id=nic0"
+            "-device virtio-net-pci,netdev=nic0"
           ]) userInterfaces)
 
         # Audio configuration
