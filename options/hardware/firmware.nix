@@ -7,7 +7,7 @@ let
   machine = config.machine;
 in
 {
-  config = lib.mkIf (!machine.vm.any) {
+  config = lib.mkIf (!machine.type.vm) {
     # - 'hardware.enableRedistributableFirmware = true;' is just a short cut for the below list
     hardware.firmware = with pkgs; [
       linux-firmware

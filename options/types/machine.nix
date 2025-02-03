@@ -27,26 +27,25 @@ in
       '';
       type = types.submodule {
         options = {
-          iso = lib.mkOption {
-            description = lib.mdDoc "Machine is intended to be used as an ISO image";
-            type = types.bool;
-            default = false;
-          };
-          develop = lib.mkOption {
-            description = lib.mdDoc "Machine is intended to be used as a Development system";
-            type = types.bool;
-            default = false;
-          };
-          theater = lib.mkOption {
-            description = lib.mdDoc "Machine is intended to be used as a Theater system";
-            type = types.bool;
-            default = false;
-          };
+          iso = lib.mkEnableOption "Machine is intended to be used as an ISO image";
+          develop = lib.mkEnableOption "Machine is intended to be used as a Development system";
+          theater = lib.mkEnableOption "Machine is intended to be used as a Theater system";
         };
       };
       default = {
         iso = if (!builtins.hasAttr "iso_mode" _args || _args.iso_mode == null || !_args.iso_mode)
           then false else true;
+      };
+    };
+
+    vm.type = lib.mkOption {
+      description = lib.mdDoc "Virtual machine type for this machine";
+      type = types.submodule {
+        options = {
+          micro = lib.mkEnableOption "Minimal headless system";
+          local = lib.mkEnableOption "Full desktop system with local graphical display";
+          spice = lib.mkEnableOption "Full desktop system with remote SPICE display";
+        };
       };
     };
 
@@ -397,24 +396,6 @@ in
           fallback = if (!builtins.hasAttr "dns_fallback" _args || _args.dns_fallback == null)
             then "8.8.8.8" else _args.dns_fallback;
         };
-      };
-    };
-
-    vm = lib.mkOption {
-      description = lib.mdDoc "Virtual machine type for this machine";
-      type = types.submodule {
-        options = {
-          any = lib.mkEnableOption "Any VM type is set";
-          micro = lib.mkEnableOption "Minimal headless system";
-          local = lib.mkEnableOption "Full desktop system with local graphical display";
-          spice = lib.mkEnableOption "Full desktop system with remote SPICE display";
-        };
-      };
-      default = {
-        any = false;
-        micro = false;
-        local = false;
-        spice = false;
       };
     };
   };
