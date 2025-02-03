@@ -27,6 +27,7 @@ in
       '';
       type = types.submodule {
         options = {
+          vm = lib.mkEnableOption "Machine is virtual";
           iso = lib.mkEnableOption "Machine is intended to be used as an ISO image";
           develop = lib.mkEnableOption "Machine is intended to be used as a Development system";
           theater = lib.mkEnableOption "Machine is intended to be used as a Theater system";
