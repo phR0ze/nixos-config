@@ -24,6 +24,13 @@
       '';
     in builtins.readFile msg;
 
+  # Convert the given json file into nix attribute set
+  #-------------------------------------------------------------------------------------------------
+  # Usage:
+  # local_args = f.fromJSON ./args.dec.json;
+  fromJSON = jsonFile:
+    builtins.fromJSON (builtins.readFile jsonFile);
+
   # Convert the given yaml file into nix attribute set
   #-------------------------------------------------------------------------------------------------
   # Usage:

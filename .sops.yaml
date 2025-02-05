@@ -1,7 +1,7 @@
 keys:
   - &primary age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
 creation_rules:
-  - path_regex: \.(dec|enc)\.(pem|yaml)$
+  - path_regex: \.(dec|enc)\.(pem|yaml|json)$
     key_groups:
       - age:
         - *primary

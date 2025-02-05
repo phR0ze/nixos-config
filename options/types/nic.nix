@@ -10,6 +10,16 @@
       default = "";
     };
 
+    link = lib.mkOption {
+      description = lib.mdDoc ''
+        NIC link name. Useful for containers and VMs when creating a macvlan on the host bridge 
+        e.g.'br0' which would be the link name in this case";
+      '';
+      type = types.str;
+      example = "br0";
+      default = "";
+    };
+
     subnet = lib.mkOption {
       description = lib.mdDoc "Network subnet/CIDR";
       type = types.str;
@@ -68,7 +78,7 @@
     };
 
     port = lib.mkOption {
-      description = lib.mdDoc "Primary port";
+      description = lib.mdDoc "Primary port for the service if set";
       type = types.port;
       example = 80;
     };
