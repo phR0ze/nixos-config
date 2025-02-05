@@ -20,7 +20,7 @@ in
   ];
 
   # Set the original Nix base version we installed with to ignore the warnings
-  system.stateVersion = config.machine.nix.base;
+  system.stateVersion = config.machine.nix.minVer;
 
   programs.neovim.enable = true;
   services.openssh.enable = true;

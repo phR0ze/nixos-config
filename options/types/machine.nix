@@ -34,7 +34,7 @@ in
         };
       };
       default = {
-        iso = if (!builtins.hasAttr "iso_mode" _args || _args.iso_mode == null || !_args.iso_mode)
+        iso = if (!builtins.hasAttr "type.iso" _args || _args.type.iso == null || !_args.type.iso)
           then false else true;
       };
     };
@@ -132,7 +132,7 @@ in
       description = lib.mdDoc "Display resolution";
       type = types.attrs;
       default = {
-        x = if (!builtins.hasAttr "resolution_x" _args || _args.resolution_x == null || _args.resolution_x == 0)
+        x = if (!builtins.hasAttr "resolutionx" _args || _args.resolution_x == null || _args.resolution_x == 0)
           then 0 else _args.resolution_x;
         y = if (!builtins.hasAttr "resolution_y" _args || _args.resolution_y == null || _args.resolution_y == 0)
           then 0 else _args.resolution_y;
@@ -164,8 +164,8 @@ in
         };
       };
       default = {
-        base = if (!builtins.hasAttr "nix_base" _args || _args.nix_base == null || _args.nix_base == "")
-          then "24.05" else _args.nix_base;
+        minVer = if (!builtins.hasAttr "nix_min_ver" _args || _args.nix_min_ver == null || _args.nix_min_ver == "")
+          then "24.05" else _args.nix_min_ver;
         cache = {
           enable = if (!builtins.hasAttr "nix_cache_enable" _args || _args.nix_cache_enable == null)
             then false else _args.nix_cache_enable;
@@ -419,7 +419,7 @@ in
 #        { assertion = (cfg.autologin == true); message = "machine.autologin: ${f.boolToStr cfg.autologin}"; }
 #        { assertion = (cfg.resolution.x == 0); message = "machine.resolution.x: ${toString cfg.resolution.x}"; }
 #        { assertion = (cfg.resolution.y == 0); message = "machine.resolution.y: ${toString cfg.resolution.y}"; }
-#        { assertion = (cfg.nix_base == "24.05"); message = "machine.nix_base: ${cfg.nix_base}"; }
+#        { assertion = (cfg.nix_min_ver == "25.05"); message = "machine.nix_min_ver: ${cfg.nix_min_ver}"; }
 #        { assertion = (builtins.length cfg.drives == 3); message = "drives: ${toString (builtins.length cfg.drives)}"; }
 #        { assertion = ((builtins.elemAt cfg.drives 0).uuid == ""); message = "drives: ${(builtins.elemAt cfg.drives 0).uuid}"; }
 #

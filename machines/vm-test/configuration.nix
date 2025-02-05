@@ -3,7 +3,7 @@
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let
   cfg = config.machine;
-  _args = args // (f.fromYAML ./args.dec.yaml);
+  _args = args // (f.fromJSON ./args.dec.yaml);
 in
 {
   imports = [

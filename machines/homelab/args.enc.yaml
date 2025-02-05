@@ -1,6 +1,9 @@
-nic0_ip: ENC[AES256_GCM,data:IYE200Bol46F8fmQcVmg,iv:45eBNnTjjqzohOOGl4hV+WLaw0aMGcHn5IPrUPmXNGU=,tag:0pvThXaf8GhLgDW8rmUL7Q==,type:str]
+nic0_ip: ENC[AES256_GCM,data:xm3+5AJ8VNQGxkS8DFSi,iv:0JNPeAIXJjql8qHObVdmD/YARrQcPSQta6FokOY3b4g=,tag:amaPFkGCGr2VaFZlnEhnMQ==,type:str]
 drives:
     - uuid: ENC[AES256_GCM,data:4ZlXKm0P4+sZdwPOW3dAlnlIdpyJKpd8bFU13jX0WFtriOsc,iv:OW/inwi38VfAZ41IflLnaqAkSx3Zb5gbRXZz47m3mWs=,tag:dx8pUj8t0YQWjEzhG/AKcA==,type:str]
+services:
+    - stirling-pdf:
+        ip: ENC[AES256_GCM,data:W10r5VbdGfj0Jkf2i9A8,iv:EQnvey2BSgaFt7CrOsSIC+robZVBKnJ4P1IoaXrrdP0=,tag:FdmOn7J0Uz+Y87eNPjNuGA==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -16,8 +19,8 @@ sops:
             OWxmbVd3R0tITXBERWsvUFRYSlNWekEK087/CcZzPCKsq+g3H7moc6Dm5E0vATRe
             ZuMXRk6JeJvpX6aIeYIMgVal4SzFRUCz2x2V7LTIIJ8Q3MMF3hTvsQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-01-16T00:40:20Z"
-    mac: ENC[AES256_GCM,data:kooKJQZmaZEJjuaeZAlk8Ojg6Tll7z226kE+HFXFH0NIw8q1ahNXwvkmE5tceJgmhPet8TX8+O9bC2jsCHMzv4Ikjf6IG857a8qZdTanIQqcO2ck441GGVZNK2+Wsmqo6v3s4vx04CPF7u/IwP7JU1H6N3zeKXoyuQXsg7ttc0M=,iv:9/S0q0zUDnIw8S2ylS0RrxrgkirRFjIPO2A/VE7aXt8=,tag:FQwbOHzpt/zlTkOED+UFgA==,type:str]
+    lastmodified: "2025-02-04T21:27:09Z"
+    mac: ENC[AES256_GCM,data:OnH4Vtzo55dlLSyBrmtGKdJZIUwlyA5vMmPNMVa0QymO0vCXUO8ifOZWRdetm5cvk74i91bEd9zQP5e1BKzngBgHai3rFh35yd1SvDjH7gaadYJteaEKbPQ8gl+YFNugZRy1YGecFUvzTcxRx4eNiUj44URNB9Z+FHrlE/D1JC0=,iv:62yvMO+7yZnHWlWcXI8jwXNFqNFoljj6bTIEZRVS584=,tag:Q5L8XtkVOjTsUT5+Ydd3tA==,type:str]
     pgp: []
     unencrypted_suffix: _unencrypted
     version: 3.9.2

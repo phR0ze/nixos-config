@@ -43,69 +43,57 @@ that the machine is the target. This consists of:
 The `args.nix` and `args.enc.yaml` argument files provide an mechanism to keep simple customization 
 separate from the actual configuartion to allow for better reuse across my different machines.
 
-### General configuration
-| Argument          | Type  | Default         | Description
-| ----------------- | ----- | --------------- | --------------------------------------
-| `hostname`        | str   | `nixos`         | Hostname for the machine
-| `iso_mode`        | bool  | `false`         | Enable or disable ISO mode
-| `profile`         | str   | `xfce/desktop`  | Pre-defined configurations in path './profiles' selection
-| `efi`             | bool  | `false`         | EFI system boot type set during installation
-| `mbr`             | str   | `nodev`         | MBR system boot device set during installation, e.g. `/dev/sda`
-| `arch`            | str   | `x86_64-linux`  | System architecture to use
-| `locale`          | str   | `en_US.UTF-8`   | Locale selection
-| `timezone`        | str   | `America/Boise` | Time-zone selection
-| `bluetooth`       | bool  | `false`         | Enable or disable bluetooth by default
-| `autologin`       | bool  | `false`         | Automatically log the user in or not after boot
-| `resolution_x`    | int   | `0`             | Resolution x dimension, e.g. 1920
-| `resolution_y`    | int   | `0`             | Resolution y dimension, e.g. 1080
+### Configuration
+| Argument                | Type  | Default         | Description
+| ----------------------- | ----- | --------------- | --------------------------------------
+| `hostname`              | str   | `nixos`         | Hostname for the machine
+| `profile`               | str   | `xfce/desktop`  | Pre-defined configurations in path './profiles' selection
+| `efi`                   | bool  | `false`         | EFI system boot type set during installation
+| `mbr`                   | str   | `nodev`         | MBR system boot device set during installation, e.g. `/dev/sda`
+| `arch`                  | str   | `x86_64-linux`  | System architecture to use
+| `locale`                | str   | `en_US.UTF-8`   | Locale selection
+| `timezone`              | str   | `America/Boise` | Time-zone selection
+| `bluetooth`             | bool  | `false`         | Enable or disable bluetooth by default
+| `autologin`             | bool  | `false`         | Automatically log the user in or not after boot
+| `type.iso`              | bool  | `false`         | Enable or disable ISO mode
+| `resolution.x`          | int   | `0`             | Resolution x dimension, e.g. 1920
+| `resolution.y`          | int   | `0`             | Resolution y dimension, e.g. 1080
+| `nix.minVer `           | str   | `25.05`         | Nixpkgs minimum version
+| `subnet`                | str   |                 | Default subnet to use for machine e.g. `192.168.1.0/24`
+| `gateway`               | str   |                 | Default gateway to use for machine e.g. `192.168.1.1`
+| `dns.primary`           | str   | `1.1.1.1`       | Default primary DNS to use for machine e.g. `1.1.1.1`
+| `dns.fallback`          | str   | `8.8.8.8`       | Default fallback DNS to use for machine e.g. `8.8.8.8`
+| `drives`                | list  | [ ]             | List of drive objects
+| `drives[x].uuid`        | str   |                 | Drive identifier used in `hardware-configuration.nix`
+| `nics`                  | list  | [ ]             | List of NIC objects
+| `nics[x].id`            | str   |                 | NIC identifier e.g. primary
+| `nics[x].ip`            | str   |                 | IP address to use for this NIC else DHCP, e.g. 192.168.1.12/24
+| `nics[x].subnet`        | str   |                 | Subnet to use for this NIC e.g. `192.168.1.0/24`
+| `nics[x].gateway`       | str   |                 | Gateway to use for this NIC e.g. `192.168.1.1`
+| `nics[x].dns.primary`   | str   |                 | Primary DNS to use for this NIC e.g. `1.1.1.1`
+| `nics[x].dns.fallback`  | str   |                 | Fallback DNS to use for this NIC e.g. `8.8.8.8`
+| `user.name`             | str   | `admin`         | User's user name
+| `user.pass`             | str   | `admin`         | User's user name
+| `user.fullname`         | str   |                 | User's fullname 
+| `user.email`            | str   |                 | User's email address
+| `git.user`              | str   |                 | Git user name to use as global configuration
+| `git.email`             | str   |                 | Git email to use as global configuration
+| `git.comment`           | str   |                 | Commit message for simple version tracking
 
-### Drives configuration
-`drives` is a list of drive type each of which has the following properties
-| `uuid`            | str   |                 | Drive identifier used in `hardware-configuration.nix`
-
-### Services configuration
-| Argument          | Type  | Default         | Description
-| ----------------- | ----- | --------------- | --------------------------------------
-| `nix_base`        | str   | `24.05`         | Base install version, not sure this matters
-| `nix_cache_enable`| str   |                 | IP of the local Nix Binary Cache
-| `nix_cache_ip`    | str   |                 | IP of the local Nix Binary Cache
-| `nfs_enable`      | bool  | `false`         | Enable pre-configured nfs shares for this system
-| `nfs_entries`     | list  | [ ]             | List of nfs entries
-| `smb_enable`      | bool  | `false`         | Enable pre-configured nfs shares for this system
-| `smb_user`        | str   |                 | Default SMB user if override not given
-| `smb_pass`        | str   |                 | Default SMB pass if override not given
-| `smb_domain`      | str   |                 | Default SMB domain/workgroup if override not given
-| `smb_entries`     | list  | [ ]             | List of SMB entries
-| `mountPoint`      | str   |                 | Share entry mount point e.g. `/mnt/Media`
-| `remotePath`      | str   |                 | Share remote path e.g. `192.168.1.2:/srv/nfs/Media` 
-
-### User configuration
-| Argument          | Type  | Default         | Description
-| ----------------- | ----- | --------------- | --------------------------------------
-| `user_fullname`   | str   |                 | User's fullname 
-| `user_email`      | str   |                 | User's email address
-| `user_name`       | str   | `admin`         | User's user name
-
-### Git configuration
-| Argument          | Type  | Default         | Description
-| ----------------- | ----- | --------------- | --------------------------------------
-| `git_user`        | str   |                 | Git user name to use as global configuration
-| `git_email`       | str   |                 | Git email to use as global configuration
-| `git_comment`     | str   |                 | Commit message for simple version tracking
-
-### Network configuration
-| Argument          | Type  | Default         | Description
-| ----------------- | ----- | --------------- | --------------------------------------
-| `nic0_name`       | str   |                 | First NIC found in hardware-configuration.nix
-| `nic0_ip`         | str   |                 | IP address for nic 0 if given else DHCP, e.g. 192.168.1.12/24
-| `nic0_subnet`     | str   |                 | Subnet to use for machine e.g. `192.168.1.0/24`
-| `nic0_gateway`    | str   |                 | Gateway to use for machine e.g. `192.168.1.1`
-| `nic1_name`       | str   |                 | Second NIC found in hardware-configuration.nix
-| `nic1_ip`         | str   |                 | IP address for nic 0 if given else DHCP, e.g. 192.168.1.12/24
-| `nic1_subnet`     | str   |                 | Subnet to use for machine e.g. `192.168.1.0/24`
-| `nic1_gateway`    | str   |                 | Gateway to use for machine e.g. `192.168.1.1`
-| `dns_primary`     | str   | `1.1.1.1`       | Primary DNS to use for machine e.g. `1.1.1.1`
-| `dns_fallback`    | str   | `8.8.8.8`       | Fallback DNS to use for machine e.g. `8.8.8.8`
+### Services Configuration
+| Argument                | Type  | Default         | Description
+| ----------------------- | ----- | --------------- | --------------------------------------
+| `nix.cache.enable`      | str   |                 | IP of the local Nix Binary Cache
+| `nix.cache.ip`          | str   |                 | IP of the local Nix Binary Cache
+| `nfs.enable`            | bool  | `false`         | Enable pre-configured nfs shares for this system
+| `nfs.entries`           | list  | [ ]             | List of nfs entries
+| `smb.enable`            | bool  | `false`         | Enable pre-configured nfs shares for this system
+| `smb.user`              | str   |                 | Default SMB user if override not given
+| `smb.pass`              | str   |                 | Default SMB pass if override not given
+| `smb.domain`            | str   |                 | Default SMB domain/workgroup if override not given
+| `smb.entries`           | list  | [ ]             | List of SMB entries
+| `smb.e..[x].mountPoint` | str   |                 | Share entry mount point e.g. `/mnt/Media`
+| `smb.e..[x].remotePath` | str   |                 | Share remote path e.g. `192.168.1.2:/srv/nfs/Media` 
 
 <!-- 
 vim: ts=2:sw=2:sts=2
