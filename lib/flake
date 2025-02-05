@@ -66,8 +66,8 @@ flake::switch()
     # - Using relative path here on purpose
     ln -sf "machines/$MACHINE/configuration.nix" configuration.nix
     git add configuration.nix -f
-    git add "args.dec.yaml" -f
-    git add "machines/$MACHINE/args.dec.yaml" -f
+    git add "args.dec.json" -f
+    git add "machines/$MACHINE/args.dec.json" -f
 }
 
 # Restore the standard flake files back to prestine in git
