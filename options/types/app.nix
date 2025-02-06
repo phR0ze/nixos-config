@@ -10,29 +10,26 @@ in
 {
   options = {
     name = lib.mkOption {
-      description = lib.mdDoc "App name to use for supporting components";
+      description = lib.mdDoc "App name";
       type = types.str;
     };
 
     user = lib.mkOption {
-      description = lib.mdDoc "User options for the containerized app";
+      description = lib.mdDoc "User options for app";
       type = types.submodule user;
       default = { };
     };
 
     nic = lib.mkOption {
-      description = lib.mdDoc "NIC options for the containerized app";
+      description = lib.mdDoc "NIC options for app";
       type = types.submodule nic;
       default = { };
     };
 
-    configure = lib.mkOption {
-      description = lib.mdDoc ''
-        Configure the app with preset configuration. This flag can be used to disable any
-        preset configuration to boot the app in its default state. Useful for debugging.
-      '';
-      type = types.bool;
-      default = true;
+    port = lib.mkOption {
+      description = lib.mdDoc "App port to use";
+      type = types.int;
+      default = 80;
     };
   };
 }

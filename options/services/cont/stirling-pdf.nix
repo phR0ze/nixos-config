@@ -1,7 +1,7 @@
 # Stirling PDF configuration
 # - https://docs.stirlingpdf.com/
 # - https://github.com/Stirling-Tools/Stirling-PDF
-# - https://docs.stirlingpdf.com/Getting%20started/Installation/Docker/Docker%20Install
+# - [Environment vars](https://github.com/Stirling-Tools/Stirling-PDF#customisatio)
 #
 # ### Description
 # Stirling PDF is a robust, locally hosted web-based PDF manipulation tool. It enables you to carry 
@@ -20,10 +20,11 @@
 # - App is visiable on the LAN, with a dedicated host macvlan and static IP, for inbound connections
 # - App data is persisted at /var/lib/$APP
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
+  machine = config.machine;
   cfg = config.services.cont.stirling-pdf;
-  appOpts = (import ../types/app.nix { inherit lib; }).appOpts;
+  appOpts = import ../../types/app.nix { inherit lib; };
 in
 {
   options = {
@@ -41,10 +42,10 @@ in
             gid = config.users.groups."users".gid;
           };
           nic = {
-            link = config.networking.vnic0;
-            ip = "192.168.1.57";
-            port = 80;
+            link = machine.net.bridge.name;
+            ip = { full = "192.168.1.51/24"; attrs = { address = ""; prefixLength = 24; }; };
           };
+          port = 80;
         };
       };
     };
@@ -52,27 +53,36 @@ in
  
   config = lib.mkIf cfg.enable {
     assertions = [
-      { assertion = (!config.networking.bridge.enable);
-        message = "Requires 'networking.bridge.enable = true;' to work correctly"; }
+      { assertion = (machine.net.bridge.enable);
+        message = "Requires 'machine.net.bridge.enable = true;' to work correctly"; }
       { assertion = (cfg.app.nic.link != "");
-        message = "Requires 'services.cont.${cfg.app.name}.app.nic.link' be set"; }
+        message = "Requires 'app.nic.link' be set to the bridge name"; }
+      { assertion = (cfg.app.nic.ip.full != "");
+        message = "Requires 'app.nic.ip.full' be set to a static IP address"; }
     ];
 
     containers.stirling-pdf = {
       autoStart = true;                     # Enable the systemd unit to be started on boot
       privateNetwork = true;                # Bind to local host bridge to get a presence on the LAN
-      hostBridge = app.nic.link;            # Host bridge name to bind to e.g. br0
-      localAddress = "192.168.1.51/24";     # Static IP for the virtual adapter on the bridge
+      hostBridge = cfg.app.nic.link;        # Host bridge name to bind to e.g. br0
+      localAddress = cfg.app.nic.ip.full;   # Static IP for the virtual adapter on the bridge
 
       config = { config, pkgs, lib, ...}: {
         system.stateVersion = machine.nix.minVer;
 
         services.stirling-pdf = {
           enable = true;
+          environment = {
+            SERVER_PORT = cfg.app.port;                   # set the port to serve the app on
+            METRICS_ENABLED = "false";                    # no need to track with homelab
+            SYSTEM_ENABLEANALYTICS = "false";             # not a fan of being tracked
+            DOCKER_ENABLE_SECURITY = "false";             # don't need to login with homelab
+            INSTALL_BOOK_AND_ADVANCED_HTML_OPS = "false"; # installs calibre when true
+          };
         };
 
-        networking.firewall.enable = false;
-        #networking.firewall.interfaces."${app.name}".allowedTCPPorts = [ app.nic.port ];
+        # Allow the server port through the firewall
+        networking.firewall.allowedTCPPorts = [ cfg.app.port ];
       };
     };
   };

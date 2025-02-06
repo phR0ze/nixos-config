@@ -26,6 +26,8 @@ in
     services.cache.host = true;
     services.x11vnc.enable = lib.mkForce false;
 
+    services.cont.stirling-pdf.enable = true;
+
     networking.firewall.enable = false;
   };
 }
