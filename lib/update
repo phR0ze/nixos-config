@@ -108,12 +108,10 @@ update::system()
     log::header1 "Update system version"
 
     # Set additional flags as specified
-    local impure=""
     local reset_xfce=0
     while [ $# -gt 0 ]; do
         local arg=$1; shift
         case "$arg" in
-            --impure*) impure=1 ;;
             --reset-xfce*) reset_xfce=1 ;;
             *) MACHINE="$arg" ;;
         esac
@@ -129,11 +127,8 @@ update::system()
         _update::removeUserXfceConfigs
     fi
 
-    # Pass along the impure param if given
-    [[ $impure == 1 ]] && impure="--impure"
-
     # Execute update
-    nixos-rebuild switch $impure --flake "path:/etc/nixos#target"
+    nixos-rebuild switch $IMPURE --flake "path:/etc/nixos#target"
 }
 
 # Pre update operations

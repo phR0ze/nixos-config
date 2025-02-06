@@ -19,10 +19,11 @@ build::usage()
 {
     cat <<USAGE
 Usage:
-  build [COMMAND] [ARGS...] [OPTIONS] 
+  build [MACHINE|COMMAND] [ARGS...] [OPTIONS] 
 
 Options:
   -h, --help            Print out usage
+  --impure              Pass impure into the system update
 
 Commands:
   iso [PROFILE]         Build the installable ISO with an optional profile override
@@ -30,7 +31,8 @@ Commands:
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "Build host target: ${green}./${SCRIPT} build${none}"
+    log::subln "Build host machine: ${green}./${SCRIPT} build${none}"
+    log::subln "Build given machine: ${green}./${SCRIPT} build macbook${none}"
     log::subln "Build the test VM: ${green}./${SCRIPT} build vm${none}"
     log::subln "Build the prod1 VM: ${green}./${SCRIPT} build vm prod1${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
@@ -43,20 +45,14 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 build::run()
 {
-    # Use hostname to build target
-    if [[ "$1" == "" ]]; then
-        build::machine $(hostname)
-        exit 0
-    fi
+    utils::help "$@" zero "build::usage"
 
-    utils::help "$@" "build::usage"
-
-    # Process the given command
-    local command=$1; shift
-    case "$command" in
+    # Process the given argument
+    local arg=$1; shift
+    case "$arg" in
         iso) build::iso "$@" ;;
         vm) build::vm "$@" ;;
-        *) log::error "Invalid build command: ${cyan}${command}${none}"; echo; build::usage ;;
+        *) build::machine "$arg" ;;
     esac
 }
  
@@ -67,15 +63,15 @@ build::machine()
 {
     core::preamble
 
-    local machine="${1}"
+    # Use hostname as machine
+    MACHINE="$1"
+    [[ "$1" == "" ]] && MACHINE="$(hostname)"
 
-    log::header1 "Building ${cyan}${machine}${none}"
-    flake::switch "$machine"
+    log::header1 "Building ${cyan}${MACHINE}${none}"
+    flake::switch "$MACHINE"
     trap flake::restore EXIT
 
-    nix build .#nixosConfigurations.target.config
-    #nix build .#nixosConfigurations.target.config.system.build.vm
-    #nixos-rebuild switch $impure --flake "path:/etc/nixos#target"
+    nixos-rebuild dry-activate $IMPURE --flake "path:.#target"
 }
 
 
