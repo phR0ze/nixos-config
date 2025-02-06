@@ -3,12 +3,13 @@
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let
   cfg = config.machine;
-  _args = args // (f.fromYAML ./args.dec.yaml);
+  _args = lib.recursiveUpdate args (f.fromJSON ./args.dec.json);
 in
 {
   imports = [
     ../../profiles/xfce/desktop.nix
     ../../options/virtualisation/qemu/guest.nix
+    ../../options/types/validate_machine.nix
   ];
 
   options = {
