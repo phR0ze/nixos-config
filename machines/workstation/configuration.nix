@@ -24,9 +24,7 @@ in
   };
 
   config = {
-    machine.enable = true;
-
-    # Hardware
+    machine.type.bootable = true;
     hardware.graphics.amd = true;
 
     # Services
