@@ -3,11 +3,12 @@
 { inputs, config, pkgs, lib, args, f, ... }: with lib.types;
 let
   cfg = config.machine;
-  _args = args // (import ./args.nix) // (f.fromYAML ./args.dec.yaml);
+  _args = lib.recursiveUpdate args (lib.recursiveUpdate (import ./args.nix) (f.fromJSON ./args.dec.json));
 in
 {
   imports = [
     ./hardware-configuration.nix
+    ../../options/types/validate_machine.nix
     inputs.nixos-hardware.nixosModules.apple-t2
     (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
@@ -20,7 +21,7 @@ in
   };
 
   config = {
-    machine.enable = true;
+    machine.type.bootable = true;
     virtualisation.qemu.host.enable = true;
     services.x11vnc.enable = lib.mkForce false;
 

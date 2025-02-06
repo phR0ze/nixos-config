@@ -30,9 +30,9 @@ Commands:
 USAGE
 
     log::ln "\nExamples:"
+    log::subln "Build host target: ${green}./${SCRIPT} build${none}"
     log::subln "Build the test VM: ${green}./${SCRIPT} build vm${none}"
     log::subln "Build the prod1 VM: ${green}./${SCRIPT} build vm prod1${none}"
-    log::subln "Build spice VM: ${green}./${SCRIPT} build vm generic/server --service=true --hostname=nixos70 --ip=192.168.1.70/24 --spice=true --spicePort=5971 --diskSize=1${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso generic/light${none}"
     echo
@@ -43,8 +43,15 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 build::run()
 {
+    # Use hostname to build target
+    if [[ "$1" == "" ]]; then
+        build::machine $(hostname)
+        exit 0
+    fi
+
     utils::help "$@" "build::usage"
 
+    # Process the given command
     local command=$1; shift
     case "$command" in
         iso) build::iso "$@" ;;
@@ -53,6 +60,25 @@ build::run()
     esac
 }
  
+# Build the target machine
+# - $1 - the machine name to target
+# --------------------------------------------------------------------------------------------------
+build::machine()
+{
+    core::preamble
+
+    local machine="${1}"
+
+    log::header1 "Building ${cyan}${machine}${none}"
+    flake::switch "$machine"
+    trap flake::restore EXIT
+
+    nix build .#nixosConfigurations.target.config
+    #nix build .#nixosConfigurations.target.config.system.build.vm
+    #nixos-rebuild switch $impure --flake "path:/etc/nixos#target"
+}
+
+
 # Build the installable iso
 # --------------------------------------------------------------------------------------------------
 # https://releases.nixos.org/
@@ -76,7 +102,7 @@ build::iso()
 
 # Build the vm
 # - $1 - optional machine name to target
-# - $2 - optional no preamble flage
+# - $2 - optional no preamble flag
 # --------------------------------------------------------------------------------------------------
 build::vm()
 {
