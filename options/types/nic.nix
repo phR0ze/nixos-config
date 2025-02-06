@@ -49,15 +49,20 @@
             description = lib.mdDoc "Full IP and CIDR combination";
             type = types.str;
             example = "192.168.1.41/24";
+            default = "";
           };
           attrs = lib.mkOption {
             description = lib.mdDoc "Attribute set version of the IP";
             type = types.attrs;
             example = { address = "192.168.1.41"; prefixLength = 24; };
+            default = { address = ""; prefixLength = 24; };
           };
         };
       };
-      default = {};
+      default = {
+        ip = "";
+        attrs = { address = ""; prefixLength = 24; };
+      };
     };
 
     dns = lib.mkOption {
@@ -68,15 +73,20 @@
             description = lib.mdDoc "Primary DNS IP";
             type = types.str;
             example = "1.1.1.1";
+            default = "";
           };
           fallback = lib.mkOption {
             description = lib.mdDoc "Fallback DNS IP";
             type = types.str;
             example = "8.8.8.8";
+            default = "";
           };
         };
       };
-      default = {};
+      default = {
+        primary = "";
+        fallback = "";
+      };
     };
   };
 }

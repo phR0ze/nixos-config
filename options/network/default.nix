@@ -17,21 +17,8 @@ let
   cfg = config.machine;
 
   # Extract the primary nic if it exists
-  #filtered = builtins.filter (x: x.name == "primary") cfg.nics;
-  #nic0 = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else null;
-  nic0 = {
-    id = "";
-    subnet = "";
-    gateway = "";
-    ip = {
-      full = "";
-      attrs = { address = ""; prefixLength = 24; };
-    };
-    dns = {
-      primary = "1.1.1.1";
-      fallback = "8.8.8.8";
-    };
-  };
+  filtered = builtins.filter (x: x.name == "primary") cfg.nics;
+  nic0 = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
 in
 {
   imports = [
@@ -54,74 +41,76 @@ in
 
   config = lib.mkMerge [
 
-#    # Configure basic networking
-#    # ----------------------------------------------------------------------------------------------
-#    {
-#      networking.enableIPv6 = false;
-#      networking.hostName = cfg.hostname;
-#      networking.firewall = {
-#        allowPing = true;
-#      };
-#    }
-#    (lib.mkIf (cfg.net.bridge.enable) {
-#      networking.primary = cfg.net.bridge.name;
-#    })
-#
-#    # Configure DNS. resolved works well with network manager
-#    # ----------------------------------------------------------------------------------------------
-#    {
-#      services.resolved = {
-#        enable = true;
-#        dnssec = "allow-downgrade"; # using `true` will break DNS if VPN DNS servers don't support
-#      };
-#    }
-#    (f.mkIfElse (cfg.net.dns.primary != "" && cfg.net.dns.fallback != "") {
-#      networking.nameservers = [ "${cfg.net.dns.primary}" ];
-#      services.resolved.fallbackDns = [ "${cfg.net.dns.fallback}" ];
-#    } (lib.mkIf (cfg.net.dns.primary != "") {
-#      networking.nameservers = [ "${cfg.net.dns.primary}" ];
-#    }))
-#
-#    # Configure network bridge
-#    # ----------------------------------------------------------------------------------------------
-#    (f.mkIfElse (cfg.net.bridge.enable) (lib.mkMerge [
-#      {
-#        assertions = [ { assertion = (nic0.id != ""); message = "NIC identifier was not specified"; } ];
-#        networking.useDHCP = false;
-#        networking.bridges."${cfg.net.bridge.name}".interfaces = [ "${nic0.id}" ];
-#      }
-#
-#      # Configure static IP or DHCP for the bridge
-#      (f.mkIfElse (nic0.ip.full != "") {
-#        networking.interfaces."${cfg.net.bridge.name}".ipv4.addresses = [ nic0.ip.attrs ];
-#        networking.defaultGateway = "${nic0.gateway}";
-#      } {
-#        networking.interfaces."${cfg.net.bridge.name}".useDHCP = true;
-#      })
-#
-#      # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
-#      # interacted with by every device on the LAN except the host due to local virtual oddities
-#      {
-#        networking.macvlans."${cfg.net.macvlan.name}" = {
-#          interface = "${cfg.net.bridge.name}";
-#          mode = "bridge";
-#        };
-#      }
-#      (f.mkIfElse (cfg.net.macvlan.ip == "") {
-#        networking.interfaces."${cfg.net.macvlan.name}".useDHCP = true;
-#      } {
-#        networking.interfaces."${cfg.net.macvlan.name}".ipv4.addresses = [
-#          { address = "${cfg.net.macvlan.ip}"; prefixLength = 32; }
-#        ];
-#      })
-#
-#    # Otherwise configure primary NIC with static IP/DHCP
-#    # ----------------------------------------------------------------------------------------------
-#    ]) (f.mkIfElse (nic0.ip.full != "") {
-#      networking.interfaces."${nic0.id}".ipv4.addresses = [ nic0.ip.attrs ];
-#      networking.defaultGateway = "${nic0.gateway}";
-#    } {
-#      # Finally fallback on DHCP for the primary NIC
-#    }))
+    # Configure basic networking
+    # ----------------------------------------------------------------------------------------------
+    {
+      networking.enableIPv6 = false;
+      networking.hostName = cfg.hostname;
+      networking.firewall.allowPing = true;
+    }
+    (lib.mkIf (cfg.net.bridge.enable) {
+      networking.primary = cfg.net.bridge.name;
+    })
+
+    # Configure DNS. resolved works well with network manager
+    # ----------------------------------------------------------------------------------------------
+    {
+      services.resolved = {
+        enable = true;
+        dnssec = "allow-downgrade"; # using `true` will break DNS if VPN DNS servers don't support
+      };
+    }
+    (f.mkIfElse (cfg.net.dns.primary != "" && cfg.net.dns.fallback != "") {
+      networking.nameservers = [ "${cfg.net.dns.primary}" ];
+      services.resolved.fallbackDns = [ "${cfg.net.dns.fallback}" ];
+    } (lib.mkIf (cfg.net.dns.primary != "") {
+      networking.nameservers = [ "${cfg.net.dns.primary}" ];
+    }))
+
+    # Configure network bridge
+    # ----------------------------------------------------------------------------------------------
+    (f.mkIfElse (cfg.net.bridge.enable) (lib.mkMerge [
+      {
+        assertions = [ { assertion = (nic0 ? "id"); message = "NIC id was not specified"; } ];
+
+        networking.useDHCP = false;
+        networking.bridges."${cfg.net.bridge.name}".interfaces = ["${nic0.id}" ];
+      }
+
+      # Configure static IP or DHCP for the bridge
+      (f.mkIfElse (nic0.ip.full != "") {
+        networking.interfaces."${cfg.net.bridge.name}".ipv4.addresses = [ nic0.ip.attrs ];
+        networking.defaultGateway = "${nic0.gateway}";
+      } {
+        networking.interfaces."${cfg.net.bridge.name}".useDHCP = true;
+      })
+
+      # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
+      # interacted with by every device on the LAN except the host due to local virtual oddities
+      {
+        networking.macvlans."${cfg.net.macvlan.name}" = {
+          interface = "${cfg.net.bridge.name}";
+          mode = "bridge";
+        };
+      }
+      (f.mkIfElse (cfg.net.macvlan.ip == "") {
+        networking.interfaces."${cfg.net.macvlan.name}".useDHCP = true;
+      } {
+        networking.interfaces."${cfg.net.macvlan.name}".ipv4.addresses = [
+          { address = "${cfg.net.macvlan.ip}"; prefixLength = 32; }
+        ];
+      })
+
+    # Otherwise configure primary NIC with static IP/DHCP
+    # ----------------------------------------------------------------------------------------------
+    ]) (f.mkIfElse (nic0 ? "ip" && nic0.ip ? "full" && nic0.ip.full != "") {
+      assertions = [ { assertion = (nic0 ? "id"); message = "NIC id was not specified"; } ];
+      assertions = [ { assertion = (nic0 ? "gateway"); message = "NIC gateway was not specified"; } ];
+
+      networking.interfaces."${nic0.id}".ipv4.addresses = [ nic0.ip.attrs ];
+      networking.defaultGateway = "${nic0.gateway}";
+    } {
+      # Finally fallback on DHCP for the primary NIC
+    }))
   ];
 }
