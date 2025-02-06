@@ -71,14 +71,20 @@ in
     # ----------------------------------------------------------------------------------------------
     (f.mkIfElse (cfg.net.bridge.enable) (lib.mkMerge [
       {
-        assertions = [ { assertion = (nic0 ? "id"); message = "NIC id was not specified"; } ];
-
+        assertions = [
+          { assertion = (cfg.net.bridge.name != ""); message = "Bridge name was not specified"; }
+          { assertion = (cfg.net.macvlan.name != ""); message = "Macvlan name was not specified"; }
+          { assertion = (nic0 ? "id" && nic0.id != ""); message = "NIC id was not specified"; } 
+        ];
         networking.useDHCP = false;
         networking.bridges."${cfg.net.bridge.name}".interfaces = ["${nic0.id}" ];
       }
 
       # Configure static IP or DHCP for the bridge
       (f.mkIfElse (nic0.ip.full != "") {
+        assertions = [
+          { assertion = (nic0 ? "gateway" && nic0.gateway != ""); message = "NIC gateway was not specified"; } 
+        ];
         networking.interfaces."${cfg.net.bridge.name}".ipv4.addresses = [ nic0.ip.attrs ];
         networking.defaultGateway = "${nic0.gateway}";
       } {
@@ -104,8 +110,10 @@ in
     # Otherwise configure primary NIC with static IP/DHCP
     # ----------------------------------------------------------------------------------------------
     ]) (f.mkIfElse (nic0 ? "ip" && nic0.ip ? "full" && nic0.ip.full != "") {
-      assertions = [ { assertion = (nic0 ? "id"); message = "NIC id was not specified"; } ];
-      assertions = [ { assertion = (nic0 ? "gateway"); message = "NIC gateway was not specified"; } ];
+      assertions = [
+        { assertion = (nic0 ? "id"); message = "NIC id was not specified"; }
+        { assertion = (nic0 ? "gateway"); message = "NIC gateway was not specified"; }
+      ];
 
       networking.interfaces."${nic0.id}".ipv4.addresses = [ nic0.ip.attrs ];
       networking.defaultGateway = "${nic0.gateway}";
