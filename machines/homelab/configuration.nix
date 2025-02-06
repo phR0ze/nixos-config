@@ -3,7 +3,7 @@
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let
   cfg = config.machine;
-  _args = args // (import ./args.nix) // (f.fromJSON ./args.dec.json);
+  _args = lib.recursiveUpdate args (lib.recursiveUpdate (import ./args.nix) (f.fromJSON ./args.dec.json));
 in
 {
   imports = [
