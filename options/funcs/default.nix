@@ -13,17 +13,6 @@
   # Convert a bool into an integer then to a string
   boolToIntStr = x: if x then "1" else "0";
 
-  # Retrieve the commit message for the system version message
-  #-------------------------------------------------------------------------------------------------
-  # Usage:
-  # local_args = f.gitMessage ./.;
-  gitMessage = path:
-    let
-      msg = pkgs.runCommandLocal "git-msg" { nativeBuildInputs = [ pkgs.git ]; } ''
-        git -c safe.directory='*' -C ${path} log -1 --pretty="%h: %B" > $out
-      '';
-    in builtins.readFile msg;
-
   # Convert the given json file into nix attribute set
   #-------------------------------------------------------------------------------------------------
   # Usage:

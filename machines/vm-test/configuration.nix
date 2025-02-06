@@ -3,13 +3,14 @@
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let
   cfg = config.machine;
-  _args = args // (f.fromJSON ./args.dec.yaml);
+  _args = lib.recursiveUpdate args (f.fromJSON ./args.dec.json);
 in
 {
   imports = [
     ../../profiles/base.nix
     #../../profiles/xfce/desktop.nix
     ../../options/virtualisation/qemu/guest.nix
+    ../../options/types/validate_machine.nix
   ];
 
   options = {
@@ -20,7 +21,7 @@ in
 
   config = {
     machine.type.vm = true;
-    machine.vm.micro = true;
+    machine.vm.type.micro = true;
     #machine.vm.local = true;
     machine.hostname = "vm-test";
     machine.resolution = { x = 1920; y = 1080; };

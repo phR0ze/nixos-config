@@ -6,9 +6,9 @@
 { ... }:
 {
   imports = [
+    ./cont
     ./barrier.nix
     ./cache.nix
-    ./cont.nix
     ./nfs.nix
     ./smb.nix
     ./sshd.nix

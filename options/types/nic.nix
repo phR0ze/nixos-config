@@ -4,7 +4,14 @@
 {
   options = {
     name = lib.mkOption {
-      description = lib.mdDoc "NIC name";
+      description = lib.mdDoc "Descriptive NIC name used as a well known tag";
+      type = types.str;
+      example = "primary";
+      default = "";
+    };
+
+    id = lib.mkOption {
+      description = lib.mdDoc "NIC identifier in the system";
       type = types.str;
       example = "ens18";
       default = "";
@@ -41,17 +48,12 @@
           full = lib.mkOption {
             description = lib.mdDoc "Full IP and CIDR combination";
             type = types.str;
-            default = "";
             example = "192.168.1.41/24";
           };
           attrs = lib.mkOption {
             description = lib.mdDoc "Attribute set version of the IP";
             type = types.attrs;
-            default = { };
-            example = {
-              address = "192.168.1.41";
-              prefixLength = 24;
-            };
+            example = { address = "192.168.1.41"; prefixLength = 24; };
           };
         };
       };
@@ -65,22 +67,16 @@
           primary = lib.mkOption {
             description = lib.mdDoc "Primary DNS IP";
             type = types.str;
-            default = "1.1.1.1";
+            example = "1.1.1.1";
           };
           fallback = lib.mkOption {
             description = lib.mdDoc "Fallback DNS IP";
             type = types.str;
-            default = "8.8.8.8";
+            example = "8.8.8.8";
           };
         };
       };
-      default = { };
-    };
-
-    port = lib.mkOption {
-      description = lib.mdDoc "Primary port for the service if set";
-      type = types.port;
-      example = 80;
+      default = {};
     };
   };
 }

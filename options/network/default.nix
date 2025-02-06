@@ -12,11 +12,26 @@
 # the container to the LAN. Alternatively if the container/VM is NixOS based then we cna use the 
 # internal firewall to limit access.
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }:
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
-  cfg = config.networking;
-  nic0 = config.machine.nic0;
-  types = import ../types { inherit lib; };
+  cfg = config.machine;
+
+  # Extract the primary nic if it exists
+  #filtered = builtins.filter (x: x.name == "primary") cfg.nics;
+  #nic0 = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else null;
+  nic0 = {
+    id = "";
+    subnet = "";
+    gateway = "";
+    ip = {
+      full = "";
+      attrs = { address = ""; prefixLength = 24; };
+    };
+    dns = {
+      primary = "1.1.1.1";
+      fallback = "8.8.8.8";
+    };
+  };
 in
 {
   imports = [
@@ -26,113 +41,87 @@ in
     ./network-manager.nix
   ];
 
-  # Networking bridge to allow host and containerized apps to interact and see each other on the LAN.
-  # Although a Docker macvlan container will show up on the LAN and other devices on the LAN can
-  # interact with it, an additional macvlan and specific routing is needed for the host to 
-  # communicate with the container directly. This is true regardless of the use of a bridge actually 
-  # but I really only need the container connection in the server case.
   options = {
-    networking.bridge = {
-      enable = lib.mkEnableOption "Convert the main interface into a bridge";
-      name = lib.mkOption {
-        type = lib.types.str;
-        description = lib.mdDoc "Bridge name to use";
-        default = "br0";
-      };
-      macvlan = lib.mkOption {
-        description = lib.mdDoc "Host macvlan interface";
-        type = lib.types.submodule types.macvlan;
-        example = {
-          name = "host";
-          ip = "192.168.1.49";
-        };
-        default = {
-          name = "host";
-          ip = "";
-        };
-      };
-    };
-    networking.vnic0 = lib.mkOption {
-      type = lib.types.str;
+    networking.primary = lib.mkOption {
       description = lib.mdDoc ''
         Primary interface to use for network access. This will typically just be the physical nic 
-        e.g. ens18, but when networking.bridge is enabled it will be set to networking.bridge.name 
-        to match the bridge.
+        e.g. ens18, but when 'machine.net.bridge.enable = true' it will be set to 
+        'machine.net.bridge.name' e.g. br0 as the bridge will be the primary interface.
       '';
-      default = nic0.name;
+      type = types.str;
     };
   };
 
   config = lib.mkMerge [
 
-    # Configure basic networking
-    # ----------------------------------------------------------------------------------------------
-    {
-      networking.enableIPv6 = false;
-      networking.hostName = config.machine.hostname;
-      networking.firewall = {
-        allowPing = true;
-      };
-    }
-    (lib.mkIf (cfg.bridge.enable) {
-      networking.vnic0 = cfg.bridge.name;
-    })
-
-    # Configure DNS. resolved works well with network manager
-    # ----------------------------------------------------------------------------------------------
-    {
-      services.resolved = {
-        enable = true;
-        dnssec = "allow-downgrade"; # using `true` will break DNS if VPN DNS servers don't support
-      };
-    }
-    (f.mkIfElse (nic0.dns.primary != "" && nic0.dns.fallback != "") {
-      networking.nameservers = [ "${nic0.dns.primary}" ];
-      services.resolved.fallbackDns = [ "${nic0.dns.fallback}" ];
-    } (lib.mkIf (nic0.dns.primary != "") {
-      networking.nameservers = [ "${nic0.dns.primary}" ];
-    }))
-
-    # Configure network bridge
-    # ----------------------------------------------------------------------------------------------
-    (f.mkIfElse (cfg.bridge.enable) (lib.mkMerge [
-      {
-        assertions = [ { assertion = (nic0.name != ""); message = "NIC0 was not specified, please set 'nic0.name'"; } ];
-        networking.useDHCP = false;
-        networking.bridges."${cfg.bridge.name}".interfaces = [ "${nic0.name}" ];
-      }
-
-      # Configure static IP or DHCP for the bridge
-      (f.mkIfElse (nic0.ip.full != "") {
-        networking.interfaces."${cfg.bridge.name}".ipv4.addresses = [ nic0.ip.attrs ];
-        networking.defaultGateway = "${nic0.gateway}";
-      } {
-        networking.interfaces."${cfg.bridge.name}".useDHCP = true;
-      })
-
-      # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
-      # interacted with by every device on the LAN except the host due to local virtual oddities
-      {
-        networking.macvlans."${cfg.bridge.macvlan.name}" = {
-          interface = "${cfg.bridge.name}";
-          mode = "bridge";
-        };
-      }
-      (f.mkIfElse (cfg.bridge.macvlan.ip == "") {
-        networking.interfaces."${cfg.bridge.macvlan.name}".useDHCP = true;
-      } {
-        networking.interfaces."${cfg.bridge.macvlan.name}".ipv4.addresses = [
-          { address = "${cfg.bridge.macvlan.ip}"; prefixLength = 32; }
-        ];
-      })
-
-    # Otherwise configure primary NIC with static IP/DHCP
-    # ----------------------------------------------------------------------------------------------
-    ]) (f.mkIfElse (nic0.ip.full != "") {
-      networking.interfaces."${nic0.name}".ipv4.addresses = [ nic0.ip.attrs ];
-      networking.defaultGateway = "${nic0.gateway}";
-    } {
-      # Finally fallback on DHCP for the primary NIC
-    }))
+#    # Configure basic networking
+#    # ----------------------------------------------------------------------------------------------
+#    {
+#      networking.enableIPv6 = false;
+#      networking.hostName = cfg.hostname;
+#      networking.firewall = {
+#        allowPing = true;
+#      };
+#    }
+#    (lib.mkIf (cfg.net.bridge.enable) {
+#      networking.primary = cfg.net.bridge.name;
+#    })
+#
+#    # Configure DNS. resolved works well with network manager
+#    # ----------------------------------------------------------------------------------------------
+#    {
+#      services.resolved = {
+#        enable = true;
+#        dnssec = "allow-downgrade"; # using `true` will break DNS if VPN DNS servers don't support
+#      };
+#    }
+#    (f.mkIfElse (cfg.net.dns.primary != "" && cfg.net.dns.fallback != "") {
+#      networking.nameservers = [ "${cfg.net.dns.primary}" ];
+#      services.resolved.fallbackDns = [ "${cfg.net.dns.fallback}" ];
+#    } (lib.mkIf (cfg.net.dns.primary != "") {
+#      networking.nameservers = [ "${cfg.net.dns.primary}" ];
+#    }))
+#
+#    # Configure network bridge
+#    # ----------------------------------------------------------------------------------------------
+#    (f.mkIfElse (cfg.net.bridge.enable) (lib.mkMerge [
+#      {
+#        assertions = [ { assertion = (nic0.id != ""); message = "NIC identifier was not specified"; } ];
+#        networking.useDHCP = false;
+#        networking.bridges."${cfg.net.bridge.name}".interfaces = [ "${nic0.id}" ];
+#      }
+#
+#      # Configure static IP or DHCP for the bridge
+#      (f.mkIfElse (nic0.ip.full != "") {
+#        networking.interfaces."${cfg.net.bridge.name}".ipv4.addresses = [ nic0.ip.attrs ];
+#        networking.defaultGateway = "${nic0.gateway}";
+#      } {
+#        networking.interfaces."${cfg.net.bridge.name}".useDHCP = true;
+#      })
+#
+#      # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
+#      # interacted with by every device on the LAN except the host due to local virtual oddities
+#      {
+#        networking.macvlans."${cfg.net.macvlan.name}" = {
+#          interface = "${cfg.net.bridge.name}";
+#          mode = "bridge";
+#        };
+#      }
+#      (f.mkIfElse (cfg.net.macvlan.ip == "") {
+#        networking.interfaces."${cfg.net.macvlan.name}".useDHCP = true;
+#      } {
+#        networking.interfaces."${cfg.net.macvlan.name}".ipv4.addresses = [
+#          { address = "${cfg.net.macvlan.ip}"; prefixLength = 32; }
+#        ];
+#      })
+#
+#    # Otherwise configure primary NIC with static IP/DHCP
+#    # ----------------------------------------------------------------------------------------------
+#    ]) (f.mkIfElse (nic0.ip.full != "") {
+#      networking.interfaces."${nic0.id}".ipv4.addresses = [ nic0.ip.attrs ];
+#      networking.defaultGateway = "${nic0.gateway}";
+#    } {
+#      # Finally fallback on DHCP for the primary NIC
+#    }))
   ];
 }
