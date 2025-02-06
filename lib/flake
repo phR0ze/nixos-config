@@ -68,6 +68,10 @@ flake::switch()
     git add configuration.nix -f
     git add "args.dec.json" -f
     git add "machines/$MACHINE/args.dec.json" -f
+
+    # Add the git comment to the build via args.nix
+    utils::update "args.nix" str "git.comment" "$(git log -1 --oneline --no-decorate)"
+    git add "args.nix"
 }
 
 # Restore the standard flake files back to prestine in git

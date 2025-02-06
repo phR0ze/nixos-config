@@ -16,6 +16,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
+  vm = config.machine.vm;
   machine = config.machine;
   cfg = config.virtualisation.qemu.guest;
 
@@ -144,7 +145,7 @@ in
             };
           };
         };
-        default = if (machine.vm.local) then {
+        default = if (vm.type.local) then {
           enable = true;
           memory = 32;
         } else {
@@ -155,7 +156,7 @@ in
       audio = lib.mkOption {
         description = lib.mdDoc "Enable sound for VM";
         type = types.bool;
-        default = if (!machine.vm.micro) then true else false;
+        default = if (!vm.type.micro) then true else false;
       };
       spice = lib.mkOption {
         description = "SPICE configuration";
@@ -170,7 +171,7 @@ in
           };
         };
         default = {
-          enable = if (machine.vm.spice) then true else false;
+          enable = if (vm.type.spice) then true else false;
           port = 5970;
         };
       };
@@ -438,7 +439,7 @@ in
 
         # QEMU supports two full x86 chipsets; the ancient (1996) i440FX and the more recent (2007) Q35. 
         # Q35 is the defacto standard for anything modern looking for performance.
-        ++ lib.optionals (!machine.vm.micro) [("-machine " + (lib.concatStringsSep "," [
+        ++ lib.optionals (!vm.type.micro) [("-machine " + (lib.concatStringsSep "," [
           "q35"                               # Q35 is modern solution supporting PCIe natively
           "accel=kvm"                         # Means the same as older --enable-kvm form
           "smm=off"                           # System Mgmt Mode is part of secure boot and not needed
@@ -447,7 +448,7 @@ in
 
         # QEMU also supports the [microvm](https://www.qemu.org/docs/master/system/i386/microvm.html)
         # machine type which is a modern slimmed down x86 that can be used for headless servers.
-        ++ lib.optionals (machine.vm.micro) [("-machine " + (lib.concatStringsSep "," [
+        ++ lib.optionals (vm.type.micro) [("-machine " + (lib.concatStringsSep "," [
           "microvm"                           # Modern minimal type without PCI or ACPI
           "accel=kvm"                         # Means the same as older --enable-kvm form
           "acpi=on"                           # Allow event handling of shutdown
@@ -472,13 +473,13 @@ in
 
         ++ [ "-device virtio-rng-pci" ]       # Use a virtio driver for randomness
 
-        ++ lib.optionals (machine.vm.micro && cfg.virtioKeyboard) [
+        ++ lib.optionals (vm.type.micro && cfg.virtioKeyboard) [
           "-device i8042"                     # Keyboard controller supporting ctrl+alt+del
         ]
-        ++ lib.optionals (!machine.vm.micro && cfg.virtioKeyboard) [
+        ++ lib.optionals (!vm.type.micro && cfg.virtioKeyboard) [
           "-device virtio-keyboard"           # ?
         ]
-        ++ lib.optionals (!machine.vm.micro && cfg.usb) [
+        ++ lib.optionals (!vm.type.micro && cfg.usb) [
           "-usb -device usb-tablet,bus=usb-bus.0"
         ]
 
@@ -548,13 +549,13 @@ in
         # * -display gtk
         # * -display spice-app,gl=on
         # * -display gtk,gl=on,grab-on-hover=on,window-close=on,zoom-to-fit=on
-        ++ lib.optionals (machine.vm.local && cfg.display.enable) [
+        ++ lib.optionals (vm.type.local && cfg.display.enable) [
           "-vga none -device virtio-vga-gl"
           "-display sdl,gl=on"
         ]
 
         # Hmm, seems to collide with my serial output settings below
-        ++ lib.optionals (machine.vm.micro || !cfg.display.enable) [
+        ++ lib.optionals (vm.type.micro || !cfg.display.enable) [
           "-nographic"                                    # Disable the local GUI window
         ]
 
@@ -567,7 +568,7 @@ in
         # - glxgears --info
         # - QXL defaults to 16 MB video memory, but needs 32MB min for high quality 
         # - -vga qxl vs -device qxl-vga
-        ++ lib.optionals (machine.vm.spice || cfg.spice.enable) [
+        ++ lib.optionals (vm.type.spice || cfg.spice.enable) [
           "-vga qxl"
           "-device virtio-serial-pci"
           "-spice port=${toString cfg.spice.port},disable-ticketing=on"
@@ -614,7 +615,7 @@ in
     }
 
     # Configure SPICE services on the Guest OS
-    (lib.mkIf (machine.vm.spice || cfg.spice.enable) {
+    (lib.mkIf (vm.type.spice || cfg.spice.enable) {
       services.spice-autorandr.enable = true;       # Automatically adjust resolution of guest to spice client size
       services.spice-vdagentd.enable = true;        # SPICE agent to be run on the guest OS
       services.spice-webdavd.enable = true;         # Enable file sharing on guest to allow access from host

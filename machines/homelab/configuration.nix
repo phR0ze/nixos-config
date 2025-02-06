@@ -8,6 +8,7 @@ in
 {
   imports = [
     ./hardware-configuration.nix
+    ../../options/types/validate_machine.nix
     (../../. + "/profiles" + ("/" + _args.profile + ".nix"))
   ];
 
@@ -19,8 +20,12 @@ in
   };
 
   config = {
-    machine.enable = true;
+    machine.type.bootable = true;
+    machine.net.bridge.enable = true;
+
     services.cache.host = true;
     services.x11vnc.enable = lib.mkForce false;
+
+    networking.firewall.enable = false;
   };
 }

@@ -5,7 +5,7 @@
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
-    _args = import ./args.nix;
+    _args = (import ./args.nix);
 
     # Allow for package patches, overrides and additions
     # ----------------------------------------------------------------------------------------------
@@ -43,9 +43,7 @@
     # Configure special args with our argument overrides
     # ----------------------------------------------------------------------------------------------
     f = pkgs.callPackage ./options/funcs { lib = nixpkgs.lib; };
-    args = _args // (f.fromJSON ./args.dec.json) // {
-      comment = f.gitMessage ./.;
-    };
+    args = nixpkgs.lib.recursiveUpdate _args (f.fromJSON ./args.dec.json);
     specialArgs = { inherit args f inputs; };
   in
   {

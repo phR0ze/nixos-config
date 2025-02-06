@@ -55,18 +55,25 @@ separate from the actual configuartion to allow for better reuse across my diffe
 | `timezone`              | str   | `America/Boise` | Time-zone selection
 | `bluetooth`             | bool  | `false`         | Enable or disable bluetooth by default
 | `autologin`             | bool  | `false`         | Automatically log the user in or not after boot
-| `type.iso`              | bool  | `false`         | Enable or disable ISO mode
 | `resolution.x`          | int   | `0`             | Resolution x dimension, e.g. 1920
 | `resolution.y`          | int   | `0`             | Resolution y dimension, e.g. 1080
-| `nix.minVer `           | str   | `25.05`         | Nixpkgs minimum version
-| `subnet`                | str   |                 | Default subnet to use for machine e.g. `192.168.1.0/24`
-| `gateway`               | str   |                 | Default gateway to use for machine e.g. `192.168.1.1`
-| `dns.primary`           | str   | `1.1.1.1`       | Default primary DNS to use for machine e.g. `1.1.1.1`
-| `dns.fallback`          | str   | `8.8.8.8`       | Default fallback DNS to use for machine e.g. `8.8.8.8`
+| `type.iso`              | bool  | `false`         | Enable or disable ISO mode
+| `type.vm`               | bool  | `false`         | Enable or disable VM mode
 | `drives`                | list  | [ ]             | List of drive objects
 | `drives[x].uuid`        | str   |                 | Drive identifier used in `hardware-configuration.nix`
+| `nix.minVer `           | str   | `25.05`         | Nixpkgs minimum version
+| `net.primary`           | str   |                 | Primary network interface to use e.g. ens18
+| `net.bridge.enable`     | bool  | `false`         | Replace the primary NIC with a virtual network bridge
+| `net.bridge.name`       | str   | `br0`           | Name to use for the virtual network bridge
+| `net.macvlan.name`      | str   | `host`          | Name to use for the host macvlan on the bridge
+| `net.macvlan.ip`        | str   |                 | IP to use for the host macvlan else DHCP will be used
+| `net.subnet`            | str   |                 | Default subnet to use for machine e.g. `192.168.1.0/24`
+| `net.gateway`           | str   |                 | Default gateway to use for machine e.g. `192.168.1.1`
+| `net.dns.primary`       | str   | `1.1.1.1`       | Default primary DNS to use for machine e.g. `1.1.1.1`
+| `net.dns.fallback`      | str   | `8.8.8.8`       | Default fallback DNS to use for machine e.g. `8.8.8.8`
 | `nics`                  | list  | [ ]             | List of NIC objects
-| `nics[x].id`            | str   |                 | NIC identifier e.g. primary
+| `nics[x].name`          | str   |                 | NIC well known tag e.g. primary
+| `nics[x].id`            | str   |                 | NIC system identifier e.g. ens18 
 | `nics[x].ip`            | str   |                 | IP address to use for this NIC else DHCP, e.g. 192.168.1.12/24
 | `nics[x].subnet`        | str   |                 | Subnet to use for this NIC e.g. `192.168.1.0/24`
 | `nics[x].gateway`       | str   |                 | Gateway to use for this NIC e.g. `192.168.1.1`
