@@ -44,9 +44,7 @@
 
     # Configure special args with our argument overrides
     f = pkgs.callPackage ./options/funcs { lib = nixpkgs.lib; };
-    args = _args // (f.fromYAML ./args.dec.yaml) // {
-      comment = f.gitMessage ./.;
-    };
+    args = nixpkgs.lib.recursiveUpdate _args (f.fromJSON ./args.dec.json);
     specialArgs = { inherit args f inputs; };
   in
   {
