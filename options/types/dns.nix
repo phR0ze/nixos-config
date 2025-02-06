@@ -10,16 +10,21 @@
           primary = lib.mkOption {
             description = lib.mdDoc "Primary DNS IP";
             type = types.str;
-            default = "1.1.1.1";
+            example = "1.1.1.1";
+            default = "";
           };
           fallback = lib.mkOption {
             description = lib.mdDoc "Fallback DNS IP";
             type = types.str;
-            default = "8.8.8.8";
+            example = "8.8.8.8";
+            default = "";
           };
         };
       };
-      default = { };
+      default = {
+        primary = "";
+        fallback = ""; 
+      };
     };
   };
 }

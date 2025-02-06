@@ -6,7 +6,6 @@
 #---------------------------------------------------------------------------------------------------
 { lib, _args, f, ... }: with lib.types;
 let
-  dns = import ./dns.nix { inherit lib; };
   nic = import ./nic.nix { inherit lib; };
   smb = import ./smb.nix { inherit lib; };
   user = import ./user.nix { inherit lib; };
@@ -265,7 +264,18 @@ in
           };
           dns = lib.mkOption {
             description = lib.mdDoc "Default DNS for the system";
-            type = types.submodule dns;
+            type = types.submodule {
+              options = {
+                primary = lib.mkOption {
+                  description = lib.mdDoc "Primary DNS IP";
+                  type = types.str;
+                };
+                fallback = lib.mkOption {
+                  description = lib.mdDoc "Fallback DNS IP";
+                  type = types.str;
+                };
+              };
+            };
             default = {
               primary = if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "primary")
                 then "1.1.1.1" else _args.net.dns.primary;

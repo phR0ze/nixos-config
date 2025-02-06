@@ -62,7 +62,6 @@ separate from the actual configuartion to allow for better reuse across my diffe
 | `drives`                | list  | [ ]             | List of drive objects
 | `drives[x].uuid`        | str   |                 | Drive identifier used in `hardware-configuration.nix`
 | `nix.minVer `           | str   | `25.05`         | Nixpkgs minimum version
-| `net.primary`           | str   |                 | Primary network interface to use e.g. ens18
 | `net.bridge.enable`     | bool  | `false`         | Replace the primary NIC with a virtual network bridge
 | `net.bridge.name`       | str   | `br0`           | Name to use for the virtual network bridge
 | `net.macvlan.name`      | str   | `host`          | Name to use for the host macvlan on the bridge
