@@ -19,8 +19,7 @@ in
 
   config = {
     machine.type.vm = true;
-    machine.vm.local = true;
-    machine.hostname = "vm-prod1";
+    machine.vm.type.local = true;
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 
