@@ -42,8 +42,10 @@
 
     # Configure special args with our argument overrides
     # ----------------------------------------------------------------------------------------------
-    f = pkgs.callPackage ./options/funcs { lib = nixpkgs.lib; };
-    args = nixpkgs.lib.recursiveUpdate _args (f.fromJSON ./args.dec.json);
+    lib = nixpkgs.lib;
+    f = pkgs.callPackage ./options/funcs { inherit lib; };
+    args = lib.recursiveUpdate (lib.recursiveUpdate _args (f.fromJSON ./args.dec.json))
+      (lib.recursiveUpdate (import ./machines/${_args.hostname}/args.nix) (f.fromJSON ./machines/${_args.hostname}/args.dec.json));
     specialArgs = { inherit args f inputs; };
   in
   {
@@ -51,13 +53,13 @@
     # value 'target' as an entry point with the hostname being set lower down based on the 
     # configuration linked from the machine's sub-directory.
     # ----------------------------------------------------------------------------------------------
-    nixosConfigurations.target = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.target = lib.nixosSystem {
       inherit pkgs system specialArgs;
       modules = [ ./options ./configuration.nix ];
     };
 
     # Generic install host configuration based on a generic profile
-    nixosConfigurations.install = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.install = lib.nixosSystem {
       inherit pkgs system specialArgs;
       modules = [
         ./hardware-configuration.nix
@@ -67,7 +69,7 @@
 
     # Defines configuration for building an ISO
     # ----------------------------------------------------------------------------------------------
-    nixosConfigurations.iso = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.iso = lib.nixosSystem {
       inherit pkgs system;
       specialArgs = specialArgs // {
         args = args // {
