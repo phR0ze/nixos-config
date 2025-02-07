@@ -50,8 +50,14 @@ in
         message = "Requires 'opts.nic.link' be set to the bridge name"; }
       { assertion = (cfg.opts.nic.ip != "");
         message = "Requires 'opts.nic.ip' be set to a static IP address"; }
+      { assertion = (cfg.opts.port != 0); message = "Requires 'opts.port' be set"; }
     ];
 
+    # Host configuration for service
+    networking.firewall.enable = false;
+    #networking.firewall.allowedTCPPorts = [ cfg.opts.port ];
+
+    # Container configuration for service
     containers.stirling-pdf = {
       autoStart = true;                     # Enable the systemd unit to be started on boot
       privateNetwork = true;                # Bind to local host bridge to get a presence on the LAN
@@ -73,6 +79,7 @@ in
         };
 
         # Allow the server port through the firewall
+        networking.firewall.enable = true;
         networking.firewall.allowedTCPPorts = [ cfg.opts.port ];
       };
     };

@@ -14,7 +14,7 @@
   programs.protontricks.enable = true;  # A simple wrapper for running Winetricks commands for Proton-enabled games
   programs.prismlauncher.enable = true; # Minecraft launcher
   programs.winetricks.enable = true;    # A script to install DLLs needed to work around problems in Wine
-  programs.warcraft2.enable = true;     # Add firewall rules needed for warcraft 2 IPX LAN multi-player
+  #programs.warcraft2.enable = true;     # Add firewall rules needed for warcraft 2 IPX LAN multi-player
 
   # Multimedia
   programs.kodi = {                     # Media player and entertainment hub
