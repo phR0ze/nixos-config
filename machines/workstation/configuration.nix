@@ -44,6 +44,7 @@ in
 
     # Misc
     environment.systemPackages = [
+      pkgs.synology-drive-client
       pkgs.freetube
       pkgs.wiiload
       pkgs.wiimms-iso-tools
