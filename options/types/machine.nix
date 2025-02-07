@@ -8,7 +8,14 @@
 let
   nic = import ./nic.nix { inherit lib; };
   smb = import ./smb.nix { inherit lib; };
+  service = import ./service.nix { inherit lib; };
   user = import ./user.nix { inherit lib; };
+
+  # Shortcuts for reused items
+  user_name = if (!_args ? "user" || !_args.user ? "name") then "admin" else _args.user.name;
+  user_pass = if (!_args ? "user" || !_args.user ? "pass" || _args.user.pass == "") then "admin" else _args.user.pass;
+  uid = config.users.users.${user_name}.uid;
+  gid = config.users.groups."users".gid;
 in
 {
   options = {
@@ -173,10 +180,8 @@ in
       description = lib.mdDoc "User options";
       type = types.submodule user;
       default = {
-        name = if (!_args ? "user" || !_args.user ? "name" || _args.user.name == "")
-          then "admin" else _args.user.name;
-        pass = if (!_args ? "user" || !_args.user ? "pass" || _args.user.pass == "")
-          then "admin" else _args.user.pass;
+        name = user_name;
+        pass = user_pass;
         fullname = if (!_args ? "user" || !_args.user ? "fullname") then "" else _args.user.fullname;
         email = if (!_args ? "user" || !_args.user ? "email") then "" else _args.user.email;
       };
@@ -306,18 +311,12 @@ in
         name = if (!x ? "name") then "" else x.name;
         id = if (!x ? "id") then "" else x.id;
         link = if (!x ? "link") then "" else x.link;
-
-        # Fallback on the global network settings in _args.net
         subnet = if (!x ? "subnet") then (if (!_args ? "net" || !_args.net ? "subnet")
           then "" else _args.net.subnet) else x.subnet;
         gateway = if (!x ? "gateway") then (if (!_args ? "net" || !_args.net ? "gateway")
           then "" else _args.net.gateway) else x.gateway;
-        ip = {
-          full = if (!x ? "ip") then "" else x.ip;
-          attrs = if (!x ? "ip") then { address = ""; prefixLength = 24; } else f.toIP x.ip;
-        };
+        ip = if (!x ? "ip") then "" else x.ip;
         dns = {
-          # Fallback on the global network settings in _args.net
           primary = if (!x ? "dns" || !x.dns ? "primary")
             then (if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "primary")
               then "1.1.1.1" else _args.net.dns.primary) else x.dns.primary;
@@ -326,6 +325,40 @@ in
               then "8.8.8.8" else _args.net.dns.fallback) else x.dns.fallback;
         };
       }]) _args.nics);
+    };
+
+    services = lib.mkOption {
+      description = lib.mdDoc "List of service secrets";
+      type = types.listOf (types.submodule service);
+      default = if (!_args ? "services") then [] else (builtins.concatMap (x: [{
+        name = if (!x ? "name") then "" else x.name;
+        user = if (!x ? "user") then "{}" else ({
+          name = if (!x.user ? "name") then user_name else x.user.name;
+          uid = if (!x.user ? "uid") then uid else x.user.uid;
+          gid = if (!x.user ? "gid") then gid else x.user.gid;
+          pass = if (!x.user ? "pass") then user_pass else x.user.pass;
+          fullname = if (!x.user ? "fullname") then "" else x.user.fullname;
+          email = if (!x.user ? "email") then "" else x.user.email;
+        });
+        nic = if (!x ? "nic") then "{}" else ({
+          id = if (!x.nic ? "id") then "" else x.nic.id;
+          link = if (!x.nic ? "link") then "" else x.nic.link;
+          subnet = if (!x.nic ? "subnet") then (if (!_args ? "net" || !_args.net ? "subnet")
+            then "" else _args.net.subnet) else x.nic.subnet;
+          gateway = if (!x.nic ? "gateway") then (if (!_args ? "net" || !_args.net ? "gateway")
+            then "" else _args.net.gateway) else x.nic.gateway;
+          ip = if (!x.nic ? "ip") then "" else x.nic.ip;
+          dns = {
+            primary = if (!x.nic ? "dns" || !x.nic.dns ? "primary")
+              then (if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "primary")
+                then "1.1.1.1" else _args.net.dns.primary) else x.nic.dns.primary;
+            fallback = if (!x.nic ? "dns" || !x.nic.dns ? "fallback")
+              then (if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "fallback")
+                then "8.8.8.8" else _args.net.dns.fallback) else x.nic.dns.fallback;
+          };
+        });
+        port = if (!x ? "port") then 80 else x.port;
+      }]) _args.services);
     };
 
     smb = lib.mkOption {
