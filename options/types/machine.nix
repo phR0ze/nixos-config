@@ -332,6 +332,7 @@ in
       type = types.listOf (types.submodule service);
       default = if (!args ? "services") then [] else (builtins.concatMap (x: [{
         name = if (!x ? "name") then "" else x.name;
+        type = if (!x ? "type") then "cont" else x.type;
         user = if (!x ? "user") then "{}" else ({
           name = if (!x.user ? "name") then user_name else x.user.name;
           uid = if (!x.user ? "uid") then uid else x.user.uid;

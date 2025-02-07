@@ -14,6 +14,17 @@ let
 
   filtered = builtins.filter (x: x.name == "portainer") machine.services;
   defaults = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
+
+  modules_users = { lib, machine, ...}: {
+    users.users.root.initialPassword = lib.mkForce machine.user.pass;
+    users.users.${machine.user.name} = {
+      uid = 1000;
+      isNormalUser = true;
+      extraGroups = [ "wheel" ];
+      initialPassword = lib.mkForce machine.user.pass;
+    };
+    users.groups."users".gid = 100;
+  };
 in
 {
   options = {
@@ -51,21 +62,15 @@ in
       hostBridge = cfg.opts.nic.link;       # Host bridge name to bind to e.g. br0
       localAddress = cfg.opts.nic.ip;       # Static IP for the virtual adapter on the bridge
 
-      config = { config, pkgs, lib, ...}: {
-        system.stateVersion = machine.nix.minVer;
+      config = { options, config, pkgs, lib, ...}: {
+        imports = [ ../../../modules/new_users.nix { inherit lib machine; } ];
+        config = {
+          system.stateVersion = machine.nix.minVer;
 
-        users.users.root.initialPassword = lib.mkForce machine.user.pass;
-        users.users.${machine.user.name} = {
-          uid = 1000;
-          isNormalUser = true;
-          extraGroups = [ "wheel" ];
-          initialPassword = lib.mkForce machine.user.pass;
+          # Allow the server port through the firewall
+          networking.firewall.enable = true;
+          networking.firewall.allowedTCPPorts = [ cfg.opts.port ];
         };
-        users.groups."users".gid = 100;
-
-        # Allow the server port through the firewall
-        networking.firewall.enable = true;
-        networking.firewall.allowedTCPPorts = [ cfg.opts.port ];
       };
     };
   };

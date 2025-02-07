@@ -17,7 +17,7 @@
 # - Service has outbound access to the internet
 # - Service is blocked from outbound connections to the LAN
 # - Service has dedicated podman bridge network with port forwarding to dedicated host macvlan
-# - Service is visiable on the LAN, with a dedicated host macvlan and static IP, for inbound connections
+# - Service is visible on the LAN, with a dedicated host macvlan and static IP, for inbound connections
 # - Service data is persisted at /var/lib/$SERVICE
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
