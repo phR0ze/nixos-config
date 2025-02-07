@@ -1,37 +1,24 @@
-# Stirling PDF configuration
-# - https://docs.stirlingpdf.com/
-# - https://github.com/Stirling-Tools/Stirling-PDF
-# - [Environment vars](https://github.com/Stirling-Tools/Stirling-PDF#customisatio)
+# Portainer Nspawn container
 #
 # ### Description
-# Stirling PDF is a robust, locally hosted web-based PDF manipulation tool. It enables you to carry 
-# out various operations on PDF files, including splitting, merging, converting, reorganizing, adding 
-# images, rotating, compressing, and more. This locally hosted web service has evolved to 
-# encompass a comprehensive set of features, addressing all your PDF requirements.
-#
-# - Stirling-PDF does not initiate any outbound calls for record-keeping or tracking purposes.
-# - All files and PDFs exist either exclusively on the client side, server memory only during task 
-#   execution, or as temporary files solely for the execution of the task.
+# ?
 #
 # ### Deployment Features
-# - Service has outbound access to the internet
-# - Service is blocked from outbound connections to the LAN
-# - Service has dedicated podman bridge network with port forwarding to dedicated host macvlan
-# - Service is visiable on the LAN, with a dedicated host macvlan and static IP, for inbound connections
-# - Service data is persisted at /var/lib/$SERVICE
+# - Service has a full NixOS stack minus the kernel
+# - Service is a full LAN participant with its own static IP
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.services.cont.stirling-pdf;
+  cfg = config.services.nspawn.portainer;
 
-  filtered = builtins.filter (x: x.name == "stirling-pdf") machine.services;
+  filtered = builtins.filter (x: x.name == "portainer") machine.services;
   defaults = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
 in
 {
   options = {
-    services.cont.stirling-pdf = {
-      enable = lib.mkEnableOption "Deploy container based Stirling PDF";
+    services.nspawn.portainer = {
+      enable = lib.mkEnableOption "Deploy nspawn container based Portainer";
       opts = lib.mkOption {
         description = lib.mdDoc "Containerized service options";
         type = types.submodule (import ../../types/service.nix { inherit lib; });
@@ -58,7 +45,7 @@ in
     #networking.firewall.allowedTCPPorts = [ cfg.opts.port ];
 
     # Container configuration for service
-    containers.stirling-pdf = {
+    containers.portainer = {
       autoStart = true;                     # Enable the systemd unit to be started on boot
       privateNetwork = true;                # Bind to local host bridge to get a presence on the LAN
       hostBridge = cfg.opts.nic.link;       # Host bridge name to bind to e.g. br0
@@ -67,16 +54,14 @@ in
       config = { config, pkgs, lib, ...}: {
         system.stateVersion = machine.nix.minVer;
 
-        services.stirling-pdf = {
-          enable = true;
-          environment = {
-            SERVER_PORT = cfg.opts.port;                  # set the port to serve the service on
-            METRICS_ENABLED = "false";                    # no need to track with homelab
-            SYSTEM_ENABLEANALYTICS = "false";             # not a fan of being tracked
-            DOCKER_ENABLE_SECURITY = "false";             # don't need to login with homelab
-            INSTALL_BOOK_AND_ADVANCED_HTML_OPS = "false"; # installs calibre when true
-          };
+        users.users.root.initialPassword = lib.mkForce machine.user.pass;
+        users.users.${machine.user.name} = {
+          uid = 1000;
+          isNormalUser = true;
+          extraGroups = [ "wheel" ];
+          initialPassword = lib.mkForce machine.user.pass;
         };
+        users.groups."users".gid = 100;
 
         # Allow the server port through the firewall
         networking.firewall.enable = true;

@@ -4,6 +4,7 @@
 { ... }:
 {
   imports = [
+    ./portainer.nix
     ./stirling-pdf.nix
   ];
 }

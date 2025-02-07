@@ -34,8 +34,4 @@ in
     enable = true;
     wheelNeedsPassword = false;         # Configure passwordless sudo access for 'wheel' group
   };
-
-  # Initialize user home
-  # ------------------------------------------------------------------------------------------------
-  files.all.".dircolors".copy = ../include/home/.dircolors;
 }

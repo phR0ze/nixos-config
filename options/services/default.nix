@@ -6,7 +6,7 @@
 { ... }:
 {
   imports = [
-    ./cont
+    ./nspawn
     ./barrier.nix
     ./cache.nix
     ./nfs.nix
