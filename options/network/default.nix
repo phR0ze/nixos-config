@@ -36,6 +36,7 @@ in
         'machine.net.bridge.name' e.g. br0 as the bridge will be the primary interface.
       '';
       type = types.str;
+      default = "";
     };
   };
 
