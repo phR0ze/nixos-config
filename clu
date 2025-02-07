@@ -107,10 +107,10 @@ for i in "${!ARGS[@]}"; do
         QUIET=1 && LOG_LEVEL="error" && _log_level=$_error && unset 'ARGS[i]'
     fi
 done
+CMD="${ARGS[0]}" && unset 'ARGS[0]'
 ARGS=("${ARGS[@]}") # rebuild to remove deleted items
 
 # Extract the first argument
-CMD="${ARGS[0]}" && unset 'ARGS[0]'
 case "$CMD" in
     init) init::run "${ARGS[@]}" ;;
     build) build::run "${ARGS[@]}" ;;
