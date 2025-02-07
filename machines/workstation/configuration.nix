@@ -25,6 +25,7 @@ in
   config = {
     machine.type.bootable = true;
     hardware.graphics.amd = true;
+    machine.net.bridge.enable = true;
 
     # Services
     services.barriers.enable = true;
