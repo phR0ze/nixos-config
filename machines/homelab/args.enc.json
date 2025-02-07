@@ -13,6 +13,14 @@
 	],
 	"services": [
 		{
+			"name": "ENC[AES256_GCM,data:y+bXikzxKd+H,iv:EuycPWKSFTjoUhSqP+affZbmFCk9Ke8Olj8iozwisaM=,tag:xZL8iiPRcH/VK0P75D9Sqw==,type:str]",
+			"port": "ENC[AES256_GCM,data:qsU=,iv:fz2SqIV1bEnRAH+6AjTElG+BjpOZO+b8mu2m7VJleT0=,tag:xx2h/Cp6xrMjFcMelPQG/g==,type:float]",
+			"nic": {
+				"link": "ENC[AES256_GCM,data:IDDe,iv:8B5eaqoatJp2Kay5z1yIxyTFdjvGGdLS/03wavLGLfk=,tag:dURavJTd4dDTKzCOZFYMVQ==,type:str]",
+				"ip": "ENC[AES256_GCM,data:t8zu/01mi5DlMRkYnctT,iv:ciphy/IkPSXnHX0sUhDi9TwR6wlygBnz9O1OwWK86Hw=,tag:fT2slxdN8/84H0r/Otg0vw==,type:str]"
+			}
+		},
+		{
 			"name": "ENC[AES256_GCM,data:3KxDkFB3NgeWHUPX,iv:HzpxXfJToT2pQ8M5hvyDpe50pMexu1034rWvw+YnzTc=,tag:Sb1t4Mgbf5EfXf/vxiqhRg==,type:str]",
 			"port": "ENC[AES256_GCM,data:kRRmaQ==,iv:VInHSrBwLQ1h99xsSdRhXgOFtcju+zGdoF9DwfHdBI0=,tag:dBVQi59VZiXoSV2BNFOpFg==,type:float]",
 			"nic": {
@@ -32,8 +40,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBhUlVSL1p6aG00TGlQWlZY\naDB1RHh1WXRXWWFhRHJ2Z2hoeWV6K1FrdmtNCmxxdjM3N1FVQXppR2Fzei9HZHBK\nZklFNE1RTEFOMVIvcG40WDIvbStDR3MKLS0tIFk4L09LTDFpazJacmZyeFJENWZ0\nbmVHZ3RzTGVHTEVldFlyTHZYNXkwWUkKg5fCQrHvV2icfz3avumc0M17hwFUdYJy\nE9XH3C/Ja/BqC3zhDGPfY8RtBW9DNMy+Ck7hVoqg6qGgro1BrGRXoA==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-02-07T01:37:05Z",
-		"mac": "ENC[AES256_GCM,data:ehW36CszcKsZ+7+waljWX1z7WtjGS8yu7gj8Y2ePDPNgtM5FVhL/ecwRLHMWi9OKH65XV0BC5VWY52Os3hXcCiP7qcaVkbZ2kx5JfhEDikYu7IWUyfBymAWQ9nivZ4w3Oarv1nniY1bD24arwI/Cndnzp8EQrfxGHSjQAtVmdY0=,iv:tmkYouk4T9FPzUcewRUEs6Gt5vegMScu/cM3f/vPrO8=,tag:P59EZjwavQFEqng/t+OdLw==,type:str]",
+		"lastmodified": "2025-02-07T02:47:00Z",
+		"mac": "ENC[AES256_GCM,data:5tykTR79YtmYVQkNXAK2wdPDpjJiLZ/+3FEoS8hJSV58ju3F50vSD5Ob4U3v9olofIIgHcnlg8KYfWPSbf8N6pVur/BEX4oBLGU+KpUoYZc6/scKGBkam6nLKxm9Pa6sqZeoevuil/V21pskpWqZ0W0QzbvstA8qUqDCwMhDI64=,iv:w2js1gFxOZ8GtLVopfxpZ7dGnJwEiJ9XxbzlClmbgHc=,tag:CWbsHcsSuAOC4MMW/XUHSg==,type:str]",
 		"pgp": null,
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.9.2"

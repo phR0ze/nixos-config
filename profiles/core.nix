@@ -12,11 +12,7 @@ let
 in
 {
   imports = [
-    ../modules/locale.nix
-    ../modules/nix.nix
     ../modules/users.nix
-    ../modules/terminal
-    ../modules/services/systemd.nix
   ];
 
   # Set the original Nix base version we installed with to ignore the warnings
