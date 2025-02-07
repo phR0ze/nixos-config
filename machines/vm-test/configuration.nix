@@ -3,7 +3,6 @@
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let
   cfg = config.machine;
-  _args = lib.recursiveUpdate args (f.fromJSON ./args.dec.json);
 in
 {
   imports = [
@@ -15,7 +14,7 @@ in
 
   options = {
     machine = lib.mkOption {
-      type = types.submodule (import ../../options/types/machine.nix { inherit lib _args f; });
+      type = types.submodule (import ../../options/types/machine.nix { inherit lib args f; });
     };
   };
 

@@ -1,10 +1,10 @@
 # Declares a machine type for reusability
 #
 # ### Features
-# - _args is the composed/overridden set of user arguments for this machine
+# - args is the composed/overridden set of user arguments for this machine
 #
 #---------------------------------------------------------------------------------------------------
-{ lib, _args, f, ... }: with lib.types;
+{ lib, args, f, ... }: with lib.types;
 let
   nic = import ./nic.nix { inherit lib; };
   smb = import ./smb.nix { inherit lib; };
@@ -12,8 +12,8 @@ let
   user = import ./user.nix { inherit lib; };
 
   # Shortcuts for reused items
-  user_name = if (!_args ? "user" || !_args.user ? "name") then "admin" else _args.user.name;
-  user_pass = if (!_args ? "user" || !_args.user ? "pass" || _args.user.pass == "") then "admin" else _args.user.pass;
+  user_name = if (!args ? "user" || !args.user ? "name") then "admin" else args.user.name;
+  user_pass = if (!args ? "user" || !args.user ? "pass" || args.user.pass == "") then "admin" else args.user.pass;
   uid = config.users.users.${user_name}.uid;
   gid = config.users.groups."users".gid;
 in
@@ -35,8 +35,8 @@ in
         };
       };
       default = {
-        # Note: not defining the other defaults here as I don't expect to support them in _args
-        iso = if (!_args ? "type" || _args.type ? "iso") then false else _args.type.iso;
+        # Note: not defining the other defaults here as I don't expect to support them in args
+        iso = if (!args ? "type" || args.type ? "iso") then false else args.type.iso;
       };
     };
 
@@ -54,25 +54,25 @@ in
     hostname = lib.mkOption {
       description = lib.mdDoc "Hostname";
       type = types.str;
-      default = if (!_args ? "hostname" || _args.hostname == "") then "nixos" else _args.hostname;
+      default = if (!args ? "hostname" || args.hostname == "") then "nixos" else args.hostname;
     };
 
     profile = lib.mkOption {
       description = lib.mdDoc "Flake profile used during installation";
       type = types.str;
-      default = if (!_args ? "profile" || _args.profile == "") then "xfce/desktop" else _args.profile;
+      default = if (!args ? "profile" || args.profile == "") then "xfce/desktop" else args.profile;
     };
 
     efi = lib.mkOption {
       description = lib.mdDoc "Enable EFI";
       type = types.bool;
-      default = if (!_args ? "efi") then false else _args.efi;
+      default = if (!args ? "efi") then false else args.efi;
     };
 
     mbr = lib.mkOption {
       description = lib.mdDoc "BIOS mbr is enabled when not 'nodev'";
       type = types.str;
-      default = if (!_args ? "mbr" || _args.mbr == "") then "nodev" else _args.mbr;
+      default = if (!args ? "mbr" || args.mbr == "") then "nodev" else args.mbr;
     };
 
     drives = lib.mkOption {
@@ -86,45 +86,45 @@ in
           };
         };
       });
-      default = if (!_args ? "drives") then [ ] else _args.drives;
+      default = if (!args ? "drives") then [ ] else args.drives;
     };
 
     arch = lib.mkOption {
       description = lib.mdDoc "System architecture";
       type = types.str;
-      default = if (!_args ? "arch" || _args.arch == "") then "x86_64-linux" else _args.arch;
+      default = if (!args ? "arch" || args.arch == "") then "x86_64-linux" else args.arch;
     };
 
     locale = lib.mkOption {
       description = lib.mdDoc "System locale";
       type = types.str;
-      default = if (!_args ? "locale" || _args.locale == "") then "en_US.UTF-8" else _args.locale;
+      default = if (!args ? "locale" || args.locale == "") then "en_US.UTF-8" else args.locale;
     };
 
     timezone = lib.mkOption {
       description = lib.mdDoc "System timezone";
       type = types.str;
-      default = if (!_args ? "timezone" || _args.timezone == "") then "America/Boise" else _args.timezone;
+      default = if (!args ? "timezone" || args.timezone == "") then "America/Boise" else args.timezone;
     };
 
     autologin = lib.mkOption {
       description = lib.mdDoc "Enable autologin";
       type = types.bool;
-      default = if (!_args ? "autologin") then false else _args.autologin;
+      default = if (!args ? "autologin") then false else args.autologin;
     };
 
     bluetooth = lib.mkOption {
       description = lib.mdDoc "Enable bluetooth";
       type = types.bool;
-      default = if (!_args ? "bluetooth") then false else _args.bluetooth;
+      default = if (!args ? "bluetooth") then false else args.bluetooth;
     };
 
     resolution = lib.mkOption {
       description = lib.mdDoc "Display resolution";
       type = types.attrs;
       default = {
-        x = if (!_args ? "resolution" || !_args.resolution ? "x") then 0 else _args.resolution.x;
-        y = if (!_args ? "resolution" || !_args.resolution ? "y") then 0 else _args.resolution.y;
+        x = if (!args ? "resolution" || !args.resolution ? "x") then 0 else args.resolution.x;
+        y = if (!args ? "resolution" || !args.resolution ? "y") then 0 else args.resolution.y;
       };
     };
 
@@ -134,8 +134,8 @@ in
           minVer = lib.mkOption {
             description = lib.mdDoc "Minimal support Nixpkgs version";
             type = types.str;
-            default = if (!_args ? "nix" || !_args.nix ? "minVer" || _args.nix.minVer == "")
-              then "25.05" else _args.nix.minVer;
+            default = if (!args ? "nix" || !args.nix ? "minVer" || args.nix.minVer == "")
+              then "25.05" else args.nix.minVer;
           };
           cache = lib.mkOption {
             description = lib.mdDoc "Nix Binary cache configuration";
@@ -144,34 +144,34 @@ in
                 enable = lib.mkOption {
                   description = lib.mdDoc "Enable using a custom Nix binary cache";
                   type = types.bool;
-                  default = if (!_args ? "nix" || !_args.nix ? "cache" || !_args.nix.cache ? "enable")
-                    then false else _args.nix.cache.enable;
+                  default = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "enable")
+                    then false else args.nix.cache.enable;
                 };
                 ip = lib.mkOption {
                   description = lib.mdDoc "IP address of the custom Nix binary cache";
                   type = types.str;
-                  default = if (!_args ? "nix" || !_args.nix ? "cache" || !_args.nix.cache ? "ip")
-                    then "" else _args.nix.cache.ip;
+                  default = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "ip")
+                    then "" else args.nix.cache.ip;
                 };
               };
             };
             default = {
-              enable = if (!_args ? "nix" || !_args.nix ? "cache" || !_args.nix.cache ? "enable")
-                then false else _args.nix.cache.enable;
-              ip = if (!_args ? "nix" || !_args.nix ? "cache" || !_args.nix.cache ? "ip")
-                then "" else _args.nix.cache.ip;
+              enable = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "enable")
+                then false else args.nix.cache.enable;
+              ip = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "ip")
+                then "" else args.nix.cache.ip;
             };
           };
         };
       };
       default = {
-        minVer = if (!_args ? "nix" || !_args.nix ? "minVer" || _args.nix.minVer == "")
-          then "25.05" else _args.nix.minVer;
+        minVer = if (!args ? "nix" || !args.nix ? "minVer" || args.nix.minVer == "")
+          then "25.05" else args.nix.minVer;
         cache = {
-          enable = if (!_args ? "nix" || !_args.nix ? "cache" || !_args.nix.cache ? "enable")
-            then false else _args.nix.cache.enable;
-          ip = if (!_args ? "nix" || !_args.nix ? "cache" || !_args.nix.cache ? "ip")
-            then "" else _args.nix.cache.ip;
+          enable = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "enable")
+            then false else args.nix.cache.enable;
+          ip = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "ip")
+            then "" else args.nix.cache.ip;
         };
       };
     };
@@ -182,8 +182,8 @@ in
       default = {
         name = user_name;
         pass = user_pass;
-        fullname = if (!_args ? "user" || !_args.user ? "fullname") then "" else _args.user.fullname;
-        email = if (!_args ? "user" || !_args.user ? "email") then "" else _args.user.email;
+        fullname = if (!args ? "user" || !args.user ? "fullname") then "" else args.user.fullname;
+        email = if (!args ? "user" || !args.user ? "email") then "" else args.user.email;
       };
     };
 
@@ -193,24 +193,24 @@ in
           user = lib.mkOption {
             description = lib.mdDoc "Git user name";
             type = types.str;
-            default = if (!_args ? "git" || !_args.git ? "user") then "" else _args.git.user;
+            default = if (!args ? "git" || !args.git ? "user") then "" else args.git.user;
           };
           email = lib.mkOption {
             description = lib.mdDoc "Git email address";
             type = types.str;
-            default = if (!_args ? "git" || !_args.git ? "email") then "" else _args.git.email;
+            default = if (!args ? "git" || !args.git ? "email") then "" else args.git.email;
           };
           comment = lib.mkOption {
             description = lib.mdDoc "System build comment";
             type = types.str;
-            default = if (!_args ? "git" || !_args.git ? "comment") then "" else _args.git.comment;
+            default = if (!args ? "git" || !args.git ? "comment") then "" else args.git.comment;
           };
         };
       };
       default = {
-        user = if (!_args ? "git" || !_args.git ? "user") then "" else _args.git.user;
-        email = if (!_args ? "git" || !_args.git ? "email") then "" else _args.git.email;
-        comment = if (!_args ? "git" || !_args.git ? "comment") then "" else _args.git.comment;
+        user = if (!args ? "git" || !args.git ? "user") then "" else args.git.user;
+        email = if (!args ? "git" || !args.git ? "email") then "" else args.git.email;
+        comment = if (!args ? "git" || !args.git ? "comment") then "" else args.git.comment;
       };
     };
 
@@ -260,12 +260,12 @@ in
           gateway = lib.mkOption {
             description = lib.mdDoc "Default gateway for the system";
             type = types.str;
-            default = if (!_args ? "net" || !_args.net ? "gateway") then "" else _args.net.gateway;
+            default = if (!args ? "net" || !args.net ? "gateway") then "" else args.net.gateway;
           };
           subnet = lib.mkOption {
             description = lib.mdDoc "Default subnet for the system";
             type = types.str;
-            default = if (!_args ? "net" || !_args.net ? "subnet") then "" else _args.net.subnet;
+            default = if (!args ? "net" || !args.net ? "subnet") then "" else args.net.subnet;
           };
           dns = lib.mkOption {
             description = lib.mdDoc "Default DNS for the system";
@@ -282,10 +282,10 @@ in
               };
             };
             default = {
-              primary = if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "primary")
-                then "1.1.1.1" else _args.net.dns.primary;
-              fallback = if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "fallback")
-                then "8.8.8.8" else _args.net.dns.fallback;
+              primary = if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "primary")
+                then "1.1.1.1" else args.net.dns.primary;
+              fallback = if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "fallback")
+                then "8.8.8.8" else args.net.dns.fallback;
             };
           };
         };
@@ -293,13 +293,13 @@ in
       default = {
         bridge = { enable = false; };
         macvlan = { name = "host"; ip = "host"; };
-        gateway = if (!_args ? "net" || !_args.net ? "gateway") then "" else _args.net.gateway;
-        subnet = if (!_args ? "net" || !_args.net ? "subnet") then "" else _args.net.subnet;
+        gateway = if (!args ? "net" || !args.net ? "gateway") then "" else args.net.gateway;
+        subnet = if (!args ? "net" || !args.net ? "subnet") then "" else args.net.subnet;
         dns = {
-          primary = if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "primary")
-            then "1.1.1.1" else _args.net.dns.primary;
-          fallback = if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "fallback")
-            then "8.8.8.8" else _args.net.dns.fallback;
+          primary = if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "primary")
+            then "1.1.1.1" else args.net.dns.primary;
+          fallback = if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "fallback")
+            then "8.8.8.8" else args.net.dns.fallback;
         };
       };
     };
@@ -307,30 +307,30 @@ in
     nics = lib.mkOption {
       description = lib.mdDoc "List of NIC options";
       type = types.listOf (types.submodule nic);
-      default = if (!_args ? "nics") then [] else (builtins.concatMap (x: [{
+      default = if (!args ? "nics") then [] else (builtins.concatMap (x: [{
         name = if (!x ? "name") then "" else x.name;
         id = if (!x ? "id") then "" else x.id;
         link = if (!x ? "link") then "" else x.link;
-        subnet = if (!x ? "subnet") then (if (!_args ? "net" || !_args.net ? "subnet")
-          then "" else _args.net.subnet) else x.subnet;
-        gateway = if (!x ? "gateway") then (if (!_args ? "net" || !_args.net ? "gateway")
-          then "" else _args.net.gateway) else x.gateway;
+        subnet = if (!x ? "subnet") then (if (!args ? "net" || !args.net ? "subnet")
+          then "" else args.net.subnet) else x.subnet;
+        gateway = if (!x ? "gateway") then (if (!args ? "net" || !args.net ? "gateway")
+          then "" else args.net.gateway) else x.gateway;
         ip = if (!x ? "ip") then "" else x.ip;
         dns = {
           primary = if (!x ? "dns" || !x.dns ? "primary")
-            then (if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "primary")
-              then "1.1.1.1" else _args.net.dns.primary) else x.dns.primary;
+            then (if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "primary")
+              then "1.1.1.1" else args.net.dns.primary) else x.dns.primary;
           fallback = if (!x ? "dns" || !x.dns ? "fallback")
-            then (if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "fallback")
-              then "8.8.8.8" else _args.net.dns.fallback) else x.dns.fallback;
+            then (if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "fallback")
+              then "8.8.8.8" else args.net.dns.fallback) else x.dns.fallback;
         };
-      }]) _args.nics);
+      }]) args.nics);
     };
 
     services = lib.mkOption {
       description = lib.mdDoc "List of service secrets";
       type = types.listOf (types.submodule service);
-      default = if (!_args ? "services") then [] else (builtins.concatMap (x: [{
+      default = if (!args ? "services") then [] else (builtins.concatMap (x: [{
         name = if (!x ? "name") then "" else x.name;
         user = if (!x ? "user") then "{}" else ({
           name = if (!x.user ? "name") then user_name else x.user.name;
@@ -343,43 +343,43 @@ in
         nic = if (!x ? "nic") then "{}" else ({
           id = if (!x.nic ? "id") then "" else x.nic.id;
           link = if (!x.nic ? "link") then "" else x.nic.link;
-          subnet = if (!x.nic ? "subnet") then (if (!_args ? "net" || !_args.net ? "subnet")
-            then "" else _args.net.subnet) else x.nic.subnet;
-          gateway = if (!x.nic ? "gateway") then (if (!_args ? "net" || !_args.net ? "gateway")
-            then "" else _args.net.gateway) else x.nic.gateway;
+          subnet = if (!x.nic ? "subnet") then (if (!args ? "net" || !args.net ? "subnet")
+            then "" else args.net.subnet) else x.nic.subnet;
+          gateway = if (!x.nic ? "gateway") then (if (!args ? "net" || !args.net ? "gateway")
+            then "" else args.net.gateway) else x.nic.gateway;
           ip = if (!x.nic ? "ip") then "" else x.nic.ip;
           dns = {
             primary = if (!x.nic ? "dns" || !x.nic.dns ? "primary")
-              then (if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "primary")
-                then "1.1.1.1" else _args.net.dns.primary) else x.nic.dns.primary;
+              then (if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "primary")
+                then "1.1.1.1" else args.net.dns.primary) else x.nic.dns.primary;
             fallback = if (!x.nic ? "dns" || !x.nic.dns ? "fallback")
-              then (if (!_args ? "net" || !_args.net ? "dns" || !_args.net.dns ? "fallback")
-                then "8.8.8.8" else _args.net.dns.fallback) else x.nic.dns.fallback;
+              then (if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "fallback")
+                then "8.8.8.8" else args.net.dns.fallback) else x.nic.dns.fallback;
           };
         });
         port = if (!x ? "port") then 80 else x.port;
-      }]) _args.services);
+      }]) args.services);
     };
 
     smb = lib.mkOption {
       type = types.submodule smb;
       default = {
-        enable = if (!_args ? "smb" || !_args.smb ? "enable") then false else _args.smb.enable;
-        user = if (!_args ? "smb" || !_args.smb ? "user") then "" else _args.smb.user;
-        pass = if (!_args ? "smb" || !_args.smb ? "pass") then "" else _args.smb.pass;
-        domain = if (!_args ? "smb" || !_args.smb ? "domain") then "" else _args.smb.domain;
-        entries = if (!_args ? "smb" || !_args.smb ? "entries") then [] else (builtins.concatMap (x: [{
+        enable = if (!args ? "smb" || !args.smb ? "enable") then false else args.smb.enable;
+        user = if (!args ? "smb" || !args.smb ? "user") then "" else args.smb.user;
+        pass = if (!args ? "smb" || !args.smb ? "pass") then "" else args.smb.pass;
+        domain = if (!args ? "smb" || !args.smb ? "domain") then "" else args.smb.domain;
+        entries = if (!args ? "smb" || !args.smb ? "entries") then [] else (builtins.concatMap (x: [{
           mountPoint = if (!x ? "mountPoint") then "" else x.mountPoint;
           remotePath = if (!x ? "remotePath") then "" else x.remotePath;
-          user = if (!x ? "user" || x.user == "") then (if (!_args ? "smb" || !_args.smb ? "user")
-            then "" else _args.smb.user) else x.user;
-          pass = if (!x ? "pass" || x.pass == "") then (if (!_args ? "smb" || !_args.smb ? "pass")
-            then "" else _args.smb.pass) else x.pass;
-          domain = if (!x ? "domain" || x.domain == "") then (if (!_args ? "smb" || !_args.smb ? "domain")
-            then "" else _args.smb.domain) else x.domain;
+          user = if (!x ? "user" || x.user == "") then (if (!args ? "smb" || !args.smb ? "user")
+            then "" else args.smb.user) else x.user;
+          pass = if (!x ? "pass" || x.pass == "") then (if (!args ? "smb" || !args.smb ? "pass")
+            then "" else args.smb.pass) else x.pass;
+          domain = if (!x ? "domain" || x.domain == "") then (if (!args ? "smb" || !args.smb ? "domain")
+            then "" else args.smb.domain) else x.domain;
           writable = if (!x ? "writable") then false else x.writable;
           options = if (!x ? "options") then [] else x.options;
-        }]) _args.smb.entries);
+        }]) args.smb.entries);
       };
     };
 
@@ -420,8 +420,8 @@ in
         };
       };
       default = {
-        enable = if (!_args ? "nfs" || !_args.nfs ? "enable") then false else _args.nfs.enable;
-        entries = if (!_args ? "nfs" || !_args.nfs ? "entries") then [] else _args.nfs.entries;
+        enable = if (!args ? "nfs" || !args.nfs ? "enable") then false else args.nfs.enable;
+        entries = if (!args ? "nfs" || !args.nfs ? "entries") then [] else args.nfs.entries;
       };
     };
 

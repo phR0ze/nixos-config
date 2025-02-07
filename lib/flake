@@ -69,7 +69,8 @@ flake::switch()
     git add "args.dec.json" -f
     git add "machines/$MACHINE/args.dec.json" -f
 
-    # Add the git comment to the build via args.nix
+    # Update args.nix with hostname and comment
+    utils::update "args.nix" str "hostname" "${MACHINE}"
     utils::update "args.nix" str "git.comment" "$(git log -1 --oneline --no-decorate)"
     git add "args.nix"
 }
