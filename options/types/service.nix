@@ -14,6 +14,12 @@ in
       type = types.str;
     };
 
+    type = lib.mkOption {
+      description = lib.mdDoc "Service type";
+      type = types.enum [ "cont" "nspawn" ];
+      default = "cont";
+    };
+
     user = lib.mkOption {
       description = lib.mdDoc "User options for service";
       type = types.submodule user;
