@@ -89,6 +89,7 @@ USAGE
 # --------------------------------------------------------------------------------------------------
 [[ $# -eq 0 ]] && core::usage
 ARGS=("$@")
+CLEAN=0
 QUIET=0
 IMPURE=""
 
@@ -98,6 +99,8 @@ for i in "${!ARGS[@]}"; do
 
     if [[ "${ARGS[i]}" == "--debug" ]]; then
         LOG_LEVEL="debug" && _log_level=$_debug && unset 'ARGS[i]'
+    elif [[ "${ARGS[i]}" == "-c" || "${ARGS[i]}" == "--clean" ]]; then
+        CLEAN=1 && unset 'ARGS[i]'
     elif [[ "${ARGS[i]}" == "--impure" ]]; then
         IMPURE="--impure" && unset 'ARGS[i]'
     elif [[ "${ARGS[i]}" == "-q" || "${ARGS[i]}" == "--quiet" ]]; then

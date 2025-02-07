@@ -9,11 +9,11 @@ Usage:
   run [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
-  -h, --help        Print out usage
-  -c, --clean       Delete the VM before running to trigger a build first
+  -h, --help            Print out usage
+  -c, --clean           Delete the VM before running to trigger a build first
 
 Commands:
-  vm                Run the given VM with the given arguments
+  vm                    Run the given VM with the given arguments
 USAGE
 
     log::ln "\nExamples:"
@@ -29,16 +29,6 @@ USAGE
 run::run()
 {
     utils::help "$@" "run::usage"
-
-    # Process any flags and remove them from the ARGS
-    CLEAN=0
-    for i in "${!ARGS[@]}"; do
-        if [[ "${ARGS[i]}" == "-c" || "${ARGS[i]}" == "--clean" ]]; then
-            CLEAN=1
-            unset 'ARGS[i]'
-        fi
-    done
-    ARGS=("${ARGS[@]}")
 
     local cmd="${ARGS[0]}" && unset 'ARGS[0]'
     case "$cmd" in

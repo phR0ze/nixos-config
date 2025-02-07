@@ -23,6 +23,7 @@ Usage:
 
 Options:
   -h, --help            Print out usage
+  -c, --clean           Delete the VM before running to trigger a build first
   --impure              Pass impure into the system update
 
 Commands:
@@ -35,6 +36,7 @@ USAGE
     log::subln "Build given machine: ${green}./${SCRIPT} build macbook${none}"
     log::subln "Build the test VM: ${green}./${SCRIPT} build vm${none}"
     log::subln "Build the prod1 VM: ${green}./${SCRIPT} build vm prod1${none}"
+    log::subln "Clean build of test VM: ${green}./${SCRIPT} build vm -c${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso generic/light${none}"
     echo
@@ -111,6 +113,12 @@ build::vm()
     log::header1 "Building ${cyan}${MACHINE}${none}"
     flake::switch "$MACHINE"
     trap flake::restore EXIT
+
+    # Optionally clean first
+    if [[ $CLEAN -eq 1 ]]; then
+        log::ls "Cleaning ${cyan}${MACHINE}${none}"
+        rm -rf "./${MACHINE}"
+    fi
 
     nix build .#nixosConfigurations.target.config.system.build.vm
 
