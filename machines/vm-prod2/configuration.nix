@@ -1,4 +1,4 @@
-# vm-prod1 configuration
+# vm-prod2 configuration
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let
@@ -44,7 +44,7 @@ in
         fd = 3;
         macvtap.mode = "bridge";
         macvtap.link = "br0";
-        mac = "02:00:00:00:00:01";
+        mac = "02:00:00:00:00:02";
       }];
     };
   };
