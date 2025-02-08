@@ -28,24 +28,24 @@ in
     #  pkgs.x2goserver
     #];
 
-#    virtualisation.qemu.guest = {
-#      cores = 4;
-#      display = {
-#        enable = true;
-#        memory = 32;
-#      };
+    virtualisation.qemu.guest = {
+      cores = 4;
+      display = {
+        enable = true;
+        memory = 32;
+      };
 #      spice = {
 #        enable = false;
 #        port = 5971;
 #      };
-#      interfaces = [{
-#        type = "user";
-#        id = cfg.hostname;
-#        fd = 3;
-#        macvtap.mode = "bridge";
-#        macvtap.link = "enp1s0";
-#        mac = "02:00:00:00:00:01";
-#      }];
-#    };
+      interfaces = [{
+        type = "macvtap";
+        id = cfg.hostname;
+        fd = 3;
+        macvtap.mode = "bridge";
+        macvtap.link = "br0";
+        mac = "02:00:00:00:00:01";
+      }];
+    };
   };
 }

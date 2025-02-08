@@ -24,6 +24,7 @@ fork it and build on my work.
   * [Upgrade an app](#upgrade-an-app)
   * [Upgrade the full system](#upgrade-the-full-system)
 * [Advanced use cases](#advanced-use-cases)
+  * [Build and deploy production VMs](#build-and-run-test-vm)
   * [Build and run test VM](#build-and-run-test-vm)
   * [Build the live ISO for installation](#build-the-live-iso-for-installation)
 * [Development](#development)
@@ -36,7 +37,7 @@ fork it and build on my work.
 * [Completed](#completed)
 
 ## Getting started
-***clu***, is a simple bash script providing:
+***clu*** is a bash script providing:
 
 * An install wizard to walk you through simple system customization
 * Automation for annoying tasks like
@@ -99,7 +100,7 @@ limited in resources while your build system is beefy.
 
 ## Update and Upgrade
 I'm defining `update` as configuration changes while an `upgrade` would be changing the versions of 
-apps or the full system.
+specific apps or the full system including all apps.
 
 ### Update configuration
 1. Switch to the configuration folder
@@ -130,14 +131,17 @@ for `vscode`.
    ```
    vscode = pkgs-unstable.vscode;`
    ```
-2. Update the lock file with
+2. Update the lock file to roll unstable to the latest
    ```bash
    $ ./clu update flake
    ```
-3. Build and test the vm
+3. Build the target configuration
    ```bash
-   $ ./clu build vm generic/develop
-   $ ./clu run vm
+   $ ./clu build $HOSTNAME
+   ```
+4. Update to changes
+   ```bash
+   $ ./clu update system
    ```
 
 ### Upgrade the full system
@@ -149,17 +153,35 @@ for `vscode`.
    ```bash
    $ ./clu update flake
    ```
-3. Build and test the vm
+3. Build the target configuration
    ```bash
-   $ ./clu build vm generic/develop
-   $ ./clu run vm
+   $ ./clu build $HOSTNAME
+   ```
+4. Update to changes
+   ```bash
+   $ ./clu update system
    ```
 
 ## Advanced use cases
 Most linux users, especially those coming from Arch Linux, will immediately be interested in how they 
 can extend and make this their own. Following best practices across the NixOS community I'm breaking 
 down my configuration into modules. This allows for composability for higher level concepts like 
-profiles. I'm organizing my modules to follow the nix options for the most part.
+machines and profiles. I'm organizing my modules to follow the nix options for the most part.
+
+### Build and deploy production VMs
+1. Define the VM to be built
+   1. Create a new `machines/vm-NAME` directory
+   2. Create the essential files
+      1. `configuration.nix`
+      2. `args.enc.json`
+      3. `args.nix`
+2. Update and test your VM locally by building it
+   1. From the root of the project run: `./clu build vm $NAME`
+   2. And then to run it: `./clu run vm $NAME`
+3. Deploy the VM to the hosts vms directory
+   ```bash
+   $ ./clu deploy vm prod1
+   ```
 
 ### Build and run test VM
 Build the test VM based on the default system configuration and default `flake_opts.nix`. If your

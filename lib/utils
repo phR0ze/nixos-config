@@ -93,6 +93,17 @@ utils::help()
     done
 }
 
+# Read user choice to continue or not
+# --------------------------------------------------------------------------------------------------
+utils::confirm_continue()
+{
+    echo -en "${yellow}continue [y/n]? ${none}" && read -n 1 confirm && echo
+    if [[ "$confirm" != "y" ]]; then
+        log::ls "${yellow}Aborting${none}"
+        exit 1
+    fi
+}
+
 # Read user choice from command line
 # --------------------------------------------------------------------------------------------------
 # ### Params
