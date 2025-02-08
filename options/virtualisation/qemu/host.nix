@@ -29,7 +29,6 @@ in
 
       vms = lib.mkOption {
         description = "Virtual machines";
-        default = {};
         type = with types; attrsOf (submodule ({name, ...}: {
           options = {
             hostname = lib.mkOption {
@@ -60,6 +59,7 @@ in
             };
           };
         }));
+        default = {};
       };
     };
   };

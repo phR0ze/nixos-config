@@ -53,16 +53,19 @@ deploy::vm()
     log::header1 "Deploying ${cyan}${machine}${none}"
     flake::ensure_machine "$machine"
 
-    # Create dirs
     local machine_dst="/var/lib/vms/$MACHINE"
-    log::ls -n "Deploying machine $MACHINE to ${cyan}${machine_dst}${none}..."
+
+    # Remove any existing
+    log::ls -n "Cleaning target directory ${cyan}${machine_dst}${none}..."
+    utils::confirm_continue
+    rm -rf "${machine_dst}"
+
+    # Copy over latest
+    log::ls -n "Creating destination directories ${cyan}${machine_dst}${none}..."
     mkdir -p "${machine_dst}"
     log::status
 
-    # Copy over latest
-    local machine_src="machines/$MACHINE"
-    log::ls -n "Copying ${cyan}${machine_src}${none}..."
-    rm -rf "$machine_dst/.git"
+    log::ls -n "Copying source to ${cyan}${machine_dst}${none}..."
     cp -r . "$machine_dst"
     log::status
 
