@@ -117,7 +117,7 @@ in
 
       # Must allow clients to connect through the firewall
       # View rules with: sudo iptables -S
-      networking.firewall.interfaces."${config.networking.primary}".allowedTCPPorts = [ 24800 ];
+      networking.firewall.interfaces."${config.networking.primary.id}".allowedTCPPorts = [ 24800 ];
 
       # Lay down the screen orientation default configuration
       environment.etc."barrier.conf".source = barrierConfig;

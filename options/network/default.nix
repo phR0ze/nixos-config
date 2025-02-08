@@ -29,14 +29,20 @@ in
   ];
 
   options = {
-    networking.primary = lib.mkOption {
+    networking.primary.id = lib.mkOption {
       description = lib.mdDoc ''
         Primary interface to use for network access. This will typically just be the physical nic 
         e.g. ens18, but when 'machine.net.bridge.enable = true' it will be set to 
         'machine.net.bridge.name' e.g. br0 as the bridge will be the primary interface.
       '';
       type = types.str;
-      default = "";
+      default = if (!nic0 ? "id" || nic0.id == "") then "" else nic0.id;
+    };
+    networking.primary.ip = lib.mkOption {
+      description = lib.mdDoc "Primary interface IP in CIDR notation";
+      type = types.str;
+      example = "192.168.1.50/24";
+      default = if (!nic0 ? "ip" || nic0.ip == "") then "" else nic0.ip;
     };
   };
 
@@ -50,7 +56,7 @@ in
       networking.firewall.allowPing = true;
     }
     (lib.mkIf (cfg.net.bridge.enable) {
-      networking.primary = cfg.net.bridge.name;
+      networking.primary.id = cfg.net.bridge.name;
     })
 
     # Configure DNS. resolved works well with network manager

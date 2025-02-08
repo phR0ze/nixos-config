@@ -32,7 +32,7 @@ in
   };
  
   config = lib.mkIf (cfg.enable) {
-    networking.firewall.interfaces."${config.networking.primary}".allowedTCPPorts = [ 5900 ];
+    networking.firewall.interfaces."${config.networking.primary.id}".allowedTCPPorts = [ 5900 ];
 
     environment.systemPackages = with pkgs; [
         x11vnc              # VNC Server
