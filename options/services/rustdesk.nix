@@ -8,17 +8,28 @@
 # well.
 #
 # - Cross-platform support, MacOS, Windows, Linux and Android
+# - Sciter based client being migrated to Flutter
 # - Linux is X11 support only for now
 #
+# ### Configuration string
+# RustDesk supports encoding settings into the filename
+# - https://github.com/v0tti/rustdesk-configstring
 # --------------------------------------------------------------------------------------------------
 { config, lib, f, ... }: with lib.types;
 let
   cfg = config.services.rustdesk;
   machine = config.machine;
+
+#  rustdesk --password $rustdesk_pw &> /dev/null
+#  rustdesk --config $rustdesk_cfg
+#  systemctl restart rustdesk
 in
 {
   options = {
-    services.rustdesk = {
+    services.rustdesk.client = {
+      enable = lib.mkEnableOption "Install and configure rustdesk client";
+    };
+    services.rustdesk.server = {
       enable = lib.mkEnableOption "Install and configure rustdesk server";
       relayHost = lib.mkOption {
         description = lib.mdDoc "IP/DNS name to use for the relay host";
@@ -29,24 +40,41 @@ in
     };
   };
  
-  config = lib.mkIf (cfg.enable) {
-    assertions = [
-      { assertion = (cfg.relayHost != ""); message = "Requires 'services.rustdesk.relayHost' be set"; }
-    ];
+  config = lib.mkMerge [
 
-    services.rustdesk-server.enable = true;
-    services.rustdesk-server.openFirewall = true;
-    services.rustdesk-server.relay.enable = true;
-    services.rustdesk-server.signal = {
-      enable = true;
-      relayHosts = [ 
-        (if(builtins.length (lib.splitString "/" cfg.relayHost) > 1) then
-           (f.toIP cfg.relayHost).address
-         else
-           cfg.relayHost
-        )
-        cfg.relayHost
+    # Configure client
+    (lib.mkIf (cfg.server.enable) {
+
+      # Install the rustdesk Sciter client
+      environment.systemPackages = [
+        pkgs.rustdesk
       ];
-    };
-  };
+
+      # Open up ports for the client to receive connections
+      networking.firewall.allowedTCPPorts = [ 21115 21116 21117 21118 21119 ];
+      networking.firewall.allowedUDPPorts = [ 21116 ];
+    })
+
+    # Configure server
+    (lib.mkIf (cfg.server.enable) {
+      assertions = [
+        { assertion = (cfg.relayHost != ""); message = "Requires 'services.rustdesk.relayHost' be set"; }
+      ];
+
+      services.rustdesk-server.enable = true;
+      services.rustdesk-server.openFirewall = true;
+      services.rustdesk-server.relay.enable = true;
+      services.rustdesk-server.signal = {
+        enable = true;
+        relayHosts = [ 
+          (if(builtins.length (lib.splitString "/" cfg.relayHost) > 1) then
+             (f.toIP cfg.relayHost).address
+           else
+             cfg.relayHost
+          )
+          cfg.relayHost
+        ];
+      };
+    })
+  ];
 }

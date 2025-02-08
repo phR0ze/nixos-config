@@ -87,7 +87,7 @@ USAGE
 
 # Check SUDO/root status
 # --------------------------------------------------------------------------------------------------
-if [[ "$(whoami)" == "root" ]]; then
+if [[ $EUID -eq 0 ]]; then
     log::ls "${red}Error: root user detected!${none}"
     log::ls "${yellow}Run with user that has passwordless sudo priviledges but not as root${none}"
     exit 1
