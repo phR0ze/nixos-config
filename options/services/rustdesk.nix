@@ -34,12 +34,28 @@ in
           Note this can be used with the password option to allow for both options.
         '';
         type = types.bool;
-        default = true;
+        default = false;
       };
       acceptSessionViaPassword = lib.mkOption {
         description = lib.mdDoc ''
           Accept RustDesk sessions after entering the password without prompting the remote user to 
           click accept. Note this can be used with the click option to allow for both options.
+        '';
+        type = types.bool;
+        default = true;
+      };
+      useTemporaryPassword = lib.mkOption {
+        description = lib.mdDoc ''
+          Automatically generate a temporary password that can be used for access.
+          Note this can be used with the permanent password such that either will work.
+        '';
+        type = types.bool;
+        default = false;
+      };
+      usePermanentPassword = lib.mkOption {
+        description = lib.mdDoc ''
+          Use a permanent password for access.
+          Note this can be used with the temporary password such that either will work.
         '';
         type = types.bool;
         default = true;
@@ -76,21 +92,19 @@ in
       #   password = 'encrypted_value'
       #   salt = 'value'
       # - options are stored in /home/$user/.config/rustdesk/RustDesk2.toml
-      #   [options]
-      #   verification-method = "use-permanent-password"
-      #   approve-mode = "password"
-      files.user.".config/rustdesk/RustDesk2.toml".text = ''
-        [options]
-        verification-method = "use-permanent-password"
-        approve-mode = "${if cfg.client.acceptSessionViaPassword then 'password' else (
-          if cfg.client.acceptSessionViaClick then 'password' else (
-            if cfg.client.acceptSessionViaClick then 'click' else (
-        )}"
-      ''
-      # Optionally add approve-mode selection
-      + lib.optionalString (cfg.client.acceptSessionViaClick) ''approve-mode = "click"''
-      + lib.optionalString (cfg.client.acceptSessionViaPassword) ''approve-mode = "password"''
-      ;
+      #   - the abscence of an verification-method means both are accepted
+      #   - the abscence of an approve-mode means both are accepted
+      files.user.".config/rustdesk/RustDesk2.toml".text = (lib.concatStringsSep "\n"
+        ([ "[options]" ]
+        ++ lib.optionals (cfg.client.usePermanentPassword && !cfg.client.useTemporaryPassword)
+          [ "verification-method = 'use-permanent-password'" ]
+        ++ lib.optionals (cfg.client.useTemporaryPassword && !cfg.client.usePermanentPassword)
+          [ "verification-method = 'use-temporary-password'" ]
+        ++ lib.optionals (cfg.client.acceptSessionViaClick && !cfg.client.acceptSessionViaPassword)
+          [ "approve-mode = 'click'" ]
+        ++ lib.optionals (cfg.client.acceptSessionViaPassword && !cfg.client.acceptSessionViaClick)
+          [ "approve-mode = 'password'" ]
+        )) + "\n";
     })
 
     # Configure server
