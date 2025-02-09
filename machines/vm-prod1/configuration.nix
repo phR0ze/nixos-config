@@ -37,11 +37,11 @@ in
 #        port = 5971;
 #      };
       interfaces = [{
-        type = "macvtap";
+        type = "user";
         id = cfg.hostname;
         fd = 3;
         macvtap.mode = "bridge";
-        macvtap.link = "br0";
+        macvtap.link = "wlp3s0";
         mac = "02:00:00:00:00:01";
       }];
     };

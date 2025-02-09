@@ -124,8 +124,9 @@ build::vm()
 
     # Install the vm in its own directory
     log::ls "Installing at ${cyan}./${MACHINE}${none}"
+    [[ -e $MACHINE/result ]] && rm $MACHINE/result
     mkdir -p "$MACHINE"
-    [ -d result ] && mv result "$MACHINE"
+    [ -e result ] && mv result "$MACHINE"
 }
 
 # Post build operations

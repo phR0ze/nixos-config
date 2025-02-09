@@ -15,7 +15,7 @@
 # RustDesk supports encoding settings into the filename
 # - https://github.com/v0tti/rustdesk-configstring
 # --------------------------------------------------------------------------------------------------
-{ config, lib, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.rustdesk;
   machine = config.machine;
@@ -28,6 +28,22 @@ in
   options = {
     services.rustdesk.client = {
       enable = lib.mkEnableOption "Install and configure rustdesk client";
+      acceptSessionViaClick = lib.mkOption {
+        description = lib.mdDoc ''
+          Prompt the remote user to click accept in order to connect to the session.
+          Note this can be used with the password option to allow for both options.
+        '';
+        type = types.bool;
+        default = true;
+      };
+      acceptSessionViaPassword = lib.mkOption {
+        description = lib.mdDoc ''
+          Accept RustDesk sessions after entering the password without prompting the remote user to 
+          click accept. Note this can be used with the click option to allow for both options.
+        '';
+        type = types.bool;
+        default = true;
+      };
     };
     services.rustdesk.server = {
       enable = lib.mkEnableOption "Install and configure rustdesk server";
@@ -43,7 +59,7 @@ in
   config = lib.mkMerge [
 
     # Configure client
-    (lib.mkIf (cfg.server.enable) {
+    (lib.mkIf (cfg.client.enable) {
 
       # Install the rustdesk Sciter client
       environment.systemPackages = [
@@ -53,6 +69,28 @@ in
       # Open up ports for the client to receive connections
       networking.firewall.allowedTCPPorts = [ 21115 21116 21117 21118 21119 ];
       networking.firewall.allowedUDPPorts = [ 21116 ];
+
+      # Configure options for rustdesk
+      # - permanent password is stored in /home/$user/.config/rustdesk/RustDesk.toml
+      #   enc_id = 'encrypted_value'
+      #   password = 'encrypted_value'
+      #   salt = 'value'
+      # - options are stored in /home/$user/.config/rustdesk/RustDesk2.toml
+      #   [options]
+      #   verification-method = "use-permanent-password"
+      #   approve-mode = "password"
+      files.user.".config/rustdesk/RustDesk2.toml".text = ''
+        [options]
+        verification-method = "use-permanent-password"
+        approve-mode = "${if cfg.client.acceptSessionViaPassword then 'password' else (
+          if cfg.client.acceptSessionViaClick then 'password' else (
+            if cfg.client.acceptSessionViaClick then 'click' else (
+        )}"
+      ''
+      # Optionally add approve-mode selection
+      + lib.optionalString (cfg.client.acceptSessionViaClick) ''approve-mode = "click"''
+      + lib.optionalString (cfg.client.acceptSessionViaPassword) ''approve-mode = "password"''
+      ;
     })
 
     # Configure server
