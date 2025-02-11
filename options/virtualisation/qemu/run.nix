@@ -1,11 +1,12 @@
 { config, pkgs, lib, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.virtualisation.qemu.guest;
+  guest = config.virtualisation.qemu.guest;
+  host = config.virtualisation.qemu.host;
 
   # Filter down the interfaces to the given type
   interfacesByType = wantedType:
-    builtins.filter ({ type, ... }: type == wantedType) cfg.interfaces;
+    builtins.filter ({ type, ... }: type == wantedType) guest.interfaces;
   macvtapInterfaces = interfacesByType "macvtap";
 in
 {
@@ -34,14 +35,14 @@ in
 
       # Create an empty ext4 filesystem image to store VM state
       # ----------------------------------------------------------------------------------------------
-      ${cfg.rootDrive.pathVar}=$(readlink -f "${cfg.rootDrive.image}")
-      if ! test -e "''$${cfg.rootDrive.pathVar}"; then
-        echo "Root disk image does not exist, creating ''$${cfg.rootDrive.pathVar}..."
+      ${guest.rootDrive.pathVar}=$(readlink -f "${guest.rootDrive.image}")
+      if ! test -e "''$${guest.rootDrive.pathVar}"; then
+        echo "Root disk image does not exist, creating ''$${guest.rootDrive.pathVar}..."
         temp=$(mktemp)
-        size="${toString (cfg.rootDrive.size * 1024)}M"
-        ${cfg.package}/bin/qemu-img create -f raw "$temp" "$size"
-        ${pkgs.e2fsprogs}/bin/mkfs.ext4 -L ${cfg.rootDrive.label} "$temp"
-        ${cfg.package}/bin/qemu-img convert -f raw -O qcow2 "$temp" "''$${cfg.rootDrive.pathVar}"
+        size="${toString (guest.rootDrive.size * 1024)}M"
+        ${host.package}/bin/qemu-img create -f raw "$temp" "$size"
+        ${pkgs.e2fsprogs}/bin/mkfs.ext4 -L ${guest.rootDrive.label} "$temp"
+        ${host.package}/bin/qemu-img convert -f raw -O qcow2 "$temp" "''$${guest.rootDrive.pathVar}"
         rm "$temp"
         echo "Root disk image created."
       fi
@@ -63,8 +64,8 @@ in
 
       # Launch the virtual machine
       # ----------------------------------------------------------------------------------------
-      exec ${cfg.package}/bin/qemu-system-x86_64 \
-        ${lib.concatStringsSep " \\\n  " cfg.options}
+      exec ${host.package}/bin/qemu-system-x86_64 \
+        ${lib.concatStringsSep " \\\n  " guest.options}
     '';
   };
 }
