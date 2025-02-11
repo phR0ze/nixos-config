@@ -5,17 +5,13 @@
 
 pkgs.rustPlatform.buildRustPackage rec {
   pname = "rdutil";
-  version = "1.0.0";
+  version = "1.0.1";
   src = pkgs.fetchFromGitHub {
     owner = "phR0ze";
     repo = pname;
     rev = "refs/tags/v${version}";
-    hash = "sha256-HDzIusEUAb1W1hA91tmFbRlJUjGfen9xs3ppPY56Vmw=";
+    hash = "sha256-cJPsX24fGiCcShF+ViVRIzgxl17uAd2g5iDgZLHuXDI=";
   };
 
-  buildInputs = [
-    /etc/machine-id
-  ];
-
-  cargoHash = "sha256-U35u6n6xN6taruTXh7YGRLvyiXmGIHzGoT89wPVZldE=";
+  cargoHash = "sha256-pCZ15pwHPgoStBON/VyoSpx3bzj9aIvDDmyqc375aRA=";
 }
