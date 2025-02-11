@@ -4,10 +4,6 @@
 # - Directly installable: desktop with additional media apps and configuration
 # --------------------------------------------------------------------------------------------------
 { lib, pkgs, ... }:
-let
-  backgrounds = pkgs.callPackage ../../modules/desktop/backgrounds { };
-
-in
 {
   imports = [
     ./desktop.nix
@@ -31,7 +27,7 @@ in
 
   # Set the default background image to avoid initial boot changes
   services.xserver.displayManager.lightdm.background = lib.mkOverride 500
-    "${backgrounds}/share/backgrounds/theater_curtains1.jpg";
+    "${pkgs.desktop-assets}/share/backgrounds/theater_curtains1.jpg";
 
   # Configure Kodi
   programs.kodi = {

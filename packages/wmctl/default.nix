@@ -1,7 +1,7 @@
-# wmctl options
+# wmctl
 #
 #---------------------------------------------------------------------------------------------------
-{ lib, pkgs, ... }: with lib.types;
+{ pkgs, ... }:
 
 pkgs.rustPlatform.buildRustPackage rec {
   pname = "wmctl";
