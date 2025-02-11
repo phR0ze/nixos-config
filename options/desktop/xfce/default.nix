@@ -4,7 +4,6 @@
 let
   cfg = config.services.xserver.desktopManager.xfce;
   backgrounds = pkgs.callPackage ../../../modules/desktop/backgrounds { };
-  wmctl = pkgs.callPackage ../../../modules/desktop/wmctl { };
   machine = config.machine;
 in 
 {
@@ -85,7 +84,8 @@ in
     ];
 
     environment.systemPackages = with pkgs.xfce // pkgs; [
-      wmctl
+      (pkgs.callPackage ../../../modules/desktop/rdutil { })
+      (pkgs.callPackage ../../../modules/desktop/wmctl { })
     ];
 
     environment.xfce.excludePackages = with pkgs.xfce // pkgs; [
