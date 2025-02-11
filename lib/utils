@@ -14,19 +14,16 @@ yellow="\e[1;33m"
 # Temporary file for reading command errors
 ERRFILE=/tmp/clu.err
 
-# Example retry using ERRFILE
-# local retry=true
-# while [ "$retry" == true ]; do
-#     nix-locate "$@" 2>$ERRFILE
-#     if [ $? -ne 0 ]; then
-#         local err=$(<$ERRFILE)
-#         if [[ "$err" == *"'/root/.cache/nix-index/files' failed"* ]]; then
-#             nix-index
-#         fi
-#     else
-#         retry=false
-#     fi
-# done
+# Block root access
+# --------------------------------------------------------------------------------------------------
+utils::ensure_not_root()
+{
+    if [[ $EUID -eq 0 ]]; then
+        log::ls "${red}Error: root user detected!${none}"
+        log::ls "${yellow}Run with user that has passwordless sudo priviledges but not as root${none}"
+        exit 1
+    fi
+}
 
 # Check if the given binary is installed
 #

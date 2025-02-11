@@ -85,14 +85,6 @@ USAGE
     exit
 }
 
-# Check SUDO/root status
-# --------------------------------------------------------------------------------------------------
-if [[ $EUID -eq 0 ]]; then
-    log::ls "${red}Error: root user detected!${none}"
-    log::ls "${yellow}Run with user that has passwordless sudo priviledges but not as root${none}"
-    exit 1
-fi
-
 # Parse commands
 # --------------------------------------------------------------------------------------------------
 [[ $# -eq 0 ]] && core::usage
