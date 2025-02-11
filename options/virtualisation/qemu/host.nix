@@ -1,5 +1,14 @@
 # QEMU host configuration
-#
+
+# The following kernel params already setup in nixos-config/modules/boot/kerel.nix are required
+# ```nix
+# boot.kernel.sysctl = {
+#   "net.ipv4.ip_forward" = 1;
+#   "net.bridge.bridge-nf-call-arptables" = 0;
+#   "net.bridge.bridge-nf-call-ip6tables" = 0;
+#   "net.bridge.bridge-nf-call-iptables" = 0;
+# };
+# ```
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -14,19 +23,21 @@ in
   options = {
     virtualisation.qemu.host = {
       enable = lib.mkEnableOption "Install and configure QEMU on the host system";
-
+      package = lib.mkOption {
+        description = "Default QEMU package to use";
+        type = types.package;
+        default = pkgs.qemu_kvm;
+      };
       stateDir = lib.mkOption {
         type = types.path;
         default = "/var/lib/vms";
         description = "Directory that contains the VMs";
       };
-
       group = lib.mkOption {
         type = types.str;
         description = "Group to use for VMs when running as system services";
         default = "users";
       };
-
       vms = lib.mkOption {
         description = "Virtual machines";
         type = with types; attrsOf (submodule ({name, ...}: {
@@ -86,29 +97,30 @@ in
         value = "infinity";
       } ];
 
-      virtualisation.libvirtd = {
-        enable = true;
-        qemu.swtpm.enable = true;                   # Configure windows swtpm
-        qemu.ovmf.enable = true;                    # Configure UEFI support
-        qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];  # Configure UEFI support
-        qemu.vhostUserPackages = [ pkgs.virtiofsd ];  # virtiofs support
-      };
+      # Needed?
+#      virtualisation.libvirtd = {
+#        enable = true;
+#        qemu.swtpm.enable = true;                   # Configure windows swtpm
+#        qemu.ovmf.enable = true;                    # Configure UEFI support
+#        qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];  # Configure UEFI support
+#        qemu.vhostUserPackages = [ pkgs.virtiofsd ];  # virtiofs support
+#      };
 
       environment.sessionVariables.LIBVIRT_DEFAULT_URI = [ "qemu:///system" ];
 
       # Enables the use of qemu-bridge-helper for `type = "bridge"` interface.
-      environment.etc."qemu/bridge.conf".text = lib.mkDefault ''
-        allow all
+      environment.etc."qemu/bridge.conf".text = lib.mkForce ''
+        allow ${machine.net.bridge.name}
       '';
 
       # Allow qemu-bridge-helper to create tap interfaces and attach them to
-      # a bridge without being root
-#      security.wrappers.qemu-bridge-helper = {
-#        source = "${pkgs.qemu-utils}/libexec/qemu-bridge-helper";
-#        owner = "root";
-#        group = "root";
-#        capabilities = "cap_net_admin+ep";
-#      };
+      # the bridge without being root
+      security.wrappers.qemu-bridge-helper = {
+        setuid = true;
+        owner = "root";
+        group = "root";
+        source = "${host.package}/libexec/qemu-bridge-helper";
+      };
 
       # Allow nested virtualisation
       boot.extraModprobeConfig = "options kvm_intel nested=1";
@@ -127,7 +139,7 @@ in
         virglrenderer     # Support Guests using Virtio ro get host OpenGL acceleration
       ];
 
-      users.users.${machine.user.name}.extraGroups = [ "kvm" "libvirtd" "qemu-libvirtd" ];
+      users.users.${machine.user.name}.extraGroups = [ "kvm" ];
     })
 
     # Configure the VMs to be run on the host including systemd integration

@@ -40,14 +40,6 @@ in
 
   options = {
     virtualisation.qemu.guest = {
-      package = lib.mkOption {
-        description = ''
-          There are a few binaries available. `qemu-kvm` is an older packaging concept. For NixOS use
-          qemu-system-x86_64 which is pkgs.qemu_kvm in Nix land.
-        '';
-        type = types.package;
-        default = pkgs.qemu_kvm;
-      };
       store = lib.mkOption {
         description = "Configure the nix store";
         type = types.submodule {

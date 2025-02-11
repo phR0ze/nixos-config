@@ -21,10 +21,6 @@
 let
   cfg = config.services.rustdesk;
   machine = config.machine;
-
-#  rustdesk --password $rustdesk_pw &> /dev/null
-#  rustdesk --config $rustdesk_cfg
-#  systemctl restart rustdesk
 in
 {
   options = {
