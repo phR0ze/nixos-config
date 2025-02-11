@@ -119,7 +119,7 @@ in
         setuid = true;
         owner = "root";
         group = "root";
-        source = "${host.package}/libexec/qemu-bridge-helper";
+        source = "${cfg.package}/libexec/qemu-bridge-helper";
       };
 
       # Allow nested virtualisation
