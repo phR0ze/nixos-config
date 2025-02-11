@@ -26,15 +26,20 @@
       # Modify package defaults with overlays
       # --------------------------------------------------------------------------------------------
       overlays = [
-
-        # Upgrade select packages to the latest unstable bits
         (before: after: {
+          # Include custom packages in global pkgs variable
+          arcologout = pkgs.callPackage packages/arcologout {};
+          desktop-assets = pkgs.callPackage packages/desktop-assets {};
+          rdutil = pkgs.callPackage packages/rdutil {};
+          tinymediamanager = pkgs.callPackage packages/tinymediamanager{};
+          wmctl = pkgs.callPackage packages/wmctl {};
+
+          # Upgrade select packages to the latest unstable bits
           go = pkgs-unstable.go;
           go-bindata = pkgs-unstable.go-bindata;
           golangci-lint = pkgs-unstable.golangci-lint;
-          vscode = pkgs-unstable.vscode;
-          zed-editor = pkgs-unstable.vscode;
           rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
+          vscode = pkgs-unstable.vscode;
           vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
         })
       ];

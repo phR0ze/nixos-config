@@ -1,7 +1,7 @@
-# rdutil options
+# rdutil
 #
 #---------------------------------------------------------------------------------------------------
-{ lib, pkgs, ... }: with lib.types;
+{ pkgs, ... }:
 
 pkgs.rustPlatform.buildRustPackage rec {
   pname = "rdutil";

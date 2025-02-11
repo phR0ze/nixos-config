@@ -13,8 +13,6 @@ in
     ../modules/hardware/audio.nix
     ../modules/hardware/bluetooth.nix
     ../modules/hardware/printers.nix
-    ../modules/desktop/backgrounds/opt.nix
-    ../modules/desktop/icons.nix
   ];
 
   # Enable NetworkManager
@@ -46,12 +44,23 @@ in
 #    package = lib.mkForce pkgs.gnome.gvfs;
 #  };
 
-
   # Configure gnome keyring for VPN and Copilot and automatically unlock on login
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.lightdm.enableGnomeKeyring = true;
 
+  # Link the desktop-assets package's content to the system path /run/current-system/sw 
+  # - searches all packages that have paths matching the list and merge links them
+  environment.pathsToLink = [
+    "/share/backgrounds"  # /run/current-system/sw/share/backgrounds
+    "/share/icons/hicolor"  # /run/current-system/sw/share/icons/hicolor
+  ];
+
   environment.systemPackages = with pkgs; [
+
+    # Custom packages
+    desktop-assets
+    rdutil
+    wmctl
 
     # System
     desktop-file-utils                  # Command line utilities for working with desktop entries

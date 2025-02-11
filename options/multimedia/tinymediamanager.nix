@@ -3,7 +3,6 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.programs.tinyMediaManager;
-  tinymediamanager = pkgs.callPackage ../../modules/multimedia/tinymediamanager/default.nix { };
 
   tmmDesktopFilePackage = pkgs.runCommandLocal "tinyMediaManager" {} ''
     mkdir -p $out/share/applications
@@ -28,7 +27,7 @@ in
 
   config = lib.mkIf (cfg.enable) {
     environment.systemPackages = [
-      tinymediamanager
+      pkgs.tinymediamanager
       tmmDesktopFilePackage
     ];
 

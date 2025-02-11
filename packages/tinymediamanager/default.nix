@@ -6,7 +6,7 @@
 # - Releae 4.1 changed the license to make FREE and PRO versions
 # - https://gitlab.com/tinyMediaManager/tinyMediaManager/-/releases/tinyMediaManager-4.1
 #---------------------------------------------------------------------------------------------------
-{ stdenv, lib, pkgs, fetchurl,libmediainfo,libzen,jre }:
+{ stdenv, lib, pkgs, fetchurl, libmediainfo, libzen, jre, ... }:
 let
   # Build a wrapper script that will configure an environment for Tiny Media Manager to run in
   tmm-bin = pkgs.writers.writeDash "tinymediamanager" ''

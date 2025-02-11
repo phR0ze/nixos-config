@@ -3,8 +3,6 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.services.xserver.desktopManager.xfce;
-  backgrounds = pkgs.callPackage ../../../modules/desktop/backgrounds { };
-  rduilt = pkgs.callPackage ../../../modules/desktop/rdutil { };
   machine = config.machine;
 in 
 {
@@ -31,7 +29,7 @@ in
       xserver = {
         enable = true;
         displayManager = {
-          lightdm.background = lib.mkOverride 900 "${backgrounds}/share/backgrounds/sector-8_1600x900.jpg";
+          lightdm.background = lib.mkOverride 900 "${pkgs.desktop-assets}/share/backgrounds/sector-8_1600x900.jpg";
         };
         desktopManager = {
           xfce.enableXfwm = true;
@@ -82,11 +80,6 @@ in
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
       { source = "${pkgs.veracrypt}/share/applications/veracrypt.desktop"; categories = "System"; }
       #{ source = "${pkgs.libsForQt5.qtstyleplugin-kvantum}/share/applications/kvantummanager.desktop"; categories = "Settings"; }
-    ];
-
-    environment.systemPackages = with pkgs.xfce // pkgs; [
-      (pkgs.callPackage ../../../modules/desktop/wmctl { })
-      rdutil
     ];
 
     environment.xfce.excludePackages = with pkgs.xfce // pkgs; [
