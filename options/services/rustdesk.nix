@@ -11,7 +11,9 @@
 # - Sciter based client being migrated to Flutter
 # - Linux is X11 support only for now
 #
-# ### Configuration string
+# ### Configuration
+# - [Advanced settings](https://rustdesk.com/docs/en/self-host/client-configuration/advanced-settings/)
+#   - Direct IP access port is 21118
 # RustDesk supports encoding settings into the filename
 # - https://github.com/v0tti/rustdesk-configstring
 # --------------------------------------------------------------------------------------------------
@@ -60,6 +62,21 @@ in
         type = types.bool;
         default = true;
       };
+      allowRemoteConfigModification = lib.mkOption {
+        description = lib.mdDoc "Allow control side to change controlled settings";
+        type = types.bool;
+        default = true;
+      };
+      allowDirectIPAccess = lib.mkOption {
+        description = lib.mdDoc "Allow remote users to connect directly by IP address";
+        type = types.bool;
+        default = true;
+      };
+      enableDarkTheme = lib.mkOption {
+        description = lib.mdDoc "Enable dark theme mode";
+        type = types.bool;
+        default = true;
+      };
     };
     services.rustdesk.server = {
       enable = lib.mkEnableOption "Install and configure rustdesk server";
@@ -83,15 +100,13 @@ in
       ];
 
       # Open up ports for the client to receive connections
-      networking.firewall.allowedTCPPorts = [ 21115 21116 21117 21118 21119 ];
-      networking.firewall.allowedUDPPorts = [ 21116 ];
+      networking.firewall.allowedTCPPorts = [ 21118 ];
 
       # Configure options for rustdesk
-      # - permanent password is stored in /home/$user/.config/rustdesk/RustDesk.toml
-      #   enc_id = 'encrypted_value'
-      #   password = 'encrypted_value'
-      #   salt = 'value'
-      # - options are stored in /home/$user/.config/rustdesk/RustDesk2.toml
+      # - permanent password is tied to
+      #   - password = 'encrypted_value' stored in ~/.config/rustdesk/RustDesk.toml
+      #   - trusted_devices = 'encrypted_value' stored in ~/.config/rustdesk/RustDesk2.toml
+      # - options are stored in ~/.config/rustdesk/RustDesk2.toml
       #   - the abscence of an verification-method means both are accepted
       #   - the abscence of an approve-mode means both are accepted
       files.user.".config/rustdesk/RustDesk2.toml".text = (lib.concatStringsSep "\n"
@@ -104,6 +119,12 @@ in
           [ "approve-mode = 'click'" ]
         ++ lib.optionals (cfg.client.acceptSessionViaPassword && !cfg.client.acceptSessionViaClick)
           [ "approve-mode = 'password'" ]
+        ++ lib.optionals (cfg.client.allowRemoteConfigModification)
+          [ "allow-remote-config-modification = 'Y'" ]
+        ++ lib.optionals (cfg.client.enableDarkTheme)
+          [ "allow-darktheme = 'Y'" ]
+        ++ lib.optionals (cfg.client.allowDirectIPAccess)
+          [ "direct-server = 'Y'" ]
         )) + "\n";
     })
 
