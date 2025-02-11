@@ -3,11 +3,6 @@ let
   machine = config.machine;
   guest = config.virtualisation.qemu.guest;
   host = config.virtualisation.qemu.host;
-
-  # Filter down the interfaces to the given type
-  interfacesByType = wantedType:
-    builtins.filter ({ type, ... }: type == wantedType) guest.interfaces;
-  macvtapInterfaces = interfacesByType "macvtap";
 in
 {
   config = {
@@ -24,14 +19,6 @@ in
       mkdir -p "$VMDIR/shared"
       cd "$VMDIR"
       VMDIR="$(pwd)"
-
-      ${if (macvtapInterfaces != []) then ''
-      # Open the tap device with the given file descriptor for read/write. Starting with 3 is typical
-      # since 0, 1, and 2 are used for standard input, output and error.
-      # ----------------------------------------------------------------------------------------------
-      '' + lib.concatMapStrings ({id, fd, ...}:
-        "exec ${toString fd}<>/dev/tap$(< /sys/class/net/${id}/ifindex)"
-      ) macvtapInterfaces else ""}
 
       # Create an empty ext4 filesystem image to store VM state
       # ----------------------------------------------------------------------------------------------

@@ -66,13 +66,6 @@ run::vm()
         flake::restore
     fi
 
-    # Need root priviledges for this 
-    local tap="./${MACHINE}/result/bin/macvtap-up"
-    if [[ -f "$tap" ]]; then
-        sudo $tap
-        log::ln "Running tap ${cyan}${tap}${none}"
-    fi
-
     log::ls "Running ${cyan}${runner}${none}"
     $runner
 }

@@ -34,7 +34,6 @@ let
 in
 {
   imports = [
-    ./macvtap.nix
     ./run.nix
   ];
 
@@ -502,9 +501,11 @@ in
         #) cfg.sharedDirectories)
 
         # Networking configuration
+        # qemu-bridge-helper is configured in host.nix for qemu to be able to automatically create
+        # tap devices as root and clean them up as root but run the VM as a regular user.
         ++ lib.optionals (macvtapInterfaces != [])
           (builtins.concatMap (x: [
-            "-netdev tap,id=nic0,fd=${toString x.fd}"
+            "-netdev tap,id=nic0,br=${machine.net.bridge.name},helper=$(type -p qemu-bridge-helper)"
             "-device virtio-net-pci,netdev=nic0,mac=${x.mac}"
           ]) macvtapInterfaces)
         ++ lib.optionals (userInterfaces != [])
@@ -597,12 +598,6 @@ in
         mkdir -p $out/bin
         ln -s ${config.system.build.toplevel} $out/system
         ln -s ${pkgs.writeScript "run-${machine.hostname}" cfg.scripts.run} $out/bin/run
-
-        # Optionally configure macvtap scripts
-        if [[ "${if macvtapInterfaces != [] then "1" else "0"}" == "1" ]]; then
-          ln -s ${pkgs.writeScript "macvtap-up" cfg.scripts.macvtap-up} $out/bin/macvtap-up
-          ln -s ${pkgs.writeScript "macvtap-down" cfg.scripts.macvtap-down} $out/bin/macvtap-down
-        fi
       '');
     }
 
