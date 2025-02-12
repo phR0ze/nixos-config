@@ -26,7 +26,7 @@ in
     machine.net.bridge.enable = true;
 
     services.cache.host = true;
-    services.rustdesk.enable = true;
+    services.rustdesk.client.enable = true;
     #services.nspawn.portainer.enable = true;
     #services.nspawn.stirling-pdf.enable = true;
   };
