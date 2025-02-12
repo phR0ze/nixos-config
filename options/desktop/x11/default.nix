@@ -90,8 +90,6 @@ in
       EndSection
     '';
 
-    services.x11vnc.enable = true;        # Enable the x11vnc server
-
     environment.systemPackages = with pkgs; [
       xclip                               # Required for neovim to copy paster to/from other apps
       xorg.xkill                          # Kill for X windows instances

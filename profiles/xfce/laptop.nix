@@ -9,9 +9,6 @@
     ./desktop.nix
   ];
 
-  # Disable x11vnc for laptops
-  services.x11vnc.enable = lib.mkForce false;
-
   # Add additional packages
   # Slick captive portal solutions for hotels etc...
 #  programs = {
