@@ -247,8 +247,8 @@ install::config_system()
         nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
 
         # Run the installer: $NIXOS_CONFIG_DIR will usually be /mnt/etc/nixos
-        # nixos-install --no-root-passwd --no-channel-copy --flake /mnt/etc/nixos#system
-        nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG_DIR}#system"
+        # nixos-install --no-root-passwd --no-channel-copy --flake /mnt/etc/nixos#target
+        nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG_DIR}#target"
         if [ $? -ne 0 ]; then
             echo -e ":: ${red}Failure building the install flake${none}"
             echo -e "   1. Fix the flake issue at ${cyan}${NIXOS_CONIFG}${none}"
