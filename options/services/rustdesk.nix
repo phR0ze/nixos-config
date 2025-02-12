@@ -31,6 +31,11 @@ in
   options = {
     services.rustdesk.client = {
       enable = lib.mkEnableOption "Install and configure rustdesk client";
+      service = lib.mkOption {
+        description = lib.mdDoc "Install as systemd service and autostart";
+        type = types.bool;
+        default = true;
+      };
       acceptSessionViaClick = lib.mkOption {
         description = lib.mdDoc ''
           Prompt the remote user to click accept in order to connect to the session.
@@ -73,6 +78,11 @@ in
         type = types.bool;
         default = true;
       };
+      allowOnlyDirectIPAccess = lib.mkOption {
+        description = lib.mdDoc "Only accept direct IP connections";
+        type = types.bool;
+        default = true;
+      };
       enableDarkTheme = lib.mkOption {
         description = lib.mdDoc "Enable dark theme mode";
         type = types.bool;
@@ -110,10 +120,12 @@ in
         )) + "\n";
 
       # Configure RustDesk general options
-      #   - the abscence of an verification-method means both are accepted
-      #   - the abscence of an approve-mode means both are accepted
+      #   - the absence of an verification-method means both are accepted
+      #   - the absence of an approve-mode means both are accepted
       files.user.".config/rustdesk/RustDesk2.toml".text = (lib.concatStringsSep "\n"
-        ([ "[options]" ]
+        ([] ++ lib.optionals (cfg.client.allowOnlyDirectIPAccess)
+          [ "rendezvous_server = '0.0.0.1'" "" ] # intentionally including a newline here
+        ++ [ "[options]" ]
         ++ lib.optionals (cfg.client.usePermanentPassword && !cfg.client.useTemporaryPassword)
           [ "verification-method = 'use-permanent-password'" ]
         ++ lib.optionals (cfg.client.useTemporaryPassword && !cfg.client.usePermanentPassword)
@@ -128,7 +140,30 @@ in
           [ "allow-darktheme = 'Y'" ]
         ++ lib.optionals (cfg.client.allowDirectIPAccess)
           [ "direct-server = 'Y'" ]
+        ++ lib.optionals (cfg.client.allowOnlyDirectIPAccess) [
+            "custom-rendezvous-server = '0.0.0.1'"
+            "relay-server = '0.0.0.1'"
+          ]
         )) + "\n";
+
+      # Configure RustDesk to start with the system
+      # https://github.com/rustdesk/rustdesk/blob/master/res/rustdesk.service
+      systemd.services.rustdesk = lib.mkIf (cfg.client.service) {
+        description = "RustDesk";
+        requires = [ "network.target" ];              # fails this service if no network
+        after = [ "systemd-user-sessions.service" ];  # start after network.target and login ready
+        wantedBy = [ "multi-user.target" ];
+
+        serviceConfig = {
+          Type = "simple";
+          ExecStart = "${pkgs.rustdesk}/bin/rustdesk --service";
+          ExecStop = ''${pkgs.procps}/bin/pkill -f "rustdesk --"'';
+          PIDFile = "/run/rustdesk.pid";
+          KillMode = "mixed";
+          TimeoutStopSec = 30;
+          LimitNOFILE = 100000;
+        };
+      };
     })
 
     # Configure server
