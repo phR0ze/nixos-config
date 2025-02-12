@@ -17,10 +17,15 @@
 # RustDesk supports encoding settings into the filename
 # - https://github.com/v0tti/rustdesk-configstring
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, args, f, ... }: with lib.types;
 let
   cfg = config.services.rustdesk;
   machine = config.machine;
+
+  # Generate a machine-id encoded password for RustDesk
+  encoded-pass = builtins.readFile (pkgs.runCommandLocal "encoded-rustdesk-pass" {} ''
+    ${pkgs.rdutil}/bin/rdutil encrypt ${machine.user.pass} --key ${machine.id} > $out
+  '');
 in
 {
   options = {
@@ -98,11 +103,13 @@ in
       # Open up ports for the client to receive connections
       networking.firewall.allowedTCPPorts = [ 21118 ];
 
-      # Configure options for rustdesk
-      # - permanent password is tied to
-      #   - password = 'encrypted_value' stored in ~/.config/rustdesk/RustDesk.toml
-      #   - trusted_devices = 'encrypted_value' stored in ~/.config/rustdesk/RustDesk2.toml
-      # - options are stored in ~/.config/rustdesk/RustDesk2.toml
+      # Configure rustdesk permanent password encoded using the unique machine-id for this system
+      files.user.".config/rustdesk/RustDesk.toml".text = (lib.concatStringsSep "\n"
+        ([] ++ lib.optionals (cfg.client.allowDirectIPAccess)
+          [ "password = '${encoded-pass}'" ]
+        )) + "\n";
+
+      # Configure RustDesk general options
       #   - the abscence of an verification-method means both are accepted
       #   - the abscence of an approve-mode means both are accepted
       files.user.".config/rustdesk/RustDesk2.toml".text = (lib.concatStringsSep "\n"

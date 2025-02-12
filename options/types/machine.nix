@@ -11,6 +11,11 @@ let
   service = import ./service.nix { inherit lib; };
   user = import ./user.nix { inherit lib; };
 
+  # Generate an id to be used as a default
+  machine-id = pkgs.runCommandLocal "machine-id" {} ''
+    ${pkgs.dbus}/bin/dbus-uuidgen > $out
+  '';
+
   # Shortcuts for reused items
   user_name = if (!args ? "user" || !args.user ? "name") then "admin" else args.user.name;
   user_pass = if (!args ? "user" || !args.user ? "pass" || args.user.pass == "") then "admin" else args.user.pass;
@@ -55,6 +60,12 @@ in
       description = lib.mdDoc "Hostname";
       type = types.str;
       default = if (!args ? "hostname" || args.hostname == "") then "nixos" else args.hostname;
+    };
+
+    id = lib.mkOption {
+      description = lib.mdDoc "Machine id for /etc/machine-id";
+      type = types.str;
+      default = if (!args ? "id" || args.id == "") then "${builtins.readFile machine-id}" else args.id;
     };
 
     profile = lib.mkOption {

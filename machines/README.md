@@ -47,6 +47,7 @@ separate from the actual configuartion to allow for better reuse across my diffe
 | Argument                | Type  | Default         | Description
 | ----------------------- | ----- | --------------- | --------------------------------------
 | `hostname`              | str   | `nixos`         | Hostname for the machine
+| `id`                    | str   |                 | `dbus-uuidgen` generated Machine ID to use for the system
 | `profile`               | str   | `xfce/desktop`  | Pre-defined configurations in path './profiles' selection
 | `efi`                   | bool  | `false`         | EFI system boot type set during installation
 | `mbr`                   | str   | `nodev`         | MBR system boot device set during installation, e.g. `/dev/sda`
