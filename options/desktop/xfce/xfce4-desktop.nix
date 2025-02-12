@@ -14,6 +14,10 @@ let
     "monitorDP-0"
     "monitorDP-1"
     "monitorDP-2"
+    "monitorDP-3"
+    "monitorDP-4"
+    "monitorDP-5"
+    "monitorDP-6"
 
     # Variation seen on HP laptop
     "monitoreDP-0"
@@ -61,6 +65,11 @@ let
             ${lib.concatMapStringsSep "\n" (x: ''
               <property name="${x}" type="empty">
                 <property name="workspace0" type="empty">
+                  <property name="color-style" type="int" value="0"/>
+                  <property name="image-style" type="int" value="5"/>
+                  <property name="last-image" type="string" value="${cfg.background}"/>
+                </property>
+                <property name="workspace1" type="empty">
                   <property name="color-style" type="int" value="0"/>
                   <property name="image-style" type="int" value="5"/>
                   <property name="last-image" type="string" value="${cfg.background}"/>
