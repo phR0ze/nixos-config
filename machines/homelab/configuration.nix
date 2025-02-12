@@ -1,4 +1,7 @@
 # Homelab configuration
+#
+# ### Features
+# - Directly installable: 
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let
@@ -23,8 +26,6 @@ in
     machine.net.bridge.enable = true;
 
     services.cache.host = true;
-    services.x11vnc.enable = lib.mkForce false;
-
     services.rustdesk.enable = true;
     #services.nspawn.portainer.enable = true;
     #services.nspawn.stirling-pdf.enable = true;

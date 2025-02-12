@@ -1,4 +1,4 @@
 {
   profile = "xfce/server";
-  mbr = "/dev/sda";
+  efi = true;
 }

@@ -267,7 +267,6 @@ in
   config = lib.mkMerge [
     {
       services.qemuGuest.enable = true;                   # Install and run the QEMU guest agent
-      services.x11vnc.enable = lib.mkForce false;         # We'll use SPICE instead
       networking.wireless.enable = lib.mkForce false;     # Wireless networking won't work in VM
       services.connman.enable = lib.mkForce false;        # Wireless networking won't work in VM
       networking.dhcpcd.extraConfig = "noarp";            # Speed up booting by not waiting for ARP
