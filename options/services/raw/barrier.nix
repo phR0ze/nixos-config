@@ -4,8 +4,8 @@
 { options, config, lib, pkgs, ... }: with lib.types;
 
 let
-  cfgC = config.services.barrierc;
-  cfgS = config.services.barriers;
+  cfgC = config.services.raw.barrierc;
+  cfgS = config.services.raw.barriers;
 
   barrierConfig = lib.mkIf cfgS.enable
     (pkgs.writeText "barrier.config" ''
@@ -23,7 +23,7 @@ let
 in
 {
   options = {
-    services.barrierc = {
+    services.raw.barrierc = {
       enable = lib.mkEnableOption (lib.mdDoc "Barrier client");
 
       name = lib.mkOption {
@@ -62,7 +62,7 @@ in
       };
     };
 
-    services.barriers = {
+    services.raw.barriers = {
       enable = lib.mkEnableOption (lib.mdDoc "Barrier server");
 
       configFile = lib.mkOption {

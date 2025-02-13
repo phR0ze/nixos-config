@@ -2,10 +2,18 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
-  cfg = config.services.openssh;
+  cfg = config.services.raw.openssh;
 in
 {
-  config = lib.mkIf cfg.enable {
+  options = {
+    services.raw.openssh = {
+      enable = lib.mkEnableOption "Install and configure openssh server";
+    };
+  };
+
+  config = lib.mkIf (cfg.enable) {
+    services.openssh.enable = true;
+
     users.motd = ''
       -----------------------------------------------------------------------------------------
                                                    |

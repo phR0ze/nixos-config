@@ -27,8 +27,8 @@ in
     hardware.graphics.amd = true;
     machine.net.bridge.enable = true;
 
-    services.barriers.enable = true;
-    services.rustdesk.autostart = false;
+    services.raw.barriers.enable = true;
+    services.raw.rustdesk.autostart = false;
 
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
