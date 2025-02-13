@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  cfg = config.programs.filezilla;
+  cfg = config.apps.network.filezilla;
 
   xmlfile = lib.mkIf cfg.enable (pkgs.writeText "filezilla.xml" ''
     <?xml version="1.0"?>
@@ -18,7 +18,7 @@ let
 in
 {
   options = {
-    programs.filezilla = {
+    apps.network.filezilla = {
       enable = lib.mkEnableOption "Install and configure filezilla";
 
       showLocalTree = lib.mkOption {

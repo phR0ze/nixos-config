@@ -24,10 +24,7 @@ in
   config = {
     machine.enable = true;
     hardware.graphics.intel = true;
-    programs.hedgewars.enable = true;
-    programs.superTuxKart.enable = true;
-
-    environment.systemPackages = [
-    ];
+    apps.games.hedgewars.enable = true;
+    apps.games.superTuxKart.enable = true;
   };
 }

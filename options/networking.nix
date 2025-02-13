@@ -15,20 +15,17 @@
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.machine;
+  networking = config.networking;
 
   # Extract the primary nic if it exists
   filtered = builtins.filter (x: x.name == "primary") cfg.nics;
   nic0 = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
 in
 {
-  imports = [
-    ./filezilla.nix
-    ./firefox.nix
-    ./qbittorrent.nix
-    ./network-manager.nix
-  ];
-
   options = {
+    networking.network-manager = {
+      enable = lib.mkEnableOption "Install and configure network manager";
+    };
     networking.primary.id = lib.mkOption {
       description = lib.mdDoc ''
         Primary interface to use for network access. This will typically just be the physical nic 
@@ -47,6 +44,21 @@ in
   };
 
   config = lib.mkMerge [
+
+    # Configure network manager
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf (networking.network-manager.enable) {
+      networking.networkmanager = {
+        enable = true;                      # Enable networkmanager and nm-applet
+        dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
+        unmanaged = [                       # Ignore virtualization networks
+          "interface-name:podman*"
+        ];
+      };
+
+      # Enables ability for user to make network manager changes
+      users.users.${config.machine.user.name}.extraGroups = [ "networkmanager" ];
+    })
 
     # Configure basic networking
     # ----------------------------------------------------------------------------------------------

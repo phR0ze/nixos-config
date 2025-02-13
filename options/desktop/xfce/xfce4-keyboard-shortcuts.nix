@@ -226,7 +226,7 @@ in
       };
       appFinderCmd = lib.mkOption {
         type = types.str;
-        default = if config.programs.dmenu.enable then config.programs.dmenu.run else "xfce4-appfinder -c";
+        default = if config.apps.utils.dmenu.enable then config.apps.utils.dmenu.run else "xfce4-appfinder -c";
         description = lib.mdDoc "App finder command to use";
       };
     };

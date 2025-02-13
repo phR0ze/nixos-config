@@ -89,7 +89,7 @@ in
       ristretto                         # Xfce default, i like qview better
     ]
     # Conditionally include xfce4-appfinder if using an alternate app finder
-    ++ lib.optional config.programs.dmenu.enable xfce4-appfinder;
+    ++ lib.optional config.apps.utils.dmenu.enable xfce4-appfinder;
 
   };
 }

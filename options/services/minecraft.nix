@@ -18,12 +18,12 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.services.minecraft-server;
-
+  cfg = config.services.minecraft;
 in
 {
   options = {
-    services.minecraft-server = {
+    services.minecraft = {
+      enable = lib.mkEnableOption "Install and configure minecraft server";
       levelSeed = lib.mkOption {
         type = types.str;
         default = "5705783928676095273";

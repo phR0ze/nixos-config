@@ -33,9 +33,9 @@ in
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 
+    apps.games.hedgewars.enable = true;
+    apps.games.superTuxKart.enable = true;
     apps.media.freecad.enable = true;
-    programs.hedgewars.enable = true;
-    programs.superTuxKart.enable = true;
     apps.media.xnviewmp.enable = true;
 
     # Misc

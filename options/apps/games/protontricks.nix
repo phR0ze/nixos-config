@@ -6,20 +6,17 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  cfg = config.programs.protontricks;
-
+  cfg = config.apps.games.protontricks;
 in
 {
   options = {
-    programs.protontricks = {
+    apps.games.protontricks = {
       enable = lib.mkEnableOption "Install and configure protontricks";
     };
   };
  
   config = lib.mkIf (cfg.enable) {
-    environment.systemPackages = with pkgs; [
-      protontricks
-    ];
+    programs.steam.protontricks.enable = true;
 
     # Set the correct category for steam
     services.xdg.menu.itemOverrides = [
