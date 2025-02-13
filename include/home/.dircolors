@@ -16,8 +16,8 @@
 #   Solarized or not, dark or light.
 # - We choose to have the following category of files:
 #   NORMAL & FILE, DIR, LINK, EXEC and
-#   editable text including source, unimportant text, binary docs & multimedia source
-#   files, viewable multimedia, archived/compressed, and unimportant non-text
+#   editable text including source, unimportant text, binary docs & media source
+#   files, viewable media, archived/compressed, and unimportant non-text
 # - For uniqueness, we stay away from the Solarized foreground colors are -- either
 #   base00 (brightyellow) or base0 (brightblue).  However, they can be used if
 #   you know what the bg/fg colors of your terminal are, in order to optimize the display.
@@ -27,7 +27,7 @@
 #   background
 # - We note that blue is the hardest color to see on dark bg and yellow is the hardest
 #   color to see on light bg (with blue being particularly bad).  So we choose yellow
-#   for multimedia files which are usually accessed in a GUI folder browser anyway.
+#   for media files which are usually accessed in a GUI folder browser anyway.
 #   And blue is kept for custom use of this scheme's user.
 # - See table below to see the assignments.
 
@@ -146,7 +146,7 @@ EIGHTBIT 1
 #   01;31 bright red      orange                          EXEC                  <SAME>               <SAME>
 #   32    green           green                           editable text         <SAME>               <SAME>
 #   01;32 bright green    base01                          unimportant text      <SAME>
-#   33    yellow          yellow     unclear in light bg  multimedia            <SAME>               <SAME>
+#   33    yellow          yellow     unclear in light bg  media                 <SAME>               <SAME>
 #   01;33 bright yellow   base00     fg of SolLight                             unimportant non-text
 #   34    blue            blue       unclear in dark bg   user customized       <SAME>               <SAME>
 #   01;34 bright blue     base0      fg in SolDark                                                   unimportant text
@@ -273,7 +273,7 @@ EXEC 01;31  # Unix
 .vh 32
 .vhd 32
 
-### Multimedia formats
+### Media formats
 
 # Image
 .bmp 33
@@ -363,7 +363,7 @@ EXEC 01;31  # Unix
 
 ### Misc
 
-# Binary document formats and multimedia source
+# Binary document formats and media source
 .doc 31
 .docx 31
 .rtf 31
