@@ -23,7 +23,6 @@ in
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 
-    services.rustdesk.client.enable = true;
     #services.x2goserver.enable = true;
 
     virtualisation.qemu.guest = {
