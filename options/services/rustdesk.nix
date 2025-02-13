@@ -117,7 +117,7 @@ in
   config = lib.mkMerge [
 
     # Configure RustDesk Flutter client
-    (lib.mkIf (cfg.enable) {
+    (lib.mkIf cfg.enable {
       environment.systemPackages = [
         pkgs.rustdesk-flutter         # new standard client
         pkgs.xorg.xf86videodummy      # support for linux headless
@@ -162,14 +162,6 @@ in
           ]
         )) + "\n";
 
-      # Configure RustDesk to autostart after login
-      environment.etc."xdg/autostart/rustdesk.desktop".text = lib.mkIf (cfg.autostart) ''
-        [Desktop Entry]
-        Type=Application
-        Terminal=false
-        Exec=${pkgs.rustdesk-flutter}/bin/rustdesk --service
-      '';
-
       # Configure RustDesk to start with the system
       # WIP - wasn't able to get this to work correctly
       #
@@ -192,6 +184,16 @@ in
           LimitNOFILE = 100000;
         };
       };
+    })
+
+    # Configure RustDesk to autostart after login
+    (lib.mkIf (cfg.enable && cfg.autostart) {
+      environment.etc."xdg/autostart/rustdesk.desktop".text = ''
+        [Desktop Entry]
+        Type=Application
+        Terminal=false
+        Exec=${pkgs.rustdesk-flutter}/bin/rustdesk --service
+      '';
     })
 
     # Configure server

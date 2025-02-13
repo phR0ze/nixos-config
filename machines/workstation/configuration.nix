@@ -29,6 +29,7 @@ in
 
     # Services
     services.barriers.enable = true;
+    services.rustdesk.autostart = false;
 
     # Utilities
     programs.freecad.enable = true;
