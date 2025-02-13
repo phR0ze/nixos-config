@@ -10,7 +10,7 @@
     ./hardware
     ./homelab
     ./office
-    ./multimedia
+    ./media
     ./network
     ./services
     ./utils
