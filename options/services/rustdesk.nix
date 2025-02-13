@@ -8,7 +8,7 @@
 # well.
 #
 # - Cross-platform support, MacOS, Windows, Linux and Android
-# - Sciter based client being migrated to Flutter
+# - Modern cross platform Flutter UI. Older Sciter based client is deprecated
 # - Linux is X11 support only for now
 #
 # ### Configuration
@@ -31,10 +31,18 @@ in
   options = {
     services.rustdesk = {
       enable = lib.mkEnableOption "Configure rustdesk Flutter based client";
-      service = lib.mkOption {
-        description = lib.mdDoc "Install as systemd service and autostart";
+      autostart = lib.mkOption {
+        description = lib.mdDoc "Autostart RustDesk";
         type = types.bool;
         default = true;
+      };
+      service = lib.mkOption {
+        description = lib.mdDoc ''
+          Install as systemd service and autostart
+          WIP, doesn't seem to currently work :(
+        '';
+        type = types.bool;
+        default = false;
       };
       accessMode = lib.mkOption {
         description = lib.mdDoc "Provide full access for remote session";
@@ -56,62 +64,6 @@ in
         '';
         type = types.bool;
         default = false;
-      };
-      useTemporaryPassword = lib.mkOption {
-        description = lib.mdDoc ''
-          Automatically generate a temporary password that can be used for access.
-          Note this can be used with the permanent password such that either will work.
-        '';
-        type = types.bool;
-        default = false;
-      };
-      usePermanentPassword = lib.mkOption {
-        description = lib.mdDoc ''
-          Use a permanent password for access.
-          Note this can be used with the temporary password such that either will work.
-        '';
-        type = types.bool;
-        default = true;
-      };
-      allowRemoteConfigModification = lib.mkOption {
-        description = lib.mdDoc "Allow control side to change controlled settings";
-        type = types.bool;
-        default = true;
-      };
-      allowDirectIPAccess = lib.mkOption {
-        description = lib.mdDoc "Allow remote users to connect directly by IP address";
-        type = types.bool;
-        default = true;
-      };
-      allowOnlyDirectIPAccess = lib.mkOption {
-        description = lib.mdDoc "Only accept direct IP connections";
-        type = types.bool;
-        default = true;
-      };
-      enableDarkTheme = lib.mkOption {
-        description = lib.mdDoc "Enable dark theme mode";
-        type = types.bool;
-        default = true;
-      };
-    };
-
-    services.rustdesk.sciter = {
-      enable = lib.mkEnableOption "Configure rustdesk deprecated Scieter based client";
-      acceptSessionViaClick = lib.mkOption {
-        description = lib.mdDoc ''
-          Prompt the remote user to click accept in order to connect to the session.
-          Note this can be used with the password option to allow for both options.
-        '';
-        type = types.bool;
-        default = false;
-      };
-      acceptSessionViaPassword = lib.mkOption {
-        description = lib.mdDoc ''
-          Accept RustDesk sessions after entering the password without prompting the remote user to 
-          click accept. Note this can be used with the click option to allow for both options.
-        '';
-        type = types.bool;
-        default = true;
       };
       useTemporaryPassword = lib.mkOption {
         description = lib.mdDoc ''
@@ -175,7 +127,7 @@ in
       networking.firewall.allowedTCPPorts = [ 21118 ];
 
       # Configure rustdesk permanent password encoded using the unique machine-id for this system
-      files.user.".config/rustdesk/RustDesk.toml".text = (lib.concatStringsSep "\n"
+      files.all.".config/rustdesk/RustDesk.toml".text = (lib.concatStringsSep "\n"
         ([] ++ lib.optionals (cfg.allowDirectIPAccess)
           [ "password = '${encoded-pass}'" ]
         )) + "\n";
@@ -183,7 +135,7 @@ in
       # Configure RustDesk general options
       #   - the absence of an verification-method means both are accepted
       #   - the absence of an approve-mode means both are accepted
-      files.user.".config/rustdesk/RustDesk2.toml".text = (lib.concatStringsSep "\n"
+      files.all.".config/rustdesk/RustDesk2.toml".text = (lib.concatStringsSep "\n"
         ([] ++ lib.optionals (cfg.allowOnlyDirectIPAccess)
           [ "rendezvous_server = '0.0.0.1'" "" ] # intentionally including a newline here
         ++ [ "[options]" "access-mode = '${cfg.accessMode}'" ]
@@ -210,61 +162,36 @@ in
           ]
         )) + "\n";
 
+      # Configure RustDesk to autostart after login
+      environment.etc."xdg/autostart/rustdesk.desktop".text = lib.mkIf (cfg.autostart) ''
+        [Desktop Entry]
+        Type=Application
+        Terminal=false
+        Exec=${pkgs.rustdesk-flutter}/bin/rustdesk --service
+      '';
+
       # Configure RustDesk to start with the system
+      # WIP - wasn't able to get this to work correctly
+      #
       # - https://github.com/rustdesk/rustdesk/blob/master/res/rustdesk.service
       # - https://github.com/rustdesk/rustdesk/wiki/Headless-Linux-Support
       # - sudo rustdesk --option allow-linux-headless Y
-      systemd.user.services.rustdesk = lib.mkIf (cfg.service) {
+      systemd.services.rustdesk = lib.mkIf (cfg.service) {
         description = "RustDesk";
         enable = true;
-        after = [ "graphical-session.target" ];
-        wantedBy = [ "graphical-session.target" ];
+        requires = [ "network.target" ];              # fails this service if no network
+        after = [ "systemd-user-sessions.service" ];  # start after network.target and login ready
+        wantedBy = [ "multi-user.target" ];           # ensure starts at boot
         serviceConfig = {
+          Type = "simple";
           ExecStart = "${pkgs.rustdesk-flutter}/bin/rustdesk --service";
+          ExecStop = ''${pkgs.procps}/bin/pkill -f "rustdesk --"'';
+          PIDFile = "/run/rustdesk.pid";
+          KillMode = "mixed";
           TimeoutStopSec = 5;
+          LimitNOFILE = 100000;
         };
       };
-    })
-
-    # Configure RustDesk deprecated Sciter client
-    (lib.mkIf (cfg.sciter.enable) {
-      environment.systemPackages = [
-        pkgs.rustdesk
-      ];
-      networking.firewall.allowedTCPPorts = [ 21118 ];
-
-      # Configure rustdesk permanent password encoded using the unique machine-id for this system
-      files.user.".config/rustdesk/RustDesk.toml".text = (lib.concatStringsSep "\n"
-        ([] ++ lib.optionals (cfg.client.allowDirectIPAccess)
-          [ "password = '${encoded-pass}'" ]
-        )) + "\n";
-
-      # Configure RustDesk general options
-      #   - the absence of an verification-method means both are accepted
-      #   - the absence of an approve-mode means both are accepted
-      files.user.".config/rustdesk/RustDesk2.toml".text = (lib.concatStringsSep "\n"
-        ([] ++ lib.optionals (cfg.client.allowOnlyDirectIPAccess)
-          [ "rendezvous_server = '0.0.0.1'" "" ] # intentionally including a newline here
-        ++ [ "[options]" ]
-        ++ lib.optionals (cfg.client.usePermanentPassword && !cfg.client.useTemporaryPassword)
-          [ "verification-method = 'use-permanent-password'" ]
-        ++ lib.optionals (cfg.client.useTemporaryPassword && !cfg.client.usePermanentPassword)
-          [ "verification-method = 'use-temporary-password'" ]
-        ++ lib.optionals (cfg.client.acceptSessionViaClick && !cfg.client.acceptSessionViaPassword)
-          [ "approve-mode = 'click'" ]
-        ++ lib.optionals (cfg.client.acceptSessionViaPassword && !cfg.client.acceptSessionViaClick)
-          [ "approve-mode = 'password'" ]
-        ++ lib.optionals (cfg.client.allowRemoteConfigModification)
-          [ "allow-remote-config-modification = 'Y'" ]
-        ++ lib.optionals (cfg.client.enableDarkTheme)
-          [ "allow-darktheme = 'Y'" ]
-        ++ lib.optionals (cfg.client.allowDirectIPAccess)
-          [ "direct-server = 'Y'" ]
-        ++ lib.optionals (cfg.client.allowOnlyDirectIPAccess) [
-            "custom-rendezvous-server = '0.0.0.1'"
-            "relay-server = '0.0.0.1'"
-          ]
-        )) + "\n";
     })
 
     # Configure server

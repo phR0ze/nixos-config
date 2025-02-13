@@ -27,6 +27,7 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.services.xserver;
+  autolock = cfg.autolock;
   machine = config.machine;
 in
 {
@@ -34,7 +35,18 @@ in
     ./xft.nix
   ];
 
-  config = lib.mkIf cfg.enable {
+  options = {
+    services.xserver.autolock = {
+      enable = lib.mkEnableOption "Enable automatically locking the screen after login";
+      exec = lib.mkOption {
+        description = lib.mdDoc "Execution command for autolock";
+        type = types.path;
+        default = "${pkgs.xfce.xfce4-session}/bin/xflock4";
+      };
+    };
+  };
+
+  config = lib.mkIf (cfg.enable) {
     services.xdg.enable = true;
 
     services = {
@@ -74,6 +86,14 @@ in
         };
       };
     };
+
+    # Configure RustDesk to autostart after login
+    environment.etc."xdg/autostart/autolock.desktop".text = lib.mkIf (cfg.autolock.enable) ''
+      [Desktop Entry]
+      Type=Application
+      Terminal=false
+      Exec=bash -c "sleep 5 && ${cfg.autolock.exec}"
+    '';
 
     # Disable power management stuff to avoid blanking
     environment.etc."X11/xorg.conf.d/20-dpms.conf".text = ''

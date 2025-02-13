@@ -24,6 +24,8 @@ in
   config = {
     machine.type.bootable = true;
     machine.net.bridge.enable = true;
+    machine.autologin = true;
+    services.xserver.autolock.enable = true;
 
     services.cache.host = true;
     #services.nspawn.portainer.enable = true;

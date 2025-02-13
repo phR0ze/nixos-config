@@ -22,6 +22,7 @@ in
     machine.vm.type.local = true;
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
+    services.xserver.autolock.enable = true;
 
     #services.x2goserver.enable = true;
 
