@@ -5,11 +5,18 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.evince;
-
+  cfg = config.apps.office.evince;
 in
 {
+  options = {
+    apps.office.evince = {
+      enable = lib.mkEnableOption "Install and configure evince";
+    };
+  };
+
   config = lib.mkIf (cfg.enable) {
+    environment.systemPackages = with pkgs; [ evince ];
+
     services.xdg.menu.itemOverrides = [
       {
         categories = "Office";

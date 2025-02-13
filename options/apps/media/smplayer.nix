@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.smplayer;
+  cfg = config.apps.media.smplayer;
 
   # Create the smplayer-themes package that is available on other platforms i.e. Arch Linux
   # Adapted from https://gitlab.archlinux.org/archlinux/packaging/packages/smplayer-themes/-/blob/main/PKGBUILD
@@ -62,7 +62,7 @@ let
 in
 {
   options = {
-    programs.smplayer = {
+    apps.media.smplayer = {
       enable = lib.mkEnableOption "Install and configure smplayer";
 
       theme = lib.mkOption {

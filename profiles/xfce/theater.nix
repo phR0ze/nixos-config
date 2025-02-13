@@ -30,7 +30,7 @@
     "${pkgs.desktop-assets}/share/backgrounds/theater_curtains1.jpg";
 
   # Configure Kodi
-  programs.kodi = {
+  apps.media.kodi = {
     enable = true;
     remoteControlHTTP = true;
   };

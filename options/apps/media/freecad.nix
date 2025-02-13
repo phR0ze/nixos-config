@@ -2,12 +2,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.freecad;
-
+  cfg = config.apps.media.freecad;
 in
 {
   options = {
-    programs.freecad = {
+    apps.media.freecad = {
       enable = lib.mkEnableOption "Install and configure freecad";
     };
   };

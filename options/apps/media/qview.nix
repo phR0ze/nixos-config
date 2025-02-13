@@ -6,7 +6,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.qview;
+  cfg = config.apps.media.qview;
 
   confFile = lib.mkIf cfg.enable
     (pkgs.writeText "qView.conf" ''
@@ -22,7 +22,7 @@ let
 in
 {
   options = {
-    programs.qview = {
+    apps.media.qview = {
       enable = lib.mkEnableOption "Install and configure qview";
     };
   };
