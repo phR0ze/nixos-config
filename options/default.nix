@@ -5,10 +5,9 @@
     ./desktop
     ./development
     ./files
-    ./games
     ./hardware
     ./homelab
-    ./network
+    ./networking.nix
     ./services
     ./virtualisation
   ];

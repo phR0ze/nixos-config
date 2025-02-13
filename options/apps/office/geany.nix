@@ -14,8 +14,8 @@ in
   config = lib.mkIf (cfg.enable) {
     environment.systemPackages = with pkgs; [ geany ];
 
-    files.all.".config/geany/colorschemes".link = ../../include/home/.config/geany/colorschemes;
-    files.all.".config/geany/plugins".link = ../../include/home/.config/geany/plugins;
-    files.all.".config/geany/geany.conf".weakCopy = ../../include/home/.config/geany/geany.conf;
+    files.all.".config/geany/colorschemes".link = ../../../include/home/.config/geany/colorschemes;
+    files.all.".config/geany/plugins".link = ../../../include/home/.config/geany/plugins;
+    files.all.".config/geany/geany.conf".weakCopy = ../../../include/home/.config/geany/geany.conf;
   };
 }

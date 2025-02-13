@@ -4,9 +4,8 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.firefox;
+  cfg = config.apps.network.firefox;
   xft = config.services.xserver.xft;
-
   lock-false = {
     Value = false;
     Status = "locked";
@@ -17,8 +16,16 @@ let
   };
 in
 {
+  options = {
+    apps.network.firefox = {
+      enable = lib.mkEnableOption "Install and configure firefox";
+    };
+  };
+ 
   config = lib.mkIf (cfg.enable) {
     programs.firefox = {
+      enable = true;
+
       languagePacks = [ "en-US" ];            # Spell checking support
 
       # POLICIES

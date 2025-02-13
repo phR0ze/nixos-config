@@ -15,21 +15,21 @@ in
     ../modules/hardware/printers.nix
   ];
 
-  # Enable NetworkManager
-  network.network-manager.enable = true;
+  networking.network-manager.enable = true;   # Enable network manager
 
-  apps.office.geany.enable = true;      # Simple text editor
-  apps.office.evince.enable = true;     # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
-  apps.media.qview.enable = true;       # Simple image viewer with webp support
-  apps.media.smplayer.enable = true;    # UI wrapper around mplayer with click to pause
+  apps.office.geany.enable = true;            # Simple text editor
+  apps.office.evince.enable = true;           # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
+  apps.media.qview.enable = true;             # Simple image viewer with webp support
+  apps.media.smplayer.enable = true;          # UI wrapper around mplayer with click to pause
 
-  programs.firefox.enable = true;       # Mozilla browser
-  programs.filezilla.enable = true;     # Network/Transfer
+  apps.network.firefox.enable = true;         # Mozilla browser
+  apps.network.filezilla.enable = true;       # Network/Transfer
 
-  apps.utils.dmenu.enable = true;       # Configure dmenu
-  programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
-  apps.utils.hardinfo.enable = true;    # A system information and benchmark tool
-  services.fwupd.enable = true;         # Firmware update tool for BIOS, etc...
+  apps.utils.dmenu.enable = true;             # Configure dmenu
+  apps.utils.hardinfo.enable = true;          # A system information and benchmark tool
+
+  services.fwupd.enable = true;               # Firmware update tool for BIOS, etc...
+  programs.file-roller.enable = true;         # Generic Gnome file archive utility needed for Thunar
 
   # XFCE comes with a slimmed down version of GVFS by default so we need to set a package override
   # to include smb:// support in Thunar

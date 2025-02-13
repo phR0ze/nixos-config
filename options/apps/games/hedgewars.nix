@@ -1,19 +1,18 @@
-# Super Tux Kart
+# Hedgewars
 #
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.superTuxKart;
-
+  cfg = config.apps.games.hedgewars;
 in
 {
   options = {
-    programs.superTuxKart = {
-      enable = lib.mkEnableOption "Install super Tux Kart";
+    apps.games.hedgewars = {
+      enable = lib.mkEnableOption "Install hedgewars";
     };
   };
  
   config = lib.mkIf (cfg.enable) {
-    environment.systemPackages = with pkgs; [ superTuxKart ];
+    environment.systemPackages = with pkgs; [ hedgewars ];
   };
 }

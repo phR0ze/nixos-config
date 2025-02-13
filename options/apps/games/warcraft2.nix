@@ -5,12 +5,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.warcraft2;
-
+  cfg = config.apps.games.warcraft2;
 in
 {
   options = {
-    programs.warcraft2 = {
+    apps.games.warcraft2 = {
       enable = lib.mkEnableOption "Configure system for warcraft2";
       allowIPXMultiPlayer= lib.mkOption {
         type = types.bool;

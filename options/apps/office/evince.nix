@@ -6,6 +6,7 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.apps.office.evince;
+  package = config.programs.evince.package;
 in
 {
   options = {
@@ -15,12 +16,12 @@ in
   };
 
   config = lib.mkIf (cfg.enable) {
-    environment.systemPackages = with pkgs; [ evince ];
+    programs.evince.enable = true;
 
     services.xdg.menu.itemOverrides = [
       {
         categories = "Office";
-        source = "${cfg.package}/share/applications/org.gnome.Evince.desktop";
+        source = "${package}/share/applications/org.gnome.Evince.desktop";
       }
     ];
   };

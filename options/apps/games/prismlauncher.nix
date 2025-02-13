@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.prismlauncher;
+  cfg = config.apps.games.prismlauncher;
 
   cfgfile = lib.mkIf cfg.enable (pkgs.writeText "prismlauncher.cfg" ''
     [General]
@@ -18,7 +18,7 @@ let
 in
 {
   options = {
-    programs.prismlauncher = {
+    apps.games.prismlauncher = {
       enable = lib.mkEnableOption "Install and configure PrismLauncher";
 
       maxMemAlloc = lib.mkOption {
@@ -44,7 +44,7 @@ in
     environment.systemPackages = with pkgs; [
       (prismlauncher.override (prev: {
         prismlauncher-unwrapped = prev.prismlauncher-unwrapped.overrideAttrs (o: {
-          patches = (o.patches or [ ]) ++ [ ../../patches/prismlauncher/offline.patch ];
+          patches = (o.patches or [ ]) ++ [ ../../../patches/prismlauncher/offline.patch ];
         });
       }))
     ];

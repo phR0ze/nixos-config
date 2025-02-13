@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  cfg = config.programs.qbittorrent;
+  cfg = config.apps.network.qbittorrent;
 
   conf = lib.mkIf cfg.enable (pkgs.writeText "qBittorrent.conf" ''
     [LegalNotice]
@@ -12,9 +12,8 @@ let
 in
 {
   options = {
-    programs.qbittorrent = {
+    apps.network.qbittorrent = {
       enable = lib.mkEnableOption "Install and configure qBittorrent";
-
       acceptedLegalNotice = lib.mkOption {
         type = types.bool;
         default = true;
