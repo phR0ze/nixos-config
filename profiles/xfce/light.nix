@@ -16,7 +16,7 @@ in
   services.xserver.desktopManager.xfce.enable = true;
 
   # Enable services
-  services.rustdesk.client.enable = true;     # Simple fast remote desktop solution
+  services.rustdesk.enable = true;    # Simple fast remote desktop solution
 
   environment.systemPackages = with pkgs; [
     #git                           # Fast distributed version control system
