@@ -1,12 +1,13 @@
-# HP Z620 <img style="margin: 6px 13px 0px 0px" align="left" src="../../art/logo_36x36.png" />
+# Workstation <img style="margin: 6px 13px 0px 0px" align="left" src="../../art/logo_36x36.png" />
 
-Documenting the steps I went through to deploy ***NixOS*** onto an HP Z620 workstation.
+Workstation is my main development machine.
 
 ### Quick links
 * [.. up dir](../../README.md)
-* [Install NixOS](#install-nixos)
+* [Hardware details](#hardware-details)
 
-## Install NixOS
+## Hardware details
+* HP Z620 Workstation
 * (2) 4-core Intel Xeon E5-2637 v2 3.5GHz
 * Broadcom 802.11ac WiFi BCM4364 rev 3
 * AMD Lexa PRO

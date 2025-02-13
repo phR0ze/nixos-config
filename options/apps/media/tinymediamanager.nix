@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.tinyMediaManager;
+  cfg = config.apps.media.tinyMediaManager;
 
   tmmDesktopFilePackage = pkgs.runCommandLocal "tinyMediaManager" {} ''
     mkdir -p $out/share/applications
@@ -20,7 +20,7 @@ let
 in
 {
   options = {
-    programs.tinyMediaManager = {
+    apps.media.tinyMediaManager = {
       enable = lib.mkEnableOption "Install and configure Tiny Media Manager";
     };
   };

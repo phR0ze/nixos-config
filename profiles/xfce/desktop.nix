@@ -17,7 +17,7 @@
   #programs.warcraft2.enable = true;     # Add firewall rules needed for warcraft 2 IPX LAN multi-player
 
   # Multimedia
-  programs.kodi = {                     # Media player and entertainment hub
+  apps.media.kodi = {                     # Media player and entertainment hub
     enable = true;
     remoteControlHTTP = true;
   };

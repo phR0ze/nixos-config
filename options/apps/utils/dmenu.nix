@@ -5,7 +5,7 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.dmenu;
+  cfg = config.apps.utils.dmenu;
 
   dmenuDesktopFilePackage = pkgs.runCommandLocal "dmenu" {} ''
     mkdir -p $out/share/applications
@@ -23,7 +23,7 @@ let
 in
 {
   options = {
-    programs.dmenu = {
+    apps.utils.dmenu = {
       enable = lib.mkEnableOption "Install and configure dmenu";
 
       run = lib.mkOption {

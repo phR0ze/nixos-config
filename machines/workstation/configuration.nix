@@ -27,21 +27,16 @@ in
     hardware.graphics.amd = true;
     machine.net.bridge.enable = true;
 
-    # Services
     services.barriers.enable = true;
     services.rustdesk.autostart = false;
 
-    # Utilities
-    programs.freecad.enable = true;
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 
-    # Games
+    apps.media.freecad.enable = true;
     programs.hedgewars.enable = true;
     programs.superTuxKart.enable = true;
-
-    # Multimedia
-    programs.xnviewmp.enable = true;
+    apps.media.xnviewmp.enable = true;
 
     # Misc
     environment.systemPackages = [

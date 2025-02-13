@@ -3,12 +3,12 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.hardinfo;
+  cfg = config.apps.utils.hardinfo;
 
 in
 {
   options = {
-    programs.hardinfo = {
+    apps.utils.hardinfo = {
       enable = lib.mkEnableOption "Install and configure hardinfo";
     };
   };

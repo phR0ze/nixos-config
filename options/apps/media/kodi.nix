@@ -3,12 +3,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.kodi;
-
+  cfg = config.apps.media.kodi;
 in
 {
   options = {
-    programs.kodi = {
+    apps.media.kodi = {
       enable = lib.mkEnableOption "Install and configure kodi";
       port = lib.mkOption {
         type = types.port;

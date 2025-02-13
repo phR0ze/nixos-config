@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.programs.xnviewmp;
+  cfg = config.apps.media.xnviewmp;
 
   # Fetch and convert the icon
   icon = pkgs.runCommand "xnviewmp-icon" { 
@@ -48,7 +48,7 @@ let
 in
 {
   options = {
-    programs.xnviewmp = {
+    apps.media.xnviewmp = {
       enable = lib.mkEnableOption "Install and configure xnviewmp";
     };
   };

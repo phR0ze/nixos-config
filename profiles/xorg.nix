@@ -18,22 +18,17 @@ in
   # Enable NetworkManager
   network.network-manager.enable = true;
 
-  # Office
-  programs.geany.enable = true;         # Simple text editor
-  programs.evince.enable = true;        # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
+  apps.office.geany.enable = true;      # Simple text editor
+  apps.office.evince.enable = true;     # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
+  apps.media.qview.enable = true;       # Simple image viewer with webp support
+  apps.media.smplayer.enable = true;    # UI wrapper around mplayer with click to pause
 
-  # Multimedia
-  programs.qview.enable = true;         # Simple image viewer with webp support
-  programs.smplayer.enable = true;      # UI wrapper around mplayer with click to pause
-
-  # Network
   programs.firefox.enable = true;       # Mozilla browser
   programs.filezilla.enable = true;     # Network/Transfer
 
-  # System
-  programs.dmenu.enable = true;         # Configure dmenu
+  apps.utils.dmenu.enable = true;       # Configure dmenu
   programs.file-roller.enable = true;   # Generic Gnome file archive utility needed for Thunar
-  programs.hardinfo.enable = true;      # A system information and benchmark tool
+  apps.utils.hardinfo.enable = true;    # A system information and benchmark tool
   services.fwupd.enable = true;         # Firmware update tool for BIOS, etc...
 
   # XFCE comes with a slimmed down version of GVFS by default so we need to set a package override

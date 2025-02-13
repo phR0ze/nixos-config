@@ -16,8 +16,7 @@
   #homelab.traefik.enable = true;
   #homelab.adguard.enable = true;
   #homelab.stirling-pdf.enable = true;
-
-  #programs.tinyMediaManager.enable = true;
+  #apps.media.tinyMediaManager.enable = true;
   #services.minecraft-server.enable = true;
 
   environment.systemPackages = with pkgs; [
