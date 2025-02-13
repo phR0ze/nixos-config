@@ -19,7 +19,7 @@ in
   system.stateVersion = config.machine.nix.minVer;
 
   programs.neovim.enable = true;
-  services.openssh.enable = true;
+  services.raw.openssh.enable = true;
 
   environment.systemPackages = with pkgs; [
     git                           # Fast distributed version control system

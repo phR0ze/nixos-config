@@ -17,7 +17,7 @@
   #homelab.adguard.enable = true;
   #homelab.stirling-pdf.enable = true;
   #apps.media.tinyMediaManager.enable = true;
-  #services.minecraft-server.enable = true;
+  #services.raw.minecraft.enable = true;
 
   environment.systemPackages = with pkgs; [
     mdadm                               # Linux Software RAID management

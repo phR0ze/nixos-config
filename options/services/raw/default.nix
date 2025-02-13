@@ -4,5 +4,13 @@
 { ... }:
 {
   imports = [
+    ./barrier.nix
+    ./minecraft.nix
+    ./nfs.nix
+    ./nix-cache.nix
+    ./rustdesk.nix
+    ./smb.nix
+    ./sshd.nix
+    ./x11vnc.nix
   ];
 }

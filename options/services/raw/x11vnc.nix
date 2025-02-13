@@ -17,7 +17,7 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.services.x11vnc;
+  cfg = config.services.raw.x11vnc;
   machine = config.machine;
   vncpass = pkgs.runCommandLocal "x11vnc-passwd" {} ''
     mkdir $out
@@ -26,14 +26,12 @@ let
 in
 {
   options = {
-    services.x11vnc = {
+    services.raw.x11vnc = {
       enable = lib.mkEnableOption "Install and configure x11vnc";
     };
   };
  
   config = lib.mkIf (cfg.enable) {
-    networking.firewall.interfaces."${config.networking.primary.id}".allowedTCPPorts = [ 5900 ];
-
     environment.systemPackages = with pkgs; [
         x11vnc              # VNC Server
     ];
@@ -50,5 +48,7 @@ in
       wantedBy = [ "multi-user.target" ];
       restartIfChanged = true;
     };
+
+    networking.firewall.interfaces."${config.networking.primary.id}".allowedTCPPorts = [ 5900 ];
   };
 }

@@ -18,11 +18,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.services.minecraft;
+  cfg = config.services.raw.minecraft;
 in
 {
   options = {
-    services.minecraft = {
+    services.raw.minecraft = {
       enable = lib.mkEnableOption "Install and configure minecraft server";
       levelSeed = lib.mkOption {
         type = types.str;

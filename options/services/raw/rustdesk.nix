@@ -19,7 +19,7 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  cfg = config.services.rustdesk;
+  cfg = config.services.raw.rustdesk;
   machine = config.machine;
 
   # Generate a machine-id encoded password for RustDesk
@@ -29,7 +29,7 @@ let
 in
 {
   options = {
-    services.rustdesk = {
+    services.raw.rustdesk = {
       enable = lib.mkEnableOption "Configure rustdesk Flutter based client";
       autostart = lib.mkOption {
         description = lib.mdDoc "Autostart RustDesk";
@@ -103,7 +103,7 @@ in
       };
     };
 
-    services.rustdesk.server = {
+    services.raw.rustdesk.server = {
       enable = lib.mkEnableOption "Install and configure rustdesk server";
       relayHost = lib.mkOption {
         description = lib.mdDoc "IP/DNS name to use for the relay host";

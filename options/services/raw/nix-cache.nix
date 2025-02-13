@@ -3,13 +3,13 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.services.cache;
+  cfg = config.services.raw.nix-cache;
   virtualhost = "cache";
   decrypted_key_path = "/var/lib/cache/private.dec.pem";
 in
 {
   options = {
-    services.cache = {
+    services.raw.nix-cache = {
       host = lib.mkEnableOption "Install and configure Nix Binary Cache";
     };
   };
