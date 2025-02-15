@@ -26,7 +26,7 @@ in
     })
 
     # Install and autostart with delay to allow the server to start
-    (lib.mkIf (cfg.enable && autostartMPVShim) {
+    (lib.mkIf (cfg.enable && cfg.autostartMPVShim) {
       environment.systemPackages = [
         pkgs.jellyfin-mpv-shim         # Casting support to MPV via Jellyfin mobile and web apps
       ];
