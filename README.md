@@ -145,7 +145,7 @@ for `vscode`.
    ```
 
 ### Upgrade the full system
-1. Modifying `flake.nix` to use your preferred nixpkgs sha
+1. Modifying `flake.nix` to use your preferred nixpkgs sha e.g.
    ```
    nixpkgs.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
    ```
