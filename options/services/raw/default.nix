@@ -5,6 +5,7 @@
 {
   imports = [
     ./barrier.nix
+    ./jellyfin.nix
     ./minecraft.nix
     ./nfs.nix
     ./nix-cache.nix

@@ -22,10 +22,16 @@ in
     machine.vm.type.local = true;
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
-    services.xserver.autolock.enable = true;
 
-    #services.x2goserver.enable = true;
+    # Test
+    # --------------------------------------------
+    #assertions = [
+    #  { assertion = (cfg.smb.enable == false); message = "machin.smb.enable: ${f.boolToStr cfg.smb.enable}"; }
+    #];
+    services.raw.jellyfin.enable = true;
 
+    # VM specification
+    # --------------------------------------------
     virtualisation.qemu.guest = {
       cores = 4;
       display = {
