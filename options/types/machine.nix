@@ -377,16 +377,16 @@ in
       type = types.submodule smb;
       default = {
         enable = if (!args ? "smb" || !args.smb ? "enable") then false else args.smb.enable;
-        user = if (!args ? "smb" || !args.smb ? "user") then "" else args.smb.user;
-        pass = if (!args ? "smb" || !args.smb ? "pass") then "" else args.smb.pass;
+        user = if (!args ? "smb" || !args.smb ? "user") then user_name else args.smb.user;
+        pass = if (!args ? "smb" || !args.smb ? "pass") then user_pass else args.smb.pass;
         domain = if (!args ? "smb" || !args.smb ? "domain") then "" else args.smb.domain;
         entries = if (!args ? "smb" || !args.smb ? "entries") then [] else (builtins.concatMap (x: [{
           mountPoint = if (!x ? "mountPoint") then "" else x.mountPoint;
           remotePath = if (!x ? "remotePath") then "" else x.remotePath;
           user = if (!x ? "user" || x.user == "") then (if (!args ? "smb" || !args.smb ? "user")
-            then "" else args.smb.user) else x.user;
+            then user_name else args.smb.user) else x.user;
           pass = if (!x ? "pass" || x.pass == "") then (if (!args ? "smb" || !args.smb ? "pass")
-            then "" else args.smb.pass) else x.pass;
+            then user_pass else args.smb.pass) else x.pass;
           domain = if (!x ? "domain" || x.domain == "") then (if (!args ? "smb" || !args.smb ? "domain")
             then "" else args.smb.domain) else x.domain;
           writable = if (!x ? "writable") then false else x.writable;

@@ -13,18 +13,12 @@
   apps.games.protontricks.enable = true;    # A simple wrapper for running Winetricks commands for Proton-enabled games
   apps.games.prismlauncher.enable = true;   # Minecraft launcher
   #apps.games.warcraft2.enable = true;      # Add firewall rules needed for warcraft 2 IPX LAN multi-player
-  programs.winetricks.enable = true;        # A script to install DLLs needed to work around problems in Wine
   apps.network.qbittorrent.enable = true;   # Excellent bittorrent client
-
-  # Multimedia
-  apps.media.kodi = {                       # Media player and entertainment hub
-    enable = true;
-    remoteControlHTTP = true;
-  };
+  apps.media.jellyfin.enable = true;        # Install Jellyfin media player
+  apps.media.kodi.enable = true;            # Media player and entertainment hub
+  programs.winetricks.enable = true;        # A script to install DLLs needed to work around problems in Wine
 
   environment.systemPackages = with pkgs; [
-
-    # Network
     zoom-us                   # Video conferencing application
 
     # Media
