@@ -37,5 +37,5 @@ in
         Exec=bash -c "sleep 5 && ${pkgs.jellyfin-mpv-shim}/bin/jellyfin-mpv-shim"
       '';
     })
-  };
+  ];
 }
