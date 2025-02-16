@@ -31,10 +31,10 @@ in
 
     # Create persistent directories for application
     # - Args: type, path, mode, user, group, expiration
-    # - No expiration age specified `-` means it will never be cleaned
+    # - No expiration age `-` means it will never be cleaned
     systemd.tmpfiles.rules = [
       "d /var/lib/nix-cache 0750 nix-serve nix-serve -"
-      ''f ${cfg.secretKeyFile} ${builtins.readFile (../../../include + cfg.secretKeyFile)} -''
+      ''f ${cfg.secretKeyFile} 0600 nix-serve nix-serve ${builtins.readFile (../../../include + cfg.secretKeyFile)} -''
     ];
  
     # Configure nix-serve to serve up the nix store as a binary cache with package signing
