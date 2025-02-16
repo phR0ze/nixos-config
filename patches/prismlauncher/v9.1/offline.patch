@@ -1,4 +1,16 @@
 Binary files a/.git/index and b/.git/index differ
+diff '--color=auto' -ruN a/launcher/Application.cpp b/launcher/Application.cpp
+--- a/launcher/Application.cpp	2025-02-15 13:05:23.387149802 -0700
++++ b/launcher/Application.cpp	2025-02-15 14:31:54.883316967 -0700
+@@ -1094,7 +1094,7 @@
+     bool pasteInterventionRequired = settings()->get("PastebinURL") != "";
+     bool validWidgets = m_themeManager->isValidApplicationTheme(settings()->get("ApplicationTheme").toString());
+     bool validIcons = m_themeManager->isValidIconTheme(settings()->get("IconTheme").toString());
+-    bool login = !m_accounts->anyAccountIsValid() && capabilities() & Application::SupportsMSA;
++    bool login = false && (!m_accounts->anyAccountIsValid() && capabilities() & Application::SupportsMSA);
+     bool themeInterventionRequired = !validWidgets || !validIcons;
+     bool wizardRequired = javaRequired || languageRequired || pasteInterventionRequired || themeInterventionRequired || askjava || login;
+     if (wizardRequired) {
 diff '--color=auto' -ruN a/launcher/LaunchController.cpp b/launcher/LaunchController.cpp
 --- a/launcher/LaunchController.cpp	2025-02-15 13:05:23.388149815 -0700
 +++ b/launcher/LaunchController.cpp	2025-02-15 13:50:48.348069975 -0700
