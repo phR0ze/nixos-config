@@ -1,59 +1,64 @@
 # Nix Binary Cache configuration
 #
+# ### Notes
+# This is not secure and only meant to be used on single user system.
+#
 # ### References
 # - nixpkgs/nixos/modules/services/networking/nix-serve.nix
 # - nix-store --generate-binary-cache-key key-name secret-key-file public-key-file
 # - https://www.freedesktop.org/software/systemd/man/tmpfiles.d
+#
+# ### Manually curl from another machine to test its available
+# $ curl 192.168.1.3:5000/nix-cache-info
+# StoreDir: /nix/store
+# WantMassQuery: 1
+# Priority: 30
+#
+# ### Verify the signature by manually building on the binary cache host
+# $ nix-build '<nixpkgs>' -A pkgs.hello 
+# /nix/store/1q8w6gl1ll0mwfkqc3c2yx005s6wwfrl-hello-2.12.1 
+#
+# $ curl 192.168.1.3:5000/1q8w6gl1ll0mwfkqc3c2yx005s6wwfrl.narinfo
+# StorePath: /nix/store/1q8w6gl1ll0mwfkqc3c2yx005s6wwfrl-hello-2.12.1
+# ...
+# Sig: nix-cache:PR8Vx+mwNYe4t+cbGLe79ir+r1p0u3TdEVjp/4ivo9O7CcugUWv6XBVJ1G3pC0s5EuF+BAQLxb/4yayE1wFLAQ==
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.services.raw.nix-cache.host;
-  nixServe = config.services.nix-serve;
 in
 {
   options = {
     services.raw.nix-cache.host = {
       enable = lib.mkEnableOption "Install and configure Nix Binary Cache";
-      virtualHost = lib.mkOption {
-        description = lib.mdDoc "Nix serve virtual host";
+      port = lib.mkOption {
+        description = "Port number where nix-serve will listen on";
+        type = types.port;
+        default = 5000;
+      };
+      bindAddress = mkOption {
+        description = "IP address where nix-serve will bind its listening socket";
         type = types.str;
-        default = "nix-cache";
+        default = "0.0.0.0";
       };
       secretKeyFile = lib.mkOption {
-        description = lib.mdDoc "Nix serve secret key";
-        type = types.str;
-        default = "/var/lib/nix-cache/private.dec.pem";
+        description = lib.mdDoc "Nix serve secret key local value";
+        type = types.path;
+        default = ../../../include/var/lib/nix-cache/private.dec.pem;
       };
     };
   };
  
   config = lib.mkIf (cfg.enable) {
-
-    # Create persistent directories for application
-    # - Args: type, path, mode, user, group, expiration
-    # - No expiration age `-` means it will never be cleaned
-    systemd.tmpfiles.rules = [
-      "d /var/lib/nix-cache 0750 nix-serve nix-serve -"
-      ''f ${cfg.secretKeyFile} 0600 nix-serve nix-serve "${builtins.readFile (../../../include + cfg.secretKeyFile)}" -''
-    ];
+    environment.etc."nix-serve-key.pem".text = (builtins.readFile cfg.secretKeyFile);
  
     # Configure nix-serve to serve up the nix store as a binary cache with package signing
     services.nix-serve = {
       enable = true;
-      secretKeyFile = cfg.secretKeyFile;
+      port = cfg.port;
+      bindAddress = cfg.bindAddress;
+      openFirewall = true;
+      secretKeyFile = "/etc/nix-serve-key.pem";
     };
-
-    services.nginx = {
-      enable = true;
-      recommendedProxySettings = true;
-      virtualHosts."${cfg.virtualHost}" = {
-        locations."/".proxyPass = "http://${nixServe.bindAddress}:${toString nixServe.port}";
-      };
-    };
- 
-    # Open up the firewall for port 80
-    networking.firewall.allowedTCPPorts = [
-      config.services.nginx.defaultHTTPListenPort
-    ];
   };
 }
