@@ -32,12 +32,12 @@ in
     services.raw.nix-cache.host = {
       enable = lib.mkEnableOption "Install and configure Nix Binary Cache";
       port = lib.mkOption {
-        description = "Port number where nix-serve will listen on";
+        description = lib.mdDoc "Port number where nix-serve will listen on";
         type = types.port;
         default = 5000;
       };
-      bindAddress = mkOption {
-        description = "IP address where nix-serve will bind its listening socket";
+      bindAddress = lib.mkOption {
+        description = lib.mdDoc "IP address where nix-serve will bind its listening socket";
         type = types.str;
         default = "0.0.0.0";
       };
