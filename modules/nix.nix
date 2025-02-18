@@ -1,4 +1,9 @@
 # Nix configuration
+
+# Changes to nix settings get stored in /etc/nix/nix.conf
+#
+# ### Debug local binary cache 
+# - nix-build '<nixpkgs>' -A pkgs.hello
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, inputs, ... }:
 let
@@ -10,11 +15,11 @@ in
       nix.settings = {
         # Add custom binary caches
         # - https://cache.nixos.org is added by default
-        substituters = lib.mkBefore [ "http://${machine.nix.cache.ip}" ];
+        substituters = lib.mkBefore [ "http://${machine.nix.cache.ip}:${toString machine.nix.cache.port}" ];
 
         # Signing keys for custom substituters
         trusted-public-keys = [
-          "cache:s+KGb+puY2fSjkJ0IB6B1UPEDW0CeUd1GlsN8Yb6UMw="
+          "${(builtins.readFile config.services.raw.nix-cache.host.publicKeyFile)}"
         ];
       };
     })

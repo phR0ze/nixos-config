@@ -20,6 +20,7 @@ in
   config = {
     machine.type.vm = true;
     machine.vm.type.local = true;
+    machine.nix.cache.enable = true;
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 
