@@ -85,6 +85,7 @@ in
     htop                                # Better top tool
     light                               # Control backlights for screen and keyboard
     sops                                # Industry standard encryption at rest
+    system-config-printer               # GTK app for CUPS printing administration
     veracrypt                           # Free Open-Source filesystem encryption
   ];
 
