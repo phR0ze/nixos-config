@@ -22,6 +22,9 @@
 # StorePath: /nix/store/1q8w6gl1ll0mwfkqc3c2yx005s6wwfrl-hello-2.12.1
 # ...
 # Sig: nix-cache:PR8Vx+mwNYe4t+cbGLe79ir+r1p0u3TdEVjp/4ivo9O7CcugUWv6XBVJ1G3pC0s5EuF+BAQLxb/4yayE1wFLAQ==
+#
+# ### Configure a client
+# Set machine.nix.cache.enable = true; then run the examples above
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -40,6 +43,11 @@ in
         description = lib.mdDoc "IP address where nix-serve will bind its listening socket";
         type = types.str;
         default = "0.0.0.0";
+      };
+      publicKeyFile = lib.mkOption {
+        description = lib.mdDoc "Nix serve public key used for client configuration";
+        type = types.path;
+        default = ../../../include/var/lib/nix-cache/public.pem;
       };
       secretKeyFile = lib.mkOption {
         description = lib.mdDoc "Nix serve secret key local value";

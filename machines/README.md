@@ -92,6 +92,7 @@ separate from the actual configuartion to allow for better reuse across my diffe
 | ----------------------- | ----- | --------------- | --------------------------------------
 | `nix.cache.enable`      | str   |                 | IP of the local Nix Binary Cache
 | `nix.cache.ip`          | str   |                 | IP of the local Nix Binary Cache
+| `nix.cache.port`        | int   |                 | Port of the local Nix Binary Cache
 | `nfs.enable`            | bool  | `false`         | Enable pre-configured nfs shares for this system
 | `nfs.entries`           | list  | [ ]             | List of nfs entries
 | `smb.enable`            | bool  | `false`         | Enable pre-configured nfs shares for this system

@@ -164,6 +164,12 @@ in
                   default = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "ip")
                     then "" else args.nix.cache.ip;
                 };
+                port = lib.mkOption {
+                  description = lib.mdDoc "Port of the custom Nix binary cache";
+                  type = types.int;
+                  default = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "port")
+                    then 5000 else args.nix.cache.port;
+                };
               };
             };
             default = {
@@ -171,6 +177,8 @@ in
                 then false else args.nix.cache.enable;
               ip = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "ip")
                 then "" else args.nix.cache.ip;
+              port = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "port")
+                then 5000 else args.nix.cache.port;
             };
           };
         };
@@ -183,6 +191,8 @@ in
             then false else args.nix.cache.enable;
           ip = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "ip")
             then "" else args.nix.cache.ip;
+          port = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "port")
+            then 5000 else args.nix.cache.port;
         };
       };
     };
