@@ -22,7 +22,7 @@ in
   };
 
   config = {
-    machine.enable = true;
+    machine.type.bootable = true;
     hardware.graphics.intel = true;
     machine.nix.cache.enable = true;
   };
