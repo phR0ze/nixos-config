@@ -24,8 +24,6 @@ in
   config = {
     machine.enable = true;
     hardware.graphics.intel = true;
-
-    environment.systemPackages = [
-    ];
+    machine.nix.cache.enable = true;
   };
 }
