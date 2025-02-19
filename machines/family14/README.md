@@ -9,10 +9,9 @@
   * 6-Core Intel Xeon E5-1650 CPU @ 1.20-3.20 GHz
   * 62 GB RAM
 * Graphics
-  * AMD/ATI RV730 [Radeon HD 4670]
+  * AMD/ATI Turks GL [FirePro V490] radeon
 * Drives
   * 250 GB Micron SSD 
-  * (2) 2 TB Hitachi HDD
 
 <!-- 
 vim: ts=2:sw=2:sts=2
