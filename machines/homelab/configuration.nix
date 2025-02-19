@@ -1,7 +1,7 @@
 # Homelab configuration
 #
 # ### Features
-# - Directly installable: 
+# - Homelab server deployment
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let

@@ -1,4 +1,7 @@
 # vm-test configuration
+#
+# ### Features
+# - Virtual Machine deployment
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let

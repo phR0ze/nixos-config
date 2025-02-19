@@ -1,7 +1,7 @@
 # Theater20 configuration
 #
 # ### Features
-# - Directly installable: xfce/theater with Intel GPU support
+# - Theater focused desktop deployment
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let
