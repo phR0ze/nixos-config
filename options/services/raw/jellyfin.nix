@@ -6,6 +6,11 @@
 #
 # - Cross-platform client support: MacOS, Windows, Linux and Android
 # - Remote control of Kodi or Jellyfin Media Player or Jellyfin MPV Shim via mobile app
+#
+# ### Directories
+# - /var/cache/jellyfin
+# - /var/lib/jellyfin
+# - /var/lib/jellyfin/config
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let

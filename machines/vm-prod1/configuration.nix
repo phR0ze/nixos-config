@@ -23,6 +23,10 @@ in
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 
+    environment.systemPackages = [
+      pkgs.synology-drive-client
+    ];
+
     # Test
     # --------------------------------------------
     #assertions = [
