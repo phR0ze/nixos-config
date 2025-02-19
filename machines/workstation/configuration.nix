@@ -12,7 +12,7 @@ in
   imports = [
     ./hardware-configuration.nix
     ../../options/types/validate_machine.nix
-    (../../profiles + ("/" + args.profile + ".nix"))
+    (../../profiles/${args.profile}.nix)
   ];
 
   options = {

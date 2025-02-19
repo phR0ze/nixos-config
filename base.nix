@@ -50,7 +50,7 @@
     lib = nixpkgs.lib;
     f = pkgs.callPackage ./options/funcs { inherit lib; };
     args = lib.recursiveUpdate (lib.recursiveUpdate _args (f.fromJSON ./args.dec.json))
-      (lib.recursiveUpdate (import ./machines/${_args.hostname}/args.nix) (f.fromJSON ./machines/${_args.hostname}/args.dec.json));
+      (f.fromJSON ./machines/${_args.hostname}/args.dec.json);
     specialArgs = { inherit args f inputs; };
   in
   {

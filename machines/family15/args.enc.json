@@ -1,5 +1,8 @@
 {
+	"hostname": "ENC[AES256_GCM,data:SuPHxK1+6Lo=,iv:4OuINTqaz7aEzTR+HemOeAbdv9Vnzqw9NmxlEB8FywI=,tag:HLD9qMTGDWte92LPSHdSPQ==,type:str]",
+	"profile": "ENC[AES256_GCM,data:6oSinuXpCCcoN5G7,iv:ZuD02mRA/Pnfea8Mur7UoumsfUN4EGzfxfEug0O1GEY=,tag:deJ5AatUAvdjGYDuoos8mQ==,type:str]",
 	"id": "ENC[AES256_GCM,data:46NH0HoxvrCqEykUAXdfmCeYmkY5d2PzFmp0sZmuEH8=,iv:iIXMyonK/0OUn+n5gjCH4Bb2ZdtCCmK5ObgOM4tTlnE=,tag:zpBp25mSePtS5B9ET76hUQ==,type:str]",
+	"efi": "ENC[AES256_GCM,data:Fnw7JA==,iv:n9S2GjGccqfcz3ku5r5Bnypot0/n1vkJ5NADapDwknE=,tag:vxhh1dqO7Hu6oldoaJaXdw==,type:bool]",
 	"drives": [
 		{
 			"uuid": "ENC[AES256_GCM,data:k6i0lgQcSzhxq23fSwwMWdQZ3S8T9ikVNXWzdMimnbICK3yY,iv:ra69njnphG1jM+YIuZJ/1cWdJ+/rsZh8EI3agxmryfU=,tag:nhRUjgxQ72w8CMgrRWJWDg==,type:str]"
@@ -42,8 +45,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzbStxd0FlQWxtemlJNWxt\nV3pTbHpOUXl5MWhMNXI2MlJ4QWR0NnN1UHo0CmYwWDExOXl4LzFnUU9QelBEZExZ\nRzA0eTlIZktYSUU3bWlUQ2lkbklpUjgKLS0tIDNzbFdEWkx4SU9DY28waTd4Q1dw\nVEIySnY4TzBjOXNFaWZyNWxPVHE4eWcKxpeKNBT5YQHnjG7MVVcw1LsBKSDDjLZ1\nfS3hPxtr01XyozT9ORji+LF5E6r/zvAS4eWCLCu/hMDxVq/mhbpgRQ==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-02-19T05:05:14Z",
-		"mac": "ENC[AES256_GCM,data:8RZp3o0/UqIH1dN0HPoEiD/HQdvYEV7V7LF3aJ3K1chJelU4JZRslfXzdpvpMAC+ufXgTa9PYo4MSSuhuU8HE0ypp9ghrN8P+tpbj4DOl86we4cZe9jKhO7EFTfnI96/66pj1ROXb5Y2xOxg0p7m7+9EBjAUTvcI/HXl8vc8tCc=,iv:BfhYvLiTnqPt+CdMuTjYdy7lRF5SOZDLMyapGKdtOHA=,tag:h3zBbk/7YbM9oMRLpTH9AQ==,type:str]",
+		"lastmodified": "2025-02-19T17:27:08Z",
+		"mac": "ENC[AES256_GCM,data:2pGhFf9UDVIv/TgE6cP+4VK2IpnvwFlfR+5bRfLrwR0n1ziGTEpZs3raR+OMal59xfqontAcq6a42R7Wvzhx24YQ2pxl53nutimBaaEA/+KXcpwLGjc4bVEwP4MISurfHVQ6BckwLGEpipgwtpcRbXELxiPN3SW+NgGzgPTlsAc=,iv:fHquKsytj1YYxGzrYbLROloRmwbAjMd3nLxS+s2Y9ms=,tag:cBC62pkFKJ+ELA5Tfe5N7g==,type:str]",
 		"pgp": null,
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.9.2"
