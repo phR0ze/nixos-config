@@ -11,7 +11,7 @@ in
   imports = [
     ./hardware-configuration.nix
     ../../options/types/validate_machine.nix
-    (../../profiles + ("/" + args.profile + ".nix"))
+    (../../profiles/${args.profile}.nix")
   ];
 
   options = {
@@ -24,6 +24,7 @@ in
   config = {
     machine.enable = true;
     hardware.graphics.intel = true;
+    machine.autologin = true;
     apps.games.hedgewars.enable = true;
     apps.games.superTuxKart.enable = true;
   };

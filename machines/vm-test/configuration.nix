@@ -19,10 +19,10 @@ in
   };
 
   config = {
+    machine.hostname = "vm-test";
     machine.type.vm = true;
     machine.vm.type.micro = true;
     #machine.vm.local = true;
-    machine.hostname = "vm-test";
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 

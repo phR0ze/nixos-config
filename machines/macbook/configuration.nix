@@ -9,7 +9,7 @@ in
     ./hardware-configuration.nix
     ../../options/types/validate_machine.nix
     inputs.nixos-hardware.nixosModules.apple-t2
-    (../../profiles + ("/" + args.profile + ".nix"))
+    (../../profiles/${args.profile}.nix)
   ];
 
   options = {

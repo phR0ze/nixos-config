@@ -1,8 +1,8 @@
 # Machines <img style="margin: 6px 13px 0px 0px" align="left" src="../art/logo_36x36.png" />
 
 Machines are independent system configurations for physical or virtual machines. The machine has its 
-own configuration `flake.nix`, `flake.nix`, `configuration.nix`, `hardware-configuration.nix` and 
-local arguments `args.nix` and `args.enc.json` allowing for complete declarative management of the 
+own configuration `flake.nix`, `flake.lock`, `configuration.nix`, `hardware-configuration.nix` and 
+local sops encrypted secrets `args.enc.json` allowing for complete declarative management of the 
 machine. The `nixos-config` repo is setup as a single flake with supporting options, modules and 
 profiles that are used to compose the different machines being managed. The flake is then setup 
 during installation to manage the specific machine it was installed on. At the top level of the repo 
@@ -14,7 +14,7 @@ per machine as needed while still retaining complete versioned declarative behav
 The root of the project provides a set of reusable shared flake configuration and arguments that may 
 be used to compose and manage a machine or overridden as necessary.
 
-* `args.enc.json` - private arguments to be shared by all machines or overridden locally
+* `args.enc.json` - sops encrypted arguments to be shared by all machines or overridden locally
 * `args.nix` - non-private arguments to be shared by all machines or overridden locally
 * `configuration.nix` - link to the specific `machines/<machine>/configuration.nix`
 * `base.lock` - shared flake lock for all machines or overridden locally
@@ -24,8 +24,7 @@ be used to compose and manage a machine or overridden as necessary.
 
 ## Machine setup
 Each machine in `nixos-config/machines/` is composed of:
-* `args.enc.json` private machine arguments and will override `nixos-config/args.enc.json`
-* `args.nix` for non-private machine arguments and will override `nixos-config/args.nix`
+* `args.enc.json` sops encrypted arguments which override `nixos-config/args.enc.json`
 * `configuration.nix` for the main machine configuration and used to import the arguments 
 * `flake.nix` optional local machine flake configuration to use
 * `flake.lock` optional local machine flake lock to use
@@ -40,8 +39,9 @@ that the machine is the target. This consists of:
 * creating a link in the root to `nixos-config/machines/<machine>/configuration.nix`
 
 ## Machine Args
-The `args.nix` and `args.enc.json` argument files provide an mechanism to keep simple customization 
-separate from the actual configuartion to allow for better reuse across my different machines.
+The top level `args.nix` and sops encrypted`args.enc.json` along with the local sops encrypted 
+`args.enc.json` argument files provide a mechanism for rapidly specifying bulk reusable configuration 
+across many machines.
 
 ### Configuration
 | Argument                | Type  | Default         | Description
