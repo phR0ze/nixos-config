@@ -32,7 +32,7 @@ in
           "vers=3.0,iocharset=utf8"
 
           # Use specific uid and gid for file ownership
-          "uid=${toString config.users.users.${x.user}.uid},gid=${toString config.users.groups.users.gid}"
+          "uid=${toString config.users.users.${machine.user.name}.uid},gid=${toString config.users.groups.users.gid}"
 
           # Ignore the server ids and always use client uid,gid for file ownership
           "forceuid,forcegid"
