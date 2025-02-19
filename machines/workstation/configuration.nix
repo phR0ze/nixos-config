@@ -1,8 +1,8 @@
 # Workstation configuration
 #
 # ### Features
-# - Directly installable: generic/develop with AMD GPU support
-# - barrier server configuration
+# - Daily driver desktop deployment
+# - Barrier server configuration
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let

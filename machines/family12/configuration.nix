@@ -1,7 +1,7 @@
 # Family12 configuration
 #
 # ### Features
-# - Directly installable: xfce/develop with Intel GPU support
+# - Basic desktop deployment
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, args, f, ... }: with lib.types;
 let

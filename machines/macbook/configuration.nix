@@ -1,4 +1,7 @@
 # MacBook configuration
+#
+# ### Features
+# - MacBook laptop deployment
 # --------------------------------------------------------------------------------------------------
 { inputs, config, pkgs, lib, args, f, ... }: with lib.types;
 let
