@@ -1,4 +1,4 @@
-# Family15 configuration
+# Family13 configuration
 #
 # ### Features
 # - Directly installable: xfce/desktop with Intel GPU support
@@ -23,7 +23,7 @@ in
 
   config = {
     machine.type.bootable = true;
-    hardware.graphics.intel = true;
     machine.nix.cache.enable = true;
+    apps.games.warcraft2.enable = true;
   };
 }

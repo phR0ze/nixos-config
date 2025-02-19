@@ -23,15 +23,7 @@ in
 
   config = {
     machine.type.bootable = true;
-
-    # AMD is not the right selection need older Radeon
-    #hardware.graphics.amd = true;
-
-    # Having some weird issue with firewall failing
-    networking.firewall.enable = false;
-
-    environment.systemPackages = [
-
-    ];
+    machine.nix.cache.enable = true;
+    apps.games.warcraft2.enable = true;
   };
 }
