@@ -26,14 +26,7 @@
 	},
 	"smb": {
 		"pass": "ENC[AES256_GCM,data:icRLN+rtNDoSt2w=,iv:LqhNiSl+5sCqS98ZR+ylFdvzDN19v7LpLI6M24+qq/c=,tag:IRcjpJUfrr3hHCHstLp4HA==,type:str]",
-		"domain": "ENC[AES256_GCM,data:jbHlxx1XNQ==,iv:e5F+7Wq06EvRY3ZiT02R0nvzuT72qHqbgC9t4+MtM/I=,tag:ORVueX/i44ePRKNLCPHvyA==,type:str]",
-		"entries": [
-			{
-				"mountPoint": "ENC[AES256_GCM,data:LaZ/2j3eH9GUqU4=,iv:NVVhPmKmi/GIPmpSK4HzPvwGHJGJpLXr9Xa6aHIfEho=,tag:GoJuBHlhJ/EfdMVEiwB9vw==,type:str]",
-				"remotePath": "ENC[AES256_GCM,data:NN/6xqIADL1mTSHr69R73P+Aufo=,iv:eBYnTf7iUAlV0/zMOEEivXPON9OzLRCO5xxydOwrAaI=,tag:rRzUUE2kK3lAHGzMW5e8hw==,type:str]",
-				"writable": "ENC[AES256_GCM,data:DTIJsL4=,iv:TqMhrBa2UnvZFEE6sKT+eQ/w7i9gHLutTX1U6zdjLXU=,tag:idd+ZXTRBCRwj3FTJTYPaw==,type:bool]"
-			}
-		]
+		"domain": "ENC[AES256_GCM,data:jbHlxx1XNQ==,iv:e5F+7Wq06EvRY3ZiT02R0nvzuT72qHqbgC9t4+MtM/I=,tag:ORVueX/i44ePRKNLCPHvyA==,type:str]"
 	},
 	"sops": {
 		"kms": null,
@@ -46,8 +39,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBRYmw3ZGJVS3FFdHgwaGM1\naDVSbjFmV0NjNE1aa2dEdHIrRm9MSkZJbDBFCmg5eWlad242NkR5dHp2Y25qTlpl\nKzRRbDBvdkljcFB4ZTVTUW1mQ3dzLzgKLS0tIERKaVk1dUlxWTNUQ0FlQURiSXdx\nUjJnQnZ3dGd5S2hIZUZySExWZ0pwcDAKwHcHH1MMTAJZIth2rBXsaR+gOsYeFJJc\nDSXjqWMsEq3tggObMfqOH9mYmFzHaqbEDbYgNsJY9j4XsCISOSv82A==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-02-18T01:40:34Z",
-		"mac": "ENC[AES256_GCM,data:bbOsKP7pRcrNQQ6vw6zx9Ul7THzBcySh41Y72Ml0HA7BUsZXY1fJntcahSvczpu6NFcSxOuX1TYYZpJPB+amWIt843rZ5ODqUYHy1Bk7pc5vTN1V7qHmdzv7powubWSpS6rgMzfabwaedBMFeGlmGG2AKpr0to+AUu6+D0Yze6Y=,iv:35uNGxlJitddfec3EGxCBvNM6dDyzSBNai2vyAQmmXU=,tag:8ZM1mtluZHVl7p240GMiSg==,type:str]",
+		"lastmodified": "2025-02-19T00:59:16Z",
+		"mac": "ENC[AES256_GCM,data:1x1ldZchL9BEs6qo1Z4lGnNhwOxu2L0ERMkTElj7hDlCAyalvz6LlJloVzYDifL6xQaZbWJrgDQkSI4GiltFsclIjbg+VfLwcMKxvFvl72tQz8NmK7UG30ditfEqSMRRN26E6xJy30H1vyS0TrqFkTlwtF6oMIdRXOCWpGdsUNU=,iv:mMAoMF49ly4FTesUNCC+DrhNzEDIMqmHP0UioUNivks=,tag:zvpxs4we3X9VamHx1MlbUA==,type:str]",
 		"pgp": null,
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.9.2"
