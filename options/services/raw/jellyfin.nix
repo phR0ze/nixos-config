@@ -38,6 +38,11 @@ in
         pkgs.jellyfin-web           # Jellyfin web client support
         pkgs.jellyfin-ffmpeg        # Jellyfin codecs bundle
       ];    
+
+      # Add access to hardware acceleration for transcoding
+      # - https://wiki.nixos.org/wiki/Immich#Enabling_Hardware_Accelerated_Video_Transcoding
+      # - https://jellyfin.org/docs/general/administration/hardware-acceleration/intel#linux-setups
+      users.users.jellyfin.extraGroups = [ "video" "render" ];
     })
   ];
 }

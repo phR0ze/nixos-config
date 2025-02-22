@@ -20,6 +20,7 @@ in
     extraGroups = [
       "wheel"                           # enables passwordless sudo for this user
       "video"                           # enables ability for user to login to graphical environment
+      "render"                          # enables transcoding hardware acceleration support
     ];
 
     # User password or none if ISO
