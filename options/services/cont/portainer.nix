@@ -13,25 +13,23 @@
 # ### Alternatives
 # - Compose2Nix converts docker compose files into NixOS configuration
 #
-# ### Deployment Features
-# - Service has outbound access to the internet
-# - Service is blocked from outbound connections to the LAN
-# - Service has dedicated podman bridge network with port forwarding to dedicated host macvlan
-# - Service is visible on the LAN, with a dedicated host macvlan and static IP, for inbound connections
-# - Service data is persisted at /var/lib/$SERVICE
+# ### Notes
+# - Get status with: `systemctl status podman-portainer`
+# - UI accessible at 0.0.0.0:9000
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.services.raw.portainer;
   machine = config.machine;
+  cfg = config.services.cont.portainer;
+  app = cfg.app;
   filtered = builtins.filter (x: x.name == "portainer" && x.type == "cont") machine.services;
   defaults = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
 in
 {
   options = {
-    services.raw.portainer = {
+    services.cont.portainer = {
       enable = lib.mkEnableOption "Install and configure portainer";
-      opts = lib.mkOption {
+      app = lib.mkOption {
         description = lib.mdDoc "Containerized service options";
         type = types.submodule (import ../../types/service.nix { inherit lib; });
         default = defaults;
@@ -39,7 +37,8 @@ in
       version = lib.mkOption {
         description = lib.mdDoc "Portainer-CE version to use";
         type = types.str;
-        default = "latest";
+        default = "lts";
+        example = "2.21.4";
       };
     };
   };
@@ -47,15 +46,32 @@ in
   config = lib.mkIf (cfg.enable) {
     assertions = [
       { assertion = (builtins.length filtered > 0);
-        message = "Requires 'machine.services' contain a config for this service"; }
-      { assertion = (machine.net.bridge.enable);
-        message = "Requires 'machine.net.bridge.enable = true;' to work correctly"; }
-      { assertion = (cfg.opts.nic.link != "");
-        message = "Requires 'opts.nic.link' be set to the primary network interface"; }
-      { assertion = (cfg.opts.nic.ip != "");
-        message = "Requires 'opts.nic.ip' be set to a static IP address"; }
-      { assertion = (cfg.opts.port != 0); message = "Requires 'opts.port' be set"; }
+        message = "Requires that 'machine.services' contain a config for this service"; }
     ];
 
+    # Ensure podman dependency is enabled
+    virtualisation.podman.enable = true;
+
+    # Portainer can optionally use 8000 for edge agents as well
+    virtualisation.oci-containers.containers."${app.name}" = {
+      image = "portainer/portainer-ce:${cfg.version}";
+      cmd = [ "--base-url=/portainer" ];
+      autoStart = true;
+      hostname = "${app.name}";
+      ports = [
+        "9000:9000"     # HTTP UI access
+        #"9443:9443"     # HTTPS UI access is not needed in internal home lab for test
+      ];
+      volumes = [
+        "/var/run/docker.sock:/var/run/docker.sock"
+        "portainer_data:/data"
+      ];
+      extraOptions = [
+        "--privileged"
+      ];
+    };
+
+    # Allow ports through firewall
+    networking.firewall.allowedTCPPorts = [ 9000 9443 ];
   };
 }
