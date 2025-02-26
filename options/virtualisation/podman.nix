@@ -30,12 +30,13 @@ in
       pkgs.podman-compose
     ];
 
-    # Set the default backend container technology to podman
-    virtualisation.oci-containers.backend = "podman";
-
     # Enable container name DNS for non-default Podman networks.
     # https://github.com/NixOS/nixpkgs/issues/226365
     networking.firewall.interfaces."podman+".allowedUDPPorts = [ 53 ];
+
+    # Default backend is already podman and when this is uncommented a recursion bug occurs
+    # so I'll just leave this here as a reminder but nothing is needed.
+    #virtualisation.oci-containers.backend = "podman";
 
     # Enable and configure podman
     virtualisation.podman = {
@@ -45,12 +46,11 @@ in
       # Allows docker containers to refer to each other by name
       defaultNetwork.settings.dns_enabled = true;
 
-      # Removes dangling containers and images that are not being used. It won't remove any volumes by default
+      # Removes dangling containers and images that are not being used.
+      # Note: It won't remove any volumes by default
       autoPrune = {
         enable = true;
         dates = "weekly";
-
-        # Removes stuff older than 24h and doesn't have the label important
         flags = [
           "--filter=until=24h"
           "--filter=label!=important"

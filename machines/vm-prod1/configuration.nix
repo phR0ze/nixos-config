@@ -25,26 +25,39 @@ in
     machine.vm.type.local = true;
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
-
-    environment.systemPackages = [
-      pkgs.synology-drive-client
-    ];
+    machine.nix.cache.enable = true;
 
     # Test
     # --------------------------------------------
+    environment.systemPackages = [
+      #pkgs.synology-drive-client
+    ];
+
     #assertions = [
     #  { assertion = (cfg.smb.enable == false); message = "machin.smb.enable: ${f.boolToStr cfg.smb.enable}"; }
     #];
-    services.raw.jellyfin.enable = true;
+
+    # Portainer service
+    # --------------------------------------------
+    services.cont.portainer.enable = true;
+
+    # Immich
+    # --------------------------------------------
+    services.immich = {
+      enable = true;
+      host = "0.0.0.0";       # by default it only listens on localhost
+      openFirewall = true;    # allow immich to be reached on the LAN
+    };
+
+    # Enable hardware accelerated video transcoding
+    users.users.immich.extraGroups = [ "video" "render" ];
 
     # VM specification
     # --------------------------------------------
     virtualisation.qemu.guest = {
       cores = 4;
-      display = {
-        enable = true;
-        memory = 32;
-      };
+      display = { enable = true; memory = 32; };
+      rootDrive.size = 20;
 #      spice = {
 #        enable = false;
 #        port = 5971;
