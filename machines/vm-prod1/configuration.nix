@@ -22,7 +22,7 @@ in
 
   config = {
     machine.type.vm = true;
-    machine.vm.type.local = true;
+    machine.vm.type.spice = true;
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
     machine.nix.cache.enable = true;
@@ -56,12 +56,12 @@ in
     # --------------------------------------------
     virtualisation.qemu.guest = {
       cores = 4;
-      display = { enable = true; memory = 32; };
+      #display = { enable = true; memory = 32; };
       rootDrive.size = 20;
-#      spice = {
-#        enable = false;
-#        port = 5971;
-#      };
+      spice = {
+        enable = false;
+        port = 5971;
+      };
       interfaces = [{
         type = "macvtap";
         id = cfg.hostname;
