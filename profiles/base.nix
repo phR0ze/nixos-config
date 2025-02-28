@@ -53,7 +53,6 @@ in
 
     # Network
     openvpn                       # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
-    vopono                        # Run applications through VPN connections in network namespaces
     update-systemd-resolved       # OpenVPN systemd-resolved updater
   ]
   ++ lib.optional (!machine.type.vm) efibootmgr

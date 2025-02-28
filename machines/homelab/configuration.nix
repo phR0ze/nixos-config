@@ -29,6 +29,7 @@ in
 
     services.raw.jellyfin.enable = true;
     services.raw.nix-cache.host.enable = true;
+    services.raw.private-internet-access.enable = true;
     #services.nspawn.portainer.enable = true;
     #services.nspawn.stirling-pdf.enable = true;
   };

@@ -6,10 +6,15 @@
 # running over the standard LAN.
 #
 # ### Deployment notes
-# - For this to work correctly you'll some manual setup as well
-# - 1. Run `vopono sync --protocol wireguard PrivateInternetAccess`
-# - 2. Enter your PIA credentials and answer the port forwarding no
-# - 3. Restart your service `systemctl --user restart APP-over-vpn`
+# For this to work correctly you'll need some manual setup as well:
+# 1. Run `vopono sync --protocol wireguard PrivateInternetAccess`
+# 2. Enter your PIA credentials and answer the port forwarding No
+# 3. Restart your service `systemctl --user restart APP-over-vpn`
+#
+# * Service will not be restarted if it fails
+# * Requires passwordless sudo access to be able to elevate privileges when needed
+# * Validation can be done by using firefox as the app and navigating to 
+#   https://www.privateinternetaccess.com/pages/whats-my-ip
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
@@ -20,10 +25,15 @@ in
   options = {
     services.raw.private-internet-access = {
       enable = lib.mkEnableOption "Configure a Private Internet Access based VPN service";
+      autostart = lib.mkOption {
+        description = lib.mdDoc "Autostart VPN on login";
+        type = types.bool;
+        default = true;
+      };
       app = lib.mkOption {
         description = lib.mdDoc "Applications to run over the VPN";
         type = types.str;
-        default = "firefox";
+        default = "qbittorrent";
       };
       server = lib.mkOption {
         description = lib.mdDoc "VPN server to use";
@@ -34,27 +44,29 @@ in
   };
  
   config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
 
-      # Install the supporting software
+    # Install the supporting software
+    (lib.mkIf cfg.enable {
       environment.systemPackages = [
         pkgs.wireguard-tools        # Wireguard VPN tooling
         pkgs.vopono                 # Network namespace automation
       ];    
+    })
 
-      # Configure services to run over the VPN
-      systemd.user.services."${cfg.app}-over-vpn" = {
-        enable = true;
-        after = [ "network.target" ];
-        wantedBy = [ "default.target" ];
-        serviceConfig = {
-          Type = "simple";
-          Restart = "on-success";
-          User = "${machine.user.name}";
-          Group = "users";
-          ExecStart = ''vopono exec --provider PrivateInternetAccess --server ${cfg.server} --protocol wireguard ${cfg.app}'';
-        };
-      };
+    # Configure to autostart after login
+    # Creates `/etc/xdg/autostart/APP-over-vpn.desktop`
+    (lib.mkIf (cfg.enable && cfg.autostart) {
+      environment.etc."xdg/autostart/${cfg.app}-over-vpn.desktop".text = ''
+        [Desktop Entry]
+        Type=Application
+        Terminal=true
+        Exec=${pkgs.writeScript "${cfg.app}-over-vpn" ''
+          #!${pkgs.runtimeShell}
+          if [[ -e "$HOME/.config/vopono" ]]; then
+            ${pkgs.vopono}/bin/vopono exec --provider PrivateInternetAccess --server ${cfg.server} --protocol wireguard ${cfg.app}
+          fi
+        ''}
+      '';
     })
   ];
 }
