@@ -50,11 +50,8 @@ in
         serviceConfig = {
           Type = "simple";
           Restart = "on-success";
-
-  uid = config.users.users.${user_name}.uid;
-  gid = config.users.groups."users".gid;
           User = "${machine.user.name}";
-          Group = "${machine.user.group}";
+          Group = "users";
           ExecStart = ''vopono exec --provider PrivateInternetAccess --server ${cfg.server} --protocol wireguard ${cfg.app}'';
         };
       };

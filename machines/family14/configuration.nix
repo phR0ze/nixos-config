@@ -24,7 +24,6 @@ in
   config = {
     machine.type.bootable = true;
     machine.nix.cache.enable = true;
-    machine.resolution = { x = 2560; y = 1440; };
     apps.games.warcraft2.enable = true;
   };
 }
