@@ -11,6 +11,7 @@
 # 2. Enter your PIA credentials and answer the port forwarding No
 # 3. Restart your service `systemctl --user restart APP-over-vpn`
 #
+# * Note: you can manually start with `xdg-open "/etc/xdg/autostart/${APP}-over-vpn.desktop"`
 # * Service will not be restarted if it fails
 # * Requires passwordless sudo access to be able to elevate privileges when needed
 # * Validation can be done by using firefox as the app and navigating to 
@@ -63,7 +64,7 @@ in
         Exec=${pkgs.writeScript "${cfg.app}-over-vpn" ''
           #!${pkgs.runtimeShell}
           if [[ -e "$HOME/.config/vopono" ]]; then
-            ${pkgs.vopono}/bin/vopono exec --provider PrivateInternetAccess --server ${cfg.server} --protocol wireguard ${cfg.app}
+            vopono exec --provider PrivateInternetAccess --server ${cfg.server} --protocol wireguard ${cfg.app}
           fi
         ''}
       '';
