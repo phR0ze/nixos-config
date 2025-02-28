@@ -1,6 +1,6 @@
 {
 	"hostname": "ENC[AES256_GCM,data:lvjd2C7qMA==,iv:23ZcV74tug2Yd5oNxNZpFmzrevqHFGWC+C/FC27oqpQ=,tag:7AFfiaqv8zTEwRAB1LdVFw==,type:str]",
-	"profile": "ENC[AES256_GCM,data:zL+dCPJvtMcx+i8=,iv:WSu8KlgAxIyR2naFz1v+TzQPxcgFdOPhxdv2dVElbeQ=,tag:xiAar51AeKeMzKpDKPbjWA==,type:str]",
+	"profile": "ENC[AES256_GCM,data:9FONxoQdavXJiZi2,iv:larUwhEGZDgSdizYKynKOl307o+CdhESVzYSHoeqdiU=,tag:xW6nuNfIm517QmU4Vi1P5g==,type:str]",
 	"id": "ENC[AES256_GCM,data:d409Q7zdIOZfQdN8SMXGU6D6pjJKGUWtRD6D/Ek7Q2o=,iv:17ujFujMFX3UrdWirNSkev+9ClhGrflQSe1dyA6mgQ4=,tag:bQXmY6YIev6L5iRfnvjLIg==,type:str]",
 	"efi": "ENC[AES256_GCM,data:z8pkMg==,iv:b1ggagYD82RNpLySypaBucx8RegYjCAsekQcbUfVcOo=,tag:OVfE6TvvtAz6DbOFXjamhw==,type:bool]",
 	"drives": [
@@ -62,8 +62,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBhUlVSL1p6aG00TGlQWlZY\naDB1RHh1WXRXWWFhRHJ2Z2hoeWV6K1FrdmtNCmxxdjM3N1FVQXppR2Fzei9HZHBK\nZklFNE1RTEFOMVIvcG40WDIvbStDR3MKLS0tIFk4L09LTDFpazJacmZyeFJENWZ0\nbmVHZ3RzTGVHTEVldFlyTHZYNXkwWUkKg5fCQrHvV2icfz3avumc0M17hwFUdYJy\nE9XH3C/Ja/BqC3zhDGPfY8RtBW9DNMy+Ck7hVoqg6qGgro1BrGRXoA==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-02-28T02:34:04Z",
-		"mac": "ENC[AES256_GCM,data:BgxB1L2WnjawHEDsgD9KJfDCMg/IWj2+i21xxwJRtOHdPo+zk+3/YxcSbT0xTkIQ+PnKYNTmZHL57jLbT35OJQ7yflfqALWRFYOwtVt07QzEL1Of8NP3YLabEs+GkD/5VbGttxBHaw5nYT2EvDzOPHkd/zx1dFLTEQkkyviE/Is=,iv:wHOPrDJq1SN+Z8bGG7MLYu18WPBY4qOMyXNRdB+7mXY=,tag:9JSklgW3hMGWrSLyCLssqA==,type:str]",
+		"lastmodified": "2025-02-28T23:11:14Z",
+		"mac": "ENC[AES256_GCM,data:6D89GhpCCSkL9s71iT9eQhGXefCDw23yKofbf9Pvf0s6x4PzwptGuSu1mVG5BLVnOFALcv7Vpx94ffxBalg3QGKn+PiiAlDy8DGSXMuDCyGMtC06+ofKgHnL2LbrIS7YYQdwULMkdsDapyC2krUMLW5qmj7wsXgeuzS0JHTn+k8=,iv:8NDudZP7dp6C3x+P6qyjW6PNs/BkkPf94C8+C8OPo6w=,tag:2kzd+iansr6grPun5P5ATw==,type:str]",
 		"pgp": null,
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.9.2"
