@@ -9,6 +9,7 @@
     ./minecraft.nix
     ./nfs.nix
     ./nix-cache.nix
+    ./private-internet-access.nix
     ./rustdesk.nix
     ./smb.nix
     ./sshd.nix

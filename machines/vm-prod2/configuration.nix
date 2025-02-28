@@ -26,8 +26,12 @@ in
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 
-    #services.x2goserver.enable = true;
+    # Testing
+    # ---------------------------------------------
+    services.raw.private-internet-access.enable = true;
 
+    # VM configuration
+    # ---------------------------------------------
     virtualisation.qemu.guest = {
       cores = 4;
       display = {
