@@ -15,7 +15,7 @@
   #apps.games.warcraft2.enable = true;      # Add firewall rules needed for warcraft 2 IPX LAN multi-player
   apps.network.qbittorrent.enable = true;   # Excellent bittorrent client
   apps.media.jellyfin.enable = true;        # Install Jellyfin media player
-  apps.media.kodi.enable = true;            # Media player and entertainment hub
+  #apps.media.kodi.enable = true;            # Media player and entertainment hub
   programs.winetricks.enable = true;        # A script to install DLLs needed to work around problems in Wine
 
   environment.systemPackages = with pkgs; [
