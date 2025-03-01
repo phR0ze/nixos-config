@@ -20,6 +20,7 @@
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
   cfg = config.services.raw.private-internet-access;
+  nic = config.networking.primary.id;
   machine = config.machine;
 in
 {
@@ -64,7 +65,7 @@ in
         Exec=${pkgs.writeScript "${cfg.app}-over-vpn" ''
           #!${pkgs.runtimeShell}
           if [[ -e "$HOME/.config/vopono" ]]; then
-            vopono exec --interface ${networking.primary.id} --provider PrivateInternetAccess --server ${cfg.server} --protocol wireguard ${cfg.app}
+            vopono exec --interface ${nic} --provider PrivateInternetAccess --server ${cfg.server} --protocol wireguard ${cfg.app}
           fi
         ''}
       '';
