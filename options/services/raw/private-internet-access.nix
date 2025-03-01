@@ -64,7 +64,7 @@ in
         Exec=${pkgs.writeScript "${cfg.app}-over-vpn" ''
           #!${pkgs.runtimeShell}
           if [[ -e "$HOME/.config/vopono" ]]; then
-            vopono exec --provider PrivateInternetAccess --server ${cfg.server} --protocol wireguard ${cfg.app}
+            vopono exec --interface ${networking.primary.id} --provider PrivateInternetAccess --server ${cfg.server} --protocol wireguard ${cfg.app}
           fi
         ''}
       '';
