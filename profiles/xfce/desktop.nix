@@ -41,7 +41,7 @@
     lame                      # High quality MPEG layer III audio encoder
     mkvtoolnix                # Cross-platform tools for Matroska
     mpv                       # General purpose media player, fork of MPlayer and mplayer2
-    openshot-qt               # Simple powerful Video Editor, alt: pitivi, kdenlive
+    kdePackages.kdenlive      # Reliable, intuitive Video editor. OpenShot is buggy and kept having problems
     #obs-studio               # Free and open source software for video recording and live streaming
     simplescreenrecorder      # Awesome screen recorder
     vlc                       # Multi-platform MPEG, VCD/DVD, and DivX player
