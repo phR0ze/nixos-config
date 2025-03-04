@@ -39,7 +39,7 @@ in
             { name = "Alacritty"; exec = "alacritty"; icon = "Alacritty"; }
             { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
           ]
-          ++ lib.optionals [ machine.type.theater {
+          ++ lib.optionals machine.type.theater [{
               name = "Jellyfin";
               exec = "jellyfinmediaplayer";
               icon = "com.github.iwalton3.jellyfin-media-player";
