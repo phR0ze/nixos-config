@@ -28,7 +28,7 @@ in
 
     # Testing
     # ---------------------------------------------
-    services.raw.private-internet-access.enable = true;
+    services.raw.minecraft.enable = true;
 
     # VM configuration
     # ---------------------------------------------
