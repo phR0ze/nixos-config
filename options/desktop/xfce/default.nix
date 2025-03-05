@@ -38,13 +38,11 @@ in
           xfce.panel.launchers = [
             { name = "Alacritty"; exec = "alacritty"; icon = "Alacritty"; }
             { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
-          ]
-          ++ lib.optionals machine.type.theater [{
+            {
               name = "Jellyfin";
               exec = "jellyfinmediaplayer";
               icon = "com.github.iwalton3.jellyfin-media-player";
-            }]
-          ++ [
+            }
             { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
             { name = "HandBrake"; exec = "ghb"; icon = "fr.handbrake.ghb"; }
             { name = "VLC Media Player"; exec = "vlc"; icon = "vlc"; }
