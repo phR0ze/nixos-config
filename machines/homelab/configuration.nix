@@ -27,6 +27,7 @@ in
     machine.autologin = true;
     services.xserver.autolock.enable = true;
 
+    virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
     services.raw.jellyfin.enable = true;
     services.raw.nix-cache.host.enable = true;
