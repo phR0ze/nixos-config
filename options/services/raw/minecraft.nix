@@ -1,7 +1,7 @@
 # Minecraft server ooptions
 #
 # ### Server interaction
-# The NixOS minecraft module has been setup to be able to interacted with via a socket 
+# The NixOS minecraft module has been setup to be able to be interacted with via a socket 
 # `/run/minecraft-server.stdin` for input and via the journal for output.
 #
 # Example to enable USER as an operator:
@@ -68,32 +68,32 @@ in
       jvmOpts = lib.concatStringsSep " " [
         "-Xms${toString cfg.memory}G -Xmx${toString cfg.memory}G"   # always bound the memory allowed the JVM
         "-XX:+UseG1GC"                                              # use the G1GC garbabe collector
-        "-XX:MaxGCPauseMillis=130"
-        "-XX:+UnlockExperimentalVMOptions"
-        "-XX:+DisableExplicitGC"
-        "-XX:+AlwaysPreTouch"
-        "-XX:G1NewSizePercent=28"
-        "-XX:G1HeapRegionSize=16M"
-        "-XX:G1ReservePercent=20"
-        "-XX:G1MixedGCCountTarget=3"
-        "-XX:InitiatingHeapOccupancyPercent=10"
-        "-XX:G1MixedGCLiveThresholdPercent=90"
-        "-XX:G1RSetUpdatingPauseTimePercent=0"
-        "-XX:SurvivorRatio=32"
-        "-XX:MaxTenuringThreshold=1"
-        "-XX:G1SATBBufferEnqueueingThresholdPercent=30"
-        "-XX:G1ConcMarkStepDurationMillis=5"
-        "-XX:G1ConcRSHotCardLimit=16"
-        "-XX:G1ConcRefinementServiceIntervalMillis=150"
+        "-XX:MaxGCPauseMillis=130"                                  #
+        "-XX:+UnlockExperimentalVMOptions"                          #
+        "-XX:+DisableExplicitGC"                                    #
+        "-XX:+AlwaysPreTouch"                                       #
+        "-XX:G1NewSizePercent=28"                                   #
+        "-XX:G1HeapRegionSize=16M"                                  #
+        "-XX:G1ReservePercent=20"                                   #
+        "-XX:G1MixedGCCountTarget=3"                                #
+        "-XX:InitiatingHeapOccupancyPercent=10"                     #
+        "-XX:G1MixedGCLiveThresholdPercent=90"                      #
+        "-XX:G1RSetUpdatingPauseTimePercent=0"                      #
+        "-XX:SurvivorRatio=32"                                      #
+        "-XX:MaxTenuringThreshold=1"                                #
+        "-XX:G1SATBBufferEnqueueingThresholdPercent=30"             #
+        "-XX:G1ConcMarkStepDurationMillis=5"                        #
+        "-XX:G1ConcRSHotCardLimit=16"                               #
+        "-XX:G1ConcRefinementServiceIntervalMillis=150"             #
       ];
 
       # Enable serverProperties to take effect
       declarative = true;
       serverProperties = {
-        level-seed = cfg.levelSeed;             # world generates with random see if left blank
+        level-seed = cfg.levelSeed;             # world generates with random seed if left blank
         gamemode = cfg.gameMode;                # survival | creative | adventure | spectator
         difficulty = cfg.difficulty;            # peaceful | easy | normal | hard
-        online-mode = ! cfg.lanOnly;            # set lanOnly to false for account validation against minecraft.net
+        online-mode = ! cfg.lanOnly;            # set to true to validate accounts w/minecraft.net
       };
     };
   };
