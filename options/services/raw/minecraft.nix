@@ -54,6 +54,8 @@ in
  
   config = lib.mkIf (cfg.enable) {
     services.minecraft-server = {
+      enable = true;
+
       # This means agreeing to Mojang's EULA: https://account.mojang.com/documents/minecraft_eula
       eula = true;
 
