@@ -33,7 +33,8 @@ in
     # VM configuration
     # ---------------------------------------------
     virtualisation.qemu.guest = {
-      cores = 4;
+      cores = 8;
+      memorySize = 16;
       display = {
         enable = true;
         memory = 32;

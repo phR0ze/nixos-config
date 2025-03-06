@@ -390,6 +390,8 @@ in
         user = if (!args ? "smb" || !args.smb ? "user") then user_name else args.smb.user;
         pass = if (!args ? "smb" || !args.smb ? "pass") then user_pass else args.smb.pass;
         domain = if (!args ? "smb" || !args.smb ? "domain") then "" else args.smb.domain;
+        dirMode = if (!args ? "smb" || !args.smb ? "dirMode") then "0755" else args.smb.dirMode;
+        fileMode = if (!args ? "smb" || !args.smb ? "fileMode") then "0644" else args.smb.fileMode;
         entries = if (!args ? "smb" || !args.smb ? "entries") then [] else (builtins.concatMap (x: [{
           mountPoint = if (!x ? "mountPoint") then "" else x.mountPoint;
           remotePath = if (!x ? "remotePath") then "" else x.remotePath;
@@ -399,6 +401,10 @@ in
             then user_pass else args.smb.pass) else x.pass;
           domain = if (!x ? "domain" || x.domain == "") then (if (!args ? "smb" || !args.smb ? "domain")
             then "" else args.smb.domain) else x.domain;
+          dirMode = if (!x ? "dirMode" || x.dirMode == "") then (if (!args ? "smb" || !args.smb ? "dirMode")
+            then "0755" else args.smb.dirMode) else x.dirMode;
+          fileMode = if (!x ? "fileMode" || x.fileMode == "") then (if (!args ? "smb" || !args.smb ? "fileMode")
+            then "0644" else args.smb.fileMode) else x.fileMode;
           writable = if (!x ? "writable") then false else x.writable;
           options = if (!x ? "options") then [] else x.options;
         }]) args.smb.entries);
