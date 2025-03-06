@@ -5,7 +5,7 @@
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
-    _args = (import ./args.nix);
+    _args = import ./args.nix;
 
     # Allow for package patches, overrides and additions
     # ----------------------------------------------------------------------------------------------
@@ -38,8 +38,9 @@
           go = pkgs-unstable.go;
           go-bindata = pkgs-unstable.go-bindata;
           golangci-lint = pkgs-unstable.golangci-lint;
-          rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
           vscode = pkgs-unstable.vscode;
+          zed-editor = pkgs-unstable.vscode;
+          rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
           vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
         })
       ];
