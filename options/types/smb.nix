@@ -20,6 +20,16 @@
       type = types.str;
       example = "WORKGROUP";
     };
+    dirMode = lib.mkOption {
+      description = lib.mdDoc "Default mode to use for directories";
+      type = types.str;
+      example = "0755";
+    };
+    fileMode = lib.mkOption {
+      description = lib.mdDoc "Default mode to use for files";
+      type = types.str;
+      example = "0644";
+    };
     entries = lib.mkOption {
       description = lib.mdDoc "Share entries to configure";
       type = types.listOf (types.submodule {
@@ -46,6 +56,16 @@
             description = lib.mdDoc "Set the domain or workgroup to use";
             type = types.str;
             example = "WORKGROUP";
+          };
+          dirMode = lib.mkOption {
+            description = lib.mdDoc "Mode to use for directories";
+            type = types.str;
+            example = "0755";
+          };
+          fileMode = lib.mkOption {
+            description = lib.mdDoc "Mode to use for files";
+            type = types.str;
+            example = "0644";
           };
           writable = lib.mkOption {
             description = lib.mdDoc "Enable writing to the share";
