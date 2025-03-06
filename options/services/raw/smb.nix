@@ -38,7 +38,7 @@ in
           "forceuid,forcegid"
 
           # Specify default file, dir modes
-          "dir_mode=0755,file_mode=0644"
+          "dir_mode=${x.dirMode},file_mode=${x.fileMode}"
 
           # Ensures systemd understands that the mount is network dependent
           "_netdev"
