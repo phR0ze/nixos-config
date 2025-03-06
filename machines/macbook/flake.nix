@@ -14,6 +14,8 @@
   outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, ... }@inputs: let
     _args = import ./args.nix;
 
+    # Allow for package patches, overrides and additions
+    # ----------------------------------------------------------------------------------------------
     system = _args.arch;
     pkgs-unstable = import nixpkgs-unstable {
       inherit system;
@@ -29,8 +31,17 @@
       ];
 
       # Modify package defaults with overlays
+      # --------------------------------------------------------------------------------------------
       overlays = [
         (before: after: {
+          # Include custom packages in global pkgs variable
+          arcologout = pkgs.callPackage packages/arcologout {};
+          desktop-assets = pkgs.callPackage packages/desktop-assets {};
+          rdutil = pkgs.callPackage packages/rdutil {};
+          tinymediamanager = pkgs.callPackage packages/tinymediamanager{};
+          wmctl = pkgs.callPackage packages/wmctl {};
+
+          # Upgrade select packages to the latest unstable bits
           go = pkgs-unstable.go;
           go-bindata = pkgs-unstable.go-bindata;
           golangci-lint = pkgs-unstable.golangci-lint;
@@ -43,6 +54,7 @@
     };
 
     # Configure special args with our argument overrides
+    # ----------------------------------------------------------------------------------------------
     lib = nixpkgs.lib;
     f = pkgs.callPackage ./options/funcs { inherit lib; };
     args = lib.recursiveUpdate (lib.recursiveUpdate _args (f.fromJSON ./args.dec.json))
@@ -50,7 +62,11 @@
     specialArgs = { inherit args f inputs; };
   in
   {
-    nixosConfigurations.target = nixpkgs.lib.nixosSystem {
+    # Usually the configuration is the hostname of the machine but in this case I'm using a generic 
+    # value 'target' as an entry point with the hostname being set lower down based on the 
+    # configuration linked from the machine's sub-directory.
+    # ----------------------------------------------------------------------------------------------
+    nixosConfigurations.target = lib.nixosSystem {
       inherit pkgs system specialArgs;
       modules = [
         ./options
