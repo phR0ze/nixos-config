@@ -50,5 +50,5 @@ in
       #  5960                                      # NDI remote soruces to discover this machine
       #];
     })
-  };
+  ];
 }
