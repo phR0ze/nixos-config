@@ -28,7 +28,7 @@ in
 
     # Testing
     # ---------------------------------------------
-    services.raw.minecraft.enable = true;
+    apps.media.obs.enable = true;
 
     # VM configuration
     # ---------------------------------------------

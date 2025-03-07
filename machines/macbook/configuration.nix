@@ -24,7 +24,11 @@ in
 
   config = {
     machine.type.bootable = true;
+    virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
+
+    apps.media.obs.enable = true;
+    services.raw.rustdesk.autostart = false;
 
     # Increase the default DPI size
     machine.resolution = { x = 1920; y = 1200; } ;

@@ -123,7 +123,8 @@ in
       };
 
       # Allow nested virtualisation
-      boot.extraModprobeConfig = "options kvm_intel nested=1";
+      # Set in the options/hardware/kernel.nix file
+      #boot.extraModprobeConfig = "options kvm_intel nested=1";
 
       services.spice-webdavd.enable = true;             # File sharing support between Host and Guest
       virtualisation.spiceUSBRedirection.enable = true; # Support USB passthrough to VMs from host

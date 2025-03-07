@@ -53,9 +53,9 @@ in
   environment.systemPackages = with pkgs; [
 
     # Custom packages
-    desktop-assets
-    rdutil
-    wmctl
+    desktop-assets                      # Custom package for wallpaper and other settings
+    rdutil                              # Custom package for rustdesk util
+    wmctl                               # Custom package for wmctl
 
     # System
     desktop-file-utils                  # Command line utilities for working with desktop entries

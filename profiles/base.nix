@@ -17,7 +17,6 @@ in
     ../modules/locale.nix
     ../modules/nix.nix
     ../modules/terminal
-    ../modules/kernel.nix
     ../modules/services/systemd.nix
   ];
 
