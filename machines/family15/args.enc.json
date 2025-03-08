@@ -19,6 +19,11 @@
 		"enable": "ENC[AES256_GCM,data:f5ex6A==,iv:/38lV0lDER9fcsMBzzcj12IgvpclDrNiVEWbNOyCNgo=,tag:r4gWJyAOBo+PjQR9KGLBLA==,type:bool]",
 		"entries": [
 			{
+				"mountPoint": "ENC[AES256_GCM,data:zGhZeFU/CldP,iv:C4UT+wKN9I0yJl7d4CfRCpVZx3MDeqXkgI2x/Z87wZY=,tag:EMHkKcrKFmwuaA1sWOKVPw==,type:str]",
+				"remotePath": "ENC[AES256_GCM,data:s1IigcOnmHqGlzbTTyuK+iBd,iv:UffviHUp2s+MXk75irjWc8g8XNBCVclJubBu7RveDQQ=,tag:k3rNkyCDlzw1g5gA2p0gpQ==,type:str]",
+				"writable": "ENC[AES256_GCM,data:VcLQMw==,iv:OyP2/Wm50/6+rdeyssK0jx5zWBIh0HUONpRDTnDjv6E=,tag:GAJCW2Pa9Qh9XzjvGIc8ww==,type:bool]"
+			},
+			{
 				"user": "ENC[AES256_GCM,data:Ugud5Mci,iv:ptqlhDNOZKAMe64t7wxPSaMvHVgYcfmsiO6+EvGUKWs=,tag:m/KjgLS6FxYiJOFbHzf6TQ==,type:str]",
 				"pass": "ENC[AES256_GCM,data:f/oaQJcb3NIQ7VNIKfdcTArBLI5tauLZDMDj,iv:s2NMjf02/hyfhB6srOCu0eZPUS2yNiLA5hOeJKI3uGg=,tag:M04UY5qynCddiqFzx9Ycrw==,type:str]",
 				"mountPoint": "ENC[AES256_GCM,data:9/qFbXYvWSJKgWY=,iv:BulNqeyNDRDo96lD0Jk1jF1XyQBsbvDBmlQk+UJ5COA=,tag:Gi0AzHC0b8PhsYY3uIvz7g==,type:str]",
@@ -45,8 +50,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzbStxd0FlQWxtemlJNWxt\nV3pTbHpOUXl5MWhMNXI2MlJ4QWR0NnN1UHo0CmYwWDExOXl4LzFnUU9QelBEZExZ\nRzA0eTlIZktYSUU3bWlUQ2lkbklpUjgKLS0tIDNzbFdEWkx4SU9DY28waTd4Q1dw\nVEIySnY4TzBjOXNFaWZyNWxPVHE4eWcKxpeKNBT5YQHnjG7MVVcw1LsBKSDDjLZ1\nfS3hPxtr01XyozT9ORji+LF5E6r/zvAS4eWCLCu/hMDxVq/mhbpgRQ==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-02-19T17:27:08Z",
-		"mac": "ENC[AES256_GCM,data:2pGhFf9UDVIv/TgE6cP+4VK2IpnvwFlfR+5bRfLrwR0n1ziGTEpZs3raR+OMal59xfqontAcq6a42R7Wvzhx24YQ2pxl53nutimBaaEA/+KXcpwLGjc4bVEwP4MISurfHVQ6BckwLGEpipgwtpcRbXELxiPN3SW+NgGzgPTlsAc=,iv:fHquKsytj1YYxGzrYbLROloRmwbAjMd3nLxS+s2Y9ms=,tag:cBC62pkFKJ+ELA5Tfe5N7g==,type:str]",
+		"lastmodified": "2025-03-08T20:23:55Z",
+		"mac": "ENC[AES256_GCM,data:/0gnWxatEQf9eS5sD/+7g/+2ilaaFZY3tI0KGuLmzN1584cPcMH7LMjt4x3DcPZNUcJU4lTjZrRMH/+Ie2xhIW7/npMls/hGgx5Glixr/UbByKErtoM4eZOxcOaHuoRKfJ4VYXLiDTW9qchFHVzmY05WHYXWBtRpzZJzOLlwF5Q=,iv:7TVXEdWObTPWFZstEuwGVtXE+QYOB2ipuR5IIpDTgPI=,tag:WP0IrInqiNAle/XcglL9tg==,type:str]",
 		"pgp": null,
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.9.2"
