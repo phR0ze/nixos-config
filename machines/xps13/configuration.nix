@@ -30,6 +30,7 @@ in
     virtualisation.podman.enable = true;
     #virtualisation.qemu.host.enable = true;
     services.raw.rustdesk.autostart = false;
+    apps.media.obs.enable = true;
 
     # Misc
     environment.systemPackages = [
