@@ -7,6 +7,7 @@
 # - [Background removal plugin](https://github.com/locaal-ai/obs-backgroundremoval)
 #
 # ### TODO:
+# * [NDI network ports](https://docs.ndi.video/all/getting-started/white-paper/ndi-related-network-ports)
 # * Determine the correct ports to open
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;

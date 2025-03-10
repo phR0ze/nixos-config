@@ -40,6 +40,7 @@
           golangci-lint = pkgs-unstable.golangci-lint;
           vscode = pkgs-unstable.vscode;
           zed-editor = pkgs-unstable.vscode;
+          zoom-us = pkgs-unstable.zoom-us;
           rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
           vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
         })
