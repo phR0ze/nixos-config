@@ -21,8 +21,9 @@ fork it and build on my work.
   * [Install from custom ISO](#install-from-custom-iso)
 * [Update and Upgrade](#update-and-upgrade)
   * [Update configuration](#update-configuration)
-  * [Upgrade an app](#upgrade-an-app)
-  * [Upgrade the full system](#upgrade-the-full-system)
+  * [Upgrade unstable](#upgrade-unstable)
+  * [Upgrade pseudo stable](#upgrade-pseudo-stable)
+  * [Use unstable for app](#use-unstable-for-app)
 * [Advanced use cases](#advanced-use-cases)
   * [Build and deploy production VMs](#build-and-run-test-vm)
   * [Build and run test VM](#build-and-run-test-vm)
@@ -100,7 +101,14 @@ limited in resources while your build system is beefy.
 
 ## Update and Upgrade
 I'm defining `update` as configuration changes while an `upgrade` would be changing the versions of 
-specific apps or the full system including all apps.
+specific apps or the full system including all apps. I'm also using a two unstable commit strategy to 
+make a two versions of the unstable branch available to my system at a time which I name `nixpkgs` 
+and `nixpkgs-unstable` which is a bit of a misnomer as they are both based on the unstable branch but 
+the different points in time. The one I call `nixpkgs-unstable` is just newer.
+
+  * [Upgrade unstable](#upgrade-unstable)
+  * [Upgrade stable](#upgrade-stable)
+  * [Use unstable for app](#use-unstable-for-app)
 
 ### Update configuration
 1. Switch to the configuration folder
@@ -118,24 +126,34 @@ specific apps or the full system including all apps.
    $ sudo ./clu update system
    ```
 
-### Upgrade an app
-I've setup my flake configuration such that the `flake.lock` file has configuration for two different 
-versions. The first is called `nixpkgs` and is pinned to an older version of the upstream 
-`nixos-unstable` branch while the other is called `nixpkgs-unstable` and is meant to more closely 
-follow the upstream unstable i.e. I can change this to be the latest SHA then update my system to 
-then update only the apps called out in my flake's unstable overlay in `flake.nix`. This is the case 
-for `vscode`.
+  * [Upgrade unstable](#upgrade-unstable)
 
-**For example upgrading vscode to the latest would look like:**
-1. Modifying `flake.nix` to ensure that the `overlays` section has an entry for `vscode`:
-   ```
-   vscode = pkgs-unstable.vscode;`
-   ```
-2. Update the lock file to roll unstable to the latest
+### Upgrade unstable
+Note the `base.nix` is all ready setup to use the latest unstable so all you really need to do is 
+update to pick it up as follows.
+
+1. Update the lock file to use latest `nixos-unstable`
    ```bash
    $ ./clu update flake
    ```
-3. Build the target configuration
+2. Update target app overrides to use latest unstable updates
+   ```bash
+   $ ./clu update system
+   ```
+
+### Upgrade pseudo stable
+Note the `base.nix` is set to a specific unstable version. You'll need to change it to the next 
+version you'd like.
+
+1. Modifying `base.nix` to use your preferred nixpkgs sha e.g.
+   ```
+   nixpkgs.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
+   ```
+2. Update the lock file to use this new sha version and get the latest for `nixos-unstable`
+   ```bash
+   $ ./clu update flake
+   ```
+3. Build the target configuration to validate things are still working
    ```bash
    $ ./clu build $HOSTNAME
    ```
@@ -144,20 +162,14 @@ for `vscode`.
    $ ./clu update system
    ```
 
-### Upgrade the full system
-1. Modifying `flake.nix` to use your preferred nixpkgs sha e.g.
+### Use unstable for app
+1. [Upgrade unstable branch as desired](#upgrade-unstable)
+
+2. Modify `base.nix` to ensure that the `overlays` section has an entry for your app e.g. `vscode`:
    ```
-   nixpkgs.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
+   vscode = pkgs-unstable.vscode;`
    ```
-2. Update the lock file to use this new sha version and get the latest for `nixos-unstable`
-   ```bash
-   $ ./clu update flake
-   ```
-3. Build the target configuration
-   ```bash
-   $ ./clu build $HOSTNAME
-   ```
-4. Update to changes
+3. Update to pickup your application changes
    ```bash
    $ ./clu update system
    ```
