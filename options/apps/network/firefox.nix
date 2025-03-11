@@ -60,7 +60,13 @@ in
         # Valid strings for installation_mode are "allowed", "blocked",
         # "force_installed" and "normal_installed".
         ExtensionSettings = {
-          "*".installation_mode = "blocked"; # blocks all addons except the ones specified below
+          "*".installation_mode = "allowed";
+
+          # Video DownloadHelper:
+          "{b9db16a4-6edc-47ec-a1f4-b86292ed211d}" = {
+            install_url = "https://addons.mozilla.org/firefox/downloads/latest/video-downloadhelper/latest.xpi";
+            installation_mode = "force_installed";
+          };
 
           # uBlock Origin:
           "uBlock0@raymondhill.net" = {
