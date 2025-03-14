@@ -12,13 +12,13 @@
     system = _args.arch;
     pkgs-unstable = import nixpkgs-unstable {
       inherit system;
-      config.allowUnfree = true;
-      config.allowUnfreePredicate = _: true;
+      config.allowUnfreePredicate = pkg: true;
+      config.android_sdk.accept_license = true;
     };
     pkgs = import nixpkgs {
       inherit system;
-      config.allowUnfree = true;
-      config.allowUnfreePredicate = _: true;
+      config.allowUnfreePredicate = pkg: true;
+      config.android_sdk.accept_license = true;
       config.permittedInsecurePackages = [
         "freeimage-unstable-2021-11-01"     # Allowing this for wii tools
       ];
