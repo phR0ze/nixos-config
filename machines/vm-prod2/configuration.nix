@@ -28,7 +28,8 @@ in
 
     # Testing
     # ---------------------------------------------
-    apps.media.obs.enable = true;
+    #apps.media.obs.enable = true;
+    development.android.enable = true;
 
     # VM configuration
     # ---------------------------------------------
