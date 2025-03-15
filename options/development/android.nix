@@ -26,10 +26,12 @@ in
     programs.adb.enable = true;
     users.users.${machine.user.name}.extraGroups = [ "adbusers" ];
 
-    # Install Android SDK and NDK with custom versions and components
-    # Android 10, API 29, 
-    # Android tools/platform/build tools should be latest version
     environment.systemPackages = [
+      pkgs.jdk                # Android dependency
+
+      # Install Android SDK and NDK with custom versions and components
+      # Android 10, API 29, 
+      # Android tools/platform/build tools should be latest version
       (pkgs.androidenv.composeAndroidPackages {
         # These default to latest or false so we're good unless it doesn't work
         # pkgs/development/mobile/androidenv/compose-android-packages.nix
