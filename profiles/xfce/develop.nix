@@ -13,7 +13,7 @@
   machine.type.develop = true;
 
   development.rust.enable = true;
-  development.android.enable = true;
+  development.flutter.enable = true;
 
   environment.systemPackages = with pkgs; [
     chromium                            # An open source web browser from Google
