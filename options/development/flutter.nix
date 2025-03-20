@@ -19,12 +19,16 @@ in
  
   config = lib.mkIf (cfg.enable) {
 
+    # Flutter Environment variables
+    environment.sessionVariables.CHROME_EXECUTABLE ="${pkgs.chromium}/bin/chromium";
+
     # Enable Android development
     development.android.enable = true;
 
     # Install flutter and dependencies
     environment.systemPackages = [
-      pkgs.flutter
+      pkgs.chromium             # Open source version of Chrome for Web dev
+      pkgs.flutter              # Flutter CLI
     ];
   };
 }
