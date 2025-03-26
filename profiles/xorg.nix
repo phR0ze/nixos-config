@@ -12,9 +12,9 @@ in
     ./base.nix
     ../modules/hardware/audio.nix
     ../modules/hardware/bluetooth.nix
-    ../modules/hardware/printers.nix
   ];
 
+  hardware.printers.epson-wf7710 = true;      # Add support for WF-7710
   networking.network-manager.enable = true;   # Enable network manager
 
   apps.office.geany.enable = true;            # Simple text editor
