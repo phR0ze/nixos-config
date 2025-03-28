@@ -104,6 +104,6 @@ in
     # Dart lang configuration
     # ----------------------------------------------------------------------------------------
     "dart.lineLength" = 100;
-    "dart.closingLabels" = true;
+    "dart.closingLabels" = false;
   };
 }

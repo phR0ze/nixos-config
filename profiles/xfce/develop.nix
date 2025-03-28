@@ -18,6 +18,7 @@
   environment.systemPackages = with pkgs; [
     chromium                            # An open source web browser from Google
     google-cloud-sdk                    # Tools for the google cloud platform
+    sqlitebrowser                       # Simple tool for browsing a sqlite DB
 
     # Golang development
     go                                  # The Go programming language
