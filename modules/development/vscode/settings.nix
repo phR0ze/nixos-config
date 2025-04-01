@@ -28,7 +28,7 @@ in
 
     # Editor configuration
     # ----------------------------------------------------------------------------------------
-    "editor.tabSize" = 4;                           # Number of spaces per indentation-level
+    "editor.tabSize" = 2;                           # Number of spaces per indentation-level
     "editor.insertSpaces" = true;                   # Insert spaces when pressing Tab instead of a Tab character
     "editor.detectIndentation" = false;             # Disable editor auto detection and just use spaces
     "editor.formatOnPaste" = true;                  #
