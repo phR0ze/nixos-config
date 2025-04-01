@@ -46,6 +46,7 @@ in
       pkgs.wiimms-iso-tools
       pkgs.gamecube-tools
       pkgs.quickemu
+      pkgs.zed-editor
     ];
   };
 }
