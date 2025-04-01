@@ -20,6 +20,7 @@ in
   config = lib.mkIf (cfg.enable) {
 
     # Flutter Environment variables
+    environment.sessionVariables.FLUTTER_ROOT="${pkgs.flutter}";
     environment.sessionVariables.CHROME_EXECUTABLE ="${pkgs.chromium}/bin/chromium";
 
     # Enable Android development
