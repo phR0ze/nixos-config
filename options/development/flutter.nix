@@ -29,7 +29,7 @@ in
     # Install flutter and dependencies
     environment.systemPackages = [
       pkgs.chromium             # Open source version of Chrome for Web dev
-      pkgs.flutter              # Flutter CLI
+      pkgs.flutter326           # Flutter CLI
     ];
   };
 }
