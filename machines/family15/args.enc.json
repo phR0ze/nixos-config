@@ -24,6 +24,11 @@
 				"writable": "ENC[AES256_GCM,data:VcLQMw==,iv:OyP2/Wm50/6+rdeyssK0jx5zWBIh0HUONpRDTnDjv6E=,tag:GAJCW2Pa9Qh9XzjvGIc8ww==,type:bool]"
 			},
 			{
+				"mountPoint": "ENC[AES256_GCM,data:7vJClRM6e48ky847aA==,iv:bZY6faKvGicSELFDgp0kduksMYaq/p+Nk7zhIJl/KCw=,tag:q8Q/FgwSyOkzGNxfzZ2ySA==,type:str]",
+				"remotePath": "ENC[AES256_GCM,data:rw0Ao7U7OR2UhSRmXuSJrQZ04g==,iv:MX1HipTsoWMbGk/K4R0rEKdLDA8Yk7nESvkBLxBinVY=,tag:fiQAp2a5qME14uynLtQhpw==,type:str]",
+				"writable": "ENC[AES256_GCM,data:uPtHw/M=,iv:NV56ZBYCV/0IlNo5JD0tb22n7MslUyjzDVnFSoH/jdg=,tag:Z21pwkpm2UCUtMpQylTLuQ==,type:bool]"
+			},
+			{
 				"user": "ENC[AES256_GCM,data:Ugud5Mci,iv:ptqlhDNOZKAMe64t7wxPSaMvHVgYcfmsiO6+EvGUKWs=,tag:m/KjgLS6FxYiJOFbHzf6TQ==,type:str]",
 				"pass": "ENC[AES256_GCM,data:f/oaQJcb3NIQ7VNIKfdcTArBLI5tauLZDMDj,iv:s2NMjf02/hyfhB6srOCu0eZPUS2yNiLA5hOeJKI3uGg=,tag:M04UY5qynCddiqFzx9Ycrw==,type:str]",
 				"mountPoint": "ENC[AES256_GCM,data:9/qFbXYvWSJKgWY=,iv:BulNqeyNDRDo96lD0Jk1jF1XyQBsbvDBmlQk+UJ5COA=,tag:Gi0AzHC0b8PhsYY3uIvz7g==,type:str]",
@@ -50,8 +55,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzbStxd0FlQWxtemlJNWxt\nV3pTbHpOUXl5MWhMNXI2MlJ4QWR0NnN1UHo0CmYwWDExOXl4LzFnUU9QelBEZExZ\nRzA0eTlIZktYSUU3bWlUQ2lkbklpUjgKLS0tIDNzbFdEWkx4SU9DY28waTd4Q1dw\nVEIySnY4TzBjOXNFaWZyNWxPVHE4eWcKxpeKNBT5YQHnjG7MVVcw1LsBKSDDjLZ1\nfS3hPxtr01XyozT9ORji+LF5E6r/zvAS4eWCLCu/hMDxVq/mhbpgRQ==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-03-08T20:23:55Z",
-		"mac": "ENC[AES256_GCM,data:/0gnWxatEQf9eS5sD/+7g/+2ilaaFZY3tI0KGuLmzN1584cPcMH7LMjt4x3DcPZNUcJU4lTjZrRMH/+Ie2xhIW7/npMls/hGgx5Glixr/UbByKErtoM4eZOxcOaHuoRKfJ4VYXLiDTW9qchFHVzmY05WHYXWBtRpzZJzOLlwF5Q=,iv:7TVXEdWObTPWFZstEuwGVtXE+QYOB2ipuR5IIpDTgPI=,tag:WP0IrInqiNAle/XcglL9tg==,type:str]",
+		"lastmodified": "2025-04-21T14:58:24Z",
+		"mac": "ENC[AES256_GCM,data:byQWh6lZfZ3Ne/gKyXZ3Nu5/7UGZgkLtGqyM2rDzGxHBQXDXhewZTmq1TbfTjqYozpOeTkXohn9g0pITP48QAFbQcOf8Wf5LbPkkMH0nQQKMag/Nurpef/1MVj62KcUhRF4EROq8qDOtmNfLuVxjEQXnlTH8Ui0bGKYpXDmsjrQ=,iv:iyxSTyPugqB9zt/4u5X2XkOb7lpHhfEq+H8ZWhhlmHo=,tag:yBAPPGGgrWNHYxN8TXT9lw==,type:str]",
 		"pgp": null,
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.9.2"
