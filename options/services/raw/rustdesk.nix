@@ -12,10 +12,15 @@
 # - Linux is X11 support only for now
 #
 # ### Configuration
+# - Machine ID encrypted password is stored at ~/.config/rustdesk/RustDesk.toml
+# - General configuration options are stored at ~/.config/rustdesk/RustDesk2.toml
+# - RustDesk autostarts after login
+#
+# ### Other notes
 # - [Advanced settings](https://rustdesk.com/docs/en/self-host/client-configuration/advanced-settings/)
 #   - Direct IP access port is 21118
-# RustDesk supports encoding settings into the filename
-# - https://github.com/v0tti/rustdesk-configstring
+# - RustDesk supports encoding settings into the filename
+#   - https://github.com/v0tti/rustdesk-configstring
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
