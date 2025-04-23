@@ -52,6 +52,7 @@ in
       environment.systemPackages = [
         pkgs.wireguard-tools        # Wireguard VPN tooling
         pkgs.vopono                 # Network namespace automation
+        pkgs.iptables               # Low level firewall tools
       ];    
     })
 
