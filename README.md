@@ -106,10 +106,6 @@ make a two versions of the unstable branch available to my system at a time whic
 and `nixpkgs-unstable` which is a bit of a misnomer as they are both based on the unstable branch but 
 the different points in time. The one I call `nixpkgs-unstable` is just newer.
 
-  * [Upgrade unstable](#upgrade-unstable)
-  * [Upgrade stable](#upgrade-stable)
-  * [Use unstable for app](#use-unstable-for-app)
-
 ### Update configuration
 1. Switch to the configuration folder
    ```bash
