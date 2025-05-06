@@ -44,6 +44,7 @@
           rustdesk-flutter = pkgs-unstable.rustdesk-flutter;
           rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
           vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
+          yt-dlp = pkgs-unstable.yt-dlp;
         })
       ];
     };
