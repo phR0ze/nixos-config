@@ -11,6 +11,7 @@ in
   options = {
     hardware.printers = {
       epson-wf7710 = lib.mkEnableOption "Configure Epson WF-7710 support";
+      brother-hll2405w = lib.mkEnableOption "Configure Brother HL-L2405W support";
     };
   };
 
@@ -27,12 +28,18 @@ in
       users.users.${machine.user.name}.extraGroups = [ "lp" ];
 
       # Enable autodiscovery of network printers
-      #services.avahi = {
-      #  enable = true;
-      #  nssmdns4 = true;
-      #  openFirewall = true;
-      #};
+      services.avahi = {
+        enable = true;
+        nssmdns4 = true;
+        openFirewall = true;
+      };
     }
+
+    # Brother HL-L2405W support
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf (cfg.brother-hll2405w) {
+      services.printing.drivers = [ pkgs.brlaser ];
+    })
 
     # Workforce Epson WF-7710 support
     # ----------------------------------------------------------------------------------------------
