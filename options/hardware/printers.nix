@@ -27,7 +27,7 @@ in
 
       users.users.${machine.user.name}.extraGroups = [ "lp" ];
 
-      # Enable autodiscovery of network printers
+      # Enable autodiscovery of network printers e.g. IPP enabled printers
       services.avahi = {
         enable = true;
         nssmdns4 = true;
