@@ -25,6 +25,9 @@ in
   config = lib.mkIf (cfg.enable) {
     programs.firefox = {
       enable = true;
+      wrapperConfig = {
+        speechSynthesisSupport = false;
+      };
 
       languagePacks = [ "en-US" ];            # Spell checking support
 

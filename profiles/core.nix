@@ -19,7 +19,6 @@ in
   system.stateVersion = config.machine.nix.minVer;
 
   programs.neovim.enable = true;
-  services.speechd.enable = false;
   services.raw.openssh.enable = true;
 
   environment.systemPackages = with pkgs; [
