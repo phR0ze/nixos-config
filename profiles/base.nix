@@ -36,6 +36,7 @@ in
     inxi                          # CLI system information tool
     libisoburn                    # xorriso ISO creation tools
     nix-prefetch                  # Utility to fetch git source to compute hashes
+    nix-tree                      # Interactively browse Nix store path dependenices in the terminal
     #'mkinitcpio-vt-colors'      # vt-colors, mkintcpio, find, xargs, gawk, grep
     smartmontools                 # Monitoring tools for hard drives
     squashfsTools                 # mksquashfs, unsquashfs
