@@ -14,7 +14,7 @@ in
   };
  
   config = lib.mkIf (cfg.enable) {
-    environment.systemPackages = with pkgs; [ hardinfo ];
+    environment.systemPackages = with pkgs; [ hardinfo2 ];
 
     # Fix for hardinfo's xdg desktop file
     services.xdg.menu.itemOverrides = [
