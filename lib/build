@@ -73,7 +73,7 @@ build::machine()
     flake::switch "$MACHINE"
     trap flake::restore EXIT
 
-    nixos-rebuild dry-activate $IMPURE --flake "path:.#target"
+    nixos-rebuild dry-activate $TRACE $IMPURE --flake "path:.#target"
 }
 
 

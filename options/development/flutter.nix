@@ -21,6 +21,7 @@ in
 
     # Flutter Environment variables
     environment.sessionVariables.FLUTTER_ROOT="${pkgs.flutter}";
+    environment.sessionVariables.DART_ROOT="${pkgs.flutter}/bin/cache/dart-sdk";
     environment.sessionVariables.CHROME_EXECUTABLE ="${pkgs.chromium}/bin/chromium";
 
     # Enable Android development
@@ -29,7 +30,7 @@ in
     # Install flutter and dependencies
     environment.systemPackages = [
       pkgs.chromium             # Open source version of Chrome for Web dev
-      pkgs.flutter326           # Flutter CLI
+      pkgs.flutter              # Flutter support and its CLI
     ];
   };
 }

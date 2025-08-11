@@ -18,14 +18,20 @@ in
       export PATH="$HOME/.cargo/bin:$PATH"
     '';
 
+    # Set the rust source path for rust-analyzer to be happy
+    environment.sessionVariables.RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+
     environment.systemPackages = with pkgs; [
       clang                               # A C language family frontend for LLVM
       lldb                                # Next gen high-performance debugger for Rust
       llvm                                # Compiler infrastructure
       llvmPackages.bintools               # Use lld instead of ld
-      rustup                              # Rust installer
+
+      # Rust dependencies
       cargo                               # Rust project dependency management tooling
-      rustfmt                             # Rust tool for formatting rust code
+      rustc                               # Ensure we have Rust 1.86 or newer available
+      glibc                               # System dependency for SQLx macros
+      sqlx-cli                            # SQLx command line tool
 
       # C++ dependency build requirements
       gnumake                             # A tool to control the generation of non-source files from sources
@@ -33,6 +39,10 @@ in
       openssl                             # Cryptocraphic implementation of the SSL and TLS protocols
       openssl.dev                         # Development headers for Open SSL
       gtk4                                # Multi-platform toolkit for creating graphical user interfaces
+
+      # Development tools
+      mysql-workbench                     # Useful for designing relational table EER Diagrams
+      sqlitebrowser                       # Useful for examining the database
     ];
 
 #    rustToolchain =

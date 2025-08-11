@@ -42,6 +42,7 @@ let
     (pkgs.writeText "smplayer.ini" ''
       [%General]
       volume=92
+      osd_fractions=true
 
       [gui]
       gui=MiniGUI
@@ -55,8 +56,18 @@ let
       [actions]
       close=Ctrl+W
       open_file=Ctrl+O
+      use_milliseconds=true
       decrease_volume="-, /, Volume Down"
       increase_volume="=, *, Volume Up"
+
+      [instances]
+      single_instance_enabled=false
+
+      [tv]
+      check_channels_conf_on_startup=false
+
+      [update_checker]
+      enabled=false
     '');
 
 in

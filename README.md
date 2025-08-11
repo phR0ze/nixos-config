@@ -25,6 +25,7 @@ fork it and build on my work.
   * [Upgrade pseudo stable](#upgrade-pseudo-stable)
   * [Use unstable for app](#use-unstable-for-app)
 * [Advanced use cases](#advanced-use-cases)
+  * [Pull a specific app version](#pull-a-specific-app-version)
   * [Build and deploy production VMs](#build-and-run-test-vm)
   * [Build and run test VM](#build-and-run-test-vm)
   * [Build the live ISO for installation](#build-the-live-iso-for-installation)
@@ -106,6 +107,9 @@ make a two versions of the unstable branch available to my system at a time whic
 and `nixpkgs-unstable` which is a bit of a misnomer as they are both based on the unstable branch but 
 the different points in time. The one I call `nixpkgs-unstable` is just newer.
 
+**Note** using the versions listed at https://status.nixos.org/ will ensure that there are no cache 
+misses. For a NixOS based system use the `nixos-unstable` branch.
+
 ### Update configuration
 1. Switch to the configuration folder
    ```bash
@@ -176,6 +180,10 @@ can extend and make this their own. Following best practices across the NixOS co
 down my configuration into modules. This allows for composability for higher level concepts like 
 machines and profiles. I'm organizing my modules to follow the nix options for the most part.
 
+### Pull a specific app version
+Using the [fantastic Nix Package Tool Marcelo Lazaroni created](https://lazamar.co.uk/nix-versions) 
+we can find the available package versions and how to pull them directly.
+
 ### Build and deploy production VMs
 1. Define the VM to be built
    1. Create a new `machines/vm-NAME` directory
@@ -192,9 +200,8 @@ machines and profiles. I'm organizing my modules to follow the nix options for t
    ```
 
 ### Build and run test VM
-Build the test VM based on the default system configuration and default `flake_opts.nix`. If your
-running the same system already this will only take a min and create the `result` link with an
-executable `./result/bin/run-nixos-vm` that will start the VM.
+Build the `machines/vm-test` VM. When complete the `vm-test/result/bin/run` will start the vm or you 
+can run `./clu run vm`.
 
 1. Build the VM
    ```bash

@@ -61,6 +61,9 @@ in
           # hard links to save disk space.
           auto-optimise-store = lib.mkDefault true;
 
+          # Increase the download buffer size from default 1MB to 64MB
+          download-buffer-size = 67108864;
+
           experimental-features = [
             "nix-command"    # 2.0 cli
             "flakes"         # flakes support

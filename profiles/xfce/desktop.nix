@@ -9,15 +9,23 @@
     ./light.nix
   ];
 
+  # Enable apps
+  apps.media.jellyfin.enable = true;        # Install Jellyfin media player
+  apps.media.xnviewmp.enable = true;      # Versatile image viewer with lossless JPEG rotation
+  apps.network.qbittorrent.enable = true;   # Excellent bittorrent client
+  apps.system.veracrypt.enable = true;    # Free Open-Source filesystem encryption
+
   apps.games.steam.enable = true;           # Digital distribution platform from Valve
   apps.games.protontricks.enable = true;    # A simple wrapper for running Winetricks commands for Proton-enabled games
   apps.games.prismlauncher.enable = true;   # Minecraft launcher
   #apps.games.warcraft2.enable = true;      # Add firewall rules needed for warcraft 2 IPX LAN multi-player
-  apps.network.qbittorrent.enable = true;   # Excellent bittorrent client
-  apps.media.jellyfin.enable = true;        # Install Jellyfin media player
-  #apps.media.kodi.enable = true;            # Media player and entertainment hub
+
   programs.winetricks.enable = true;        # A script to install DLLs needed to work around problems in Wine
 
+  # Enable services
+  services.raw.rustdesk.enable = true;    # Simple fast remote desktop solution
+
+  # Additional apps
   environment.systemPackages = with pkgs; [
     zoom-us                   # Video conferencing application
 
@@ -33,10 +41,9 @@
     gimp                      # Excellent image editor
     inkscape                  # Vector graphics editor
     flac                      # Free lossless audio codec
-    kolourpaint               # Paint application that saves jpg in format for GFXBoot
+    kdePackages.kolourpaint   # Paint application that saves jpg in format for GFXBoot
     libdvdcss                 # DVD decrypting media codec support
     losslesscut-bin           # Crossplatform GUI tool for lossless trimming/cuttong of video/audio files
-    lxdvdrip                  # Command line tool for ripping, shrinking and burning DVDs 
     handbrake                 # Video encoding tool for mp4/mkv
     lame                      # High quality MPEG layer III audio encoder
     mkvtoolnix                # Cross-platform tools for Matroska
@@ -59,6 +66,8 @@
     scribus                   # Open Source Desktop Publishing
 
     # Utilities
+    rdutil                    # Custom package for rustdesk util
+    kdePackages.filelight     # View disk usage information
     awf                       # A widget factory for viewing theme changes
   ];
 }
