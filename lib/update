@@ -128,7 +128,7 @@ update::system()
     fi
 
     # Execute update
-    nixos-rebuild switch $IMPURE --flake "path:/etc/nixos#target"
+    nixos-rebuild switch $TRACE $IMPURE --flake "path:/etc/nixos#target"
 }
 
 # Pre update operations

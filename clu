@@ -92,11 +92,13 @@ ARGS=("$@")
 CLEAN=0
 QUIET=0
 IMPURE=""
+TRACE=""
 
 # Handle globals by detecting them, taking action then removing them from the array.
 for i in "${!ARGS[@]}"; do
     if [[ "${ARGS[i]}" == "--debug" ]]; then
         LOG_LEVEL="debug" && _log_level=$_debug && unset 'ARGS[i]'
+        TRACE="--show-trace"
     elif [[ "${ARGS[i]}" == "-c" || "${ARGS[i]}" == "--clean" ]]; then
         CLEAN=1 && unset 'ARGS[i]'
     elif [[ "${ARGS[i]}" == "--impure" ]]; then

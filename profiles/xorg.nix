@@ -26,8 +26,8 @@ in
   apps.network.firefox.enable = true;         # Mozilla browser
   apps.network.filezilla.enable = true;       # Network/Transfer
 
-  apps.utils.dmenu.enable = true;             # Configure dmenu
-  apps.utils.hardinfo.enable = true;          # A system information and benchmark tool
+  apps.system.dmenu.enable = true;            # Configure dmenu
+  apps.system.hardinfo.enable = true;         # A system information and benchmark tool
 
   services.fwupd.enable = true;               # Firmware update tool for BIOS, etc...
   programs.file-roller.enable = true;         # Generic Gnome file archive utility needed for Thunar
@@ -55,12 +55,10 @@ in
 
     # Custom packages
     desktop-assets                      # Custom package for wallpaper and other settings
-    rdutil                              # Custom package for rustdesk util
     wmctl                               # Custom package for wmctl
 
     # System
     desktop-file-utils                  # Command line utilities for working with desktop entries
-    filelight                           # View disk usage information
 #    gnome-dconf-editor                 # General configuration manager that replaces gconf
     i3lock-color                        # Simple lightweight screen locker
     paprefs                             # Pulse audio server preferences for simultaneous output
@@ -87,7 +85,6 @@ in
     light                               # Control backlights for screen and keyboard
     sops                                # Industry standard encryption at rest
     system-config-printer               # GTK app for CUPS printing administration
-    veracrypt                           # Free Open-Source filesystem encryption
   ];
 
 }

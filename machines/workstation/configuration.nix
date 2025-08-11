@@ -36,7 +36,6 @@ in
     apps.games.hedgewars.enable = true;
     apps.games.superTuxKart.enable = true;
     apps.media.freecad.enable = true;
-    apps.media.xnviewmp.enable = true;
 
     # Misc
     environment.systemPackages = [
@@ -44,9 +43,9 @@ in
       pkgs.xchm                     # App for reading Microsoft help files for technical manuals
       pkgs.synology-drive-client
       pkgs.freetube
-      pkgs.wiiload
-      pkgs.wiimms-iso-tools
-      pkgs.gamecube-tools
+      #pkgs.wiiload                 # Depends on freeimage which has bit rotted
+      #pkgs.wiimms-iso-tools        # Depends on freeimage which has bit rotted
+      #pkgs.gamecube-tools          # Depends on freeimage which has bit rotted
       pkgs.quickemu
       pkgs.zed-editor
     ];

@@ -80,6 +80,7 @@ flake::restore()
 {
     if [[ "$(git diff --staged --name-only -- flake.nix flake.lock configuration.nix *.dec* */*.dec*)" != "" ]]; then
         echo -n "Restoring flake files back to prestine"
+        find . -type f -name "*.dec*" -delete
         git restore --staged flake.nix flake.lock configuration.nix *.dec* */*.dec*
     fi
 

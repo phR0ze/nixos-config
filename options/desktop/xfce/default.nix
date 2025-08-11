@@ -79,7 +79,6 @@ in
       { source = "${pkgs.libreoffice}/share/applications/math.desktop"; categories = "Office"; }
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; name = "Terminal"; }
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
-      { source = "${pkgs.veracrypt}/share/applications/veracrypt.desktop"; categories = "System"; }
       #{ source = "${pkgs.libsForQt5.qtstyleplugin-kvantum}/share/applications/kvantummanager.desktop"; categories = "Settings"; }
     ];
 
@@ -90,7 +89,7 @@ in
       ristretto                         # Xfce default, i like qview better
     ]
     # Conditionally include xfce4-appfinder if using an alternate app finder
-    ++ lib.optional config.apps.utils.dmenu.enable xfce4-appfinder;
+    ++ lib.optional config.apps.system.dmenu.enable xfce4-appfinder;
 
   };
 }

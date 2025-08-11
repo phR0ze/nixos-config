@@ -1,6 +1,7 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
+    # nixos-unstable from 2025.08.09
+    nixpkgs.url = "github:nixos/nixpkgs/85dbfc7aaf52ecb755f87e577ddbe6dbbdbc1054";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
@@ -19,9 +20,9 @@
       inherit system;
       config.allowUnfreePredicate = pkg: true;
       config.android_sdk.accept_license = true;
-      config.permittedInsecurePackages = [
-        "freeimage-unstable-2021-11-01"     # Allowing this for wii tools
-      ];
+      #config.permittedInsecurePackages = [
+        #"freeimage-3.18.0-unstable-2024-04-18"     # Allowing this for wii tools
+      #];
 
       # Modify package defaults with overlays
       # --------------------------------------------------------------------------------------------
@@ -35,9 +36,11 @@
           wmctl = pkgs.callPackage packages/wmctl {};
 
           # Upgrade select packages to the latest unstable bits
-          go = pkgs-unstable.go;
-          go-bindata = pkgs-unstable.go-bindata;
-          golangci-lint = pkgs-unstable.golangci-lint;
+          # Unstable Go doesn't work for 2025.08.09 which sent me down a rabbit hole
+#          go = pkgs-unstable.go;
+#          go-bindata = pkgs-unstable.go-bindata;
+#          golangci-lint = pkgs-unstable.golangci-lint;
+          immich = pkgs-unstable.immich;
           vscode = pkgs-unstable.vscode;
           zed-editor = pkgs-unstable.vscode;
           zoom-us = pkgs-unstable.zoom-us;
