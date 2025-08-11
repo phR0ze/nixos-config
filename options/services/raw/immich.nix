@@ -38,7 +38,7 @@ in
         # null will give access to all devices
         # you may want to restrict this to a default like /dev/dri/renderD128
         #accelerationDevices = [ "/dev/dri/renderD128" ];
-        accelerationDevices = null;
+        #accelerationDevices = null;
       };
 
       environment.systemPackages = [
