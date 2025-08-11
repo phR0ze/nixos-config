@@ -60,7 +60,7 @@ in
 
     # System
     desktop-file-utils                  # Command line utilities for working with desktop entries
-    filelight                           # View disk usage information
+    kdePackages.filelight               # View disk usage information
 #    gnome-dconf-editor                 # General configuration manager that replaces gconf
     i3lock-color                        # Simple lightweight screen locker
     paprefs                             # Pulse audio server preferences for simultaneous output

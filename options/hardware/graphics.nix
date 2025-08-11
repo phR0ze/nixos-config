@@ -63,8 +63,8 @@ in
         enable = true;                      # Installs mesa, mesa_drivers, mesa-demos
 
         # Defaults from the opengl option, also aliased with 'mesa_drivers'
-        package = pkgs.mesa.drivers;
-        package32 = pkgs.pkgsi686Linux.mesa.drivers;
+        package = pkgs.mesa;
+        package32 = pkgs.pkgsi686Linux.mesa;
       };
 
       # Supporting system packages
@@ -72,7 +72,6 @@ in
       environment.systemPackages = with pkgs; [
         libva-utils                 # A collection of utilities and examples for VA-API e.g. vainfo
         mesa                        # Open-source 3D graphics library
-        mesa.drivers                # An open source 3D graphics library
         mesa-demos                  # Collection of demos and test programs for OpenGL and Mesa
         pciutils                    # Collection of utilities for inspecting and manipulating PCI devices
         vdpauinfo                   # Tool to query the Video Decode and Presentation API (VDPAU)
