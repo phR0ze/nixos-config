@@ -5,8 +5,8 @@
 # your photos on your own server. Immich helps you browse, seach and organize your photos and videos 
 # with ease, without sacrificing your privacy.
 #
-# ### Directories
-# - /var?
+# ### References
+# 
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
@@ -24,18 +24,29 @@ in
     (lib.mkIf cfg.enable {
    
       # Enable Immich server
+      # Uses port 2283 by default which is what the firewall uses
       services.immich = {
         enable = true;
-        openFirewall = true;        # TCP: 8096,8920; UDP: 1900,7359
+        port = 2283;          # default: 2283
+        host = "0.0.0.0";     # default: locahost
+        openFirewall = true;  # default: false
+
+        # If not the default then it will need to be created manually and set for the immich user to 
+        # read and write to it. Default: /var/lib/immich
+        #mediaLocation = "/mnt/storage/immich";
+
+        # `null` will give access to all devices
+        # you may want to restrict this to a default like /dev/dri/renderD128
+        services.immich.accelerationDevices = "/dev/dri/renderD128";
       };
 
       environment.systemPackages = [
-        pkgs.jellyfin               # Jellyfin core
-        pkgs.jellyfin-web           # Jellyfin web client support
-        pkgs.jellyfin-ffmpeg        # Jellyfin codecs bundle
+        #
       ];    
 
-      # Add access to hardware acceleration for transcoding
+      # Add access to hardware acceleration for transcoding by adding
+      # the immich user to render and video groups
+      # - https://wiki.nixos.org/wiki/Immich
       users.users.immich.extraGroups = [ "video" "render" ];
     })
   ];
