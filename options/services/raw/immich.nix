@@ -35,9 +35,10 @@ in
         # read and write to it. Default: /var/lib/immich
         #mediaLocation = "/mnt/storage/immich";
 
-        # `null` will give access to all devices
+        # null will give access to all devices
         # you may want to restrict this to a default like /dev/dri/renderD128
-        accelerationDevices = [ "/dev/dri/renderD128" ];
+        #accelerationDevices = [ "/dev/dri/renderD128" ];
+        accelerationDevices = null;
       };
 
       environment.systemPackages = [
