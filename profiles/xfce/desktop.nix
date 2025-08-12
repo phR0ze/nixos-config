@@ -36,7 +36,6 @@
     kdePackages.kolourpaint   # Paint application that saves jpg in format for GFXBoot
     libdvdcss                 # DVD decrypting media codec support
     losslesscut-bin           # Crossplatform GUI tool for lossless trimming/cuttong of video/audio files
-    lxdvdrip                  # Command line tool for ripping, shrinking and burning DVDs 
     handbrake                 # Video encoding tool for mp4/mkv
     lame                      # High quality MPEG layer III audio encoder
     mkvtoolnix                # Cross-platform tools for Matroska
