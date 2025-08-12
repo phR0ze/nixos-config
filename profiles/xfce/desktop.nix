@@ -33,7 +33,7 @@
     gimp                      # Excellent image editor
     inkscape                  # Vector graphics editor
     flac                      # Free lossless audio codec
-    kolourpaint               # Paint application that saves jpg in format for GFXBoot
+    kdePackages.kolourpaint   # Paint application that saves jpg in format for GFXBoot
     libdvdcss                 # DVD decrypting media codec support
     losslesscut-bin           # Crossplatform GUI tool for lossless trimming/cuttong of video/audio files
     lxdvdrip                  # Command line tool for ripping, shrinking and burning DVDs 
