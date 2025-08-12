@@ -20,8 +20,8 @@ in
     services.xdg.menu.itemOverrides = [
       {
         name = "HardInfo";
-        icon = "${pkgs.hardinfo}/share/hardinfo/pixmaps/logo.png";
-        source = "${pkgs.hardinfo}/share/applications/hardinfo.desktop";
+        icon = "${pkgs.hardinfo2}/share/hardinfo2/pixmaps/hardinfo2.png";
+        source = "${pkgs.hardinfo2}/share/applications/hardinfo2.desktop";
       }
     ];
   };
