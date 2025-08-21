@@ -7,18 +7,22 @@
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
+
+  # Generate credential files for each mount as directed in /etc/smb/secrets/$SHARE
+  smbSecrets = builtins.listToAttrs (map (x: {
+    name = "smb/secrets/${builtins.baseNameOf x.mountPoint}";
+    value.text = ''
+      username=${x.user}
+      password=${x.pass}
+      domain=${x.domain}
+    '';
+  }) machine.smb.entries);
+
+
 in
 {
   config = lib.mkIf (machine.smb.enable) {
-
-    # Generate credential files for each mount as directed in /etc/smb/secrets/$SHARE
-    environment.etc = (builtins.foldl' (a: x: {
-      "smb/secrets/${builtins.baseNameOf x.mountPoint}".text = ''
-          username=${x.user}
-          password=${x.pass}
-          domain=${x.domain}
-        '';
-      } // a) {} machine.smb.entries);
+    environment.etc = smbSecrets;
 
     fileSystems = (builtins.foldl' (a: x: {
       "${x.mountPoint}" = {
