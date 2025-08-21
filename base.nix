@@ -37,6 +37,8 @@
 
           # Upgrade select packages to the latest unstable bits
           # Unstable Go doesn't work for 2025.08.09 which sent me down a rabbit hole
+          # By overriding go with unstable and having latest go only support 32bit caused major 
+          # breakages for any i.e. libcap projects that needed 64bit go
 #          go = pkgs-unstable.go;
 #          go-bindata = pkgs-unstable.go-bindata;
 #          golangci-lint = pkgs-unstable.golangci-lint;
