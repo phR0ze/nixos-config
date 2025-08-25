@@ -98,9 +98,15 @@ let
           <property name="plugin-10" type="string" value="separator">
             <property name="style" type="uint" value="0"/>
           </property>
+
+          <!-- Clock component -->
           <property name="plugin-11" type="string" value="clock">
             <property name="mode" type="uint" value="4"/>
             <property name="show-military" type="bool" value="${f.boolToStr cfg.clock.military}"/>
+            <property name="show-seconds" type="bool" value="${f.boolToStr cfg.clock.seconds}"/>
+            <property name="show-meridiem" type="bool" value="${f.boolToStr cfg.clock.meridiem}"/>
+            <property name="show-inactive" type="bool" value="${f.boolToStr cfg.clock.inactiveSegments}"/>
+            <property name="flash-separators" type="bool" value="${f.boolToStr cfg.clock.flashSeparators}"/>
           </property>
           <property name="plugin-12" type="string" value="separator">
             <property name="style" type="uint" value="0"/>
@@ -171,6 +177,26 @@ in
         type = types.bool;
         default = false;
         description = lib.mdDoc "Enable military time";
+      };
+      seconds = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Show seconds";
+      };
+      meridiem = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = lib.mdDoc "Show AM/PM";
+      };
+      inactiveSegments = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = lib.mdDoc "Show inactive segments";
+      };
+      flashSeparators = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = lib.mdDoc "Flash time separators";
       };
     };
     services.xserver.desktopManager.xfce.panel.taskbar = {
