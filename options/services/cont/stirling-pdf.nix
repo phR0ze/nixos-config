@@ -13,6 +13,8 @@
 #   execution, or as temporary files solely for the execution of the task.
 #
 # ### Deployment Features
+# - Get status with: `systemctl status stirling-pdf`
+# - UI accessible at ???
 # - App has outbound access to the internet
 # - App is blocked from outbound connections to the LAN
 # - App has dedicated podman bridge network with port forwarding to dedicated host macvlan
@@ -21,13 +23,16 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.homelab.stirling-pdf;
-  app = config.homelab.stirling-pdf.app;
+  cfg = config.services.cont.stirling-pdf;
+  app = cfg.app;
+  filtered = builtins.filter (x: x.name == "stirling-pdf" && x.type == "cont") machine.services;
+  defaults = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
+
   appOpts = (import ../types/app.nix { inherit lib; }).appOpts;
 in
 {
   options = {
-    homelab.stirling-pdf = {
+    services.cont.stirling-pdf = {
       enable = lib.mkEnableOption "Deploy container based Stirling PDF";
 
       app = lib.mkOption {
