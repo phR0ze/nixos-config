@@ -7,10 +7,10 @@
 # the LAN with their respective IPs and MAC addresses. The containers and VMs are then connected to 
 # the bridge using a variety of Macvlan and Macvtap options.
 #
-# Note: I prefer to use a local Macvlan then to porford the container to that Macvlan as this will 
-# provide an LAN IP address that is listable with `ip a` while eliminating any other access to/from 
-# the container to the LAN. Alternatively if the container/VM is NixOS based then we cna use the 
-# internal firewall to limit access.
+# Note: I prefer to use a local Macvlan then to port forward the container to that Macvlan as this 
+# will provide an LAN IP address that is listable with `ip a` while eliminating any other access 
+# to/from the container to the LAN. Alternatively if the container/VM is NixOS based then we can use 
+# the internal firewall to limit access.
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
@@ -91,16 +91,17 @@ in
     (f.mkIfElse (cfg.net.bridge.enable) (lib.mkMerge [
       {
         assertions = [
-          { assertion = (cfg.net.bridge.name != ""); message = "Bridge name was not specified"; }
-          { assertion = (cfg.net.macvlan.name != ""); message = "Macvlan name was not specified"; }
-          { assertion = (nic0 ? "id" && nic0.id != ""); message = "NIC id was not specified"; } 
+          { assertion = (cfg.net.bridge.name != ""); message = "Bridge name must be specified for bridge mode"; }
+          { assertion = (cfg.net.macvlan.name != ""); message = "Macvlan name must be specified for bridge mode"; }
+          { assertion = (builtins.attrNames nic0 != []); message = "Primary nic id must be specified for bridge mode e.g. 'eth0'"; } 
+          { assertion = (nic0 ? "id" && nic0.id != ""); message = "Primary nic id was not specified"; } 
         ];
         networking.useDHCP = false;
         networking.bridges."${cfg.net.bridge.name}".interfaces = ["${nic0.id}" ];
       }
 
       # Configure static IP or DHCP for the bridge
-      (f.mkIfElse (nic0.ip != "") {
+      (f.mkIfElse (nic0 ? "ip" && nic0.ip != "") {
         assertions = [
           { assertion = (nic0 ? "gateway" && nic0.gateway != ""); message = "NIC gateway was not specified"; } 
         ];

@@ -166,11 +166,19 @@ in
           port = 5970;
         };
       };
+
+      # --------------------------------------------------------------------------------------------
+      # see https://github.com/phR0ze/tech-docs/tree/main/src/virtualization/networking/macvtap
+      # for an explanation of the networking components
+      # --------------------------------------------------------------------------------------------
       interfaces = lib.mkOption {
         description = ''
           Network interface options. 
-          - Use `type = "user"` for a simple NAT experience. 
-          - Use `type = "macvtap"` for a full presence on the LAN.
+          - Use `type = "user"` for a simple NAT experience. The VM can connect out to the internet 
+            but not access or be accessed by devices on the LAN.
+          - Use `type = "macvtap"` for a full presence on the LAN such that the host or any other 
+            device can connec to this VM and this VM can connect to the host or any other device on the 
+            LAN.
         '';
         type = types.listOf (types.submodule {
           options = {

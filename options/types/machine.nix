@@ -247,6 +247,23 @@ in
               containers and VMs to join the LAN, be assigend LAN IP addresses and fully interact 
               with other devices on the LAN. All of the other primary network settings will be used 
               for the new bridge interface.
+
+              Note, for bridge mode to work the primary nic id must be specified via "nics". This can 
+              be done via the "args.enc.json" or directly in the "configuration.nix" file.
+
+              1. args.enc.json example
+              {
+                "nics": [{
+                  "name": "primary",
+                  "id": "eth0"
+                }]
+              }
+
+              2. configuration.nix example
+              machine.nics = [{
+                name = "primary";
+                id = "eth0";
+              }];
             '';
             name = lib.mkOption {
               type = types.str;
@@ -452,7 +469,6 @@ in
         entries = if (!args ? "nfs" || !args.nfs ? "entries") then [] else args.nfs.entries;
       };
     };
-
 
   };
 }
