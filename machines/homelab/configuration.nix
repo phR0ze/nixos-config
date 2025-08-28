@@ -27,6 +27,7 @@ in
     machine.autologin = true;
     services.xserver.autolock.enable = true;
 
+    # Homelab services
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
     services.raw.immich.enable = true;
@@ -34,7 +35,7 @@ in
     services.raw.minecraft.enable = true;
     services.raw.nix-cache.host.enable = true;
     services.raw.private-internet-access.enable = true;
+    services.cont.stirling-pdf.enable = true;
     #services.nspawn.portainer.enable = true;
-    #services.nspawn.stirling-pdf.enable = true;
   };
 }
