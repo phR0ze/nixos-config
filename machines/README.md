@@ -19,8 +19,8 @@ be used to compose and manage a machine or overridden as necessary.
 * `configuration.nix` - link to the specific `machines/<machine>/configuration.nix`
 * `base.lock` - shared flake lock for all machines or overridden locally
 * `base.nix` - shared flake management for all machines or overridden locally
-* `flake.lock` - machine specific flake lock or copy of base flake lock
-* `flake.nix` - machine specific flake or copy of base flake
+* `flake.lock` - machine specific flake lock or copy of base flake lock if not given
+* `flake.nix` - machine specific flake or copy of base flake if not given
 
 ## Machine setup
 Each machine in `nixos-config/machines/` is composed of:
