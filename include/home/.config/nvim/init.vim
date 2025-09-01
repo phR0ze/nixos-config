@@ -198,9 +198,17 @@ augroup END
 "  call plug#end()                             " Now initialize the plugin system
 "augroup END
 
+" Neovide specific settings
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Neovide's default vertical space between lines is too cramped. 3 matches Neovim's default look and 
+" feel when being used directly in the terminal
+if exists('g:neovide')
+  set linespace=3
+endif
+
 " Filetype settings
 " To determine the current filetype run ':verbose set filetype?'
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 augroup FiletypeSettings
   autocmd!
   au FileType make setl noexpandtab
@@ -216,7 +224,7 @@ augroup END
 
 " DevIcons Settings
 " https://github.com/ryanoasis/vim-devicons/wiki/Extra-Configuration
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Set padding after/before glyph
 let g:WebDevIconsNerdTreeAfterGlyphPadding = ' '
 let g:WebDevIconsNerdTreeBeforeGlyphPadding = ''
@@ -225,7 +233,7 @@ let g:WebDevIconsNerdTreeBeforeGlyphPadding = ''
 let g:WebDevIconsUnicodeDecorateFolderNodes = 1
 
 " NERDTree Settings
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Show hidden files
 let NERDTreeShowHidden = 1
 
@@ -237,7 +245,7 @@ let g:NERDTreeDirArrowExpandable = '▸'
 let g:NERDTreeDirArrowCollapsible = '▾'
 
 " Vim-Airline settings
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Always include powerline status line at the bottom of the screen
 set laststatus=2
 
@@ -256,7 +264,7 @@ let g:airline_theme = 'deus'
 "let g:hybrid_reduced_contrast = 1 
 
 " Syntastic settings
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "set statusline+=%#warningmsg#
 "set statusline+=%{SyntasticStatuslineFlag()}
 "set statusline+=%*
@@ -265,7 +273,7 @@ let g:airline_theme = 'deus'
 "let g:syntastic_check_on_open = 1
 
 " Supertab settings
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "" SuperTab: Enable menu filtering as you type
 "set completeopt=menuone,longest,preview
 "
@@ -274,7 +282,7 @@ let g:airline_theme = 'deus'
 "
 
 " Enable omni completion.
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
 "autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
 "autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
@@ -296,7 +304,7 @@ let g:airline_theme = 'deus'
 "let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
 
 " Key Mappings
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " n Normal mode map. Defined using :nmap or nnoremap
 " i Insert mode map. Defined using :imap or inoremap
 " v Visual and select mode map. Defined using :vmap or vnoremap
@@ -304,7 +312,7 @@ let g:airline_theme = 'deus'
 " s Select mode map. Defined using :smap or snoremap
 " c Command-line mode map. Defined using :cmap or cnoremap
 " noremap ignores other mappings - always use this mode
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let mapleader = ","
 
 " Edit/source my ~/.vimrc
