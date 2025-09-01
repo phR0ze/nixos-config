@@ -5,19 +5,26 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  cfg = config.programs.neovim;
+  cfg = config.apps.system.neovim;
 
 in
 {
+  options = {
+    apps.system.neovim = {
+      enable = lib.mkEnableOption "Install and configure Neovim";
+    };
+  };
+
   config = lib.mkIf (cfg.enable) {
     programs.neovim = {
+      enable = true;
       defaultEditor = true;
       viAlias = true;
       vimAlias = true;
       configure = {
 
         # Load the neovim static dotfile from includes
-        customRC = builtins.readFile ../../include/home/.config/nvim/init.vim;
+        customRC = builtins.readFile ../../../include/home/.config/nvim/init.vim;
 
         # Build an aggregate package with all plugins
         packages.aggregatePlugins = with pkgs.vimPlugins; {

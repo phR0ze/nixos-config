@@ -44,8 +44,9 @@
 #          golangci-lint = pkgs-unstable.golangci-lint;
           immich = pkgs-unstable.immich;
           vscode = pkgs-unstable.vscode;
-          zed-editor = pkgs-unstable.vscode;
+          zed-editor = pkgs-unstable.zed-editor;
           zoom-us = pkgs-unstable.zoom-us;
+          rust-analyzer = pkgs-unstable.rust-analyzer;
           rustdesk-flutter = pkgs-unstable.rustdesk-flutter;
           rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
           vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
