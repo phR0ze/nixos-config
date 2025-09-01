@@ -18,8 +18,8 @@ in
   # Set the original Nix base version we installed with to ignore the warnings
   system.stateVersion = config.machine.nix.minVer;
 
-  programs.neovim.enable = true;
-  services.raw.openssh.enable = true;
+  apps.system.neovim.enable = true;       # Essential terminal based text editor
+  services.raw.openssh.enable = true;     # SSH tooling
 
   environment.systemPackages = with pkgs; [
     git                           # Fast distributed version control system

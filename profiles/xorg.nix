@@ -18,16 +18,14 @@ in
   hardware.printers.brother-hll2405w = true;  # Add support for Brother HL-L2405W
   networking.network-manager.enable = true;   # Enable network manager
 
-  apps.office.geany.enable = true;            # Simple text editor
   apps.office.evince.enable = true;           # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
   apps.media.qview.enable = true;             # Simple image viewer with webp support
   apps.media.smplayer.enable = true;          # UI wrapper around mplayer with click to pause
-
   apps.network.firefox.enable = true;         # Mozilla browser
   apps.network.filezilla.enable = true;       # Network/Transfer
-
   apps.system.dmenu.enable = true;            # Configure dmenu
   apps.system.hardinfo.enable = true;         # A system information and benchmark tool
+  apps.system.neovide.enable = true;          # Graphical interface for Neovim
 
   services.fwupd.enable = true;               # Firmware update tool for BIOS, etc...
   programs.file-roller.enable = true;         # Generic Gnome file archive utility needed for Thunar

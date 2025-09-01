@@ -48,6 +48,8 @@ in
       #pkgs.gamecube-tools          # Depends on freeimage which has bit rotted
       pkgs.quickemu
       pkgs.zed-editor
+      pkgs.rust-analyzer
+      pkgs.neovide
     ];
   };
 }
