@@ -17,6 +17,7 @@ in
   users.users.${machine.user.name} = {
     uid = 1000;                         # ensure NixOS doesn't choose a different id for my user
     isNormalUser = true;
+    group = "users";                    # create the users group for the system admin user
     extraGroups = [
       "wheel"                           # enables passwordless sudo for this user
       "video"                           # enables ability for user to login to graphical environment

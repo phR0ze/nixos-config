@@ -4,6 +4,14 @@ let
 in
 {
   assertions = [
+    # Debug arg values
+    #{ assertion = (args.user.name != null && args.user.name == "bob");
+    #  message = "echo '${builtins.toJSON args}' | jq"; }
+
+    # Debug final values
+    #{ assertion = (args.user.name != null && args.user.name == "bob");
+    #  message = "echo '${builtins.toJSON cfg}' | jq"; }
+
     # Ensure the existance of input args
     # ----------------------------------------------------------------------------------------------
     { assertion = (args.id != null && args.id != ""); message = "assert args.id: ${args.id}"; }
@@ -20,10 +28,10 @@ in
     { assertion = (args.resolution.y != null); message = "assert args.resolution.y: ${toString args.resolution.y}"; }
     { assertion = (args.nix.minVer == "25.05"); message = "assert machine.nix.minVer: ${args.nix.minVer}"; }
 
+    { assertion = (args.user.name != null && args.user.name != ""); message = "assert args.user.name exists"; }
+    { assertion = (args.user.pass != null); message = "assert args.user.pass: ${args.user.pass}"; }
     { assertion = (args.user.fullname != null); message = "assert args.user.fullname: ${args.user.fullname}"; }
     { assertion = (args.user.email != null); message = "assert args.user.email: ${args.user.email}"; }
-    { assertion = (args.user.name != null); message = "assert args.user.name: ${args.user.name}"; }
-    { assertion = (args.user.pass != null); message = "assert args.user.pass: ${args.user.pass}"; }
 
     { assertion = (args.git.user != null); message = "assert args.git.user: ${args.git.user}"; }
     { assertion = (args.git.email != null); message = "assert args.git.email: ${args.git.email}"; }

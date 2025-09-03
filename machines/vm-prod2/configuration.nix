@@ -16,7 +16,7 @@ in
 
   options = {
     machine = lib.mkOption {
-      type = types.submodule (import ../../options/types/machine.nix { inherit lib args f; });
+      type = types.submodule (import ../../options/types/machine.nix { inherit config lib args f; });
     };
   };
 
