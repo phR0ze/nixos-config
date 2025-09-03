@@ -17,7 +17,7 @@ in
   options = {
     machine = lib.mkOption {
       description = lib.mdDoc "Machine arguments";
-      type = types.submodule (import ../../options/types/machine.nix { inherit lib args f; });
+      type = types.submodule (import ../../options/types/machine.nix { inherit config lib args f; });
     };
   };
 

@@ -2,40 +2,33 @@
 #
 # For use with docker containers mainly to make it easier to wrap and deploy them
 #---------------------------------------------------------------------------------------------------
-{ lib, ... }: with lib.types;
-let
-  nic = import ./nic.nix { inherit lib; };
-  user = import ./user.nix { inherit lib; };
-in
+{ lib, defaults, ... }: with lib.types;
 {
   options = {
-    name = lib.mkOption {
-      description = lib.mdDoc "Service name";
-      type = types.str;
-    };
+    enable = lib.mkEnableOption "Deploy ${defaults.name or "target"} service";
 
-    type = lib.mkOption {
-      description = lib.mdDoc "Service type";
-      type = types.enum [ "cont" "nspawn" ];
-      default = "cont";
+    tag = lib.mkOption {
+      description = lib.mdDoc "Service image 'tag' to use";
+      type = types.str;
+      default = "latest";
     };
 
     user = lib.mkOption {
       description = lib.mdDoc "User options for service";
-      type = types.submodule user;
-      default = { };
+      type = types.nullOr (types.submodule (import ./user.nix { inherit lib; defaults = defaults.user or {}; }));
+      default = defaults.user or null;
     };
 
     nic = lib.mkOption {
       description = lib.mdDoc "NIC options for service";
-      type = types.submodule nic;
-      default = { };
+      type = types.nullOr (types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic or {}; }));
+      default = defaults.nic or null;
     };
 
     port = lib.mkOption {
       description = lib.mdDoc "Service port to use";
       type = types.int;
-      default = 80;
+      default = defaults.port or 80;
     };
   };
 }

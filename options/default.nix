@@ -8,6 +8,7 @@
     ./hardware
     ./networking.nix
     ./services
+    ./types
     ./virtualisation
   ];
 }

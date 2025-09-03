@@ -3,472 +3,433 @@
 # ### Features
 # - args is the composed/overridden set of user arguments for this machine
 #
+# ### Defaults
+# Defaults are handled differently at different levels in Nix
+# - When no properties are set for 'machine.user' then the defaults for that option are used.
+# - When properties are set e.g. 'machine.user.email' then the machine.user defaults are not used 
+#   and instead the 'user.nix' sub module defaults are used.
+# because of this odd behavior we must pass in the 'args' to each sub module as well so that all 
+# defaults are set at every level to cover all the use cases.
 #---------------------------------------------------------------------------------------------------
-{ lib, args, f, ... }: with lib.types;
+{ config, lib, args, f, ... }: with lib.types;
 let
-  nic = import ./nic.nix { inherit lib; };
   smb = import ./smb.nix { inherit lib; };
-  service = import ./service.nix { inherit lib; };
-  user = import ./user.nix { inherit lib; };
 
   # Generate an id to be used as a default
   machine-id = pkgs.runCommandLocal "machine-id" {} ''
     ${pkgs.dbus}/bin/dbus-uuidgen > $out
   '';
 
-  # Shortcuts for reused items
-  user_name = if (!args ? "user" || !args.user ? "name") then "admin" else args.user.name;
-  user_pass = if (!args ? "user" || !args.user ? "pass" || args.user.pass == "") then "admin" else args.user.pass;
-  uid = config.users.users.${user_name}.uid;
-  gid = config.users.groups."users".gid;
+  # Defaults to use for uniformity across the different default use cases
+  user_name = args.user.name or "admin";
+  user = {
+    name = user_name;
+    pass = if (!args ? "user" || !args.user ? "pass" || args.user.pass == "") then "admin" else args.user.pass;
+    fullname = args.user.fullname or "admin";
+    email = args.user.email or "admin";
+    uid = config.users.users.${user_name}.uid;
+    gid = config.users.groups."users".gid;
+  };
 in
 {
+  imports = [
+    ./validate_machine.nix
+  ];
+
   options = {
-    type = lib.mkOption {
-      description = lib.mdDoc ''
-        Machine types are descriptive capabilities of a machine. These types are not mutually 
-        exclusive. For instance a machine might be both an ISO and also a development machine. At 
-        least one type must be specified though.
-      '';
+    machine = lib.mkOption {
+      description = lib.mdDoc "Machine configuration definition";
       type = types.submodule {
         options = {
-          bootable = lib.mkEnableOption "Machine requires a bootloader to boot up";
-          vm = lib.mkEnableOption "Machine is a virtual and does not need a bootloader";
-          iso = lib.mkEnableOption "Machine is intended to be used as an ISO image";
-          develop = lib.mkEnableOption "Machine is intended to be used as a Development system";
-          theater = lib.mkEnableOption "Machine is intended to be used as a Theater system";
-        };
-      };
-      default = {
-        # Note: not defining the other defaults here as I don't expect to support them in args
-        iso = if (!args ? "type" || args.type ? "iso") then false else args.type.iso;
-      };
-    };
-
-    vm.type = lib.mkOption {
-      description = lib.mdDoc "Virtual machine type for this machine";
-      type = types.submodule {
-        options = {
-          micro = lib.mkEnableOption "Minimal headless system";
-          local = lib.mkEnableOption "Full desktop system with local graphical display";
-          spice = lib.mkEnableOption "Full desktop system with remote SPICE display";
-        };
-      };
-    };
-
-    hostname = lib.mkOption {
-      description = lib.mdDoc "Hostname";
-      type = types.str;
-      default = if (!args ? "hostname" || args.hostname == "") then "nixos" else args.hostname;
-    };
-
-    id = lib.mkOption {
-      description = lib.mdDoc "Machine id for /etc/machine-id";
-      type = types.str;
-      default = if (!args ? "id" || args.id == "") then "${builtins.readFile machine-id}" else args.id;
-    };
-
-    profile = lib.mkOption {
-      description = lib.mdDoc "Flake profile used during installation";
-      type = types.str;
-      default = if (!args ? "profile" || args.profile == "") then "xfce/desktop" else args.profile;
-    };
-
-    efi = lib.mkOption {
-      description = lib.mdDoc "Enable EFI";
-      type = types.bool;
-      default = if (!args ? "efi") then false else args.efi;
-    };
-
-    mbr = lib.mkOption {
-      description = lib.mdDoc "BIOS mbr is enabled when not 'nodev'";
-      type = types.str;
-      default = if (!args ? "mbr" || args.mbr == "") then "nodev" else args.mbr;
-    };
-
-    drives = lib.mkOption {
-      description = lib.mdDoc "Drive options";
-      type = types.listOf (types.submodule {
-        options = {
-          uuid = lib.mkOption {
-            description = lib.mdDoc "Drive identifier";
-            type = types.str;
-            default = "";
-          };
-        };
-      });
-      default = if (!args ? "drives") then [ ] else args.drives;
-    };
-
-    arch = lib.mkOption {
-      description = lib.mdDoc "System architecture";
-      type = types.str;
-      default = if (!args ? "arch" || args.arch == "") then "x86_64-linux" else args.arch;
-    };
-
-    locale = lib.mkOption {
-      description = lib.mdDoc "System locale";
-      type = types.str;
-      default = if (!args ? "locale" || args.locale == "") then "en_US.UTF-8" else args.locale;
-    };
-
-    timezone = lib.mkOption {
-      description = lib.mdDoc "System timezone";
-      type = types.str;
-      default = if (!args ? "timezone" || args.timezone == "") then "America/Boise" else args.timezone;
-    };
-
-    autologin = lib.mkOption {
-      description = lib.mdDoc "Enable autologin";
-      type = types.bool;
-      default = if (!args ? "autologin") then false else args.autologin;
-    };
-
-    bluetooth = lib.mkOption {
-      description = lib.mdDoc "Enable bluetooth";
-      type = types.bool;
-      default = if (!args ? "bluetooth") then false else args.bluetooth;
-    };
-
-    resolution = lib.mkOption {
-      description = lib.mdDoc "Display resolution";
-      type = types.attrs;
-      default = {
-        x = if (!args ? "resolution" || !args.resolution ? "x") then 0 else args.resolution.x;
-        y = if (!args ? "resolution" || !args.resolution ? "y") then 0 else args.resolution.y;
-      };
-    };
-
-    nix = lib.mkOption {
-      type = types.submodule {
-        options = {
-          minVer = lib.mkOption {
-            description = lib.mdDoc "Minimal support Nixpkgs version";
-            type = types.str;
-            default = if (!args ? "nix" || !args.nix ? "minVer" || args.nix.minVer == "")
-              then "25.05" else args.nix.minVer;
-          };
-          cache = lib.mkOption {
-            description = lib.mdDoc "Nix Binary cache configuration";
+          type = lib.mkOption {
+            description = lib.mdDoc ''
+              Machine types are descriptive capabilities of a machine. These types are not mutually 
+              exclusive. For instance a machine might be both an ISO and also a development machine. At 
+              least one type must be specified though.
+            '';
             type = types.submodule {
               options = {
-                enable = lib.mkOption {
-                  description = lib.mdDoc "Enable using a custom Nix binary cache";
-                  type = types.bool;
-                  default = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "enable")
-                    then false else args.nix.cache.enable;
-                };
-                ip = lib.mkOption {
-                  description = lib.mdDoc "IP address of the custom Nix binary cache";
-                  type = types.str;
-                  default = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "ip")
-                    then "" else args.nix.cache.ip;
-                };
-                port = lib.mkOption {
-                  description = lib.mdDoc "Port of the custom Nix binary cache";
-                  type = types.int;
-                  default = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "port")
-                    then 5000 else args.nix.cache.port;
-                };
+                bootable = lib.mkEnableOption "Machine requires a bootloader to boot up";
+                vm = lib.mkEnableOption "Machine is a virtual and does not need a bootloader";
+                iso = lib.mkEnableOption "Machine is intended to be used as an ISO image";
+                develop = lib.mkEnableOption "Machine is intended to be used as a Development system";
+                theater = lib.mkEnableOption "Machine is intended to be used as a Theater system";
               };
             };
             default = {
-              enable = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "enable")
-                then false else args.nix.cache.enable;
-              ip = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "ip")
-                then "" else args.nix.cache.ip;
-              port = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "port")
-                then 5000 else args.nix.cache.port;
+              # Note: not defining the other defaults here as I don't expect to support them in args
+              iso = args.type.iso or false;
             };
           };
-        };
-      };
-      default = {
-        minVer = if (!args ? "nix" || !args.nix ? "minVer" || args.nix.minVer == "")
-          then "25.05" else args.nix.minVer;
-        cache = {
-          enable = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "enable")
-            then false else args.nix.cache.enable;
-          ip = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "ip")
-            then "" else args.nix.cache.ip;
-          port = if (!args ? "nix" || !args.nix ? "cache" || !args.nix.cache ? "port")
-            then 5000 else args.nix.cache.port;
-        };
-      };
-    };
 
-    user = lib.mkOption {
-      description = lib.mdDoc "User options";
-      type = types.submodule user;
-      default = {
-        name = user_name;
-        pass = user_pass;
-        fullname = if (!args ? "user" || !args.user ? "fullname") then "" else args.user.fullname;
-        email = if (!args ? "user" || !args.user ? "email") then "" else args.user.email;
-      };
-    };
-
-    git = lib.mkOption {
-      type = types.submodule {
-        options = {
-          user = lib.mkOption {
-            description = lib.mdDoc "Git user name";
-            type = types.str;
-            default = if (!args ? "git" || !args.git ? "user") then "" else args.git.user;
-          };
-          email = lib.mkOption {
-            description = lib.mdDoc "Git email address";
-            type = types.str;
-            default = if (!args ? "git" || !args.git ? "email") then "" else args.git.email;
-          };
-          comment = lib.mkOption {
-            description = lib.mdDoc "System build comment";
-            type = types.str;
-            default = if (!args ? "git" || !args.git ? "comment") then "" else args.git.comment;
-          };
-        };
-      };
-      default = {
-        user = if (!args ? "git" || !args.git ? "user") then "" else args.git.user;
-        email = if (!args ? "git" || !args.git ? "email") then "" else args.git.email;
-        comment = if (!args ? "git" || !args.git ? "comment") then "" else args.git.comment;
-      };
-    };
-
-    # Networking options for the machine
-    # ----------------------------------------------------------------------------------------------
-    net = lib.mkOption {
-      description = lib.mdDoc "Networking options for the machine";
-      type = types.submodule {
-        options = {
-          bridge = {
-            enable = lib.mkEnableOption ''
-              Convert the main interface into a bridge which then allows virtualized devices like 
-              containers and VMs to join the LAN, be assigend LAN IP addresses and fully interact 
-              with other devices on the LAN. All of the other primary network settings will be used 
-              for the new bridge interface.
-
-              Note, for bridge mode to work the primary nic id must be specified via "nics". This can 
-              be done via the "args.enc.json" or directly in the "configuration.nix" file.
-
-              1. args.enc.json example
-              {
-                "nics": [{
-                  "name": "primary",
-                  "id": "eth0"
-                }]
-              }
-
-              2. configuration.nix example
-              machine.nics = [{
-                name = "primary";
-                id = "eth0";
-              }];
-            '';
-            name = lib.mkOption {
-              type = types.str;
-              description = lib.mdDoc "Name to use for the new bridge";
-              default = "br0";
-            };
-          };
-          macvlan = lib.mkOption {
-            description = lib.mdDoc ''
-              Create a macvlan interface for the host to use on the bridge, which allows the host to 
-              communicate with virtualized devices connected to the bridge. Otherwise the virtualized 
-              devices can fully participate on the LAN but they won't be able to interact directly 
-              with the host nor will the host be able to interact directly with them.
-            '';
+          vm.type = lib.mkOption {
+            description = lib.mdDoc "Virtual machine type for this machine";
             type = types.submodule {
               options = {
-                name = lib.mkOption {
-                  description = lib.mdDoc "Macvlan name to use";
+                micro = lib.mkEnableOption "Minimal headless system";
+                local = lib.mkEnableOption "Full desktop system with local graphical display";
+                spice = lib.mkEnableOption "Full desktop system with remote SPICE display";
+              };
+            };
+          };
+
+          hostname = lib.mkOption {
+            description = lib.mdDoc "Hostname";
+            type = types.str;
+            default = if (!args ? "hostname" || args.hostname == "") then "nixos" else args.hostname;
+          };
+
+          id = lib.mkOption {
+            description = lib.mdDoc "Machine id for /etc/machine-id";
+            type = types.str;
+            default = if (!args ? "id" || args.id == "") then "${builtins.readFile machine-id}" else args.id;
+          };
+
+          profile = lib.mkOption {
+            description = lib.mdDoc "Flake profile used during installation";
+            type = types.str;
+            default = if (!args ? "profile" || args.profile == "") then "xfce/desktop" else args.profile;
+          };
+
+          efi = lib.mkOption {
+            description = lib.mdDoc "Enable EFI";
+            type = types.bool;
+            default = args.efi or false;
+          };
+
+          mbr = lib.mkOption {
+            description = lib.mdDoc "BIOS mbr is enabled when not 'nodev'";
+            type = types.str;
+            default = if (!args ? "mbr" || args.mbr == "") then "nodev" else args.mbr;
+          };
+
+          drives = lib.mkOption {
+            description = lib.mdDoc "Drive options";
+            type = types.listOf (types.submodule {
+              options = {
+                uuid = lib.mkOption {
+                  description = lib.mdDoc "Drive identifier";
                   type = types.str;
-                  default = "host";
-                };
-                ip = lib.mkOption {
-                  description = lib.mdDoc "Optional static ip to use else DHCP is used";
-                  type = types.str;
-                  example = "192.168.1.49";
                   default = "";
                 };
               };
+            });
+            default = args.drives or [];
+          };
+
+          arch = lib.mkOption {
+            description = lib.mdDoc "System architecture";
+            type = types.str;
+            default = if (!args ? "arch" || args.arch == "") then "x86_64-linux" else args.arch;
+          };
+
+          locale = lib.mkOption {
+            description = lib.mdDoc "System locale";
+            type = types.str;
+            default = if (!args ? "locale" || args.locale == "") then "en_US.UTF-8" else args.locale;
+          };
+
+          timezone = lib.mkOption {
+            description = lib.mdDoc "System timezone";
+            type = types.str;
+            default = if (!args ? "timezone" || args.timezone == "") then "America/Boise" else args.timezone;
+          };
+
+          autologin = lib.mkOption {
+            description = lib.mdDoc "Enable autologin";
+            type = types.bool;
+            default = args.autologin or false;
+          };
+
+          bluetooth = lib.mkOption {
+            description = lib.mdDoc "Enable bluetooth";
+            type = types.bool;
+            default = args.bluetooth or false;
+          };
+
+          resolution = lib.mkOption {
+            description = lib.mdDoc "Display resolution";
+            type = types.attrs;
+            default = {
+              x = args.resolution.x or 0;
+              y = args.resolution.y or 0;
             };
-            default = { name = "host"; ip = ""; };
           };
-          gateway = lib.mkOption {
-            description = lib.mdDoc "Default gateway for the system";
-            type = types.str;
-            default = if (!args ? "net" || !args.net ? "gateway") then "" else args.net.gateway;
-          };
-          subnet = lib.mkOption {
-            description = lib.mdDoc "Default subnet for the system";
-            type = types.str;
-            default = if (!args ? "net" || !args.net ? "subnet") then "" else args.net.subnet;
-          };
-          dns = lib.mkOption {
-            description = lib.mdDoc "Default DNS for the system";
+
+          nix = lib.mkOption {
             type = types.submodule {
               options = {
-                primary = lib.mkOption {
-                  description = lib.mdDoc "Primary DNS IP";
+                minVer = lib.mkOption {
+                  description = lib.mdDoc "Minimal support Nixpkgs version";
                   type = types.str;
+                  default = if (!args ? "nix" || !args.nix ? "minVer" || args.nix.minVer == "")
+                    then "25.05" else args.nix.minVer;
                 };
-                fallback = lib.mkOption {
-                  description = lib.mdDoc "Fallback DNS IP";
-                  type = types.str;
+                cache = lib.mkOption {
+                  description = lib.mdDoc "Nix Binary cache configuration";
+                  type = types.submodule {
+                    options = {
+                      enable = lib.mkOption {
+                        description = lib.mdDoc "Enable using a custom Nix binary cache";
+                        type = types.bool;
+                        default = args.nix.cache.enable or false;
+                      };
+                      ip = lib.mkOption {
+                        description = lib.mdDoc "IP address of the custom Nix binary cache";
+                        type = types.str;
+                        default = args.nix.cache.ip or "";
+                      };
+                      port = lib.mkOption {
+                        description = lib.mdDoc "Port of the custom Nix binary cache";
+                        type = types.int;
+                        default = args.nix.cache.port or 5000;
+                      };
+                    };
+                  };
+                  default = {
+                    enable = args.nix.cache.enable or false;
+                    ip = args.nix.cache.ip or "";
+                    port = args.nix.cache.port or 5000;
+                  };
                 };
               };
             };
             default = {
-              primary = if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "primary")
-                then "1.1.1.1" else args.net.dns.primary;
-              fallback = if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "fallback")
-                then "8.8.8.8" else args.net.dns.fallback;
+              minVer = if (!args ? "nix" || !args.nix ? "minVer" || args.nix.minVer == "")
+                then "25.05" else args.nix.minVer;
+              cache = {
+                enable = args.nix.cache.enable or false;
+                ip = args.nix.cache.ip or "";
+                port = args.nix.cache.port or 5000;
+              };
             };
           };
-        };
-      };
-      default = {
-        bridge = { enable = false; };
-        macvlan = { name = "host"; ip = "host"; };
-        gateway = if (!args ? "net" || !args.net ? "gateway") then "" else args.net.gateway;
-        subnet = if (!args ? "net" || !args.net ? "subnet") then "" else args.net.subnet;
-        dns = {
-          primary = if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "primary")
-            then "1.1.1.1" else args.net.dns.primary;
-          fallback = if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "fallback")
-            then "8.8.8.8" else args.net.dns.fallback;
-        };
-      };
-    };
 
-    nics = lib.mkOption {
-      description = lib.mdDoc "List of NIC options";
-      type = types.listOf (types.submodule nic);
-      default = if (!args ? "nics") then [] else (builtins.concatMap (x: [{
-        name = if (!x ? "name") then "" else x.name;
-        id = if (!x ? "id") then "" else x.id;
-        link = if (!x ? "link") then "" else x.link;
-        subnet = if (!x ? "subnet") then (if (!args ? "net" || !args.net ? "subnet")
-          then "" else args.net.subnet) else x.subnet;
-        gateway = if (!x ? "gateway") then (if (!args ? "net" || !args.net ? "gateway")
-          then "" else args.net.gateway) else x.gateway;
-        ip = if (!x ? "ip") then "" else x.ip;
-        dns = {
-          primary = if (!x ? "dns" || !x.dns ? "primary")
-            then (if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "primary")
-              then "1.1.1.1" else args.net.dns.primary) else x.dns.primary;
-          fallback = if (!x ? "dns" || !x.dns ? "fallback")
-            then (if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "fallback")
-              then "8.8.8.8" else args.net.dns.fallback) else x.dns.fallback;
-        };
-      }]) args.nics);
-    };
-
-    services = lib.mkOption {
-      description = lib.mdDoc "List of service secrets";
-      type = types.listOf (types.submodule service);
-      default = if (!args ? "services") then [] else (builtins.concatMap (x: [{
-        name = if (!x ? "name") then "" else x.name;
-        type = if (!x ? "type") then "cont" else x.type;
-        user = if (!x ? "user") then "{}" else ({
-          name = if (!x.user ? "name") then user_name else x.user.name;
-          uid = if (!x.user ? "uid") then uid else x.user.uid;
-          gid = if (!x.user ? "gid") then gid else x.user.gid;
-          pass = if (!x.user ? "pass") then user_pass else x.user.pass;
-          fullname = if (!x.user ? "fullname") then "" else x.user.fullname;
-          email = if (!x.user ? "email") then "" else x.user.email;
-        });
-        nic = if (!x ? "nic") then "{}" else ({
-          id = if (!x.nic ? "id") then "" else x.nic.id;
-          link = if (!x.nic ? "link") then "" else x.nic.link;
-          subnet = if (!x.nic ? "subnet") then (if (!args ? "net" || !args.net ? "subnet")
-            then "" else args.net.subnet) else x.nic.subnet;
-          gateway = if (!x.nic ? "gateway") then (if (!args ? "net" || !args.net ? "gateway")
-            then "" else args.net.gateway) else x.nic.gateway;
-          ip = if (!x.nic ? "ip") then "" else x.nic.ip;
-          dns = {
-            primary = if (!x.nic ? "dns" || !x.nic.dns ? "primary")
-              then (if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "primary")
-                then "1.1.1.1" else args.net.dns.primary) else x.nic.dns.primary;
-            fallback = if (!x.nic ? "dns" || !x.nic.dns ? "fallback")
-              then (if (!args ? "net" || !args.net ? "dns" || !args.net.dns ? "fallback")
-                then "8.8.8.8" else args.net.dns.fallback) else x.nic.dns.fallback;
-          };
-        });
-        port = if (!x ? "port") then 80 else x.port;
-      }]) args.services);
-    };
-
-    smb = lib.mkOption {
-      type = types.submodule smb;
-      default = {
-        enable = if (!args ? "smb" || !args.smb ? "enable") then false else args.smb.enable;
-        user = if (!args ? "smb" || !args.smb ? "user") then user_name else args.smb.user;
-        pass = if (!args ? "smb" || !args.smb ? "pass") then user_pass else args.smb.pass;
-        domain = if (!args ? "smb" || !args.smb ? "domain") then "" else args.smb.domain;
-        dirMode = if (!args ? "smb" || !args.smb ? "dirMode") then "0755" else args.smb.dirMode;
-        fileMode = if (!args ? "smb" || !args.smb ? "fileMode") then "0644" else args.smb.fileMode;
-        entries = if (!args ? "smb" || !args.smb ? "entries") then [] else (builtins.concatMap (x: [{
-          mountPoint = if (!x ? "mountPoint") then "" else x.mountPoint;
-          remotePath = if (!x ? "remotePath") then "" else x.remotePath;
-          user = if (!x ? "user" || x.user == "") then (if (!args ? "smb" || !args.smb ? "user")
-            then user_name else args.smb.user) else x.user;
-          pass = if (!x ? "pass" || x.pass == "") then (if (!args ? "smb" || !args.smb ? "pass")
-            then user_pass else args.smb.pass) else x.pass;
-          domain = if (!x ? "domain" || x.domain == "") then (if (!args ? "smb" || !args.smb ? "domain")
-            then "" else args.smb.domain) else x.domain;
-          dirMode = if (!x ? "dirMode" || x.dirMode == "") then (if (!args ? "smb" || !args.smb ? "dirMode")
-            then "0755" else args.smb.dirMode) else x.dirMode;
-          fileMode = if (!x ? "fileMode" || x.fileMode == "") then (if (!args ? "smb" || !args.smb ? "fileMode")
-            then "0644" else args.smb.fileMode) else x.fileMode;
-          writable = if (!x ? "writable") then false else x.writable;
-          options = if (!x ? "options") then [] else x.options;
-        }]) args.smb.entries);
-      };
-    };
-
-    nfs = lib.mkOption {
-      type = types.submodule {
-        options = {
-          enable = lib.mkOption {
-            description = lib.mdDoc "Enable NFS shares";
-            type = types.bool;
-          };
-          entries = lib.mkOption {
-            description = lib.mdDoc "Share entries to configure";
-            type = types.listOf (types.submodule {
+          git = lib.mkOption {
+            type = types.submodule {
               options = {
-                mountPoint = lib.mkOption {
-                  description = lib.mdDoc "Share mount point";
+                user = lib.mkOption {
+                  description = lib.mdDoc "Git user name";
                   type = types.str;
-                  example = "/mnt/Media";
+                  default = args.git.user or "";
                 };
-                remotePath = lib.mkOption {
-                  description = lib.mdDoc "Remote path to use for the share";
+                email = lib.mkOption {
+                  description = lib.mdDoc "Git email address";
                   type = types.str;
-                  example = "192.168.1.2:/srv/nfs/Media";
+                  default = args.git.email or "";
                 };
-                fsType = lib.mkOption {
-                  description = lib.mdDoc "Share file system type";
+                comment = lib.mkOption {
+                  description = lib.mdDoc "System build comment";
                   type = types.str;
-                  example = "nfs";
-                };
-                options = lib.mkOption {
-                  description = lib.mdDoc "Share options";
-                  type = types.listOf types.str;
-                  example = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+                  default = args.git.comment or "";
                 };
               };
-            });
+            };
+            default = {
+              user = args.git.user or "";
+              email = args.git.email or "";
+              comment = args.git.comment or "";
+            };
+          };
+
+          # Networking options for the whole machine
+          # ----------------------------------------------------------------------------------------------
+          net = lib.mkOption {
+            description = lib.mdDoc "Networking options for the machine";
+            type = types.submodule {
+              options = {
+                bridge = {
+                  enable = lib.mkEnableOption ''
+                    Convert the main interface into a bridge which then allows virtualized devices like 
+                    containers and VMs to join the LAN, be assigend LAN IP addresses and fully interact 
+                    with other devices on the LAN. All of the other primary network settings will be used 
+                    for the new bridge interface.
+
+                    Note, for bridge mode to work the primary nic id must be specified via "nics". This can 
+                    be done via the "args.enc.json" or directly in the "configuration.nix" file.
+
+                    1. args.enc.json example
+                    {
+                      "nics": [{
+                        "name": "primary",
+                        "id": "eth0"
+                      }]
+                    }
+
+                    2. configuration.nix example
+                    machine.nics = [{
+                      name = "primary";
+                      id = "eth0";
+                    }];
+                  '';
+                  name = lib.mkOption {
+                    type = types.str;
+                    description = lib.mdDoc "Name to use for the new bridge";
+                    default = "br0";
+                  };
+                };
+                macvlan = lib.mkOption {
+                  description = lib.mdDoc ''
+                    Create a macvlan interface for the host to use on the bridge, which allows the host to 
+                    communicate with virtualized devices connected to the bridge. Otherwise the virtualized 
+                    devices can fully participate on the LAN but they won't be able to interact directly 
+                    with the host nor will the host be able to interact directly with them.
+                  '';
+                  type = types.submodule {
+                    options = {
+                      name = lib.mkOption {
+                        description = lib.mdDoc "Macvlan name to use";
+                        type = types.str;
+                        default = "host";
+                      };
+                      ip = lib.mkOption {
+                        description = lib.mdDoc "Optional static ip to use else DHCP is used";
+                        type = types.str;
+                        example = "192.168.1.49";
+                        default = "";
+                      };
+                    };
+                  };
+                  default = { name = "host"; ip = ""; };
+                };
+                gateway = lib.mkOption {
+                  description = lib.mdDoc "Default gateway for the system";
+                  type = types.str;
+                  default = args.net.gateway or "";
+                };
+                subnet = lib.mkOption {
+                  description = lib.mdDoc "Default subnet for the system";
+                  type = types.str;
+                  default = args.net.subnet or "";
+                };
+                dns = lib.mkOption {
+                  description = lib.mdDoc "Default DNS for the system";
+                  type = types.submodule {
+                    options = {
+                      primary = lib.mkOption {
+                        description = lib.mdDoc "Primary DNS IP";
+                        type = types.str;
+                        default = args.net.dns.primary or "1.1.1.1";
+                      };
+                      fallback = lib.mkOption {
+                        description = lib.mdDoc "Fallback DNS IP";
+                        type = types.str;
+                        default = args.net.dns.fallback or "8.8.8.8";
+                      };
+                    };
+                  };
+                  default = {
+                    primary = args.net.dns.primary or "1.1.1.1";
+                    fallback = args.net.dns.fallback or "8.8.8.8";
+                  };
+                };
+              };
+            };
+            default = {
+              bridge = { enable = false; };
+              macvlan = { name = "host"; ip = "host"; };
+              gateway = args.net.gateway or "";
+              subnet = args.net.subnet or "";
+              dns = {
+                primary = args.net.dns.primary or "1.1.1.1";
+                fallback = args.net.dns.fallback or "8.8.8.8";
+              };
+            };
+          };
+
+          nfs = lib.mkOption {
+            type = types.submodule {
+              options = {
+                enable = lib.mkOption {
+                  description = lib.mdDoc "Enable NFS shares";
+                  type = types.bool;
+                  default = args.nfs.enable or false;
+                };
+                entries = lib.mkOption {
+                  description = lib.mdDoc "Share entries to configure";
+                  type = types.listOf (types.submodule {
+                    options = {
+                      mountPoint = lib.mkOption {
+                        description = lib.mdDoc "Share mount point";
+                        type = types.str;
+                        example = "/mnt/Media";
+                      };
+                      remotePath = lib.mkOption {
+                        description = lib.mdDoc "Remote path to use for the share";
+                        type = types.str;
+                        example = "192.168.1.2:/srv/nfs/Media";
+                      };
+                      fsType = lib.mkOption {
+                        description = lib.mdDoc "Share file system type";
+                        type = types.str;
+                        example = "nfs";
+                      };
+                      options = lib.mkOption {
+                        description = lib.mdDoc "Share options";
+                        type = types.listOf types.str;
+                        example = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
+                      };
+                    };
+                  });
+                  default = args.nfs.entries or [];
+                };
+              };
+            };
+            default = {
+              enable = args.nfs.enable or false;
+              entries = args.nfs.entries or [];
+            };
+          };
+
+          # Networking options for specific NICs
+          # ----------------------------------------------------------------------------------------------
+          nics = lib.mkOption {
+            description = lib.mdDoc "List of NIC definitions";
+            type = types.listOf (types.submodule (import ./nic.nix { inherit lib; defaults = {}; }));
+            default = if (args ? "nics") then (builtins.concatMap (x: [{
+              name = x.name or "";
+              id = x.id or "";
+              link = x.link or "";
+              subnet = x.subnet or (args.net.subnet or "");
+              gateway = x.gateway or (args.net.gateway or "");
+              ip = x.ip or "";
+              dns = {
+                primary = x.dns.primary or (args.net.dns.primary or "1.1.1.1");
+                fallback = x.dns.fallback or (args.net.dns.fallback or "8.8.8.8");
+              };
+            }]) args.nics) else [];
+          };
+
+          smb = lib.mkOption {
+            type = types.submodule smb;
+            default = {
+              enable = args.smb.enable or false;
+              user = args.smb.user or user.name;
+              pass = args.smb.pass or user.pass;
+              domain = args.smb.domain or "";
+              dirMode = args.smb.dirMode or "0755";
+              fileMode = args.smb.fileMode or "0644";
+              entries = if (args ? "smb" && args.smb ? "entries") then (builtins.concatMap (x: [{
+                mountPoint = x.mountPoint or "";
+                remotePath = x.remotePath or "";
+                user = x.user or (args.smb.user or user.name);
+                pass = x.pass or (args.smb.pass or user.pass);
+                domain = if (x ? "domain" && x.domain != "") then x.domain else args.smb.domain or "";
+                dirMode = if (x ? "dirMode" && x.dirMode != "") then x.dirMode else args.smb.dirMode or "0755";
+                fileMode = if (x ? "fileMode" && x.fileMode != "") then x.fileMode else args.smb.fileMode or "0644";
+                writable = x.writable or false;
+                options = x.options or [];
+              }]) args.smb.entries) else [];
+            };
+          };
+
+          user = lib.mkOption {
+            description = lib.mdDoc "User options";
+            type = types.submodule (import ./user.nix { inherit lib; defaults = user; });
+            default = user; # Used when machine.user is not set at all
           };
         };
       };
-      default = {
-        enable = if (!args ? "nfs" || !args.nfs ? "enable") then false else args.nfs.enable;
-        entries = if (!args ? "nfs" || !args.nfs ? "entries") then [] else args.nfs.entries;
-      };
     };
-
   };
 }
