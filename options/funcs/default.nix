@@ -1,6 +1,6 @@
 # Import all functions
 #---------------------------------------------------------------------------------------------------
-{ pkgs, lib, ... }:
+{ lib, pkgs, ... }:
 {
   # Simple functions
   #-------------------------------------------------------------------------------------------------
@@ -54,4 +54,32 @@
     (lib.mkIf p yes)
     (lib.mkIf (!p) no)
   ];
+
+  # Extract the target service and process defaults
+  # - args: is the json input used by the machine and related types
+  # - name: the target service's name used for user name and group
+  # - uid: is the specific target service's user id
+  # - gid: is the specific target service's group id
+  #-------------------------------------------------------------------------------------------------
+  getService = args: name: uid: gid:
+    let
+      # Setup defaults to merge with input args
+      defaults = {
+        name = name;
+        user = {
+          name = name;
+          group = name;
+          uid = uid;
+          gid = gid;
+        };
+      };
+
+      # Find the specific service by name
+      filtered = builtins.filter (x: x.name == name) args.services or [];
+
+      # Now extract the service and merge with defaults
+      service = if (builtins.length filtered > 0)
+        then (builtins.elemAt filtered 0) // defaults
+        else ({ nic = {}; port = 80; }) // defaults;
+    in service;
 }
