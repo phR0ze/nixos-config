@@ -23,8 +23,7 @@
         e.g.'br0' which would be the link name in this case";
       '';
       type = types.str;
-      example = "br0";
-      default = defaults.link or "";
+      default = defaults.link or "br0";
     };
 
     subnet = lib.mkOption {
