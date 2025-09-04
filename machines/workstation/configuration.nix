@@ -11,16 +11,8 @@ in
 {
   imports = [
     ./hardware-configuration.nix
-    ../../options/types/validate_machine.nix
     (../../profiles/${args.profile}.nix)
   ];
-
-  options = {
-    machine = lib.mkOption {
-      description = lib.mdDoc "Machine arguments";
-      type = types.submodule (import ../../options/types/machine.nix { inherit config lib args f; });
-    };
-  };
 
   config = {
     machine.type.bootable = true;
