@@ -20,7 +20,8 @@ in
   config = {
     machine.hostname = "vm-test";
     machine.type.vm = true;
-    machine.vm.type.local = true;
+    #machine.vm.type.local = true;
+    machine.vm.type.local = false;
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 

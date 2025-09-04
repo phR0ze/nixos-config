@@ -8,7 +8,7 @@
 # the bridge using a variety of Macvlan and Macvtap options.
 #
 # Note: I prefer to use a local Macvlan then to port forward the container to that Macvlan as this 
-# will provide an LAN IP address that is listable with `ip a` while eliminating any other access 
+# will provide a LAN IP address that is listable with `ip a` while eliminating any other access 
 # to/from the container to the LAN. Alternatively if the container/VM is NixOS based then we can use 
 # the internal firewall to limit access.
 #---------------------------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ in
     {
       services.resolved = {
         enable = true;
-        dnssec = "allow-downgrade"; # using `true` will break DNS if VPN DNS servers don't support
+        dnssec = "allow-downgrade"; # using `dnssec = "true"` will break DNS if VPN DNS servers don't support
       };
     }
     (f.mkIfElse (cfg.net.dns.primary != "" && cfg.net.dns.fallback != "") {

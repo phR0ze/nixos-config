@@ -14,7 +14,7 @@
 #   execution, or as temporary files solely for the execution of the task.
 #
 # ### Deployment Features
-# - Get status with: `systemctl status stirling-pdf`
+# - Get status with: `systemctl status podman-stirling-pdf`
 # - UI accessible at ???
 # - App has outbound access to the internet
 # - App is blocked from outbound connections to the LAN
@@ -22,7 +22,7 @@
 # - App is visiable on the LAN, with a dedicated host macvlan and static IP, for inbound connections
 # - App data is persisted at /var/lib/$APP
 # --------------------------------------------------------------------------------------------------
-{ config, lib, args, pkgs, ... }: with lib.types;
+{ config, lib, args, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
   cfg = config.services.cont.stirling-pdf;
@@ -104,11 +104,11 @@ in
     # Generate the "podman-${app}" service unit for the container
     # https://docs.stirlingpdf.com/Getting%20started/Installation/Docker/Docker%20Install
     virtualisation.oci-containers.containers."${app}" = {
-      image = "docker.io/frooodle/s-pdf:${cfg.tag}";
+      image = "docker.stirlingpdf.com/stirlingtools/stirling-pdf:${cfg.tag}";
       autoStart = true;
       hostname = "${app}";
       ports = [
-        "${cfg.nic.ip}:${toString cfg.port}:8080"
+        "${(f.toIP cfg.nic.ip).address}:${toString cfg.port}:8080"
       ];
       volumes = [
         "/var/lib/${app}/trainingData:/usr/share/tessdata:rw"
@@ -135,14 +135,14 @@ in
     networking.firewall.interfaces."${app}".allowedTCPPorts = [ cfg.port ];
 
     # Create host macvlan with a dedicated static IP for the app to port forward to
+    # - see new macvlan interface `stirling-pdf@br0` with `ip a`
+    # - sudo systemctl status network-addresses-stirling-pdf.service
     networking = {
       macvlans.${app} = {
-        interface = "${cfg.nic.name}";
+        interface = "${cfg.nic.link}";
         mode = "bridge";
       };
-      interfaces.${app}.ipv4.addresses = [
-        { address = "${cfg.nic.ip}"; prefixLength = 32; }
-      ];
+      interfaces.${app}.ipv4.addresses = [ (f.toIP cfg.nic.ip)];
     };
 
     # Create a dedicated container network to keep the app isolated from other services
