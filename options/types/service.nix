@@ -7,6 +7,12 @@
   options = {
     enable = lib.mkEnableOption "Deploy ${defaults.name or "target"} service";
 
+    name = lib.mkOption {
+      description = lib.mdDoc "Service name. Useful for automation";
+      type = types.nullOr types.str;
+      default = defaults.name or null;
+    };
+
     tag = lib.mkOption {
       description = lib.mdDoc "Service image 'tag' to use";
       type = types.str;
