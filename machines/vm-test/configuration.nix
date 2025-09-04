@@ -50,10 +50,7 @@ in
     }];
     services.cont.stirling-pdf = {
       enable = true;
-      nic = {
-        link = "br0";
-        ip = "192.168.1.51/24";
-      };
+      nic.ip = "192.168.1.51/24";
     };
 
     #environment.systemPackages = [
