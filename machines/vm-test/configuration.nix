@@ -9,19 +9,16 @@ let
 in
 {
   imports = [
-    # VM required imports
     ../../options/virtualisation/qemu/guest.nix
-
-    # Profile to follow for machine and standard machine validation
-    ../../profiles/base.nix
-    #../../profiles/xfce/desktop.nix
+    #../../profiles/base.nix
+    ../../profiles/xfce/desktop.nix
   ];
 
   config = {
     machine.hostname = "vm-test";
     machine.type.vm = true;
-    #machine.vm.type.local = true;
-    machine.vm.type.local = false;
+    machine.vm.type.local = true;
+    #machine.vm.type.local = false;
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 

@@ -11,14 +11,7 @@ in
   imports = [
     ../../profiles/xfce/desktop.nix
     ../../options/virtualisation/qemu/guest.nix
-    ../../options/types/validate_machine.nix
   ];
-
-  options = {
-    machine = lib.mkOption {
-      type = types.submodule (import ../../options/types/machine.nix { inherit config lib args f; });
-    };
-  };
 
   config = {
     machine.type.vm = true;
@@ -32,10 +25,6 @@ in
     environment.systemPackages = [
       #pkgs.synology-drive-client
     ];
-
-    #assertions = [
-    #  { assertion = (cfg.smb.enable == false); message = "machin.smb.enable: ${f.boolToStr cfg.smb.enable}"; }
-    #];
 
     # Portainer service
     # --------------------------------------------
