@@ -2,7 +2,12 @@
   inputs = {
     # nixos-unstable from 2025.08.09
     nixpkgs.url = "github:nixos/nixpkgs/85dbfc7aaf52ecb755f87e577ddbe6dbbdbc1054";
+
+    # nixos-unstable from 2025.08.31
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+
+    # nixos-unstable from 2024.12.13
+    nixpkgs-rustdesk.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
@@ -11,6 +16,7 @@
     # Allow for package patches, overrides and additions
     # ----------------------------------------------------------------------------------------------
     system = _args.arch;
+    #pkgs-rustdesk = import nixpkgs-rustdesk { inherit system; };
     pkgs-unstable = import nixpkgs-unstable {
       inherit system;
       config.allowUnfreePredicate = pkg: true;
@@ -47,7 +53,6 @@
           zed-editor = pkgs-unstable.zed-editor;
           zoom-us = pkgs-unstable.zoom-us;
           rust-analyzer = pkgs-unstable.rust-analyzer;
-          rustdesk-flutter = pkgs-unstable.rustdesk-flutter;
           rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
           vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
           yt-dlp = pkgs-unstable.yt-dlp;

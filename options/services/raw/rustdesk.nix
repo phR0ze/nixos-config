@@ -41,6 +41,11 @@ in
         type = types.bool;
         default = true;
       };
+      allowLinuxHeadless = lib.mkOption {
+        description = lib.mdDoc "Allow linux headless mode";
+        type = types.bool;
+        default = true;
+      };
       service = lib.mkOption {
         description = lib.mdDoc ''
           Install as systemd service and autostart
@@ -108,15 +113,15 @@ in
       };
     };
 
-    services.raw.rustdesk.server = {
-      enable = lib.mkEnableOption "Install and configure rustdesk server";
-      relayHost = lib.mkOption {
-        description = lib.mdDoc "IP/DNS name to use for the relay host";
-        type = types.str;
-        example = "192.168.1.2";
-        default = config.networking.primary.ip;
-      };
-    };
+#    services.raw.rustdesk.server = {
+#      enable = lib.mkEnableOption "Install and configure rustdesk server";
+#      relayHost = lib.mkOption {
+#        description = lib.mdDoc "IP/DNS name to use for the relay host";
+#        type = types.str;
+#        example = "192.168.1.2";
+#        default = config.networking.primary.ip;
+#      };
+#    };
   };
  
   config = lib.mkMerge [
@@ -131,6 +136,12 @@ in
       # Open up ports for the client to receive connections
       networking.firewall.allowedTCPPorts = [ 21118 ];
 
+      # Configure rustdesk local client settings
+      files.all.".config/rustdesk/RustDesk_local.toml".text = (lib.concatStringsSep "\n"
+        ([] ++ lib.optionals (cfg.enableDarkTheme)
+          [ "[options]" "theme = 'dark'"]
+        )) + "\n";
+
       # Configure rustdesk permanent password encoded using the unique machine-id for this system
       files.all.".config/rustdesk/RustDesk.toml".text = (lib.concatStringsSep "\n"
         ([] ++ lib.optionals (cfg.allowDirectIPAccess)
@@ -143,23 +154,21 @@ in
       files.all.".config/rustdesk/RustDesk2.toml".text = (lib.concatStringsSep "\n"
         ([] ++ lib.optionals (cfg.allowOnlyDirectIPAccess)
           [ "rendezvous_server = '0.0.0.1'" "" ] # intentionally including a newline here
-        ++ [ "[options]" "access-mode = '${cfg.accessMode}'" ]
         ++ lib.optionals (cfg.usePermanentPassword && !cfg.useTemporaryPassword)
-          [ "verification-method = 'use-permanent-password'" ]
+          [ "[options]" "verification-method = 'use-permanent-password'" ]
         ++ lib.optionals (cfg.useTemporaryPassword && !cfg.usePermanentPassword)
           [ "verification-method = 'use-temporary-password'" ]
+        ++ [ "access-mode = '${cfg.accessMode}'" ]
+        ++ lib.optionals (cfg.service || cfg.allowLinuxHeadless)
+          [ "allow-linux-headless = 'Y'" ]
+        ++ lib.optionals (cfg.allowRemoteConfigModification)
+          [ "allow-remote-config-modification = 'Y'" ]
         ++ lib.optionals (cfg.acceptSessionViaClick && !cfg.acceptSessionViaPassword)
           [ "approve-mode = 'click'" ]
         ++ lib.optionals (cfg.acceptSessionViaPassword && !cfg.acceptSessionViaClick)
           [ "approve-mode = 'password'" ]
-        ++ lib.optionals (cfg.allowRemoteConfigModification)
-          [ "allow-remote-config-modification = 'Y'" ]
-        ++ lib.optionals (cfg.enableDarkTheme)
-          [ "allow-darktheme = 'Y'" ]
         ++ lib.optionals (cfg.allowDirectIPAccess)
           [ "direct-server = 'Y'" ]
-        ++ lib.optionals (cfg.service)
-          [ "allow-linux-headless = 'Y'" ]
         ++ lib.optionals (cfg.allowOnlyDirectIPAccess) [
             "custom-rendezvous-server = '0.0.0.1'"
             "relay-server = '0.0.0.1'"
@@ -173,22 +182,22 @@ in
       # - https://github.com/rustdesk/rustdesk/blob/master/res/rustdesk.service
       # - https://github.com/rustdesk/rustdesk/wiki/Headless-Linux-Support
       # - sudo rustdesk --option allow-linux-headless Y
-      systemd.services.rustdesk = lib.mkIf (cfg.service) {
-        description = "RustDesk";
-        enable = true;
-        requires = [ "network.target" ];              # fails this service if no network
-        after = [ "systemd-user-sessions.service" ];  # start after network.target and login ready
-        wantedBy = [ "multi-user.target" ];           # ensure starts at boot
-        serviceConfig = {
-          Type = "simple";
-          ExecStart = "${pkgs.rustdesk-flutter}/bin/rustdesk --service";
-          ExecStop = ''${pkgs.procps}/bin/pkill -f "rustdesk --"'';
-          PIDFile = "/run/rustdesk.pid";
-          KillMode = "mixed";
-          TimeoutStopSec = 5;
-          LimitNOFILE = 100000;
-        };
-      };
+#      systemd.services.rustdesk = lib.mkIf (cfg.service) {
+#        description = "RustDesk";
+#        enable = true;
+#        requires = [ "network.target" ];              # fails this service if no network
+#        after = [ "systemd-user-sessions.service" ];  # start after network.target and login ready
+#        wantedBy = [ "multi-user.target" ];           # ensure starts at boot
+#        serviceConfig = {
+#          Type = "simple";
+#          ExecStart = "${pkgs.rustdesk-flutter}/bin/rustdesk --service";
+#          ExecStop = ''${pkgs.procps}/bin/pkill -f "rustdesk --"'';
+#          PIDFile = "/run/rustdesk.pid";
+#          KillMode = "mixed";
+#          TimeoutStopSec = 5;
+#          LimitNOFILE = 100000;
+#        };
+#      };
     })
 
     # Configure RustDesk to autostart after login
@@ -202,25 +211,25 @@ in
     })
 
     # Configure server
-    (lib.mkIf (cfg.server.enable) {
-      assertions = [
-        { assertion = (cfg.relayHost != ""); message = "Requires 'services.rustdesk.relayHost' be set"; }
-      ];
-
-      services.rustdesk-server.enable = true;
-      services.rustdesk-server.openFirewall = true;
-      services.rustdesk-server.relay.enable = true;
-      services.rustdesk-server.signal = {
-        enable = true;
-        relayHosts = [ 
-          (if(builtins.length (lib.splitString "/" cfg.relayHost) > 1) then
-             (f.toIP cfg.relayHost).address
-           else
-             cfg.relayHost
-          )
-          cfg.relayHost
-        ];
-      };
-    })
+#    (lib.mkIf (cfg.server.enable) {
+#      assertions = [
+#        { assertion = (cfg.relayHost != ""); message = "Requires 'services.rustdesk.relayHost' be set"; }
+#      ];
+#
+#      services.rustdesk-server.enable = true;
+#      services.rustdesk-server.openFirewall = true;
+#      services.rustdesk-server.relay.enable = true;
+#      services.rustdesk-server.signal = {
+#        enable = true;
+#        relayHosts = [ 
+#          (if(builtins.length (lib.splitString "/" cfg.relayHost) > 1) then
+#             (f.toIP cfg.relayHost).address
+#           else
+#             cfg.relayHost
+#          )
+#          cfg.relayHost
+#        ];
+#      };
+#    })
   ];
 }
