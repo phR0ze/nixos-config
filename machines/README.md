@@ -43,7 +43,10 @@ The top level `args.nix` and sops encrypted`args.enc.json` along with the local 
 `args.enc.json` argument files provide a mechanism for rapidly specifying bulk reusable configuration 
 across many machines.
 
-### Configuration
+### Accepted args.enc.json values
+The supported arguments listed below are used throughout my configuration from the specialArgs 
+inclusion that I've named `args` throughout my configuration.
+
 | Argument                | Type  | Default           | Description
 | ----------------------- | ----- | ----------------- | --------------------------------------
 | `hostname`              | str   | `nixos`           | Hostname for the machine
@@ -58,8 +61,11 @@ across many machines.
 | `autologin`             | bool  | `false`           | Automatically log the user in or not after boot
 | `resolution.x`          | int   | `0`               | Resolution x dimension, e.g. 1920
 | `resolution.y`          | int   | `0`               | Resolution y dimension, e.g. 1080
+| `type.bootable`         | bool  | `false`           | Machine requires a bootloader
+| `type.vm`               | bool  | `false`           | Machine is a virtual machine
 | `type.iso`              | bool  | `false`           | Enable or disable ISO mode
-| `type.vm`               | bool  | `false`           | Enable or disable VM mode
+| `type.develop`          | bool  | `false`           | Machine is intended to be used for development
+| `type.theater`          | bool  | `false`           | Machine is intended to be used for media
 | `drives`                | list  | [ ]               | List of drive objects
 | `drives[x].uuid`        | str   |                   | Drive identifier used in `hardware-configuration.nix`
 | `nix.cache.enable`      | str   |                   | IP of the local Nix Binary Cache
@@ -87,8 +93,11 @@ across many machines.
 | `nics[x].gateway`       | str   |                   | Gateway to use for this NIC e.g. `192.168.1.1`
 | `nics[x].dns.primary`   | str   | `net.dns.primary` | Primary DNS to use for this NIC e.g. `1.1.1.1`
 | `nics[x].dns.fallback`  | str   | `net.dns.fallback`| Fallback DNS to use for this NIC e.g. `8.8.8.8`
-| `services.name`         | str   |                   | Name of the service e.g. `stirling-pdf`
-| `services.type`         | enum  | `cont`            | Type of service `cont` or `nspawn`
+| `services`              | list  | [ ]               | List of Service objects
+| `services[x].name`      | str   |                   | Name of the service e.g. `stirling-pdf`
+| `services[x].type`      | enum  | `cont`            | Type of service `cont` or `nspawn`
+| `services[x].nic`       | nic   |                   | Network setttings for the service
+| `services[x].user`      | user  |                   | User setttings for the service
 | `smb.enable`            | bool  | `false`           | Enable pre-configured nfs shares for this system
 | `smb.user`              | str   |                   | Default SMB user if override not given
 | `smb.pass`              | str   |                   | Default SMB pass if override not given
