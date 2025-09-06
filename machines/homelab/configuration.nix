@@ -27,7 +27,7 @@ in
     services.raw.minecraft.enable = true;
     services.raw.nix-cache.host.enable = true;
     services.raw.private-internet-access.enable = true;
+    services.cont.adguard.enable = true;
     services.cont.stirling-pdf.enable = true;
-    #services.nspawn.portainer.enable = true;
   };
 }
