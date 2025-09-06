@@ -21,31 +21,39 @@
 # - App data is persisted at /var/lib/$APP
 #
 # ### Password reset
-# - Generate new password: mkpasswd -m bcrypt -R 10 <super-strong-password>
+# - Generate new password
+#   1. nix-shell -p apacheHttpd
+#   2. htpasswd -nB <USER>
+#   3. Store the value minus the user name prefix e.g. admin:$2y$05$xGiz3cn5Kcr/6JRpXfxXYulhrxSIVtTQvwYDzMgzba.bZ6cT78cwa
+#      in the services.cont.adguard.user.pass = $2y$05$xGiz3cn5Kcr/6JRpXfxXYulhrxSIVtTQvwYDzMgzba.bZ6cT78cwa
 # - https://github.com/AdguardTeam/AdGuardHome/wiki/Configuration#password-reset
 #
 # ### Services
 # - podman-adguard
 # - podman-network-adguard
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, args, pkgs, f, ... }: with lib.types;
 let
-  cfg = config.homelab.adguard;
-  app = config.homelab.adguard.app;
-  appOpts = (import ../types/app.nix { inherit lib; }).appOpts;
+  machine = config.machine;
+  cfg = config.services.cont.adguard;
+  defaults = f.getService args "adguard" 2003 2003;
+  ipaddr = (f.toIP cfg.nic.ip).address;
 
+  # Note: the contents of this file can be created by setting the 'configure=false;' flag then 
+  # manually configuring Adguard via the UI then checking the resulting /var/lib/adguard/conf/AdGuardHome.yaml
   configFile = pkgs.writeTextFile {
     name = "AdGuardHome.yaml";
     text = ''
       theme: dark
       dns:
+        ratelimit: 0
         upstream_dns:
           - https://dns.cloudflare.com/dns-query
         bootstrap_dns:
           - 1.1.1.1
-          - 8.8.8.8
+          - 9.9.9.10
         fallback_dns:
-          - https://dns.google/dns-query
+          - https://dns10.quad9.net/dns-query
       filters:
         - enabled: true
           url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
@@ -204,158 +212,84 @@ let
   };
 in
 {
-  options = {
-    homelab.adguard = {
-      enable = lib.mkEnableOption "Deploy container based Adguard Home";
+  imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
 
-      app = lib.mkOption {
-        description = lib.mdDoc "Containerized app options";
-        type = types.submodule appOpts;
-        default = {
-          name = "adguard";
-          user = {
-            name = machine.user.name;
-            uid = config.users.users.${machine.user.name}.uid;
-            gid = config.users.groups."users".gid;
-          };
-          nic = {
-            name = machine.nic0.name;
-            subnet = machine.nic0.subnet;
-            gateway = machine.nic0.gateway;
-            ip = "192.168.1.52";  # Host IP
-            port = 80;            # Web interface ip
+  options = {
+    services.cont.adguard = lib.mkOption {
+      description = lib.mdDoc "Adguard service options";
+      type = types.submodule {
+        options = {
+          configure = lib.mkOption {
+            description = lib.mdDoc "Include the persisted configuration";
+            type = types.bool;
+            default = false;
           };
         };
+        imports = [
+          (import ../../types/service.nix { inherit lib defaults; })
+        ];
       };
+      default = defaults;
     };
   };
  
   config = lib.mkIf cfg.enable {
-    assertions = [
-      { assertion = (app.name != null && app.name != "");
-        message = "Application name not specified, please set 'app.name'"; }
-      { assertion = (app.user.name != null && app.user.name != "");
-        message = "Application user name not specified, please set 'app.user.name'"; }
-      { assertion = (app.user.uid != null);
-        message = "Application user uid not specified, please set 'app.user.uid'"; }
-      { assertion = (app.user.gid != null);
-        message = "Application user gid not specified, please set 'app.user.gid'"; }
-      { assertion = (app.nic.name != null && app.nic.name != "");
-        message = "Application parent NIC not specified, please set 'app.nic.name'"; }
-      { assertion = (app.nic.subnet != null && app.nic.subnet != "");
-        message = "Network subnet not specified, please set 'app.nic.subnet'"; }
-      { assertion = (app.nic.gateway != null && app.nic.gateway != "");
-        message = "Network gateway not specified, please set 'app.nic.gateway'"; }
-      { assertion = (app.nic.ip != null && app.nic.ip != "");
-        message = "Host macvlan IP not specified, please set 'app.nic.ip'"; }
-      { assertion = (app.nic.port != null && app.nic.port != "");
-        message = "Nic port not specified, please set 'app.nic.port'"; }
-    ];
-
-    # Requires podman virtualization to be configured
-    virtualisation.podman.enable = true;
 
     # Create persistent directories for application
     # - Args: type, path, mode, user, group, expiration
     # - No group specified, i.e `-` defaults to root
     # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
-      "d /var/lib/${app.name} 0750 ${toString app.user.uid} ${toString app.user.gid} -"
-      "d /var/lib/${app.name}/conf 0750 ${toString app.user.uid} ${toString app.user.gid} -"
-      "d /var/lib/${app.name}/work 0750 ${toString app.user.uid} ${toString app.user.gid} -"
+      "d /var/lib/${cfg.name} 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
+      "d /var/lib/${cfg.name}/conf 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
+      "d /var/lib/${cfg.name}/work 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
     ];
 
-    # Generate the "podman-${app.name}" service unit for the container
+    # Generate the "podman-${cfg.name}" service unit for the container
     # https://github.com/AdguardTeam/AdGuardHome/wiki/Docker
-    virtualisation.oci-containers.containers."${app.name}" = {
-      image = "docker.io/adguard/adguardhome:latest";
+    virtualisation.oci-containers.containers."${cfg.name}" = {
+      image = "docker.io/adguard/adguardhome:${cfg.tag}";
       autoStart = true;
-      hostname = "${app.name}";
-      # No need for port forwarding as were using a macvlan to expose the service directly
-#      ports = [
-#        "${app.nic.ip}:53:53/tcp" "${app.nic.ip}:53:53/udp"         # plain DNS
-#        "${app.nic.ip}:${toString app.nic.port}:80/tcp"             # web interface
-#        "${app.nic.ip}:3000:3000/tcp"                           # setup web interface
-#        #"${app.nic.ip}:67:67/udp" "${app.nic.ip}:68:68/udp"         # add if using as DHCP server
-#        #"${app.nic.ip}:443:443/tcp" "${app.nic.ip}:443:443/udp"     # add if using as HTTPS/DNS over HTTPS server
-#        #"${app.nic.ip}:853:853/tcp"                             # add if using as DNS over TLS server
-#        #"${app.nic.ip}:853:853/udp"                             # add if using as DNS over QUIC server
-#        #"${app.nic.ip}:5443:5443/tcp" "${app.nic.ip}:5443:5443/udp" # add if using AdGuard as DNSCrypt server
-#        #"${app.nic.ip}:6060:6060/tcp"                           # debugging profiles
-#      ];
+      hostname = "${cfg.name}";
+      ports = [
+        "${ipaddr}:53:53/tcp" "${ipaddr}:53:53/udp"         # plain DNS
+        "${ipaddr}:${toString cfg.port}:80/tcp"             # web interface
+        "${ipaddr}:3000:3000/tcp"                           # setup web interface
+#        "${ipaddr}:67:67/udp" "${ipaddr}:68:68/udp"         # add if using as DHCP server
+#        "${ipaddr}:443:443/tcp" "${ipaddr}:443:443/udp"     # add if using as HTTPS/DNS over HTTPS server
+#        "${ipaddr}:853:853/tcp"                             # add if using as DNS over TLS server
+#        "${ipaddr}:853:853/udp"                             # add if using as DNS over QUIC server
+#        "${ipaddr}:5443:5443/tcp" "${ipaddr}:5443:5443/udp" # add if using AdGuard as DNSCrypt server
+#        "${ipaddr}:6060:6060/tcp"                           # debugging profiles
+      ];
       volumes = [
-        "/var/lib/${app.name}/conf:/opt/adguardhome/conf:rw"
-        "/var/lib/${app.name}/work:/opt/adguardhome/work:rw"
+        "/var/lib/${cfg.name}/conf:/opt/adguardhome/conf:rw"
+        "/var/lib/${cfg.name}/work:/opt/adguardhome/work:rw"
       ];
       extraOptions = [
-        "--network=${app.name}"
-        "--ip=${app.nic.ip}"
+        "--network=${cfg.name}"
       ];
     };
 
-    # No need for firewall exceptions because the macvlan is exposed directly on the LAN
-    #networking.firewall.interfaces."${app.name}".allowedTCPPorts = [
-    #  ${app.nic.port} 3000 53 # 67 68 443 853 5443 6060
-    #];
+    # Additional firewall exceptions
+    networking.firewall.interfaces."${cfg.name}@${cfg.nic.link}".allowedTCPPorts = [
+      cfg.port 3000 53 # 67 68 443 853 5443 6060
+    ];
 
-    # Create a dedicated container network to keep the app isolated from other services
-    systemd.services."podman-network-${app.name}" = {
-      path = [ pkgs.podman pkgs.iproute2 ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStop = [
-          "podman network rm -f ${app.name}"
-          "ip route del ${app.nic.ip} dev ${config.networking.bridge.macvlan.name} &>/dev/null || true"
-        ];
-      };
-      script = ''
-        if ! podman network exists ${app.name}; then
-          podman network create -d macvlan --subnet=${app.nic.subnet} --gateway=${app.nic.gateway} -o parent=${app.nic.name} ${app.name}
-        fi
-
-        # Setup host to container access by adding an explicit route
-        ip route add ${app.nic.ip2} dev ${app.name} &>/dev/null || true
-      '';
-    };
-
-    # Add additional configuration to the above generated app service unit i.e. acts as an overlay.
-    # We simply match the name here that is autogenerated from the oci-container directive.
-    systemd.services."podman-${app.name}" = {
-      wantedBy = [ "multi-user.target" ];
-
-      # Trigger the creation of the app macvlan if not already and wait for it. network-addresses...
-      # applies the static IP address to the macvlan which it waits to be created for, thus by
-      # waiting on it we ensure the macvlan is up and running with an IP address.
-      wants = [
-        "network-online.target"
-        "network-addresses-${app.name}.service"
-        "podman-network-${app.name}.service"
-      ];
-      after = [
-        "network-online.target"
-        "network-addresses-${app.name}.service"
-        "podman-network-${app.name}.service"
-      ];
-
-      # Merge in the persisted configuration file
+    # Merge in the persisted configuration file using the same generated service unit name
+    systemd.services."podman-${cfg.name}" = {
       preStart = ''
-        if [ "${f.boolToIntStr app.configure}" = "1" ]; then
-          if [ -e "/var/lib/${app.name}/conf/AdGuardHome.yaml" ]; then
-            ${pkgs.yaml-merge}/bin/yaml-merge "/var/lib/${app.name}/conf/AdGuardHome.yaml" "${configFile}" > "/var/lib/${app.name}/conf/AdGuardHome.yaml.tmp"
+        if [ "${f.boolToIntStr cfg.configure}" = "1" ]; then
+          if [ -e "/var/lib/${cfg.name}/conf/AdGuardHome.yaml" ]; then
+            ${pkgs.yaml-merge}/bin/yaml-merge "/var/lib/${cfg.name}/conf/AdGuardHome.yaml" "${configFile}" > "/var/lib/${cfg.name}/conf/AdGuardHome.yaml.tmp"
             # Writing directly to AdGuardHome.yaml seems to result in an empty file
-            mv "/var/lib/${app.name}/conf/AdGuardHome.yaml.tmp" "/var/lib/${app.name}/conf/AdGuardHome.yaml"
+            mv "/var/lib/${cfg.name}/conf/AdGuardHome.yaml.tmp" "/var/lib/${cfg.name}/conf/AdGuardHome.yaml"
           else
-            cp --force "${configFile}" "/var/lib/${app.name}/conf/AdGuardHome.yaml"
-            chmod 600 "/var/lib/${app.name}/conf/AdGuardHome.yaml"
+            cp --force "${configFile}" "/var/lib/${cfg.name}/conf/AdGuardHome.yaml"
+            chmod 600 "/var/lib/${cfg.name}/conf/AdGuardHome.yaml"
           fi
         fi
       '';
-
-      serviceConfig = {
-        Restart = "always";
-        WorkingDirectory = "/var/lib/${app.name}";
-      };
     };
   };
 }
