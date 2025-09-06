@@ -14,6 +14,12 @@
 			"uuid": "ENC[AES256_GCM,data:+axnirVRpnESiDIYhwW960YfywKFC7b6+4LDmPZVPIKQwfJn,iv:1zr3nXwH4/vMjIgxSmAUcvyOdOST7IC+xHTCzXg59EY=,tag:2POh16Gee9Wbn4Mq5lUAsQ==,type:str]"
 		}
 	],
+	"net": {
+		"dns": {
+			"primary": "ENC[AES256_GCM,data:N34QeoRMaw==,iv:q5rnEw/P7G95IJwXdsNQimZpFS+ZYFqsEsw7H6Gvd/M=,tag:DQutE0xlM8wM59OX6a+/Kw==,type:str]",
+			"fallback": "ENC[AES256_GCM,data:F1UYj2DnMQ==,iv:VPNVww/JEl16xjuuAV8fqWxnA+iFbP8t0agfOPfQhs8=,tag:n6qSXuhUyeoqKD2acz6byg==,type:str]"
+		}
+	},
 	"nics": [
 		{
 			"name": "ENC[AES256_GCM,data:srdPOUGIEQ==,iv:SDfkF71sKPQIygNnE23lRRU0TMFiii85IW6jyW7pa1U=,tag:oop9yaP73WNJmsYvozwweQ==,type:str]",
@@ -75,20 +81,15 @@
 		]
 	},
 	"sops": {
-		"kms": null,
-		"gcp_kms": null,
-		"azure_kv": null,
-		"hc_vault": null,
 		"age": [
 			{
 				"recipient": "age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w",
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBDSjROVndaRDhmQlg4SU9k\nWEgxVEtUdmx3U2dmNUQrdGRveXJWNm8zcFRnCitJL0VBR1dQTGxIL2paOTZFOW9I\nU0JIQnRMSTZTbHh4ZHdicXk5OWJ2czQKLS0tIHRmY1grbFB3OGZJeTdnVUJheWMw\nVytqa080Y0Q4aHIvV01ZSkJQWUFUZzQKF/vJwLopcIt1CV07NUn15ZHjz2FwrjYt\nJ68fFizjzclEe6w46QQRy5lFJu/ZxH43oRgaIammUSW0AIJBqmNI5g==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-08-05T17:31:38Z",
-		"mac": "ENC[AES256_GCM,data:SC6TRZSs0S9lcnzGdtCXcE4mtOzmsEhtGJV7sF23JRRUQhS78B3j3OppQ4K3kvYweaaXWEwkrE0T+1D3YIVSl923XN/k91kieU2klDRupfXiweB9NiXU2n4eS1t0mOKktEhGDkcuWJWJCS5rmYtl59Mvn8uj0ExCs4TlSUv7rHQ=,iv:Ea7nBtY3pqYRSCY2ijXlrzPvKdzeZTW7Pf9eL0Wz5xM=,tag:oBZKvjCBkui9LCGD4WU3AA==,type:str]",
-		"pgp": null,
+		"lastmodified": "2025-09-06T20:51:55Z",
+		"mac": "ENC[AES256_GCM,data:j5gTiEo1X0ZdYCMYYyzwpJCD3c2vTyzONA4enBTQQOlKigeGInuLK6f5IIQyQJZyULQxoKCNQaHZxiAbYr6i2tgWNIy44MMNGRhfry+9XfJNl3CxPCqHeFpQovl9Iy6RdOhH1VVEgGXEQBJ3w7dmCAo/daBEgRbM744tFW8LrV8=,iv:ipeUYf6VTzV0BJnxT0NbdeFO3qPcjVH59nA2s+Op450=,tag:8ZrkN41ANgY6nsJ3yLN61w==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
-		"version": "3.9.2"
+		"version": "3.10.2"
 	}
 }

@@ -38,21 +38,26 @@ in
       }];
     };
 
-    # Emulate homelab configuration
+    # DNS local service testing
     # --------------------------------------------
-    machine.net.bridge.enable = true;
-    machine.nics = [{
-      name = "primary";
-      id = "eth0";
-    }];
-    services.cont.stirling-pdf = {
-      enable = true;
-      nic.ip = "192.168.1.51/24";
-    };
-    services.cont.adguard = {
-      enable = true;
-      nic.ip = "192.168.1.52/24";
-    };
+    machine.net.dns.primary = "192.168.1.53";
+    machine.net.dns.fallback = "192.168.1.53";
+
+#    # Emulate homelab configuration for services development
+#    # --------------------------------------------
+#    machine.net.bridge.enable = true;
+#    machine.nics = [{
+#      name = "primary";
+#      id = "eth0";
+#    }];
+#    services.cont.stirling-pdf = {
+#      enable = true;
+#      nic.ip = "192.168.1.51/24";
+#    };
+#    services.cont.adguard = {
+#      enable = true;
+#      nic.ip = "192.168.1.52/24";
+#    };
 
     #environment.systemPackages = [
     #  pkgs.x2goclient
