@@ -49,6 +49,10 @@ in
       enable = true;
       nic.ip = "192.168.1.51/24";
     };
+    services.cont.adguard = {
+      enable = true;
+      nic.ip = "192.168.1.52/24";
+    };
 
     #environment.systemPackages = [
     #  pkgs.x2goclient

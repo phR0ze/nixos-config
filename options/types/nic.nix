@@ -29,15 +29,13 @@
     subnet = lib.mkOption {
       description = lib.mdDoc "Network subnet/CIDR";
       type = types.str;
-      example = "192.168.1.0/24";
-      default = defaults.subnet or "";
+      default = defaults.subnet or "192.168.1.0/24";
     };
 
     gateway = lib.mkOption {
       description = lib.mdDoc "Network gateway";
       type = types.str;
-      example = "192.168.1.1";
-      default = defaults.gateway or "";
+      default = defaults.gateway or "192.168.1.1";
     };
 
     ip = lib.mkOption {

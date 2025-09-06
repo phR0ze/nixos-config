@@ -13,20 +13,26 @@ in
 
       { assertion = (machine.net.bridge.enable);
         message = "Requires 'machine.net.bridge.enable = true;' to work correctly"; }
+      { assertion = (cfg ? "name" && cfg.name != "");
+        message = "Requires 'service.cont.${cfg.name}.name' => '${builtins.toJSON cfg.name}' be set to the service name"; }
       { assertion = (cfg ? "nic" && cfg.nic ? "link" && cfg.nic.link != "");
-        message = "Requires '${cfg.name}.nic.link' => '${builtins.toJSON cfg.nic.link}' be set to the bridge name"; }
+        message = "Requires 'service.cont.${cfg.name}.nic.link' => '${builtins.toJSON cfg.nic.link}' be set to the bridge name"; }
       { assertion = (cfg ? "nic" && cfg.nic ? "ip" && cfg.nic.ip != "");
-        message = "Requires '${cfg.name}.nic.ip' => '${builtins.toJSON cfg.nic.ip}' be set to a static IP address"; }
+        message = "Requires 'service.cont.${cfg.name}.nic.ip' => '${builtins.toJSON cfg.nic.ip}' be set to a static IP address"; }
+      { assertion = (cfg ? "nic" && cfg.nic ? "subnet" && cfg.nic.subnet != "");
+        message = "Requires 'service.cont.${cfg.name}.nic.subnet' => '${builtins.toJSON cfg.nic.subnet}' be set"; }
+      { assertion = (cfg ? "nic" && cfg.nic ? "gateway" && cfg.nic.gateway != "");
+        message = "Requires 'service.cont.${cfg.name}.nic.gateway' => '${builtins.toJSON cfg.nic.gateway}' be set"; }
       { assertion = (cfg ? "port" && cfg.port > 0);
-        message = "Requires '${cfg.name}.port' => '${builtins.toJSON cfg.nic.ip}' be set"; }
+        message = "Requires 'service.cont.${cfg.name}.port' => '${builtins.toJSON cfg.nic.ip}' be set"; }
       { assertion = (cfg ? "user" && cfg.user ? "name" && cfg.user.name != null && cfg.user.name != "");
-        message = "Requires '${cfg.name}.user.name' => '${builtins.toJSON cfg.user.name}' be set"; }
+        message = "Requires 'service.cont.${cfg.name}.user.name' => '${builtins.toJSON cfg.user.name}' be set"; }
       { assertion = (cfg ? "user" && cfg.user ? "group" && cfg.user.group != null && cfg.user.group != "");
-        message = "Requires '${cfg.name}.user.group' => '${builtins.toJSON cfg.user.group}' be set"; }
+        message = "Requires 'service.cont.${cfg.name}.user.group' => '${builtins.toJSON cfg.user.group}' be set"; }
       { assertion = (cfg ? "user" && cfg.user ? "uid" && cfg.user.uid != null && cfg.user.uid > 0);
-        message = "Requires '${cfg.name}.user.uid' => '${builtins.toJSON cfg.user.uid}' be set"; }
+        message = "Requires 'service.cont.${cfg.name}.user.uid' => '${builtins.toJSON cfg.user.uid}' be set"; }
       { assertion = (cfg ? "user" && cfg.user ? "gid" && cfg.user.gid != null && cfg.user.gid > 0);
-        message = "Requires '${cfg.name}.user.gid' => '${builtins.toJSON cfg.user.gid}' be set"; }
+        message = "Requires 'service.cont.${cfg.name}.user.gid' => '${builtins.toJSON cfg.user.gid}' be set"; }
     ];
 
     # Requires podman virtualization to be configured
@@ -44,7 +50,7 @@ in
     };
 
     # Setup firewall exceptions
-    networking.firewall.interfaces."${cfg.name}".allowedTCPPorts = [ cfg.port ];
+    networking.firewall.interfaces."${cfg.name}@${cfg.nic.link}".allowedTCPPorts = [ cfg.port ];
 
     # Create host macvlan with a dedicated static IP for the app to port forward to
     # - see new macvlan interface `stirling-pdf@br0` with `ip a`
