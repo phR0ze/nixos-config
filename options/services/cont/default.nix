@@ -12,6 +12,7 @@
   imports = [
     ./adguard.nix
     ./lxconsole.nix
+    ./oneup.nix
     ./portainer.nix
     ./qbittorrent.nix
     ./stirling-pdf.nix
