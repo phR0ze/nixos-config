@@ -28,6 +28,7 @@ in
     services.raw.nix-cache.host.enable = true;
     services.raw.private-internet-access.enable = true;
     services.cont.adguard.enable = true;
+    services.cont.oneup.enable = true;
     services.cont.stirling-pdf.enable = true;
   };
 }
