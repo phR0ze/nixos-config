@@ -37,7 +37,7 @@ in
       image = "ghcr.io/phr0ze/${cfg.name}:${cfg.tag}";
       autoStart = true;
       hostname = "${cfg.name}";
-      ports = [ "${(f.toIP machine.net.nic.ip).address}:${toString cfg.port}:80" ];
+      ports = [ "${(f.toIP machine.net.nic0.ip).address}:${toString cfg.port}:80" ];
       volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];
       extraOptions = [
         "--network=${cfg.name}"

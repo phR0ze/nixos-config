@@ -19,7 +19,7 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  nic = config.machine.net.nic.name;
+  nic = config.machine.net.nic0.name;
   cfg = config.services.raw.private-internet-access;
 in
 {

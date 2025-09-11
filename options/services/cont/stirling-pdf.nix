@@ -67,7 +67,7 @@ in
       image = "docker.stirlingpdf.com/stirlingtools/stirling-pdf:${cfg.tag}";
       autoStart = true;
       hostname = "${cfg.name}";
-      ports = [ "${(f.toIP machine.net.nic.ip).address}:${toString cfg.port}:8080" ];
+      ports = [ "${(f.toIP machine.net0.nic.ip).address}:${toString cfg.port}:8080" ];
       volumes = [
         "/var/lib/${cfg.name}/trainingData:/usr/share/tessdata:rw"
         "/var/lib/${cfg.name}/extraConfigs:/configs:rw"

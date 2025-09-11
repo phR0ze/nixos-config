@@ -119,7 +119,7 @@ in
 #        description = lib.mdDoc "IP/DNS name to use for the relay host";
 #        type = types.str;
 #        example = "192.168.1.2";
-#        default = machine.net.nic.ip;
+#        default = machine.net.nic0.ip;
 #      };
 #    };
   };
