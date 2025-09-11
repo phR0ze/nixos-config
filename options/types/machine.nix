@@ -381,16 +381,16 @@ in
             type = types.submodule smb;
             default = {
               enable = args.smb.enable or false;
-              user = args.smb.user or user.name;
-              pass = args.smb.pass or user.pass;
+              user = args.smb.user or defaults.user.name;
+              pass = args.smb.pass or defaults.user.pass;
               domain = args.smb.domain or "";
               dirMode = args.smb.dirMode or "0755";
               fileMode = args.smb.fileMode or "0644";
               entries = if (args ? "smb" && args.smb ? "entries") then (builtins.concatMap (x: [{
                 mountPoint = x.mountPoint or "";
                 remotePath = x.remotePath or "";
-                user = x.user or (args.smb.user or user.name);
-                pass = x.pass or (args.smb.pass or user.pass);
+                user = x.user or (args.smb.user or defaults.user.name);
+                pass = x.pass or (args.smb.pass or defaults.user.pass);
                 domain = if (x ? "domain" && x.domain != "") then x.domain else args.smb.domain or "";
                 dirMode = if (x ? "dirMode" && x.dirMode != "") then x.dirMode else args.smb.dirMode or "0755";
                 fileMode = if (x ? "fileMode" && x.fileMode != "") then x.fileMode else args.smb.fileMode or "0644";
