@@ -14,5 +14,8 @@
     machine.type.bootable = true;
     hardware.graphics.intel = true;
     machine.nix.cache.enable = true;
+
+    hardware.printers.epson-wf7710 = true;
+    hardware.printers.brother-hll2405w = true;
   };
 }

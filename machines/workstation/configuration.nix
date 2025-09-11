@@ -16,6 +16,9 @@
     hardware.graphics.amd = true;
     machine.net.bridge.enable = true;
 
+    hardware.printers.epson-wf7710 = true;
+    hardware.printers.brother-hll2405w = true;
+
     services.raw.barriers.enable = true;
     services.raw.rustdesk.autostart = false;
 
