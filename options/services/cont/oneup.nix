@@ -11,7 +11,7 @@
 let
   machine = config.machine;
   cfg = config.services.cont.oneup;
-  defaults = f.getService args "oneup" 2002 2002;
+  defaults = (f.getService args "oneup" 2002 2002);
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
@@ -37,7 +37,7 @@ in
       image = "ghcr.io/phr0ze/${cfg.name}:${cfg.tag}";
       autoStart = true;
       hostname = "${cfg.name}";
-      ports = [ "${(f.toIP cfg.nic.ip).address}:${toString cfg.port}:80" ];
+      ports = [ "${(f.toIP machine.net.nic.ip).address}:${toString cfg.port}:80" ];
       volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];
       extraOptions = [
         "--network=${cfg.name}"

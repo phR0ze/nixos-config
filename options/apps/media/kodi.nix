@@ -44,7 +44,6 @@ in
 
     # Allow remote control through the firewall
     # View rules with: sudo iptables -S
-    networking.firewall.interfaces."${config.networking.primary.id}".allowedTCPPorts =
-      lib.optionals (cfg.remoteControl) [ cfg.port ];
+    networking.firewall.allowedTCPPorts = lib.optionals (cfg.remoteControl) [ cfg.port ];
   };
 }

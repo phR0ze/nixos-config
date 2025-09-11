@@ -4,17 +4,17 @@
 {
   options = {
     name = lib.mkOption {
-      description = lib.mdDoc "Descriptive NIC name used as a well known tag";
+      description = lib.mdDoc "NIC identifier in the system";
       type = types.str;
-      example = "primary";
+      example = "eth0";
       default = defaults.name or ""; 
     };
 
-    id = lib.mkOption {
-      description = lib.mdDoc "NIC identifier in the system";
+    ip = lib.mkOption {
+      description = lib.mdDoc "IP and CIDR combination";
       type = types.str;
-      example = "ens18";
-      default = defaults.id or "";
+      example = "192.168.1.41/24";
+      default = defaults.ip or "";
     };
 
     link = lib.mkOption {
@@ -29,20 +29,13 @@
     subnet = lib.mkOption {
       description = lib.mdDoc "Network subnet/CIDR";
       type = types.str;
-      default = defaults.subnet or "192.168.1.0/24";
+      default = defaults.subnet or "";
     };
 
     gateway = lib.mkOption {
       description = lib.mdDoc "Network gateway";
       type = types.str;
-      default = defaults.gateway or "192.168.1.1";
-    };
-
-    ip = lib.mkOption {
-      description = lib.mdDoc "IP and CIDR combination";
-      type = types.str;
-      example = "192.168.1.41/24";
-      default = defaults.ip or "";
+      default = defaults.gateway or "";
     };
 
     dns = lib.mkOption {

@@ -19,9 +19,8 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
+  nic = config.machine.net.nic.name;
   cfg = config.services.raw.private-internet-access;
-  nic = config.networking.primary.id;
-  machine = config.machine;
 in
 {
   options = {

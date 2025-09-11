@@ -8,28 +8,22 @@
 			"uuid": "ENC[AES256_GCM,data:yeeiVHlpg03FzNCemN9za6+OEtQ7AFmrCc0keChjikSvnDvv,iv:DonAl4PEHzp6JA2Vky9nkkizYD5UX/semlBta6o0cDI=,tag:5JThxYNOJr+vXMb4/EqIaQ==,type:str]"
 		}
 	],
-	"nics": [
-		{
-			"name": "ENC[AES256_GCM,data:4oaPtSHM4A==,iv:UQiYk5Ts2FBHdZiHQuiz0rn84y+O2BlQ1H2Hm9sagFI=,tag:OepYuHzcLn7E8TycRqOARg==,type:str]",
-			"id": "ENC[AES256_GCM,data:fEmGQg==,iv:lPgNydt3ZqSsbocxbpdVHSkTDerfB56eTvx/NRNDVsg=,tag:TSU8jXbpugXjRUveN4vbOw==,type:str]",
-			"ip": "ENC[AES256_GCM,data:Oxwz8RfS1InleqswXsCC,iv:t94D3BxGrZ/a8kUJx79QCJ6GvMI+k7MXyrJT7fykR04=,tag:0gsmT9XjOysusNz5q4rhDQ==,type:str]"
+	"net": {
+		"nic": {
+			"name": "ENC[AES256_GCM,data:svGF2Q==,iv:T0eTwJ+qrhkwsK4odQ5nzgHT7JhOWJYpFWDAWiEuMs4=,tag:9hSmmC17/pATshlok0dPgA==,type:str]",
+			"ip": "ENC[AES256_GCM,data:EgTMpMqnneH1ZNdLSaB0,iv:ulxQQHK0qEh59J3TI8hB59e3kkJ3Bd7xbdR+4rWxXSU=,tag:Mg5IkMOC8ODMboTl9ZeDIQ==,type:str]"
 		}
-	],
+	},
 	"sops": {
-		"kms": null,
-		"gcp_kms": null,
-		"azure_kv": null,
-		"hc_vault": null,
 		"age": [
 			{
 				"recipient": "age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w",
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzbStxd0FlQWxtemlJNWxt\nV3pTbHpOUXl5MWhMNXI2MlJ4QWR0NnN1UHo0CmYwWDExOXl4LzFnUU9QelBEZExZ\nRzA0eTlIZktYSUU3bWlUQ2lkbklpUjgKLS0tIDNzbFdEWkx4SU9DY28waTd4Q1dw\nVEIySnY4TzBjOXNFaWZyNWxPVHE4eWcKxpeKNBT5YQHnjG7MVVcw1LsBKSDDjLZ1\nfS3hPxtr01XyozT9ORji+LF5E6r/zvAS4eWCLCu/hMDxVq/mhbpgRQ==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-02-19T19:59:17Z",
-		"mac": "ENC[AES256_GCM,data:zMoT0rTXYYf48Su1iNKU5sRs9DjPpmBI3w/gAjhVRGILmkFES0KS1BuPyiGj6jxfUduTpNV8ZeeVzsz1Q7MA5uRZ3TY8LMT/6U7s/Joxp4tuWeT2XlbAXYuj1NFynm0v8xv8h9W3CgNwf3ADrI95P+4ZcqreOAjnNlNmYe+V2gs=,iv:cV2SGSwZEa8hdz0GoaA8luEBe430zxImBDdZlnOHaro=,tag:Jyfiq/yiSWEbV2ccqaCFXA==,type:str]",
-		"pgp": null,
+		"lastmodified": "2025-09-11T17:16:08Z",
+		"mac": "ENC[AES256_GCM,data:MyJBK2dpupfIF371ohqt0wHyjLsGyOl3eL9C6nMwvEJh6bgjc9aYKXEtczMHsKBtPlwr2XXaGVsh7xoXn3kZbUGfIkIPM+NlV0pLQs3HJ7DYM4sbKBxVekoKoiVqgIoeD4oYcZa5EBnqsq4DorMYoN1NE0ANi80PRJjk416954k=,iv:izFWK3xrvJglG33v6DwFiWjOqwneol5h3muN4Gz/R8Q=,tag:PScNSGj4XCx6RSaLYvfARQ==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
-		"version": "3.9.2"
+		"version": "3.10.2"
 	}
 }

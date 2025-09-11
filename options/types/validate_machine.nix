@@ -37,11 +37,6 @@ in
     { assertion = (args.git.email != null); message = "assert args.git.email: ${args.git.email}"; }
     { assertion = (args.git.comment != null); message = "assert args.git.comment: ${args.git.comment}"; }
 
-    { assertion = (args.net.subnet != null); message = "assert args.net.subnet: ${args.net.subnet}"; }
-    { assertion = (args.net.gateway != null); message = "assert args.net.gateway: ${args.net.gateway}"; }
-    { assertion = (args.net.dns.primary != null); message = "assert args.net.dns.primary: ${args.net.dns.primary}"; }
-    { assertion = (args.net.dns.fallback != null); message = "assert args.net.dns.fallback: ${args.net.dns.fallback}"; }
-
     { assertion = (args.nix.cache.enable != null); message = "assert args.nix.cache.enable: ${args.nix.cache.enable}"; }
     { assertion = (args.nix.cache.ip != null); message = "assert args.nix.cache.ip: ${args.nix.cache.ip}"; }
 
@@ -75,10 +70,6 @@ in
     { assertion = (cfg.net.bridge.name != null); message = "assert machine.net.bridge.name: ${cfg.net.bridge.name}"; }
     { assertion = (cfg.net.macvlan.name != null); message = "assert machine.net.macvlan.name: ${cfg.net.macvlan.name}"; }
     { assertion = (cfg.net.macvlan.ip != null); message = "assert machine.net.macvlan.ip: ${cfg.net.macvlan.ip}"; }
-    { assertion = (cfg.net.subnet != null); message = "assert machine.net.subnet: ${cfg.net.subnet}"; }
-    { assertion = (cfg.net.gateway != null); message = "assert machine.net.gateway: ${cfg.net.gateway}"; }
-    { assertion = (cfg.net.dns.primary != null); message = "assert machine.net.dns.primary: ${cfg.net.dns.primary}"; }
-    { assertion = (cfg.net.dns.fallback != null); message = "assert machine.net.dns.fallback: ${cfg.net.dns.fallback}"; }
 
     { assertion = (cfg.nix.cache.enable != null); message = "assert machine.nix.cache.enable: ${cfg.nix.cache.enable}"; }
     { assertion = (cfg.nix.cache.ip != null); message = "assert machine.nix.cache.ip: ${cfg.nix.cache.ip}"; }

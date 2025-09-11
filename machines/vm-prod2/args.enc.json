@@ -1,27 +1,21 @@
 {
 	"id": "ENC[AES256_GCM,data:sAef32tMgbeG7bs7FjTyHAUDSSeTvgER6tOiLDfzLEo=,iv:Lj9gcXGMgTfaFZZrg8YOFaUkKEcZViejqyyqTATYiC4=,tag:AtgdJ69S+T95EURyXWBXAg==,type:str]",
-	"nics": [
-		{
-			"name": "ENC[AES256_GCM,data:AHY2vzFZUA==,iv:nF9uief5//VRjlyM+N2cf6fvpOZ9YuSu0zWAIqqjmVA=,tag:Ksi69TLWY9LX6xOw5fBZDw==,type:str]",
-			"id": "ENC[AES256_GCM,data:mO3RIg==,iv:Md2BVtQ3b3EL77SyZEje9DKbHGm3ICWD3/ThsMZl5rQ=,tag:uzAaaSbSmwt3HfrR7V3eJg==,type:str]",
-			"ip": "ENC[AES256_GCM,data:iyWhHAVZK6vKEp7N8dfk,iv:0lerf2dG99LUCPiBNFe915R9Ncxt3QQ8xfumZypmlaY=,tag:GE3dMcslqlHLQ8dZ9t6hxA==,type:str]"
+	"net": {
+		"nic": {
+			"name": "ENC[AES256_GCM,data:G3dCnw==,iv:oQbE6cwpWBTSWjKdg8QPBD9ccJt9KVPGpTLb9BjyYxI=,tag:vrTb6IDrjQEtNFReNJJuiw==,type:str]",
+			"ip": "ENC[AES256_GCM,data:z/hCEGo9rDbYq3Djs/KF,iv:2MOqFlqxDaQrcmPD/S1JlWunzL62VooCO2rRnw4tbTM=,tag:GaB6InyWBhEReWFF2Q71Zw==,type:str]"
 		}
-	],
+	},
 	"sops": {
-		"kms": null,
-		"gcp_kms": null,
-		"azure_kv": null,
-		"hc_vault": null,
 		"age": [
 			{
 				"recipient": "age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w",
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBFd1lHUUFCOG52M2VlbHZh\nYzBtTW9HVVo4R1BOTFo4R01TMXk2cmpzV0hRCkNEY2ZwVVM0bjliaXJEUnZKeEI1\nUjdwYXFWS2k0OHFpWnpKL2VLcjF2VHcKLS0tIE5VeWNmVUJwMXppeHZNdXVJNk56\nemx6UlJ0ZnBlRU1ZN252TE9vZVAvS1UKXQC1mNy26YsT4XHzcu0AEud0Y1wC+jdQ\nJOmbGib2ENBZW+3G+iM01KA9K59U6zwiDo/SMFmzdKom+TR/kXCLkA==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-02-12T02:37:26Z",
-		"mac": "ENC[AES256_GCM,data:6FHHdhSK95lKJ+QFkKqt0sLO9cHLACX6VGiDQOgVBBOSNsUgjhAaJr4O6W/qn05uxzO4DNdufLV1bvucE9V0Uh2VnxofsTe58ii/YtFL4vN+kqc4ukpWCLVM98MS2m10SvdFUlZqDLEtIrOcISYGbSfvbczPfN4kr3+hP+c9NLY=,iv:kPMZHQ4C+9C7o57YNy6SBh/Mv/Q2q1MBvXO6u0FpvdU=,tag:N7ZUqBac6O172DgM1jQflg==,type:str]",
-		"pgp": null,
+		"lastmodified": "2025-09-11T18:49:57Z",
+		"mac": "ENC[AES256_GCM,data:0XzY5PWEGBBeLnZLDTz+DFXq8VB04rUpPv11ismPZ8nWEW5gdkWv00jpTp+qhSGrLfDtcFEEOGuOBk/8eudcR4AeWgNwHCbLFfiDNRVcTzgT88x7jB7ThpYzxVa85LHjh+NRUVTfp/d2scLxCWo6PAReRWG2SSVZ90nKvAl9j3A=,iv:GHsQ/2bPqQEXi40yQGL18l+purlSNxa7giZFy8C9oAo=,tag:QMp/m7bYwOPQAWR39hzG6A==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
-		"version": "3.9.2"
+		"version": "3.10.2"
 	}
 }

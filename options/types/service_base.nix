@@ -11,20 +11,14 @@ in
       #{ assertion = (cfg ? "debug");
       #  message = "echo '${builtins.toJSON cfg}' | jq"; }
 
-      { assertion = (machine.net.bridge.enable);
-        message = "Requires 'machine.net.bridge.enable = true;' to work correctly"; }
       { assertion = (cfg ? "name" && cfg.name != "");
         message = "Requires 'service.cont.${cfg.name}.name' => '${builtins.toJSON cfg.name}' be set to the service name"; }
-      { assertion = (cfg ? "nic" && cfg.nic ? "link" && cfg.nic.link != "");
-        message = "Requires 'service.cont.${cfg.name}.nic.link' => '${builtins.toJSON cfg.nic.link}' be set to the bridge name"; }
-      { assertion = (cfg ? "nic" && cfg.nic ? "ip" && cfg.nic.ip != "");
-        message = "Requires 'service.cont.${cfg.name}.nic.ip' => '${builtins.toJSON cfg.nic.ip}' be set to a static IP address"; }
-      { assertion = (cfg ? "nic" && cfg.nic ? "subnet" && cfg.nic.subnet != "");
-        message = "Requires 'service.cont.${cfg.name}.nic.subnet' => '${builtins.toJSON cfg.nic.subnet}' be set"; }
-      { assertion = (cfg ? "nic" && cfg.nic ? "gateway" && cfg.nic.gateway != "");
-        message = "Requires 'service.cont.${cfg.name}.nic.gateway' => '${builtins.toJSON cfg.nic.gateway}' be set"; }
+      { assertion = (machine.net.nic.name != "");
+        message = "Requires 'machine.net.nic.name' => '${builtins.toJSON machine.net.nic.name}' be set to a NIC name"; }
+      { assertion = (machine.net.nic.ip != "");
+        message = "Requires 'machine.net.nic.ip' => '${builtins.toJSON machine.net.nic.ip}' be set to a static IP address"; }
       { assertion = (cfg ? "port" && cfg.port > 0);
-        message = "Requires 'service.cont.${cfg.name}.port' => '${builtins.toJSON cfg.nic.ip}' be set"; }
+        message = "Requires 'service.cont.${cfg.name}.port' => '${builtins.toJSON cfg.port}' be set"; }
       { assertion = (cfg ? "user" && cfg.user ? "name" && cfg.user.name != null && cfg.user.name != "");
         message = "Requires 'service.cont.${cfg.name}.user.name' => '${builtins.toJSON cfg.user.name}' be set"; }
       { assertion = (cfg ? "user" && cfg.user ? "group" && cfg.user.group != null && cfg.user.group != "");
@@ -50,32 +44,20 @@ in
     };
 
     # Setup firewall exceptions
-    networking.firewall.interfaces."${cfg.name}@${cfg.nic.link}".allowedTCPPorts = [ cfg.port ];
-
-    # Create host macvlan with a dedicated static IP for the app to port forward to
-    # - see new macvlan interface `stirling-pdf@br0` with `ip a`
-    # - sudo systemctl status network-addresses-stirling-pdf.service
-    networking = {
-      macvlans.${cfg.name} = {
-        interface = "${cfg.nic.link}";
-        mode = "bridge";
-      };
-      interfaces.${cfg.name}.ipv4.addresses = [ (f.toIP cfg.nic.ip)];
-    };
+    networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
 
     # Create a dedicated container network to keep the app isolated from other services
     systemd.services."podman-network-${cfg.name}" = {
-      path = [ pkgs.podman ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
         ExecStop = [
-          "podman network rm -f ${cfg.name}"
+          "${pkgs.podman}/bin/podman network rm -f ${cfg.name}"
         ];
       };
       script = ''
-        if ! podman network exists ${cfg.name}; then
-          podman network create ${cfg.name}
+        if ! ${pkgs.podman}/bin/podman network exists ${cfg.name}; then
+          ${pkgs.podman}/bin/podman network create ${cfg.name}
         fi
       '';
     };
@@ -85,17 +67,14 @@ in
     systemd.services."podman-${cfg.name}" = {
       wantedBy = [ "multi-user.target" ];
 
-     # Trigger the creation of the app macvlan if not already and wait for it. network-addresses... 
-      # applies the static IP address to the macvlan which it waits to be created for, thus by 
-      # waiting on it we ensure the macvlan is up and running with an IP address.
       wants = [
         "network-online.target"
-        "network-addresses-${cfg.name}.service"
+        #"network-addresses-${cfg.name}.service"
         "podman-network-${cfg.name}.service"
       ];
       after = [
         "network-online.target"
-        "network-addresses-${cfg.name}.service"
+        #"network-addresses-${cfg.name}.service"
         "podman-network-${cfg.name}.service"
       ];
 

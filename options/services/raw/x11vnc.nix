@@ -49,6 +49,6 @@ in
       restartIfChanged = true;
     };
 
-    networking.firewall.interfaces."${config.networking.primary.id}".allowedTCPPorts = [ 5900 ];
+    networking.firewall.interfaces.allowedTCPPorts = [ 5900 ];
   };
 }
