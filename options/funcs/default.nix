@@ -80,6 +80,6 @@
       # Now extract the service and merge with defaults
       service = if (builtins.length filtered > 0)
         then (builtins.elemAt filtered 0) // defaults
-        else ({ nic = {}; port = 80; }) // defaults;
+        else ({ port = 80; }) // defaults;
     in service;
 }
