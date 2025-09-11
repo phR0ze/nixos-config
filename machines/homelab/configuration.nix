@@ -27,5 +27,9 @@
     #services.cont.adguard.enable = true;
     #services.cont.oneup.enable = true;
     #services.cont.stirling-pdf.enable = true;
+
+    environment.systemPackages = [
+      pkgs.synology-drive-client
+    ];
   };
 }
