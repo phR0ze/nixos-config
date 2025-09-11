@@ -4,13 +4,9 @@
 # - Virtual Machine deployment
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, args, f, ... }: with lib.types;
-let
-  cfg = config.machine;
-in
 {
   imports = [
     ../../options/virtualisation/qemu/guest.nix
-    #../../profiles/base.nix
     ../../profiles/xfce/desktop.nix
   ];
 
@@ -40,29 +36,30 @@ in
 
     # DNS local service testing
     # --------------------------------------------
-    machine.net.dns.primary = "192.168.1.53";
-    machine.net.dns.fallback = "192.168.1.53";
+    machine.net.nic.dns.primary = "1.1.1.1";
+    machine.net.nic.dns.fallback = "1.1.1.1";
 
     # Emulate homelab configuration for services development
     # --------------------------------------------
     machine.net.bridge.enable = true;
-    machine.nics = [{
-      name = "primary";
-      id = "eth0";
-    }];
+    machine.net.nic = {
+      name = "eth0";
+      ip = "192.168.1.60/24";
+      subnet = "192.168.1.0";
+      gateway = "192.168.1.1";
+    };
+    services.cont.stirling-pdf = {
+      enable = true;
+      port = 8081;
+    };
     services.cont.oneup = {
       enable = true;
-      nic.ip = "192.168.1.52/24";
+      port = 8082;
     };
-
-#    services.cont.stirling-pdf = {
-#      enable = true;
-#      nic.ip = "192.168.1.51/24";
-#    };
-#    services.cont.adguard = {
-#      enable = true;
-#      nic.ip = "192.168.1.52/24";
-#    };
+    services.cont.adguard = {
+      enable = true;
+      port = 8083;
+    };
 
     #environment.systemPackages = [
     #  pkgs.x2goclient

@@ -4,9 +4,6 @@
 # - Basic desktop deployment
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, args, f, ... }: with lib.types;
-let
-  cfg = config.machine;
-in
 {
   imports = [
     ./hardware-configuration.nix

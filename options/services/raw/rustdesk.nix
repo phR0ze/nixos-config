@@ -24,8 +24,8 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  cfg = config.services.raw.rustdesk;
   machine = config.machine;
+  cfg = config.services.raw.rustdesk;
 
   # Generate a machine-id encoded password for RustDesk
   encoded-pass = builtins.readFile (pkgs.runCommandLocal "encoded-rustdesk-pass" {} ''
@@ -119,7 +119,7 @@ in
 #        description = lib.mdDoc "IP/DNS name to use for the relay host";
 #        type = types.str;
 #        example = "192.168.1.2";
-#        default = config.networking.primary.ip;
+#        default = machine.net.nic.ip;
 #      };
 #    };
   };

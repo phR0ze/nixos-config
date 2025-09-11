@@ -1,45 +1,32 @@
-# Import all the options
+# Networking options for the system
 #
-# ## Bridge vs Macvlan vs Macvtap
-# There are a number of virtualized networking options that allow for connecting containers and VMs.
-# I've determined that using a Bridge for the host is the best solution to build from as it is widely 
-# used and driven by the community and provides the easiest path for exposing containers and VMs on 
-# the LAN with their respective IPs and MAC addresses. The containers and VMs are then connected to 
-# the bridge using a variety of Macvlan and Macvtap options.
+# ## Container networking
+# Networking options for connecting containers needs to be carefully planned:
+# - For protection against supply chain attacks and bad actors every container should be deployed in 
+#   its own isolated user-defined docker network in bridge mode.
+# - Deploy a reverse proxy e.g. Caddy on an additional user-defined docker network in bridge mode and 
+#   then connect Caddy to each of the isolatec container networks
+# - Expose (i.e. map) ports 80/443 from Caddy to the host and configure Caddy to then act as the 
+#   reverser proxy for any of the applications that you'd like to expose to the LAN
 #
-# Note: I prefer to use a local Macvlan then to port forward the container to that Macvlan as this 
-# will provide a LAN IP address that is listable with `ip a` while eliminating any other access 
-# to/from the container to the LAN. Alternatively if the container/VM is NixOS based then we can use 
-# the internal firewall to limit access.
+# ### Failed options
+# - Dedicated macvlans with static IPs on the host for each app hypothetically would have worked but 
+#   in practice became unwieldy and seemed to frequently confuse the networking stack i.e. didn't 
+#   work. Additionally macvlan changes required a networking stack restart which was distruptive and 
+#   an additional macvlan for the host to be able to communicate with the apps.
+# - Docker macvlans for each app though more stable doesn't provide protection from bad actors
+# - Exposing apps directly on the host provides isolation but becomes unwieldy and difficult to 
+#   juggle all the various port mappings.
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  cfg = config.machine;
+  machine = config.machine;
   networking = config.networking;
-
-  # Extract the primary nic if it exists
-  filtered = builtins.filter (x: x.name == "primary") cfg.nics;
-  nic0 = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
 in
 {
   options = {
     networking.network-manager = {
       enable = lib.mkEnableOption "Install and configure network manager";
-    };
-    networking.primary.id = lib.mkOption {
-      description = lib.mdDoc ''
-        Primary interface to use for network access. This will typically just be the physical nic 
-        e.g. ens18, but when 'machine.net.bridge.enable = true' it will be set to 
-        'machine.net.bridge.name' e.g. br0 as the bridge will be the primary interface.
-      '';
-      type = types.str;
-      default = if (!nic0 ? "id" || nic0.id == "") then "" else nic0.id;
-    };
-    networking.primary.ip = lib.mkOption {
-      description = lib.mdDoc "Primary interface IP in CIDR notation";
-      type = types.str;
-      example = "192.168.1.50/24";
-      default = if (!nic0 ? "ip" || nic0.ip == "") then "" else nic0.ip;
     };
   };
 
@@ -57,21 +44,19 @@ in
       };
 
       # Enables ability for user to make network manager changes
-      users.users.${config.machine.user.name}.extraGroups = [ "networkmanager" ];
+      users.users.${machine.user.name}.extraGroups = [ "networkmanager" ];
     })
 
     # Configure basic networking
     # ----------------------------------------------------------------------------------------------
     {
       networking.enableIPv6 = false;
-      networking.hostName = cfg.hostname;
+      networking.hostName = machine.hostname;
       networking.firewall.allowPing = true;
     }
-    (lib.mkIf (cfg.net.bridge.enable) {
-      networking.primary.id = cfg.net.bridge.name;
-    })
 
     # Configure DNS. resolved works well with network manager
+    # DNS can be temporarily changed: sudo resolvectl dns enp1s0 1.1.1.1
     # ----------------------------------------------------------------------------------------------
     {
       services.resolved = {
@@ -79,64 +64,63 @@ in
         dnssec = "allow-downgrade"; # using `dnssec = "true"` will break DNS if VPN DNS servers don't support
       };
     }
-    (f.mkIfElse (cfg.net.dns.primary != "" && cfg.net.dns.fallback != "") {
-      networking.nameservers = [ "${cfg.net.dns.primary}" ];
-      services.resolved.fallbackDns = [ "${cfg.net.dns.fallback}" ];
-    } (lib.mkIf (cfg.net.dns.primary != "") {
-      networking.nameservers = [ "${cfg.net.dns.primary}" ];
+    (f.mkIfElse (machine.net.nic.dns.primary != "" && machine.net.nic.dns.fallback != "") {
+      networking.nameservers = [ "${machine.net.nic.dns.primary}" ];
+      services.resolved.fallbackDns = [ "${machine.net.nic.dns.fallback}" ];
+    } (lib.mkIf (machine.net.nic.dns.primary != "") {
+      networking.nameservers = [ "${machine.net.nic.dns.primary}" ];
     }))
 
     # Configure network bridge
     # ----------------------------------------------------------------------------------------------
-    (f.mkIfElse (cfg.net.bridge.enable) (lib.mkMerge [
+    (f.mkIfElse (machine.net.bridge.enable) (lib.mkMerge [
       {
         assertions = [
-          { assertion = (cfg.net.bridge.name != ""); message = "Bridge name must be specified for bridge mode"; }
-          { assertion = (cfg.net.macvlan.name != ""); message = "Macvlan name must be specified for bridge mode"; }
-          { assertion = (builtins.attrNames nic0 != []); message = "Primary nic id must be specified for bridge mode e.g. 'eth0'"; } 
-          { assertion = (nic0 ? "id" && nic0.id != ""); message = "Primary nic id was not specified"; } 
+          { assertion = (machine.net.bridge.name != ""); message = "Bridge name must be specified for bridge mode"; }
+          { assertion = (machine.net.nic.name != ""); message = "Primary nic must be specified e.g. 'eth0'"; } 
         ];
         networking.useDHCP = false;
-        networking.bridges."${cfg.net.bridge.name}".interfaces = ["${nic0.id}" ];
+        networking.bridges."${machine.net.bridge.name}".interfaces = ["${machine.net.nic.name}" ];
       }
 
       # Configure static IP or DHCP for the bridge
-      (f.mkIfElse (nic0 ? "ip" && nic0.ip != "") {
+      (f.mkIfElse (machine.net.nic.ip != "") {
         assertions = [
-          { assertion = (nic0 ? "gateway" && nic0.gateway != ""); message = "NIC gateway was not specified"; } 
+          { assertion = (machine.net.nic.subnet != ""); message = "NIC subnet was not specified"; } 
+          { assertion = (machine.net.nic.gateway != ""); message = "NIC gateway was not specified"; } 
         ];
-        networking.interfaces."${cfg.net.bridge.name}".ipv4.addresses = [ (f.toIP nic0.ip) ];
-        networking.defaultGateway = "${nic0.gateway}";
+        networking.interfaces."${machine.net.bridge.name}".ipv4.addresses = [ (f.toIP machine.net.nic.ip) ];
+        networking.defaultGateway = "${machine.net.nic.gateway}";
       } {
-        networking.interfaces."${cfg.net.bridge.name}".useDHCP = true;
+        networking.interfaces."${machine.net.bridge.name}".useDHCP = true;
       })
 
       # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
       # interacted with by every device on the LAN except the host due to local virtual oddities
       {
-        networking.macvlans."${cfg.net.macvlan.name}" = {
-          interface = "${cfg.net.bridge.name}";
+        networking.macvlans."${machine.net.macvlan.name}" = {
+          interface = "${machine.net.bridge.name}";
           mode = "bridge";
         };
       }
-      (f.mkIfElse (cfg.net.macvlan.ip == "") {
-        networking.interfaces."${cfg.net.macvlan.name}".useDHCP = true;
+      (f.mkIfElse (machine.net.macvlan.ip == "") {
+        networking.interfaces."${machine.net.macvlan.name}".useDHCP = true;
       } {
-        networking.interfaces."${cfg.net.macvlan.name}".ipv4.addresses = [
-          { address = "${cfg.net.macvlan.ip}"; prefixLength = 32; }
+        networking.interfaces."${machine.net.macvlan.name}".ipv4.addresses = [
+          { address = "${machine.net.macvlan.ip}"; prefixLength = 32; }
         ];
       })
 
-    # Otherwise configure primary NIC with static IP/DHCP
+    # Otherwise configure primary NIC with static IP
     # ----------------------------------------------------------------------------------------------
-    ]) (f.mkIfElse (nic0 ? "ip" && nic0.ip != "") {
+    ]) (f.mkIfElse (machine.net.nic.ip != "") {
       assertions = [
-        { assertion = (nic0 ? "id"); message = "NIC id was not specified"; }
-        { assertion = (nic0 ? "gateway"); message = "NIC gateway was not specified"; }
+        { assertion = (machine.net.nic.subnet != ""); message = "NIC subnet was not specified"; } 
+        { assertion = (machine.net.nic.gateway != ""); message = "NIC gateway was not specified"; } 
       ];
 
-      networking.interfaces."${nic0.id}".ipv4.addresses = [ (f.toIP nic0.ip) ];
-      networking.defaultGateway = "${nic0.gateway}";
+      networking.interfaces."${machine.net.nic.name}".ipv4.addresses = [ (f.toIP machine.net.nic.ip) ];
+      networking.defaultGateway = "${machine.net.nic.gateway}";
     } {
       # Finally fallback on DHCP for the primary NIC
     }))

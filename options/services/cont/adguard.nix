@@ -37,7 +37,7 @@ let
   machine = config.machine;
   cfg = config.services.cont.adguard;
   defaults = f.getService args "adguard" 2003 2003;
-  ipaddr = (f.toIP cfg.nic.ip).address;
+  ipaddr = (f.toIP machine.net.nic.ip).address;
 
   # Note: the contents of this file can be created by setting the 'configure=false;' flag then 
   # manually configuring Adguard via the UI then checking the resulting /var/lib/adguard/conf/AdGuardHome.yaml
@@ -272,7 +272,7 @@ in
     };
 
     # Additional firewall exceptions
-    networking.firewall.interfaces."${cfg.name}@${cfg.nic.link}".allowedTCPPorts = [
+    networking.firewall.interfaces.${machine.net.nic.name}.allowedTCPPorts = [
       cfg.port 3000 53 # 67 68 443 853 5443 6060
     ];
 

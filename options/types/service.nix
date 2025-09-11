@@ -25,12 +25,6 @@
       default = defaults.user or null;
     };
 
-    nic = lib.mkOption {
-      description = lib.mdDoc "NIC options for service";
-      type = types.nullOr (types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic or {}; }));
-      default = defaults.nic or null;
-    };
-
     port = lib.mkOption {
       description = lib.mdDoc "Service port to use";
       type = types.int;

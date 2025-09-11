@@ -22,13 +22,24 @@ let
 
   # Defaults to use for uniformity across the different default use cases
   user_name = args.user.name or "admin";
-  user = {
-    name = user_name;
-    pass = if (!args ? "user" || !args.user ? "pass" || args.user.pass == "") then "admin" else args.user.pass;
-    fullname = args.user.fullname or "admin";
-    email = args.user.email or "admin";
-    uid = config.users.users.${user_name}.uid;
-    gid = config.users.groups."users".gid;
+  defaults = {
+    user = {
+      name = user_name;
+      pass = if ((args.user.pass or "") != "") then args.user.pass else "admin";
+      fullname = args.user.fullname or "admin";
+      email = args.user.email or "admin";
+      uid = config.users.users.${user_name}.uid;
+      gid = config.users.groups."users".gid;
+    };
+    nic = {
+      name = args.net.nic.name or "";
+      ip = args.net.nic.ip or "";
+      link = args.net.nic.link or "";
+      subnet = args.net.nic.subnet or "";
+      gateway = args.net.nic.gateway or "";
+      dns.primary = args.net.nic.dns.primary or "1.1.1.1";
+      dns.fallback = args.net.nic.dns.fallback or "8.8.8.8";
+    };
   };
 in
 {
@@ -245,22 +256,20 @@ in
                     with other devices on the LAN. All of the other primary network settings will be used 
                     for the new bridge interface.
 
-                    Note, for bridge mode to work the primary nic id must be specified via "nics". This can 
-                    be done via the "args.enc.json" or directly in the "configuration.nix" file.
+                    Note, for bridge mode to work the primary nic must be specified via "net.nic.name".
+                    This can be done via the "args.enc.json" or directly in the "configuration.nix" file.
 
-                    1. args.enc.json example
+                    1. configuration.nix example
+                    machine.net.nic.name = "eth0";
+
+                    2. args.enc.json example
                     {
-                      "nics": [{
-                        "name": "primary",
-                        "id": "eth0"
-                      }]
+                      "net": {
+                        "nic": {
+                          "name": "eth0",
+                        }
+                      }
                     }
-
-                    2. configuration.nix example
-                    machine.nics = [{
-                      name = "primary";
-                      id = "eth0";
-                    }];
                   '';
                   name = lib.mkOption {
                     type = types.str;
@@ -272,8 +281,8 @@ in
                   description = lib.mdDoc ''
                     Create a macvlan interface for the host to use on the bridge, which allows the host to 
                     communicate with virtualized devices connected to the bridge. Otherwise the virtualized 
-                    devices can fully participate on the LAN but they won't be able to interact directly 
-                    with the host nor will the host be able to interact directly with them.
+                    devices can fully participate on the LAN but the host won't be able to interact directly 
+                    with the the virtualized device.
                   '';
                   type = types.submodule {
                     options = {
@@ -292,48 +301,17 @@ in
                   };
                   default = { name = "host"; ip = ""; };
                 };
-                gateway = lib.mkOption {
-                  description = lib.mdDoc "Default gateway for the system";
-                  type = types.str;
-                  default = args.net.gateway or "";
-                };
-                subnet = lib.mkOption {
-                  description = lib.mdDoc "Default subnet for the system";
-                  type = types.str;
-                  default = args.net.subnet or "";
-                };
-                dns = lib.mkOption {
-                  description = lib.mdDoc "Default DNS for the system";
-                  type = types.submodule {
-                    options = {
-                      primary = lib.mkOption {
-                        description = lib.mdDoc "Primary DNS IP";
-                        type = types.str;
-                        default = args.net.dns.primary or "1.1.1.1";
-                      };
-                      fallback = lib.mkOption {
-                        description = lib.mdDoc "Fallback DNS IP";
-                        type = types.str;
-                        default = args.net.dns.fallback or "8.8.8.8";
-                      };
-                    };
-                  };
-                  default = {
-                    primary = args.net.dns.primary or "1.1.1.1";
-                    fallback = args.net.dns.fallback or "8.8.8.8";
-                  };
+                nic = lib.mkOption {
+                  description = lib.mdDoc "Primary NIC options";
+                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic; });
+                  default = defaults.nic;
                 };
               };
             };
             default = {
               bridge = { enable = false; };
               macvlan = { name = "host"; ip = "host"; };
-              gateway = args.net.gateway or "";
-              subnet = args.net.subnet or "";
-              dns = {
-                primary = args.net.dns.primary or "1.1.1.1";
-                fallback = args.net.dns.fallback or "8.8.8.8";
-              };
+              nic = defaults.nic;
             };
           };
 
@@ -388,14 +366,13 @@ in
             type = types.listOf (types.submodule (import ./nic.nix { inherit lib; defaults = {}; }));
             default = if (args ? "nics") then (builtins.concatMap (x: [{
               name = x.name or "";
-              id = x.id or "";
-              link = x.link or "";
-              subnet = x.subnet or (args.net.subnet or "");
-              gateway = x.gateway or (args.net.gateway or "");
               ip = x.ip or "";
+              link = x.link or "";
+              subnet = x.subnet or defaults.nic.subnet;
+              gateway = x.gateway or defaults.nic.gateway;
               dns = {
-                primary = x.dns.primary or (args.net.dns.primary or "1.1.1.1");
-                fallback = x.dns.fallback or (args.net.dns.fallback or "8.8.8.8");
+                primary = x.dns.primary or defaults.nic.dns.primary;
+                fallback = x.dns.fallback or defaults.nic.dns.fallback;
               };
             }]) args.nics) else [];
           };
@@ -425,8 +402,8 @@ in
 
           user = lib.mkOption {
             description = lib.mdDoc "User options";
-            type = types.submodule (import ./user.nix { inherit lib; defaults = user; });
-            default = user; # Used when machine.user is not set at all
+            type = types.submodule (import ./user.nix { inherit lib; defaults = defaults.user; });
+            default = defaults.user;
           };
         };
       };
