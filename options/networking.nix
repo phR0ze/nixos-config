@@ -20,6 +20,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
+  net = config.net;
   machine = config.machine;
   networking = config.networking;
 in
@@ -49,7 +50,7 @@ in
 
     # Configure network manager
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (config.net.network-manager.enable) {
+    (lib.mkIf (net.network-manager.enable) {
       networking.networkmanager = {
         enable = true;                      # Enable networkmanager and nm-applet
         dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
@@ -70,7 +71,7 @@ in
       networking.firewall.allowPing = true;
     }
     (lib.mkIf (machine.net.bridge.enable) {
-      config.net.primary.name = machine.net.bridge.name;
+      net.primary.name = machine.net.bridge.name;
     })
 
     # Configure DNS. resolved works well with network manager
