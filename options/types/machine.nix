@@ -316,7 +316,8 @@ in
             default = {
               bridge = { enable = false; };
               macvlan = { name = "host"; ip = "host"; };
-              nic = defaults.nic0;
+              nic0 = defaults.nic0;
+              nic1 = defaults.nic0;
             };
           };
 
