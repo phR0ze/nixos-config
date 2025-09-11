@@ -45,8 +45,6 @@
     machine.net.nic = {
       name = "eth0";
       ip = "192.168.1.60/24";
-      subnet = "192.168.1.0";
-      gateway = "192.168.1.1";
     };
     services.cont.stirling-pdf = {
       enable = true;

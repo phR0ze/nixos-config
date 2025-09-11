@@ -43,28 +43,6 @@
       prefixLength = lib.toInt (builtins.elemAt ip 1);
     };
 
-  # Convert an IP to a gateway
-  #-------------------------------------------------------------------------------------------------
-  # Usage:
-  # let subnet = f.toIP "192.168.1.50/24"; in "192.168.1.1"
-  #toSubnet = x:
-  #  let
-  #    ip = lib.splitString "/" x;
-  #  in 
-  #    subnet
-  #  };
-
-  # Convert an IP to a subnet
-  #-------------------------------------------------------------------------------------------------
-  # Usage:
-  # let subnet = f.toIP "192.168.1.50/24"; in "192.168.1.0/24"
-  #toSubnet = x:
-  #  let
-  #    ip = lib.splitString "/" x;
-  #  in 
-  #    subnet
-  #  };
-
   # Provide mkIf support for an else clause
   #-------------------------------------------------------------------------------------------------
   # Usage: 
