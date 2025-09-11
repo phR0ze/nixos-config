@@ -9,11 +9,11 @@
 		}
 	],
 	"net": {
-		"nic": {
-			"name": "ENC[AES256_GCM,data:sXvNhJECvPd5,iv:uLJwqgIP8kIvXdCziVwChfgq9R4cdrmNU4daazfVvmY=,tag:1NqGtpO0gnZChimcpRLC0w==,type:str]",
+		"nic0": {
+			"name": "ENC[AES256_GCM,data:qeh1bTQ3I2Mm,iv:onHfPbo5/0OAzk6nK7r97Li1PsmFhyChGVv0+XUYBLk=,tag:ObCKOE9oUgpEeJa2WO2IKQ==,type:str]",
 			"dns": {
-				"primary": "ENC[AES256_GCM,data:cGPPxa2JmA==,iv:/dn2WsPu8FOnC0+2zA/GItbA4xDFBJC6FXV8K6U/6cE=,tag:npezmCqiQQ2AeFNJUZOtBA==,type:str]",
-				"fallback": "ENC[AES256_GCM,data:TnxXxAOcrQ==,iv:oVlJfI2XgGh/nzw7cGP8uq3Y0VEa0dSUTV3MeWDHGQk=,tag:3jzWFyKKgzv/90Ss/JHLAQ==,type:str]"
+				"primary": "ENC[AES256_GCM,data:p+MzR0Rd9w==,iv:VJ1JpbTbBHYr3CaChMyVesEZO2BfpVNfUeOerEOOlvw=,tag:fYlN5jKLXFYIsBhUd8xa0g==,type:str]",
+				"fallback": "ENC[AES256_GCM,data:Anu/kqXJWA==,iv:fQZUv6IUHS8jXmQ0+5SKldNPcvVuOycuvmHTnxrUZgw=,tag:IWgkW+FM8DQ2PTF12koeMA==,type:str]"
 			}
 		}
 	},
@@ -49,8 +49,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBDSjROVndaRDhmQlg4SU9k\nWEgxVEtUdmx3U2dmNUQrdGRveXJWNm8zcFRnCitJL0VBR1dQTGxIL2paOTZFOW9I\nU0JIQnRMSTZTbHh4ZHdicXk5OWJ2czQKLS0tIHRmY1grbFB3OGZJeTdnVUJheWMw\nVytqa080Y0Q4aHIvV01ZSkJQWUFUZzQKF/vJwLopcIt1CV07NUn15ZHjz2FwrjYt\nJ68fFizjzclEe6w46QQRy5lFJu/ZxH43oRgaIammUSW0AIJBqmNI5g==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-09-11T19:00:42Z",
-		"mac": "ENC[AES256_GCM,data:BaTc7TGpJgPGaKRc1q4ruCR9RrmiPrTMGvtTMSABbWu6cJGUWKlwHqwXYAR88naQX3m1roFRkGSQUw9htKMkQjPovAyNEZ8Lpdquj8XpmZfQg0KSsbC5Hip7tvf46ZMwUj5EPIKueMiRqen2XFDUmWpb8h3iioelC44LCts5RQg=,iv:4/zW81eKclNDgt/zQnpORMgjTQpw/2Q9eRaMEmVfeI4=,tag:dXZGqcJu25HVperrHRyGVw==,type:str]",
+		"lastmodified": "2025-09-11T20:15:52Z",
+		"mac": "ENC[AES256_GCM,data:/LFHmCCGNNOfMq5qNmYd5b4o3fOV1fsDsX+SMmlfup/wbS/bvZkZjDmEYJo6emx1W3hGGJn6eKwBp9ClBDB7a21fMrxPkpEPLK8O7Jdu7XXkIi1B9w1mGeio3pHa/qF/kYu+JqutWtdn18cb007jDgQpeszgqgeq7rlQw9skhbY=,iv:vey0e5k3VngusTYibdj9PZtWaJ3qyITq2gOaGE1R4wk=,tag:mxOE+vXeAoOyYOlV0dTD9A==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.10.2"
 	}

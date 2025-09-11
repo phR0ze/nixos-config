@@ -79,21 +79,20 @@ inclusion that I've named `args` throughout my configuration.
 | `net.bridge.name`       | str   | `br0`             | Name to use for the virtual network bridge
 | `net.macvlan.name`      | str   | `host`            | Name to use for the host macvlan on the bridge
 | `net.macvlan.ip`        | str   |                   | IP to use for the host macvlan else DHCP will be used
-| `net.nic.name`          | str   |                   | NIC system identifier e.g. ens18, eth0
-| `net.nic.ip`            | str   |                   | IP address to use for this NIC else DHCP, e.g. 192.168.1.12/24
-| `net.nic.gateway`       | str   |                   | Default gateway to use for machine e.g. `192.168.1.1`
-| `net.nic.subnet`        | str   |                   | Default subnet to use for machine e.g. `192.168.1.0/24`
-| `net.nic.dns.primary`   | str   | `1.1.1.1`         | Default primary DNS to use for machine e.g. `1.1.1.1`
-| `net.nic.dns.fallback`  | str   | `8.8.8.8`         | Default fallback DNS to use for machine e.g. `8.8.8.8`
+| `net.nic0.name`         | str   |                   | NIC system identifier e.g. ens18, eth0
+| `net.nic0.ip`           | str   |                   | IP address to use for this NIC else DHCP, e.g. 192.168.1.12/24
+| `net.nic0.gateway`      | str   |                   | Default gateway to use for machine e.g. `192.168.1.1`
+| `net.nic0.subnet`       | str   |                   | Default subnet to use for machine e.g. `192.168.1.0/24`
+| `net.nic0.dns.primary`  | str   | `1.1.1.1`         | Default primary DNS to use for machine e.g. `1.1.1.1`
+| `net.nic0.dns.fallback` | str   | `8.8.8.8`         | Default fallback DNS to use for machine e.g. `8.8.8.8`
+| `net.nic1.name`         | str   |                   | NIC system identifier e.g. ens18, eth0
+| `net.nic1.ip`           | str   |                   | IP address to use for this NIC else DHCP, e.g. 192.168.1.12/24
+| `net.nic1.gateway`      | str   |                   | Default gateway to use for machine e.g. `192.168.1.1`
+| `net.nic1.subnet`       | str   |                   | Default subnet to use for machine e.g. `192.168.1.0/24`
+| `net.nic1.dns.primary`  | str   | `1.1.1.1`         | Default primary DNS to use for machine e.g. `1.1.1.1`
+| `net.nic1.dns.fallback` | str   | `8.8.8.8`         | Default fallback DNS to use for machine e.g. `8.8.8.8`
 | `nfs.enable`            | bool  | `false`           | Enable pre-configured nfs shares for this system
 | `nfs.entries`           | list  | [ ]               | List of nfs entries
-| `nics`                  | list  | [ ]               | List of NIC objects beyond the primary `net.name`
-| `nics[x].name`          | str   |                   | NIC system identifier e.g. ens18 
-| `nics[x].ip`            | str   |                   | IP address to use for this NIC else DHCP, e.g. 192.168.1.12/24
-| `nics[x].subnet`        | str   |                   | Subnet to use for this NIC e.g. `192.168.1.0/24`
-| `nics[x].gateway`       | str   |                   | Gateway to use for this NIC e.g. `192.168.1.1`
-| `nics[x].dns.primary`   | str   | `net.dns.primary` | Primary DNS to use for this NIC e.g. `1.1.1.1`
-| `nics[x].dns.fallback`  | str   | `net.dns.fallback`| Fallback DNS to use for this NIC e.g. `8.8.8.8`
 | `services`              | list  | [ ]               | List of Service objects
 | `services[x].name`      | str   |                   | Name of the service e.g. `stirling-pdf`
 | `services[x].type`      | enum  | `cont`            | Type of service `cont` or `nspawn`

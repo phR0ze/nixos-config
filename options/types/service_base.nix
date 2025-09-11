@@ -13,10 +13,10 @@ in
 
       { assertion = (cfg ? "name" && cfg.name != "");
         message = "Requires 'service.cont.${cfg.name}.name' => '${builtins.toJSON cfg.name}' be set to the service name"; }
-      { assertion = (machine.net.nic.name != "");
-        message = "Requires 'machine.net.nic.name' => '${builtins.toJSON machine.net.nic.name}' be set to a NIC name"; }
-      { assertion = (machine.net.nic.ip != "");
-        message = "Requires 'machine.net.nic.ip' => '${builtins.toJSON machine.net.nic.ip}' be set to a static IP address"; }
+      { assertion = (machine.net.nic0.name != "");
+        message = "Requires 'machine.net.nic0.name' => '${builtins.toJSON machine.net.nic0.name}' be set to a NIC name"; }
+      { assertion = (machine.net.nic0.ip != "");
+        message = "Requires 'machine.net.nic0.ip' => '${builtins.toJSON machine.net.nic0.ip}' be set to a static IP address"; }
       { assertion = (cfg ? "port" && cfg.port > 0);
         message = "Requires 'service.cont.${cfg.name}.port' => '${builtins.toJSON cfg.port}' be set"; }
       { assertion = (cfg ? "user" && cfg.user ? "name" && cfg.user.name != null && cfg.user.name != "");

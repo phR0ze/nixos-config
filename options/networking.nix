@@ -64,11 +64,11 @@ in
         dnssec = "allow-downgrade"; # using `dnssec = "true"` will break DNS if VPN DNS servers don't support
       };
     }
-    (f.mkIfElse (machine.net.nic.dns.primary != "" && machine.net.nic.dns.fallback != "") {
-      networking.nameservers = [ "${machine.net.nic.dns.primary}" ];
-      services.resolved.fallbackDns = [ "${machine.net.nic.dns.fallback}" ];
-    } (lib.mkIf (machine.net.nic.dns.primary != "") {
-      networking.nameservers = [ "${machine.net.nic.dns.primary}" ];
+    (f.mkIfElse (machine.net.nic0.dns.primary != "" && machine.net.nic0.dns.fallback != "") {
+      networking.nameservers = [ "${machine.net.nic0.dns.primary}" ];
+      services.resolved.fallbackDns = [ "${machine.net.nic0.dns.fallback}" ];
+    } (lib.mkIf (machine.net.nic0.dns.primary != "") {
+      networking.nameservers = [ "${machine.net.nic0.dns.primary}" ];
     }))
 
     # Configure network bridge
@@ -77,20 +77,20 @@ in
       {
         assertions = [
           { assertion = (machine.net.bridge.name != ""); message = "Bridge name must be specified for bridge mode"; }
-          { assertion = (machine.net.nic.name != ""); message = "Primary nic must be specified e.g. 'eth0'"; } 
+          { assertion = (machine.net.nic0.name != ""); message = "Primary nic must be specified e.g. 'eth0'"; } 
         ];
         networking.useDHCP = false;
-        networking.bridges."${machine.net.bridge.name}".interfaces = ["${machine.net.nic.name}" ];
+        networking.bridges."${machine.net.bridge.name}".interfaces = ["${machine.net.nic0.name}" ];
       }
 
       # Configure static IP or DHCP for the bridge
-      (f.mkIfElse (machine.net.nic.ip != "") {
+      (f.mkIfElse (machine.net.nic0.ip != "") {
         assertions = [
-          { assertion = (machine.net.nic.subnet != ""); message = "NIC subnet was not specified"; } 
-          { assertion = (machine.net.nic.gateway != ""); message = "NIC gateway was not specified"; } 
+          { assertion = (machine.net.nic0.subnet != ""); message = "NIC subnet was not specified"; } 
+          { assertion = (machine.net.nic0.gateway != ""); message = "NIC gateway was not specified"; } 
         ];
-        networking.interfaces."${machine.net.bridge.name}".ipv4.addresses = [ (f.toIP machine.net.nic.ip) ];
-        networking.defaultGateway = "${machine.net.nic.gateway}";
+        networking.interfaces."${machine.net.bridge.name}".ipv4.addresses = [ (f.toIP machine.net.nic0.ip) ];
+        networking.defaultGateway = "${machine.net.nic0.gateway}";
       } {
         networking.interfaces."${machine.net.bridge.name}".useDHCP = true;
       })
@@ -113,14 +113,14 @@ in
 
     # Otherwise configure primary NIC with static IP
     # ----------------------------------------------------------------------------------------------
-    ]) (f.mkIfElse (machine.net.nic.ip != "") {
+    ]) (f.mkIfElse (machine.net.nic0.ip != "") {
       assertions = [
-        { assertion = (machine.net.nic.subnet != ""); message = "NIC subnet was not specified"; } 
-        { assertion = (machine.net.nic.gateway != ""); message = "NIC gateway was not specified"; } 
+        { assertion = (machine.net.nic0.subnet != ""); message = "NIC subnet was not specified"; } 
+        { assertion = (machine.net.nic0.gateway != ""); message = "NIC gateway was not specified"; } 
       ];
 
-      networking.interfaces."${machine.net.nic.name}".ipv4.addresses = [ (f.toIP machine.net.nic.ip) ];
-      networking.defaultGateway = "${machine.net.nic.gateway}";
+      networking.interfaces."${machine.net.nic0.name}".ipv4.addresses = [ (f.toIP machine.net.nic0.ip) ];
+      networking.defaultGateway = "${machine.net.nic0.gateway}";
     } {
       # Finally fallback on DHCP for the primary NIC
     }))
