@@ -16,7 +16,7 @@ in
 
   hardware.printers.epson-wf7710 = true;      # Add support for WF-7710
   hardware.printers.brother-hll2405w = true;  # Add support for Brother HL-L2405W
-  networking.network-manager.enable = true;   # Enable network manager
+  net.network-manager.enable = true;          # Enable network manager
 
   apps.office.evince.enable = true;           # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
   apps.media.qview.enable = true;             # Simple image viewer with webp support
