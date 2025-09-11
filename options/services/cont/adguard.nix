@@ -37,7 +37,7 @@ let
   machine = config.machine;
   cfg = config.services.cont.adguard;
   defaults = f.getService args "adguard" 2003 2003;
-  ipaddr = (f.toIP machine.net.nic0.ip).address;
+  ipaddr = (f.toIP config.net.primary.ip).address;
 
   # Note: the contents of this file can be created by setting the 'configure=false;' flag then 
   # manually configuring Adguard via the UI then checking the resulting /var/lib/adguard/conf/AdGuardHome.yaml

@@ -25,8 +25,23 @@ let
 in
 {
   options = {
-    networking.network-manager = {
+    net.network-manager = {
       enable = lib.mkEnableOption "Install and configure network manager";
+    };
+    net.primary.name = lib.mkOption {
+      description = lib.mdDoc ''
+        Primary interface to use for network access. This will typically just be the physical nic 
+        e.g. ens18, but when 'machine.net.bridge.enable = true' it will be set to 
+        'machine.net.bridge.name' e.g. br0 as the bridge will be the primary interface.
+      '';
+      type = types.str;
+      default = machine.net.nic0.name or "";
+    };
+    net.primary.ip = lib.mkOption {
+      description = lib.mdDoc "Primary interface IP in CIDR notation";
+      type = types.str;
+      example = "192.168.1.50/24";
+      default = machine.net.nic0.ip or "";
     };
   };
 
@@ -34,7 +49,7 @@ in
 
     # Configure network manager
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (networking.network-manager.enable) {
+    (lib.mkIf (net.network-manager.enable) {
       networking.networkmanager = {
         enable = true;                      # Enable networkmanager and nm-applet
         dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
@@ -54,6 +69,9 @@ in
       networking.hostName = machine.hostname;
       networking.firewall.allowPing = true;
     }
+    (lib.mkIf (machine.net.bridge.enable) {
+      net.primary.name = machine.net.bridge.name;
+    })
 
     # Configure DNS. resolved works well with network manager
     # DNS can be temporarily changed: sudo resolvectl dns enp1s0 1.1.1.1
