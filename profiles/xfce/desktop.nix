@@ -19,7 +19,6 @@
   apps.games.protontricks.enable = true;    # A simple wrapper for running Winetricks commands for Proton-enabled games
   apps.games.prismlauncher.enable = true;   # Minecraft launcher
   #apps.games.warcraft2.enable = true;      # Add firewall rules needed for warcraft 2 IPX LAN multi-player
-
   programs.winetricks.enable = true;        # A script to install DLLs needed to work around problems in Wine
 
   # Enable services

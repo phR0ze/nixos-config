@@ -4,9 +4,6 @@
 # - Directly installable: minimal general purpose desktop environment
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, ... }:
-let
-  machine = config.machine;
-in
 {
   imports = [
     ../xorg.nix

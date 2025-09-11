@@ -9,7 +9,6 @@
     ./desktop.nix
   ];
 
-  # Add additional packages
   # Slick captive portal solutions for hotels etc...
 #  programs = {
 #    captive-browser = {
@@ -17,4 +16,9 @@
 #      interface = config.lib._custom_.wirelessInterface;
 #    };
 #  };
+
+  # Add additional packages
+  #environment.systemPackages = with pkgs; [
+  #  zoom-us                   # Video conferencing application
+  #];
 }
