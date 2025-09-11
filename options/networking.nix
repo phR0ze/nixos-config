@@ -49,7 +49,7 @@ in
 
     # Configure network manager
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (net.network-manager.enable) {
+    (lib.mkIf (config.net.network-manager.enable) {
       networking.networkmanager = {
         enable = true;                      # Enable networkmanager and nm-applet
         dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
@@ -70,7 +70,7 @@ in
       networking.firewall.allowPing = true;
     }
     (lib.mkIf (machine.net.bridge.enable) {
-      net.primary.name = machine.net.bridge.name;
+      config.net.primary.name = machine.net.bridge.name;
     })
 
     # Configure DNS. resolved works well with network manager
