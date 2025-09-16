@@ -10,7 +10,6 @@
 { ... }:
 {
   imports = [
-    ./adguard.nix
     ./lxconsole.nix
     ./oneup.nix
     ./portainer.nix
