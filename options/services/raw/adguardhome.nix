@@ -289,6 +289,12 @@ in
           "||epdg.epc.mnc260.mcc310.pub.3gppnetwork.org^$important"
           "||getpocket.cdn.mozilla.net^$important"
         ];
+
+        # Don't even bother logging just drop them
+        blocked_hosts = [
+          "connections.brother.com" # phone home for brother printers
+        ];
+
         filtering = {
           safe_search = {
             enabled = true;
