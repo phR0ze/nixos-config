@@ -21,8 +21,8 @@
 			"subnet": "ENC[AES256_GCM,data:5oEVOSq0SOsR2IajRtM=,iv:aVXI7gQ3q8ohCgyMC0snJ4AFTAeV7BEhryPaNiXXRUE=,tag:5kPjshfsBXP+uOi8m7avcg==,type:str]",
 			"gateway": "ENC[AES256_GCM,data:6Ph2yWcr3dpvDrU=,iv:MxV1J+79Uu+EYOOsHFpek/YcUe7gLdw3ZP431sOWPX4=,tag:H0r0nAWb1zMgFsCSBcsUgg==,type:str]",
 			"dns": {
-				"primary": "ENC[AES256_GCM,data:ek2n6LQuPw==,iv:SSMeluucj47ZhPVQmbjUCV744tlrT/qw+f08j2ipBmY=,tag:xdNNm4i+mFM+ShNkUR9wJw==,type:str]",
-				"fallback": "ENC[AES256_GCM,data:yyGC4RX87A==,iv:tcItgCK8YVBOM6NXJOkdsXyQmiU3neN8DtN0uPQtNlk=,tag:qxEaYsR++2dnK3i4LC7Oww==,type:str]"
+				"primary": "ENC[AES256_GCM,data:2VcSbGlAdHglwlQ=,iv:KTd49AwO27UYAbu5pqJKfB0otQglhNG0/oo3hu/IiR4=,tag:VTD5i2SUqDHwXrhBRRwlFQ==,type:str]",
+				"fallback": "ENC[AES256_GCM,data:FRasDNEXD5JIFrs=,iv:0/TT9YOyqC/isg/trY0HkkfkO+OvUgnvHv0rTJ4Z34o=,tag:nxqimYbWTk9ajO70LvCCow==,type:str]"
 			}
 		}
 	},
@@ -37,8 +37,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBRYmw3ZGJVS3FFdHgwaGM1\naDVSbjFmV0NjNE1aa2dEdHIrRm9MSkZJbDBFCmg5eWlad242NkR5dHp2Y25qTlpl\nKzRRbDBvdkljcFB4ZTVTUW1mQ3dzLzgKLS0tIERKaVk1dUlxWTNUQ0FlQURiSXdx\nUjJnQnZ3dGd5S2hIZUZySExWZ0pwcDAKwHcHH1MMTAJZIth2rBXsaR+gOsYeFJJc\nDSXjqWMsEq3tggObMfqOH9mYmFzHaqbEDbYgNsJY9j4XsCISOSv82A==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-09-11T20:32:10Z",
-		"mac": "ENC[AES256_GCM,data:xEBB0786aE7qvEkfzF8SvrPGL1E2Gos4Ki9Jvt4eYXanvnlkHxPVmQ1qIBc2BA0tcojH5mGQk7jXMeJLsAnxRln0x9txvhVbuJU0gmMNfcuGbL3J3nQdQUtW+UQZGWyIpn/FNkX5mFWz3gzw18kqFk2Pg7BQ8HvVeAfdy7Yhk9o=,iv:XJd6JhAZO99/BQNgV0kJiSjg2LbOycIuc9k4NNrG154=,tag:ynxrQ7/ybXZbfIpeZ4wyqw==,type:str]",
+		"lastmodified": "2025-09-16T23:21:20Z",
+		"mac": "ENC[AES256_GCM,data:Onf/3bdAhOfv/gNFBe5W4gwMo/6Y2mtmmqJFWUM4RlsvWBzd4oEXoVqQl4PQYlbQC14zFJflO5V91a8YukwNCiDcreVtvrhWr+SVykFspeWyNqu6DrZpj1AUAQb6MH+tH9tnsQhvYa6J6bpoAYbsLllzYn40KisnFLuuw5CurdE=,iv:rdjlem6yFDaXqfSWR0mnhbXq4gt/fqmKuYIZcxdYWv4=,tag:q++udZNzPllAv252P2GYNA==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.10.2"
 	}
