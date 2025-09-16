@@ -41,6 +41,8 @@
 
     # Emulate homelab configuration for services development
     # --------------------------------------------
+    services.raw.adguardhome.enable = true;
+
     machine.net.bridge.enable = true;
     machine.net.nic0 = {
       name = "eth0";
@@ -53,10 +55,6 @@
     services.cont.oneup = {
       enable = true;
       port = 8082;
-    };
-    services.cont.adguard = {
-      enable = true;
-      port = 8083;
     };
 
     #environment.systemPackages = [

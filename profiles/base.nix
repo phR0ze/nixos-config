@@ -52,6 +52,7 @@ in
     zip                           # Create zip archives
 
     # Network
+    net-tools                     # hostname, ifconfig, netstat, route
     openvpn                       # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
     update-systemd-resolved       # OpenVPN systemd-resolved updater
   ]
