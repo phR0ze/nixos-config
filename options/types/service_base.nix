@@ -83,6 +83,5 @@ in
         WorkingDirectory = "/var/lib/${cfg.name}";
       };
     };
-
   };
 }

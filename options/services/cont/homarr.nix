@@ -11,14 +11,17 @@
 # 📌 Easy and fast app management - no YAML involved
 # 👤 Detailed and easy to use user management with permissions and groups
 #
-# ### Deployment Features
-# - Get status with: `systemctl status podman-homarr`
+# ### Deployment Details
 # - App data is persisted at /var/lib/$APP
+# - Generate key with: openssl rand -hex 32
+# - Get status with: sudo systemctl status podman-homarr
+# - Browse to: http://<IP>:8080
 # --------------------------------------------------------------------------------------------------
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
   cfg = config.services.cont.homarr;
+
   defaults = f.getService args "homarr" 2000 2000;
 in
 {
@@ -28,6 +31,14 @@ in
     services.cont.homarr = lib.mkOption {
       description = lib.mdDoc "Homarr service options";
       type = types.submodule {
+        options = {
+          encKey = lib.mkOption {
+            description = lib.mdDoc "Encryption key used to encrypt secrets in database";
+            type = types.str;
+            example = "Create with `open ssl rand -hex 32`";
+            default = args.services.cont.homarr.encKey or "";
+          };
+        };
         imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
       };
       default = defaults;
@@ -57,7 +68,9 @@ in
 
       # Configure app via overrides
       environment = {
-        "SECRET_ENCRYPTION_KEY" = "123456789";
+        "PUID" = cfg.user.uid;
+        "PGID" = cfg.user.gid;
+        "SECRET_ENCRYPTION_KEY" = cfg.encKey;
       };
       extraOptions = [
         "--network=${cfg.name}"

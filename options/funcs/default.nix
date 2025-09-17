@@ -63,23 +63,19 @@
   #-------------------------------------------------------------------------------------------------
   getService = args: name: uid: gid:
     let
-      # Setup defaults to merge with input args
-      defaults = {
-        name = name;
+      # Set defaults properly
+      target = args.services.cont."${name}" or {};
+      service = {
+        enable = target.enable or false;
+        name = target.name or name;
+        tag = if ((target.tag or "") != "") then target.tag else "latest";
         user = {
-          name = name;
-          group = name;
-          uid = uid;
-          gid = gid;
+          name = target.user.name or name;
+          group = target.user.group or name;
+          uid = target.user.uid or uid;
+          gid = target.user.gid or gid;
         };
+        port = target.port or 80;
       };
-
-      # Find the specific service by name
-      filtered = builtins.filter (x: x.name == name) args.services or [];
-
-      # Now extract the service and merge with defaults
-      service = if (builtins.length filtered > 0)
-        then (builtins.elemAt filtered 0) // defaults
-        else ({ port = 80; }) // defaults;
     in service;
 }
