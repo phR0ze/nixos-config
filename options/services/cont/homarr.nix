@@ -68,8 +68,8 @@ in
 
       # Configure app via overrides
       environment = {
-        "PUID" = cfg.user.uid;
-        "PGID" = cfg.user.gid;
+        "PUID" = "${toString cfg.user.uid}";
+        "PGID" = "${toString cfg.user.gid}";
         "SECRET_ENCRYPTION_KEY" = cfg.encKey;
       };
       extraOptions = [
