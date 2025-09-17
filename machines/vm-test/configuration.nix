@@ -34,19 +34,16 @@
       }];
     };
 
-    # DNS local service testing
-    # --------------------------------------------
-    machine.net.nic0.dns.primary = "1.1.1.1";
-    machine.net.nic0.dns.fallback = "1.1.1.1";
-
     # Emulate homelab configuration for services development
     # --------------------------------------------
-    services.raw.adguardhome.enable = true;
-
     machine.net.bridge.enable = true;
     machine.net.nic0 = {
       name = "eth0";
       ip = "192.168.1.60/24";
+    };
+    services.cont.homarr = {
+      enable = true;
+      port = 8080;
     };
     services.cont.stirling-pdf = {
       enable = true;

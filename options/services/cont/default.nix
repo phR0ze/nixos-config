@@ -10,6 +10,7 @@
 { ... }:
 {
   imports = [
+    ./homarr.nix
     ./lxconsole.nix
     ./oneup.nix
     ./portainer.nix
