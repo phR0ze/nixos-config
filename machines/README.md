@@ -94,10 +94,10 @@ inclusion that I've named `args` throughout my configuration.
 | `nfs.enable`            | bool  | `false`           | Enable pre-configured nfs shares for this system
 | `nfs.entries`           | list  | [ ]               | List of nfs entries
 | `services`              | list  | [ ]               | List of Service objects
-| `services[x].name`      | str   |                   | Name of the service e.g. `stirling-pdf`
-| `services[x].type`      | enum  | `cont`            | Type of service `cont` or `nspawn`
-| `services[x].port`      | int   | `80`              | Port to map
-| `services[x].user`      | user  |                   | User setttings for the service
+| `services.x.name`       | str   |                   | Name of the service e.g. `stirling-pdf`
+| `services.x.type`       | enum  | `cont`            | Type of service `cont` or `nspawn`
+| `services.x.port`       | int   | `80`              | Port to map
+| `services.x.user`       | user  |                   | User setttings for the service
 | `smb.enable`            | bool  | `false`           | Enable pre-configured nfs shares for this system
 | `smb.user`              | str   |                   | Default SMB user if override not given
 | `smb.pass`              | str   |                   | Default SMB pass if override not given
