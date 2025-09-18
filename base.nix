@@ -46,11 +46,13 @@
           vscode = pkgs-unstable.vscode;
           zed-editor = pkgs-unstable.zed-editor;
           zoom-us = pkgs-unstable.zoom-us;
-          rustdesk-flutter = pkgs-rustdesk.rustdesk-flutter;
           rust-analyzer = pkgs-unstable.rust-analyzer;
           rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
           vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
           yt-dlp = pkgs-unstable.yt-dlp;
+
+          # RustDesk is failing with the display dummy plug
+          #rustdesk-flutter = pkgs-rustdesk.rustdesk-flutter;
         })
       ];
     };
