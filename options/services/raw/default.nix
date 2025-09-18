@@ -15,6 +15,7 @@
     ./rustdesk.nix
     ./smb.nix
     ./sshd.nix
+    ./synology-drive-client.nix
     ./x11vnc.nix
   ];
 }
