@@ -10,13 +10,13 @@
     nixpkgs-rustdesk.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixpkgs-rustdesk, ... }@inputs: let
     _args = import ./args.nix;
 
     # Allow for package patches, overrides and additions
     # ----------------------------------------------------------------------------------------------
     system = _args.arch;
-    #pkgs-rustdesk = import nixpkgs-rustdesk { inherit system; };
+    pkgs-rustdesk = import nixpkgs-rustdesk { inherit system; };
     pkgs-unstable = import nixpkgs-unstable {
       inherit system;
       config.allowUnfreePredicate = pkg: true;
@@ -41,17 +41,12 @@
           tinymediamanager = pkgs.callPackage packages/tinymediamanager{};
           wmctl = pkgs.callPackage packages/wmctl {};
 
-          # Upgrade select packages to the latest unstable bits
-          # Unstable Go doesn't work for 2025.08.09 which sent me down a rabbit hole
-          # By overriding go with unstable and having latest go only support 32bit caused major 
-          # breakages for any i.e. libcap projects that needed 64bit go
-#          go = pkgs-unstable.go;
-#          go-bindata = pkgs-unstable.go-bindata;
-#          golangci-lint = pkgs-unstable.golangci-lint;
+          # Override packages with other versions:
           immich = pkgs-unstable.immich;
           vscode = pkgs-unstable.vscode;
           zed-editor = pkgs-unstable.zed-editor;
           zoom-us = pkgs-unstable.zoom-us;
+          rustdesk-flutter = pkgs-rustdesk.rustdesk-flutter;
           rust-analyzer = pkgs-unstable.rust-analyzer;
           rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
           vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;

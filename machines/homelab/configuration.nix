@@ -26,8 +26,8 @@
     services.raw.adguardhome.enable = true;
     services.raw.private-internet-access.enable = true;
     services.cont.homarr = { enable = true; port = 80; };
-    #services.cont.oneup.enable = true;
-    #services.cont.stirling-pdf.enable = true;
+    services.cont.oneup = { enable = true; port = 8002; };
+    services.cont.stirling-pdf = { enable = true; port = 8001; };
 
     environment.systemPackages = [
       pkgs.synology-drive-client
