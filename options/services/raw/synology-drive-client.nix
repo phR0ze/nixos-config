@@ -35,7 +35,7 @@ in
         [Desktop Entry]
         Type=Application
         Terminal=false
-        Exec=${pkgs.synology-drive-client}/bin/synology-drive
+        Exec=sudo ${pkgs.synology-drive-client}/bin/synology-drive
       '';
     })
   ];
