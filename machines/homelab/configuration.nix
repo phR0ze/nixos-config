@@ -24,13 +24,14 @@
     services.raw.minecraft.enable = true;
     services.raw.nix-cache.host.enable = true;
     services.raw.adguardhome.enable = true;
+    services.raw.synology-drive-client.enable = true;
     services.raw.private-internet-access.enable = true;
     services.cont.homarr = { enable = true; port = 80; };
     services.cont.oneup = { enable = true; port = 8002; };
     services.cont.stirling-pdf = { enable = true; port = 8001; };
 
     environment.systemPackages = [
-      pkgs.synology-drive-client
+      #pkgs.synology-drive-client
     ];
   };
 }
