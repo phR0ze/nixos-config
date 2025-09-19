@@ -22,6 +22,17 @@ let
 
   # Defaults to use for uniformity across the different default use cases
   user_name = args.user.name or "admin";
+  dns = {
+    primary = "1.1.1.1";
+    fallback = "8.8.8.8";
+  };
+  nic = {
+    name = args.net.nic0.name or "";
+    ip = args.net.nic0.ip or "";
+    link = args.net.nic0.link or "";
+    subnet = args.net.nic0.subnet or "";
+    gateway = args.net.nic0.gateway or "";
+  };
   defaults = {
     user = {
       name = user_name;
@@ -31,15 +42,10 @@ let
       uid = config.users.users.${user_name}.uid;
       gid = config.users.groups."users".gid;
     };
-    nic0 = {
-      name = args.net.nic0.name or "";
-      ip = args.net.nic0.ip or "";
-      link = args.net.nic0.link or "";
-      subnet = args.net.nic0.subnet or "";
-      gateway = args.net.nic0.gateway or "";
-      dns.primary = args.net.nic0.dns.primary or "1.1.1.1";
-      dns.fallback = args.net.nic0.dns.fallback or "8.8.8.8";
-    };
+    gateway = args.net.gateway or "192.168.1.1";
+    subnet = args.net.subnet or "192.168.1.0/24";
+    dns = dns;
+    nic = nic // { dns = dns; };
   };
 in
 {
@@ -249,6 +255,23 @@ in
             description = lib.mdDoc "Networking options for the machine";
             type = types.submodule {
               options = {
+                gateway = lib.mkOption {
+                  description = lib.mdDoc "Default gateway to use for machine";
+                  type = types.str;
+                  example = "192.168.1.1";
+                  default = defaults.gateway;
+                };
+                subnet = lib.mkOption {
+                  description = lib.mdDoc "Default subnet to use for machine";
+                  type = types.str;
+                  example = "192.168.1.0/24";
+                  default = defaults.subnet;
+                };
+                dns = lib.mkOption {
+                  description = lib.mdDoc "Default dns to use for machine";
+                  type = types.submodule (import ./dns.nix { inherit lib; defaults = defaults.dns; });
+                  default = defaults.dns;
+                };
                 bridge = {
                   enable = lib.mkEnableOption ''
                     Convert the main interface into a bridge which then allows virtualized devices like 
@@ -265,8 +288,8 @@ in
                     2. args.enc.json example
                     {
                       "net": {
-                        "nic": {
-                          "name": "eth0",
+                        "nic0": {
+                          "name": "enp1s0",
                         }
                       }
                     }
@@ -282,42 +305,31 @@ in
                     Create a macvlan interface for the host to use on the bridge, which allows the host to 
                     communicate with virtualized devices connected to the bridge. Otherwise the virtualized 
                     devices can fully participate on the LAN but the host won't be able to interact directly 
-                    with the the virtualized device.
+                    with the virtualized devices.
                   '';
-                  type = types.submodule {
-                    options = {
-                      name = lib.mkOption {
-                        description = lib.mdDoc "Macvlan name to use";
-                        type = types.str;
-                        default = "host";
-                      };
-                      ip = lib.mkOption {
-                        description = lib.mdDoc "Optional static ip to use else DHCP is used";
-                        type = types.str;
-                        example = "192.168.1.49";
-                        default = "";
-                      };
-                    };
-                  };
-                  default = { name = "host"; ip = ""; };
+                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic; });
+                  default = defaults.nic;
                 };
                 nic0 = lib.mkOption {
                   description = lib.mdDoc "Primary NIC options";
-                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic0; });
-                  default = defaults.nic0;
+                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic; });
+                  default = defaults.nic;
                 };
                 nic1 = lib.mkOption {
                   description = lib.mdDoc "Secondary NIC options";
-                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic0; });
-                  default = defaults.nic0;
+                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic; });
+                  default = defaults.nic;
                 };
               };
             };
             default = {
+              gateway = defaults.gateway;
+              subnet = defaults.subnet;
+              dns = defaults.dns;
               bridge = { enable = false; };
-              macvlan = { name = "host"; ip = "host"; };
-              nic0 = defaults.nic0;
-              nic1 = defaults.nic0;
+              macvlan = defaults.nic;
+              nic0 = defaults.nic;
+              nic1 = defaults.nic;
             };
           };
 

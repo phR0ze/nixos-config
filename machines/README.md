@@ -47,77 +47,86 @@ across many machines.
 The supported arguments listed below are used throughout my configuration from the specialArgs 
 inclusion that I've named `args` throughout my configuration.
 
-| Argument                | Type  | Default           | Description
-| ----------------------- | ----- | ----------------- | --------------------------------------
-| `hostname`              | str   | `nixos`           | Hostname for the machine
-| `id`                    | str   |                   | `dbus-uuidgen` generated Machine ID to use for the system
-| `profile`               | str   | `xfce/desktop`    | Pre-defined configurations in path './profiles' selection
-| `efi`                   | bool  | `false`           | EFI system boot type set during installation
-| `mbr`                   | str   | `nodev`           | MBR system boot device set during installation, e.g. `/dev/sda`
-| `arch`                  | str   | `x86_64-linux`    | System architecture to use
-| `locale`                | str   | `en_US.UTF-8`     | Locale selection
-| `timezone`              | str   | `America/Boise`   | Time-zone selection
-| `bluetooth`             | bool  | `false`           | Enable or disable bluetooth by default
-| `autologin`             | bool  | `false`           | Automatically log the user in or not after boot
-| `resolution.x`          | int   | `0`               | Resolution x dimension, e.g. 1920
-| `resolution.y`          | int   | `0`               | Resolution y dimension, e.g. 1080
-| `type.bootable`         | bool  | `false`           | Machine requires a bootloader
-| `type.vm`               | bool  | `false`           | Machine is a virtual machine
-| `type.iso`              | bool  | `false`           | Enable or disable ISO mode
-| `type.develop`          | bool  | `false`           | Machine is intended to be used for development
-| `type.theater`          | bool  | `false`           | Machine is intended to be used for media
-| `drives`                | list  | [ ]               | List of drive objects
-| `drives[x].uuid`        | str   |                   | Drive identifier used in `hardware-configuration.nix`
-| `nix.cache.enable`      | str   |                   | IP of the local Nix Binary Cache
-| `nix.cache.ip`          | str   |                   | IP of the local Nix Binary Cache
-| `nix.cache.port`        | int   |                   | Port of the local Nix Binary Cache
-| `nix.minVer `           | str   | `25.05`           | Nixpkgs minimum version
-| `git.user`              | str   |                   | Git user name to use as global configuration
-| `git.email`             | str   |                   | Git email to use as global configuration
-| `git.comment`           | str   |                   | Commit message for simple version tracking
-| `net.bridge.enable`     | bool  | `false`           | Replace the primary NIC with a virtual network bridge
-| `net.bridge.name`       | str   | `br0`             | Name to use for the virtual network bridge
-| `net.macvlan.name`      | str   | `host`            | Name to use for the host macvlan on the bridge
-| `net.macvlan.ip`        | str   |                   | IP to use for the host macvlan else DHCP will be used
-| `net.nic0.name`         | str   |                   | NIC system identifier e.g. ens18, eth0
-| `net.nic0.ip`           | str   |                   | IP address to use for this NIC else DHCP, e.g. 192.168.1.12/24
-| `net.nic0.gateway`      | str   |                   | Default gateway to use for machine e.g. `192.168.1.1`
-| `net.nic0.subnet`       | str   |                   | Default subnet to use for machine e.g. `192.168.1.0/24`
-| `net.nic0.dns.primary`  | str   | `1.1.1.1`         | Default primary DNS to use for machine e.g. `1.1.1.1`
-| `net.nic0.dns.fallback` | str   | `8.8.8.8`         | Default fallback DNS to use for machine e.g. `8.8.8.8`
-| `net.nic1.name`         | str   |                   | NIC system identifier e.g. ens18, eth0
-| `net.nic1.ip`           | str   |                   | IP address to use for this NIC else DHCP, e.g. 192.168.1.12/24
-| `net.nic1.gateway`      | str   |                   | Default gateway to use for machine e.g. `192.168.1.1`
-| `net.nic1.subnet`       | str   |                   | Default subnet to use for machine e.g. `192.168.1.0/24`
-| `net.nic1.dns.primary`  | str   | `1.1.1.1`         | Default primary DNS to use for machine e.g. `1.1.1.1`
-| `net.nic1.dns.fallback` | str   | `8.8.8.8`         | Default fallback DNS to use for machine e.g. `8.8.8.8`
-| `nfs.enable`            | bool  | `false`           | Enable pre-configured nfs shares for this system
-| `nfs.entries`           | list  | [ ]               | List of nfs entries
-| `services`              | list  | [ ]               | List of Service objects
-| `services.x.name`       | str   |                   | Name of the service e.g. `stirling-pdf`
-| `services.x.type`       | enum  | `cont`            | Type of service `cont` or `nspawn`
-| `services.x.port`       | int   | `80`              | Port to map
-| `services.x.user`       | user  |                   | User setttings for the service
-| `smb.enable`            | bool  | `false`           | Enable pre-configured nfs shares for this system
-| `smb.user`              | str   |                   | Default SMB user if override not given
-| `smb.pass`              | str   |                   | Default SMB pass if override not given
-| `smb.domain`            | str   |                   | Default SMB domain/workgroup if override not given
-| `smb.entries`           | list  | [ ]               | List of SMB entries
-| `smb.e..[x].mountPoint` | str   |                   | Share entry mount point e.g. `/mnt/Media`
-| `smb.e..[x].remotePath` | str   |                   | Share remote path e.g. `192.168.1.2:/srv/nfs/Media` 
-| `smb.e..[x].user`       | str   |                   | Share specific user
-| `smb.e..[x].pass`       | str   |                   | Share specific pass
-| `smb.e..[x].domain`     | str   |                   | Share specific domain
-| `smb.e..[x].dirMode`    | str   |                   | Share dir mode
-| `smb.e..[x].fileMode`   | str   |                   | Share file mode
-| `smb.e..[x].writable`   | str   |                   | Share whether its writable or not
-| `smb.e..[x].options`    | str   |                   | Share other options
-| `user.name`             | str   | `admin`           | User's user name
-| `user.pass`             | str   | `admin`           | User's user name
-| `user.fullname`         | str   | `admin`           | User's fullname 
-| `user.email`            | str   | `""`              | User's email address
-| `user.uid`              | str   | `1000`            | User's id
-| `user.gid`              | str   | `100`             | User's gid
+| Argument                  | Type  | Default           | Description
+| ------------------------- | ----- | ----------------- | --------------------------------------
+| `hostname`                | str   | `nixos`           | Hostname for the machine
+| `id`                      | str   |                   | `dbus-uuidgen` generated Machine ID to use for the system
+| `profile`                 | str   | `xfce/desktop`    | Pre-defined configurations in path './profiles' selection
+| `efi`                     | bool  | `false`           | EFI system boot type set during installation
+| `mbr`                     | str   | `nodev`           | MBR system boot device set during installation, e.g. `/dev/sda`
+| `arch`                    | str   | `x86_64-linux`    | System architecture to use
+| `locale`                  | str   | `en_US.UTF-8`     | Locale selection
+| `timezone`                | str   | `America/Boise`   | Time-zone selection
+| `bluetooth`               | bool  | `false`           | Enable or disable bluetooth by default
+| `autologin`               | bool  | `false`           | Automatically log the user in or not after boot
+| `resolution.x`            | int   | `0`               | Resolution x dimension, e.g. 1920
+| `resolution.y`            | int   | `0`               | Resolution y dimension, e.g. 1080
+| `type.bootable`           | bool  | `false`           | Machine requires a bootloader
+| `type.vm`                 | bool  | `false`           | Machine is a virtual machine
+| `type.iso`                | bool  | `false`           | Enable or disable ISO mode
+| `type.develop`            | bool  | `false`           | Machine is intended to be used for development
+| `type.theater`            | bool  | `false`           | Machine is intended to be used for media
+| `drives`                  | list  | [ ]               | List of drive objects
+| `drives[x].uuid`          | str   |                   | Drive identifier used in `hardware-configuration.nix`
+| `nix.cache.enable`        | str   |                   | IP of the local Nix Binary Cache
+| `nix.cache.ip`            | str   |                   | IP of the local Nix Binary Cache
+| `nix.cache.port`          | int   |                   | Port of the local Nix Binary Cache
+| `nix.minVer `             | str   | `25.05`           | Nixpkgs minimum version
+| `git.user`                | str   |                   | Git user name to use as global configuration
+| `git.email`               | str   |                   | Git email to use as global configuration
+| `git.comment`             | str   |                   | Commit message for simple version tracking
+| `net.gateway`             | str   |                   | Default gateway to use for machine e.g. `192.168.1.1`
+| `net.subnet`              | str   |                   | Default subnet to use for machine e.g. `192.168.1.0/24`
+| `net.dns.primary`         | str   | `1.1.1.1`         | Default primary DNS to use for machine e.g. `1.1.1.1`
+| `net.dns.fallback`        | str   | `8.8.8.8`         | Default fallback DNS to use for machine e.g. `8.8.8.8`
+| `net.macvlan.subnet`      | str   |                   | Subnet to use for macvlan e.g. `192.168.1.0/24`
+| `net.bridge.enable`       | bool  | `false`           | Replace the primary NIC with a virtual network bridge
+| `net.bridge.name`         | str   | `br0`             | Name to use for the virtual network bridge
+| `net.macvlan.name`        | str   | `host`            | Name to use for the macvlan else `host`
+| `net.macvlan.ip`          | str   |                   | IP to use for the macvlan else DHCP will be used
+| `net.macvlan.gateway`     | str   |                   | Gateway to use for macvlan e.g. `192.168.1.1`
+| `net.macvlan.subnet`      | str   |                   | Subnet to use for macvlan e.g. `192.168.1.0/24`
+| `net.macvlan.dns.primary` | str   | `1.1.1.1`         | Primary DNS to use for macvlan e.g. `1.1.1.1`
+| `net.macvlan.dns.fallback`| str   | `8.8.8.8`         | Fallback DNS to use for macvlan e.g. `8.8.8.8`
+| `net.nic0.name`           | str   |                   | NIC system identifier e.g. ens18, eth0
+| `net.nic0.ip`             | str   |                   | IP address to use for this NIC else DHCP, e.g. 192.168.1.12/24
+| `net.nic0.gateway`        | str   |                   | Default gateway to use for machine e.g. `192.168.1.1`
+| `net.nic0.subnet`         | str   |                   | Default subnet to use for machine e.g. `192.168.1.0/24`
+| `net.nic0.dns.primary`    | str   | `1.1.1.1`         | Default primary DNS to use for machine e.g. `1.1.1.1`
+| `net.nic0.dns.fallback`   | str   | `8.8.8.8`         | Default fallback DNS to use for machine e.g. `8.8.8.8`
+| `net.nic1.name`           | str   |                   | NIC system identifier e.g. ens18, eth0
+| `net.nic1.ip`             | str   |                   | IP address to use for this NIC else DHCP, e.g. 192.168.1.12/24
+| `net.nic1.gateway`        | str   |                   | Default gateway to use for machine e.g. `192.168.1.1`
+| `net.nic1.subnet`         | str   |                   | Default subnet to use for machine e.g. `192.168.1.0/24`
+| `net.nic1.dns.primary`    | str   | `1.1.1.1`         | Default primary DNS to use for machine e.g. `1.1.1.1`
+| `net.nic1.dns.fallback`   | str   | `8.8.8.8`         | Default fallback DNS to use for machine e.g. `8.8.8.8`
+| `nfs.enable`              | bool  | `false`           | Enable pre-configured nfs shares for this system
+| `nfs.entries`             | list  | [ ]               | List of nfs entries
+| `services`                | list  | [ ]               | List of Service objects
+| `services.x.name`         | str   |                   | Name of the service e.g. `stirling-pdf`
+| `services.x.type`         | enum  | `cont`            | Type of service `cont` or `nspawn`
+| `services.x.port`         | int   | `80`              | Port to map
+| `services.x.user`         | user  |                   | User setttings for the service
+| `smb.enable`              | bool  | `false`           | Enable pre-configured nfs shares for this system
+| `smb.user`                | str   |                   | Default SMB user if override not given
+| `smb.pass`                | str   |                   | Default SMB pass if override not given
+| `smb.domain`              | str   |                   | Default SMB domain/workgroup if override not given
+| `smb.entries`             | list  | [ ]               | List of SMB entries
+| `smb.e..[x].mountPoint`   | str   |                   | Share entry mount point e.g. `/mnt/Media`
+| `smb.e..[x].remotePath`   | str   |                   | Share remote path e.g. `192.168.1.2:/srv/nfs/Media` 
+| `smb.e..[x].user`         | str   |                   | Share specific user
+| `smb.e..[x].pass`         | str   |                   | Share specific pass
+| `smb.e..[x].domain`       | str   |                   | Share specific domain
+| `smb.e..[x].dirMode`      | str   |                   | Share dir mode
+| `smb.e..[x].fileMode`     | str   |                   | Share file mode
+| `smb.e..[x].writable`     | str   |                   | Share whether its writable or not
+| `smb.e..[x].options`      | str   |                   | Share other options
+| `user.name`               | str   | `admin`           | User's user name
+| `user.pass`               | str   | `admin`           | User's user name
+| `user.fullname`           | str   | `admin`           | User's fullname 
+| `user.email`              | str   | `""`              | User's email address
+| `user.uid`                | str   | `1000`            | User's id
+| `user.gid`                | str   | `100`             | User's gid
 
 <!-- 
 vim: ts=2:sw=2:sts=2

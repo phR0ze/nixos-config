@@ -4,7 +4,11 @@
 {
   options = {
     name = lib.mkOption {
-      description = lib.mdDoc "NIC identifier in the system";
+      description = lib.mdDoc ''
+        NIC identifier in the system. For physical interfaces this will be names like 'eth0', 'eno1' 
+        or 'enp1s0'. However in the case where this is a macvlan configuration this value is the name 
+        of the macvlan e.g. 'host@br0'.
+      '';
       type = types.str;
       example = "eth0";
       default = defaults.name or ""; 
@@ -39,27 +43,9 @@
     };
 
     dns = lib.mkOption {
-      description = lib.mdDoc "DNS";
-      type = types.nullOr (types.submodule {
-        options = {
-          primary = lib.mkOption {
-            description = lib.mdDoc "Primary DNS IP";
-            type = types.str;
-            example = "1.1.1.1";
-            default = "1.1.1.1";
-          };
-          fallback = lib.mkOption {
-            description = lib.mdDoc "Fallback DNS IP";
-            type = types.str;
-            example = "8.8.8.8";
-            default = "8.8.8.8";
-          };
-        };
-      });
-      default = defaults.dns or {
-        primary = "1.1.1.1";
-        fallback = "8.8.8.8";
-      };
+      description = lib.mdDoc "DNS for the interface";
+      type = types.nullOr (types.submodule (import ./dns.nix { inherit lib; defaults = defaults.dns or {}; }));
+      default = defaults.dns or null;
     };
   };
 }
