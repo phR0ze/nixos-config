@@ -26,13 +26,6 @@ let
     primary = "1.1.1.1";
     fallback = "8.8.8.8";
   };
-  nic = {
-    name = args.net.nic0.name or "";
-    ip = args.net.nic0.ip or "";
-    link = args.net.nic0.link or "";
-    subnet = args.net.nic0.subnet or "";
-    gateway = args.net.nic0.gateway or "";
-  };
   defaults = {
     user = {
       name = user_name;
@@ -45,7 +38,9 @@ let
     gateway = args.net.gateway or "192.168.1.1";
     subnet = args.net.subnet or "192.168.1.0/24";
     dns = dns;
-    nic = nic // { dns = dns; };
+    macvlan = (f.getNic args "macvlan" dns);
+    nic0 = (f.getNic args "nic0" dns);
+    nic1 = (f.getNic args "nic1" dns);
   };
 in
 {
@@ -88,6 +83,7 @@ in
                 spice = lib.mkEnableOption "Full desktop system with remote SPICE display";
               };
             };
+            default = {};
           };
 
           hostname = lib.mkOption {
@@ -307,18 +303,18 @@ in
                     devices can fully participate on the LAN but the host won't be able to interact directly 
                     with the virtualized devices.
                   '';
-                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic; });
-                  default = defaults.nic;
+                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.macvlan; });
+                  default = defaults.macvlan;
                 };
                 nic0 = lib.mkOption {
                   description = lib.mdDoc "Primary NIC options";
-                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic; });
-                  default = defaults.nic;
+                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic0; });
+                  default = defaults.nic0;
                 };
                 nic1 = lib.mkOption {
                   description = lib.mdDoc "Secondary NIC options";
-                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic; });
-                  default = defaults.nic;
+                  type = types.submodule (import ./nic.nix { inherit lib; defaults = defaults.nic1; });
+                  default = defaults.nic1;
                 };
               };
             };
@@ -327,9 +323,9 @@ in
               subnet = defaults.subnet;
               dns = defaults.dns;
               bridge = { enable = false; };
-              macvlan = defaults.nic;
-              nic0 = defaults.nic;
-              nic1 = defaults.nic;
+              macvlan = defaults.macvlan;
+              nic0 = defaults.nic0;
+              nic1 = defaults.nic1;
             };
           };
 

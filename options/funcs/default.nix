@@ -55,6 +55,26 @@
     (lib.mkIf (!p) no)
   ];
 
+  # Extract the target nic and process defaults
+  # - args: is the json input used by the machine and related types
+  # - name: the target nic's name
+  # - dns: default dns to use if not set
+  #-------------------------------------------------------------------------------------------------
+  getNic = args: name: dns:
+    let
+      # Set defaults properly
+      target = args."${name}" or {};
+      nic = {
+        name = target.name or "";
+        ip = target.ip or "";
+        link = target.link or "";
+        subnet = target.subnet or "";
+        gateway = target.gateway or "";
+        dns.primary = target.dns.primary or dns.primary;
+        dns.fallback = target.dns.fallback or dns.fallback;
+      };
+    in service;
+
   # Extract the target service and process defaults
   # - args: is the json input used by the machine and related types
   # - name: the target service's name used for user name and group
