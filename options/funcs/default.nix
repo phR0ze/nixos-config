@@ -63,7 +63,7 @@
   getNic = args: name: dns:
     let
       # Set defaults properly
-      target = args."${name}" or {};
+      target = args.net."${name}" or {};
       nic = {
         name = target.name or "";
         ip = target.ip or "";
