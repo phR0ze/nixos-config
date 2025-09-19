@@ -74,8 +74,8 @@ in
       net.primary.name = machine.net.bridge.name;
     })
 
-    # Configure DNS. resolved works well with network manager
-    # DNS can be temporarily changed: sudo resolvectl dns enp1s0 1.1.1.1
+    # Configure global DNS. resolved works well with network manager
+    # DNS can be temporarily changed per interface with: sudo resolvectl dns enp1s0 1.1.1.1
     # ----------------------------------------------------------------------------------------------
     {
       services.resolved = {
@@ -83,16 +83,18 @@ in
         dnssec = "allow-downgrade"; # using `dnssec = "true"` will break DNS if VPN DNS servers don't support
       };
     }
-    (f.mkIfElse (machine.net.nic0.dns.primary != "" && machine.net.nic0.dns.fallback != "") {
-      networking.nameservers = [ "${machine.net.nic0.dns.primary}" ];
-      services.resolved.fallbackDns = [ "${machine.net.nic0.dns.fallback}" ];
-    } (lib.mkIf (machine.net.nic0.dns.primary != "") {
-      networking.nameservers = [ "${machine.net.nic0.dns.primary}" ];
+    (f.mkIfElse (machine.net.dns.primary != "" && machine.net.dns.fallback != "") {
+      networking.nameservers = [ "${machine.net.dns.primary}" ];
+      services.resolved.fallbackDns = [ "${machine.net.dns.fallback}" ];
+    } (lib.mkIf (machine.net.dns.primary != "") {
+      networking.nameservers = [ "${machine.net.dns.primary}" ];
     }))
 
     # Configure network bridge
     # ----------------------------------------------------------------------------------------------
     (f.mkIfElse (machine.net.bridge.enable) (lib.mkMerge [
+
+      # Create the bridge interface
       {
         assertions = [
           { assertion = (machine.net.bridge.name != ""); message = "Bridge name must be specified for bridge mode"; }
@@ -102,46 +104,42 @@ in
         networking.bridges."${machine.net.bridge.name}".interfaces = ["${machine.net.nic0.name}" ];
       }
 
-      # Configure static IP or DHCP for the bridge
+      # Configure bridge for static IP or DHCP
       (f.mkIfElse (machine.net.nic0.ip != "") {
-        assertions = [
-          { assertion = (machine.net.nic0.subnet != ""); message = "NIC subnet was not specified"; } 
-          { assertion = (machine.net.nic0.gateway != ""); message = "NIC gateway was not specified"; } 
-        ];
         networking.interfaces."${machine.net.bridge.name}".ipv4.addresses = [ (f.toIP machine.net.nic0.ip) ];
-        networking.defaultGateway = "${machine.net.nic0.gateway}";
       } {
         networking.interfaces."${machine.net.bridge.name}".useDHCP = true;
       })
 
       # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
-      # interacted with by every device on the LAN except the host due to local virtual oddities
+      # interacted with by every device on the LAN except the host due to local virtual networking oddities
       {
         networking.macvlans."${machine.net.macvlan.name}" = {
           interface = "${machine.net.bridge.name}";
           mode = "bridge";
         };
       }
-      (f.mkIfElse (machine.net.macvlan.ip == "") {
-        networking.interfaces."${machine.net.macvlan.name}".useDHCP = true;
+      (f.mkIfElse (machine.net.macvlan.ip != "") {
+        networking.interfaces."${machine.net.macvlan.name}".ipv4.addresses = [ (f.toIP machine.net.macvlan.ip) ];
       } {
-        networking.interfaces."${machine.net.macvlan.name}".ipv4.addresses = [
-          { address = "${machine.net.macvlan.ip}"; prefixLength = 32; }
-        ];
+        networking.interfaces."${machine.net.macvlan.name}".useDHCP = true;
       })
 
     # Otherwise configure primary NIC with static IP
     # ----------------------------------------------------------------------------------------------
-    ]) (f.mkIfElse (machine.net.nic0.ip != "") {
+    ]) (lib.mkIf (machine.net.nic0.ip != "") {
       assertions = [
-        { assertion = (machine.net.nic0.subnet != ""); message = "NIC subnet was not specified"; } 
-        { assertion = (machine.net.nic0.gateway != ""); message = "NIC gateway was not specified"; } 
+        { assertion = (machine.net.nic0.name != ""); message = "Primary nic must be specified e.g. 'eth0'"; } 
       ];
-
       networking.interfaces."${machine.net.nic0.name}".ipv4.addresses = [ (f.toIP machine.net.nic0.ip) ];
-      networking.defaultGateway = "${machine.net.nic0.gateway}";
-    } {
-      # Finally fallback on DHCP for the primary NIC
     }))
+
+    # Configure the default gateway if the primary nic is static
+    (lib.mkIf (machine.net.nic0.ip != "") {
+      assertions = [
+        { assertion = (machine.net.gateway != ""); message = "Default gateway was not specified"; } 
+      ];
+      networking.defaultGateway = "${machine.net.gateway}";
+    })
   ];
 }
