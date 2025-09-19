@@ -73,7 +73,7 @@
         dns.primary = target.dns.primary or dns.primary;
         dns.fallback = target.dns.fallback or dns.fallback;
       };
-    in service;
+    in nic;
 
   # Extract the target service and process defaults
   # - args: is the json input used by the machine and related types
