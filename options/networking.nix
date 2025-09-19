@@ -114,6 +114,9 @@ in
       # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
       # interacted with by every device on the LAN except the host due to local virtual networking oddities
       {
+        assertions = [
+          { assertion = (machine.net.macvlan.name != ""); message = "Macvlan name must be specified"; }
+        ];
         networking.macvlans."${machine.net.macvlan.name}" = {
           interface = "${machine.net.bridge.name}";
           mode = "bridge";
