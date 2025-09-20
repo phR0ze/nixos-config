@@ -265,7 +265,14 @@ in
             id = 1733441373;
           }
         ];
-        whitelist_filters = [];
+        whitelist_filters = [
+          {
+            enabled = true;
+            url = "https://raw.githubusercontent.com/phR0ze/adguard-lists/refs/heads/main/allow/allow.txt";
+            name = "phR0ze allows";
+            id: 1757123023;
+          }
+        ];
         user_rules = [
           "# Ads/Tracking allowed by AdGuard"
           "||adservice.google.*^$important"
