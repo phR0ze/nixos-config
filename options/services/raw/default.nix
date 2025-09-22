@@ -8,6 +8,7 @@
     ./barrier.nix
     ./immich.nix
     ./jellyfin.nix
+    ./kasmvnc.nix
     ./minecraft.nix
     ./nfs.nix
     ./nix-cache.nix
