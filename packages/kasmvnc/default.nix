@@ -9,13 +9,16 @@
 #
 # ### Packaging
 # - Inspired by [Arch Linux](https://aur.archlinux.org/packages/kasmvncserver-bin)
+# - Patched configuration to be at `$HOME/.config/kasmvnc`
 
 { lib, stdenv, fetchurl,
   pkgs,
   dpkg,               # provide support for uncompressing the deb package
   makeWrapper,        # provides wrapProgram for Perl module locations
   cacert,             # 
+  coreutils,          #
   freetype,           # >=2.2.1
+  hostname,           #
   libbsd,             # >=0.7.0
   libGL,              # 
   libjpeg,            # libjpeg-turbo
@@ -38,6 +41,8 @@
   perl,               # Kasm uses a lot of perl scripting for configuration and setup
   perl540Packages,    # 
   pixman,             # >=0.30.0
+  util-linux,         #
+  whoami,             #
   zlib,               # >=1.1.4
   # lib32-mesa
 }:
@@ -92,10 +97,19 @@ stdenv.mkDerivation rec {
     dpkg-deb -x $src .
   '';
 
+  # Note the patch is applied to the original file struction after unpack
+  # stage the file struction in 'a' and the copy to modify in 'b'
+  # diff -ruN a b > ../packages/kasmvnc/vncserver.patch
+  patches = [
+    ./vncserver.patch
+  ];
+
   # Build dependencies e.g. libs, headers
   propagatedBuildInputs = [
     cacert
+    coreutils
     freetype
+    hostname
     libbsd
     libGL
     libjpeg
@@ -113,12 +127,15 @@ stdenv.mkDerivation rec {
     openssl
     perl
     pixman
+    util-linux
+    whoami
     xkeyboard-config
     xkbutils
     xorg.libxshmfence
     xorg.xauth
     xorg.libXtst
     xorg.libXfont2
+    xorg.xdpyinfo
     zlib
   ] ++ perlModules;
 
@@ -146,10 +163,11 @@ stdenv.mkDerivation rec {
   #             `-- KasmVNC
   #                 |-- CallbackValidator.pm
   #                     ....
-  #                 `-- Utils.pm
   installPhase = ''
+    runHook preInstall
+
     mkdir -p $out/{bin,etc,lib,share}
-    cp ./etc/kasmvnc/* $out/etc/
+    cp ./etc/kasmvnc/kasmvnc.yaml $out/etc/
 
     # KasmVNC searches for specific binary names
     cp ./usr/bin/kasmvncserver $out/bin/vncserver
@@ -158,17 +176,31 @@ stdenv.mkDerivation rec {
     cp ./usr/bin/Xkasmvnc $out/bin/Xvnc
     cp ./usr/bin/kasmxproxy $out/bin/xproxy
 
-    cp -r ./usr/lib/kasmvncserver $out/lib/
+    cp ./usr/lib/kasmvncserver/select-de.sh $out/lib/
 
     cp -r ./usr/share/doc $out/share/
     cp -r ./usr/share/kasmvnc $out/share/
     cp -r ./usr/share/man $out/share/
 
+    # KasmVNC perl module path .../lib/KasmVNC/*.pm
     cp -r ./usr/share/perl5 $out/lib/
 
-    # Add all the standard perl module dependencies and tack on KasmVNC specific ones at the end
+    runHook postInstall
+  '';
+
+  # Wraps the post install binaries with:
+  # - dependency upstream Perl paths
+  # - dependency KasmVNC specific Perl module path
+  # - system path overrides for KasmVNC
+  # - system path overrides for NixOS
+        #--prefix KASMVNC_FONTS: "${xorg.fontadobe}/shre/X11/fonts" \
+  preFixup = ''
     for x in $out/bin/*; do
-      wrapProgram "$x" --set PERL5LIB "${perl540Packages.makePerlPath perlModules}:$out/lib/perl5"
+      wrapProgram "$x" \
+        --prefix KASMVNC_ETC : "$out/etc" \
+        --prefix KASMVNC_SELECTDE : "$out/lib/select-de.sh" \
+        --prefix KASMVNC_DEFAULTS : "$out/share/kasmvnc/kasmvnc_defaults.yaml" \
+        --prefix PERL5LIB : "${perl540Packages.makePerlPath perlModules}:$out/lib/perl5"
     done
   '';
 

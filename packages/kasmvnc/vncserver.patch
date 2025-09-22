@@ -1,0 +1,57 @@
+diff '--color=auto' -ruN a/usr/bin/kasmvncserver b/usr/bin/kasmvncserver
+--- a/usr/bin/kasmvncserver	2025-09-22 15:40:55.773049271 -0600
++++ b/usr/bin/kasmvncserver	2025-09-22 17:09:30.519884248 -0600
+@@ -912,7 +912,7 @@
+   }
+ 
+   $logger->warn("\nYou need to create a KasmVNC user to access your desktops.\n");
+-  system($exedir."kasmvncpasswd $kasmPasswdFile");
++  system($exedir."vncpasswd $kasmPasswdFile");
+   if (($? >> 8) != 0) {
+     exit 1;
+   }
+@@ -1168,27 +1168,27 @@
+ 
+   $geometry = "1024x768";
+ 
+-  $vncUserDir = "$ENV{HOME}/.vnc";
+-  $vncUserConfig = "$vncUserDir/config";
+-  $kasmPasswdFile = "$ENV{HOME}/.kasmpasswd";
++  $vncUserDir = "$ENV{HOME}/.config/kasmvnc";
++  #$vncUserConfig = "$vncUserDir/config";
++  $kasmPasswdFile = "$vncUserDir/.passwd";
+ 
+   $selectDeBin = DetectSelectDeBin();
+-  $de_was_selected_file="$ENV{HOME}/.vnc/.de-was-selected";
++  $de_was_selected_file="$vncUserDir/.de-was-selected";
+ 
+-  $KasmVNC::Users::vncPasswdBin = $exedir . "kasmvncpasswd";
++  $KasmVNC::Users::vncPasswdBin = $exedir . "vncpasswd";
+   $KasmVNC::Users::logger = $logger;
+   $KasmVNC::Config::logger = $logger;
+ 
+-  $vncSystemConfigDir = "/etc/kasmvnc";
++  $vncSystemConfigDir = "$ENV{KASMVNC_ETC}";
+   if ($ENV{KASMVNC_DEVELOPMENT}) {
+     $vncDefaultsConfig = "/src/unix/kasmvnc_defaults.yaml";
+     $vncSystemConfig = "/src/unix/kasmvnc.yaml";
+   } else {
+-    $vncDefaultsConfig = "/usr/share/kasmvnc/kasmvnc_defaults.yaml";
++    $vncDefaultsConfig = "$ENV{KASMVNC_DEFAULTS}";
+     $vncSystemConfig = "$vncSystemConfigDir/kasmvnc.yaml";
+   }
+ 
+-  $vncUserConfig = "$ENV{HOME}/.vnc/kasmvnc.yaml";
++  $vncUserConfig = "$vncUserDir/kasmvnc.yaml";
+   @configFiles = ($vncDefaultsConfig, $vncSystemConfig, $vncUserConfig);
+   $defaultWebsocketPort = 8443;
+ 
+@@ -2742,7 +2742,7 @@
+ 
+ sub DetectSelectDeBin {
+   if (IsThisSystemBinary()) {
+-    "/usr/lib/kasmvncserver/select-de.sh";
++    "$ENV{KASMVNC_SELECTDE}";
+   } else {
+     LocalSelectDePath();
+   }
