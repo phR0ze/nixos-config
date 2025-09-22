@@ -270,7 +270,7 @@ in
             enabled = true;
             url = "https://raw.githubusercontent.com/phR0ze/adguard-lists/refs/heads/main/allow/allow.txt";
             name = "phR0ze allows";
-            id: 1757123023;
+            id = 1757123023;
           }
         ];
         user_rules = [
