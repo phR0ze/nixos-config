@@ -9,7 +9,16 @@
 #
 # ### Packaging
 # - Inspired by [Arch Linux](https://aur.archlinux.org/packages/kasmvncserver-bin)
-# - Patched configuration to be at `$HOME/.config/kasmvnc`
+# - Default web socket is 8443 or 6901 or 6080??
+# - Configuration is at:
+#   /etc/kasmvnc/kasmvnc.yaml
+#   ~/.vnc/kasmvnc.yaml
+#   ~/.vnc/.de-was-selected
+#   ~/.vnc/config/
+#   ~/.kasmpasswd
+# - Create ~/.kasmpasswd: `vncpasswd -u USER -o`
+# - Run with: vncserver --vnc --enable-auth --password PASSWORD --port 6901 --bind 0.0.0.0
+# - Ubuntu's ssl-cert for snakeoil certs
 
 { lib, pkgs, stdenv, fetchurl, autoPatchelfHook, makeWrapper }:
 
@@ -156,7 +165,10 @@ stdenv.mkDerivation rec {
     cp ./usr/bin/Xkasmvnc $out/bin/Xvnc
     cp ./usr/bin/kasmxproxy $out/bin/xproxy
 
-    cp ./usr/lib/kasmvncserver/select-de.sh $out/lib/
+    # Stage the select desktop script
+    #cp ./usr/lib/kasmvncserver/select-de.sh $out/lib/
+    mkdir -p $out/builder/startup/deb
+    cp ./usr/lib/kasmvncserver/select-de.sh $out/builder/startup/deb/
 
     cp -r ./usr/share/doc $out/share/
     cp -r ./usr/share/kasmvnc $out/share/

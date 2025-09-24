@@ -7,10 +7,16 @@
 # viewer applications. KasmVNC uses a modern YAML based configuration at the server and user level, 
 # allowing for ease of management.
 
-{ config, lib, pkgs, ... }: with lib.types;
+{ config, lib, pkgs, args, f, ... }: with lib.types;
 let
+  machine = config.machine;
   cfg = config.services.raw.kasmvnc;
+
   kasmvnc = pkgs.callPackage ../../../packages/kasmvnc {};
+  vncpass = pkgs.runCommandLocal "kasmvnc-passwd" {} ''
+    mkdir $out
+    echo "${machine.user.pass}" | ${kasmvnc}/bin/vncpasswd -u "${machine.user.name}" -o
+  '';
 in
 {
   options = {

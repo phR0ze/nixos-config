@@ -1,6 +1,6 @@
 diff '--color=auto' -ruN a/usr/bin/kasmvncserver b/usr/bin/kasmvncserver
 --- a/usr/bin/kasmvncserver	2025-09-22 15:40:55.773049271 -0600
-+++ b/usr/bin/kasmvncserver	2025-09-22 17:09:30.519884248 -0600
++++ b/usr/bin/kasmvncserver	2025-09-24 16:20:38.889430929 -0600
 @@ -912,7 +912,7 @@
    }
  
@@ -10,20 +10,9 @@ diff '--color=auto' -ruN a/usr/bin/kasmvncserver b/usr/bin/kasmvncserver
    if (($? >> 8) != 0) {
      exit 1;
    }
-@@ -1168,27 +1168,27 @@
- 
-   $geometry = "1024x768";
- 
--  $vncUserDir = "$ENV{HOME}/.vnc";
--  $vncUserConfig = "$vncUserDir/config";
--  $kasmPasswdFile = "$ENV{HOME}/.kasmpasswd";
-+  $vncUserDir = "$ENV{HOME}/.config/kasmvnc";
-+  #$vncUserConfig = "$vncUserDir/config";
-+  $kasmPasswdFile = "$vncUserDir/.passwd";
- 
+@@ -1175,16 +1175,16 @@
    $selectDeBin = DetectSelectDeBin();
--  $de_was_selected_file="$ENV{HOME}/.vnc/.de-was-selected";
-+  $de_was_selected_file="$vncUserDir/.de-was-selected";
+   $de_was_selected_file="$ENV{HOME}/.vnc/.de-was-selected";
  
 -  $KasmVNC::Users::vncPasswdBin = $exedir . "kasmvncpasswd";
 +  $KasmVNC::Users::vncPasswdBin = $exedir . "vncpasswd";
@@ -40,11 +29,6 @@ diff '--color=auto' -ruN a/usr/bin/kasmvncserver b/usr/bin/kasmvncserver
 +    $vncDefaultsConfig = "$ENV{KASMVNC_DEFAULTS}";
      $vncSystemConfig = "$vncSystemConfigDir/kasmvnc.yaml";
    }
- 
--  $vncUserConfig = "$ENV{HOME}/.vnc/kasmvnc.yaml";
-+  $vncUserConfig = "$vncUserDir/kasmvnc.yaml";
-   @configFiles = ($vncDefaultsConfig, $vncSystemConfig, $vncUserConfig);
-   $defaultWebsocketPort = 8443;
  
 @@ -2742,7 +2742,7 @@
  
