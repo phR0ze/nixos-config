@@ -11,43 +11,11 @@
 # - Inspired by [Arch Linux](https://aur.archlinux.org/packages/kasmvncserver-bin)
 # - Patched configuration to be at `$HOME/.config/kasmvnc`
 
-{ lib, stdenv, fetchurl,
-  pkgs,
-  dpkg,               # provide support for uncompressing the deb package
-  makeWrapper,        # provides wrapProgram for Perl module locations
-  cacert,             # 
-  coreutils,          #
-  freetype,           # >=2.2.1
-  hostname,           #
-  libbsd,             # >=0.7.0
-  libGL,              # 
-  libjpeg,            # libjpeg-turbo
-  libpng,             # >=1.6.2
-  libunwind,          #
-  libxcrypt-legacy,   # >=4.1.0' 
-  libX11,             # >=1.4.99.1
-  libXau,             # >=1.0.9
-  libXcursor,         # >1.1.2
-  libXdmcp,           #
-  libXfixes,          #
-  libXrandr,          # >=1.2.0
-  libXext,            # 
-  libyaml,            #
-  openssl,            # >=3.0.0.alpha1
-  systemdLibs,        #
-  xkbutils,           #
-  xkeyboard-config,   #
-  xorg,               #
-  perl,               # Kasm uses a lot of perl scripting for configuration and setup
-  perl540Packages,    # 
-  pixman,             # >=0.30.0
-  util-linux,         #
-  whoami,             #
-  zlib,               # >=1.1.4
-  # lib32-mesa
-}:
+{ lib, pkgs, stdenv, fetchurl, autoPatchelfHook, makeWrapper }:
+
 let
-  perlModules = with perl540Packages; [
+  # KasmVNC has a bunch of Perl scripting to orchestrate their VNC implementation
+  perlModules = with pkgs.perl540Packages; [
     BHooksEndOfScope
     ClassDataInheritable
     ClassInspector
@@ -91,7 +59,54 @@ stdenv.mkDerivation rec {
   };
 
   # Build tooling e.g. make, autoconf
-  nativeBuildInputs = [ dpkg makeWrapper ];
+  nativeBuildInputs = [
+    autoPatchelfHook    # automatically patches binaries with build input libs
+    makeWrapper         # provides wrapProgram for Perl module locations
+    pkgs.dpkg           # provide support for uncompressing the deb package
+  ];
+
+  # Build time dependencies e.g. libs, headers
+  #buildInputs = [ ];
+
+  # Runtime dependencies e.g. dynamically linked libs
+  propagatedBuildInputs = with pkgs; [
+    cacert              # Bundle of X.509 certs of public CAs
+    coreutils           # GNU Core Utilties e.g. base64, basename, chmod, chown etc...
+    glibc               # GNU C Library
+    freetype            # Font rendering engine
+    hostname            # Hostname lookup utility
+    libbsd              # Library of common functions found on BSD systems
+    libGL               # GL vendor neutral dispatch library
+    libgbm              # Open source 3D graphics library
+    libjpeg             # libjpeg-turbo
+    libpng              # Official reference implementation for the PNG format with animation patch
+    libunwind           # Portable and efficicent API to determine the call-chain of a program
+    libxcrypt-legacy    # Extended crypt library providing older libcrypt.so.1
+    libyaml             # YAML 1.1 parser and emitter written in C
+    openssl             # Cryptographic library that implements the SSL and TLS protocols
+    openssl_3           # Cryptographic library that implements the SSL and TLS protocols
+    stdenv.cc.cc        # libstdc++.so.6
+    systemdLibs         # System and service manager for Linux
+    xkeyboard-config    # Provides a consistent, well-structured, database of keyboard configuration data
+    xorg.libX11         # Core X11 protocol client library aka Xlib
+    xorg.libXau         # Functions for handling Xauthority files and entries
+    xorg.libXcursor     # X11 Cursor management library
+    xorg.libXdmcp       # X Display Manager Control Protocol library
+    xorg.libXext        # Xlib libraryfor common extensions to the X11 protocol
+    xorg.libXfixes      # Xlib library for the XFIXES extension
+    xorg.libXfont2      #
+    xorg.libXrandr      # Xlib resize, rotate and reflection RandR extension library
+    xorg.libxshmfence   #
+    xorg.libXtst        #
+    xorg.xauth          #
+    xorg.xkbutils       # Collection of small XKB utilities
+    xorg.xdpyinfo       #
+    perl                # Kasm uses a lot of perl scripting for configuration and setup
+    pixman              # Low-level library for pixel manipulation
+    util-linux          # System utilties for linux e.g. blkid, dmesg, fdisk, kill etc...
+    whoami              # Tiny Go server that prints the os information and HTTP request to outpu
+    zlib                # Lossless data-compression library
+  ] ++ perlModules;
 
   unpackPhase = ''
     dpkg-deb -x $src .
@@ -103,41 +118,6 @@ stdenv.mkDerivation rec {
   patches = [
     ./vncserver.patch
   ];
-
-  # Build dependencies e.g. libs, headers
-  propagatedBuildInputs = [
-    cacert
-    coreutils
-    freetype
-    hostname
-    libbsd
-    libGL
-    libjpeg
-    libpng
-    libunwind
-    libyaml
-    libX11
-    libXau
-    libXcursor
-    libxcrypt-legacy
-    libXdmcp
-    libXext
-    libXfixes
-    libXrandr
-    openssl
-    perl
-    pixman
-    util-linux
-    whoami
-    xkeyboard-config
-    xkbutils
-    xorg.libxshmfence
-    xorg.xauth
-    xorg.libXtst
-    xorg.libXfont2
-    xorg.xdpyinfo
-    zlib
-  ] ++ perlModules;
 
   # Nice way to debug tree structurs
   # ${pkgs.tree}/bin/tree .
@@ -191,20 +171,17 @@ stdenv.mkDerivation rec {
   # Wraps the post install binaries with:
   # - dependency upstream Perl paths
   # - dependency KasmVNC specific Perl module path
-  # - system path overrides for KasmVNC
-  # - system path overrides for NixOS
-        #--prefix KASMVNC_FONTS: "${xorg.fontadobe}/shre/X11/fonts" \
   preFixup = ''
-    for x in $out/bin/*; do
-      wrapProgram "$x" \
-        --prefix KASMVNC_ETC : "$out/etc" \
-        --prefix KASMVNC_SELECTDE : "$out/lib/select-de.sh" \
-        --prefix KASMVNC_DEFAULTS : "$out/share/kasmvnc/kasmvnc_defaults.yaml" \
-        --prefix PERL5LIB : "${perl540Packages.makePerlPath perlModules}:$out/lib/perl5"
-    done
+    wrapProgram "$out/bin/vncserver" \
+      --prefix KASMVNC_ETC : "$out/etc" \
+      --prefix KASMVNC_SELECTDE : "$out/lib/select-de.sh" \
+      --prefix KASMVNC_DEFAULTS : "$out/share/kasmvnc/kasmvnc_defaults.yaml" \
+      --prefix PERL5LIB : "${pkgs.perl540Packages.makePerlPath perlModules}:$out/lib/perl5"
   '';
 
   meta = with lib; {
+    description = "Modern web-based VNC server + client";
+    homepage = "https://github.com/kasmtech/KasmVNC";
     maintainers = with maintainers; [ phR0ze ];
     platforms = platforms.linux;
   };
