@@ -18,7 +18,16 @@
 #   ~/.kasmpasswd
 # - Create ~/.kasmpasswd: `vncpasswd -u USER -o`
 # - Run with: vncserver --vnc --enable-auth --password PASSWORD --port 6901 --bind 0.0.0.0
+# 
 # - Ubuntu's ssl-cert for snakeoil certs
+# /etc/ssl/certs/ssl-cert-snakeoil.pem: certificate file doesn't exist or isn't a file
+# /etc/ssl/private/ssl-cert-snakeoil.key: certificate file doesn't exist or isn't a file
+# cd /etc/ssl
+# sudo openssl genpkey -algorithm RSA -out private/ssl-cert-snakeoil.key
+# sudo openssl req -new -key private/ssl-cert-snakeoil.key -out certs/ssl-cert-snakeoil.csr
+# sudo openssl x509 -req -days 365 -in certs/ssl-cert-snakeoil.csr -signkey private/ssl-cert-snakeoil.key -out certs/ssl-cert-snakeoil.pem
+# sudo chmod 600 private/ssl-cert-snakeoil.key
+# sudo chmod 644 certs/ssl-cert-snakeoil.pem
 
 { lib, pkgs, stdenv, fetchurl, autoPatchelfHook, makeWrapper }:
 
