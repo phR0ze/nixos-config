@@ -16,6 +16,10 @@
     machine.autologin = true;
     services.xserver.autolock.enable = true;
 
+    # Configure remoting
+    services.raw.sunshine.enable = true;
+    services.raw.rustdesk.enable = false;
+
     # Homelab services
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;

@@ -1,0 +1,12 @@
+diff '--color=auto' -ruN a/selkies_gstreamer/signalling_web.py b/selkies_gstreamer/signalling_web.py
+--- a/selkies_gstreamer/signalling_web.py	2025-08-17 08:10:54.000000000 -0600
++++ b/selkies_gstreamer/signalling_web.py	2025-09-26 16:19:32.827952961 -0600
+@@ -475,7 +475,7 @@
+         # Websocket and HTTP server
+         http_handler = functools.partial(self.process_request, self.web_root)
+         self.stop_server = self.loop.create_future()
+-        async with websockets.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler, loop=self.loop,
++        async with websockets.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler,
+                                # Maximum number of messages that websockets will pop
+                                # off the asyncio and OS buffers per connection. See:
+                                # https://websockets.readthedocs.io/en/stable/api.html#websockets.protocol.WebSocketCommonProtocol

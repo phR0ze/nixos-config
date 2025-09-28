@@ -36,7 +36,7 @@
 
     # Testing packages
     # --------------------------------------------
-    services.raw.kasmvnc.enable = true;
+    services.raw.sunshine.enable = true;
 
     # Emulate homelab configuration for services development
     # --------------------------------------------
