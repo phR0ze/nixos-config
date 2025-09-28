@@ -18,7 +18,7 @@
 
     # Configure remoting
     services.raw.sunshine.enable = true;
-    services.raw.rustdesk.enable = false;
+    #services.raw.rustdesk.enable = false;
 
     # Homelab services
     virtualisation.podman.enable = true;
