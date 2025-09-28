@@ -14,9 +14,12 @@
     ./nix-cache.nix
     ./private-internet-access.nix
     ./rustdesk.nix
+    ./selkies.nix
     ./smb.nix
     ./sshd.nix
+    ./sunshine.nix
     ./synology-drive-client.nix
     ./x11vnc.nix
+    ./x2go.nix
   ];
 }

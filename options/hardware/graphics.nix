@@ -61,6 +61,7 @@ in
     (lib.mkIf (x11.enable) {
       hardware.graphics = {
         enable = true;                      # Installs mesa, mesa drivers, mesa-demos
+        enable32Bit = true;
 
         # Defaults from the opengl option, also aliased with 'mesa_drivers'
         package = pkgs.mesa;
