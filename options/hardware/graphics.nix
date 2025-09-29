@@ -1,9 +1,11 @@
 # Graphics configuration
 #
 # ### Supported systems
-# - AMD Lexa PRO
+# - AMD Radeon RX 550
+# - Nvidia 10 Series > Geforce GTX 1050 Ti
 #
 # ### Research
+# - [Nvidia legacy driver selection](https://www.nvidia.com/en-us/drivers/unix/legacy-gpu/)
 # - https://wiki.archlinux.org/title/Hardware_video_acceleration
 # - https://wiki.archlinux.org/title/Hardware_video_acceleration#Comparison_tables
 #
@@ -38,7 +40,6 @@
 #
 # - https://nixos.wiki/wiki/OpenGL
 # - https://nixos.org/manual/nixos/unstable/#sec-gpu-accel
-
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -61,32 +62,40 @@ in
     (lib.mkIf (x11.enable) {
       hardware.graphics = {
         enable = true;                      # Installs mesa, mesa drivers, mesa-demos
-        enable32Bit = true;
+        enable32Bit = true;                 # Installs mesa for 32-bit apps like Wine and Steam
 
-        # Defaults from the opengl option, also aliased with 'mesa_drivers'
-        package = pkgs.mesa;
-        package32 = pkgs.pkgsi686Linux.mesa;
+        # Defaults when enables are set above
+        #package = pkgs.mesa;
+        #package32 = pkgs.pkgsi686Linux.mesa;
       };
 
       # Supporting system packages
       #-------------------------------------------------------------------------------------------------
       environment.systemPackages = with pkgs; [
+        clinfo                      # Print all known info on all available OpenCL platforms
+        gpu-viewer                  # Front end to glxinfo, clinfo, and es2_info
         libva-utils                 # A collection of utilities and examples for VA-API e.g. vainfo
         mesa                        # Open-source 3D graphics library
-        mesa-demos                  # Collection of demos and test programs for OpenGL and Mesa
+        mesa-demos                  # Collection of demos and test programs including glxinfo
         pciutils                    # Collection of utilities for inspecting and manipulating PCI devices
         vdpauinfo                   # Tool to query the Video Decode and Presentation API (VDPAU)
-
-        # Doesn't seem to recognize the GPU even exists
-        #nvtop                      # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
+        vulkan-tools                # Vulkan tooling including vulkaninfo
       ];
     })
 
     # AMD graphics
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf cfg.amd {
+
       # Have the kernel load the correct GPU driver as soon as possible
-      boot.initrd.kernelModules = [ "amdgpu" ];
+      hardware.amdgpu.initrd.enable = true;
+
+      hardware.amdgpu.opencl.enable = true;
+      hardware.amdgpu.amdvlk.enable = true;
+
+      environment.systemPackages = with pkgs; [
+        nvtopPackages.amd           # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
+      ];
     })
     (lib.mkIf (cfg.amd && x11.enable) {
       services.xserver.videoDrivers = [ "amdgpu" ];
@@ -103,15 +112,30 @@ in
       ];
       environment.systemPackages = with pkgs; [
         intel-gpu-tools
+        nvtopPackages.intel         # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
       ];
     })
 
     # Nvidia graphics
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf cfg.nvidia {
-      # Have the kernel load the correct GPU driver as soon as possible
+
+      # Should be automatically handled but can manually add as well
+      boot.initrd.kernelModules = [ "nvidia" ];
+
       hardware.nvidia = {
-        modesetting.enable = true;  # Modesetting is required.
+
+        # Use the NVidia open source kernel module (not to be confused with the
+        # independent third-party "nouveau" open source driver).
+        # Support is limited to the Turing and later architectures. Full list of supported GPUs is at: 
+        # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus 
+        # Only available from driver 515.43.04+
+        # Currently alpha-quality/buggy, so false is currently the recommended setting.
+        open = false;
+
+        # Have the kernel load the correct GPU driver as soon as possible
+        # Enabling this fixes screen tearing and Wayland compositors in some cases
+        modesetting.enable = true;
 
         # Nvidia power management. Experimental, and can cause sleep/suspend to fail.
         # Enable this if you have graphical corruption issues or application crashes after waking
@@ -123,21 +147,22 @@ in
         # Experimental and only works on modern Nvidia GPUs (Turing or newer).
         powerManagement.finegrained = false;
 
-        # Use the NVidia open source kernel module (not to be confused with the
-        # independent third-party "nouveau" open source driver).
-        # Support is limited to the Turing and later architectures. Full list of supported GPUs is at: 
-        # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus 
-        # Only available from driver 515.43.04+
-        # Currently alpha-quality/buggy, so false is currently the recommended setting.
-        open = false;
-
-        # Enable the Nvidia settings menu,
-        # accessible via `nvidia-settings`.
+        # Enables the Nvidia settings menu entry by installing `nvidia-settings`
         nvidiaSettings = true;
 
-        # Optionally, you may need to select the appropriate driver version for your specific GPU.
+        # Ensures all GPUs stay awake during headless mode by installing `nvidia-persistenced`
+        nvidiaPersistenced = true;
+
+        # Optionally, for older cards you'll need to select the driver version for your specific GPU.
         package = config.boot.kernelPackages.nvidiaPackages.stable;
+        #package = config.boot.kernelPackages.nvidiaPackages.legacy_470;
+        #package = config.boot.kernelPackages.nvidiaPackages.legacy_390;
+        #package = config.boot.kernelPackages.nvidiaPackages.legacy_340;
       };
+
+      environment.systemPackages = with pkgs; [
+        nvtopPackages.nvidia        # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
+      ];
     })
     (lib.mkIf (cfg.nvidia && x11.enable) {
       services.xserver.videoDrivers = [ "nvidia" ];

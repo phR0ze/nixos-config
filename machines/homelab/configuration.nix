@@ -13,6 +13,7 @@
   config = {
     machine.type.bootable = true;
     machine.net.bridge.enable = true;
+    hardware.graphics.nvidia = true;
     machine.autologin = true;
     services.xserver.autolock.enable = true;
 
