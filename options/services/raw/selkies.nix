@@ -21,7 +21,6 @@ in
     environment.systemPackages = [ selkies ];
 
     # Configure firewall exceptions
-    networking.firewall.enable = false;
     services.raw.rustdesk.enable = lib.mkForce false;
     #networking.firewall.interfaces.allowedTCPPorts = [ 8080 ];
 

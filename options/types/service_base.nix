@@ -34,10 +34,13 @@ in
 
     # Create app user to run the container as for extra security
     users.users.${cfg.user.name} = {
+      isNormalUser = true;
       uid = cfg.user.uid;
-      isSystemUser = true;
       group = cfg.user.group;
-      home = "/var/empty";
+
+      # Assign the app user space to use, defaults to 0700 permission
+      home = "/var/lib/${cfg.user.name}";
+      createHome = true;
     };
     users.groups.${cfg.user.group} = {
       gid = cfg.user.gid;
@@ -69,12 +72,10 @@ in
 
       wants = [
         "network-online.target"
-        #"network-addresses-${cfg.name}.service"
         "podman-network-${cfg.name}.service"
       ];
       after = [
         "network-online.target"
-        #"network-addresses-${cfg.name}.service"
         "podman-network-${cfg.name}.service"
       ];
 
