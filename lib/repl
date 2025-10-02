@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+#set -x
+
+# REPL
+# 
+# ## Features
+# - Setup the local flake for the target machine to be used in the REPL
+# --------------------------------------------------------------------------------------------------
+ARGS=""
+
+# Usage for the repl command and its sub commands
+# --------------------------------------------------------------------------------------------------
+repl::usage()
+{
+    cat <<USAGE
+Usage:
+  repl [ARGS...] [OPTIONS] 
+
+Options:
+  -h, --help            Print out usage
+
+Arguments:
+  MACHINE               Load the given machine or the default test vm 'vm-test'
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "Load host machine: ${green}./${SCRIPT} repl${none}"
+    log::subln "Load given machine: ${green}./${SCRIPT} repl macbook${none}"
+    echo
+    exit
+}
+
+# Parse the repl commands and execute
+# --------------------------------------------------------------------------------------------------
+repl::run()
+{
+    utils::help "$@" zero "repl::usage"
+
+    # Process the given argument
+    local arg=$1; shift
+    repl::machine "$arg"
+}
+ 
+# Repl the target machine
+# - $1 - the machine name to target
+# --------------------------------------------------------------------------------------------------
+repl::machine()
+{
+    core::preamble
+
+    # Use hostname as machine
+    MACHINE="$1"
+    [[ "$1" == "" ]] && MACHINE="$(hostname)"
+
+    log::header1 "Loading ${cyan}${MACHINE}${none} in REPL"
+    flake::switch "$MACHINE"
+    trap flake::restore EXIT
+
+    nix repl -f '<nixpkgs>'
+}
