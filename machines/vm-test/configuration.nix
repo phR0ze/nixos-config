@@ -36,33 +36,31 @@
 
     # Testing packages
     # --------------------------------------------
-    services.raw.sunshine.enable = true;
+    #services.raw.sunshine.enable = true;
 
     # Emulate homelab configuration for services development
     # --------------------------------------------
-#    machine.net.bridge.enable = true;
-#    machine.net.macvlan = {
-#      name = "host";
-#      ip = "192.168.1.61/24";
-#      dns.primary = "9.9.9.9";
-#      dns.fallback = "9.9.9.9";
-#    };
-#    machine.net.nic0 = {
-#      name = "eth0";
-#      ip = "192.168.1.60/24";
-#    };
-#    services.cont.homarr = {
-#      enable = true;
-#      port = 8080;
-#    };
-#    services.cont.stirling-pdf = {
-#      enable = true;
-#      port = 8081;
-#    };
-#    services.cont.oneup = {
-#      enable = true;
-#      port = 8082;
-#    };
+    machine.net.bridge.enable = true;
+    machine.net.macvlan = {
+      name = "host";
+      ip = "192.168.1.61/24";
+    };
+    machine.net.nic0 = {
+      name = "eth0";
+      ip = "192.168.1.60/24";
+    };
+    services.cont.homarr = {
+      enable = true;
+      port = 8080;
+    };
+    services.cont.stirling-pdf = {
+      enable = true;
+      port = 8081;
+    };
+    services.cont.oneup = {
+      enable = true;
+      port = 8082;
+    };
 #
 #    environment.systemPackages = [
 #      pkgs.kasmweb

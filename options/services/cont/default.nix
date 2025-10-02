@@ -11,11 +11,8 @@
 {
   imports = [
     ./homarr.nix
-    ./lxconsole.nix
+    ./immich.nix
     ./oneup.nix
-    ./portainer.nix
-    ./qbittorrent.nix
     ./stirling-pdf.nix
-    ./traefik.nix
   ];
 }

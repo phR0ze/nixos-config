@@ -54,7 +54,6 @@ in
     ];
 
     # Host configuration for service
-    networking.firewall.enable = false;
     #networking.firewall.allowedTCPPorts = [ cfg.opts.port ];
 
     # Container configuration for service
@@ -79,7 +78,6 @@ in
         };
 
         # Allow the server port through the firewall
-        networking.firewall.enable = true;
         networking.firewall.allowedTCPPorts = [ cfg.opts.port ];
       };
     };

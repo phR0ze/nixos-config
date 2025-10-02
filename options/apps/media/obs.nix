@@ -45,7 +45,6 @@ in
 
     # Optionally open firewall ports for NDI
     (lib.mkIf cfg.ndi {
-      networking.firewall.enable = false;
       #networking.firewall.allowedTCPPorts = [
       #  5959                                      # NDI Discovery server port
       #  5960                                      # NDI remote soruces to discover this machine

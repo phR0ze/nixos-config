@@ -52,12 +52,13 @@ in
     # - No group specified, i.e `-` defaults to root
     # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
-      "d /var/lib/${cfg.name} 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
       "d /var/lib/${cfg.name}/appdata 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
     ];
 
     # Generate the "podman-${cfg.name}" service unit for the container
     virtualisation.oci-containers.containers."${cfg.name}" = {
+      # Direct non-root is not supported
+      #user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
       image = "ghcr.io/homarr-labs/homarr:${cfg.tag}";
       autoStart = true;
       hostname = "${cfg.name}";
@@ -68,8 +69,8 @@ in
 
       # Configure app via overrides
       environment = {
-        "PUID" = "${toString cfg.user.uid}";
-        "PGID" = "${toString cfg.user.gid}";
+        "PUID" = "${toString cfg.user.uid}";    # Change to non-root
+        "PGID" = "${toString cfg.user.gid}";    # Change to non-root
         "SECRET_ENCRYPTION_KEY" = cfg.encKey;
       };
       extraOptions = [

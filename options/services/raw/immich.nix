@@ -45,8 +45,7 @@ in
         #
       ];    
 
-      # Add access to hardware acceleration for transcoding by adding
-      # the immich user to render and video groups
+      # Add access to hardware acceleration for transcoding
       # - https://wiki.nixos.org/wiki/Immich
       users.users.immich.extraGroups = [ "video" "render" ];
     })

@@ -53,7 +53,6 @@ in
     # - No group specified, i.e `-` defaults to root
     # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
-      "d /var/lib/${cfg.name} 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
       "d /var/lib/${cfg.name}/trainingData 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
       "d /var/lib/${cfg.name}/extraConfigs 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
       "d /var/lib/${cfg.name}/customFiles 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
@@ -64,6 +63,8 @@ in
     # Generate the "podman-${cfg.name}" service unit for the container
     # https://docs.stirlingpdf.com/Getting%20started/Installation/Docker/Docker%20Install
     virtualisation.oci-containers.containers."${cfg.name}" = {
+      # [Non-root isn't supported](https://github.com/Stirling-Tools/Stirling-PDF/issues/508)
+      # user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
       image = "docker.stirlingpdf.com/stirlingtools/stirling-pdf:${cfg.tag}";
       autoStart = true;
       hostname = "${cfg.name}";
@@ -78,6 +79,8 @@ in
 
       # Configure app via overrides
       environment = {
+        "PUID" = "${toString cfg.user.uid}";            # set the user to run as
+        "PGID" = "${toString cfg.user.gid}";            # set the group to run as
         "METRICS_ENABLED" = "false";                    # no need to track with homelab
         "SYSTEM_ENABLEANALYTICS" = "false";             # not a fan of being tracked
         "DOCKER_ENABLE_SECURITY" = "false";             # don't need to login with homelab
