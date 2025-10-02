@@ -126,7 +126,7 @@ case "$CMD" in
     manage) manage::run "${ARGS[@]}" ;;
     pkgs) pkgs::run "${ARGS[@]}" ;;
     registry) registry::run "${ARGS[@]}" ;;
-    repl) nix repl -f '<nixpkgs>' ;;
+    repl) repl::run "${ARGS[@]}" ;;
     run) run::run "${ARGS[@]}" ;;
     shell) shell::run "${ARGS[@]}" ;;
     switch) switch::run "${ARGS[@]}" ;;
