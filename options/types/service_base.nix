@@ -8,8 +8,7 @@ in
     # Common assertions among services
     assertions = [
       # Debug assertion
-      #{ assertion = (cfg ? "debug");
-      #  message = "echo '${builtins.toJSON cfg}' | jq"; }
+      #{ assertion = (cfg ? "debug"); message = "echo '${builtins.toJSON cfg}' | jq"; }
 
       { assertion = (cfg ? "name" && cfg.name != "");
         message = "Requires 'service.cont.${cfg.name}.name' => '${builtins.toJSON cfg.name}' be set to the service name"; }

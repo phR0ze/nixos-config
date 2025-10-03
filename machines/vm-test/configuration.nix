@@ -61,6 +61,11 @@
       enable = true;
       port = 8082;
     };
+    services.cont.immich = {
+      enable = true;
+      port = 2283;
+      tag = "v2.0.1";
+    };
 
 #    environment.systemPackages = [
 #      pkgs.kasmweb
