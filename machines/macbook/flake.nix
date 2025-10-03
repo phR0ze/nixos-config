@@ -56,7 +56,7 @@
     # Configure special args with our argument overrides
     # ----------------------------------------------------------------------------------------------
     lib = nixpkgs.lib;
-    f = pkgs.callPackage ./options/funcs { inherit lib; };
+    f = pkgs.callPackage ./funcs { };
     args = lib.recursiveUpdate (lib.recursiveUpdate _args (f.fromJSON ./args.dec.json))
       (f.fromJSON ./machines/${_args.hostname}/args.dec.json);
     specialArgs = { inherit args f inputs; };
