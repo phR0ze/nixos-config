@@ -55,6 +55,6 @@ in
 
     # Create podmane network and extend service to use it
     systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
-    systemd.services."podman-${cfg.name}" = f.extendContService cfg.name;
+    systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
   };
 }
