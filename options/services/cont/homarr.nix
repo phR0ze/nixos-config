@@ -46,6 +46,11 @@ in
   };
  
   config = lib.mkIf cfg.enable {
+    virtualisation.podman.enable = true;
+    users.users.${cfg.user.name} = f.createContUser cfg.user;
+    users.groups.${cfg.user.group} = f.createContGroup cfg.user;
+
+    networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
 
     # Create persistent directories for application
     # - Args: type, path, mode, user, group, expiration
@@ -77,5 +82,9 @@ in
         "--network=${cfg.name}"
       ];
     };
+
+    # Create podmane network and extend service to use it
+    systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+    systemd.services."podman-${cfg.name}" = f.extendContService cfg.name;
   };
 }

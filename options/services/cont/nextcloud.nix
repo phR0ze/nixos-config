@@ -23,8 +23,14 @@ in
   };
  
   config = lib.mkIf cfg.enable {
+    virtualisation.podman.enable = true;
+    users.users.${cfg.user.name} = f.createContUser cfg.user;
+    users.groups.${cfg.user.group} = f.createContGroup cfg.user;
 
     # Create persistent directories for application
+    # - Args: type, path, mode, user, group, expiration
+    # - No group specified, i.e `-` defaults to root
+    # - No age specified, i.e `-` defaults to infinite
     systemd.tmpfiles.rules = [
       "d /var/lib/${cfg.name} 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
       "d /var/lib/${cfg.name}/data 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
@@ -41,5 +47,11 @@ in
         "--network=${cfg.name}"
       ];
     };
+
+    networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
+
+    # Create podmane network and extend service to use it
+    systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+    systemd.services."podman-${cfg.name}" = f.extendContService cfg.name;
   };
 }
