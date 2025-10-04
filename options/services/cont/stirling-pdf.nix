@@ -38,9 +38,7 @@ in
         options = {
           #other = lib.mkEnableOption "Service specific option";
         };
-        imports = [
-          (import ../../types/service.nix { inherit lib defaults; })
-        ];
+        imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
       };
       default = defaults;
     };

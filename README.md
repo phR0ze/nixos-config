@@ -272,9 +272,7 @@ homelab.
 
 
 ## Backlog
-
-### Next
-* [ ] Build and run vms
+* [ ] 
 
 ### Sometime
 * [ ] Change image mime associatation

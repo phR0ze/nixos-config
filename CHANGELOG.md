@@ -1,4 +1,5 @@
 # Completed
+* [x] Build and run vms
 * [x] SOPS encrypted secrets
 * [x] Support network bridge on install
 * [x] Add freetube
