@@ -120,7 +120,12 @@ in
       ];
     };
 
+    # Allow LAN ingress to containers
     networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
+
+    # Block Immich containers (via podman bridge) from reaching your LAN
+    # Find bridge interface name with `podman network inspect immich`
+    networking.firewall.extraOutputRules = [ "-o cni-podman0 -d 192.168.1.0/24 -j REJECT" ];
 
     # Extend the services to depend on the podman network
     systemd.services."podman-${cfg.name}-server" = f.extendContService {
