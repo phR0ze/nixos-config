@@ -33,7 +33,7 @@
     services.cont.homarr = { enable = true; port = 80; };
     services.cont.oneup = { enable = true; port = 8002; };
     services.cont.stirling-pdf = { enable = true; port = 8001; };
-    services.cont.immich = { enable = true; port = 2283; tag = "v2.0.1" };
+    services.cont.immich = { enable = true; port = 2283; tag = "v2.0.1"; };
 
     environment.systemPackages = [
       #pkgs.synology-drive-client
