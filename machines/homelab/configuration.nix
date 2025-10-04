@@ -24,7 +24,6 @@
     # Homelab services
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
-    services.raw.immich.enable = true;
     services.raw.jellyfin.enable = true;
     services.raw.minecraft.enable = true;
     services.raw.nix-cache.host.enable = true;
@@ -34,6 +33,7 @@
     services.cont.homarr = { enable = true; port = 80; };
     services.cont.oneup = { enable = true; port = 8002; };
     services.cont.stirling-pdf = { enable = true; port = 8001; };
+    services.cont.immich = { enable = true; port = 2283; tag = "v2.0.1" };
 
     environment.systemPackages = [
       #pkgs.synology-drive-client
