@@ -12,6 +12,7 @@
 let
   machine = config.machine;
   cfg = config.services.cont.immich;
+  gpu = config.hardware.graphics;
   defaults = (f.getService args "immich" 2003 2003);
 in
 {
@@ -36,7 +37,10 @@ in
     # Add access to hardware acceleration for transcoding
     # - https://wiki.nixos.org/wiki/Immich
     users.groups.${cfg.user.group} = f.createContGroup cfg.user;
-    users.users.${cfg.user.name} = f.createContUser cfg.user // { extraGroups = [ "video" "render" ]; };
+    users.users.${cfg.user.name} = f.createContUser cfg.user // {
+      extraGroups = [ "video" "render" ]
+        ++ lib.optionals (gpu.nvidia) [ "nvidia" ];
+    };
 
     # Create persistent directories for application
     systemd.tmpfiles.rules = [
@@ -74,7 +78,19 @@ in
       image = "ghcr.io/immich-app/${cfg.name}-machine-learning:${cfg.tag}";
       autoStart = true;
       volumes = [ "/var/lib/${cfg.name}/cache:/cache:rw" ];
-      extraOptions = [ "--network=${cfg.name}" ];
+      extraOptions = [ "--network=${cfg.name}" ]
+        # Validate with: podman exec -it <container-id> nvidia-smi
+        ++ lib.optionals (gpu.nvidia) [
+          "--hooks-dir=/etc/containers/oci/hooks.d"
+          "--device=/dev/nvidia0"
+          "--device=/dev/nvidiactl"
+          "--device=/dev/nvidia-uvm"
+          "--device=/dev/nvidia-uvm-tools"
+          "--device=/dev/nvidia-modeset"
+          "--device=/dev/nvidia-nvswitchctl"
+          "--device=/dev/nvidia-nvswitch"
+          "--env=CUDA_VISIBLE_DEVICES=all"
+        ];
     };
 
     # Create the "podman-${cfg.name}-redis" service
