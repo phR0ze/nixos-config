@@ -29,10 +29,10 @@
 		}
 	},
 	"services": {
-		"cont": {
+		"oci": {
 			"immich": {
 				"user": {
-					"pass": "ENC[AES256_GCM,data:k2kqKX8LR3K/ardtCSh7,iv:tMERtLI9hcSJ9jbVkUKItsUZ22dpLMTIwzvInrhhNU0=,tag:6S6a64hIDT7J1LzEg35Vmg==,type:str]"
+					"pass": "ENC[AES256_GCM,data:9LFm9L0bftwtujyniWfa,iv:BFjPvzymX08cQWUS6cbY/zoEhiHkn/rdl9xX8/1ASrI=,tag:fRZ8VtSaFyNUZajg9RpIYA==,type:str]"
 				}
 			}
 		}
@@ -73,8 +73,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBhUlVSL1p6aG00TGlQWlZY\naDB1RHh1WXRXWWFhRHJ2Z2hoeWV6K1FrdmtNCmxxdjM3N1FVQXppR2Fzei9HZHBK\nZklFNE1RTEFOMVIvcG40WDIvbStDR3MKLS0tIFk4L09LTDFpazJacmZyeFJENWZ0\nbmVHZ3RzTGVHTEVldFlyTHZYNXkwWUkKg5fCQrHvV2icfz3avumc0M17hwFUdYJy\nE9XH3C/Ja/BqC3zhDGPfY8RtBW9DNMy+Ck7hVoqg6qGgro1BrGRXoA==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-10-03T23:01:13Z",
-		"mac": "ENC[AES256_GCM,data:R+IQRbGhgtxfFrkeKwy2Z1cSeVaIqtKRh8mhQAKEYiLGoSsjzWtqUt/31B2GN7JOlRDi9pascK9YD/45ivhTNzgm7yMAlhtbIsoCMZ2zakJtfcdz06TAemJY32uMdFBrMNrCd4Ip+sHEp6AL4Tgs20kJcn3mLVijuVx5WmnSDzI=,iv:vp7lWldNmKB0oX89dGHBzPjK9SaKQgmnpaYfe6pB0Uc=,tag:45J43yImMjzMLwNafXMDWw==,type:str]",
+		"lastmodified": "2025-10-05T03:56:42Z",
+		"mac": "ENC[AES256_GCM,data:yxNKpFqFAo/oOny6/qfNhZR9PAN47HjS7u1byuCxvl8TCYG6PziqActlkLc2oe0aT7MBIwoexGpkw1cia2qOcrSYr/QKZofKxwpvUtNp4JNv7rhR2lIyXhJyEqbfqRQ2zd+8Vy4vwKl+u/Al7wal4cgZJ+Bak3p1VaGW22S0OrU=,iv:MJcyZt0SDZaeFdN6y/Fs/EfP6eKjL4X/DKB+db+IjYU=,tag:02o1QsBgY4FCa0VrANsL/Q==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.10.2"
 	}

@@ -123,6 +123,9 @@ in
       # Should be automatically handled but can manually add as well
       boot.initrd.kernelModules = [ "nvidia" ];
 
+      # Enable this when using containers that need Nvidia GPU access
+      #hardware.nvidia-container-toolkit.enable = true;
+
       hardware.nvidia = {
 
         # Use the NVidia open source kernel module (not to be confused with the

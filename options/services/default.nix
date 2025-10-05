@@ -1,8 +1,8 @@
 { ... }:
 {
   imports = [
-    ./cont
     ./nspawn
+    ./oci
     ./raw
   ];
 }

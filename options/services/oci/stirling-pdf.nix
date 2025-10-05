@@ -25,14 +25,14 @@
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.services.cont.stirling-pdf;
+  cfg = config.services.oci.stirling-pdf;
   defaults = f.getService args "stirling-pdf" 2001 2001;
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
 
   options = {
-    services.cont.stirling-pdf = lib.mkOption {
+    services.oci.stirling-pdf = lib.mkOption {
       description = lib.mdDoc "Stirling PDF service options";
       type = types.submodule {
         options = {

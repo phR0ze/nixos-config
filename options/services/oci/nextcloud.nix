@@ -8,14 +8,14 @@
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.services.cont.nextcloud;
+  cfg = config.services.oci.nextcloud;
   defaults = (f.getService args "nextcloud" 2002 2002);
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
 
   options = {
-    services.cont.nextcloud = lib.mkOption {
+    services.oci.nextcloud = lib.mkOption {
       description = lib.mdDoc "Nextcloud service options";
       type = types.submodule { imports = [ (import ../../types/service.nix { inherit lib defaults; }) ]; };
       default = defaults;

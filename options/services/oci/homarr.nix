@@ -20,7 +20,7 @@
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.services.cont.homarr;
+  cfg = config.services.oci.homarr;
 
   defaults = f.getService args "homarr" 2000 2000;
 in
@@ -28,7 +28,7 @@ in
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
 
   options = {
-    services.cont.homarr = lib.mkOption {
+    services.oci.homarr = lib.mkOption {
       description = lib.mdDoc "Homarr service options";
       type = types.submodule {
         options = {
@@ -36,7 +36,7 @@ in
             description = lib.mdDoc "Encryption key used to encrypt secrets in database";
             type = types.str;
             example = "Create with `open ssl rand -hex 32`";
-            default = args.services.cont.homarr.encKey or "";
+            default = args.services.oci.homarr.encKey or "";
           };
         };
         imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];

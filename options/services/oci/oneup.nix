@@ -10,14 +10,14 @@
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.services.cont.oneup;
+  cfg = config.services.oci.oneup;
   defaults = (f.getService args "oneup" 2002 2002);
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
 
   options = {
-    services.cont.oneup = lib.mkOption {
+    services.oci.oneup = lib.mkOption {
       description = lib.mdDoc "OneUp service options";
       type = types.submodule { imports = [ (import ../../types/service.nix { inherit lib defaults; }) ]; };
       default = defaults;

@@ -20,14 +20,14 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.services.cont.portainer;
+  cfg = config.services.oci.portainer;
   app = cfg.app;
-  filtered = builtins.filter (x: x.name == "portainer" && x.type == "cont") machine.services;
+  filtered = builtins.filter (x: x.name == "portainer" && x.type == "oci") machine.services;
   defaults = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
 in
 {
   options = {
-    services.cont.portainer = {
+    services.oci.portainer = {
       enable = lib.mkEnableOption "Install and configure portainer";
       app = lib.mkOption {
         description = lib.mdDoc "Containerized service options";
