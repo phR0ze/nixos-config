@@ -25,7 +25,7 @@
 
     # Portainer service
     # --------------------------------------------
-    services.cont.portainer.enable = true;
+    services.oci.portainer.enable = true;
 
     # Immich
     # --------------------------------------------

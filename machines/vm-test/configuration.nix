@@ -49,19 +49,19 @@
       name = "eth0";
       ip = "192.168.1.60/24";
     };
-    services.cont.homarr = {
+    services.oci.homarr = {
       enable = true;
       port = 8080;
     };
-    services.cont.stirling-pdf = {
+    services.oci.stirling-pdf = {
       enable = true;
       port = 8081;
     };
-    services.cont.oneup = {
+    services.oci.oneup = {
       enable = true;
       port = 8082;
     };
-    services.cont.immich = {
+    services.oci.immich = {
       enable = true;
       port = 2283;
       tag = "v2.0.1";

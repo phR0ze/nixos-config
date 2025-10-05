@@ -9,7 +9,7 @@
   # - gid: is the specific target service's group id
   #-------------------------------------------------------------------------------------------------
   getService = args: name: uid: gid: let
-    target = args.services.cont."${name}" or {};
+    target = args.services.oci."${name}" or {};
     service = {
       enable = target.enable or false;
       name = target.name or name;
@@ -62,7 +62,7 @@
     };
     script = ''
       if ! ${pkgs.podman}/bin/podman network exists ${name}; then
-        ${pkgs.podman}/bin/podman network create ${name}
+        ${pkgs.podman}/bin/podman network create --interface-name ${name} ${name}
       fi
     '';
   };
