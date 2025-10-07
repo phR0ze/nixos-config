@@ -40,7 +40,7 @@ in
           ".dircolors".copy = ../include/home/.dircolors;
         };
       '';
-      type = fileType "${machine.user.name}" "users" "home/${machine.user.name}/";
+      type = fileType "${machine.user.name}" "${machine.user.group}" "home/${machine.user.name}/";
     };
   };
 }

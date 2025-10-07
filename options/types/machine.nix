@@ -33,7 +33,7 @@ let
       fullname = args.user.fullname or "admin";
       email = args.user.email or "admin";
       uid = config.users.users.${user_name}.uid;
-      gid = config.users.groups."users".gid;
+      gid = config.users.groups.${user_name}.gid;
     };
     gateway = args.net.gateway or "192.168.1.1";
     subnet = args.net.subnet or "192.168.1.0/24";

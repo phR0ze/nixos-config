@@ -17,7 +17,7 @@ in
   users.users.${machine.user.name} = {
     uid = 1000;                         # ensure NixOS doesn't choose a different id for my user
     isNormalUser = true;
-    group = "users";                    # create the users group for the system admin user
+    group = "${machine.user.group}";     # create the users group for the system admin user
     extraGroups = [
       "photos"                          # provides a sharable group to work with photos
       "render"                          # enables transcoding hardware acceleration support
@@ -35,7 +35,7 @@ in
   users.groups."users".gid = 100;       # TODO: keep things runing as usual until I decomission this
 
   # Ensure private user group that always has the correct id
-  users.groups."${machine.user.name}".gid = 1000;
+  users.groups."${machine.user.group}".gid = 1000;
 
   # Configure sudo access for system admin
   security.sudo = {

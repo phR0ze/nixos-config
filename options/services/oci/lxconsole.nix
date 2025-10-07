@@ -35,7 +35,7 @@ in
           user = {
             name = machine.user.name;
             uid = config.users.users.${machine.user.name}.uid;
-            gid = config.users.groups."users".gid;
+            gid = config.users.groups."${machine.user.group}".gid;
           };
           nic = {
             name = config.networking.vnic0;
