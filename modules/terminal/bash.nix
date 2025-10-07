@@ -59,9 +59,6 @@ in
       export HISTSIZE=10000               # Set history length
       export HISTFILESIZE=$HISTSIZE       # Set history file size
       export HISTCONTROL=ignoreboth       # Ignore duplicates and lines starting with space
-      export EDITOR=vim                   # Set the editor to use
-      export VISUAL=vim                   # Set the editor to use
-      export KUBE_EDITOR=vim              # Set the editor to use for Kubernetes edit commands
 
       export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
     '';
