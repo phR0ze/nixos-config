@@ -26,8 +26,8 @@ in
  
   config = lib.mkIf cfg.enable {
     virtualisation.podman.enable = true;
-    users.users.${cfg.user.name} = f.createContUser cfg.user;
-    users.groups.${cfg.user.group} = f.createContGroup cfg.user;
+    users.users.${cfg.user.name} = f.createUser cfg.user;
+    users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
     # Create persistent directories for application
     # - Args: type, path, mode, user, group, expiration
@@ -39,16 +39,14 @@ in
 
     # Generate the "podman-${cfg.name}" service unit for the container
     virtualisation.oci-containers.containers."${cfg.name}" = {
+      hostname = "${cfg.name}";
       user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
       image = "ghcr.io/phr0ze/${cfg.name}:${cfg.tag}";
       autoStart = true;
-      hostname = "${cfg.name}";
+      networks = [ cfg.name ];                  # Isolated app specific network
       ports = [ "${(f.toIP config.net.primary.ip).address}:${toString cfg.port}:8080" ];
       volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];
       environment = { "PORT" = "8080"; };
-      extraOptions = [
-        "--network=${cfg.name}"
-      ];
     };
 
     networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];

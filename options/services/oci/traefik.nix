@@ -94,6 +94,7 @@ in
       image = "docker.io/traefik:v3.2";
       autoStart = true;
       hostname = "${app.name}";
+      networks = [ cfg.name ];                  # Isolated app specific network
       cmd = [
         "--providers.docker"                              # enable docker support
         "--providers.file.directory=/etc/traefik/conf.d"  # source configuration files
@@ -109,9 +110,6 @@ in
         "/var/lib/${app.name}:/etc/traefik/:ro"           # default location traefik searches for traefik.yaml
         #"./data/certs/:/var/traefik/certs/:rw"
         #"./config/conf.d/:/etc/traefik/conf.d/:ro"
-      ];
-      extraOptions = [
-        "--network=${app.name}"
       ];
     };
 

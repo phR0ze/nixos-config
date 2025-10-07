@@ -46,8 +46,8 @@ in
  
   config = lib.mkIf cfg.enable {
     virtualisation.podman.enable = true;
-    users.users.${cfg.user.name} = f.createContUser cfg.user;
-    users.groups.${cfg.user.group} = f.createContGroup cfg.user;
+    users.users.${cfg.user.name} = f.createUser cfg.user;
+    users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
     # Create persistent directories for application
     # - Args: type, path, mode, user, group, expiration
@@ -69,6 +69,7 @@ in
       image = "docker.stirlingpdf.com/stirlingtools/stirling-pdf:${cfg.tag}";
       autoStart = true;
       hostname = "${cfg.name}";
+      networks = [ cfg.name ];                          # Isolated app specific network
       ports = [ "${(f.toIP config.net.primary.ip).address}:${toString cfg.port}:8080" ];
       volumes = [
         "/var/lib/${cfg.name}/trainingData:/usr/share/tessdata:rw"
@@ -88,9 +89,6 @@ in
         "DISABLE_ADDITIONAL_FEATURES" = "false";        # don't lock off other features
         "INSTALL_BOOK_AND_ADVANCED_HTML_OPS" = "false"; # ??
       };
-      extraOptions = [
-        "--network=${cfg.name}"
-      ];
     };
 
     networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
