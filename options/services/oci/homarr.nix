@@ -47,8 +47,8 @@ in
  
   config = lib.mkIf cfg.enable {
     virtualisation.podman.enable = true;
-    users.users.${cfg.user.name} = f.createContUser cfg.user;
-    users.groups.${cfg.user.group} = f.createContGroup cfg.user;
+    users.users.${cfg.user.name} = f.createUser cfg.user;
+    users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
     networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
 
@@ -67,6 +67,7 @@ in
       image = "ghcr.io/homarr-labs/homarr:${cfg.tag}";
       autoStart = true;
       hostname = "${cfg.name}";
+      networks = [ cfg.name ];                  # Isolated app specific network
       ports = [ "${(f.toIP config.net.primary.ip).address}:${toString cfg.port}:7575" ];
       volumes = [
         "/var/lib/${cfg.name}/appdata:/appdata:rw"
@@ -78,9 +79,6 @@ in
         "PGID" = "${toString cfg.user.gid}";    # Change to non-root
         "SECRET_ENCRYPTION_KEY" = cfg.encKey;
       };
-      extraOptions = [
-        "--network=${cfg.name}"
-      ];
     };
 
     # Create podmane network and extend service to use it

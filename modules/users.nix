@@ -13,23 +13,29 @@ in
   # Overriding the ISO settings to avoid the duplicate values warning
   users.users.root.initialPassword = lib.mkForce machine.user.pass;
 
-  # Configure the system admin user
+  # Configure the default system admin user
   users.users.${machine.user.name} = {
     uid = 1000;                         # ensure NixOS doesn't choose a different id for my user
     isNormalUser = true;
     group = "users";                    # create the users group for the system admin user
     extraGroups = [
-      "wheel"                           # enables passwordless sudo for this user
-      "video"                           # enables ability for user to login to graphical environment
+      "photos"                          # provides a sharable group to work with photos
       "render"                          # enables transcoding hardware acceleration support
+      "users"                           # provides a sharable group for generic user files
+      "video"                           # enables ability for user to login to graphical environment
+      "wheel"                           # enables passwordless sudo for this user
     ];
 
     # User password or none if ISO
     initialPassword = lib.mkForce machine.user.pass;
   };
 
-  # Ensure the users group always has the correct id
-  users.groups."users".gid = 100;
+  # Create user groups for sharing files using specific ids
+  users.groups."photos".gid = 1100;     # named group for specific files access
+  users.groups."users".gid = 100;       # TODO: keep things runing as usual until I decomission this
+
+  # Ensure private user group that always has the correct id
+  users.groups."${machine.user.name}".gid = 1000;
 
   # Configure sudo access for system admin
   security.sudo = {

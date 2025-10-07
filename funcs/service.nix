@@ -31,7 +31,7 @@
   # on the /var/lib/APP directory to something that can be read by the container user.
   # - user: user object of the form { name; group; uid; gid }
   #-------------------------------------------------------------------------------------------------
-  createContUser = user: {
+  createUser = user: {
     name = user.name;
     isNormalUser = true;
     uid = user.uid;
@@ -45,7 +45,7 @@
   # Create a group for a containerized application to use. This is useful for setting the permissions 
   # on the /var/lib/APP directory to something that can be read by the container user.
   # - user: user object of the form { name; group; uid; gid }
-  createContGroup = user: {
+  createGroup = user: {
     gid = user.gid;
   };
 
