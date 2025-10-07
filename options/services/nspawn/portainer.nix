@@ -23,7 +23,7 @@ let
       extraGroups = [ "wheel" ];
       initialPassword = lib.mkForce machine.user.pass;
     };
-    users.groups."users".gid = 100;
+    users.groups."${machine.user.group}".gid = 100;
   };
 in
 {

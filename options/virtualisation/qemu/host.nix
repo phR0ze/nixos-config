@@ -36,7 +36,7 @@ in
       group = lib.mkOption {
         type = types.str;
         description = "Group to use for VMs when running as system services";
-        default = "users";
+        default = "${machine.user.group}";
       };
       vms = lib.mkOption {
         description = "Virtual machines";
