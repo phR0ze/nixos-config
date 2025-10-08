@@ -5,7 +5,7 @@
 { options, config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.apps.network.firefox;
-  xft = config.services.xserver.xft;
+  xft = config.system.x11.xft;
   lock-false = {
     Value = false;
     Status = "locked";

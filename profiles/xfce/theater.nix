@@ -12,22 +12,17 @@
   machine.type.theater = true;
 
   # High dpi settings
-  services.xserver.xft.dpi = 120; # 25% higher recommended by Arch Linux
-  services.xserver.desktopManager.xfce.panel.taskbar.size = 36;
-  services.xserver.desktopManager.xfce.panel.taskbar.iconSize = 32;
-  services.xserver.desktopManager.xfce.panel.launcher.size = 52;
+  system.x11.xft.dpi = 120; # 25% higher recommended by Arch Linux
+  system.xfce.panel.taskbar.size = 36;
+  system.xfce.panel.taskbar.iconSize = 32;
+  system.xfce.panel.launcher.size = 52;
 
   # Display configuration
   machine.resolution = { x = 1920; y = 1080; };
-  services.xserver.desktopManager.xfce.displays.connectingDisplay = 0;
+  system.xfce.displays.connectingDisplay = 0;
 
   # Configure theater system background
-  services.xserver.desktopManager.xfce.desktop.background = lib.mkOverride 500
-    "/run/current-system/sw/share/backgrounds/theater_curtains1.jpg";
-
-  # Set the default background image to avoid initial boot changes
-  services.xserver.displayManager.lightdm.background = lib.mkOverride 500
-    "${pkgs.desktop-assets}/share/backgrounds/theater_curtains1.jpg";
+  system.xfce.background = "${pkgs.desktop-assets}/share/backgrounds/theater_curtains1.jpg";
 
   # Add additional theater package
   environment.systemPackages = with pkgs; [ ];

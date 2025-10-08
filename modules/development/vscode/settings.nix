@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }: with lib.types;
 let
-  xft = config.services.xserver.xft;
+  xft = config.system.xserver.xft;
 
 in
 {

@@ -1,10 +1,9 @@
 { ... }:
 {
   imports = [
-    ./dmenu.nix
     ./hardinfo.nix
     ./neovide.nix
-    ./neovim.nix
+    ./nvim.nix
     ./veracrypt.nix
   ];
 }

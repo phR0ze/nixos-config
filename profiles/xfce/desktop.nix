@@ -6,14 +6,14 @@
 { pkgs, ... }:
 {
   imports = [
-    ./light.nix
+    ./base.nix
   ];
 
   # Enable apps
   apps.media.jellyfin.enable = true;        # Install Jellyfin media player
-  apps.media.xnviewmp.enable = true;      # Versatile image viewer with lossless JPEG rotation
+  apps.media.xnviewmp.enable = true;        # Versatile image viewer with lossless JPEG rotation
   apps.network.qbittorrent.enable = true;   # Excellent bittorrent client
-  apps.system.veracrypt.enable = true;    # Free Open-Source filesystem encryption
+  apps.system.veracrypt.enable = true;           # Free Open-Source filesystem encryption
 
   apps.games.steam.enable = true;           # Digital distribution platform from Valve
   apps.games.protontricks.enable = true;    # A simple wrapper for running Winetricks commands for Proton-enabled games

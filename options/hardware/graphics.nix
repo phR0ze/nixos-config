@@ -43,8 +43,8 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
+  x11 = config.system.x11;
   cfg = config.hardware.graphics;
-  x11 = config.services.xserver;
 in
 {
   options = {
