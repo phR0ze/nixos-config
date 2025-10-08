@@ -13,7 +13,7 @@
   config = {
     machine.type.bootable = true;
     hardware.gpu.intel = true;
-    services.xserver.xft.dpi = 115;
+    system.x11.xft.dpi = 115;
 
     #machine.net.bridge.enable = true;
     virtualisation.podman.enable = true;

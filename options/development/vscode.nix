@@ -171,7 +171,7 @@ in
       environment.systemPackages = with pkgs; [ vscode ];
 
       # Set the correct menu category for vscode
-      services.xdg.menu.itemOverrides = [
+      system.xdg.menu.itemOverrides = [
         { source = "${pkgs.vscode}/share/applications/code.desktop"; categories = "Development"; }
       ];
     })
