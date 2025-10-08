@@ -2,7 +2,7 @@
 {
   imports = [
     ./hedgewars.nix
-    ./prismlauncher.nix
+    ./prismlauncher
     ./protontricks.nix
     ./supertuxkart.nix
     ./steam.nix
