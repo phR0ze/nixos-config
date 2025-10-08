@@ -9,7 +9,7 @@
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.apps.system.neovide;
-  xft = config.services.xserver.xft;
+  xft = config.system.x11.xft;
 
   confFile = lib.mkIf cfg.enable
     (pkgs.writeText "config.toml" ''

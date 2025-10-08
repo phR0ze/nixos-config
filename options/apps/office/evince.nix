@@ -18,7 +18,7 @@ in
   config = lib.mkIf (cfg.enable) {
     programs.evince.enable = true;
 
-    services.xdg.menu.itemOverrides = [
+    system.xdg.menu.itemOverrides = [
       {
         categories = "Office";
         source = "${package}/share/applications/org.gnome.Evince.desktop";

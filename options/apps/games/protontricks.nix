@@ -19,7 +19,7 @@ in
     programs.steam.protontricks.enable = true;
 
     # Set the correct category for steam
-    services.xdg.menu.itemOverrides = [
+    system.xdg.menu.itemOverrides = [
       {
         categories = "Games";
         source = "${pkgs.protontricks}/share/applications/protontricks.desktop";

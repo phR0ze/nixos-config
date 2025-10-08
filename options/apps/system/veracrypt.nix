@@ -10,7 +10,7 @@ in
 {
   options = {
     apps.system.veracrypt = {
-      enable = lib.mkEnableOption "Install and configure hardinfo";
+      enable = lib.mkEnableOption "Install and configure Veracyrpt";
     };
   };
  
@@ -18,7 +18,7 @@ in
     environment.systemPackages = with pkgs; [ veracrypt ];
 
     # Place veracrypt in the correct XFCE menu
-    services.xdg.menu.itemOverrides = [
+    system.xdg.menu.itemOverrides = [
       {
         categories = "System";
         source = "${pkgs.veracrypt}/share/applications/veracrypt.desktop";

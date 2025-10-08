@@ -21,7 +21,7 @@
 
     # Increase the default DPI size
     machine.resolution = { x = 1920; y = 1200; } ;
-    services.xserver.xft.dpi = lib.mkForce 120;
+    system.x11.xft.dpi = lib.mkForce 120;
 
     # Fix default power governor to run at a lower frequency and boost as needed
     powerManagement.cpuFreqGovernor = "schedutil";

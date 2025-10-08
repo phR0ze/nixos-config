@@ -15,7 +15,7 @@
     machine.net.bridge.enable = true;
     hardware.gpu.nvidia = true;
     machine.autologin = true;
-    services.xserver.autolock.enable = true;
+    system.x11.autolock.enable = true;
 
     # Configure remoting
     services.raw.sunshine.enable = true;

@@ -17,7 +17,7 @@ in
     environment.systemPackages = with pkgs; [ hardinfo2 ];
 
     # Fix for hardinfo's xdg desktop file
-    services.xdg.menu.itemOverrides = [
+    system.xdg.menu.itemOverrides = [
       {
         name = "HardInfo";
         icon = "${pkgs.hardinfo2}/share/hardinfo2/pixmaps/hardinfo2.png";

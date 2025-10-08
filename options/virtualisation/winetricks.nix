@@ -27,7 +27,7 @@ in
     ];
 
     # Set the correct category
-    services.xdg.menu.itemOverrides = [
+    system.xdg.menu.itemOverrides = [
       {
         categories = "System";
         source = "${pkgs.winetricks}/share/applications/winetricks.desktop";
