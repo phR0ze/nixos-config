@@ -43,8 +43,8 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.hardware.gpu;
   x11 = config.system.x11;
+  cfg = config.hardware.gpu;
 in
 {
   options = {
