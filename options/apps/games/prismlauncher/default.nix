@@ -40,7 +40,7 @@ in
     environment.systemPackages = with pkgs; [
       (prismlauncher.override (prev: {
         prismlauncher-unwrapped = prev.prismlauncher-unwrapped.overrideAttrs (o: {
-          patches = (o.patches or [ ]) ++ [ ../../../patches/prismlauncher/${cfg.tag}/offline.patch ];
+          patches = (o.patches or [ ]) ++ [ ./patches/${cfg.tag}/offline.patch ];
         });
       }))
     ];
