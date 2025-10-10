@@ -23,8 +23,6 @@
   # Other tools
   makeWrapper, runCommandLocal, vimPlugins, writeTextFile, lib,
 }: let
-  # Bundle up local configs into a package
-  configPath = "${./config}";
 
   # Custom nvim package name, can be anything
   packName = "plugins";
@@ -41,20 +39,12 @@
     telescope-nvim
   ];
   
-  # Create a simple lua init script to run my configuration plugin
-  initLua = writeTextFile {
-    name = "init.lua";
-    text = ''
-      vim.loader.enable(true)
-      --require("init-plugin")
-      vim.opt.exrc = true
-    '';
-  };
-
   # Build the plugins package with all plugins under `pack/plugins` folder
   # - Nvim uses the term `pack` to refer to a collection of plugins and it is required
-  plugins = runCommandLocal "nvim-plugins" {} ''
+  pluginPath = runCommandLocal "nvim-plugins" {} ''
     mkdir -p $out/pack/${packName}/{start,opt}
+    ln -vsfT ${./init.nvim} $out/pack/${packName}/start/init.nvim
+
     ${
       lib.concatMapStringsSep "\n"
 
@@ -66,11 +56,20 @@
        ++ map (x: { plugin = x; mode = "opt"; }) optPlugins)
     }
   '';
+
+  # Create a simple lua init script load my custom configuration plugin
+  initLua = writeTextFile {
+    name = "init.lua";
+    text = ''
+      print("init.lua - loaded!")
+      vim.loader.enable(true)       -- Enable Lua bytecode cache at ~/.local/share/nvim/loader
+    '';
+  };
 in 
   symlinkJoin {
-    name = "neovim-custom";             # Package name being created
-    paths = [neovim-unwrapped plugins]; # Paths being symlinked
-    nativeBuildInputs = [makeWrapper];  # Build tools to make available during build
+    name = "neovim-custom";                 # Package name being created
+    paths = [neovim-unwrapped pluginPath];  # Paths being symlinked
+    nativeBuildInputs = [makeWrapper];      # Build tools to make available during build
 
     # Wrap the target passing in custom arguments
     # - Nvim uses the term `pack` to refer to a collection of plugins
@@ -80,13 +79,13 @@ in
         --add-flags '-u' \
         --add-flags '${initLua}' \
         --add-flags '--cmd' \
-        --add-flags "'set packpath^=${plugins} | set runtimepath^=${plugins}'" \
+        --add-flags "'set packpath^=${pluginPath} | set runtimepath^=${pluginPath}'" \
         --set-default NVIM_APPNAME nvim-custom
     '';
 
     # Make the plugins derivation available for build commands like
     # nix build -f ./direct.nix plugins
     passthru = {
-      inherit plugins;
+      inherit pluginPath;
     };
   }
