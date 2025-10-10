@@ -3,7 +3,7 @@
   imports = [
     ./hardinfo.nix
     ./neovide.nix
-    ./nvim.nix
+    ./nvim
     ./veracrypt.nix
   ];
 }

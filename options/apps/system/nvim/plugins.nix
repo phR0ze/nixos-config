@@ -1,17 +1,15 @@
 { lib, pkgs, ... }:
 let
   # Build plugins from github
-  #huez-nvim = pkgs.vimUtils.buildVimPlugin { name = "huez.nvim"; src = inputs.huez-nvim; };
-  #blame-me-nvim = pkgs.vimUtils.buildVimPlugin { name = "blame-me.nvim"; src = inputs.blame-me-nvim; };
-  #cmake-tools-nvim = pkgs.vimUtils.buildVimPlugin { name = "cmake-tools.nvim"; src = inputs.cmake-tools-nvim; };
-  #cmake-gtest-nvim = pkgs.vimUtils.buildVimPlugin { name = "cmake-gtest.nvim"; src = inputs.cmake-gtest-nvim; };
+  mini-pairs = pkgs.vimUtils.buildVimPlugin {
+    pname = "mini-pairs"; version = "2025-10-08";
+    src = pkgs.fetchFromGitHub { owner = "nvim-mini"; repo = "mini.pairs";
+      rev = "b9aada8c0e59f2b938e98fbf4eae0799eba96ad9";
+      sha256 = "sha256-KFWpyITaKc9AGhvpLkeq9B3a5MELqed2UBo9X8oC6Ac="; };};
 
   # Function to convert derivations into { name; path; } objects for linkFarm
-  mkEntryFromDrv = drv:
-    if lib.isDerivation drv then
-      { name = "${lib.getName drv}"; path = drv; }
-    else
-      drv;
+  mkEntryFromDrv = x:
+    if lib.isDerivation drv then { name = "${lib.getName x}"; path = x; } else x;
 
   plugins = with pkgs.vimPlugins; [
     LazyVim
@@ -69,27 +67,32 @@ let
     tokyonight-nvim
     trouble-nvim
     vim-illuminate
-    vim-startuptime
     vscode-nvim
-    which-key-nvim
-    #{ name = "LuaSnip"; path = luasnip; }
-    #{ name = "blame-me.nvim"; path = blame-me-nvim; }
-    #{ name = "catppuccin"; path = catppuccin-nvim; }
-    #{ name = "cmake-gtest.nvim"; path = cmake-gtest-nvim; }
-    #{ name = "cmake-tools.nvim"; path = cmake-tools-nvim; }
-    #{ name = "huez.nvim"; path = huez-nvim; }
-    #{ name = "mini.ai"; path = mini-nvim; }
-    #{ name = "mini.bufremove"; path = mini-nvim; }
-    #{ name = "mini.comment"; path = mini-nvim; }
-    #{ name = "mini.indentscope"; path = mini-nvim; }
-    #{ name = "mini.pairs"; path = mini-nvim; }
-    #{ name = "mini.surround"; path = mini-nvim; }
-    #{ name = "yanky.nvim"; path = yanky-nvim; }
+
+              # Interface
+              #nerdtree              # File explorer sidebar
+              #vim-airline           # Awesome status bar at bottom with git support
+              #vim-airline-themes    # Vim Airline themes
+              #vim-devicons          # Sweet folder/file icons for nerd tree
+              # Color Schemes
+              #vim-deus              # Deus color scheme
+              # Languages
+              #vim-nix               # Syntax highlightng, .nix file detection
+
+              # [mini.pairs](https://github.com/nvim-mini/mini.pairs)
+              # Automatically inserts a matching closing character when you type an opening character like ", [, or (.
+
+    #codecompanion-nvim
+    lze                                           # Lazy-loading library
+    lz-n                                          # Lazy plugin loader
+    which-key-nvim                                # Shows available keybindings in a popup as you type
+    vim-startuptime                               # 
+    { name = "mini.pairs"; path = mini-pairs; }
   ];
 in
 
 # Link together all plugins into a single derivation of links to plugins e.g.
 # result/
-# ├── plugin1 -> /nix/store/...-plugin1-...
-# └── plugin2 -> /nix/store/...-plugin2-...
+# ├── plugin1 -> /nix/store/...-plugin1-.../lua/mini/pairs.lua
+# └── plugin2 -> /nix/store/...-plugin2-.../lua/marks/init.lua
 pkgs.linkFarm "lazyvim-nix-plugins" (builtins.map mkEntryFromDrv plugins)

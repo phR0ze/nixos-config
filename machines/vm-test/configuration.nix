@@ -36,7 +36,7 @@
 
     # Testing packages
     # --------------------------------------------
-    #services.raw.sunshine.enable = true;
+    #apps.games.prismlauncher.enable = true;
 
     # Emulate homelab configuration for services development
     # --------------------------------------------
