@@ -4,3 +4,4 @@ require("config.options")               -- Load options from ../lua/config/optio
 require("config.keymaps")               -- load keymaps from ../lua/config/keymaps.lua
 
 require("lz.n").load("plugins")         -- load plugins from ./lua/plugins
+--require("mini.pairs").setup()           -- load from ../../mini.pairs/lua/mini/pairs.lua
