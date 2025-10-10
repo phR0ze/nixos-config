@@ -37,13 +37,16 @@
   optPlugins = with vimPlugins; [
     plenary-nvim 
     telescope-nvim
+    vim-startuptime                               # 
+    which-key-nvim                                # Shows available keybindings in a popup as you type
   ];
   
   # Build the plugins package with all plugins under `pack/plugins` folder
   # - Nvim uses the term `pack` to refer to a collection of plugins and it is required
   pluginPath = runCommandLocal "nvim-plugins" {} ''
     mkdir -p $out/pack/${packName}/{start,opt}
-    ln -vsfT ${./init.nvim} $out/pack/${packName}/start/init.nvim
+    ln -vsfT ${./config/lua} $out/lua
+    ln -vsfT ${./config/init.nvim} $out/pack/${packName}/start/init.nvim
 
     ${
       lib.concatMapStringsSep "\n"
@@ -61,8 +64,7 @@
   initLua = writeTextFile {
     name = "init.lua";
     text = ''
-      print("init.lua - loaded!")
-      vim.loader.enable(true)       -- Enable Lua bytecode cache at ~/.local/share/nvim/loader
+      vim.loader.enable(true)               -- Enable Lua bytecode cache at ~/.local/share/nvim/loader
     '';
   };
 in 
