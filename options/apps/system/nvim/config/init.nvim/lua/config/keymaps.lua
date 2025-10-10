@@ -6,3 +6,4 @@
 -- s Select mode map. Defined using :smap or snoremap
 -- c Command-line mode map. Defined using :cmap or cnoremap
 -- noremap ignores other mappings - always use this mode
+print('keymaps - loaded!')
