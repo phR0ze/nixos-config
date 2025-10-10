@@ -1,11 +1,5 @@
 { lib, pkgs, ... }:
 let
-  # Build plugins from github
-  mini-pairs = pkgs.vimUtils.buildVimPlugin {
-    pname = "mini-pairs"; version = "2025-10-08";
-    src = pkgs.fetchFromGitHub { owner = "nvim-mini"; repo = "mini.pairs";
-      rev = "b9aada8c0e59f2b938e98fbf4eae0799eba96ad9";
-      sha256 = "sha256-KFWpyITaKc9AGhvpLkeq9B3a5MELqed2UBo9X8oC6Ac="; };};
 
   # Function to convert derivations into { name; path; } objects for linkFarm
   mkEntryFromDrv = x:
@@ -83,8 +77,6 @@ let
               # Automatically inserts a matching closing character when you type an opening character like ", [, or (.
 
     #codecompanion-nvim
-    lze                                           # Lazy-loading library
-    lz-n                                          # Lazy plugin loader
     which-key-nvim                                # Shows available keybindings in a popup as you type
     vim-startuptime                               # 
     { name = "mini.pairs"; path = mini-pairs; }

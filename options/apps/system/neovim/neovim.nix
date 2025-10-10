@@ -1,4 +1,4 @@
-# Nvim configuration
+# Neovim configuration
 #
 # ### References
 # - [Lazyvim Nix](https://github.com/jla2000/lazyvim-nix)
@@ -6,26 +6,14 @@
 # - [Neovim Wrapper](https://ayats.org/blog/neovim-wrapper)
 #
 # ### Details
-# - All plugins are built from nixpkgs
+# - All plugins are built and stored in the nix store
 # - Configuration is all written in lua
 # - Plugins are lazy loaded using lz.n
-# - Lua config can be changed at runtime
 #---------------------------------------------------------------------------------------------------
 {
-  # Target package being wrapped
-  neovim-unwrapped,
-
-  # symlinkJoin creates a new derivation that replaces all files in the given path with links where 
-  # the files were moved to the store individually. This makes it easier to modify the original 
-  # package while reusing its binaries to be efficient.
-  symlinkJoin,
-
-  # Other tools
-  makeWrapper, runCommandLocal, vimPlugins, writeTextFile, lib,
+  neovim-unwrapped, symlinkJoin, fetchFromGitHub, makeWrapper, runCommandLocal, vimPlugins, vimUtils, 
+  writeTextFile, lib,
 }: let
-
-  # Custom nvim package name, can be anything
-  packName = "plugins";
 
   # Plugins to have loaded on boot
   startPlugins = with vimPlugins; [
@@ -39,10 +27,22 @@
     telescope-nvim
     vim-startuptime                               # 
     which-key-nvim                                # Shows available keybindings in a popup as you type
+    (vimUtils.buildVimPlugin {                    # 
+      pname = "mini-pairs"; version = "2025-10-08";
+      src = fetchFromGitHub { owner = "nvim-mini"; repo = "mini.pairs";
+        rev = "b9aada8c0e59f2b938e98fbf4eae0799eba96ad9";
+        sha256 = "sha256-KFWpyITaKc9AGhvpLkeq9B3a5MELqed2UBo9X8oC6Ac="; };})
   ];
   
-  # Build the plugins package with all plugins under `pack/plugins` folder
-  # - Nvim uses the term `pack` to refer to a collection of plugins and it is required
+  # Build the plugins package for Neovim
+  # - Packages are a named collection of plugins organized by purpose i.e. MODE=('start' | 'opt')
+  # - Packages are in the `packpath` under `pack/$NAME/$MODE/{$PLUGIN_1...$PLUGIN_n}`
+  # - Plugins under the `start` sub folder are automatically loaded by nvim on boot
+  # - Plugins under `opt` are available to be loaded manually with `:packadd` from within nvim
+  # - All .lua files in any pack/$NAME/start/$PLUGIN/plugin/ path will be automatically loaded
+  # - Lua modules are looked for in any `lua` sub-folders in any path in the `runtimepath` 
+  # - Lua require calls reference the folder structure e.g. `require('a.b')` for `lua/a/b.lua`
+  packName = "plugins";                     # can be anything
   pluginPath = runCommandLocal "nvim-plugins" {} ''
     mkdir -p $out/pack/${packName}/{start,opt}
     ln -vsfT ${./config/lua} $out/lua
@@ -60,14 +60,21 @@
     }
   '';
 
-  # Create a simple lua init script load my custom configuration plugin
+  # Create a simple lua init script
+  # Not really using this much as my custom plugin ./config/init.nvim has all the configuration to 
+  # setup Nvim and gets Lua syntax highlighting etc... when loaded from .lua files instead of inline
+  # like it is here. Also this file below seems to lack run time pathing for lookups.
   initLua = writeTextFile {
     name = "init.lua";
     text = ''
       vim.loader.enable(true)               -- Enable Lua bytecode cache at ~/.local/share/nvim/loader
     '';
   };
+
 in 
+  # symlinkJoin creates a new derivation that replaces all files in the given path with links where 
+  # the files were moved to the store individually. This makes it easier to modify the original 
+  # package while reusing its binaries to be efficient.
   symlinkJoin {
     name = "neovim-custom";                 # Package name being created
     paths = [neovim-unwrapped pluginPath];  # Paths being symlinked
@@ -75,7 +82,10 @@ in
 
     # Wrap the target passing in custom arguments
     # - Nvim uses the term `pack` to refer to a collection of plugins
-    # - NVIM_APPNAME defines a vim config namespace to isolation your configs from the host
+    # - NVIM_APPNAME defines a vim config namespace to isolate your configs from the host
+    #   - essentially changes config lookup paths to `~/.config/${NVIM_APPNAME}`
+    #   - this can be really useful if you want to test locally without picking up host settings
+    # - Also create the alias links
     postBuild = ''
       wrapProgram $out/bin/nvim \
         --add-flags '-u' \
@@ -83,6 +93,7 @@ in
         --add-flags '--cmd' \
         --add-flags "'set packpath^=${pluginPath} | set runtimepath^=${pluginPath}'" \
         --set-default NVIM_APPNAME nvim-custom
+      ln -s $out/bin/nvim $out/bin/vim
     '';
 
     # Make the plugins derivation available for build commands like
