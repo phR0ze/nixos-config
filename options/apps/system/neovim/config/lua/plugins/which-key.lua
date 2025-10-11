@@ -1,11 +1,13 @@
 return {
   {
     "which-key.nvim",
-    keys = { "<leader>" },
+    event = "DeferredUIEnter",
     after = function()
-      require("which-key").setup {
+      ---@diagnostic disable-next-line: missing-fields
+      require("which-key").setup({
+        preset = "helix",
         delay = 300,
-      }
+      })
     end,
   },
 }
