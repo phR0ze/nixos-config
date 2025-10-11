@@ -21,8 +21,8 @@ vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"  -- Use Tree-sitter to calc
 vim.opt.foldtext = ""                                 -- Empty string will default to ... for fold text
 vim.opt.foldlevel = 99                                -- Start with all folds open i.e. 99 means everything
 vim.opt.jumpoptions = "stack"                         -- When jumping betweeen locations <C-o>, <C-i> use LIFO behavior
-vim.opt.wildmenu = true                               -- Enable enhanced command-line completion menu on :e <TAB>
-vim.opt.wildmode = "noselect:lastused,full"           -- Controls wildmenu to not auto-select, sort by most recent, show all
+--vim.opt.wildmenu = true                               -- Enable enhanced command-line completion menu on :e <TAB>
+--vim.opt.wildmode = "noselect:lastused,full"           -- Controls wildmenu to not auto-select, sort by most recent, show all
 vim.opt.grepprg = "rg --vimgrep --hidden -g '!.git/*'"-- Sets :grep to use ripgrep instead of grep
 
 -- Configures the global behavior of Neovim's built-in LSP diagnostics system to show errors/warnings 

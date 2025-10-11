@@ -28,9 +28,16 @@ vim.keymap.set("v", "<", "<gv")
 vim.keymap.set("v", "<leader>y", '"+y')
 vim.keymap.set({ "n", "v" }, "<leader>p", '"+p')
 
+-- Filter the quick fixes list by pattern
 vim.keymap.set("n", "<leader>cf", ":Cfilter ")
+
+-- Open the quick fix window
 vim.keymap.set("n", "<leader>cc", ":copen<cr>")
+
+-- Move to the older quick fix window
 vim.keymap.set("n", "<leader>co", ":colder<cr>")
+
+-- Move to the newer quick fix window
 vim.keymap.set("n", "<leader>cn", ":cnewer<cr>")
 
 vim.keymap.set("n", "<leader>ff", ":find<space>")
