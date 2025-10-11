@@ -25,6 +25,11 @@
   optPlugins = with vimPlugins; [
     lz-n
 
+    # Colorschemes
+    vim-deus
+    gruvbox-nvim
+    tokyonight-nvim
+
     #codecompanion-nvim
     #plenary-nvim 
     #telescope-nvim
@@ -49,7 +54,7 @@
   pluginPath = runCommandLocal "nvim-plugins" {} ''
     mkdir -p $out/pack/${packName}/{start,opt}
     ln -vsfT ${./config/lua} $out/lua
-    ln -vsfT ${./config/init.nvim} $out/pack/${packName}/start/init.nvim
+    ln -vsfT ${./config/init} $out/pack/${packName}/start/init
 
     ${
       lib.concatMapStringsSep "\n"
@@ -64,9 +69,10 @@
   '';
 
   # Create a simple lua init script
-  # Not really using this much as my custom plugin ./config/init.nvim has all the configuration to 
-  # setup Nvim and gets Lua syntax highlighting etc... when loaded from .lua files instead of inline
-  # like it is here. Also this file below seems to lack run time pathing for lookups.
+  # Not using this in favor of my custom plugin ./config/init which loads ./config/lua/init.lua to
+  # configure Nvim with all options, keymaps, plugins etc... instead of inline like it is here. The 
+  # benefits are you get Lua syntax highlighting and full Lua module support which this inline here 
+  # lacks.
   initLua = writeTextFile {
     name = "init.lua";
     text = ''
