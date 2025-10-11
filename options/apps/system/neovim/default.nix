@@ -37,6 +37,7 @@ in
       environment.systemPackages = with pkgs; [
         (pkgs.callPackage ./neovim.nix {})              # Call the local neovim package
         stylua                                          # Opinionated Lua code formatter
+        ripgrep                                         # Faster more capable grep alternative
       ];
     })
   ];

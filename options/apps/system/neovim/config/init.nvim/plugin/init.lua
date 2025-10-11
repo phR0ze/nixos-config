@@ -1,7 +1,10 @@
--- Initialize loading of all modules and plugins
-print('init.nvim - loaded!')
+-- Initialize configuration
 require("config.options")               -- Load options from ../lua/config/options.lua
 require("config.keymaps")               -- load keymaps from ../lua/config/keymaps.lua
+require("config.autocmds")              -- load keymaps from ../lua/config/autocmds.lua
 
+-- Initialize plugin loading
+vim.cmd.packadd("lz.n")                 -- don't rely on nvim to load lz.n
 require("lz.n").load("plugins")         -- load plugins from ./lua/plugins
---require("mini.pairs").setup()           -- load from ../../mini.pairs/lua/mini/pairs.lua
+
+--vim.cmd.colorscheme("catppuccin-macchiato")
