@@ -15,14 +15,10 @@
   writeTextFile, lib,
 }: let
 
-  # Plugins to have loaded on boot
-  startPlugins = with vimPlugins; [
-    lz-n
-  ];
-
   # Plugins to make available but don't load on boot
   # These will be lazy loaded by lz-n as needed based on triggers
-  optPlugins = with vimPlugins; [
+  plugins = with vimPlugins; [
+    lz-n
     plenary-nvim 
     telescope-nvim
     vim-startuptime                               # 
@@ -50,13 +46,8 @@
 
     ${
       lib.concatMapStringsSep "\n"
-
-      # Include the plugin with the appropriate folder structure
-      (x: "ln -vsfT ${x.plugin} $out/pack/${packName}/${x.mode}/${lib.getName x.plugin}")
-
-      # Combine the plugin lists while tracking the mode
-      (map (x: { plugin = x; mode = "start"; }) startPlugins
-       ++ map (x: { plugin = x; mode = "opt"; }) optPlugins)
+      (plugin: "ln -vsfT ${plugin} $out/pack/${packName}/opt/${lib.getName plugin}")
+      plugins
     }
   '';
 
