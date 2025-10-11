@@ -15,13 +15,20 @@
   writeTextFile, lib,
 }: let
 
+  # Plugins to have loaded on boot
+  startPlugins = with vimPlugins; [
+    snacks-nvim                                   # Collection of lua modules
+  ];
+
   # Plugins to make available but don't load on boot
   # These will be lazy loaded by lz-n as needed based on triggers
-  plugins = with vimPlugins; [
+  optPlugins = with vimPlugins; [
     lz-n
-    plenary-nvim 
-    telescope-nvim
-    vim-startuptime                               # 
+
+    #codecompanion-nvim
+    #plenary-nvim 
+    #telescope-nvim
+    #vim-startuptime                               # 
     which-key-nvim                                # Shows available keybindings in a popup as you type
     (vimUtils.buildVimPlugin {                    # 
       pname = "mini-pairs"; version = "2025-10-08";
@@ -46,8 +53,13 @@
 
     ${
       lib.concatMapStringsSep "\n"
-      (plugin: "ln -vsfT ${plugin} $out/pack/${packName}/opt/${lib.getName plugin}")
-      plugins
+
+      # Include the plugin with the appropriate folder structure
+      (x: "ln -vsfT ${x.plugin} $out/pack/${packName}/${x.mode}/${lib.getName x.plugin}")
+
+      # Combine the plugin lists while tracking the mode
+      (map (x: { plugin = x; mode = "start"; }) startPlugins
+       ++ map (x: { plugin = x; mode = "opt"; }) optPlugins)
     }
   '';
 

@@ -6,7 +6,6 @@ let
     if lib.isDerivation drv then { name = "${lib.getName x}"; path = x; } else x;
 
   plugins = with pkgs.vimPlugins; [
-    LazyVim
     better-escape-nvim
     clangd_extensions-nvim
     cmp-buffer
@@ -63,23 +62,18 @@ let
     vim-illuminate
     vscode-nvim
 
-              # Interface
-              #nerdtree              # File explorer sidebar
-              #vim-airline           # Awesome status bar at bottom with git support
-              #vim-airline-themes    # Vim Airline themes
-              #vim-devicons          # Sweet folder/file icons for nerd tree
-              # Color Schemes
-              #vim-deus              # Deus color scheme
-              # Languages
-              #vim-nix               # Syntax highlightng, .nix file detection
+    # Interface
+    #nerdtree              # File explorer sidebar
+    #vim-airline           # Awesome status bar at bottom with git support
+    #vim-airline-themes    # Vim Airline themes
+    #vim-devicons          # Sweet folder/file icons for nerd tree
+    # Color Schemes
+    #vim-deus              # Deus color scheme
+    # Languages
+    #vim-nix               # Syntax highlightng, .nix file detection
 
-              # [mini.pairs](https://github.com/nvim-mini/mini.pairs)
-              # Automatically inserts a matching closing character when you type an opening character like ", [, or (.
-
-    #codecompanion-nvim
-    which-key-nvim                                # Shows available keybindings in a popup as you type
-    vim-startuptime                               # 
-    { name = "mini.pairs"; path = mini-pairs; }
+    # [mini.pairs](https://github.com/nvim-mini/mini.pairs)
+    # Automatically inserts a matching closing character when you type an opening character like ", [, or (.
   ];
 in
 
