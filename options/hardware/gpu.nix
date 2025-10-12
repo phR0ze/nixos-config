@@ -25,7 +25,7 @@
 # 1. Determmine your Video card with `lspci | grep VGA`
 #
 # ### General config steps
-# 1. Make the kernel use the correct driver early, should be automatically handled
+# 1. Make the kernel use the correct driver early
 #    boot.kernelModules = lib.mkForce [ "kvm-intel" ];
 #    boot.initrd.kernelModules = [ "amdgpu" ];
 #
@@ -121,14 +121,7 @@ in
 
     # Nvidia graphics
     # ----------------------------------------------------------------------------------------------
-<<<<<<< HEAD:options/hardware/gpu.nix
     (lib.mkIf (cfg.nvidia || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340) {
-=======
-    (lib.mkIf cfg.nvidia.stable || cfg.nvidia.legacy_470 {
-
-      # Should be automatically handled but can manually add as well
-      boot.initrd.kernelModules = [ "nvidia" ];
->>>>>>> bc0085f (Working on Nvidia legacy driver):options/hardware/graphics.nix
 
       # Enable this when using containers that need Nvidia GPU access
       #hardware.nvidia-container-toolkit.enable = true;
@@ -164,13 +157,10 @@ in
         nvidiaPersistenced = true;
 
         # Optionally, for older cards you'll need to select the driver version for your specific GPU.
-<<<<<<< HEAD:options/hardware/gpu.nix
         package = if cfg.nvidiaLegacy470 then
           config.boot.kernelPackages.nvidiaPackages.legacy_470 else
-=======
-        package = if cfg.nvidia.legacy_470 then
-          config.boot.kernelPackages.nvidiaPackages.legacy_470; else
->>>>>>> bc0085f (Working on Nvidia legacy driver):options/hardware/graphics.nix
+        package = if cfg.nvidiaLegacy470 then
+          config.boot.kernelPackages.nvidiaPackages.legacy_470 else
           config.boot.kernelPackages.nvidiaPackages.stable;
         #package = config.boot.kernelPackages.nvidiaPackages.legacy_390;
         #package = config.boot.kernelPackages.nvidiaPackages.legacy_340;
@@ -180,17 +170,8 @@ in
         nvtopPackages.nvidia        # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
       ];
     })
-<<<<<<< HEAD:options/hardware/gpu.nix
     (lib.mkIf (x11.enable && (cfg.nvidia || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340)) {
       services.xserver.videoDrivers = [ "nvidia" ];
-=======
-    (lib.mkIf x11.enable && (cfg.nvidia.stable || cfg.nvidia.legacy_470 || cfg.nvidia.legacy_390 || cfg.nvidia_340) {
-      services.xserver.videoDrivers = [ ]
-      ++ lib.optionals cfg.nvidia.stable [ "nvidia" ]
-      ++ lib.optionals cfg.nvidia.legacy_470 [ "nvidiaLegacy470" ]
-      ++ lib.optionals cfg.nvidia.legacy_390 [ "nvidiaLegacy390" ]
-      ++ lib.optionals cfg.nvidia.legacy_340 [ "nvidiaLegacy340" ];
->>>>>>> bc0085f (Working on Nvidia legacy driver):options/hardware/graphics.nix
     })
   ];
 }
