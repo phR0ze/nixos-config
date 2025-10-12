@@ -170,11 +170,7 @@ in
       ];
     })
     (lib.mkIf (x11.enable && (cfg.nvidiaStable || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340)) {
-      services.xserver.videoDrivers = [ ]
-      ++ lib.optionals cfg.nvidiaStable [ "nvidia" ]
-      ++ lib.optionals cfg.nvidiaLegacy470 [ "nvidiaLegacy470" ]
-      ++ lib.optionals cfg.nvidiaLegacy390 [ "nvidiaLegacy390" ]
-      ++ lib.optionals cfg.nvidiaLegacy340 [ "nvidiaLegacy340" ];
+      services.xserver.videoDrivers = [ "nvidia" ];
     })
   ];
 }

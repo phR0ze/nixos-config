@@ -157,7 +157,6 @@ in
     # Essentially it makes the Nvidia GPU available to containers if you then pass in the
     # appropriate --device=/dev/nvidia* and hooks.d to the podman invocation
     (lib.mkIf gpu.nvidia {
-      hardware.nvidia.datacenter.enable = true;
       hardware.nvidia-container-toolkit.enable = true;
     })
   ];
