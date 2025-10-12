@@ -21,11 +21,13 @@
       inherit system;
       config.allowUnfreePredicate = pkg: true;
       config.android_sdk.accept_license = true;
+      config.nvidia.acceptLicense = true;
     };
     pkgs = import nixpkgs {
       inherit system;
       config.allowUnfreePredicate = pkg: true;
       config.android_sdk.accept_license = true;
+      config.nvidia.acceptLicense = true;
       #config.permittedInsecurePackages = [
         #"freeimage-3.18.0-unstable-2024-04-18"     # Allowing this for wii tools
       #];
