@@ -14,7 +14,6 @@
     machine.type.bootable = true;
     machine.net.bridge.enable = true;
     hardware.gpu.nvidia = true;
-    hardware.gpu.nvidiaStable = true;
     machine.autologin = true;
     services.xserver.autolock.enable = true;
 
