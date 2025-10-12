@@ -25,7 +25,7 @@
 # 1. Determmine your Video card with `lspci | grep VGA`
 #
 # ### General config steps
-# 1. Make the kernel use the correct driver early, should be automatically handled
+# 1. Make the kernel use the correct driver early
 #    boot.kernelModules = lib.mkForce [ "kvm-intel" ];
 #    boot.initrd.kernelModules = [ "amdgpu" ];
 #
@@ -43,16 +43,19 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.hardware.graphics;
+  cfg = config.hardware.gpu;
   x11 = config.services.xserver;
 in
 {
   options = {
-    hardware.graphics = {
+    hardware.gpu = {
       amd = lib.mkEnableOption "Install and configure AMD graphics";
       intel = lib.mkEnableOption "Install and configure Intel graphics";
-      nvidia.stable = lib.mkEnableOption "Install and configure Nvidia graphics stable";
-      nvidia.legacy_470 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_470";
+      nvidia = lib.mkEnableOption "Set to indicate nvidia is being used as a flag to other components";
+      nvidiaStable = lib.mkEnableOption "Install and configure Nvidia graphics stable";
+      nvidiaLegacy470 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_470";
+      nvidiaLegacy390 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_390";
+      nvidiaLegacy340 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_340";
     };
   };
 
@@ -119,10 +122,7 @@ in
 
     # Nvidia graphics
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf cfg.nvidia.stable || cfg.nvidia.legacy_470 {
-
-      # Should be automatically handled but can manually add as well
-      boot.initrd.kernelModules = [ "nvidia" ];
+    (lib.mkIf (cfg.nvidiaStable || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340) {
 
       # Enable this when using containers that need Nvidia GPU access
       #hardware.nvidia-container-toolkit.enable = true;
@@ -158,8 +158,8 @@ in
         nvidiaPersistenced = true;
 
         # Optionally, for older cards you'll need to select the driver version for your specific GPU.
-        package = if cfg.nvidia.legacy_470 then
-          config.boot.kernelPackages.nvidiaPackages.legacy_470; else
+        package = if cfg.nvidiaLegacy470 then
+          config.boot.kernelPackages.nvidiaPackages.legacy_470 else
           config.boot.kernelPackages.nvidiaPackages.stable;
         #package = config.boot.kernelPackages.nvidiaPackages.legacy_390;
         #package = config.boot.kernelPackages.nvidiaPackages.legacy_340;
@@ -169,12 +169,12 @@ in
         nvtopPackages.nvidia        # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
       ];
     })
-    (lib.mkIf x11.enable && (cfg.nvidia.stable || cfg.nvidia.legacy_470 || cfg.nvidia.legacy_390 || cfg.nvidia_340) {
+    (lib.mkIf (x11.enable && (cfg.nvidiaStable || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340)) {
       services.xserver.videoDrivers = [ ]
-      ++ lib.optionals cfg.nvidia.stable [ "nvidia" ]
-      ++ lib.optionals cfg.nvidia.legacy_470 [ "nvidiaLegacy470" ]
-      ++ lib.optionals cfg.nvidia.legacy_390 [ "nvidiaLegacy390" ]
-      ++ lib.optionals cfg.nvidia.legacy_340 [ "nvidiaLegacy340" ];
+      ++ lib.optionals cfg.nvidiaStable [ "nvidia" ]
+      ++ lib.optionals cfg.nvidiaLegacy470 [ "nvidiaLegacy470" ]
+      ++ lib.optionals cfg.nvidiaLegacy390 [ "nvidiaLegacy390" ]
+      ++ lib.optionals cfg.nvidiaLegacy340 [ "nvidiaLegacy340" ];
     })
   ];
 }

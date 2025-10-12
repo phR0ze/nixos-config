@@ -3,7 +3,7 @@
   imports = [
     ./boot.nix
     ./firmware.nix
-    ./graphics.nix
+    ./gpu.nix
     ./printers.nix
     ./kernel.nix
   ];

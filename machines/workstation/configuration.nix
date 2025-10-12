@@ -13,7 +13,7 @@
 
   config = {
     machine.type.bootable = true;
-    hardware.graphics.amd = true;
+    hardware.gpu.amd = true;
     machine.net.bridge.enable = true;
 
     hardware.printers.epson-wf7710 = true;

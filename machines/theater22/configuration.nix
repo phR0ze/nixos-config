@@ -12,7 +12,7 @@
 
   config = {
     machine.type.bootable = true;
-    hardware.graphics.intel = true;
+    hardware.gpu.intel = true;
     machine.autologin = true;
     machine.nix.cache.enable = true;
 
