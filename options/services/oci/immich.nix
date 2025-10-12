@@ -16,7 +16,7 @@
 let
   machine = config.machine;
   cfg = config.services.oci.immich;
-  gpu = config.hardware.graphics;
+  gpu = config.hardware.gpu;
   defaults = (f.getService args "immich" 2003 2003);
 in
 {
@@ -157,6 +157,7 @@ in
     # Essentially it makes the Nvidia GPU available to containers if you then pass in the
     # appropriate --device=/dev/nvidia* and hooks.d to the podman invocation
     (lib.mkIf gpu.nvidia {
+      hardware.nvidia.datacenter.enable = true;
       hardware.nvidia-container-toolkit.enable = true;
     })
   ];

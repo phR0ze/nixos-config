@@ -12,7 +12,7 @@
 
   config = {
     machine.type.bootable = true;
-    hardware.graphics.intel = true;
+    hardware.gpu.intel = true;
     machine.nix.cache.enable = true;
 
     hardware.printers.epson-wf7710 = true;
