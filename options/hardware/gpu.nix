@@ -51,8 +51,7 @@ in
     hardware.gpu = {
       amd = lib.mkEnableOption "Install and configure AMD graphics";
       intel = lib.mkEnableOption "Install and configure Intel graphics";
-      nvidia = lib.mkEnableOption "Set to indicate nvidia is being used as a flag to other components";
-      nvidiaStable = lib.mkEnableOption "Install and configure Nvidia graphics stable";
+      nvidia = lib.mkEnableOption "Install and configure Nvidia graphics stable";
       nvidiaLegacy470 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_470";
       nvidiaLegacy390 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_390";
       nvidiaLegacy340 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_340";
@@ -122,7 +121,7 @@ in
 
     # Nvidia graphics
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.nvidiaStable || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340) {
+    (lib.mkIf (cfg.nvidia || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340) {
 
       # Enable this when using containers that need Nvidia GPU access
       #hardware.nvidia-container-toolkit.enable = true;
@@ -169,7 +168,7 @@ in
         nvtopPackages.nvidia        # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
       ];
     })
-    (lib.mkIf (x11.enable && (cfg.nvidiaStable || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340)) {
+    (lib.mkIf (x11.enable && (cfg.nvidia || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340)) {
       services.xserver.videoDrivers = [ "nvidia" ];
     })
   ];
