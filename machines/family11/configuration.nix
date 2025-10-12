@@ -14,5 +14,6 @@
     machine.type.bootable = true;
     machine.nix.cache.enable = true;
     apps.games.warcraft2.enable = true;
+    hardware.graphics.nvidia.legacy_470 = true;
   };
 }
