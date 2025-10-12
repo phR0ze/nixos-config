@@ -9,7 +9,8 @@
   * 4-Core Intel Xeon E3-1280 @ 1.60-3.60 GHz
   * 8 GB RAM
 * Graphics
-  * Nvidia GK197GL [Quadro K600] nouveau
+  * Nvidia GK107GL [Quadro K600]
+  * Nvidia legacy 470 driver
 * Drives
   * 250 GB Micron SSD
 
