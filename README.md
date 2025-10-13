@@ -30,9 +30,8 @@ fork it and build on my work.
   * [Build and run test VM](#build-and-run-test-vm)
   * [Build the live ISO for installation](#build-the-live-iso-for-installation)
 * [Development](#development)
-  * [Agenix](#agenix)
+  * [Dev environment](#dev-environment)
   * [Clone nixpkgs locally](#clone-nixpkgs-locally)
-* [Homelab research](#homelab-research)
 * [Backlog](#backlog)
   * [Next](#next)
   * [Sometime](#sometime)
@@ -223,15 +222,19 @@ world though this already exists.
    ```
 2. Modify the ISO profile as desired
    ```bash
-   $ vim profiles/iso/default.nix
+   $ vim profiles/iso.nix
    ```
-3. Commit or at the least stage your changes so Nix will see them
+3. Commit or at least stage your changes so Nix will see them
    ```bash
    $ git add .
    ```
 4. Now build the iso
    ```bash
+   # Build with the profile specified in `args.nix`
    $ ./clu build iso
+
+   # Build with a profile specifically called out
+   $ ./clu build iso base
    ```
 5. The ISO will end up in `result/iso/`
 
@@ -253,23 +256,6 @@ It's nice to have a copy of nixpkgs to reference for options
 ```bash
 $ git clone -b nixos-unstable --depth 1 https://github.com/NixOS/nixpkgs
 ```
-
-## Homelab research
-Homelabs are an essential part of any tech enthusiast's set up. At its simplest, just a LAN with access 
-to the internet and a single self-hosted service, Homelabs can also scale to be rather complicated 
-with VLANs for specific needs and purpose built routers, dozens of IoT devices, numerous self hosted 
-services and VPNs to multi-site and cloud based devices. Regardless of the configuration I would 
-assert that the fundamental goals should be the same i.e. make the system, despite or perhaps because 
-of its complexity, pre-defined, purposefully built and effortlessly reproducible.
-
-Thus I'm working on supporting containers, declared in nix, as my next phase in building out my 
-homelab.
-
-**References**
-* [MicroVM.nix](https://astro.github.io/microvm.nix/intro.html)
-
-* Uptime Kuma
-
 
 ## Backlog
 * [ ] 

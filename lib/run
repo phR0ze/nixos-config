@@ -48,8 +48,9 @@ run::vm()
     local machine="${1#vm-}"  # trim vm- prefix
     [[ "$machine" == "" ]] && machine="test"
     MACHINE="vm-${machine}"
+    TARGET="machines/$MACHINE"
 
-    log::header1 "Running VM ${cyan}${MACHINE}${none}"
+    log::header1 "Running VM ${cyan}${TARGET}${none}"
     flake::ensure_origin
 
     # Optionally clean first

@@ -4,9 +4,11 @@
 # Flake utility code
 # 
 # ## Features
-# - Set machine as flake controller
+# - Set target (machine or profile) as flake controller
 # --------------------------------------------------------------------------------------------------
 MACHINE=""
+PROFILE=""
+TARGET=""
 
 # Ensure that flake related commands are executed from the root of the nixos-config directory
 flake::ensure_origin()
@@ -17,36 +19,44 @@ flake::ensure_origin()
 }
 
 # Ensure machine name was given and exists
-# - $1 - target machine
+# - $1 - target
 #
-# Example: flake::ensure_machine homelab
-flake::ensure_machine()
+# Example: flake::ensure_target machines/homelab
+# Example: flake::ensure_target profiles/xfce/base
+flake::ensure_target()
 {
     flake::ensure_origin
 
-    MACHINE="$1"
-    local machine_path="machines/$MACHINE"
-    log::ls -n "Validating machine ${cyan}$MACHINE${none} exists..."
-    if [ ! -d "$machine_path" ]; then
+    TARGET="$1"
+
+    # Check if the machine name is missing
+    if [[ "$TARGET" == "" || "$TARGET" == "machines/" || "$TARGET" == "profiles/" ]]; then
+        log::ls -n "Validating target exists..."
         log::status 1
-        log::fatal "Invalid machine path: ${cyan}${machine_path}${none}"
+        log::fatal "Machine or profile not given"
+    fi
+
+    # Check that the given target name is valid
+    log::ls -n "Validating target ${cyan}$TARGET${none} exists..."
+    if [ ! -d "$TARGET" ]; then
+        log::status 1
+        log::fatal "Invalid target path: ${cyan}${TARGET}${none}"
     else
         log::status
     fi
 }
 
 # Switch flake
-# - $1 - target machine
+# - $1 - target
 #
-# Example: flake::switch homelab
+# Example: flake::switch machines/homelab
 flake::switch()
 {
-    flake::ensure_machine $MACHINE
+    flake::ensure_machine $TARGET
 
-    local machine_path="machines/$MACHINE"
-    local flake_local="$machine_path/flake.nix"
-    local flake_local_lock="$machine_path/flake.lock"
-    log::ls "Switching to machine ${cyan}$MACHINE${none}"
+    local flake_local="$TARGET/flake.nix"
+    local flake_local_lock="$TARGET/flake.lock"
+    log::ls "Switching to target ${cyan}$TARGET${none}"
 
     # Stage the flake files
     if [ -e "$flake_local" ]; then
@@ -63,14 +73,18 @@ flake::switch()
     git decrypt
     git add flake.nix -f
     git add flake.lock -f
-    # - Using relative path here on purpose
-    ln -sf "machines/$MACHINE/configuration.nix" configuration.nix
-    git add configuration.nix -f
     git add "args.dec.json" -f
-    git add "machines/$MACHINE/args.dec.json" -f
 
-    # Update args.nix with hostname and comment
-    utils::update "args.nix" str "hostname" "${MACHINE}"
+    # Optionally include machine's configuration
+    if [[ "$MACHINE" != "" ]]; then
+        # - Using relative path here on purpose
+        ln -sf "$TARGET/configuration.nix" configuration.nix
+        git add configuration.nix -f
+        git add "$TARGET/args.dec.json" -f
+
+        # Update args.nix with hostname and comment
+        utils::update "args.nix" str "hostname" "${MACHINE}"
+    fi
     utils::update "args.nix" str "git.comment" "$(git log -1 --oneline --no-decorate)"
     git add "args.nix"
 }
@@ -78,10 +92,13 @@ flake::switch()
 # Restore the standard flake files back to prestine in git
 flake::restore()
 {
-    if [[ "$(git diff --staged --name-only -- flake.nix flake.lock configuration.nix *.dec* */*.dec*)" != "" ]]; then
+    if [[ "$(git diff --staged --name-only -- flake.nix flake.lock *.dec* */*.dec*)" != "" ]]; then
         echo -n "Restoring flake files back to prestine"
         find . -type f -name "*.dec*" -delete
-        git restore --staged flake.nix flake.lock configuration.nix *.dec* */*.dec*
+        git restore --staged flake.nix flake.lock *.dec* */*.dec*
+    fi
+    if [[ "$(git diff --staged --name-only -- configuration.nix)" != "" ]]; then
+        git restore --staged configuration.nix
     fi
 
     if [[ "$(git diff --staged --name-only -- args.nix)" != "" ]]; then
