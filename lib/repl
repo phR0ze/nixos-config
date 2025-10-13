@@ -51,9 +51,10 @@ repl::machine()
     # Use hostname as machine
     MACHINE="$1"
     [[ "$1" == "" ]] && MACHINE="$(hostname)"
+    TARGET="machines/$MACHINE"
 
-    log::header1 "Loading ${cyan}${MACHINE}${none} in REPL"
-    flake::switch "$MACHINE"
+    log::header1 "Loading ${cyan}${TARGET}${none} in REPL"
+    flake::switch "$TARGET"
     trap flake::restore EXIT
 
     nix repl -f '<nixpkgs>'

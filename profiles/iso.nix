@@ -2,10 +2,13 @@
 # --------------------------------------------------------------------------------------------------
 # https://nixos.wiki/wiki/Creating_a_NixOS_live_CD
 #
+# ### Build instructions
+# ./clu build iso
+#
 # ### Features
 # - Automatically run installation wizard to guide you through the install
 # - Automation for installing NixOS including partitioning and customization
-# - Packages included on ISO for optimimal install speed and offline installations
+# - Includes packages on ISO for offline installations
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, modulesPath, ... }:
 let
@@ -13,6 +16,9 @@ let
 in
 {
   imports = [
+    # The ISO building automation I'm levaraging from Nix will automatically include all derevations 
+    # in the iso that were used during the build. Thus the 'machine.profile' called out below will 
+    # pull in any derivations needed to build that profile.
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
     (./. + machine.profile + ".nix")
   ];

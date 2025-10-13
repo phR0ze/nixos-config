@@ -19,7 +19,7 @@ build::usage()
 {
     cat <<USAGE
 Usage:
-  build [MACHINE|COMMAND] [ARGS...] [OPTIONS] 
+  build [TARGET|COMMAND] [ARGS...] [OPTIONS] 
 
 Options:
   -h, --help            Print out usage
@@ -28,7 +28,7 @@ Options:
 
 Commands:
   iso [PROFILE]         Build the installable ISO with an optional profile override
-  vm [MACHINE]          Build the given VM machine or the default test vm 'vm-test'
+  vm [TARGET]           Build the given VM machine or the default test vm 'vm-test'
 USAGE
 
     log::ln "\nExamples:"
@@ -38,7 +38,7 @@ USAGE
     log::subln "Build the prod1 VM: ${green}./${SCRIPT} build vm prod1${none}"
     log::subln "Clean build of test VM: ${green}./${SCRIPT} build vm -c${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
-    log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso generic/light${none}"
+    log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso xfce/base${none}"
     echo
     exit
 }
@@ -68,9 +68,10 @@ build::machine()
     # Use hostname as machine
     MACHINE="$1"
     [[ "$1" == "" ]] && MACHINE="$(hostname)"
+    TARGET="machines/$MACHINE"
 
-    log::header1 "Building ${cyan}${MACHINE}${none}"
-    flake::switch "$MACHINE"
+    log::header1 "Building ${cyan}${TARGET}${none}"
+    flake::switch "$TARGET"
     trap flake::restore EXIT
 
     nixos-rebuild dry-activate $TRACE $IMPURE --flake "path:.#target"
@@ -85,17 +86,23 @@ build::machine()
 build::iso()
 {
     core::preamble
-    log::header0 "Building installable ISO"
 
-    local profile="$1"
-    if [[ "$profile" != "" ]]; then
-        profile="${profile%.*}" # trim off the file extension
-        _build::update_args "str" "profile" "$profile"
+    # Handle input target
+    PROFILE="$1"
+    if [[ "$1" == "" ]]; then
+        PROFILE="base"          # Use base as default profile
+    else
+        PROFILE="${PROFILE%.*}" # trim off the file extension
     fi
+    TARGET="profiles/$PROFILE"  # set the target prefix
+
+    log::header1 "Building installable ISO for ${cyan}${TARGET}${none}"
+    flake::switch "$TARGET"
+    trap flake::restore EXIT
 
     nix build .#nixosConfigurations.iso.config.system.build.isoImage
 
-    [[ "$profile" != "" ]] && _build::post
+    _build::post
 }
 
 # Build the vm
@@ -109,9 +116,10 @@ build::vm()
     local machine="${1#vm-}"  # trim vm- prefix
     [[ "$machine" == "" ]] && machine="test"
     MACHINE="vm-${machine}"
+    TARGET="machines/$MACHINE"
 
-    log::header1 "Building ${cyan}${MACHINE}${none}"
-    flake::switch "$MACHINE"
+    log::header1 "Building ${cyan}${TARGET}${none}"
+    flake::switch "$TARGET"
     trap flake::restore EXIT
 
     # Optionally clean first

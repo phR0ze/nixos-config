@@ -21,7 +21,6 @@ Options:
 
 Commands:
   flake [MACHINE]   Update the given machine's flake.lock or root base.lock if not given
-  profile PROFILE   Change the system profile to the given one
   system [MACHINE]  Update system with given machine's configuration or hostname's if not given
 USAGE
 
@@ -29,7 +28,6 @@ USAGE
     log::subln "Update flake: ${green}./${SCRIPT} update flake${none}"
     log::subln "Update system using hostname: ${green}./${SCRIPT} update system${none}"
     log::subln "Update system by name: ${green}./${SCRIPT} update system macbook${none}"
-    log::subln "Update to the given profile: ${green}./${SCRIPT} update profile xfce/develop${none}"
     log::subln "Update the system, resetting xfce: ${green}./${SCRIPT} update system --reset-xfce${none}"
     echo
     exit
@@ -58,11 +56,11 @@ update::flake()
     log::header1 "Update flake"
 
     MACHINE="$1"
-    local machine_path="machines/$MACHINE"
+    TARGET="machines/$MACHINE"
 
     # Switch to target flake
     if [[ "$MACHINE" != "" ]]; then
-        flake::switch $MACHINE
+        flake::switch $TARGET
         trap flake::restore EXIT
     else
         log::header0 "Switching to base flake"
@@ -77,26 +75,12 @@ update::flake()
 
     # Clean up after
     if [[ "$MACHINE" != "" ]]; then
-        cp flake.lock "$machine_path"
+        cp flake.lock "$TARGET"
         # cleanup will be done by trap
     else
         cp flake.lock base.lock
         git restore --staged flake.nix flake.lock
     fi
-}
-
-
-# Update the target profile in the options file e.g. flake_args.nix
-# --------------------------------------------------------------------------------------------------
-update::profile()
-{
-    core::preamble
-    log::header1 "Update install profile"
-    echo "${orange}TODO: not implemented!${none}" && exit 1
-
-    log::ls "Switching install profile to ${cyan}${@}${none}"
-    utils::replace str "profile" "${@}" "${FLAKE_ARGS}"
-    git add "${FLAKE_ARGS}"
 }
 
 # Update the system with the system configuration changes
