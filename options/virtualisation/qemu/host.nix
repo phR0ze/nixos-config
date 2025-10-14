@@ -131,13 +131,14 @@ in
 
       # Additional packages
       environment.systemPackages = with pkgs; [
-        virt-viewer       # Provides SPICE client `remote-viewer spice:://<host>:5900`
+        qemu              # Base QEMU binary
+        quickemu          # QEMU wrapper that gives good insights
         spice-gtk         # Provides GTK SPICE client `spicy`
         spice-protocol    # SPICE support
+        virglrenderer     # Support Guests using Virtio ro get host OpenGL acceleration
+        virt-viewer       # Provides SPICE client `remote-viewer spice:://<host>:5900`
         win-virtio        # QEMU support for windows
         win-spice         # SPICE support for windows
-        quickemu          # QEMU wrapper that gives good insights
-        virglrenderer     # Support Guests using Virtio ro get host OpenGL acceleration
       ];
 
       users.users.${machine.user.name}.extraGroups = [ "kvm" ];

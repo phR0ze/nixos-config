@@ -13,12 +13,14 @@ Options:
   -c, --clean           Delete the VM before running to trigger a build first
 
 Commands:
-  vm                    Run the given VM with the given arguments
+  vm [NAME]             Run the given VM or vm-test by default
+  iso                   Create a VM and boot from the ISO located at result/iso/*.iso
 USAGE
 
     log::ln "\nExamples:"
     log::subln "Run a clean test VM: ${green}./${SCRIPT} run vm -c${none}"
     log::subln "Run the prod1 VM: ${green}./${SCRIPT} run vm prod1${none}"
+    log::subln "Run a new VM to test the ISO: ${green}./${SCRIPT} run iso -c${none}"
     echo
     exit
 }
@@ -33,6 +35,7 @@ run::run()
     local cmd="${ARGS[0]}" && unset 'ARGS[0]'
     case "$cmd" in
         vm) run::vm "${ARGS[@]}" ;;
+        iso) run::iso "${ARGS[@]}" ;;
         *) log::error "Invalid run command: ${cyan}${command}${none}"; run::usage ;;
     esac
 }
@@ -69,4 +72,59 @@ run::vm()
 
     log::ls "Running ${cyan}${runner}${none}"
     $runner
+}
+ 
+# Create a new VM and boot from the ISO
+# --------------------------------------------------------------------------------------------------
+run::iso()
+{
+    core::preamble
+    utils::ensure_not_root
+    flake::ensure_origin
+
+    MACHINE="vm-iso"
+    log::header1 "Boot VM with ${cyan}result/iso/*.iso${none}"
+
+    # Check that the ISO exists
+    local iso="result/iso/$(ls result/iso)"
+    log::ls -n "Locating iso..."
+    if [ -f "$iso" ]; then
+        log::status
+        log::subln3 "${cyan}$iso${none}"
+    else
+        log::status 1
+        log::fatal "ISO doesn't exist yet run: ./clu build iso"
+    fi
+
+    # Optionally clean first
+    if [[ $CLEAN -eq 1 ]]; then
+        log::ls "Cleaning ${cyan}${MACHINE}${none}"
+        rm -rf "./${MACHINE}"
+    fi
+
+    # Create the vm directory and volume if needed
+    log::ls "Launching VM with ISO"
+    mkdir -p "${MACHINE}"
+    if [ ! -d "${MACHINE}" ]; then
+        log::subln3 "${cyan}$iso${none}"
+        echo "foo"
+    fi
+    pushd "${MACHINE}"
+
+    # Create the volume if needed
+    local vol="nixos.qcow2"
+    if [ ! -f "$vol" ]; then
+        qemu-img create -f qcow2 $vol 40G
+    fi
+    
+    # Run the VM using the ISO to boot from
+    qemu-system-x86_64 \
+        -name NixOS \
+        -enable-kvm \
+        -m 4G -cpu host -smp 4 \
+        -nic user \
+        -vga virtio -display sdl,gl=on \
+        -hda $vol \
+        -cdrom "../$iso"
+    popd
 }

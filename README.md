@@ -28,7 +28,8 @@ fork it and build on my work.
   * [Pull a specific app version](#pull-a-specific-app-version)
   * [Build and deploy production VMs](#build-and-run-test-vm)
   * [Build and run test VM](#build-and-run-test-vm)
-  * [Build the live ISO for installation](#build-the-live-iso-for-installation)
+  * [Build the ISO for installation](#build-the-iso-for-installation)
+  * [Test the ISO in a QEMU VM](#test-the-iso-in-a-quemu-vm)
 * [Development](#development)
   * [Dev environment](#dev-environment)
   * [Clone nixpkgs locally](#clone-nixpkgs-locally)
@@ -85,7 +86,7 @@ My configuration can be installed using the pre-built upstream NixOS ISOs
    ```
 
 ### Install from custom ISO
-By following the [Build the live ISO for installation](#build-the-live-iso-for-installation) section 
+By following the [Build the ISO for installation](#build-the-iso-for-installation) section 
 of this doc you can build a custom ISO which will pre-populate the nix store of the target system 
 during install with prebuilt binaries (i.e. you can think of it as a local binary cache) which will 
 speed up the installation tremendously as you don't need to download nearly as much and any custom 
@@ -94,7 +95,7 @@ built binaries will already be built.
 Of course this is really only useful if you install a lot of systems or your target system is rather 
 limited in resources while your build system is beefy.
 
-1. [Build the live ISO for installation](#build-the-live-iso-for-installation)
+1. [Build the ISO for installation](#build-the-iso-for-installation)
 2. Burn the ISO to USB see step 2 of [Install from upstream ISO](#install-from-upstream-iso)
 3. Boot from the new USB and open a shell
 4. You'll be greeted with the clu installer
@@ -211,7 +212,7 @@ can run `./clu run vm`.
    $ ./clu run vm
    ```
 
-### Build the live ISO for installation
+### Build the ISO for installation
 NixOS has a lot of reusable automation built into it. In the Arch world typically you have to start 
 from scratch and build your own automation if you want control over how its being built. In the Nix 
 world though this already exists.
@@ -237,6 +238,9 @@ world though this already exists.
    $ ./clu build iso base
    ```
 5. The ISO will end up in `result/iso/`
+
+### Test the ISO in a QEMU VM
+
 
 ## Development
 
