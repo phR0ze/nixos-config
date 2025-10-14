@@ -38,7 +38,7 @@ flake::ensure_target()
 
     # Check that the given target name is valid
     log::ls -n "Validating target ${cyan}$TARGET${none} exists..."
-    if [ ! -d "$TARGET" ]; then
+    if [ ! -e "$TARGET" ]; then
         log::status 1
         log::fatal "Invalid target path: ${cyan}${TARGET}${none}"
     else
@@ -52,7 +52,7 @@ flake::ensure_target()
 # Example: flake::switch machines/homelab
 flake::switch()
 {
-    flake::ensure_machine $TARGET
+    flake::ensure_target $TARGET
 
     local flake_local="$TARGET/flake.nix"
     local flake_local_lock="$TARGET/flake.lock"
@@ -92,13 +92,16 @@ flake::switch()
 # Restore the standard flake files back to prestine in git
 flake::restore()
 {
-    if [[ "$(git diff --staged --name-only -- flake.nix flake.lock *.dec* */*.dec*)" != "" ]]; then
+    # Restore for the general case
+    if [[ "$(git diff --staged --name-only -- flake.nix flake.lock *.dec*)" != "" ]]; then
         echo -n "Restoring flake files back to prestine"
         find . -type f -name "*.dec*" -delete
-        git restore --staged flake.nix flake.lock *.dec* */*.dec*
+        git restore --staged flake.nix flake.lock *.dec*
     fi
-    if [[ "$(git diff --staged --name-only -- configuration.nix)" != "" ]]; then
-        git restore --staged configuration.nix
+
+    # Restore for machine build additional files
+    if [[ "$(git diff --staged --name-only -- configuration.nix */*.dec*)" != "" ]]; then
+        git restore --staged configuration.nix */*.dec*
     fi
 
     if [[ "$(git diff --staged --name-only -- args.nix)" != "" ]]; then

@@ -11,7 +11,7 @@
 # because of this odd behavior we must pass in the 'args' to each sub module as well so that all 
 # defaults are set at every level to cover all the use cases.
 #---------------------------------------------------------------------------------------------------
-{ config, lib, args, f, ... }: with lib.types;
+{ config, lib, pkgs, args, f, ... }: with lib.types;
 let
   smb = import ./smb.nix { inherit lib; };
 

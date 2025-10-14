@@ -89,11 +89,7 @@ build::iso()
 
     # Handle input target
     PROFILE="$1"
-    if [[ "$1" == "" ]]; then
-        PROFILE="base"          # Use base as default profile
-    else
-        PROFILE="${PROFILE%.*}" # trim off the file extension
-    fi
+    [[ "$1" == "" ]] && PROFILE="base.nix"
     TARGET="profiles/$PROFILE"  # set the target prefix
 
     log::header1 "Building installable ISO for ${cyan}${TARGET}${none}"

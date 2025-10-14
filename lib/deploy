@@ -51,7 +51,7 @@ deploy::vm()
     # Ensure machine is set
     local machine="vm-${1#vm-}" # ensure 'vm-' prefix
     log::header1 "Deploying ${cyan}${machine}${none}"
-    flake::ensure_machine "$machine"
+    flake::ensure_target "$machine"
 
     local machine_dst="/var/lib/vms/$MACHINE"
 

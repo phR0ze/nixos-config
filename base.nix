@@ -63,8 +63,13 @@
     # ----------------------------------------------------------------------------------------------
     lib = nixpkgs.lib;
     f = pkgs.callPackage ./funcs {};
-    args = lib.recursiveUpdate (lib.recursiveUpdate _args (f.fromJSON ./args.dec.json))
-      (f.fromJSON ./machines/${_args.hostname}/args.dec.json);
+    args = lib.recursiveUpdate _args (let
+      baseArgsFile = ./args.dec.json;
+      machineArgsFile = ./machines/${_args.hostname}/args.dec.json;
+      baseArgs = if builtins.pathExists baseArgsFile then f.fromJSON baseArgsFile else {};
+      machineArgs = if builtins.pathExists machineArgsFile then f.fromJSON machineArgsFile else {};
+      in lib.recursiveUpdate baseArgs machineArgs
+    );
     specialArgs = { inherit args f inputs; };
   in
   {
@@ -89,15 +94,8 @@
     # Defines configuration for building an ISO
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.iso = lib.nixosSystem {
-      inherit pkgs system;
-      specialArgs = specialArgs // {
-        args = args // {
-          isIso = true;
-          username = "nixos";
-          autologin = true;
-        };
-      };
-      modules = [ ./options ./profiles/iso/default.nix ];
+      inherit pkgs system specialArgs;
+      modules = [ ./options ./profiles/iso.nix ];
     };
   };
 }
