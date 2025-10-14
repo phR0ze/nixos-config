@@ -14,7 +14,8 @@ in
 
     # Ensure the existance of input args
     # ----------------------------------------------------------------------------------------------
-    { assertion = (args.id != null && args.id != ""); message = "assert args.id: ${args.id}"; }
+    # In the ISO case args.id is not set
+    #{ assertion = (args.id != null && args.id != ""); message = "assert args.id: ${args.id}"; }
     { assertion = (args.hostname != null && args.hostname != ""); message = "assert args.hostname: ${args.hostname}"; }
     { assertion = (args.profile != null); message = "assert args.profile: ${args.profile}"; }
     { assertion = (args.efi != null); message = "assert args.efi: ${f.boolToStr args.efi}"; }
