@@ -22,11 +22,10 @@ in
 
   imports = [
     # The ISO building automation I'm levaraging from Nix will automatically include all derevations 
-    # in the iso that were used during the build. Thus the 'machine.profile' called out below will 
+    # in the iso that were used during the build. Thus the 'machine.target' called out below will 
     # pull in any derivations needed to build that profile.
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
-    (./base.nix)
-    #(./. + args.profile + ".nix")
+    (../${args.target})
   ];
 
   # ISO image configuration

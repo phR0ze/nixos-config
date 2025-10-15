@@ -17,7 +17,7 @@ in
     # In the ISO case args.id is not set
     #{ assertion = (args.id != null && args.id != ""); message = "assert args.id: ${args.id}"; }
     { assertion = (args.hostname != null && args.hostname != ""); message = "assert args.hostname: ${args.hostname}"; }
-    { assertion = (args.profile != null); message = "assert args.profile: ${args.profile}"; }
+    { assertion = (args.target != null); message = "assert args.target: ${args.target}"; }
     { assertion = (args.efi != null); message = "assert args.efi: ${f.boolToStr args.efi}"; }
     { assertion = (args.mbr != null); message = "assert args.mbr: ${args.mbr}"; }
     { assertion = (args.arch == "x86_64-linux"); message = "assert args.arch: ${args.arch}"; }
@@ -44,7 +44,7 @@ in
     # Ensure the existance of final merged args
     # ----------------------------------------------------------------------------------------------
     { assertion = (cfg.hostname != null); message = "assert machine.hostname: ${cfg.hostname}"; }
-    { assertion = (cfg.profile != null); message = "assert machine.profile: ${cfg.profile}"; }
+    { assertion = (cfg.target != null); message = "assert machine.target: ${cfg.target}"; }
     { assertion = (cfg.efi != null); message = "assert machine.efi: ${f.boolToStr cfg.efi}"; }
     { assertion = (cfg.mbr != null); message = "assert machine.mbr: ${cfg.mbr}"; }
     { assertion = (cfg.arch == "x86_64-linux"); message = "assert machine.arch: ${cfg.arch}"; }
