@@ -1,8 +1,7 @@
 {
 	"hostname": "ENC[AES256_GCM,data:QEFNXYzptyU=,iv:l1Sudps0a26jZKU83xMQ6kPX7pINvOJZ/kpaLG3D/Uo=,tag:AaVzW7RYRitJZdGcyRn5IA==,type:str]",
-	"profile": "ENC[AES256_GCM,data:2ZP2z0sVmp5mTi98,iv:qQJIprnQbB1ylWzDwbjoDzsmCzthPOB5WRazudaTIyk=,tag:yfAkpnlzdzDJIBoITR81ng==,type:str]",
-	"efi": "ENC[AES256_GCM,data:XAroUw==,iv:LX3IYCMaqHgCK4O21gBgNxDJV3QFtypWHA6KMCbWEpU=,tag:/0ZX4pKvi/O4tj332WdW9A==,type:bool]",
 	"id": "ENC[AES256_GCM,data:soSHXGR6tdEwNPdtG+ixSoidSfB0s3F5QKl2vO0Ddr0=,iv:KPwovPWCEdN5MbflhAI9HmhJ2YKjCozGoJBFNzNL4K8=,tag:Sx/qw09/XLgwr01CX4VvjA==,type:str]",
+	"efi": "ENC[AES256_GCM,data:XAroUw==,iv:LX3IYCMaqHgCK4O21gBgNxDJV3QFtypWHA6KMCbWEpU=,tag:/0ZX4pKvi/O4tj332WdW9A==,type:bool]",
 	"drives": [
 		{
 			"uuid": "ENC[AES256_GCM,data:Uh3K+1snhNSM+y82gvVL+9oRDzlLk6qYfk5DLmVpDal65qTl,iv:MGVT6MedGHvvOlMzrz8a6bXdB9IVB+0dPlCT9G/SGtM=,tag:pkPEaIpBsKXsN6xjFcGIwg==,type:str]"
@@ -27,8 +26,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBDZzBwVHBQUjhBdHNxWGZP\ndENYa3RJVjFsSHJlK1krUCthYXNhaGV5YXh3Cks0YWVWbVBuZkUvTjNUSEorcDhB\neUZmK2NIaDc4TEhibW8wYVphaUIwWU0KLS0tICszYzUySmJxRmlHTHEwYVlXb0RB\nd09jQ1pkUkFZTnlhMHd5YTlyKzFxT3cKtR59I/qq+vCBZvCr0rdEotVdxXv1Rkb7\ny0fNhK4lmxdlqpgxuXXm+AhEjISNUZwUDYCzZ3YgkH7H1/GX1m79EA==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2025-09-11T20:11:51Z",
-		"mac": "ENC[AES256_GCM,data:rm8hI55x70dft+Hl8CC2HWSVH5JjzUL6fUxBkR43L4oU5WN9O63szMABBHnZzNWpA6Yl0Gvu2gbHbSY4mBsTInXiIB03PgrOPRQU61HNqsY0SFvu8KvnQf73TItkuJqO6ZeS4YeWixB/a9kkEpN59lzcMiLnxJSjxPEvbETGrgc=,iv:QEqCU8ujPEtpjjjRzU2hT4fH54djI2GTk0nINcxXXOg=,tag:Dvuj2dUydi+vXx8vjCYHkA==,type:str]",
+		"lastmodified": "2025-10-15T21:00:02Z",
+		"mac": "ENC[AES256_GCM,data:AC56g9Ggd0q1NiAK7aCWS15svuvLAfJpSGD2QZdpxUCVR9k9eQ/AQYuQZvEgvn1iaGnptoaXmiM6XFsne1wBM12qAvjl3AkzoVdX2iNCqVCxgc8RSHx6gZ07UShVofFZkcD3pNbh9GyGsnW7Uyz1pYqIx6dhTcNb/ZLxZgduNV4=,iv:oRENPhjr6Bcidsagz3Zqcf0eESjrYaPpoyNF8lveWHY=,tag:fCEf/hpP2X31ANOvdBYWIA==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.10.2"
 	}

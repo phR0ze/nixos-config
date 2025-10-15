@@ -7,7 +7,7 @@
 {
   imports = [
     ./hardware-configuration.nix
-    (../../profiles/${args.profile}.nix)
+    ../../profiles/xfce/desktop.nix
   ];
 
   config = {

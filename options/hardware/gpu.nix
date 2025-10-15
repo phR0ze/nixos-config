@@ -159,11 +159,11 @@ in
         # Optionally, for older cards you'll need to select the driver version for your specific GPU.
         package = if cfg.nvidiaLegacy470 then
           config.boot.kernelPackages.nvidiaPackages.legacy_470 else
-        package = if cfg.nvidiaLegacy470 then
-          config.boot.kernelPackages.nvidiaPackages.legacy_470 else
+          if cfg.nvidiaLegacy390 then
+            config.boot.kernelPackages.nvidiaPackages.legacy_390 else
+          if cfg.nvidiaLegacy340 then
+            config.boot.kernelPackages.nvidiaPackages.legacy_340 else
           config.boot.kernelPackages.nvidiaPackages.stable;
-        #package = config.boot.kernelPackages.nvidiaPackages.legacy_390;
-        #package = config.boot.kernelPackages.nvidiaPackages.legacy_340;
       };
 
       environment.systemPackages = with pkgs; [

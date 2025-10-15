@@ -8,7 +8,7 @@
   imports = [
     ./hardware-configuration.nix
     inputs.nixos-hardware.nixosModules.apple-t2
-    (../../profiles/${args.profile}.nix)
+    ../../profiles/xfce/develop.nix
   ];
 
   config = {

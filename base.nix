@@ -71,7 +71,7 @@
       in lib.recursiveUpdate baseArgs (let
         installArgs = if builtins.pathExists ./install.nix then (import ./install.nix) else {};
         in lib.recursiveUpdate machineArgs installArgs
-      );
+      )
     );
     specialArgs = { inherit args f inputs; };
   in
