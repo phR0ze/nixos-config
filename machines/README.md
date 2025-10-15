@@ -49,9 +49,9 @@ inclusion that I've named `args` throughout my configuration.
 
 | Argument                  | Type  | Default           | Description
 | ------------------------- | ----- | ----------------- | --------------------------------------
+| `target`                  | str   | `xfce/desktop`    | Pre-defined configurations in path './profiles' selection
 | `hostname`                | str   | `nixos`           | Hostname for the machine
 | `id`                      | str   |                   | `dbus-uuidgen` generated Machine ID to use for the system
-| `profile`                 | str   | `xfce/desktop`    | Pre-defined configurations in path './profiles' selection
 | `efi`                     | bool  | `false`           | EFI system boot type set during installation
 | `mbr`                     | str   | `nodev`           | MBR system boot device set during installation, e.g. `/dev/sda`
 | `arch`                    | str   | `x86_64-linux`    | System architecture to use

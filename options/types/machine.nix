@@ -21,26 +21,18 @@ let
   '';
 
   # Defaults to use for uniformity across the different default use cases
-  user_name = args.user.name or "admin";
-  dns = {
-    primary = "1.1.1.1";
-    fallback = "8.8.8.8";
-  };
   defaults = {
     user = {
-      name = user_name;
-      pass = if ((args.user.pass or "") != "") then args.user.pass else "admin";
-      fullname = args.user.fullname or "admin";
-      email = args.user.email or "admin";
-      uid = config.users.users.${user_name}.uid;
-      gid = config.users.groups.${user_name}.gid;
+      name = args.user.name;
+      pass = args.user.pass;
+      fullname = args.user.fullname;
+      email = args.user.email;
+      uid = config.users.users.${args.user.name}.uid;
+      gid = config.users.groups.${args.user.name}.gid;
     };
-    gateway = args.net.gateway or "192.168.1.1";
-    subnet = args.net.subnet or "192.168.1.0/24";
-    dns = dns;
-    macvlan = (f.getNic args "macvlan" dns);
-    nic0 = (f.getNic args "nic0" dns);
-    nic1 = (f.getNic args "nic1" dns);
+    macvlan = (f.getNic args "macvlan");
+    nic0 = (f.getNic args "nic0");
+    nic1 = (f.getNic args "nic1");
   };
 in
 {
@@ -98,10 +90,10 @@ in
             default = if (!args ? "id" || args.id == "") then "${builtins.readFile machine-id}" else args.id;
           };
 
-          profile = lib.mkOption {
-            description = lib.mdDoc "Flake profile used during installation";
+          target = lib.mkOption {
+            description = lib.mdDoc "Machine or Profile used during installation";
             type = types.str;
-            default = if (!args ? "profile" || args.profile == "") then "xfce/desktop" else args.profile;
+            default = args.target;
           };
 
           efi = lib.mkOption {
@@ -113,7 +105,7 @@ in
           mbr = lib.mkOption {
             description = lib.mdDoc "BIOS mbr is enabled when not 'nodev'";
             type = types.str;
-            default = if (!args ? "mbr" || args.mbr == "") then "nodev" else args.mbr;
+            default = args.mbr;
           };
 
           drives = lib.mkOption {
@@ -255,18 +247,18 @@ in
                   description = lib.mdDoc "Default gateway to use for machine";
                   type = types.str;
                   example = "192.168.1.1";
-                  default = defaults.gateway;
+                  default = args.net.gateway;
                 };
                 subnet = lib.mkOption {
                   description = lib.mdDoc "Default subnet to use for machine";
                   type = types.str;
                   example = "192.168.1.0/24";
-                  default = defaults.subnet;
+                  default = args.net.subnet;
                 };
                 dns = lib.mkOption {
                   description = lib.mdDoc "Default dns to use for machine";
-                  type = types.submodule (import ./dns.nix { inherit lib; defaults = defaults.dns; });
-                  default = defaults.dns;
+                  type = types.submodule (import ./dns.nix { inherit lib; defaults = args.net.dns; });
+                  default = args.net.dns;
                 };
                 bridge = {
                   enable = lib.mkEnableOption ''
@@ -319,9 +311,9 @@ in
               };
             };
             default = {
-              gateway = defaults.gateway;
-              subnet = defaults.subnet;
-              dns = defaults.dns;
+              gateway = args.net.gateway;
+              subnet = args.net.subnet;
+              dns = args.net.dns;
               bridge = { enable = false; };
               macvlan = defaults.macvlan;
               nic0 = defaults.nic0;

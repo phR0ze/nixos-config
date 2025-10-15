@@ -1,7 +1,7 @@
 # XFCE development configuration
 #
 # ### Features
-# - Directly installable: desktop with additional development tools and configuration
+# - Directly installable: desktop with additional development tools/configs
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
