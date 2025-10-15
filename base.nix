@@ -73,7 +73,6 @@
         in lib.recursiveUpdate machineArgs installArgs
       )
     );
-    specialArgs = { inherit args f inputs; };
   in
   {
     # Usually the configuration is the hostname of the machine but in this case I'm using a generic 
@@ -81,23 +80,26 @@
     # configuration linked from the machine's sub-directory.
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.target = lib.nixosSystem {
-      inherit pkgs system specialArgs;
+      inherit pkgs system; specialArgs = { inherit args f inputs; };
       modules = [ ./options ./configuration.nix ];
     };
 
     # Generic install host configuration based on a generic profile
     nixosConfigurations.install = lib.nixosSystem {
-      inherit pkgs system specialArgs;
-      modules = [
-        ./hardware-configuration.nix
-        (./. + "/" + args.target)
-      ];
+      inherit pkgs system; specialArgs = { inherit args f inputs; };
+      modules = [ ./hardware-configuration.nix (./. + "/" + args.target) ];
     };
 
     # Defines configuration for building an ISO
+    # - specialArgs is being carefully constructed to exclude secrets
+    # - re-using the profiles/install.nix to set defaults otherwise set in secrets
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.iso = lib.nixosSystem {
-      inherit pkgs system specialArgs;
+      inherit pkgs system;
+      specialArgs = {
+        inherit f inputs;
+        args = lib.recursiveUpdate _args (import ./profiles/install.nix);
+      };
       modules = [ ./options ./profiles/iso.nix ];
     };
   };
