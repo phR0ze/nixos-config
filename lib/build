@@ -86,11 +86,15 @@ build::machine()
 build::iso()
 {
     core::preamble
+    flake::ensure_origin
 
     # Handle input target
     PROFILE="$1"
     [[ "$1" == "" ]] && PROFILE="base.nix"
     TARGET="profiles/$PROFILE"  # set the target prefix
+
+    # Pass the target profile to default args.nix file
+    utils::replace "${SOURCE_DIR}/args.nix" str "target" "${TARGET}"
 
     log::header1 "Building installable ISO for ${cyan}${TARGET}${none}"
     flake::switch "$TARGET"

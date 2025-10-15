@@ -100,8 +100,11 @@ flake::restore()
     fi
 
     # Restore for machine build additional files
-    if [[ "$(git diff --staged --name-only -- configuration.nix */*.dec*)" != "" ]]; then
-        git restore --staged configuration.nix */*.dec*
+    if [[ "$(git diff --staged --name-only -- configuration.nix)" != "" ]]; then
+        git restore --staged configuration.nix
+    fi
+    if [[ "$(git diff --staged --name-only -- */*.dec*)" != "" ]]; then
+        git restore --staged */*.dec*
     fi
 
     if [[ "$(git diff --staged --name-only -- args.nix)" != "" ]]; then
