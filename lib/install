@@ -37,8 +37,8 @@ install::prepare_disk()
     # --------------------------------------------------------------------------
     log::ls "${red}WARNING this will DESTROY all data on disk:${none} ${cyan}${DESTDEV}${none}"
     utils::read DESTROY 'Do you wish to continue?' 'n' 'f'
-    [ "x${DESTROY}" != "xy" ] && [ "x${DESTROY}" != "xskip" ] && exit
-    [ "x${DESTROY}" == "xskip" ] && return
+    [[ "x${DESTROY}" != "xy" && "x${DESTROY}" != "xskip" ]] && exit
+    [[ "x${DESTROY}" == "xskip" ]] && return
 
     echo -en "\n:: Destroying any magic strings and/or signatures on ${cyan}${DESTDEV}${none}..."
     wipefs --all --force ${DESTDEV} &>/dev/null
@@ -49,7 +49,7 @@ install::prepare_disk()
     utils::check_status
 
     # Set partition identifiers
-    if [ "x${SCSI}" == "x1" ]; then
+    if [[ "x${SCSI}" == "x1" ]]; then
         PART_BOOT="${DESTDEV}1"
         PART_SWAP="${DESTDEV}2"
         PART_ROOT="${DESTDEV}3"
@@ -62,7 +62,7 @@ install::prepare_disk()
     # EFI: Create an ESP (EFI system partition) using linux code EF00
     # to act as a storage place for the EFI bootloaders to be launched by the UEFI firmware.
     # https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition
-    if [ "x${EFI}" == "x1" ]; then
+    if [[ "x${EFI}" == "x1" ]]; then
         echo -en ":: Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
         sgdisk -n 0:0:+512M -t 0:EF00 -c 0:"EFI system" ${DESTDEV} &>/dev/null
         utils::check_status
@@ -118,7 +118,7 @@ install::prepare_disk()
     # UEFI: boot partition needs to be mounted over the root at /boot to capture the Linux
     # standard boot file install e.g. kernel and initramfs. We keep them on the same partition
     # as the EFI/BOOT/BOOTX64.efi as EFI can't mount a ext4 filesystem.
-    if [ "x${EFI}" == "x1" ]; then
+    if [[ "x${EFI}" == "x1" ]]; then
         echo -en ":: Mounting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}${ROOT_MOUNT}/boot${none}..."
         mkdir -p ${ROOT_MOUNT}/boot
         mount ${PART_BOOT} ${ROOT_MOUNT}/boot &>/dev/null
@@ -128,7 +128,7 @@ install::prepare_disk()
 }
 
 # Generate the `hardware-configuration.nix` using nixos tooling.
-# Extract key values and make them available in the settings file `flake_args.nix`.
+# Extract key values and make them available in the settings file `install.nix`.
 # - sets NICS array
 install::generate_hardware_config()
 {
@@ -144,14 +144,8 @@ install::generate_hardware_config()
     NICS=($(sed -n 's|^\s*# networking.interfaces.\(.*\)\.use.*|\1|p' ${GEN_HARDWARE_CONFIG}))
 
     echo -en ":: Storing NIC0 setting: ${cyan}${NICS[0]}${none}..."
-    utils::replace str "nic0" "${NICS[0]}" "${NIXOS_ARGS}"
+    utils::replace str "net.nic0.name" "${NICS[0]}" "${NIXOS_ARGS}"
     utils::check_status
-
-    if [[ ${NICS[1]} != "" ]]; then
-        echo -en ":: Storing NIC1 setting: ${cyan}${NICS[1]}${none}..."
-        utils::replace str "nic1" "${NICS[1]}" "${NIXOS_ARGS}"
-        utils::check_status
-    fi
 
     # Modules must be at least staged for the flake to recognize them
     if [[ "x$TESTING" != "xy" ]]; then
@@ -163,7 +157,8 @@ install::generate_hardware_config()
 
 install::config_system()
 {
-    NIXOS_ARGS="${NIXOS_CONFIG_DIR}/flake_args.nix"
+    NIXOS_ARGS="${NIXOS_CONFIG_DIR}/install.nix"
+    cp "${NIXOS_CONFIG_DIR}/profiles/install.nix" "${NIXOS_ARGS}"
 
     # Setup the NixOS configuration files
     # This must be done after the disk partioning so that the system picks up the new partitions
@@ -188,60 +183,64 @@ install::config_system()
     echo -en ":: Storing NIXOS target version setting: ${cyan}${NIXOS_VER}${none}..."
     utils::check_status
     rm -f "${NIXOS_CONFIG_DIR}/configuration.nix" # clean up
-    utils::replace str "stateVersion" "${NIXOS_VER}" "${NIXOS_ARGS}"
+    utils::replace str "nix.minVer" "${NIXOS_VER}" "${NIXOS_ARGS}"
 
     # Configuring user set values
     # ----------------------------------------------------------------------------------------------
 
     # Configure new user and root user
     local pass=""
-    [ "x$DEFAULT" == "xy" ] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
+    [[ "x$DEFAULT" == "xy" ]] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
     echo -en ":: Storing new ${cyan}${USER_NAME}${none} and ${cyan}root${none} passwords${pass}..."
 
-    utils::replace str "fullname" "${FULL_NAME}" "${NIXOS_ARGS}"
-    utils::replace str "email" "${USER_EMAIL}" "${NIXOS_ARGS}"
-    utils::replace str "username" "${USER_NAME}" "${NIXOS_ARGS}"
-    utils::replace str "userpass" "${USER_PASS}" "${NIXOS_ARGS}"
-    utils::replace str "git_user" "${GIT_USER}" "${NIXOS_ARGS}"
-    utils::replace str "git_email" "${GIT_EMAIL}" "${NIXOS_ARGS}"
+    utils::replace str "user.fullname" "${FULL_NAME}" "${NIXOS_ARGS}"
+    utils::replace str "user.email" "${USER_EMAIL}" "${NIXOS_ARGS}"
+    utils::replace str "user.name" "${USER_NAME}" "${NIXOS_ARGS}"
+    utils::replace str "user.pass" "${USER_PASS}" "${NIXOS_ARGS}"
+    utils::replace str "git.user" "${GIT_USER}" "${NIXOS_ARGS}"
+    utils::replace str "git.email" "${GIT_EMAIL}" "${NIXOS_ARGS}"
 
-    [ "x${IP}" == "xDHCP" ] && ip="" || ip="${IP}"
-    utils::replace str "ip" "${ip}" "${NIXOS_ARGS}"
-    utils::replace str "subnet" "${SUBNET}" "${NIXOS_ARGS}"
-    utils::replace str "gateway" "${GATEWAY}" "${NIXOS_ARGS}"
-    utils::replace str "primary_dns" "${PRIMARY_DNS}" "${NIXOS_ARGS}"
-    utils::replace str "fallback_dns" "${FALLBACK_DNS}" "${NIXOS_ARGS}"
+    [[ "x${IP}" == "xDHCP" ]] && ip="" || ip="${IP}"
+    utils::replace str "net.subnet" "${SUBNET}" "${NIXOS_ARGS}"
+    utils::replace str "net.gateway" "${GATEWAY}" "${NIXOS_ARGS}"
+    utils::replace str "net.dns.primary" "${PRIMARY_DNS}" "${NIXOS_ARGS}"
+    utils::replace str "net.dns.fallback" "${FALLBACK_DNS}" "${NIXOS_ARGS}"
+    utils::replace str "net.nic0.ip" "${ip}" "${NIXOS_ARGS}"
+    utils::replace str "net.nic0.subnet" "${SUBNET}" "${NIXOS_ARGS}"
+    utils::replace str "net.nic0.gateway" "${GATEWAY}" "${NIXOS_ARGS}"
+    utils::replace str "net.nic0.dns.primary" "${PRIMARY_DNS}" "${NIXOS_ARGS}"
+    utils::replace str "net.nic0.dns.fallback" "${FALLBACK_DNS}" "${NIXOS_ARGS}"
 
-    [ "x${BLUETOOTH}" == "xy" ] && bluetooth="true" || bluetooth="false"
+    [[ "x${BLUETOOTH}" == "xy" ]] && bluetooth="true" || bluetooth="false"
     utils::replace str "bluetooth" "${bluetooth}" "${NIXOS_ARGS}"
-    [ "x${AUTO_LOGIN}" == "xy" ] && autologin="true" || autologin="false"
+    [[ "x${AUTO_LOGIN}" == "xy" ]] && autologin="true" || autologin="false"
     utils::replace bool "autologin" "${autologin}" "${NIXOS_ARGS}"
-    [ "x${NFS_SHARES}" == "xy" ] && nfsshares="true" || nfsshares="false"
-    utils::replace bool "nfs_shares" "${nfsshares}" "${NIXOS_ARGS}"
+    [[ "x${NFS_SHARES}" == "xy" ]] && nfsshares="true" || nfsshares="false"
+    utils::replace bool "nfs.enable" "${nfsshares}" "${NIXOS_ARGS}"
     utils::check_status
 
     # Configure boot device target
     echo -en ":: Storing boot device type setting..."
-    [ "x${EFI}" == "x1" ] && efi_str="true" || efi_str="false"
+    [[ "x${EFI}" == "x1" ]] && efi_str="true" || efi_str="false"
     utils::replace bool "efi" "${efi_str}" "${NIXOS_ARGS}"
 
-    [ "x${EFI}" == "x1" ] && mbr_str="nodev" || mbr_str="${DESTDEV}"
+    [[ "x${EFI}" == "x1" ]] && mbr_str="nodev" || mbr_str="${DESTDEV}"
     utils::replace str "mbr" "${mbr_str}" "${NIXOS_ARGS}"
     utils::check_status
 
     # Configure system settings
     utils::replace str "timezone" "${TIMEZONE}" "${NIXOS_ARGS}"
     utils::replace str "hostname" "${HOSTNAME}" "${NIXOS_ARGS}"
-    utils::replace str "profile" "${MACHINE}/${PROFILE}" "${NIXOS_ARGS}"
+    utils::replace str "target" "${TARGET}" "${NIXOS_ARGS}"
 
     # Modules must be at least staged for the flake to recognize them
     pushd ${NIXOS_CONFIG_DIR} &>/dev/null
-    git add "${NIXOS_ARGS}"
+    git add -f "${NIXOS_ARGS}"
     popd &>/dev/null
 
     # Execute the NixOS install
     # ----------------------------------------------------------------------------------------------
-    if [ "x$TESTING" != "xy" ]; then
+    if [[ "x$TESTING" != "xy" ]]; then
         log::header1 "Installing NixOS configuration"
         echo -e ":: Pre-populating the Nix Store..."
         nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
@@ -279,7 +278,6 @@ install::run()
 {
     # Default installer values
     # ----------------------------------------------------------------------------------------------
-    #utils::help "$@" "install::usage"
     core::preamble
 
     # Optionally enable testing
@@ -312,54 +310,55 @@ install::run()
     DEFAULT_PASS='admin'
     AUTO_LOGIN='n'
 
-    # User profile and services settings
-    MACHINE='generic'
-    PROFILE='desktop'
+    # Machine profile and services settings
+    NEW='y'
+    TARGET=''
     NFS_SHARES='n'
 
     # Detect EFI supported system
     [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
 
-    # Collect the machine selection from the user
-    # - Don't present the iso options to the user
+    # User machine deployment selection
     # ----------------------------------------------------------------------------------------------
-    MACHINES=()
-    local machines_dir="${SCRIPT_DIR}/profiles"
-    local _machines=($(echo $(find $machines_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/profiles/iso" -not -path "*/profiles/vm" | sort)))
-    log::header0 "Select a deployment machine:"
-    local i=0
-    for x in "${_machines[@]}"; do
-        local _machine="$(basename "$x")"
-        utils::pad_suffix _1 "$_machine" " " 20           # pad to 30 characters
-        MACHINES+=($_machine)                             # add to the final profiles list
-        echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
-        i=$((i+1))                                        # increment i
-    done
-    utils::select MACHINE "${MACHINES[@]}"
+    log::header0 "Select a deployment option:"
+    utils::read NEW 'Are you deploying an existing machine or a new one' 'n'
+    if [[ "x$NEW" == "xy" ]]; then
+        local profiles_dir="${SCRIPT_DIR}/profiles"
+        local _profiles=($(echo $(find $profiles_dir -name "*.nix" | sort)))
+        log::header0 "Select a deployment profile:"
+        local i=0
+        for j in "${!_profiles[@]}"; do # ! means loop over indices instead of values
+            local x=${_profiles[$j]}
 
-    # Collect the profile selection from the user
-    # ----------------------------------------------------------------------------------------------
-    PROFILES=()
-    local profiles_dir="${machines_dir}/${MACHINE}"
-    local _profiles=($(echo $(find $profiles_dir -name "*.nix" | sort)))
-    log::header0 "Select a deployment profile:"
-    local i=0
-    for j in "${!_profiles[@]}"; do # ! means loop over indices instead of values
-        local x=${_profiles[$j]}
-
-        # Check if the profile contains the "# - Directly installable" string
-        local desc=$(grep "# - Directly installable" ${x} 2>/dev/null)
-        if [[ "x${desc}" != "x" ]]; then
-            desc="${desc#*: }"                # grab the suffixed description of the install option
-            x=${x//$profiles_dir\/}           # trim off the suffix dir
-            x=${x//.nix}                      # trim off the extension
-            utils::pad_suffix _1 "$x" " " 20  # pad to 30 characters
-            PROFILES+=($x)                    # add to the final profiles list
+            # Check if the profile contains the "# - Directly installable" string
+            local desc=$(grep "# - Directly installable" ${x} 2>/dev/null)
+            if [[ "x${desc}" != "x" ]]; then
+                desc="${desc#*: }"                # grab the suffixed description of the install option
+                x=${x//$profiles_dir\/}           # trim off the suffix dir
+                x=${x//.nix}                      # trim off the extension
+                utils::pad_suffix _1 "$x" " " 20  # pad to 30 characters
+                PROFILES+=($x)                    # add to the final profiles list
+                echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
+                i=$((i+1))                  # increment i
+            fi
+        done
+        utils::select TARGET "${PROFILES[@]}"
+        TARGET="${profiles_dir}/${TARGET}.nix"
+    else
+        local machines_dir="${SCRIPT_DIR}/machines"
+        local _machines=($(echo $(find $machines_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/machines/vm*" | sort)))
+        log::header0 "Select a deployment machine:"
+        local i=0
+        for x in "${_machines[@]}"; do
+            local _machine="$(basename "$x")"
+            utils::pad_suffix _1 "$_machine" " " 20           # pad to 30 characters
+            MACHINES+=($_machine)                             # add to the final profiles list
             echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
-            i=$((i+1))                  # increment i
-        fi
-    done
-    utils::select PROFILE "${PROFILES[@]}"
+            i=$((i+1))                                        # increment i
+        done
+        utils::select TARGET "${MACHINES[@]}"
+        TARGET="${machines_dir}/${TARGET}"
+    fi
 
     # Determine if this is a default deployment
     # ----------------------------------------------------------------------------------------------
@@ -397,20 +396,20 @@ install::run()
     DESTDEV=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[0]')
 
     # Print out the detected disks
-    [ "x$DEFAULT" != "xy" ] && log::header0 "Select a disk as your install destination:"
+    [[ "x$DEFAULT" != "xy" ]] && log::header0 "Select a disk as your install destination:"
     local i=0
     echo $DISKS_DETAILED | jq -rc '.[]' | while read x; do
         i=$((i+1))
         local disk="/dev/$(echo $x | jq -r '.name')"
         local size="$(echo $x | jq -r '.size')"
         local model="$(echo $x | jq -r '.model')"
-        [ "x$DEFAULT" != "xy" ] && echo -en "   ${i}) [${cyan}${disk}${none}](${cyan}${size}${none})"
-        [ "x$DEFAULT" != "xy" ] && [ "$model" != "null" ] && echo -en " - ${model}"
-        [ "x$DEFAULT" != "xy" ] && echo ""
+        [[ "x$DEFAULT" != "xy" ]] && echo -en "   ${i}) [${cyan}${disk}${none}](${cyan}${size}${none})"
+        [[ "x$DEFAULT" != "xy" ]] && [ "$model" != "null" ] && echo -en " - ${model}"
+        [[ "x$DEFAULT" != "xy" ]] && echo ""
     done
 
     # Get user choice
-    if [ "x$DEFAULT" != "xy" ]; then
+    if [[ "x$DEFAULT" != "xy" ]]; then
         utils::select DESTDEV "${DISKS[@]}"
     fi
 
@@ -434,11 +433,11 @@ install::run()
 
     # Collect networking choices from user
     # ----------------------------------------------------------------------------------------------
-    if [ "x$DEFAULT" != "xy" ]; then
+    if [[ "x$DEFAULT" != "xy" ]]; then
         log::header0 "Configure networking:"
         utils::read HOSTNAME 'Enter hostname' $HOSTNAME
         utils::read IP 'Enter static IP, e.g. 192.168.1.2/24' 'DHCP'
-        if [ "x${IP}" != "xDHCP" ]; then
+        if [[ "x${IP}" != "xDHCP" ]]; then
             utils::read SUBNET 'Enter subnet' $(echo $IP | awk -F. '{print $1"."$2"."$3".0/24"}')
             utils::read GATEWAY 'Enter gateway' $(echo $IP | awk -F. '{print $1"."$2"."$3".1"}')
             utils::read PRIMARY_DNS 'Enter primary dns' $(echo $IP | awk -F. '{print $1"."$2"."$3".53"}')
@@ -449,7 +448,7 @@ install::run()
 
     # Collect time and date choices from user
     # ----------------------------------------------------------------------------------------------
-    if [ "x$DEFAULT" != "xy" ]; then
+    if [[ "x$DEFAULT" != "xy" ]]; then
         log::header0 "Configure time and date:"
         utils::read TIMEZONE 'Enter timezone' "$TIMEZONE"
         utils::read TIMEDATE_SET "Change time ${cyan}$(date --iso-8601=seconds) UTC${none}" 'n'
@@ -464,7 +463,7 @@ install::run()
 
     # Collect new user account choices from user
     # ----------------------------------------------------------------------------------------------
-    if [ "x$DEFAULT" != "xy" ]; then
+    if [[ "x$DEFAULT" != "xy" ]]; then
         log::header0 "Create new user account:"
         log::subln3 "Account includes: user & email, git user & email and full name\n"
         utils::read USER_NAME 'Enter new user name' $USER_NAME
@@ -482,13 +481,13 @@ install::run()
 
     # Collect auto login choice from user
     # ----------------------------------------------------------------------------------------------
-    if [ "x$DEFAULT" != "xy" ]; then
+    if [[ "x$DEFAULT" != "xy" ]]; then
         utils::read AUTO_LOGIN 'Do you want to auto login' 'n'
     fi
 
     # Collect services selections from user
     # ----------------------------------------------------------------------------------------------
-    if [ "x$DEFAULT" != "xy" ]; then
+    if [[ "x$DEFAULT" != "xy" ]]; then
         utils::read NFS_SHARES 'Do you want to mount pre-defined nfs shares' 'n'
     fi
 
@@ -496,7 +495,7 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
-    log::subln3 "profile=${cyan}${MACHINE}/${PROFILE}${none}"
+    log::subln3 "target=${cyan}${TARGET}${none}"
 
     # Networking settings
     log::subln3 "hostname=${cyan}${HOSTNAME}${none}"
@@ -528,7 +527,7 @@ install::run()
     log::subln3 "EFI=${cyan}${EFI}${none}"
 
     # Partition the target disk and mount it for deployment
-    if [ "x$TESTING" != "xy" ]; then
+    if [[ "x$TESTING" != "xy" ]]; then
         install::prepare_disk
     fi
 

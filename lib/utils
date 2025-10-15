@@ -177,7 +177,7 @@ utils::select()
         [ "$choice" == "exit" ] && utils::exit
         [ "x$choice" == "x" ] && choice=1
         log::ln_d "Choice: $choice"
-        if [[ $choice > 0 && $choice < $out_of_bounds ]]; then
+        if [[ $choice -gt 0 && $choice -lt $out_of_bounds ]]; then
             choice=$((choice-1))
             local result=${options[$choice]}
             log::ln_d "Selection: index=$choice, value=${result}"
