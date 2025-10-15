@@ -158,7 +158,6 @@ install::generate_hardware_config()
 install::config_system()
 {
     NIXOS_ARGS="${NIXOS_CONFIG_DIR}/install.nix"
-    cp "${NIXOS_CONFIG_DIR}/profiles/install.nix" "${NIXOS_ARGS}"
 
     # Setup the NixOS configuration files
     # This must be done after the disk partioning so that the system picks up the new partitions
@@ -175,6 +174,7 @@ install::config_system()
         utils::check_status
     fi
 
+    cp "${NIXOS_CONFIG_DIR}/profiles/install.nix" "${NIXOS_ARGS}"
     install::generate_hardware_config
 
     # Extract the current NIXOS version from the generated configuration.nix file
