@@ -19,6 +19,7 @@ in
   machine.autologin = true;
   machine.hostname = "nixos";
   machine.user.name = "nixos";
+  machine.user.group = "nixos";
 
   imports = [
     # The ISO building automation I'm levaraging from Nix will automatically include all derevations 

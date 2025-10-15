@@ -234,14 +234,14 @@ install::config_system()
     utils::replace "${NIXOS_ARGS}" str "hostname" "${HOSTNAME}"
     utils::replace "${NIXOS_ARGS}" str "target" "${TARGET}"
 
-    # Modules must be at least staged for the flake to recognize them
-    pushd ${NIXOS_CONFIG_DIR} &>/dev/null
-    git add -f "${NIXOS_ARGS}"
-    popd &>/dev/null
-
     # Execute the NixOS install
     # ----------------------------------------------------------------------------------------------
     if [[ "x$TESTING" != "xy" ]]; then
+        # Modules must be at least staged for the flake to recognize them
+        pushd ${NIXOS_CONFIG_DIR} &>/dev/null
+        git add "${NIXOS_ARGS}" -f
+        popd &>/dev/null
+
         log::header1 "Installing NixOS configuration"
         echo -e ":: Pre-populating the Nix Store with ${cyan}nix-copy${none}..."
         nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
