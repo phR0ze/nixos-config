@@ -187,6 +187,7 @@ install::config_system()
 
     # Configuring user set values
     # ----------------------------------------------------------------------------------------------
+    utils::replace "${NIXOS_ARGS}" str "id" "$(dbus-uuidgen)"
 
     # Configure new user and root user
     local pass=""
@@ -242,15 +243,15 @@ install::config_system()
     # ----------------------------------------------------------------------------------------------
     if [[ "x$TESTING" != "xy" ]]; then
         log::header1 "Installing NixOS configuration"
-        echo -e ":: Pre-populating the Nix Store..."
+        echo -e ":: Pre-populating the Nix Store with ${cyan}nix-copy${none}..."
         nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
 
-        # Run the installer: $NIXOS_CONFIG_DIR will usually be /mnt/etc/nixos
-        # nixos-install --no-root-passwd --no-channel-copy --flake /mnt/etc/nixos#target
+        # Run the installer: $NIXOS_CONFIG_DIR will be /mnt/etc/nixos
+        echo -e ":: Launching installation with ${cyan}nixos-install${none}..."
         nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG_DIR}#target"
         if [ $? -ne 0 ]; then
             echo -e ":: ${red}Failure building the install flake${none}"
-            echo -e "   1. Fix the flake issue at ${cyan}${NIXOS_CONIFG}${none}"
+            echo -e "   1. Fix the flake issue at ${cyan}${NIXOS_CONFIG}${none}"
             echo -e "   2. Rerun: ${cyan}nixos-install --no-root-passwd --no-channel-copy --flake ${NIXOS_CONFIG_DIR}#system${none}"
         fi
 
@@ -321,8 +322,8 @@ install::run()
     # User machine deployment selection
     # ----------------------------------------------------------------------------------------------
     log::header0 "Select a deployment option:"
-    utils::read NEW 'Are you deploying an existing machine or a new one' 'n'
-    if [[ "x$NEW" == "xy" ]]; then
+    utils::read NEW 'Are you deploying an existing machine' 'n'
+    if [[ "x$NEW" == "xn" ]]; then
         local profiles_dir="${SCRIPT_DIR}/profiles"
         local _profiles=($(echo $(find $profiles_dir -name "*.nix" | sort)))
         log::header0 "Select a deployment profile:"
