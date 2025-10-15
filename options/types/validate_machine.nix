@@ -39,7 +39,6 @@ in
     { assertion = (args.git.comment != null); message = "assert args.git.comment: ${args.git.comment}"; }
 
     { assertion = (args.nix.cache.enable != null); message = "assert args.nix.cache.enable: ${args.nix.cache.enable}"; }
-    { assertion = (args.nix.cache.ip != null); message = "assert args.nix.cache.ip: ${args.nix.cache.ip}"; }
 
     # Ensure the existance of final merged args
     # ----------------------------------------------------------------------------------------------

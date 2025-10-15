@@ -197,6 +197,7 @@ install::config_system()
     utils::replace "${NIXOS_ARGS}" str "user.fullname" "${FULL_NAME}"
     utils::replace "${NIXOS_ARGS}" str "user.email" "${USER_EMAIL}"
     utils::replace "${NIXOS_ARGS}" str "user.name" "${USER_NAME}"
+    utils::replace "${NIXOS_ARGS}" str "user.group" "${USER_NAME}"
     utils::replace "${NIXOS_ARGS}" str "user.pass" "${USER_PASS}"
     utils::replace "${NIXOS_ARGS}" str "git.user" "${GIT_USER}"
     utils::replace "${NIXOS_ARGS}" str "git.email" "${GIT_EMAIL}"

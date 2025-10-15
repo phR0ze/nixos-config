@@ -4,7 +4,6 @@
 {
   # General overrides
   # ------------------------------------------------------------------------------------------------
-  target = "profiles/xfce/desktop.nix"; # Pre-defined configurations './machines' or './profiles'
   hostname = "nixos";                   # Hostname for the machine
   id = "";                              # Generated machine ID to use for the system
   efi = false;                          # EFI system boot type set during installation
@@ -24,12 +23,13 @@
 
   # User overrides
   # ------------------------------------------------------------------------------------------------
-	user.name = "admin";                  # Default user name
-  user.fullname = "admin";              # Default user full name
-	user.email = "admin";                 # Default user email address
-	user.pass = "admin";                  # Default user password
-	git.user = "admin";                   # Default github account user name
-  git.email = "admin";                  # Default github account user email
+	user.name = "nixos";                  # Default user name
+  user.fullname = "nixos";              # Default user full name
+	user.email = "nixos";                 # Default user email address
+	user.pass = "nixos";                  # Default user password
+	git.user = "nixos";                   # Default github account user name
+	git.group = "nixos";                  # Default github account user name
+  git.email = "nixos";                  # Default github account user email
 
   # Networking overrides
   # ------------------------------------------------------------------------------------------------
