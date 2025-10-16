@@ -158,6 +158,8 @@ install::install_system()
 # Create the new system's persistent configuration or stage the existing system
 install::stage_system_config()
 {
+    pushd ${NIXOS_CONFIG_DIR} &>/dev/null
+
     if [[ -v $PROFILES ]]; then
         log::header1 "Generate new persistent configuration"
 
@@ -188,6 +190,7 @@ EOF
         log::header1 "Load existing system configuration"
         echo -en ":: NOT YET SUPPORTED..."
     fi
+    popd &>/dev/null
 }
 
 # Create the /mnt/etc/nixos/install.nix file and populate the overrides
@@ -258,7 +261,9 @@ install::install_config_template()
     utils::replace "${NIXOS_ARGS}" str "target" "${TARGET}"
 
     # Files must be at least git added for the flake to recognize them
+    pushd ${NIXOS_CONFIG_DIR} &>/dev/null
     git add "${NIXOS_ARGS}" -f
+    popd &>/dev/null
 }
 
 # Create the target system config directory
@@ -288,9 +293,9 @@ install::install_config_dir()
     utils::replace "${NIXOS_CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
 
     # Files must be at least git added for the flake to recognize them
-    echo "$(pwd)"
-    echo "$(ls)"
+    pushd ${NIXOS_CONFIG_DIR} &>/dev/null
     git add hardware-configuration.nix -f
+    popd &>/dev/null
 }
 
 # Prompt the user to select for misc options
@@ -579,7 +584,6 @@ install::run()
     # - Prep /mnt/etc/nixos and trigger install from that location
     # ----------------------------------------------------------------------------------------------
     if [[ "x$TESTING" != "xy" ]]; then
-        pushd ${NIXOS_CONFIG_DIR} &>/dev/null
 
         # Partition the target disk and mount it for deployment
         # Note: requires `unmount /mnt` to re-run
@@ -601,8 +605,6 @@ install::run()
         log::ls "${yellow}1. Power down your system:${none} sudo poweroff"
         log::ls "${yellow}2. Remove the install media${none}"
         log::ls "${yellow}3. Boot the system back up${none}"
-
-        popd &>/dev/null
     fi
 }
 
