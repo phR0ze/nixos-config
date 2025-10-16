@@ -127,32 +127,6 @@ install::prepare_disk()
     # BIOS: boot partition shouldn't be formatted or mounted in this case as its just for the MBR
 }
 
-# Generate the `hardware-configuration.nix` using nixos tooling.
-# Extract key values and make them available in the settings file `install.nix`.
-# - sets NICS array
-install::generate_hardware_config()
-{
-    # Using an explicit separate path here to support testing overrides
-    NIXOS_CONFIG_GEN_DIR="${ROOT_MOUNT}/etc/nixos"
-
-    echo -en ":: Generating NIXOS configuration defaults..."
-    nixos-generate-config --root ${ROOT_MOUNT} &>/dev/null
-    utils::check_status
-
-    # Extract networking for use during install
-    NICS=($(ls /sys/class/net))
-    echo -en ":: Storing NIC0 setting: ${cyan}${NICS[0]}${none}..."
-    utils::replace "${NIXOS_ARGS}" str "net.nic0.name" "${NICS[0]}"
-    utils::check_status
-
-    # Modules must be at least staged for the flake to recognize them
-    if [[ "x$TESTING" != "xy" ]]; then
-        pushd ${NIXOS_CONFIG_DIR}
-        git add hardware-configuration.nix -f
-        popd
-    fi
-}
-
 install::config_system()
 {
     NIXOS_ARGS="${NIXOS_CONFIG_DIR}/install.nix"
@@ -174,17 +148,30 @@ install::config_system()
         echo -en ":: Stage NIXOS install overrides at ${cyan}${NIXOS_ARGS}${none}..."
         cp "${NIXOS_CONFIG_DIR}/profiles/install.nix" "${NIXOS_ARGS}"
         utils::check_status
+
+        echo -en ":: Generating NIXOS configuration defaults..."
+        nixos-generate-config --root ${ROOT_MOUNT} &>/dev/null
+        utils::check_status
+
+        # Modules must be at least staged for the flake to recognize them
+        pushd ${NIXOS_CONFIG_DIR} &>/dev/null
+        git add hardware-configuration.nix -f
+        popd &>/dev/null
+
+        # Extract the current NIXOS version from the generated configuration.nix file
+        GEN_CONFIG="${NIXOS_CONFIG_DIR}/configuration.nix"
+        NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${GEN_CONFIG}")
+        echo -en ":: Storing NIXOS target version setting: ${cyan}${NIXOS_VER}${none}..."
+        utils::check_status
+        rm -f "${NIXOS_CONFIG_DIR}/configuration.nix" # clean up
+        utils::replace "${NIXOS_ARGS}" str "nix.minVer" "${NIXOS_VER}"
     fi
 
-    install::generate_hardware_config
-
-    # Extract the current NIXOS version from the generated configuration.nix file
-    GEN_CONFIG="${NIXOS_CONFIG_GEN_DIR}/configuration.nix"
-    NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${GEN_CONFIG}")
-    echo -en ":: Storing NIXOS target version setting: ${cyan}${NIXOS_VER}${none}..."
+    # Extract networking for use during install
+    NICS=($(ls /sys/class/net))
+    echo -en ":: Storing NIC0 setting: ${cyan}${NICS[0]}${none}..."
+    utils::replace "${NIXOS_ARGS}" str "net.nic0.name" "${NICS[0]}"
     utils::check_status
-    rm -f "${NIXOS_CONFIG_DIR}/configuration.nix" # clean up
-    utils::replace "${NIXOS_ARGS}" str "nix.minVer" "${NIXOS_VER}"
 
     # Configuring user set values
     # ----------------------------------------------------------------------------------------------
@@ -286,7 +273,7 @@ install::run()
     # Optionally enable testing
     args=($@)
     if [[ "${args[0]}" == "testing" ]]; then
-        log::header0 "Testing installer with current nixos-config"
+        log::header0 "Testing installer with local nixos-config"
         ROOT_MOUNT=.
         NIXOS_CONFIG_DIR=.
         TESTING="y"
