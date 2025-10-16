@@ -234,7 +234,7 @@ install::install_config()
     [[ "x${EFI}" == "x1" ]] && options+=("machine.efi = true;") || options+=("machine.mbr = \"${DESTDEV}\";")
     utils::check_status
 
-    cat > "$config" <<EOF
+    cat > "$NIXOS_CONFIG" <<EOF
 { config, pkgs, lib, args, f, ... }: with lib.types;
 {
   imports = [ ./hardware-configuration.nix ../../${TARGET} ];
