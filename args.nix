@@ -5,6 +5,7 @@
 # - this is the lowes priority configuration file and all other overrides take precedent
 # --------------------------------------------------------------------------------------------------
 {
+  id = "";                              # Machine id for the system
   target = "profiles/xfce/desktop.nix"; # Pre-defined configurations './machines' or './profiles'
   hostname = "nixos";                   # Hostname for the machine
   efi = false;                          # EFI system boot type set during installation

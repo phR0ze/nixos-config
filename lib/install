@@ -599,6 +599,3 @@ install::run()
         log::ls "${yellow}3. Boot the system back up${none}"
     fi
 }
-
-
-}
