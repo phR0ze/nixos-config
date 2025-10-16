@@ -215,19 +215,18 @@ install::install_config()
     utils::check_status
 
     log::ls -n "Storing new networking options..."
-    [[ "x$SUBNET" != "x" ]] && options+=("machine.net.subnet = \"${SUBNET}\";")
-    [[ "x$GATEWAY" != "x" ]] && options+=("machine.net.gateway = \"${GATEWAY}\";")
-    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("machine.net.dns.primary = \"${PRIMARY_DNS}\";")
-    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("machine.net.dns.fallback = \"${FALLBACK_DNS}\";")
-    [[ "x${IP}" != "xDHCP" ]] && options+=("machine.net.nic0.ip = \"${IP}\";")
-    [[ "x$SUBNET" != "x" ]] && options+=("machine.net.nic0.subnet = \"${SUBNET}\";")
-    [[ "x$GATEWAY" != "x" ]] && options+=("machine.net.nic0.gateway = \"${GATEWAY}\";")
-    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("machine.net.nic0.dns.primary = \"${PRIMARY_DNS}\";")
-    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("machine.net.nic0.dns.fallback = \"${FALLBACK_DNS}\";")
-
-    [[ "x${BLUETOOTH}" == "xy" ]] && options+=("machine.bluetooth = true;")
-    [[ "x${AUTO_LOGIN}" == "xy" ]] && options+=("machine.autologin = true;")
-    [[ "x${NFS_SHARES}" == "xy" ]] && options+=("machine.nfs.enable = true;")
+    [[ "x$SUBNET" != "x" ]] && options+=("machine.net.subnet = \"${SUBNET}\";") || true
+    [[ "x$GATEWAY" != "x" ]] && options+=("machine.net.gateway = \"${GATEWAY}\";") || true
+    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("machine.net.dns.primary = \"${PRIMARY_DNS}\";") || true
+    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("machine.net.dns.fallback = \"${FALLBACK_DNS}\";") || true
+    [[ "x$IP" != "xDHCP" ]] && options+=("machine.net.nic0.ip = \"${IP}\";") || true
+    [[ "x$SUBNET" != "x" ]] && options+=("machine.net.nic0.subnet = \"${SUBNET}\";") || true
+    [[ "x$GATEWAY" != "x" ]] && options+=("machine.net.nic0.gateway = \"${GATEWAY}\";") || true
+    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("machine.net.nic0.dns.primary = \"${PRIMARY_DNS}\";") || true
+    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("machine.net.nic0.dns.fallback = \"${FALLBACK_DNS}\";") || true
+    [[ "x$BLUETOOTH" == "xy" ]] && options+=("machine.bluetooth = true;") || true
+    [[ "x$AUTO_LOGIN" == "xy" ]] && options+=("machine.autologin = true;") || true
+    [[ "x$NFS_SHARES" == "xy" ]] && options+=("machine.nfs.enable = true;") || true
     utils::check_status
 
     # Configure boot device target
@@ -538,8 +537,9 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
-    log::subln3 "iso_cache=${cyan}${ISO_CACHE}${none}"
     log::subln3 "target=${cyan}${TARGET}${none}"
+    log::subln3 "iso_cache=${cyan}${ISO_CACHE}${none}"
+    log::subln3 "cache_ip=${cyan}${CACHE_IP}${none}"
 
     # Networking settings
     log::subln3 "hostname=${cyan}${HOSTNAME}${none}"
