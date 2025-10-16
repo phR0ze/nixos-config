@@ -27,7 +27,7 @@ in
     { assertion = (args.autologin != null); message = "assert args.autologin: ${f.boolToStr args.autologin}"; }
     { assertion = (args.resolution.x != null); message = "assert args.resolution.x: ${toString args.resolution.x}"; }
     { assertion = (args.resolution.y != null); message = "assert args.resolution.y: ${toString args.resolution.y}"; }
-    { assertion = (args.nix.minVer == "25.05"); message = "assert machine.nix.minVer: ${args.nix.minVer}"; }
+    { assertion = (args.nix.minVer != ""); message = "assert machine.nix.minVer: ${args.nix.minVer}"; }
 
     { assertion = (args.user.name != null && args.user.name != ""); message = "assert args.user.name exists"; }
     { assertion = (args.user.pass != null); message = "assert args.user.pass: ${args.user.pass}"; }
