@@ -234,6 +234,7 @@ install::install_config()
     utils::check_status
 
     # Update the root args.nix to use the new hostname as a key
+    utils::replace "${NIXOS_CONFIG_DIR}/args.nix" str "hostname" "${HOSTNAME}"
     
     # Write out the file to /mnt/etc/nixos/machines/$HOSTNAME/configuration.nix
     cat > "$NEW_CONFIG_DIR/configuration.nix" <<EOF
@@ -254,6 +255,8 @@ EOF
 EOF
 
     # Files must be at least git added for the flake to recognize them
+    git add "args.nix"
+    mv hardware-configuration.nix "${NEW_CONFIG_DIR}"
     git add "${NEW_CONFIG_DIR}"
     ln -sf "${NEW_CONFIG_DIR}/configuration.nix" configuration.nix
 
@@ -286,11 +289,6 @@ install::install_config_dir()
     local swap_uuid=$(blkid -s UUID -o value ${PART_SWAP})
     utils::replace "${NIXOS_CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
     utils::check_status
-
-    # Files must be at least git added for the flake to recognize them
-    pushd ${NIXOS_CONFIG_DIR} &>/dev/null
-    git add hardware-configuration.nix -f
-    popd &>/dev/null
 }
 
 # Prompt the user to select for misc options
