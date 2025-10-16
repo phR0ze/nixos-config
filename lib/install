@@ -133,11 +133,11 @@ install::install_system()
     log::header1 "Installing NixOS based on the staged configuration"
 
     # Optionally copy over the ISO nix cache to speed up the install
-    if [[ "x$OFFLINE" == "xy" ]]; then
-        echo -e ":: Pre-populating the Nix Store with ${cyan}nix-copy${none}..."
+    if [[ "x$ISO_CACHE" == "xy" ]]; then
+        log::ls "Pre-populating the Nix Store with ${cyan}nix-copy${none}..."
         nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
     else
-        echo ":: Skipping Nix Store copy from ISO..."
+        log::ls "Skipping Nix Store copy from ISO..."
     fi
 
     # Run the installer: $NIXOS_CONFIG_DIR will be /mnt/etc/nixos
@@ -151,114 +151,103 @@ install::install_system()
 
     # Add lock file to avoid file automation running every boot
     lockfile="${ROOT_MOUNT}/nix/files.lock"
-    log::ls "Adding lock file ${lockfile} to avoid file automation on every boot"
+    log::ls -n "Adding ${lockfile} to avoid file automation on every boot..."
     touch "${lockfile}"
+    utils::check_status
 }
 
 # Create the new system's persistent configuration or stage the existing system
-install::stage_system_config()
+install::install_config()
 {
+    NIXOS_CONFIG="${NIXOS_CONFIG_DIR}/machines/${HOSTNAME}/configuration.nix"
+    log::header1 "Install system ${cyan}${NIXOS_CONFIG}${none}"
+
+    # Stage the flake from the base
     pushd ${NIXOS_CONFIG_DIR} &>/dev/null
-
-    if [[ "$TARGET" == "profiles"* ]]; then
-        log::header1 "Generate new persistent configuration"
-
-        # Stage the flake from the base
-        log::ls -n "Staging flake.nix and flake.lock..."
-        cp base.nix flake.nix
-        cp base.lock flake.lock
-        git add flake.nix -f
-        git add flake.lock -f
-
-        # Create the new persistent config for the system
-        local config="machines/${HOSTNAME}/configuration.nix"
-        log::ls -n "Generating ${config}..."
-        mkdir "machines/$HOSTNAME"
-        cat <<EOF > "$config"
-{ config, pkgs, lib, args, f, ... }: with lib.types;
-{
-  imports = [ ./hardware-configuration.nix ../../${TARGET} ];
-  config = {
-    machine.type.bootable = true;
-    machine.nix.cache.enable = true;
-  };
-}
-EOF
-        ln -sf "machines/${HOSTNAME}/configuration.nix" configuration.nix
-        git add configuration.nix -f
-    else
-        log::header1 "Load existing system configuration"
-        log::ls -n "NOT YET SUPPORTED..."
-    fi
-    popd &>/dev/null
-}
-
-# Create the /mnt/etc/nixos/install.nix file and populate the overrides
-install::install_config_template()
-{
-    log::header1 "Configure install overrides"
-
-    log::ls -n "Install overrides template to ${cyan}${NIXOS_ARGS}${none}..."
-    cp "${NIXOS_CONFIG_DIR}/profiles/install.nix" "${NIXOS_ARGS}"
+    log::ls -n "Staging flake.nix and flake.lock..."
+    cp base.nix flake.nix
+    cp base.lock flake.lock
+    git add flake.nix -f
+    git add flake.lock -f
     utils::check_status
+    mkdir "machines/$HOSTNAME"
+
+    # Construct options array to be included in the configuration.nix
+    local options=()
+    options+=("machine.type.bootable = true;")
+
+    # Enable the local Nix Cache
+    if [[ "x$CACHE_IP" != "x" ]]; then
+        log::ls -n "Update Nix Cache IP to ${cyan}${CACHE_IP}${none}..."
+        options+=("machine.nix.cache.enable = true;")
+        options+=("machine.nix.cache.ip = \"${CACHE_IP}\";")
+        utils::check_status
+    fi
+
+    options+=("machine.id = \"$(dbus-uuidgen)\";")
 
     log::ls -n "Update NIXOS target version to ${cyan}${NIXOS_VER}${none}..."
+    options+=("machine.nix.minVer = \"${NIXOS_VER}\";")
     utils::check_status
-    utils::replace "${NIXOS_ARGS}" str "nix.minVer" "${NIXOS_VER}"
+
+    log::ls -n "Update set hostname and timezone..."
+    options+=("machine.hostname  = \"${HOSTNAME}\";")
+    options+=("machine.timezone = \"${TIMEZONE}\";")
+    utils::check_status
 
     # Extract networking for use during install
     NICS=($(ls /sys/class/net))
     log::ls -n "Storing NIC0 ${cyan}${NICS[0]}${none}..."
-    utils::replace "${NIXOS_ARGS}" str "net.nic0.name" "${NICS[0]}"
+    options+=("machine.net.nic0.name = \"${NICS[0]}\";")
     utils::check_status
-
-    utils::replace "${NIXOS_ARGS}" str "id" "$(dbus-uuidgen)"
 
     # Configure new user and root user
     local pass=""
     [[ "x$DEFAULT" == "xy" ]] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
     log::ls -n "Storing new ${cyan}${USER_NAME}${none} and ${cyan}root${none} passwords${pass}..."
+    options+=("machine.user.fullname = \"${FULL_NAME}\";")
+    options+=("machine.user.email = \"${USER_EMAIL}\";")
+    options+=("machine.user.name = \"${USER_NAME}\";")
+    options+=("machine.user.group = \"${USER_NAME}\";")
+    options+=("machine.user.pass = \"${USER_PASS}\";")
+    options+=("machine.git.user = \"${GIT_USER}\";")
+    options+=("machine.git.email = \"${GIT_EMAIL}\";")
+    utils::check_status
 
-    utils::replace "${NIXOS_ARGS}" str "user.fullname" "${FULL_NAME}"
-    utils::replace "${NIXOS_ARGS}" str "user.email" "${USER_EMAIL}"
-    utils::replace "${NIXOS_ARGS}" str "user.name" "${USER_NAME}"
-    utils::replace "${NIXOS_ARGS}" str "user.group" "${USER_NAME}"
-    utils::replace "${NIXOS_ARGS}" str "user.pass" "${USER_PASS}"
-    utils::replace "${NIXOS_ARGS}" str "git.user" "${GIT_USER}"
-    utils::replace "${NIXOS_ARGS}" str "git.email" "${GIT_EMAIL}"
+    log::ls -n "Storing new networking options..."
+    [[ "x$SUBNET" != "x" ]] && options+=("machine.net.subnet = \"${SUBNET}\";")
+    [[ "x$GATEWAY" != "x" ]] && options+=("machine.net.gateway = \"${GATEWAY}\";")
+    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("machine.net.dns.primary = \"${PRIMARY_DNS}\";")
+    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("machine.net.dns.fallback = \"${FALLBACK_DNS}\";")
+    [[ "x${IP}" != "xDHCP" ]] && options+=("machine.net.nic0.ip = \"${IP}\";")
+    [[ "x$SUBNET" != "x" ]] && options+=("machine.net.nic0.subnet = \"${SUBNET}\";")
+    [[ "x$GATEWAY" != "x" ]] && options+=("machine.net.nic0.gateway = \"${GATEWAY}\";")
+    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("machine.net.nic0.dns.primary = \"${PRIMARY_DNS}\";")
+    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("machine.net.nic0.dns.fallback = \"${FALLBACK_DNS}\";")
 
-    [[ "x${IP}" == "xDHCP" ]] && ip="" || ip="${IP}"
-    utils::replace "${NIXOS_ARGS}" str "net.subnet" "${SUBNET}"
-    utils::replace "${NIXOS_ARGS}" str "net.gateway" "${GATEWAY}"
-    utils::replace "${NIXOS_ARGS}" str "net.dns.primary" "${PRIMARY_DNS}"
-    utils::replace "${NIXOS_ARGS}" str "net.dns.fallback" "${FALLBACK_DNS}"
-    utils::replace "${NIXOS_ARGS}" str "net.nic0.ip" "${ip}"
-    utils::replace "${NIXOS_ARGS}" str "net.nic0.subnet" "${SUBNET}"
-    utils::replace "${NIXOS_ARGS}" str "net.nic0.gateway" "${GATEWAY}"
-    utils::replace "${NIXOS_ARGS}" str "net.nic0.dns.primary" "${PRIMARY_DNS}"
-    utils::replace "${NIXOS_ARGS}" str "net.nic0.dns.fallback" "${FALLBACK_DNS}"
-
-    [[ "x${BLUETOOTH}" == "xy" ]] && bluetooth="true" || bluetooth="false"
-    utils::replace "${NIXOS_ARGS}" str "bluetooth" "${bluetooth}"
-    [[ "x${AUTO_LOGIN}" == "xy" ]] && autologin="true" || autologin="false"
-    utils::replace "${NIXOS_ARGS}" bool "autologin" "${autologin}"
-    [[ "x${NFS_SHARES}" == "xy" ]] && nfsshares="true" || nfsshares="false"
-    utils::replace "${NIXOS_ARGS}" bool "nfs.enable" "${nfsshares}"
+    [[ "x${BLUETOOTH}" == "xy" ]] && options+=("machine.bluetooth = true;")
+    [[ "x${AUTO_LOGIN}" == "xy" ]] && options+=("machine.autologin = true;")
+    [[ "x${NFS_SHARES}" == "xy" ]] && options+=("machine.nfs.enable = true;")
     utils::check_status
 
     # Configure boot device target
     log::ls -n "Storing boot device type setting..."
-    [[ "x${EFI}" == "x1" ]] && efi_str="true" || efi_str="false"
-    utils::replace "${NIXOS_ARGS}" bool "efi" "${efi_str}"
-
-    [[ "x${EFI}" == "x1" ]] && mbr_str="nodev" || mbr_str="${DESTDEV}"
-    utils::replace "${NIXOS_ARGS}" str "mbr" "${mbr_str}"
+    [[ "x${EFI}" == "x1" ]] && options+=("machine.efi = true;") || options+=("machine.mbr = \"${DESTDEV}\";")
     utils::check_status
 
-    # Configure system settings
-    utils::replace "${NIXOS_ARGS}" str "timezone" "${TIMEZONE}"
-    utils::replace "${NIXOS_ARGS}" str "hostname" "${HOSTNAME}"
-    utils::replace "${NIXOS_ARGS}" str "target" "${TARGET}"
+    cat > "$config" <<EOF
+{ config, pkgs, lib, args, f, ... }: with lib.types;
+{
+  imports = [ ./hardware-configuration.nix ../../${TARGET} ];
+  config = {
+    $(printf "%s\n" "${options[@]}")
+  };
+}
+EOF
+    ln -sf "machines/${HOSTNAME}/configuration.nix" configuration.nix
+    git add configuration.nix -f
+    utils::check_status
+    popd &>/dev/null
 
     # Files must be at least git added for the flake to recognize them
     pushd ${NIXOS_CONFIG_DIR} &>/dev/null
@@ -496,7 +485,6 @@ install::run()
     TESTING="${TESTING:-n}"
     ROOT_MOUNT="${ROOT_MOUNT:-/mnt}"
     NIXOS_CONFIG_DIR="${NIXOS_CONFIG_DIR:-${ROOT_MOUNT}/etc/nixos}"
-    NIXOS_ARGS="${NIXOS_CONFIG_DIR}/install.nix"
     [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
     SCSI=0
     TIMEZONE='America/Boise'
@@ -526,7 +514,8 @@ install::run()
     # Determine if this is a default deployment
     # ----------------------------------------------------------------------------------------------
     log::header0 "Select deployment options:"
-    utils::read OFFLINE 'Use ISO nix cache?' 'y'
+    utils::read ISO_CACHE 'Use ISO nix cache?' 'y'
+    utils::read CACHE_IP 'Enter nix cache ip if desired e.g. 192.168.1.3' ''
     utils::read DEFAULT 'Use automatic mode with defaults?' 'n'
 
     # Drop out debug variables if in debug mode
@@ -549,7 +538,7 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
-    log::subln3 "offline=${cyan}${OFFLINE}${none}"
+    log::subln3 "iso_cache=${cyan}${ISO_CACHE}${none}"
     log::subln3 "target=${cyan}${TARGET}${none}"
 
     # Networking settings
@@ -593,11 +582,13 @@ install::run()
         # Create the target system config directory /mnt/etc/nixos
         install::install_config_dir
 
-        # Populates the config template /mnt/etc/nixos/install.nix
-        install::install_config_template
-
         # Create the new system's persistent configuration or stage the existing system
-        install::stage_system_config
+        if [[ "$TARGET" == "profiles"* ]]; then
+            install::install_config
+        else
+            log::header1 "Load existing system configuration"
+            log::ls -n "NOT YET SUPPORTED..."
+        fi
 
         # Perform the actual install
         install::install_system
