@@ -127,45 +127,81 @@ install::prepare_disk()
     # BIOS: boot partition shouldn't be formatted or mounted in this case as its just for the MBR
 }
 
-install::config_system()
+# Actual install of the system after configuration is in place
+install::install_system()
 {
-    NIXOS_ARGS="${NIXOS_CONFIG_DIR}/install.nix"
+    log::header1 "Installing NixOS based on the staged configuration"
 
-    # Setup the NixOS configuration files
-    # This must be done after the disk partioning so that the system picks up the new partitions
-    # ----------------------------------------------------------------------------------------------
-    log::header1 "Configure settings file: ${NIXOS_ARGS}"
-
-    if [[ "x$TESTING" != "xy" ]]; then
-        echo -en ":: Create the NixOS config dir ${cyan}${NIXOS_CONFIG_DIR}${none}..."
-        mkdir -p ${NIXOS_CONFIG_DIR}
-        utils::check_status
-
-        echo -en ":: Stage NIXOS configuration files at ${cyan}${NIXOS_CONFIG_DIR}${none}..."
-        cp -r $SCRIPT_DIR/. ${NIXOS_CONFIG_DIR}
-        utils::check_status
-
-        echo -en ":: Stage NIXOS install overrides at ${cyan}${NIXOS_ARGS}${none}..."
-        cp "${NIXOS_CONFIG_DIR}/profiles/install.nix" "${NIXOS_ARGS}"
-        utils::check_status
-
-        echo -en ":: Generating NIXOS configuration defaults..."
-        nixos-generate-config --root ${ROOT_MOUNT} &>/dev/null
-        utils::check_status
-
-        # Modules must be at least staged for the flake to recognize them
-        pushd ${NIXOS_CONFIG_DIR} &>/dev/null
-        git add hardware-configuration.nix -f
-        popd &>/dev/null
-
-        # Extract the current NIXOS version from the generated configuration.nix file
-        GEN_CONFIG="${NIXOS_CONFIG_DIR}/configuration.nix"
-        NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${GEN_CONFIG}")
-        echo -en ":: Storing NIXOS target version ${cyan}${NIXOS_VER}${none}..."
-        utils::check_status
-        rm -f "${NIXOS_CONFIG_DIR}/configuration.nix" # clean up
-        utils::replace "${NIXOS_ARGS}" str "nix.minVer" "${NIXOS_VER}"
+    # Optionally copy over the ISO nix cache to speed up the install
+    if [[ "x$OFFLINE" == "xy" ]]; then
+        echo -e ":: Pre-populating the Nix Store with ${cyan}nix-copy${none}..."
+        nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
+    else
+        echo ":: Skipping Nix Store copy from ISO..."
     fi
+
+    # Run the installer: $NIXOS_CONFIG_DIR will be /mnt/etc/nixos
+    echo -e ":: Launching installation with ${cyan}nixos-install${none}..."
+    nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG_DIR}#target"
+    if [ $? -ne 0 ]; then
+        echo -e ":: ${red}Failure building the install flake${none}"
+        echo -e "   1. Fix the flake issue at ${cyan}${NIXOS_CONFIG}${none}"
+        echo -e "   2. Rerun: ${cyan}nixos-install --no-root-passwd --no-channel-copy --flake ${NIXOS_CONFIG_DIR}#system${none}"
+    fi
+
+    # Add lock file to avoid file automation running every boot
+    lockfile="${ROOT_MOUNT}/nix/files.lock"
+    log::ls "Adding lock file ${lockfile} to avoid file automation on every boot"
+    touch "${lockfile}"
+}
+
+# Create the new system's persistent configuration or stage the existing system
+install::stage_system_config()
+{
+    if [[ -v $PROFILE ]]; then
+        log::header1 "Generate new persistent configuration"
+
+        # Stage the flake from the base
+        echo -en ":: Staging flake.nix and flake.lock..."
+        cp base.nix flake.nix
+        cp base.lock flake.lock
+        git add flake.nix -f
+        git add flake.lock -f
+
+        # Create the new persistent config for the system
+        local config="machines/${HOSTNAME}/configuration.nix"
+        echo -en ":: Generating ${config}..."
+        mkdir "machines/$HOSTNAME"
+        cat <<EOF > "$config"
+{ config, pkgs, lib, args, f, ... }: with lib.types;
+{
+  imports = [ ./hardware-configuration.nix ../../${TARGET} ];
+  config = {
+    machine.type.bootable = true;
+    machine.nix.cache.enable = true;
+  };
+}
+EOF
+        ln -sf "machines/${HOSTNAME}/configuration.nix" configuration.nix
+        git add configuration.nix -f
+    else
+        log::header1 "Load existing system configuration"
+        echo -en ":: NOT YET SUPPORTED..."
+    fi
+}
+
+# Create the /mnt/etc/nixos/install.nix file and populate the overrides
+install::install_config_template()
+{
+    log::header1 "Configure install overrides"
+
+    echo -en ":: Install overrides template to ${cyan}${NIXOS_ARGS}${none}..."
+    cp "${NIXOS_CONFIG_DIR}/profiles/install.nix" "${NIXOS_ARGS}"
+    utils::check_status
+
+    echo -en ":: Update NIXOS target version to ${cyan}${NIXOS_VER}${none}..."
+    utils::check_status
+    utils::replace "${NIXOS_ARGS}" str "nix.minVer" "${NIXOS_VER}"
 
     # Extract networking for use during install
     NICS=($(ls /sys/class/net))
@@ -173,8 +209,6 @@ install::config_system()
     utils::replace "${NIXOS_ARGS}" str "net.nic0.name" "${NICS[0]}"
     utils::check_status
 
-    # Configuring user set values
-    # ----------------------------------------------------------------------------------------------
     utils::replace "${NIXOS_ARGS}" str "id" "$(dbus-uuidgen)"
 
     # Configure new user and root user
@@ -223,147 +257,113 @@ install::config_system()
     utils::replace "${NIXOS_ARGS}" str "hostname" "${HOSTNAME}"
     utils::replace "${NIXOS_ARGS}" str "target" "${TARGET}"
 
-    # Execute the NixOS install
-    # ----------------------------------------------------------------------------------------------
-    if [[ "x$TESTING" != "xy" ]]; then
-        # Modules must be at least staged for the flake to recognize them
-        pushd ${NIXOS_CONFIG_DIR} &>/dev/null
-        git add "${NIXOS_ARGS}" -f
-        popd &>/dev/null
-
-        log::header1 "Installing NixOS configuration"
-        echo -e ":: Pre-populating the Nix Store with ${cyan}nix-copy${none}..."
-        nix copy --all --no-check-sigs --offline --to local?root="${ROOT_MOUNT}"
-
-        # Run the installer: $NIXOS_CONFIG_DIR will be /mnt/etc/nixos
-        echo -e ":: Launching installation with ${cyan}nixos-install${none}..."
-        nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG_DIR}#target"
-        if [ $? -ne 0 ]; then
-            echo -e ":: ${red}Failure building the install flake${none}"
-            echo -e "   1. Fix the flake issue at ${cyan}${NIXOS_CONFIG}${none}"
-            echo -e "   2. Rerun: ${cyan}nixos-install --no-root-passwd --no-channel-copy --flake ${NIXOS_CONFIG_DIR}#system${none}"
-        fi
-
-        lockfile="${ROOT_MOUNT}/nix/files.lock"
-        log::ls "Adding files lock file ${lockfile} to avoid file automation on every boot"
-        touch "${lockfile}"
-
-        log::ls "Update the swap entry to use the device UUID"
-        SWAP_UUID=$(blkid -s UUID -o value ${PART_SWAP})
-        utils::replace "${NIXOS_CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${SWAP_UUID}"
-        pushd ${NIXOS_CONFIG_DIR} &>/dev/null
-        git add hardware-configuration.nix -f
-        popd &>/dev/null
-    fi
-
-    echo
-    log::ls "${yellow}1. Power down your system:${none} sudo poweroff"
-    log::ls "${yellow}2. Remove the install media${none}"
-    log::ls "${yellow}3. Boot the system back up${none}"
+    # Files must be at least git added for the flake to recognize them
+    git add "${NIXOS_ARGS}" -f
 }
 
-# Start the install wizard
-# --------------------------------------------------------------------------------------------------
-install::run()
+# Create the target system config directory
+install::install::install_config_dir()
 {
-    # Default installer values
-    # ----------------------------------------------------------------------------------------------
-    core::preamble
+    log::header1 "Configure new system nix config"
 
-    # Optionally enable testing
-    args=($@)
-    if [[ "${args[0]}" == "testing" ]]; then
-        log::header0 "Testing installer with local nixos-config"
-        ROOT_MOUNT=.
-        NIXOS_CONFIG_DIR=.
-        TESTING="y"
+    echo -en ":: Create the NixOS config dir ${cyan}${NIXOS_CONFIG_DIR}${none}..."
+    mkdir -p ${NIXOS_CONFIG_DIR}
+    utils::check_status
+
+    echo -en ":: Stage NIXOS configuration files at ${cyan}${NIXOS_CONFIG_DIR}${none}..."
+    cp -r $SCRIPT_DIR/. ${NIXOS_CONFIG_DIR}
+    utils::check_status
+
+    echo -en ":: Generating hardware configuration..."
+    nixos-generate-config --root ${ROOT_MOUNT} &>/dev/null
+    utils::check_status
+
+    # Extract the current NIXOS version from the generated configuration.nix file
+    GEN_CONFIG="${NIXOS_CONFIG_DIR}/configuration.nix"
+    NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${GEN_CONFIG}")
+    rm -f "${NIXOS_CONFIG_DIR}/configuration.nix" # clean up
+
+    log::ls "Update the swap entry to use the device UUID"
+    local swap_uuid=$(blkid -s UUID -o value ${PART_SWAP})
+    utils::replace "${NIXOS_CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
+
+    # Files must be at least git added for the flake to recognize them
+    git add hardware-configuration.nix -f
+}
+
+# Prompt the user to select for misc options
+install::select_misc_options()
+{
+    # Collect auto login choice from user
+    # ----------------------------------------------------------------------------------------------
+    if [[ "x$DEFAULT" != "xy" ]]; then
+        utils::read AUTO_LOGIN 'Do you want to auto login' 'n'
     fi
 
-    DEFAULT="${DEFAULT:-n}"
-    TESTING="${TESTING:-n}"
-    ROOT_MOUNT="${ROOT_MOUNT:-/mnt}"
-    NIXOS_CONFIG_DIR="${NIXOS_CONFIG_DIR:-${ROOT_MOUNT}/etc/nixos}"
-    SCSI=0
-    TIMEZONE='America/Boise'
-
-    # Network settings
-    HOSTNAME='nixos'
-    IP='DHCP'
-
-    # User settings
-    GIT_USER='admin'
-    GIT_EMAIL='nixos@nixos.org'
-    FULL_NAME='admin'
-    USER_EMAIL='nixos@nixos.org'
-    USER_NAME='admin'
-    USER_PASS='admin'
-    DEFAULT_PASS='admin'
-    AUTO_LOGIN='n'
-
-    # Machine profile and services settings
-    NEW='y'
-    TARGET=''
-    NFS_SHARES='n'
-
-    # Detect EFI supported system
-    [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
-
-    # User machine deployment selection
+    # Collect services selections from user
     # ----------------------------------------------------------------------------------------------
-    log::header0 "Select a deployment option:"
-    utils::read NEW 'Are you deploying an existing machine' 'n'
-    if [[ "x$NEW" == "xn" ]]; then
-        local profiles_dir="${SCRIPT_DIR}/profiles"
-        local _profiles=($(echo $(find $profiles_dir -name "*.nix" | sort)))
-        log::header0 "Select a deployment profile:"
-        local i=0
-        for j in "${!_profiles[@]}"; do # ! means loop over indices instead of values
-            local x=${_profiles[$j]}
-
-            # Check if the profile contains the "# - Directly installable" string
-            local desc=$(grep "# - Directly installable" ${x} 2>/dev/null)
-            if [[ "x${desc}" != "x" ]]; then
-                desc="${desc#*: }"                # grab the suffixed description of the install option
-                x=${x//$profiles_dir\/}           # trim off the suffix dir
-                x=${x//.nix}                      # trim off the extension
-                utils::pad_suffix _1 "$x" " " 20  # pad to 30 characters
-                PROFILES+=($x)                    # add to the final profiles list
-                echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
-                i=$((i+1))                  # increment i
-            fi
-        done
-        utils::select TARGET "${PROFILES[@]}"
-        TARGET="${profiles_dir}/${TARGET}.nix"
-    else
-        local machines_dir="${SCRIPT_DIR}/machines"
-        local _machines=($(echo $(find $machines_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/machines/vm*" | sort)))
-        log::header0 "Select a deployment machine:"
-        local i=0
-        for x in "${_machines[@]}"; do
-            local _machine="$(basename "$x")"
-            utils::pad_suffix _1 "$_machine" " " 20           # pad to 30 characters
-            MACHINES+=($_machine)                             # add to the final profiles list
-            echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
-            i=$((i+1))                                        # increment i
-        done
-        utils::select TARGET "${MACHINES[@]}"
-        TARGET="${machines_dir}/${TARGET}"
+    if [[ "x$DEFAULT" != "xy" ]]; then
+        utils::read NFS_SHARES 'Do you want to mount pre-defined nfs shares' 'n'
     fi
+}
 
-    # Determine if this is a default deployment
-    # ----------------------------------------------------------------------------------------------
-    log::header0 "Automatically deploy with defaults?"
-    utils::read DEFAULT 'Use automatic mode with defaults' 'n'
+# Prompt the user to select user options
+install::select_user_options()
+{
+    if [[ "x$DEFAULT" != "xy" ]]; then
+        log::header0 "Create new user account:"
+        log::subln3 "Account includes: user & email, git user & email and full name\n"
+        utils::read USER_NAME 'Enter new user name' $USER_NAME
+        utils::read USER_EMAIL 'Enter new user email' $USER_EMAIL
+        while true; do
+            utils::read USER_PASS 'Enter new password' 'admin' 's'
+            utils::read USER_PASS2 'Enter password again' 'admin' 's'
+            [ "x$USER_PASS" == "x$USER_PASS2" ] && break
+            echo -e "   ${red}Passwords don't match, please try again${none}"
+        done
+        utils::read GIT_USER 'Enter git user name' $USER_NAME
+        utils::read GIT_EMAIL 'Enter git user email' $USER_EMAIL
+        utils::read FULL_NAME 'Enter full name' $USER_NAME
+    fi
+}
 
-    # Drop out debug variables if in debug mode
-    # ----------------------------------------------------------------------------------------------
-    log::ln_d "Entering debug mode"
-    log::ln_d "Debug lines are prefixed with violet ${violet}>>${none}"
-    log::vars
+# Prompt the user to select the date and time options
+install::select_date_time_options()
+{
+    if [[ "x$DEFAULT" != "xy" ]]; then
+        log::header0 "Configure time and date:"
+        utils::read TIMEZONE 'Enter timezone' "$TIMEZONE"
+        utils::read TIMEDATE_SET "Change time ${cyan}$(date --iso-8601=seconds) UTC${none}" 'n'
+        if [ "x$TIMEDATE_SET" == "xy" ]; then
+            while true; do
+                utils::read TIMEDATE "Use ${cyan}ISO 8601 seconds${none} format" "$(date --iso-8601=seconds)"
+                date -s "${TIMEDATE}" &>/dev/null
+                [ $? -eq 0 ] && break
+            done
+        fi
+    fi
+}
 
-    # Collect install destination choice from user
-    # ----------------------------------------------------------------------------------------------
+# Prompt the user to select the networking options
+install::select_networking_options()
+{
+    if [[ "x$DEFAULT" != "xy" ]]; then
+        log::header0 "Configure networking:"
+        utils::read HOSTNAME 'Enter hostname' $HOSTNAME
+        utils::read IP 'Enter static IP, e.g. 192.168.1.2/24' 'DHCP'
+        if [[ "x${IP}" != "xDHCP" ]]; then
+            utils::read SUBNET 'Enter subnet' $(echo $IP | awk -F. '{print $1"."$2"."$3".0/24"}')
+            utils::read GATEWAY 'Enter gateway' $(echo $IP | awk -F. '{print $1"."$2"."$3".1"}')
+            utils::read PRIMARY_DNS 'Enter primary dns' $(echo $IP | awk -F. '{print $1"."$2"."$3".53"}')
+            utils::read FALLBACK_DNS 'Enter fallback dns' $(echo $IP | awk -F. '{print $1"."$2"."$3".53"}')
+        fi
+        utils::read BLUETOOTH 'Enable bluetooth support' 'n'
+    fi
+}
 
+# Prompt the user to select the disk to install to
+install::select_install_disk_options()
+{
     # Read in the potential destination disks details
     # [Major Device numers](https://www.kernel.org/doc/Documentation/admin-guide/devices.txt)
     # Filtering out: loop (7), floppy (2), CD-ROM (11, 15, 20, 24, 25, 26, 27, 28, 29, 30, 32)
@@ -420,68 +420,124 @@ install::run()
 
     # Match DESTDEV with /dev/sda and /dev/vda
     [ -z "${DESTDEV##*/dev/sd*}" ] || [ -z "${DESTDEV##*/dev/vd*}" ] && SCSI=1
+}
 
-    # Collect networking choices from user
-    # ----------------------------------------------------------------------------------------------
-    if [[ "x$DEFAULT" != "xy" ]]; then
-        log::header0 "Configure networking:"
-        utils::read HOSTNAME 'Enter hostname' $HOSTNAME
-        utils::read IP 'Enter static IP, e.g. 192.168.1.2/24' 'DHCP'
-        if [[ "x${IP}" != "xDHCP" ]]; then
-            utils::read SUBNET 'Enter subnet' $(echo $IP | awk -F. '{print $1"."$2"."$3".0/24"}')
-            utils::read GATEWAY 'Enter gateway' $(echo $IP | awk -F. '{print $1"."$2"."$3".1"}')
-            utils::read PRIMARY_DNS 'Enter primary dns' $(echo $IP | awk -F. '{print $1"."$2"."$3".53"}')
-            utils::read FALLBACK_DNS 'Enter fallback dns' $(echo $IP | awk -F. '{print $1"."$2"."$3".53"}')
-        fi
-        utils::read BLUETOOTH 'Enable bluetooth support' 'n'
-    fi
+# Prompt the user to choose whether to install a new system or reinstall an existing machine.
+# - profile selections beyond what the ISO was built with will incur network downloads
+install::select_deployment_options()
+{
+    log::header0 "Select a deployment option:"
+    utils::read NEW 'Are you deploying an existing machine' 'n'
+    if [[ "x$NEW" == "xn" ]]; then
+        local profiles_dir="${SCRIPT_DIR}/profiles"
+        local _profiles=($(echo $(find $profiles_dir -name "*.nix" | sort)))
+        log::header0 "Select a deployment profile:"
+        local i=0
+        for j in "${!_profiles[@]}"; do # ! means loop over indices instead of values
+            local x=${_profiles[$j]}
 
-    # Collect time and date choices from user
-    # ----------------------------------------------------------------------------------------------
-    if [[ "x$DEFAULT" != "xy" ]]; then
-        log::header0 "Configure time and date:"
-        utils::read TIMEZONE 'Enter timezone' "$TIMEZONE"
-        utils::read TIMEDATE_SET "Change time ${cyan}$(date --iso-8601=seconds) UTC${none}" 'n'
-        if [ "x$TIMEDATE_SET" == "xy" ]; then
-            while true; do
-                utils::read TIMEDATE "Use ${cyan}ISO 8601 seconds${none} format" "$(date --iso-8601=seconds)"
-                date -s "${TIMEDATE}" &>/dev/null
-                [ $? -eq 0 ] && break
-            done
-        fi
-    fi
-
-    # Collect new user account choices from user
-    # ----------------------------------------------------------------------------------------------
-    if [[ "x$DEFAULT" != "xy" ]]; then
-        log::header0 "Create new user account:"
-        log::subln3 "Account includes: user & email, git user & email and full name\n"
-        utils::read USER_NAME 'Enter new user name' $USER_NAME
-        utils::read USER_EMAIL 'Enter new user email' $USER_EMAIL
-        while true; do
-            utils::read USER_PASS 'Enter new password' 'admin' 's'
-            utils::read USER_PASS2 'Enter password again' 'admin' 's'
-            [ "x$USER_PASS" == "x$USER_PASS2" ] && break
-            echo -e "   ${red}Passwords don't match, please try again${none}"
+            # Check if the profile contains the "# - Directly installable" string
+            local desc=$(grep "# - Directly installable" ${x} 2>/dev/null)
+            if [[ "x${desc}" != "x" ]]; then
+                desc="${desc#*: }"                # grab the suffixed description of the install option
+                x=${x//$profiles_dir\/}           # trim off the suffix dir
+                x=${x//.nix}                      # trim off the extension
+                utils::pad_suffix _1 "$x" " " 20  # pad to 30 characters
+                PROFILES+=($x)                    # add to the final profiles list
+                echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
+                i=$((i+1))                  # increment i
+            fi
         done
-        utils::read GIT_USER 'Enter git user name' $USER_NAME
-        utils::read GIT_EMAIL 'Enter git user email' $USER_EMAIL
-        utils::read FULL_NAME 'Enter full name' $USER_NAME
+        utils::select TARGET "${PROFILES[@]}"
+        TARGET="${profiles_dir}/${TARGET}.nix"
+    else
+        local machines_dir="${SCRIPT_DIR}/machines"
+        local _machines=($(echo $(find $machines_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/machines/vm*" | sort)))
+        log::header0 "Select a deployment machine:"
+        local i=0
+        for x in "${_machines[@]}"; do
+            local _machine="$(basename "$x")"
+            utils::pad_suffix _1 "$_machine" " " 20           # pad to 30 characters
+            MACHINES+=($_machine)                             # add to the final profiles list
+            echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
+            i=$((i+1))                                        # increment i
+        done
+        utils::select TARGET "${MACHINES[@]}"
+        TARGET="${machines_dir}/${TARGET}"
     fi
+}
 
-    # Collect auto login choice from user
+# Start the install wizard
+# --------------------------------------------------------------------------------------------------
+install::run()
+{
+    # Default installer values
     # ----------------------------------------------------------------------------------------------
-    if [[ "x$DEFAULT" != "xy" ]]; then
-        utils::read AUTO_LOGIN 'Do you want to auto login' 'n'
+    core::preamble
+
+    # Optionally enable testing
+    args=($@)
+    if [[ "${args[0]}" == "testing" ]]; then
+        log::header0 "Testing installer with local nixos-config"
+        ROOT_MOUNT=.
+        NIXOS_CONFIG_DIR=.
+        TESTING="y"
     fi
 
-    # Collect services selections from user
+    DEFAULT="${DEFAULT:-n}"
+    TESTING="${TESTING:-n}"
+    ROOT_MOUNT="${ROOT_MOUNT:-/mnt}"
+    NIXOS_CONFIG_DIR="${NIXOS_CONFIG_DIR:-${ROOT_MOUNT}/etc/nixos}"
+    NIXOS_ARGS="${NIXOS_CONFIG_DIR}/install.nix"
+    [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
+    SCSI=0
+    TIMEZONE='America/Boise'
+
+    # Network settings
+    HOSTNAME='nixos'
+    IP='DHCP'
+
+    # User settings
+    GIT_USER='admin'
+    GIT_EMAIL='nixos@nixos.org'
+    FULL_NAME='admin'
+    USER_EMAIL='nixos@nixos.org'
+    USER_NAME='admin'
+    USER_PASS='admin'
+    DEFAULT_PASS='admin'
+    AUTO_LOGIN='n'
+
+    # Machine profile and services settings
+    NEW='y'
+    TARGET=''
+    NFS_SHARES='n'
+
+    # Prompt to reinstall of an existing machine or install a brand new machine
+    install::select_deployment_options
+
+    # Determine if this is a default deployment
     # ----------------------------------------------------------------------------------------------
-    if [[ "x$DEFAULT" != "xy" ]]; then
-        utils::read NFS_SHARES 'Do you want to mount pre-defined nfs shares' 'n'
-    fi
+    log::header0 "Automatically deploy with defaults?"
+    utils::read OFFLINE 'Use ISO nix cache' 'y'
+    utils::read DEFAULT 'Use automatic mode with defaults' 'n'
 
-    # Start install
+    # Drop out debug variables if in debug mode
+    # ----------------------------------------------------------------------------------------------
+    log::ln_d "Entering debug mode"
+    log::ln_d "Debug lines are prefixed with violet ${violet}>>${none}"
+    log::vars
+
+    install::select_install_disk_options
+
+    install::select_networking_options
+
+    install::select_date_time_options
+
+    install::select_user_options
+
+    install::select_misc_options
+
+    # Dump out selections
     # ----------------------------------------------------------------------------------------------
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
@@ -516,11 +572,36 @@ install::run()
     log::subln3 "SCSI=${cyan}${SCSI}${none}"
     log::subln3 "EFI=${cyan}${EFI}${none}"
 
-    # Partition the target disk and mount it for deployment
+    # Setup the NixOS configuration files
+    # - Prep /mnt/etc/nixos and trigger install from that location
+    # ----------------------------------------------------------------------------------------------
     if [[ "x$TESTING" != "xy" ]]; then
-        install::prepare_disk
-    fi
+        pushd ${NIXOS_CONFIG_DIR} &>/dev/null
 
-    # Take user selections and apply to NixOS configuration
-    install::config_system
+        # Partition the target disk and mount it for deployment
+        # Note: requires `unmount /mnt` to re-run
+        install::prepare_disk
+
+        # Create the target system config directory /mnt/etc/nixos
+        install::install_config_dir
+
+        # Populates the config template /mnt/etc/nixos/install.nix
+        install::install_config_template
+
+        # Create the new system's persistent configuration or stage the existing system
+        install::stage_system_config
+
+        # Perform the actual install
+        install::install_system
+
+        echo
+        log::ls "${yellow}1. Power down your system:${none} sudo poweroff"
+        log::ls "${yellow}2. Remove the install media${none}"
+        log::ls "${yellow}3. Boot the system back up${none}"
+
+        popd &>/dev/null
+    fi
+}
+
+
 }

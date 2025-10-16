@@ -51,6 +51,9 @@ in
     network using `wpa_cli`. See the NixOS manual for details.
   '';
 
+  # Add a marker to pass ISO state to install
+  environment.etc."iso-build-profile".text = args.target;
+
   # Adding packages for the ISO environment
   environment.systemPackages = with pkgs; [
     git         # dependency for clu installer automation
