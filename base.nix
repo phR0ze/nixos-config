@@ -68,10 +68,7 @@
       machineArgsFile = ./machines/${_args.hostname}/args.dec.json;
       baseArgs = if builtins.pathExists baseArgsFile then f.fromJSON baseArgsFile else {};
       machineArgs = if builtins.pathExists machineArgsFile then f.fromJSON machineArgsFile else {};
-      in lib.recursiveUpdate baseArgs (let
-        installArgs = if builtins.pathExists ./install.nix then (import ./install.nix) else {};
-        in lib.recursiveUpdate machineArgs installArgs
-      )
+      in lib.recursiveUpdate baseArgs machineArgs
     );
   in
   {
@@ -98,7 +95,7 @@
       inherit pkgs system;
       specialArgs = {
         inherit f inputs;
-        args = lib.recursiveUpdate _args (import ./profiles/install.nix);
+        args = lib.recursiveUpdate _args (import ./profiles/iso_args.nix);
       };
       modules = [ ./options ./profiles/iso.nix ];
     };
