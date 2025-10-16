@@ -250,7 +250,7 @@ EOF
     # Add the /mnt/etc/nixos/machines/$HOSTNAME/args.nix
     cat > "$NIXOS_CONFIG" <<EOF
 {
-  $(for x in "${options[@]}"; echo "  $x"; done)
+  $(for x in "${options[@]}"; do echo "  $x"; done)
 }
 EOF
 
