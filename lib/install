@@ -141,7 +141,7 @@ install::install_system()
     fi
 
     # Run the installer: $NIXOS_CONFIG_DIR will be /mnt/etc/nixos
-    echo -e ":: Launching installation with ${cyan}nixos-install${none}..."
+    log::ls "Launching installation with ${cyan}nixos-install${none}..."
     nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG_DIR}#target"
     if [ $? -ne 0 ]; then
         echo -e ":: ${red}Failure building the install flake${none}"
@@ -176,6 +176,12 @@ install::install_config()
     # Construct options array to be included in the configuration.nix
     local options=()
     options+=("machine.type.bootable = true;")
+    options+=("machine.id = \"$(dbus-uuidgen)\";")
+
+    # Configure boot device target
+    log::ls -n "Storing boot device type setting..."
+    [[ "x${EFI}" == "x1" ]] && options+=("machine.efi = true;") || options+=("machine.mbr = \"${DESTDEV}\";")
+    utils::check_status
 
     # Enable the local Nix Cache
     if [[ "x$CACHE_IP" != "x" ]]; then
@@ -184,8 +190,6 @@ install::install_config()
         options+=("machine.nix.cache.ip = \"${CACHE_IP}\";")
         utils::check_status
     fi
-
-    options+=("machine.id = \"$(dbus-uuidgen)\";")
 
     log::ls -n "Update NIXOS target version to ${cyan}${NIXOS_VER}${none}..."
     options+=("machine.nix.minVer = \"${NIXOS_VER}\";")
@@ -230,17 +234,13 @@ install::install_config()
     [[ "x$NFS_SHARES" == "xy" ]] && options+=("machine.nfs.enable = true;") || true
     utils::check_status
 
-    # Configure boot device target
-    log::ls -n "Storing boot device type setting..."
-    [[ "x${EFI}" == "x1" ]] && options+=("machine.efi = true;") || options+=("machine.mbr = \"${DESTDEV}\";")
-    utils::check_status
-
+    # Write out the file to /mnt/etc/nixos/machines/$HOSTNAME/configuration.nix
     cat > "$NIXOS_CONFIG" <<EOF
 { config, pkgs, lib, args, f, ... }: with lib.types;
 {
   imports = [ ./hardware-configuration.nix ../../${TARGET} ];
   config = {
-    $(printf "%s\n" "${options[@]}")
+    $(printf "    %s\n" "${options[@]}")
   };
 }
 EOF
