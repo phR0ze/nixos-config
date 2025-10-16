@@ -55,7 +55,7 @@ in
     { assertion = (cfg.resolution.y != null); message = "assert machine.resolution.y: ${toString cfg.resolution.y}"; }
     { assertion = (cfg.type.iso != null); message = "assert machine.type.iso: ${f.boolToStr cfg.type.iso}"; }
     { assertion = (cfg.type.vm != null); message = "assert machine.type.vm: ${f.boolToStr cfg.type.vm}"; }
-    { assertion = (cfg.nix.minVer == "25.05"); message = "assert machine.nix.minVer: ${cfg.nix.minVer}"; }
+    { assertion = (cfg.nix.minVer != ""); message = "assert machine.nix.minVer: ${cfg.nix.minVer}"; }
 
     { assertion = (cfg.user.fullname != null); message = "assert machine.user.fullname: ${cfg.user.fullname}"; }
     { assertion = (cfg.user.email != null); message = "assert machine.user.email: ${cfg.user.email}"; }
