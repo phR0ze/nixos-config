@@ -82,13 +82,13 @@ in
           id = lib.mkOption {
             description = lib.mdDoc "Machine id for /etc/machine-id";
             type = types.str;
-            default = args.id;
+            default = args.id or "";
           };
 
           target = lib.mkOption {
             description = lib.mdDoc "Machine or Profile used during installation";
             type = types.str;
-            default = args.target;
+            default = args.target or "";
           };
 
           efi = lib.mkOption {
@@ -100,7 +100,7 @@ in
           mbr = lib.mkOption {
             description = lib.mdDoc "BIOS mbr is enabled when not 'nodev'";
             type = types.str;
-            default = args.mbr;
+            default = args.mbr or "nodev";
           };
 
           drives = lib.mkOption {
@@ -240,18 +240,19 @@ in
                   description = lib.mdDoc "Default gateway to use for machine";
                   type = types.str;
                   example = "192.168.1.1";
-                  default = args.net.gateway;
+                  default = args.net.gateway or "";
                 };
                 subnet = lib.mkOption {
                   description = lib.mdDoc "Default subnet to use for machine";
                   type = types.str;
                   example = "192.168.1.0/24";
-                  default = args.net.subnet;
+                  default = args.net.subnet or "";
                 };
                 dns = lib.mkOption {
                   description = lib.mdDoc "Default dns to use for machine";
-                  type = types.submodule (import ./dns.nix { inherit lib; defaults = args.net.dns; });
-                  default = args.net.dns;
+                  type = types.submodule (import ./dns.nix { inherit lib; defaults = args.net.dns or 
+                      { primary = ""; fallback = ""; }; });
+                  default = args.net.dns or { primary = ""; fallback = ""; };
                 };
                 bridge = {
                   enable = lib.mkEnableOption ''
@@ -304,9 +305,9 @@ in
               };
             };
             default = {
-              gateway = args.net.gateway;
-              subnet = args.net.subnet;
-              dns = args.net.dns;
+              gateway = args.net.gateway or "";
+              subnet = args.net.subnet or "";
+              dns = args.net.dns or { primary = ""; fallback = ""; };
               bridge = { enable = false; };
               macvlan = defaults.macvlan;
               nic0 = defaults.nic0;

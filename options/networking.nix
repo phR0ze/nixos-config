@@ -83,10 +83,10 @@ in
         dnssec = "allow-downgrade"; # using `dnssec = "true"` will break DNS if VPN DNS servers don't support
       };
     }
-    (f.mkIfElse (machine.net.dns.primary != "" && machine.net.dns.fallback != "") {
+    (f.mkIfElse (machine.net.dns.primary or "" != "" && machine.net.dns.fallback or "" != "") {
       networking.nameservers = [ "${machine.net.dns.primary}" ];
       services.resolved.fallbackDns = [ "${machine.net.dns.fallback}" ];
-    } (lib.mkIf (machine.net.dns.primary != "") {
+    } (lib.mkIf (machine.net.dns.primary or "" != "") {
       networking.nameservers = [ "${machine.net.dns.primary}" ];
     }))
 
