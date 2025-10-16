@@ -1,1 +1,0 @@
-machines/vm-test/configuration.nix
