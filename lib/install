@@ -262,7 +262,7 @@ install::install_config_template()
 }
 
 # Create the target system config directory
-install::install::install_config_dir()
+install::install_config_dir()
 {
     log::header1 "Configure new system nix config"
 
