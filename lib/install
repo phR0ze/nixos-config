@@ -175,62 +175,62 @@ install::install_config()
 
     # Construct options array to be included in the configuration.nix
     local options=()
-    options+=("machine.id = \"$(dbus-uuidgen)\";")
+    options+=("id = \"$(dbus-uuidgen)\";")
 
     # Configure boot device target
     log::ls -n "Storing boot device type setting..."
-    [[ "x${EFI}" == "x1" ]] && options+=("machine.efi = true;") || options+=("machine.mbr = \"${DESTDEV}\";")
+    [[ "x${EFI}" == "x1" ]] && options+=("efi = true;") || options+=("mbr = \"${DESTDEV}\";")
     utils::check_status
 
     # Enable the local Nix Cache
     if [[ "x$CACHE_IP" != "x" ]]; then
         log::ls -n "Update Nix Cache IP to ${cyan}${CACHE_IP}${none}..."
-        options+=("machine.nix.cache.enable = true;")
-        options+=("machine.nix.cache.ip = \"${CACHE_IP}\";")
+        options+=("nix.cache.enable = true;")
+        options+=("nix.cache.ip = \"${CACHE_IP}\";")
         utils::check_status
     fi
 
     log::ls -n "Update NIXOS target version to ${cyan}${NIXOS_VER}${none}..."
-    options+=("machine.nix.minVer = \"${NIXOS_VER}\";")
+    options+=("nix.minVer = \"${NIXOS_VER}\";")
     utils::check_status
 
     log::ls -n "Update set hostname and timezone..."
-    options+=("machine.hostname  = \"${HOSTNAME}\";")
-    options+=("machine.timezone = \"${TIMEZONE}\";")
+    options+=("hostname  = \"${HOSTNAME}\";")
+    options+=("timezone = \"${TIMEZONE}\";")
     utils::check_status
 
     # Extract networking for use during install
     NICS=($(ls /sys/class/net))
     log::ls -n "Storing NIC0 ${cyan}${NICS[0]}${none}..."
-    options+=("machine.net.nic0.name = \"${NICS[0]}\";")
+    options+=("net.nic0.name = \"${NICS[0]}\";")
     utils::check_status
 
     # Configure new user and root user
     local pass=""
     [[ "x$DEFAULT" == "xy" ]] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
     log::ls -n "Storing new ${cyan}${USER_NAME}${none} and ${cyan}root${none} passwords${pass}..."
-    options+=("machine.user.fullname = \"${FULL_NAME}\";")
-    options+=("machine.user.email = \"${USER_EMAIL}\";")
-    options+=("machine.user.name = \"${USER_NAME}\";")
-    options+=("machine.user.group = \"${USER_NAME}\";")
-    options+=("machine.user.pass = \"${USER_PASS}\";")
-    options+=("machine.git.user = \"${GIT_USER}\";")
-    options+=("machine.git.email = \"${GIT_EMAIL}\";")
+    options+=("user.fullname = \"${FULL_NAME}\";")
+    options+=("user.email = \"${USER_EMAIL}\";")
+    options+=("user.name = \"${USER_NAME}\";")
+    options+=("user.group = \"${USER_NAME}\";")
+    options+=("user.pass = \"${USER_PASS}\";")
+    options+=("git.user = \"${GIT_USER}\";")
+    options+=("git.email = \"${GIT_EMAIL}\";")
     utils::check_status
 
     log::ls -n "Storing new networking options..."
-    [[ "x$SUBNET" != "x" ]] && options+=("machine.net.subnet = \"${SUBNET}\";") || true
-    [[ "x$GATEWAY" != "x" ]] && options+=("machine.net.gateway = \"${GATEWAY}\";") || true
-    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("machine.net.dns.primary = \"${PRIMARY_DNS}\";") || true
-    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("machine.net.dns.fallback = \"${FALLBACK_DNS}\";") || true
-    [[ "x$IP" != "xDHCP" ]] && options+=("machine.net.nic0.ip = \"${IP}\";") || true
-    [[ "x$SUBNET" != "x" ]] && options+=("machine.net.nic0.subnet = \"${SUBNET}\";") || true
-    [[ "x$GATEWAY" != "x" ]] && options+=("machine.net.nic0.gateway = \"${GATEWAY}\";") || true
-    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("machine.net.nic0.dns.primary = \"${PRIMARY_DNS}\";") || true
-    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("machine.net.nic0.dns.fallback = \"${FALLBACK_DNS}\";") || true
-    [[ "x$BLUETOOTH" == "xy" ]] && options+=("machine.bluetooth = true;") || true
-    [[ "x$AUTO_LOGIN" == "xy" ]] && options+=("machine.autologin = true;") || true
-    [[ "x$NFS_SHARES" == "xy" ]] && options+=("machine.nfs.enable = true;") || true
+    [[ "x$SUBNET" != "x" ]] && options+=("net.subnet = \"${SUBNET}\";") || true
+    [[ "x$GATEWAY" != "x" ]] && options+=("net.gateway = \"${GATEWAY}\";") || true
+    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("net.dns.primary = \"${PRIMARY_DNS}\";") || true
+    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("net.dns.fallback = \"${FALLBACK_DNS}\";") || true
+    [[ "x$IP" != "xDHCP" ]] && options+=("net.nic0.ip = \"${IP}\";") || true
+    [[ "x$SUBNET" != "x" ]] && options+=("net.nic0.subnet = \"${SUBNET}\";") || true
+    [[ "x$GATEWAY" != "x" ]] && options+=("net.nic0.gateway = \"${GATEWAY}\";") || true
+    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("net.nic0.dns.primary = \"${PRIMARY_DNS}\";") || true
+    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("net.nic0.dns.fallback = \"${FALLBACK_DNS}\";") || true
+    [[ "x$BLUETOOTH" == "xy" ]] && options+=("bluetooth = true;") || true
+    [[ "x$AUTO_LOGIN" == "xy" ]] && options+=("autologin = true;") || true
+    [[ "x$NFS_SHARES" == "xy" ]] && options+=("nfs.enable = true;") || true
     utils::check_status
 
     # Update the root args.nix to use the new hostname as a key
@@ -250,7 +250,7 @@ EOF
     # Add the /mnt/etc/nixos/machines/$HOSTNAME/args.nix
     cat > "$NIXOS_CONFIG" <<EOF
 {
-  $(for x in "${options[@]}"; do echo "  $x"; done)
+$(for x in "${options[@]}"; do echo "  $x"; done)
 }
 EOF
 
