@@ -15,11 +15,6 @@
 let
   smb = import ./smb.nix { inherit lib; };
 
-  # Generate an id to be used as a default
-  machine-id = pkgs.runCommandLocal "machine-id" {} ''
-    ${pkgs.dbus}/bin/dbus-uuidgen > $out
-  '';
-
   # Defaults to use for uniformity across the different default use cases
   defaults = {
     user = {
@@ -87,7 +82,7 @@ in
           id = lib.mkOption {
             description = lib.mdDoc "Machine id for /etc/machine-id";
             type = types.str;
-            default = if (!args ? "id" || args.id == "") then "${builtins.readFile machine-id}" else args.id;
+            default = args.id;
           };
 
           target = lib.mkOption {

@@ -15,7 +15,7 @@ in
   # `systemd.machine_id=` kernel command line param or by passing the `--machine-id=` option to 
   # systemd. You can use `dbus-uuidgen` to create one manually.
   # - https://www.freedesktop.org/software/systemd/man/latest/machine-id.html
-  environment.etc."machine-id".text = "${machine.id}\n";
+  environment.etc."machine-id".text = lib.mkIf (machine.id != "") "${machine.id}\n";
 
   # Logind configuration
   # - Defaults were changed here https://github.com/NixOS/nixpkgs/pull/16021
