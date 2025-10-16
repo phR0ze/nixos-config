@@ -65,10 +65,12 @@
     f = pkgs.callPackage ./funcs {};
     args = lib.recursiveUpdate _args (let
       baseArgsFile = ./args.dec.json;
-      machineArgsFile = ./machines/${_args.hostname}/args.dec.json;
+      machineArgsFile = ./machines/${_args.hostname}/args.nix;
+      machineDecArgsFile = ./machines/${_args.hostname}/args.dec.json;
       baseArgs = if builtins.pathExists baseArgsFile then f.fromJSON baseArgsFile else {};
-      machineArgs = if builtins.pathExists machineArgsFile then f.fromJSON machineArgsFile else {};
-      in lib.recursiveUpdate baseArgs machineArgs
+      machineArgs = if builtins.pathExists machineArgsFile then import machingArgsFile else {};
+      machineDecArgs = if builtins.pathExists machineDecArgsFile then f.fromJSON machineDecArgsFile else {};
+      in lib.recursiveUpdate baseArgs (lib.recursiveUpdate machineArgs machineDecArgs)
     );
   in
   {

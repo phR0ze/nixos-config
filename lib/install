@@ -160,8 +160,8 @@ install::install_system()
 install::install_config()
 {
     NEW_CONFIG_DIR="machines/$HOSTNAME"
-    NIXOS_CONFIG="${NIXOS_CONFIG_DIR}/machines/${HOSTNAME}/configuration.nix"
-    log::header1 "Install system ${cyan}${NIXOS_CONFIG}${none}"
+    NIXOS_CONFIG="${NEW_CONFIG_DIR}/args.nix"
+    log::header1 "Install system ${cyan}${NEW_CONFIG_DIR}${none}"
 
     # Stage the flake from the base
     pushd ${NIXOS_CONFIG_DIR} &>/dev/null
@@ -175,7 +175,6 @@ install::install_config()
 
     # Construct options array to be included in the configuration.nix
     local options=()
-    options+=("machine.type.bootable = true;")
     options+=("machine.id = \"$(dbus-uuidgen)\";")
 
     # Configure boot device target
@@ -234,14 +233,23 @@ install::install_config()
     [[ "x$NFS_SHARES" == "xy" ]] && options+=("machine.nfs.enable = true;") || true
     utils::check_status
 
+    # Update the root args.nix to use the new hostname as a key
+    
     # Write out the file to /mnt/etc/nixos/machines/$HOSTNAME/configuration.nix
-    cat > "$NIXOS_CONFIG" <<EOF
+    cat > "$NEW_CONFIG_DIR/configuration.nix" <<EOF
 { config, pkgs, lib, args, f, ... }: with lib.types;
 {
   imports = [ ./hardware-configuration.nix ../../${TARGET} ];
   config = {
-    $(printf "    %s\n" "${options[@]}")
+    machine.type.bootable = true;
   };
+}
+EOF
+
+    # Add the /mnt/etc/nixos/machines/$HOSTNAME/args.nix
+    cat > "$NIXOS_CONFIG" <<EOF
+{
+  $(for x in "${options[@]}"; echo "  $x"; done)
 }
 EOF
 
