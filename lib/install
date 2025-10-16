@@ -158,7 +158,7 @@ install::install_system()
 # Create the new system's persistent configuration or stage the existing system
 install::stage_system_config()
 {
-    if [[ -v $PROFILE ]]; then
+    if [[ -v $PROFILES ]]; then
         log::header1 "Generate new persistent configuration"
 
         # Stage the flake from the base
@@ -288,6 +288,8 @@ install::install_config_dir()
     utils::replace "${NIXOS_CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
 
     # Files must be at least git added for the flake to recognize them
+    echo "$(pwd)"
+    echo "$(ls)"
     git add hardware-configuration.nix -f
 }
 
