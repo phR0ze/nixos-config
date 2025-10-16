@@ -140,9 +140,7 @@ install::generate_hardware_config()
     utils::check_status
 
     # Extract networking for use during install
-    GEN_HARDWARE_CONFIG="${NIXOS_CONFIG_GEN_DIR}/hardware-configuration.nix"
-    NICS=($(sed -n 's|^\s*# networking.interfaces.\(.*\)\.use.*|\1|p' ${GEN_HARDWARE_CONFIG}))
-
+    NICS=($(ls /sys/class/net))
     echo -en ":: Storing NIC0 setting: ${cyan}${NICS[0]}${none}..."
     utils::replace "${NIXOS_ARGS}" str "net.nic0.name" "${NICS[0]}"
     utils::check_status
@@ -172,9 +170,12 @@ install::config_system()
         echo -en ":: Stage NIXOS configuration files at ${cyan}${NIXOS_CONFIG_DIR}${none}..."
         cp -r $SCRIPT_DIR/. ${NIXOS_CONFIG_DIR}
         utils::check_status
+
+        echo -en ":: Stage NIXOS install overrides at ${cyan}${NIXOS_ARGS}${none}..."
+        cp "${NIXOS_CONFIG_DIR}/profiles/install.nix" "${NIXOS_ARGS}"
+        utils::check_status
     fi
 
-    cp "${NIXOS_CONFIG_DIR}/profiles/install.nix" "${NIXOS_ARGS}"
     install::generate_hardware_config
 
     # Extract the current NIXOS version from the generated configuration.nix file
