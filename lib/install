@@ -161,7 +161,7 @@ install::config_system()
         # Extract the current NIXOS version from the generated configuration.nix file
         GEN_CONFIG="${NIXOS_CONFIG_DIR}/configuration.nix"
         NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${GEN_CONFIG}")
-        echo -en ":: Storing NIXOS target version setting: ${cyan}${NIXOS_VER}${none}..."
+        echo -en ":: Storing NIXOS target version ${cyan}${NIXOS_VER}${none}..."
         utils::check_status
         rm -f "${NIXOS_CONFIG_DIR}/configuration.nix" # clean up
         utils::replace "${NIXOS_ARGS}" str "nix.minVer" "${NIXOS_VER}"
@@ -169,7 +169,7 @@ install::config_system()
 
     # Extract networking for use during install
     NICS=($(ls /sys/class/net))
-    echo -en ":: Storing NIC0 setting: ${cyan}${NICS[0]}${none}..."
+    echo -en ":: Storing NIC0 ${cyan}${NICS[0]}${none}..."
     utils::replace "${NIXOS_ARGS}" str "net.nic0.name" "${NICS[0]}"
     utils::check_status
 
