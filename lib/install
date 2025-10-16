@@ -159,6 +159,7 @@ install::install_system()
 # Create the new system's persistent configuration or stage the existing system
 install::install_config()
 {
+    NEW_CONFIG_DIR="machines/$HOSTNAME"
     NIXOS_CONFIG="${NIXOS_CONFIG_DIR}/machines/${HOSTNAME}/configuration.nix"
     log::header1 "Install system ${cyan}${NIXOS_CONFIG}${none}"
 
@@ -170,7 +171,7 @@ install::install_config()
     git add flake.nix -f
     git add flake.lock -f
     utils::check_status
-    mkdir "machines/$HOSTNAME"
+    mkdir "${NEW_CONFIG_DIR}"
 
     # Construct options array to be included in the configuration.nix
     local options=()
@@ -243,14 +244,11 @@ install::install_config()
   };
 }
 EOF
-    ln -sf "machines/${HOSTNAME}/configuration.nix" configuration.nix
-    git add configuration.nix -f
-    utils::check_status
-    popd &>/dev/null
 
     # Files must be at least git added for the flake to recognize them
-    pushd ${NIXOS_CONFIG_DIR} &>/dev/null
-    git add "${NIXOS_ARGS}" -f
+    git add "${NEW_CONFIG_DIR}"
+    ln -sf "${NEW_CONFIG_DIR}/configuration.nix" configuration.nix
+
     popd &>/dev/null
 }
 
