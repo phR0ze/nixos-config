@@ -44,7 +44,7 @@ install::prepare_disk()
     wipefs --all --force ${DESTDEV} &>/dev/null
     utils::check_status
 
-    echo -en ":: Wiping partition table on ${cyan}${DESTDEV}${none}..."
+    log::ls -n "Wiping partition table on ${cyan}${DESTDEV}${none}..."
     sgdisk --zap ${DESTDEV} &>/dev/null
     utils::check_status
 
@@ -63,41 +63,41 @@ install::prepare_disk()
     # to act as a storage place for the EFI bootloaders to be launched by the UEFI firmware.
     # https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition
     if [[ "x${EFI}" == "x1" ]]; then
-        echo -en ":: Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
+        log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
         sgdisk -n 0:0:+512M -t 0:EF00 -c 0:"EFI system" ${DESTDEV} &>/dev/null
         utils::check_status
 
-        echo -en ":: Formatting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}FAT32${none}..."
+        log::ls -n "Formatting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}FAT32${none}..."
         mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
         utils::check_status
 
     # BIOS: Create a BIOS boot partition EF02
     else
-        echo -en ":: Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
+        log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
         sgdisk -n 0:0:+2M -t 0:EF02 -c 0:"BIOS system" ${DESTDEV} &>/dev/null
         utils::check_status
     fi
 
     # Create SWAP partition 8200
-    echo -en ":: Creating ${cyan}${PART_SWAP}${none} as ${cyan}Linux swap partition${none}..."
+    log::ls -n "Creating ${cyan}${PART_SWAP}${none} as ${cyan}Linux swap partition${none}..."
     sgdisk -n 0:0:+4G -t 0:8200 -c 0:"Linux swap" ${DESTDEV} &>/dev/null
     utils::check_status
 
     # Create root partition 8300
-    echo -en ":: Creating ${cyan}${PART_ROOT}${none} as ${cyan}Linux filesystem partition${none}..."
+    log::ls -n "Creating ${cyan}${PART_ROOT}${none} as ${cyan}Linux filesystem partition${none}..."
     sgdisk -n 0:0:0 -t 0:8300 -c 0:"Linux filesystem" ${DESTDEV} &>/dev/null
     utils::check_status
 
     # Set boot flag for device
-    echo -en ":: Setting boot flag on ${cyan}${DESTDEV}${none}..."
+    log::ls -n "Setting boot flag on ${cyan}${DESTDEV}${none}..."
     sgdisk ${DESTDEV} --attributes=3:set:2 &>/dev/null
     utils::check_status
 
     # Configure swap partition
-    echo -en ":: Formatting ${cyan}${PART_SWAP}${none} as ${cyan}swap${none}..."
+    log::ls -n "Formatting ${cyan}${PART_SWAP}${none} as ${cyan}swap${none}..."
     mkswap -L SWAP ${PART_SWAP} &>/dev/null
     utils::check_status
-    echo -en ":: Starting swap on ${cyan}${PART_SWAP}${none}..."
+    log::ls -n "Starting swap on ${cyan}${PART_SWAP}${none}..."
     swapon ${PART_SWAP} &>/dev/null
     utils::check_status
 
@@ -106,12 +106,12 @@ install::prepare_disk()
     # -L            set volume name to well known label used by bootloaders
     # -m 0          don't reserve blocks for super user daemons
     # -q            run in quiet mode for scripts
-    echo -en ":: Formatting ${cyan}${PART_ROOT}${none} as ${cyan}ext4${none}..."
+    log::ls -n "Formatting ${cyan}${PART_ROOT}${none} as ${cyan}ext4${none}..."
     mkfs.ext4 -F -m 0 -q -L ROOT ${PART_ROOT} &>/dev/null
     utils::check_status
 
     # Mount root as ROOT_MOUNT and disable access time writes (speeds things up)
-    echo -en ":: Mounting ${cyan}${PART_ROOT}${none} as ${cyan}${ROOT_MOUNT}${none}..."
+    log::ls -n "Mounting ${cyan}${PART_ROOT}${none} as ${cyan}${ROOT_MOUNT}${none}..."
     mount -o noatime ${PART_ROOT} ${ROOT_MOUNT} &>/dev/null
     utils::check_status
 
@@ -119,7 +119,7 @@ install::prepare_disk()
     # standard boot file install e.g. kernel and initramfs. We keep them on the same partition
     # as the EFI/BOOT/BOOTX64.efi as EFI can't mount a ext4 filesystem.
     if [[ "x${EFI}" == "x1" ]]; then
-        echo -en ":: Mounting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}${ROOT_MOUNT}/boot${none}..."
+        log::ls -n "Mounting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}${ROOT_MOUNT}/boot${none}..."
         mkdir -p ${ROOT_MOUNT}/boot
         mount ${PART_BOOT} ${ROOT_MOUNT}/boot &>/dev/null
         utils::check_status
@@ -160,11 +160,11 @@ install::stage_system_config()
 {
     pushd ${NIXOS_CONFIG_DIR} &>/dev/null
 
-    if [[ -v $PROFILES ]]; then
+    if [[ "$TARGET" == "profiles"* ]]; then
         log::header1 "Generate new persistent configuration"
 
         # Stage the flake from the base
-        echo -en ":: Staging flake.nix and flake.lock..."
+        log::ls -n "Staging flake.nix and flake.lock..."
         cp base.nix flake.nix
         cp base.lock flake.lock
         git add flake.nix -f
@@ -172,7 +172,7 @@ install::stage_system_config()
 
         # Create the new persistent config for the system
         local config="machines/${HOSTNAME}/configuration.nix"
-        echo -en ":: Generating ${config}..."
+        log::ls -n "Generating ${config}..."
         mkdir "machines/$HOSTNAME"
         cat <<EOF > "$config"
 { config, pkgs, lib, args, f, ... }: with lib.types;
@@ -188,7 +188,7 @@ EOF
         git add configuration.nix -f
     else
         log::header1 "Load existing system configuration"
-        echo -en ":: NOT YET SUPPORTED..."
+        log::ls -n "NOT YET SUPPORTED..."
     fi
     popd &>/dev/null
 }
@@ -198,17 +198,17 @@ install::install_config_template()
 {
     log::header1 "Configure install overrides"
 
-    echo -en ":: Install overrides template to ${cyan}${NIXOS_ARGS}${none}..."
+    log::ls -n "Install overrides template to ${cyan}${NIXOS_ARGS}${none}..."
     cp "${NIXOS_CONFIG_DIR}/profiles/install.nix" "${NIXOS_ARGS}"
     utils::check_status
 
-    echo -en ":: Update NIXOS target version to ${cyan}${NIXOS_VER}${none}..."
+    log::ls -n "Update NIXOS target version to ${cyan}${NIXOS_VER}${none}..."
     utils::check_status
     utils::replace "${NIXOS_ARGS}" str "nix.minVer" "${NIXOS_VER}"
 
     # Extract networking for use during install
     NICS=($(ls /sys/class/net))
-    echo -en ":: Storing NIC0 ${cyan}${NICS[0]}${none}..."
+    log::ls -n "Storing NIC0 ${cyan}${NICS[0]}${none}..."
     utils::replace "${NIXOS_ARGS}" str "net.nic0.name" "${NICS[0]}"
     utils::check_status
 
@@ -217,7 +217,7 @@ install::install_config_template()
     # Configure new user and root user
     local pass=""
     [[ "x$DEFAULT" == "xy" ]] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
-    echo -en ":: Storing new ${cyan}${USER_NAME}${none} and ${cyan}root${none} passwords${pass}..."
+    log::ls -n "Storing new ${cyan}${USER_NAME}${none} and ${cyan}root${none} passwords${pass}..."
 
     utils::replace "${NIXOS_ARGS}" str "user.fullname" "${FULL_NAME}"
     utils::replace "${NIXOS_ARGS}" str "user.email" "${USER_EMAIL}"
@@ -247,7 +247,7 @@ install::install_config_template()
     utils::check_status
 
     # Configure boot device target
-    echo -en ":: Storing boot device type setting..."
+    log::ls -n "Storing boot device type setting..."
     [[ "x${EFI}" == "x1" ]] && efi_str="true" || efi_str="false"
     utils::replace "${NIXOS_ARGS}" bool "efi" "${efi_str}"
 
@@ -271,15 +271,15 @@ install::install_config_dir()
 {
     log::header1 "Configure new system nix config"
 
-    echo -en ":: Create the NixOS config dir ${cyan}${NIXOS_CONFIG_DIR}${none}..."
+    log::ls -n "Create the NixOS config dir ${cyan}${NIXOS_CONFIG_DIR}${none}..."
     mkdir -p ${NIXOS_CONFIG_DIR}
     utils::check_status
 
-    echo -en ":: Stage NIXOS configuration files at ${cyan}${NIXOS_CONFIG_DIR}${none}..."
+    log::ls -n "Stage NIXOS configuration files at ${cyan}${NIXOS_CONFIG_DIR}${none}..."
     cp -r $SCRIPT_DIR/. ${NIXOS_CONFIG_DIR}
     utils::check_status
 
-    echo -en ":: Generating hardware configuration..."
+    log::ls -n "Generating hardware configuration..."
     nixos-generate-config --root ${ROOT_MOUNT} &>/dev/null
     utils::check_status
 
@@ -288,9 +288,10 @@ install::install_config_dir()
     NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${GEN_CONFIG}")
     rm -f "${NIXOS_CONFIG_DIR}/configuration.nix" # clean up
 
-    log::ls "Update the swap entry to use the device UUID"
+    log::ls -n "Update the swap entry to use the device UUID..."
     local swap_uuid=$(blkid -s UUID -o value ${PART_SWAP})
     utils::replace "${NIXOS_CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
+    utils::check_status
 
     # Files must be at least git added for the flake to recognize them
     pushd ${NIXOS_CONFIG_DIR} &>/dev/null
