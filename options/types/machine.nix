@@ -76,7 +76,7 @@ in
           hostname = lib.mkOption {
             description = lib.mdDoc "Hostname";
             type = types.str;
-            default = if (!args ? "hostname" || args.hostname == "") then "nixos" else args.hostname;
+            default = if (args.hostname or "" == "") then "nixos" else args.hostname;
           };
 
           id = lib.mkOption {
@@ -120,19 +120,19 @@ in
           arch = lib.mkOption {
             description = lib.mdDoc "System architecture";
             type = types.str;
-            default = if (!args ? "arch" || args.arch == "") then "x86_64-linux" else args.arch;
+            default = if (args.arch or "" == "") then "x86_64-linux" else args.arch;
           };
 
           locale = lib.mkOption {
             description = lib.mdDoc "System locale";
             type = types.str;
-            default = if (!args ? "locale" || args.locale == "") then "en_US.UTF-8" else args.locale;
+            default = if (args.locale or "" == "") then "en_US.UTF-8" else args.locale;
           };
 
           timezone = lib.mkOption {
             description = lib.mdDoc "System timezone";
             type = types.str;
-            default = if (!args ? "timezone" || args.timezone == "") then "America/Boise" else args.timezone;
+            default = if (args.timezone or "" == "") then "America/Boise" else args.timezone;
           };
 
           autologin = lib.mkOption {
@@ -162,8 +162,7 @@ in
                 minVer = lib.mkOption {
                   description = lib.mdDoc "Minimal support Nixpkgs version";
                   type = types.str;
-                  default = if (!args ? "nix" || !args.nix ? "minVer" || args.nix.minVer == "")
-                    then "25.05" else args.nix.minVer;
+                  default = if (args.nix.minVer or "" == "") then "25.05" else args.nix.minVer;
                 };
                 cache = lib.mkOption {
                   description = lib.mdDoc "Nix Binary cache configuration";
@@ -195,8 +194,7 @@ in
               };
             };
             default = {
-              minVer = if (!args ? "nix" || !args.nix ? "minVer" || args.nix.minVer == "")
-                then "25.05" else args.nix.minVer;
+              minVer = if (args.nix.minVer or "" == "") then "25.05" else args.nix.minVer;
               cache = {
                 enable = args.nix.cache.enable or false;
                 ip = args.nix.cache.ip or "";
