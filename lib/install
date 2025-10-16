@@ -449,7 +449,7 @@ install::select_deployment_options()
             fi
         done
         utils::select TARGET "${PROFILES[@]}"
-        TARGET="${profiles_dir}/${TARGET}.nix"
+        TARGET="profiles/${TARGET}.nix"
     else
         local machines_dir="${SCRIPT_DIR}/machines"
         local _machines=($(echo $(find $machines_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/machines/vm*" | sort)))
@@ -463,7 +463,7 @@ install::select_deployment_options()
             i=$((i+1))                                        # increment i
         done
         utils::select TARGET "${MACHINES[@]}"
-        TARGET="${machines_dir}/${TARGET}"
+        TARGET="machines/${TARGET}"
     fi
 }
 
@@ -517,9 +517,9 @@ install::run()
 
     # Determine if this is a default deployment
     # ----------------------------------------------------------------------------------------------
-    log::header0 "Automatically deploy with defaults?"
-    utils::read OFFLINE 'Use ISO nix cache' 'y'
-    utils::read DEFAULT 'Use automatic mode with defaults' 'n'
+    log::header0 "Select deployment options:"
+    utils::read OFFLINE 'Use ISO nix cache?' 'y'
+    utils::read DEFAULT 'Use automatic mode with defaults?' 'n'
 
     # Drop out debug variables if in debug mode
     # ----------------------------------------------------------------------------------------------
@@ -541,6 +541,7 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
+    log::subln3 "offline=${cyan}${OFFLINE}${none}"
     log::subln3 "target=${cyan}${TARGET}${none}"
 
     # Networking settings
