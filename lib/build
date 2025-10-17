@@ -19,7 +19,7 @@ build::usage()
 {
     cat <<USAGE
 Usage:
-  build [TARGET|COMMAND] [ARGS...] [OPTIONS] 
+  build [COMMAND] [ARGS...] [OPTIONS] 
 
 Options:
   -h, --help            Print out usage
@@ -28,7 +28,7 @@ Options:
 
 Commands:
   iso [PROFILE]         Build the installable ISO with an optional profile override
-  vm [TARGET]           Build the given VM machine or the default test vm 'vm-test'
+  vm [MACHINE]          Build the given VM machine or the default test vm 'vm-test'
 USAGE
 
     log::ln "\nExamples:"
@@ -38,7 +38,7 @@ USAGE
     log::subln "Build the prod1 VM: ${green}./${SCRIPT} build vm prod1${none}"
     log::subln "Clean build of test VM: ${green}./${SCRIPT} build vm -c${none}"
     log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso${none}"
-    log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso xfce/base${none}"
+    log::subln "Build the installable ISO: ${green}./${SCRIPT} build iso xfce/base.nix${none}"
     echo
     exit
 }
@@ -68,13 +68,15 @@ build::machine()
     # Use hostname as machine
     MACHINE="$1"
     [[ "$1" == "" ]] && MACHINE="$(hostname)"
+
+    # Target includes the prefix path
     TARGET="machines/$MACHINE"
 
     log::header1 "Building ${cyan}${TARGET}${none}"
     flake::switch "$TARGET"
     trap flake::restore EXIT
 
-    nixos-rebuild dry-activate $TRACE $IMPURE --flake "path:.#target"
+    nixos-rebuild dry-activate $TRACE $IMPURE --flake "${CONFIG_DIR}#target"
 }
 
 
@@ -82,27 +84,24 @@ build::machine()
 # --------------------------------------------------------------------------------------------------
 # https://releases.nixos.org/
 # https://discourse.nixos.org/t/nixos-reproducible-builds-minimal-installation-iso-successfully-independently-rebuilt/34756
+# - $1 - profile target to use e.g. 'base.nix'
 # --------------------------------------------------------------------------------------------------
 build::iso()
 {
     core::preamble
-    flake::ensure_origin
 
     # Handle input target
     PROFILE="$1"
     [[ "$1" == "" ]] && PROFILE="base.nix"
-    TARGET="profiles/$PROFILE"  # set the target prefix
 
-    # Pass the target profile to default args.nix file
-    utils::replace "${SOURCE_DIR}/args.nix" str "target" "${TARGET}"
+    # Target includes the prefix path
+    TARGET="profiles/$PROFILE"
 
     log::header1 "Building installable ISO for ${cyan}${TARGET}${none}"
     flake::switch "$TARGET"
     trap flake::restore EXIT
 
-    nix build .#nixosConfigurations.iso.config.system.build.isoImage
-
-    _build::post
+    nix build "${CONFIG_DIR}#nixosConfigurations.iso.config.system.build.isoImage"
 }
 
 # Build the vm
@@ -113,9 +112,15 @@ build::vm()
 {
     [[ $NO_PREAMBLE -eq 0 ]] && core::preamble
 
-    local machine="${1#vm-}"  # trim vm- prefix
-    [[ "$machine" == "" ]] && machine="test"
-    MACHINE="vm-${machine}"
+    if [[ "$1" == "machines/"* ]]; then
+        MACHINE="${1#machines/}"
+    else
+        local machine="${1#vm-}"  # trim vm- prefix
+        [[ "$machine" == "" ]] && machine="test"
+        MACHINE="vm-${machine}"
+    fi
+
+    # Target includes the prefix path
     TARGET="machines/$MACHINE"
 
     log::header1 "Building ${cyan}${TARGET}${none}"
@@ -125,25 +130,13 @@ build::vm()
     # Optionally clean first
     if [[ $CLEAN -eq 1 ]]; then
         log::ls "Cleaning ${cyan}${MACHINE}${none}"
-        rm -rf "./${MACHINE}"
+        rm -rf "${CONFIG_DIR}/${MACHINE}"
     fi
 
-    nix build .#nixosConfigurations.target.config.system.build.vm
+    nix build "${CONFIG_DIR}#nixosConfigurations.target.config.system.build.vm"
 
     # Install the vm in its own directory
     log::ls "Installing at ${cyan}./${MACHINE}${none}"
-    [[ -e $MACHINE/result ]] && rm $MACHINE/result
-    mkdir -p "$MACHINE"
-    [ -e result ] && mv result "$MACHINE"
-}
-
-# Post build operations
-_build::post()
-{
-    if [[ $BUILD_UPDATE_ARGS == 1 ]]; then
-        if [[ "$(git diff --staged --name-only -- ${ARGS})" != "" ]]; then
-            log::ln "Restoring back to original: ${ARGS}"
-            git restore --staged "${ARGS}"
-        fi
-    fi
+    mkdir -p "${CONFIG_DIR}/${MACHINE}"
+    [ -e result ] && mv -f result "${CONFIG_DIR}/${MACHINE}"
 }

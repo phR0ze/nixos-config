@@ -26,6 +26,7 @@ USAGE
 
 
 # Parse the switch commands and execute
+# - $1 - system version # or system version path
 # --------------------------------------------------------------------------------------------------
 switch::run()
 {

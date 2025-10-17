@@ -28,7 +28,7 @@ USAGE
     exit
 }
 
-# Partition disk and mount for install at ${ROOT_MOUNT}
+# Partition disk and mount for install at ${ROOT_DIR}
 install::prepare_disk()
 {
     log::header1 "Partitioning and mounting destination disk ${cyan}${DESTDEV}${none}..."
@@ -42,11 +42,11 @@ install::prepare_disk()
 
     echo -en "\n:: Destroying any magic strings and/or signatures on ${cyan}${DESTDEV}${none}..."
     wipefs --all --force ${DESTDEV} &>/dev/null
-    utils::check_status
+    log::status
 
     log::ls -n "Wiping partition table on ${cyan}${DESTDEV}${none}..."
     sgdisk --zap ${DESTDEV} &>/dev/null
-    utils::check_status
+    log::status
 
     # Set partition identifiers
     if [[ "x${SCSI}" == "x1" ]]; then
@@ -65,41 +65,41 @@ install::prepare_disk()
     if [[ "x${EFI}" == "x1" ]]; then
         log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
         sgdisk -n 0:0:+512M -t 0:EF00 -c 0:"EFI system" ${DESTDEV} &>/dev/null
-        utils::check_status
+        log::status
 
         log::ls -n "Formatting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}FAT32${none}..."
         mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
-        utils::check_status
+        log::status
 
     # BIOS: Create a BIOS boot partition EF02
     else
         log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
         sgdisk -n 0:0:+2M -t 0:EF02 -c 0:"BIOS system" ${DESTDEV} &>/dev/null
-        utils::check_status
+        log::status
     fi
 
     # Create SWAP partition 8200
     log::ls -n "Creating ${cyan}${PART_SWAP}${none} as ${cyan}Linux swap partition${none}..."
     sgdisk -n 0:0:+4G -t 0:8200 -c 0:"Linux swap" ${DESTDEV} &>/dev/null
-    utils::check_status
+    log::status
 
     # Create root partition 8300
     log::ls -n "Creating ${cyan}${PART_ROOT}${none} as ${cyan}Linux filesystem partition${none}..."
     sgdisk -n 0:0:0 -t 0:8300 -c 0:"Linux filesystem" ${DESTDEV} &>/dev/null
-    utils::check_status
+    log::status
 
     # Set boot flag for device
     log::ls -n "Setting boot flag on ${cyan}${DESTDEV}${none}..."
     sgdisk ${DESTDEV} --attributes=3:set:2 &>/dev/null
-    utils::check_status
+    log::status
 
     # Configure swap partition
     log::ls -n "Formatting ${cyan}${PART_SWAP}${none} as ${cyan}swap${none}..."
     mkswap -L SWAP ${PART_SWAP} &>/dev/null
-    utils::check_status
+    log::status
     log::ls -n "Starting swap on ${cyan}${PART_SWAP}${none}..."
     swapon ${PART_SWAP} &>/dev/null
-    utils::check_status
+    log::status
 
     # mkfs.ext4 option descriptions
     # -F            force creation even if some params don't make sense
@@ -108,21 +108,21 @@ install::prepare_disk()
     # -q            run in quiet mode for scripts
     log::ls -n "Formatting ${cyan}${PART_ROOT}${none} as ${cyan}ext4${none}..."
     mkfs.ext4 -F -m 0 -q -L ROOT ${PART_ROOT} &>/dev/null
-    utils::check_status
+    log::status
 
-    # Mount root as ROOT_MOUNT and disable access time writes (speeds things up)
-    log::ls -n "Mounting ${cyan}${PART_ROOT}${none} as ${cyan}${ROOT_MOUNT}${none}..."
-    mount -o noatime ${PART_ROOT} ${ROOT_MOUNT} &>/dev/null
-    utils::check_status
+    # Mount root as ROOT_DIR and disable access time writes (speeds things up)
+    log::ls -n "Mounting ${cyan}${PART_ROOT}${none} as ${cyan}${ROOT_DIR}${none}..."
+    mount -o noatime ${PART_ROOT} ${ROOT_DIR} &>/dev/null
+    log::status
 
     # UEFI: boot partition needs to be mounted over the root at /boot to capture the Linux
     # standard boot file install e.g. kernel and initramfs. We keep them on the same partition
     # as the EFI/BOOT/BOOTX64.efi as EFI can't mount a ext4 filesystem.
     if [[ "x${EFI}" == "x1" ]]; then
-        log::ls -n "Mounting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}${ROOT_MOUNT}/boot${none}..."
-        mkdir -p ${ROOT_MOUNT}/boot
-        mount ${PART_BOOT} ${ROOT_MOUNT}/boot &>/dev/null
-        utils::check_status
+        log::ls -n "Mounting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}${ROOT_DIR}/boot${none}..."
+        mkdir -p ${ROOT_DIR}/boot
+        mount ${PART_BOOT} ${ROOT_DIR}/boot &>/dev/null
+        log::status
     fi
     # BIOS: boot partition shouldn't be formatted or mounted in this case as its just for the MBR
 }
@@ -131,39 +131,30 @@ install::prepare_disk()
 install::install_system()
 {
     log::header1 "Installing NixOS based on the staged configuration"
+    flake::stage_files "${MACHINE}" install
 
-    # Run the installer: $NIXOS_CONFIG_DIR will be /mnt/etc/nixos
+    # Run the installer: $CONFIG_DIR will be /mnt/etc/nixos unless testing
     log::ls "Launching installation with ${cyan}nixos-install${none}..."
-    nixos-install --no-root-passwd --no-channel-copy --flake "${NIXOS_CONFIG_DIR}#target"
+    nixos-install --no-root-passwd --no-channel-copy --flake "${CONFIG_DIR}#target"
     if [ $? -ne 0 ]; then
         echo -e ":: ${red}Failure building the install flake${none}"
-        echo -e "   1. Fix the flake issue at ${cyan}${NIXOS_CONFIG}${none}"
-        echo -e "   2. Rerun: ${cyan}nixos-install --no-root-passwd --no-channel-copy --flake ${NIXOS_CONFIG_DIR}#target${none}"
+        echo -e "   1. Fix the flake issue at ${cyan}${CONFIG_DIR}${none}"
+        echo -e "   2. Rerun: ${cyan}nixos-install --no-root-passwd --no-channel-copy --flake ${CONFIG_DIR}#target${none}"
     fi
 
-    # Add lock file to avoid file automation running every boot
-    lockfile="${ROOT_MOUNT}/nix/files.lock"
-    log::ls -n "Adding ${lockfile} to avoid file automation on every boot..."
-    touch "${lockfile}"
-    utils::check_status
+    flake::unstage_files
 }
 
 # Create the new system's persistent configuration or stage the existing system
 install::install_config()
 {
-    NEW_CONFIG_DIR="machines/$HOSTNAME"
-    NIXOS_CONFIG="${NEW_CONFIG_DIR}/args.nix"
-    log::header1 "Install system ${cyan}${NEW_CONFIG_DIR}${none}"
+    MACHINE="machines/$HOSTNAME"
+    local machine_args="${MACHINE}/args.nix"
+    log::header1 "Install system ${cyan}${MACHINE}${none}"
 
-    # Stage the flake from the base
-    pushd ${NIXOS_CONFIG_DIR} &>/dev/null
-    log::ls -n "Staging flake.nix and flake.lock..."
-    cp base.nix flake.nix
-    cp base.lock flake.lock
-    git add flake.nix -f
-    git add flake.lock -f
-    utils::check_status
-    mkdir "${NEW_CONFIG_DIR}"
+    # Create the new machine directory
+    pushd ${CONFIG_DIR} &>/dev/null
+    mkdir "${MACHINE}"
 
     # Construct options array to be included in the configuration.nix
     local options=()
@@ -172,30 +163,30 @@ install::install_config()
     # Configure boot device target
     log::ls -n "Storing boot device type setting..."
     [[ "x${EFI}" == "x1" ]] && options+=("efi = true;") || options+=("mbr = \"${DESTDEV}\";")
-    utils::check_status
+    log::status
 
     # Enable remote Nix Cache
     if [[ "x$CACHE_IP" != "x" ]]; then
         log::ls -n "Update Nix Cache IP to ${cyan}${CACHE_IP}${none}..."
         options+=("nix.cache.enable = true;")
         options+=("nix.cache.ip = \"${CACHE_IP}\";")
-        utils::check_status
+        log::status
     fi
 
     log::ls -n "Update NIXOS target version to ${cyan}${NIXOS_VER}${none}..."
     options+=("nix.minVer = \"${NIXOS_VER}\";")
-    utils::check_status
+    log::status
 
     log::ls -n "Update set hostname and timezone..."
     options+=("hostname  = \"${HOSTNAME}\";")
     options+=("timezone = \"${TIMEZONE}\";")
-    utils::check_status
+    log::status
 
     # Extract networking for use during install
     NICS=($(ls /sys/class/net))
     log::ls -n "Storing NIC0 ${cyan}${NICS[0]}${none}..."
     options+=("net.nic0.name = \"${NICS[0]}\";")
-    utils::check_status
+    log::status
 
     # Configure new user and root user
     local pass=""
@@ -208,7 +199,7 @@ install::install_config()
     options+=("user.pass = \"${USER_PASS}\";")
     options+=("git.user = \"${GIT_USER}\";")
     options+=("git.email = \"${GIT_EMAIL}\";")
-    utils::check_status
+    log::status
 
     log::ls -n "Storing new networking options..."
     [[ "x$SUBNET" != "x" ]] && options+=("net.subnet = \"${SUBNET}\";") || true
@@ -223,16 +214,13 @@ install::install_config()
     [[ "x$BLUETOOTH" == "xy" ]] && options+=("bluetooth = true;") || true
     [[ "x$AUTO_LOGIN" == "xy" ]] && options+=("autologin = true;") || true
     [[ "x$NFS_SHARES" == "xy" ]] && options+=("nfs.enable = true;") || true
-    utils::check_status
+    log::status
 
-    # Update the root args.nix to use the new hostname as a key
-    utils::replace "${NIXOS_CONFIG_DIR}/args.nix" str "hostname" "${HOSTNAME}"
-    
-    # Write out the file to /mnt/etc/nixos/machines/$HOSTNAME/configuration.nix
-    cat > "$NEW_CONFIG_DIR/configuration.nix" <<EOF
+    # Write out the file to machines/$HOSTNAME/configuration.nix
+    cat > "${MACHINE}/configuration.nix" <<EOF
 { config, pkgs, lib, args, f, ... }: with lib.types;
 {
-  imports = [ ./hardware-configuration.nix ../../${TARGET} ];
+  imports = [ ./hardware-configuration.nix ../../${PROFILE} ];
   config = {
     machine.type.bootable = true;
   };
@@ -240,18 +228,15 @@ install::install_config()
 EOF
 
     # Add the /mnt/etc/nixos/machines/$HOSTNAME/args.nix
-    cat > "$NIXOS_CONFIG" <<EOF
+    cat > "${machine_args}" <<EOF
 {
 $(for x in "${options[@]}"; do echo "  $x"; done)
 }
 EOF
 
     # Files must be at least git added for the flake to recognize them
-    git add args.nix
-    mv hardware-configuration.nix "${NEW_CONFIG_DIR}"
-    git add "${NEW_CONFIG_DIR}"
-    ln -sf "${NEW_CONFIG_DIR}/configuration.nix" configuration.nix
-    git add configuration.nix -f
+    mv hardware-configuration.nix "${MACHINE}"
+    git add "${MACHINE}"
 
     popd &>/dev/null
 }
@@ -261,27 +246,27 @@ install::install_config_dir()
 {
     log::header1 "Configure new system nix config"
 
-    log::ls -n "Create the NixOS config dir ${cyan}${NIXOS_CONFIG_DIR}${none}..."
-    mkdir -p ${NIXOS_CONFIG_DIR}
-    utils::check_status
+    log::ls -n "Create the NixOS config dir ${cyan}${CONFIG_DIR}${none}..."
+    mkdir -p ${CONFIG_DIR}
+    log::status
 
-    log::ls -n "Stage NIXOS configuration files at ${cyan}${NIXOS_CONFIG_DIR}${none}..."
-    cp -r $SCRIPT_DIR/. ${NIXOS_CONFIG_DIR}
-    utils::check_status
+    log::ls -n "Stage NIXOS configuration files at ${cyan}${CONFIG_DIR}${none}..."
+    cp -r $SCRIPT_DIR/. ${CONFIG_DIR}
+    log::status
 
     log::ls -n "Generating hardware configuration..."
-    nixos-generate-config --root ${ROOT_MOUNT} &>/dev/null
-    utils::check_status
+    nixos-generate-config --root ${ROOT_DIR} &>/dev/null
+    log::status
 
     # Extract the current NIXOS version from the generated configuration.nix file
-    GEN_CONFIG="${NIXOS_CONFIG_DIR}/configuration.nix"
+    GEN_CONFIG="${CONFIG_DIR}/configuration.nix"
     NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${GEN_CONFIG}")
-    rm -f "${NIXOS_CONFIG_DIR}/configuration.nix" # clean up
+    rm -f "${GEN_CONFIG}" # clean up
 
     log::ls -n "Update the swap entry to use the device UUID..."
     local swap_uuid=$(blkid -s UUID -o value ${PART_SWAP})
-    utils::replace "${NIXOS_CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
-    utils::check_status
+    utils::replace "${CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
+    log::status
 }
 
 # Prompt the user to select for misc options
@@ -420,8 +405,8 @@ install::select_install_disk_options()
 install::select_deployment_options()
 {
     log::header0 "Select a deployment option:"
-    utils::read NEW 'Are you deploying an existing machine' 'n'
-    if [[ "x$NEW" == "xn" ]]; then
+    utils::read NEW_MACHINE 'Are you deploying an existing machine' 'n'
+    if [[ "x$NEW_MACHINE" == "xn" ]]; then
         local profiles_dir="${SCRIPT_DIR}/profiles"
         local _profiles=($(echo $(find $profiles_dir -name "*.nix" | sort)))
         log::header0 "Select a deployment profile:"
@@ -441,8 +426,8 @@ install::select_deployment_options()
                 i=$((i+1))                  # increment i
             fi
         done
-        utils::select TARGET "${PROFILES[@]}"
-        TARGET="profiles/${TARGET}.nix"
+        utils::select PROFILE "${PROFILES[@]}"
+        PROFILE="profiles/${PROFILE}.nix"
     else
         local machines_dir="${SCRIPT_DIR}/machines"
         local _machines=($(echo $(find $machines_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/machines/vm*" | sort)))
@@ -455,32 +440,33 @@ install::select_deployment_options()
             echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
             i=$((i+1))                                        # increment i
         done
-        utils::select TARGET "${MACHINES[@]}"
-        TARGET="machines/${TARGET}"
+        utils::select MACHINE "${MACHINES[@]}"
+        MACHINE="machines/${MACHINE}"
     fi
 }
 
 # Start the install wizard
+# - $CONFIG_DIR is set in ../clu to the $SCRIPT_DIR by default
+# - we override $CONFIG_DIR to be /mnt/etc/nixos during install for install context
 # --------------------------------------------------------------------------------------------------
 install::run()
 {
-    # Default installer values
-    # ----------------------------------------------------------------------------------------------
     core::preamble
+    args=($@)
 
     # Optionally enable testing
-    args=($@)
     if [[ "${args[0]}" == "testing" ]]; then
         log::header0 "Testing installer with local nixos-config"
-        ROOT_MOUNT=.
-        NIXOS_CONFIG_DIR=.
         TESTING="y"
+        ROOT_DIR=.      # use local nixos-config
+        CONFIG_DIR=.
+    else
+        ROOT_DIR="/mnt"
+        CONFIG_DIR="${ROOT_DIR}/etc/nixos"
     fi
 
-    DEFAULT="${DEFAULT:-n}"
+    DEFAULT="n"
     TESTING="${TESTING:-n}"
-    ROOT_MOUNT="${ROOT_MOUNT:-/mnt}"
-    NIXOS_CONFIG_DIR="${NIXOS_CONFIG_DIR:-${ROOT_MOUNT}/etc/nixos}"
     [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
     SCSI=0
     TIMEZONE='America/Boise'
@@ -500,8 +486,9 @@ install::run()
     AUTO_LOGIN='n'
 
     # Machine profile and services settings
-    NEW='y'
-    TARGET=''
+    MACHINE=''
+    PROFILE=''
+    NEW_MACHINE='y'
     NFS_SHARES='n'
 
     # Prompt to reinstall of an existing machine or install a brand new machine
@@ -533,7 +520,8 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
-    log::subln3 "target=${cyan}${TARGET}${none}"
+    log::subln3 "machine=${cyan}${MACHINE}${none}"
+    log::subln3 "profile=${cyan}${PROFILE}${none}"
     log::subln3 "cache_ip=${cyan}${CACHE_IP}${none}"
 
     # Networking settings
@@ -578,7 +566,7 @@ install::run()
         install::install_config_dir
 
         # Create the new system's persistent configuration or stage the existing system
-        if [[ "$TARGET" == "profiles"* ]]; then
+        if [[ "$PROFILE" == "profiles"* ]]; then
             install::install_config
         else
             log::header1 "Load existing system configuration"

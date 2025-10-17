@@ -221,6 +221,7 @@ log::status()
         echo -e "${green}success${none}"
     else
         echo -e "${red}failure${none}"
+        exit 1
     fi
 }
 

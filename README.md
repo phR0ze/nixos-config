@@ -240,7 +240,9 @@ world though this already exists.
 5. The ISO will end up in `result/iso/`
 
 ### Test the ISO in a QEMU VM
-
+```
+$ ./clu run iso
+```
 
 ## Development
 

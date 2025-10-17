@@ -10,108 +10,122 @@ MACHINE=""
 PROFILE=""
 TARGET=""
 
-# Ensure that flake related commands are executed from the root of the nixos-config directory
-flake::ensure_origin()
-{
-    if [[ "$(grep '# nixos-config' $SOURCE_DIR/README.md)" == "" ]]; then
-        log::fatal "Flake commands must be run from the root of the ${cyan}nixos-config${none} repo"
-    fi
-}
-
-# Ensure machine name was given and exists
-# - $1 - target
+# Ensure target was given and exists
+# - $1 - machine or profile with preceding path prefix 'profiles/' or 'machines/'
 #
 # Example: flake::ensure_target machines/homelab
 # Example: flake::ensure_target profiles/xfce/base
 flake::ensure_target()
 {
-    flake::ensure_origin
-
-    TARGET="$1"
+    local target="$1"
 
     # Check if the machine name is missing
-    if [[ "$TARGET" == "" || "$TARGET" == "machines/" || "$TARGET" == "profiles/" ]]; then
-        log::ls -n "Validating target exists..."
+    if [[ "$target" == "" || "$target" == "machines/" || "$target" == "profiles/" ]]; then
+        log::ls -n "Validating target ${cyan}${target}${none} was given..."
         log::status 1
-        log::fatal "Machine or profile not given"
     fi
 
     # Check that the given target name is valid
-    log::ls -n "Validating target ${cyan}$TARGET${none} exists..."
-    if [ ! -e "$TARGET" ]; then
+    log::ls -n "Validating target ${cyan}${target}${none} exists..."
+    if [ ! -e "${CONFIG_DIR}/$target" ]; then
         log::status 1
-        log::fatal "Invalid target path: ${cyan}${TARGET}${none}"
     else
         log::status
     fi
 }
 
 # Switch flake
-# - $1 - target
+# - $1 - machine or profile with preceding path prefix 'profiles/' or 'machines/'
+# - $2 - flag 'install' indcating behavior should be for an install
 #
 # Example: flake::switch machines/homelab
 flake::switch()
 {
-    flake::ensure_target $TARGET
+    local target="$1"
+    flake::ensure_target $target
 
-    local flake_local="$TARGET/flake.nix"
-    local flake_local_lock="$TARGET/flake.lock"
-    log::ls "Switching to target ${cyan}$TARGET${none}"
+    local machine_flake="${CONFIG_DIR}/${target}/flake.nix"
+    local machine_flake_lock="${CONFIG_DIR}/${target}/flake.lock"
+    log::ls "Switching to target ${cyan}${target}${none}"
 
     # Stage the flake files
-    if [ -e "$flake_local" ]; then
+    if [ -e "$machine_flake" ]; then
         # Use the machine specific flake files if they exist
-        cp "$flake_local" flake.nix 
-        cp "$flake_local_lock" flake.lock
+        cp "$machine_flake" "${CONFIG_DIR}/flake.nix"
+        cp "$machine_flake_lock" "${CONFIG_DIR}/flake.lock"
     else
         # Use the shared flake base files if they exist
-        cp base.nix flake.nix
-        cp base.lock flake.lock
+        cp "${CONFIG_DIR}/base.nix" "${CONFIG_DIR}/flake.nix"
+        cp "${CONFIG_DIR}/base.lock" "${CONFIG_DIR}/flake.lock"
     fi
 
-    # Decrypt and temporarily add the flake files
-    git decrypt
+    # Git requires being run from the correct directory
+    pushd ${CONFIG_DIR} &>/dev/null
+
+    # Add flake file dependencies to be seen by the configuration system
     git add flake.nix -f
     git add flake.lock -f
-    git add "args.dec.json" -f
+
+    # Decrypt if not installing
+    if [[ "$2" != "install" ]];
+        git decrypt
+        [[ -e "args.dec.json" ]] && git add "args.dec.json" -f
+    fi
 
     # Optionally include machine's configuration
-    if [[ "$MACHINE" != "" ]]; then
+    if [[ "$TARGET" == "machines"* ]]; then
         # - Using relative path here on purpose
         ln -sf "$TARGET/configuration.nix" configuration.nix
         git add configuration.nix -f
-        git add "$TARGET/args.dec.json" -f
+        [[ -e "${TARGET}/args.dec.json" ]] && git add "$TARGET/args.dec.json" -f
 
-        # Update args.nix with hostname and comment
-        utils::update "args.nix" str "hostname" "${MACHINE}"
+        # Update the target hostname
+        local hostname="${MACHINE#machines/}"
+        utils::update "args.nix" str "hostname" "${hostname}"
     fi
+
+    # Update the args.nix as a mechanism to tell the flake which machine/profile to build 
+    utils::update "args.nix" str "target" "${TARGET}"
     utils::update "args.nix" str "git.comment" "$(git log -1 --oneline --no-decorate)"
     git add "args.nix"
+    popd &>/dev/null
 }
 
-# Restore the standard flake files back to prestine in git
+# Restore the flake files back to prestine in git
 flake::restore()
 {
-    # Restore for the general case
-    if [[ "$(git diff --staged --name-only -- flake.nix flake.lock *.dec*)" != "" ]]; then
-        echo -n "Restoring flake files back to prestine"
-        find . -type f -name "*.dec*" -delete
-        git restore --staged flake.nix flake.lock *.dec*
+    pushd ${CONFIG_DIR} &>/dev/null
+
+    if [[ "$(git diff --staged --name-only -- flake.nix flake.lock)" != "" ]]; then
+        log::ls "Restoring flake files in ${CONFIG_DIR} back to prestine"
+        git restore --staged flake.nix flake.lock
     fi
 
-    # Restore for machine build additional files
+    if [[ "$(git diff --staged --name-only -- *.dec*)" != "" ]]; then
+        log::ls "Restoring decrypted files in ${CONFIG_DIR} back to prestine"
+        git restore --staged *.dec*
+    fi
+
     if [[ "$(git diff --staged --name-only -- configuration.nix)" != "" ]]; then
+        log::ls "Restoring ${CONFIG_DIR}/configuration.nix back to prestine"
         git restore --staged configuration.nix
     fi
+
     if [[ "$(git diff --staged --name-only -- */*.dec*)" != "" ]]; then
+        log::ls "Restoring ${CONFIG_DIR}/*/*.dec* back to prestine"
         git restore --staged */*.dec*
     fi
 
     if [[ "$(git diff --staged --name-only -- args.nix)" != "" ]]; then
         echo -n "Restoring args.nix to prestine"
         git restore --staged args.nix
-        git checkout args.nix
+        git checkout args.nix           # also clear changes
     fi
+
+    # Find and delete all decrypted files every time
+    find "$SCRIPT_DIR" -type f -name "*.dec*" -delete
+
+    popd &>/dev/null
 }
 
 # Cleanup trap function. Typically not used as the local functions will have their own which will
@@ -122,3 +136,36 @@ flake::trap()
     exit 1
 }
 
+# Stage for tempory flake files
+# - files that the flake depends on must be git staged to be used.
+# - $1 - machine or profile to use for switching to the given target
+# - $2 - flag 'install' indcating behavior should be for an install
+#
+# Example: flake::switch machines/homelab
+flake::stage_files()
+{
+    # Don't need to shutdown anything on a fresh install
+    if [[ "$2" != "install" ]]; then
+        log::ls "Shutting down ${cyan}xfconfd${none} to avoid conflicts"
+        pgrep xfconfd
+    fi
+
+    log::ls -n "Removing ${cyan}${ROOT_DIR}/nix/files.lock${none} to permit files update..."
+    rm -f "${ROOT_DIR}/nix/files.lock"
+    log::status
+
+    flake::switch $1 $2
+
+    trap flake::unstage_files EXIT
+}
+
+# Remove the tempory flake files
+# - files that the flake depends but don't want persisted
+flake::unstage_files()
+{
+    flake::restore
+
+    log::ls -n "Adding ${cyan}${ROOT_DIR}/nix/files.lock${none} to avoid updates during reboots"
+    touch "${ROOT_DIR}/nix/files.lock"
+    log::status
+}

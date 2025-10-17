@@ -47,7 +47,7 @@ list::profiles()
 {
     log::header1 "List configuration profiles"
 
-    local profiles_dir="${SCRIPT_DIR}/profiles/"
+    local profiles_dir="${CONFIG_DIR}/profiles/"
     for x in $(find "$profiles_dir" -name '*.nix' | sort); do
         echo "${x#${profiles_dir}}"
     done
@@ -73,7 +73,6 @@ list::versions()
             ] | @tsv' |
                 column --separator $'\t' --table --table-columns "Version,Build-date,NixOS version,Kernel,Configuration Revision"
 }
-
 
 # One line description of the system version
 # 
