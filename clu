@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 # MIT License
 # Copyright (c) 2024 phR0ze
