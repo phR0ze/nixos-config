@@ -1,0 +1,38 @@
+{
+	"hostname": "ENC[AES256_GCM,data:hJRNnkb5SJk=,iv:4mou3QrgboPZ/8L1JuEm+NOJNAkRFqiFMCdCqBm5Enw=,tag:hbYrhrmLssKRbTcHWx8eZw==,type:str]",
+	"id": "ENC[AES256_GCM,data:bZv7a9viDHVMaoiB6gZB13j1/3fHzIl5MoG9tYNKaDM=,iv:tT28VeJgQ1arHsI3oyn6SE4om+McRcYFSQYYCaL76/k=,tag:nO+9NOm2NEUPpBGo4hGVCA==,type:str]",
+	"mbr": "ENC[AES256_GCM,data:URik6NWFAQA=,iv:8RpLWLdmsXEXs12TZiPxNQXDIHL9SV3f15waHT0l5TM=,tag:HkTk3f30JgeZpthqrCtCbw==,type:str]",
+	"drives": [
+		{
+			"uuid": "ENC[AES256_GCM,data:CvMHyi0Hn9lrikZuSVs0pDZbEQeHo73Rpd6+6KxRPmwfJUqA,iv:bo+uJQBylZYytnT8GzerQklBb6f/nURrUSKvFrQbWLY=,tag:NBK+eh1FP/pU5OEn0wHi4w==,type:str]"
+		}
+	],
+	"user": {
+		"pass": "ENC[AES256_GCM,data:UE2wZYDh+Y8=,iv:sLS06TYmdjOxiOsMGDrIIsUAqgHHntW83SuDw5xUj9w=,tag:iaJyU4hFBCkXGVioMpLNuA==,type:str]"
+	},
+	"nix": {
+		"minVer": "ENC[AES256_GCM,data:qrdIN+Q=,iv:2JutklWQ9dYByJrUybKKuxdy5nNt7/Q9793Ge7WltCM=,tag:+Q6Etx/bNJcDE03SfUl+cQ==,type:str]"
+	},
+	"net": {
+		"dns": {
+			"primary": "ENC[AES256_GCM,data:0abTOVV98A==,iv:SemvKMt036hu7VHlfrlo10gYcj9CtjqKX8v94NW96Bo=,tag:rXiQW25mi0T/5aWNHhWXcw==,type:str]",
+			"fallback": "ENC[AES256_GCM,data:IKra5ixcOw==,iv:eHi9nwsSpkPI/grGuOkgYQheG6LHjTY8jurAX2Ts8iY=,tag:HvweCorG1qJ6kG4HcY0f1g==,type:str]"
+		},
+		"nic0": {
+			"name": "ENC[AES256_GCM,data:2nD4Uw==,iv:6mbZC4br0i6q3csdjDt7dYGSC6Fex9UiCJzXKXCgTAA=,tag:7LYYmg4nsd1avVC5Y+nScw==,type:str]",
+			"ip": "ENC[AES256_GCM,data:y6gmuw/G8VQuxcqF+rnb,iv:njkutUrVDceRHb3CRaOwJL+62OWpfYhqgqBkU0sPew4=,tag:zVbyyQJMyj5T6mk25f0QXQ==,type:str]"
+		}
+	},
+	"sops": {
+		"age": [
+			{
+				"recipient": "age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w",
+				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBDSjROVndaRDhmQlg4SU9k\nWEgxVEtUdmx3U2dmNUQrdGRveXJWNm8zcFRnCitJL0VBR1dQTGxIL2paOTZFOW9I\nU0JIQnRMSTZTbHh4ZHdicXk5OWJ2czQKLS0tIHRmY1grbFB3OGZJeTdnVUJheWMw\nVytqa080Y0Q4aHIvV01ZSkJQWUFUZzQKF/vJwLopcIt1CV07NUn15ZHjz2FwrjYt\nJ68fFizjzclEe6w46QQRy5lFJu/ZxH43oRgaIammUSW0AIJBqmNI5g==\n-----END AGE ENCRYPTED FILE-----\n"
+			}
+		],
+		"lastmodified": "2025-10-17T22:28:44Z",
+		"mac": "ENC[AES256_GCM,data:2c7E3hVowwHTHmVzaI1dkO51FJnGgB9KIGMF+WmYZaJbojcG59s71/3/1dhNOhAFqpGKyryMJJoekZHjtpMzRl4Pta9Q+05T39gdG/qycuzN1NFGihniWVW4d7iA8AZkzmLAEzc/cp2MuAPjJ+1z59myiYWV64vXdzHiIV73gtA=,iv:wsqpS0DvPwayXZvwGJbQpaJa2jBMcylkUulauhgmVjM=,tag:7sFMpsC57MBvUCzc6UfaMA==,type:str]",
+		"unencrypted_suffix": "_unencrypted",
+		"version": "3.10.2"
+	}
+}
