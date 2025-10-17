@@ -35,7 +35,7 @@ init::run()
     core::preamble
     log::header0 "Initializing nixos-config repo"
 
-    pushd ${CONFIG_DIR} &>/dev/null
+    pushd "${CONFIG_DIR}" &>/dev/null
     log::ln "Configuring core.hooksPath: ${cyan}.githooks${none}"
     git config --local core.hooksPath .githooks
 

@@ -60,7 +60,7 @@ update::flake()
     TARGET="machines/$MACHINE"
 
     # Switch to target flake
-    pushd ${CONFIG_DIR} &>/dev/null
+    pushd "${CONFIG_DIR}" &>/dev/null
     if [[ "$MACHINE" != "" ]]; then
         flake::switch $TARGET
         trap flake::restore EXIT

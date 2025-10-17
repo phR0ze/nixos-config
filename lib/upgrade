@@ -70,7 +70,7 @@ upgrade::system()
     log::header1 "Upgrade system version"
 
     # Upgrade the flake.lock file to the latest
-    pushd ${CONFIG_DIR} &>/dev/null
+    pushd "${CONFIG_DIR}" &>/dev/null
     nix flake update
     popd &>/dev/null
 
@@ -87,7 +87,7 @@ _upgrade::preUpgrade()
 # Trigger the Nix flake based system upgrade
 _upgrade::upgradeSystem()
 {
-    pushd ${CONFIG_DIR} &>/dev/null
+    pushd "${CONFIG_DIR}" &>/dev/null
     nixos-rebuild switch --flake "path:/etc/nixos#system"
     popd &>/dev/null
 }

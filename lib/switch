@@ -56,7 +56,7 @@ switch::run()
 
     # Execute switch
     log::subln "   Target ver: ${aqua}${latest}${none}"
-    pushd $NIXOS_PROFILES_PATH &>/dev/null
+    pushd "$NIXOS_PROFILES_PATH" &>/dev/null
 
     # Create the target link if it is a new target
     if [[ $isVer == false ]]; then

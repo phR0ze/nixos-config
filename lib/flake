@@ -60,14 +60,14 @@ flake::switch()
     fi
 
     # Git requires being run from the correct directory
-    pushd ${CONFIG_DIR} &>/dev/null
+    pushd "${CONFIG_DIR}" &>/dev/null
 
     # Add flake file dependencies to be seen by the configuration system
     git add flake.nix -f
     git add flake.lock -f
 
     # Decrypt if not installing
-    if [[ "$2" != "install" ]];
+    if [[ "$2" != "install" ]]; then
         git decrypt
         [[ -e "args.dec.json" ]] && git add "args.dec.json" -f
     fi
@@ -94,30 +94,30 @@ flake::switch()
 # Restore the flake files back to prestine in git
 flake::restore()
 {
-    pushd ${CONFIG_DIR} &>/dev/null
+    pushd "${CONFIG_DIR}" &>/dev/null
 
     if [[ "$(git diff --staged --name-only -- flake.nix flake.lock)" != "" ]]; then
-        log::ls "Restoring flake files in ${CONFIG_DIR} back to prestine"
+        log::ls "Restoring flake files in ${cyan}${CONFIG_DIR}${none} back to prestine"
         git restore --staged flake.nix flake.lock
     fi
 
     if [[ "$(git diff --staged --name-only -- *.dec*)" != "" ]]; then
-        log::ls "Restoring decrypted files in ${CONFIG_DIR} back to prestine"
+        log::ls "Restoring decrypted files in ${cyan}${CONFIG_DIR}${none} back to prestine"
         git restore --staged *.dec*
     fi
 
     if [[ "$(git diff --staged --name-only -- configuration.nix)" != "" ]]; then
-        log::ls "Restoring ${CONFIG_DIR}/configuration.nix back to prestine"
+        log::ls "Restoring ${cyan}${CONFIG_DIR}/configuration.nix${none} back to prestine"
         git restore --staged configuration.nix
     fi
 
     if [[ "$(git diff --staged --name-only -- */*.dec*)" != "" ]]; then
-        log::ls "Restoring ${CONFIG_DIR}/*/*.dec* back to prestine"
+        log::ls "Restoring ${cyan}${CONFIG_DIR}/*/*.dec*${none} back to prestine"
         git restore --staged */*.dec*
     fi
 
     if [[ "$(git diff --staged --name-only -- args.nix)" != "" ]]; then
-        echo -n "Restoring args.nix to prestine"
+        echo -n "Restoring ${cyan}args.nix${none} to prestine"
         git restore --staged args.nix
         git checkout args.nix           # also clear changes
     fi
@@ -147,7 +147,7 @@ flake::stage_files()
     # Don't need to shutdown anything on a fresh install
     if [[ "$2" != "install" ]]; then
         log::ls "Shutting down ${cyan}xfconfd${none} to avoid conflicts"
-        pgrep xfconfd
+        pgrep xfconfd || true
     fi
 
     log::ls -n "Removing ${cyan}${ROOT_DIR}/nix/files.lock${none} to permit files update..."
