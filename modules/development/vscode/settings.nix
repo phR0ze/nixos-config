@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }: with lib.types;
 let
-  xft = config.system.xserver.xft;
+  xft = config.system.x11.xft;
 
 in
 {
