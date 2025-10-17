@@ -19,6 +19,7 @@
     machine.type.bootable = true;
     machine.nix.cache.enable = true;
     apps.games.warcraft2.enable = true;
+    hardware.gpu.nvidiaLegacy470 = true;
 
     environment.systemPackages = [
       #
