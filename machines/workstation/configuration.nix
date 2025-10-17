@@ -1,8 +1,17 @@
 # Workstation configuration
 #
+# ### Hardware
+# - HP Z620 Workstation
+# - (2) 4-core Intel Xeon E5-2637 v2 3.5GHz
+# - Broadcom 802.11ac WiFi BCM4364 rev 3
+# - AMD Radeon RX 550
+# - 1TB Samsung 850 Pro SSD
+# - (2) 3 TB Seagate HDD
+#
 # ### Features
 # - Daily driver desktop deployment
 # - Barrier server configuration
+# 
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, args, f, ... }: with lib.types;
 {
