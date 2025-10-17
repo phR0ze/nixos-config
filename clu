@@ -22,16 +22,17 @@
 # SOFTWARE.
 
 # --------------------------------------------------------------------------------------------------
-# Simple NixOS install automation
+# Simple NixOS configuration and install automation
 # 
 # ## Features
 # - Handles partitioning the disk in preparation for installation
-# - Allows for customizing some common install settings
-#   - hostname
+# - Allows for customizing common install settings
+# - Provides wrappers around common NixOS functions to make them more approachable
 # --------------------------------------------------------------------------------------------------
-SCRIPT=$(basename $0)
-SCRIPT_DIR=$(readlink -f $(dirname $BASH_SOURCE[0]))
-SOURCE_DIR=$(pwd)
+SCRIPT="$(basename $0)"                                 # clu
+SCRIPT_DIR="$(readlink -f $(dirname $BASH_SOURCE[0]))"  # /path/to/nixos-config
+ROOT_DIR="" # more intuitive to concat with / so blank  # changeable root for testing and installs
+CONFIG_DIR="${SCRIPT_DIR}"                              # changeable config location for testing and installs
 source "${SCRIPT_DIR}/lib/all"
 
 core::preamble()

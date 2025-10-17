@@ -51,6 +51,6 @@ pkgs::locate::run()
 
     # Pass on the command to the weekly updated github nix-index-database
     # https://github.com/nix-community/nix-index-database
-    # This is nice as I don't need to install 'nix-index' and download a and build a 2 GB index
+    # This is nice as I don't need to install 'nix-index' and download and build a 2 GB index
     nix run github:mic92/nix-index-database "$@"
 }

@@ -29,10 +29,10 @@ manage::run()
     utils::help "$@" "manage::usage"
 
     # Parse the commnand
-    local command=$1; shift
-    case "$command" in
+    local arg=$1; shift
+    case "$arg" in
         repo) manage::repo ;;
-        *) log::error "Invalid manage command: ${cyan}${command}${none}"; manage::usage ;;
+        *) log::error "Invalid manage command: ${cyan}${arg}${none}"; manage::usage ;;
     esac
 }
 

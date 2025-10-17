@@ -51,17 +51,6 @@ utils::exit()
     exit
 }
 
-# Check the status of the most recent operation
-utils::check_status()
-{
-    if [ $? -ne 0 ]; then
-        echo -e "${red}failed!${none}"
-        utils::exit
-    else
-        [ "$1" != "nomsg" ] && echo -e "${green}success!${none}"
-    fi
-}
-
 # Execute the given help function if the commands arguments contain help flags anywhere
 # 
 # ### Params

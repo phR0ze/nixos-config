@@ -41,7 +41,7 @@ deploy::run()
     esac
 }
  
-# Deploy the vm
+# Deploy the vm to the host at /var/lib/vms/$MACHINE
 # - $1 - optional machine name to target
 # --------------------------------------------------------------------------------------------------
 deploy::vm()
@@ -49,9 +49,12 @@ deploy::vm()
     core::preamble
 
     # Ensure machine is set
-    local machine="vm-${1#vm-}" # ensure 'vm-' prefix
-    log::header1 "Deploying ${cyan}${machine}${none}"
-    flake::ensure_target "$machine"
+    MACHINE="vm-${1#vm-}" # ensure 'vm-' prefix
+    log::header1 "Deploying ${cyan}${MACHINE}${none}"
+
+    # Target includes the prefix path
+    TARGET="machines/${MACHINE}"
+    flake::ensure_target "$MACHINE"
 
     local machine_dst="/var/lib/vms/$MACHINE"
 
@@ -66,7 +69,7 @@ deploy::vm()
     log::status
 
     log::ls -n "Copying source to ${cyan}${machine_dst}${none}..."
-    cp -r . "$machine_dst"
+    cp -r ${CONFIG_DIR}/. "$machine_dst"
     log::status
 
     # Build the deployed vm

@@ -51,18 +51,19 @@ run::vm()
     local machine="${1#vm-}"  # trim vm- prefix
     [[ "$machine" == "" ]] && machine="test"
     MACHINE="vm-${machine}"
+
+    # Target includes the prefix path
     TARGET="machines/$MACHINE"
 
     log::header1 "Running VM ${cyan}${TARGET}${none}"
-    flake::ensure_origin
 
     # Optionally clean first
     if [[ $CLEAN -eq 1 ]]; then
         log::ls "Cleaning ${cyan}${MACHINE}${none}"
-        rm -rf "./${MACHINE}"
+        rm -rf "${CONFIG_DIR}/${MACHINE}"
     fi
 
-    local runner="./${MACHINE}/result/bin/run"
+    local runner="${CONFIG_DIR}/${MACHINE}/result/bin/run"
 
     # Build and install if needed
     if [[ ! -f "$runner" ]]; then
@@ -80,13 +81,12 @@ run::iso()
 {
     core::preamble
     utils::ensure_not_root
-    flake::ensure_origin
 
     MACHINE="vm-iso"
     log::header1 "Boot VM with ${cyan}result/iso/*.iso${none}"
 
     # Check that the ISO exists
-    local iso="result/iso/$(ls result/iso)"
+    local iso="${CONFIG_DIR}/result/iso/$(ls ${CONFIG_DIR}/result/iso)"
     log::ls -n "Locating iso..."
     if [ -f "$iso" ]; then
         log::status
@@ -99,17 +99,16 @@ run::iso()
     # Optionally clean first
     if [[ $CLEAN -eq 1 ]]; then
         log::ls "Cleaning ${cyan}${MACHINE}${none}"
-        rm -rf "./${MACHINE}"
+        rm -rf "${CONFIG_DIR}/${MACHINE}"
     fi
 
     # Create the vm directory and volume if needed
     log::ls "Launching VM with ISO"
-    mkdir -p "${MACHINE}"
-    if [ ! -d "${MACHINE}" ]; then
+    mkdir -p "${CONFIG_DIR}/${MACHINE}"
+    if [ ! -d "${CONFIG_DIR}/${MACHINE}" ]; then
         log::subln3 "${cyan}$iso${none}"
-        echo "foo"
     fi
-    pushd "${MACHINE}"
+    pushd "${CONFIG_DIR}/${MACHINE}" &>/dev/null
 
     # Create the volume if needed
     local vol="nixos.qcow2"
@@ -126,5 +125,5 @@ run::iso()
         -vga virtio -display sdl,gl=on \
         -hda $vol \
         -cdrom "../$iso"
-    popd
+    popd &>/dev/null
 }

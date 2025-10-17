@@ -35,9 +35,11 @@ init::run()
     core::preamble
     log::header0 "Initializing nixos-config repo"
 
+    pushd ${CONFIG_DIR} &>/dev/null
     log::ln "Configuring core.hooksPath: ${cyan}.githooks${none}"
     git config --local core.hooksPath .githooks
 
     log::ln "Configuring decrypt alias: ${cyan}git decrypt${none}"
     git config --local alias.decrypt '!decrypt() { .githooks/decrypt; }; decrypt'
+    popd &>/dev/null
 }

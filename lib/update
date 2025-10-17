@@ -48,7 +48,8 @@ update::run()
     esac
 }
 
-# Update the flake
+# Update the flake for the given machine or fallback on the root flake
+# - $1 - machine or profile with preceding path prefix 'profiles/' or 'machines/'
 # --------------------------------------------------------------------------------------------------
 update::flake()
 {
@@ -59,12 +60,12 @@ update::flake()
     TARGET="machines/$MACHINE"
 
     # Switch to target flake
+    pushd ${CONFIG_DIR} &>/dev/null
     if [[ "$MACHINE" != "" ]]; then
         flake::switch $TARGET
         trap flake::restore EXIT
     else
         log::header0 "Switching to base flake"
-        flake::ensure_origin
         cp base.nix flake.nix
         cp base.lock flake.lock
         git add flake.nix flake.lock -f
@@ -81,6 +82,7 @@ update::flake()
         cp flake.lock base.lock
         git restore --staged flake.nix flake.lock
     fi
+    popd &>/dev/null
 }
 
 # Update the system with the system configuration changes
@@ -101,10 +103,16 @@ update::system()
         esac
     done
 
-    # Optionally set the machine being used and log it
-    [[ "$MACHINE" == "" ]] && MACHINE=$(hostname)
-    log::ls "Using hostname ${cyan}${MACHINE}${none}"
-    _update::pre
+    # Set the target machine
+    if [[ "$MACHINE" == "" ]]; then
+        MACHINE=$(hostname)
+        log::ls "Using hostname ${cyan}${MACHINE}${none}"
+    else
+        log::ls "Using given machine name ${cyan}${MACHINE}${none}"
+    fi
+
+    TARGET="machines/$MACHINE"
+    flake::stage_files "${TARGET}"
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
     if [ $reset_xfce -eq 1 ]; then
@@ -112,22 +120,7 @@ update::system()
     fi
 
     # Execute update
-    nixos-rebuild switch $TRACE $IMPURE --flake "path:/etc/nixos#target"
-}
-
-# Pre update operations
-_update::pre()
-{
-    log::ls -n "Removing ${cyan}/nix/files.lock${none} to permit files update..."
-    rm -f /nix/files.lock
-    log::status
-
-    log::ls "Shutting down ${cyan}xfconfd${none} to avoid conflicts"
-    pgrep xfconfd
-
-    flake::switch "$MACHINE"
-
-    trap _update::post EXIT
+    nixos-rebuild switch $TRACE $IMPURE --flake "${CONFIG_DIR}#target"
 }
 
 # Remove user xfce configurations to get a clean point to start from
@@ -140,13 +133,4 @@ _update::removeUserXfceConfigs()
       log::ls "Cleaning up: ${cyan}${target}${none}"
       rm -rf "$target"
     done
-}
-
-# Post update operations
-_update::post()
-{
-    flake::restore
-
-    log::ls "Adding ${cyan}/nix/files.lock${none} to block files updates during reboots"
-    touch /nix/files.lock
 }
