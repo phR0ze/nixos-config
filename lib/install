@@ -381,7 +381,7 @@ install::select_install_disk_options()
         utils::select DESTDEV "${DISKS[@]}"
     fi
 
-    [ "x${DEBUG}" == "x1" ] && log::ln_d "User selected: $DESTDEV"
+    [ "x${DEBUG}" == "x1" ] && log::d "User selected: $DESTDEV"
 
     # Determine the storage drive partition pattern.
     # ----------------------------------------------------------------------------------------------
@@ -502,8 +502,8 @@ install::run()
 
     # Drop out debug variables if in debug mode
     # ----------------------------------------------------------------------------------------------
-    log::ln_d "Entering debug mode"
-    log::ln_d "Debug lines are prefixed with violet ${violet}>>${none}"
+    log::d "Entering debug mode"
+    log::d "Debug lines are prefixed with violet ${violet}>>${none}"
     log::vars
 
     install::select_install_disk_options

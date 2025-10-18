@@ -11,14 +11,15 @@ stdenvNoCC.mkDerivation {
   version = "1.0.0";
   src = fetchFromGitHub {
     owner = "phR0ze";
-    repo = "nixos-config":
+    repo = "nixos-config";
     rev = "main";
-    hash = "";
+    hash = "sha256-Slx+7rblY1Ity02bDd3UZZFdj66w1PBdTvqvytfDca4=";
   };
 
   installPhase = ''
     mkdir -p $out/bin
     cp $src/clu $out/bin/
+    cp -r $src/lib $out/bin/
     chmod +x $out/bin/clu
   '';
-};
+}

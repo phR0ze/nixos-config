@@ -33,7 +33,6 @@ set -e
 SCRIPT="$(basename $0)"                                 # clu
 SCRIPT_DIR="$(readlink -f $(dirname $BASH_SOURCE[0]))"  # /path/to/nixos-config
 ROOT_DIR="" # more intuitive to concat with / so blank  # changeable root for testing and installs
-CONFIG_DIR="${SCRIPT_DIR}"                              # changeable config location for testing and installs
 source "${SCRIPT_DIR}/lib/all"
 
 core::preamble()
@@ -49,7 +48,7 @@ core::usage()
     core::preamble
     cat <<USAGE
 Usage:
-  ./clu [COMMAND] [ARGS...] [OPTIONS]
+  clu [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
   --debug           Debug mode with verbose output
@@ -81,8 +80,8 @@ Commands:
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "${green}Launch installer:${none} sudo ./${SCRIPT} install"
-    log::subln "${green}Build the installer ISO:${none} ./${SCRIPT} build iso"
+    log::subln "${green}Launch installer:${none} sudo ${SCRIPT} install"
+    log::subln "${green}Build the installer ISO:${none} ${SCRIPT} build iso"
     echo
     exit
 }
@@ -115,7 +114,8 @@ ARGS=("${ARGS[@]}") # rebuild to remove deleted items
 # Only consider help if there was no command given
 [[ "$CMD" == "-h" || "$CMD" == "--help" ]] && core::usage
 
-# Extract the first argument
+# Process the command
+flake::ensure_config_path
 case "$CMD" in
     init) init::run "${ARGS[@]}" ;;
     build) build::run "${ARGS[@]}" ;;

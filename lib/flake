@@ -10,6 +10,27 @@ MACHINE=""
 PROFILE=""
 TARGET=""
 
+# Ensure the config path is accurate
+flake::ensure_config_path()
+{
+    # Set config based on if clu is being run from the /nix/store or locally
+    # - changeable config location for local runs, testing and installs
+    if [[ "$SCRIPT_DIR" == "/nix/store"* ]]; then
+        # Being run from the /nix/store so use the current path
+        CONFIG_DIR="$(pwd)"                             
+    else
+        # Being run locally so it is in the root of the config dir
+        CONFIG_DIR="${SCRIPT_DIR}"                             
+    fi
+
+    # Validate the chosen path has correct files
+    if [[ ! -e "${CONFIG_DIR}/base.nix" || ! -e "${CONFIG_DIR}/base.lock" ]]; then
+        log::fatal "Config directory not detected, please run clu from config directory."
+    fi
+
+    log::d "CONFIG_DIR: ${CONFIG_DIR}"
+}
+
 # Ensure target was given and exists
 # - $1 - machine or profile with preceding path prefix 'profiles/' or 'machines/'
 #
@@ -123,7 +144,7 @@ flake::restore()
     fi
 
     # Find and delete all decrypted files every time
-    find "$SCRIPT_DIR" -type f -name "*.dec*" -delete
+    find "$CONFIG_DIR" -type f -name "*.dec*" -delete
 
     popd &>/dev/null
 }
