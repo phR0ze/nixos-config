@@ -124,6 +124,6 @@ run::iso()
         -nic user \
         -vga virtio -display sdl,gl=on \
         -hda $vol \
-        -cdrom "../$iso"
+        -cdrom "$iso"
     popd &>/dev/null
 }
