@@ -118,7 +118,7 @@ log::ls()
 # --------------------------------------------------------------------------------------------------
 # ### Params
 # - $@ the message to log
-log::ln_d()
+log::d()
 {
     local msg="$@"
     _log::log $_debug "${purple}>>${none} ${msg}"
@@ -228,5 +228,5 @@ log::status()
 # Dump out debug variables
 log::vars()
 {
-    log::ln_d "Debug variables"
+    log::d "Debug variables"
 }
