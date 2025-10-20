@@ -125,6 +125,7 @@ install::prepare_disk()
         log::status
     fi
     # BIOS: boot partition shouldn't be formatted or mounted in this case as its just for the MBR
+    log::d "Leaving install::prepare_disk"
 }
 
 # Actual install of the system after configuration is in place
@@ -143,6 +144,7 @@ install::install_system()
     fi
 
     flake::unstage_files
+    log::d "Leaving install::install_system"
 }
 
 # Create the new system's persistent configuration or stage the existing system
@@ -209,6 +211,7 @@ install::install_config()
     log::status
 
     # Write out the file to machines/$HOSTNAME/configuration.nix
+    log::ls -n "Generating ${MACHINE}/configuration.nix..."
     cat > "${MACHINE}/configuration.nix" <<EOF
 { config, pkgs, lib, args, f, ... }: with lib.types;
 {
@@ -218,19 +221,25 @@ install::install_config()
   };
 }
 EOF
+    log::status
 
     # Add the /mnt/etc/nixos/machines/$HOSTNAME/args.nix
+    log::ls -n "Generating install time ${machine_args}..."
     cat > "${machine_args}" <<EOF
 {
 $(for x in "${options[@]}"; do echo "  $x"; done)
 }
 EOF
+    log::status
 
     # Files must be at least git added for the flake to recognize them
+    log::ls -n "Re-locate hardware config to ${MACHINE}/hardware-configuration.nix..."
     mv hardware-configuration.nix "${MACHINE}"
     git add "${MACHINE}"
+    log::status
 
     popd &>/dev/null
+    log::d "Leaving install::install_config"
 }
 
 # Create the target system config directory
@@ -259,6 +268,7 @@ install::install_config_dir()
     local swap_uuid=$(blkid -s UUID -o value ${PART_SWAP})
     utils::replace "${CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
     log::status
+    log::d "Leaving install::install_config_dir"
 }
 
 # Prompt the user to select for misc options
@@ -275,6 +285,7 @@ install::select_misc_options()
     if [[ "x$DEFAULT" != "xy" ]]; then
         utils::read NFS_SHARES 'Do you want to mount pre-defined nfs shares' 'n'
     fi
+    log::d "Leaving install::select_misc_options"
 }
 
 # Prompt the user to select user options
@@ -295,6 +306,7 @@ install::select_user_options()
         utils::read GIT_EMAIL 'Enter git user email' $USER_EMAIL
         utils::read FULL_NAME 'Enter full name' $USER_NAME
     fi
+    log::d "Leaving install::select_user_options"
 }
 
 # Prompt the user to select the date and time options
@@ -312,6 +324,7 @@ install::select_date_time_options()
             done
         fi
     fi
+    log::d "Leaving install::select_date_time_options"
 }
 
 # Prompt the user to select the networking options
@@ -329,6 +342,7 @@ install::select_networking_options()
         fi
         utils::read BLUETOOTH 'Enable bluetooth support' 'n'
     fi
+    log::d "Leaving install::select_networking_options"
 }
 
 # Prompt the user to select the disk to install to
@@ -390,6 +404,8 @@ install::select_install_disk_options()
 
     # Match DESTDEV with /dev/sda and /dev/vda
     [ -z "${DESTDEV##*/dev/sd*}" ] || [ -z "${DESTDEV##*/dev/vd*}" ] && SCSI=1
+
+    log::d "Leaving install::select_install_disk_options"
 }
 
 # Prompt the user to choose whether to install a new system or reinstall an existing machine.
@@ -435,6 +451,7 @@ install::select_deployment_options()
         utils::select MACHINE "${MACHINES[@]}"
         MACHINE="machines/${MACHINE}"
     fi
+    log::d "Leaving install::select_deployment_options"
 }
 
 # Start the install wizard
