@@ -267,9 +267,9 @@ install::install_config_dir()
 
     pushd "${CONFIG_DIR}" &>/dev/null
     log::ls -n "Stage NIXOS configuration files at ${cyan}${CONFIG_DIR}${none}..."
-    git init 
-    git add .
-    git commit -m "init"
+    git init &>/dev/null
+    git add . &>/dev/null
+    git commit -m "init" &>/dev/null
     log::status
     popd &>/dev/null
 
