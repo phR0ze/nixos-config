@@ -255,6 +255,14 @@ install::install_config_dir()
     cp -r $SCRIPT_DIR/. ${CONFIG_DIR}
     log::status
 
+    pushd "${CONFIG_DIR}" &>/dev/null
+    log::ls -n "Stage NIXOS configuration files at ${cyan}${CONFIG_DIR}${none}..."
+    git init 
+    git add .
+    git commit -m "init"
+    log::status
+    popd &>/dev/null
+
     log::ls -n "Generating hardware configuration..."
     nixos-generate-config --root ${ROOT_DIR} &>/dev/null
     log::status
