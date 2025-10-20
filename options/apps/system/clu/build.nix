@@ -7,4 +7,4 @@
 let
   pkgs = import <nixpkgs> {};
 in
-  pkgs.callPackage ./clu.nix {}
+  pkgs.callPackage ./default.nix {}
