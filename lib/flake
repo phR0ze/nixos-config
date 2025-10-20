@@ -81,19 +81,19 @@ flake::switch()
     fi
 
     # Optionally include machine's configuration
-    if [[ "$TARGET" == "machines"* ]]; then
+    if [[ "$target" == "machines"* ]]; then
         # - Using relative path here on purpose
-        ln -sf "$TARGET/configuration.nix" configuration.nix
+        ln -sf "$target/configuration.nix" configuration.nix
         git add configuration.nix -f
-        [[ -e "${TARGET}/args.dec.json" ]] && git add "$TARGET/args.dec.json" -f
+        [[ -e "${target}/args.dec.json" ]] && git add "$target/args.dec.json" -f
 
         # Update the target hostname
-        local hostname="${MACHINE#machines/}"
+        local hostname="${target#machines/}"
         utils::update "args.nix" str "hostname" "${hostname}"
     fi
 
     # Update the args.nix as a mechanism to tell the flake which machine/profile to build 
-    utils::update "args.nix" str "target" "${TARGET}"
+    utils::update "args.nix" str "target" "${target}"
     utils::update "args.nix" str "git.comment" "$(git log -1 --oneline --no-decorate)"
     git add "args.nix"
     popd &>/dev/null

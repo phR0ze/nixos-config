@@ -54,7 +54,7 @@ install::prepare_disk()
 
     # Check if we restarted and need to unmount first
     if [[ -e "${ROOT_DIR}/etc/nixos/README.md" ]]; then
-        log::ls -n "Restart detected - unmounting previous paritions"
+        log::ls -n "${cyan}Restart detected${none} - unmounting previous paritions..."
         umount ${ROOT_DIR} &>/dev/null || true
         umount ${ROOT_DIR}/boot &>/dev/null || true
         swapoff ${PART_SWAP} &>/dev/null || true
