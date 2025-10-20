@@ -3,7 +3,7 @@
 # ### Details
 # - NixOS automation
 #---------------------------------------------------------------------------------------------------
-{ stdenvNoCC, fetchFromGitHub, lib, }:
+{ lib, stdenvNoCC, fetchFromGitHub, makeWrapper }:
 
 # Create the package from Github
 stdenvNoCC.mkDerivation {
@@ -16,10 +16,16 @@ stdenvNoCC.mkDerivation {
     hash = "sha256-Slx+7rblY1Ity02bDd3UZZFdj66w1PBdTvqvytfDca4=";
   };
 
+  nativeBuildInputs = [
+    makeWrapper
+  ];
+
   installPhase = ''
     mkdir -p $out/bin
-    cp $src/clu $out/bin/
-    cp -r $src/lib $out/bin/
-    chmod +x $out/bin/clu
+    cp -a $src/. $out/
+
+    makeWrapper $out/clu $out/bin/clu
+
+    chmod +x $out/clu
   '';
 }
