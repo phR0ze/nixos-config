@@ -27,7 +27,7 @@ fork it and build on my work.
 * [Advanced use cases](#advanced-use-cases)
   * [Pull a specific app version](#pull-a-specific-app-version)
   * [Build and deploy production VMs](#build-and-run-test-vm)
-  * [Build and run test VM](#build-and-run-test-vm)
+  * [Build and run test VMs](#build-and-run-test-vms)
   * [Build the ISO for installation](#build-the-iso-for-installation)
   * [Test the ISO in a QEMU VM](#test-the-iso-in-a-quemu-vm)
 * [Development](#development)
@@ -199,10 +199,14 @@ we can find the available package versions and how to pull them directly.
    $ ./clu deploy vm prod1
    ```
 
-### Build and run test VM
-Build the `machines/vm-test` VM. When complete the `vm-test/result/bin/run` will start the vm or you 
-can run `./clu run vm`.
+### Build and run test VMs
+There are two ways to build and run test vms with `clu`. The first method is useful for simple 
+testing of the system configuration specified in `machines/vm-test`. This method mounts the hosts 
+/nix/store to quickly get up and runing. The second method involves building an ISO from the system 
+configuration then installing from that ISO to create a completely independent system for one off 
+testing.
 
+**Method 1 - Fast tests  with vm-test**
 1. Build the VM
    ```bash
    $ ./clu build vm
@@ -210,6 +214,20 @@ can run `./clu run vm`.
 2. Run the VM
    ```bash
    $ ./clu run vm
+   ```
+
+**Method 2 - One off isolated VM**
+1. Build the system ISO
+   ```bash
+   $ ./clu build iso
+   ```
+2. Install ISO to new VM (TBD)
+   ```bash
+   $ ./clu run iso VM_NAME
+   ```
+3. Run VM (TBD)
+   ```bash
+   $ ./clu run vm VM_NAME
    ```
 
 ### Build the ISO for installation
