@@ -165,14 +165,6 @@ install::install_config()
     [[ "x${EFI}" == "x1" ]] && options+=("efi = true;") || options+=("mbr = \"${DESTDEV}\";")
     log::status
 
-    # Enable remote Nix Cache
-    if [[ "x$CACHE_IP" != "x" ]]; then
-        log::ls -n "Update Nix Cache IP to ${cyan}${CACHE_IP}${none}..."
-        options+=("nix.cache.enable = true;")
-        options+=("nix.cache.ip = \"${CACHE_IP}\";")
-        log::status
-    fi
-
     log::ls -n "Update NIXOS target version to ${cyan}${NIXOS_VER}${none}..."
     options+=("nix.minVer = \"${NIXOS_VER}\";")
     log::status
@@ -497,7 +489,6 @@ install::run()
     # Determine if this is a default deployment
     # ----------------------------------------------------------------------------------------------
     log::header0 "Select deployment options:"
-    utils::read CACHE_IP 'Enter nix cache ip or blank' '192.168.1.3'
     utils::read DEFAULT 'Use automatic mode with defaults?' 'n'
 
     # Drop out debug variables if in debug mode
@@ -522,7 +513,6 @@ install::run()
     log::header0 "Options being used for installation"
     log::subln3 "machine=${cyan}${MACHINE}${none}"
     log::subln3 "profile=${cyan}${PROFILE}${none}"
-    log::subln3 "cache_ip=${cyan}${CACHE_IP}${none}"
 
     # Networking settings
     log::subln3 "hostname=${cyan}${HOSTNAME}${none}"
