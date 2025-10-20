@@ -45,11 +45,11 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   x11 = config.system.x11;
-  cfg = config.hardware.gpu;
+  cfg = config.devices.gpu;
 in
 {
   options = {
-    hardware.gpu = {
+    devices.gpu = {
       amd = lib.mkEnableOption "Install and configure AMD graphics";
       intel = lib.mkEnableOption "Install and configure Intel graphics";
       nvidia = lib.mkEnableOption "Install and configure Nvidia graphics stable";

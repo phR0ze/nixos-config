@@ -12,10 +12,10 @@
 
   config = {
     machine.type.bootable = true;
-    hardware.gpu.intel = true;
+    devices.gpu.intel = true;
     machine.nix.cache.enable = true;
 
-    hardware.printers.epson-wf7710 = true;
-    hardware.printers.brother-hll2405w = true;
+    devices.printers.epson-wf7710 = true;
+    devices.printers.brother-hll2405w = true;
   };
 }

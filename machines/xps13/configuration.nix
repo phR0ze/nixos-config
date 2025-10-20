@@ -12,7 +12,7 @@
 
   config = {
     machine.type.bootable = true;
-    hardware.gpu.intel = true;
+    devices.gpu.intel = true;
     system.x11.xft.dpi = 115;
 
     #machine.net.bridge.enable = true;

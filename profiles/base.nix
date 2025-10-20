@@ -20,8 +20,8 @@ in
     ../modules/services/systemd.nix
   ];
 
-  apps.system.clu = true;
   programs.tmux.enable = true;
+  apps.system.clu.enable = true;
 
   environment.systemPackages = with pkgs; [
     nfs-utils                     # Support programs for Network File Systems

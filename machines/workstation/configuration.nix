@@ -22,11 +22,11 @@
 
   config = {
     machine.type.bootable = true;
-    hardware.gpu.amd = true;
+    devices.gpu.amd = true;
     machine.net.bridge.enable = true;
 
-    hardware.printers.epson-wf7710 = true;
-    hardware.printers.brother-hll2405w = true;
+    devices.printers.epson-wf7710 = true;
+    devices.printers.brother-hll2405w = true;
 
     services.raw.barriers.enable = true;
     services.raw.rustdesk.autostart = false;
