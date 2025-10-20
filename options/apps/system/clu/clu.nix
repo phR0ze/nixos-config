@@ -13,7 +13,7 @@ stdenvNoCC.mkDerivation {
     owner = "phR0ze";
     repo = "nixos-config";
     rev = "main";
-    hash = "sha256-Slx+7rblY1Ity02bDd3UZZFdj66w1PBdTvqvytfDca4=";
+    hash = "sha256-y9A4MtjWyaKpzEVRnCa3dYOE3t83j02BGR9qkMbzvWY=";
   };
 
   nativeBuildInputs = [
