@@ -182,7 +182,7 @@ install::install_config()
 
     # Configure new user and root user
     local pass=""
-    [[ "x$DEFAULT" == "xy" ]] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})"
+    [[ "x$DEFAULT" == "xy" ]] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})" || true
     log::ls -n "Storing new ${cyan}${USER_NAME}${none} and ${cyan}root${none} passwords${pass}..."
     options+=("user.fullname = \"${FULL_NAME}\";")
     options+=("user.email = \"${USER_EMAIL}\";")
@@ -356,16 +356,16 @@ install::select_install_disk_options()
     DESTDEV=$(echo ${DISKS_DETAILED} | jq -rc '[.[].name] | map("/dev/"+.) | .[0]')
 
     # Print out the detected disks
-    [[ "x$DEFAULT" != "xy" ]] && log::header0 "Select a disk as your install destination:"
+    [[ "x$DEFAULT" != "xy" ]] && log::header0 "Select a disk as your install destination:" || true
     local i=0
     echo $DISKS_DETAILED | jq -rc '.[]' | while read x; do
         i=$((i+1))
         local disk="/dev/$(echo $x | jq -r '.name')"
         local size="$(echo $x | jq -r '.size')"
         local model="$(echo $x | jq -r '.model')"
-        [[ "x$DEFAULT" != "xy" ]] && echo -en "   ${i}) [${cyan}${disk}${none}](${cyan}${size}${none})"
-        [[ "x$DEFAULT" != "xy" ]] && [ "$model" != "null" ] && echo -en " - ${model}"
-        [[ "x$DEFAULT" != "xy" ]] && echo ""
+        [[ "x$DEFAULT" != "xy" ]] && echo -en "   ${i}) [${cyan}${disk}${none}](${cyan}${size}${none})" || true
+        [[ "x$DEFAULT" != "xy" ]] && [ "$model" != "null" ] && echo -en " - ${model}" || true
+        [[ "x$DEFAULT" != "xy" ]] && echo "" || true
     done
 
     # Get user choice
