@@ -1,24 +1,31 @@
-# clu
-# 
-# ### Purpose
-# - Exposes clu configuration options to the flake
+# clu configuration
+#
+# ### Details
+# - NixOS automation
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }: with lib.types;
-let
-  cfg = config.apps.system.clu;
-in
-{
-  options = {
-    apps.system.clu = {
-      enable = lib.mkEnableOption "Install and configure clu";
-    };
+{ lib, stdenvNoCC, fetchFromGitHub, makeWrapper }:
+
+# Create the package from Github
+stdenvNoCC.mkDerivation {
+  name = "clu";
+  version = "1.0.0";
+  src = fetchFromGitHub {
+    owner = "phR0ze";
+    repo = "nixos-config";
+    rev = "main";
+    hash = "sha256-y9A4MtjWyaKpzEVRnCa3dYOE3t83j02BGR9qkMbzvWY=";
   };
 
-  config = lib.mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      # Flake overlay exists now
-      pkgs.clu
-      #(pkgs.callPackage ./clu.nix {})
-    ];
-  };
+  nativeBuildInputs = [
+    makeWrapper
+  ];
+
+  installPhase = ''
+    mkdir -p $out/bin
+    cp -a $src/. $out/
+
+    makeWrapper $out/clu $out/bin/clu
+
+    chmod +x $out/clu
+  '';
 }
