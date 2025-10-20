@@ -20,6 +20,7 @@ in
     ../modules/services/systemd.nix
   ];
 
+  apps.system.clu = true;
   programs.tmux.enable = true;
 
   environment.systemPackages = with pkgs; [

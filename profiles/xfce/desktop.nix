@@ -10,10 +10,11 @@
   ];
 
   # Enable apps
+  apps.office.evince.enable = true;         # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
   apps.media.jellyfin.enable = true;        # Install Jellyfin media player
   apps.media.xnviewmp.enable = true;        # Versatile image viewer with lossless JPEG rotation
   apps.network.qbittorrent.enable = true;   # Excellent bittorrent client
-  apps.system.veracrypt.enable = true;           # Free Open-Source filesystem encryption
+  apps.system.veracrypt.enable = true;      # Free Open-Source filesystem encryption
 
   apps.games.steam.enable = true;           # Digital distribution platform from Valve
   apps.games.protontricks.enable = true;    # A simple wrapper for running Winetricks commands for Proton-enabled games
@@ -22,7 +23,7 @@
   programs.winetricks.enable = true;        # A script to install DLLs needed to work around problems in Wine
 
   # Enable services
-  services.raw.rustdesk.enable = true;    # Simple fast remote desktop solution
+  services.raw.rustdesk.enable = true;      # Simple fast remote desktop solution
 
   # Additional apps
   environment.systemPackages = with pkgs; [
