@@ -16,7 +16,7 @@
 let
   machine = config.machine;
   cfg = config.services.oci.immich;
-  gpu = config.hardware.gpu;
+  gpu = config.devices.gpu;
   defaults = (f.getService args "immich" 2003 2003);
 in
 {

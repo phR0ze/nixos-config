@@ -6,9 +6,7 @@
 { config, pkgs, ... }:
 {
   imports = [
-    ./base.nix
-    ../modules/hardware/audio.nix
-    ../modules/hardware/bluetooth.nix
+    ../base.nix
   ];
 
   # Enable XFCE
@@ -17,6 +15,8 @@
   system.dmenu.enable = true;                 # Configure dmenu
   system.dconf.enable = true;                 # General configuration manager that replaces gconf
   net.network-manager.enable = true;          # Enable network manager
+  devices.audio.enable = true;                # Install necessary support for audio
+  devices.bluetooth.enable = true;            # Install necessary support for bluetooth
 
   apps.media.qview.enable = true;             # Simple image viewer with webp support
   apps.media.smplayer.enable = true;          # UI wrapper around mplayer with click to pause

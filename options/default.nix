@@ -3,8 +3,8 @@
   imports = [
     ./apps
     ./development
+    ./devices
     ./files
-    ./hardware
     ./networking.nix
     ./services
     ./system

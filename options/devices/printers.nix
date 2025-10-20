@@ -4,12 +4,12 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.hardware.printers;
+  cfg = config.devices.printers;
   machine = config.machine;
 in
 {
   options = {
-    hardware.printers = {
+    devices.printers = {
       epson-wf7710 = lib.mkEnableOption "Configure Epson WF-7710 support";
       brother-hll2405w = lib.mkEnableOption "Configure Brother HL-L2405W support";
     };
