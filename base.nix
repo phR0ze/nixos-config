@@ -37,6 +37,7 @@
       overlays = [
         (before: after: {
           # Include custom packages in global pkgs variable
+          clu = pkgs.callPackage options/apps/system/clu {};
           arcologout = pkgs.callPackage packages/arcologout {};
           desktop-assets = pkgs.callPackage packages/desktop-assets {};
           rdutil = pkgs.callPackage packages/rdutil {};

@@ -16,7 +16,9 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
-      (pkgs.callPackage ./clu.nix {})
+      # Flake overlay exists now
+      pkgs.clu
+      #(pkgs.callPackage ./clu.nix {})
     ];
   };
 }
