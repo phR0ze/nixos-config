@@ -33,6 +33,7 @@ set -e
 SCRIPT="$(basename $0)"                                 # clu
 SCRIPT_DIR="$(readlink -f $(dirname $BASH_SOURCE[0]))"  # /path/to/nixos-config
 ROOT_DIR="" # more intuitive to concat with / so blank  # changeable root for testing and installs
+CONFIG_DIR="${SCRIPT_DIR}"
 source "${SCRIPT_DIR}/lib/all"
 
 core::preamble()
@@ -113,6 +114,15 @@ ARGS=("${ARGS[@]}") # rebuild to remove deleted items
 
 # Only consider help if there was no command given
 [[ "$CMD" == "-h" || "$CMD" == "--help" ]] && core::usage
+
+# Output debug information
+if [[ "$LOG_LEVEL" == "debug" && "$CMD" == "" ]];then
+    core::preamble
+    echo
+    log::d "SCRIPT_DIR: ${cyan}${SCRIPT_DIR}${none}"
+    log::d "CONFIG_DIR: ${cyan}${CONFIG_DIR}${none}"
+    exit
+fi
 
 # Process the command
 flake::ensure_config_path
