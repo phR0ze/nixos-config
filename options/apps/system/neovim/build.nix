@@ -10,4 +10,4 @@
 let
   pkgs = import <nixpkgs> {};
 in
-  pkgs.callPackage ./neovim.nix {}
+  pkgs.callPackage ./default.nix {}

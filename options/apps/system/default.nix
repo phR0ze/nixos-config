@@ -4,7 +4,7 @@
     ./clu/options.nix
     ./hardinfo.nix
     ./neovide.nix
-    ./neovim
+    ./neovim/options.nix
     ./veracrypt.nix
   ];
 }
