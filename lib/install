@@ -76,19 +76,17 @@ install::prepare_disk()
         log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
         sgdisk -n 0:0:+512M -t 0:EF00 -c 0:"EFI system" ${DESTDEV} &>/dev/null
         log::status
+        log::ls -n "Formatting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}FAT32${none}..."
+        mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
+        log::status
 
     # BIOS: Create a BIOS boot partition EF02
+    # There is no need to mount it or do anything other than create it as GRUB will handle this
     else
         log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
-        sgdisk -n 0:0:+512M -t 0:EF02 -c 0:"BIOS system" ${DESTDEV} &>/dev/null
+        sgdisk -n 0:0:+2M -t 0:EF02 -c 0:"BIOS system" ${DESTDEV} &>/dev/null
         log::status
     fi
-
-    # EFI and BIOS both require their respective boot partitions to be formatted to FAT 32 and 
-    # mounted at PART_ROOT/boot for maximum compatibility with older systems.
-    log::ls -n "Formatting ${cyan}${PART_BOOT}${none} as ${cyan}FAT32${none}..."
-    mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
-    log::status
 
     # Create SWAP partition 8200
     log::ls -n "Creating ${cyan}${PART_SWAP}${none} as ${cyan}Linux swap partition${none}..."
@@ -101,10 +99,10 @@ install::prepare_disk()
     log::status
 
     # Set boot flag for device
-    # '1' is the target partition 1
+    # '3' is the target partition 3
     # '2' is the legacy BIOS bootable flag in GPT
     log::ls -n "Setting boot flag on ${cyan}${PART_BOOT}${none}..."
-    sgdisk ${DESTDEV} --attributes=1:set:2 &>/dev/null
+    sgdisk ${DESTDEV} --attributes=3:set:2 &>/dev/null
     log::status
 
     # Configure swap partition
@@ -129,14 +127,18 @@ install::prepare_disk()
     mount -o noatime ${PART_ROOT} ${ROOT_DIR} &>/dev/null
     log::status
 
-    # UEFI and BIOS boot partitions need to be mounted over the root at /boot to capture the Linux 
-    # standard boot installation files e.g. kernel and initramfs for UEFI and GRUB components for 
-    # BIOS. This provides maximum compatibility with older systems. EFI for instance can't mount ext4 
-    # systems so we can't keep the EFI/BOOT/BOOTX64.efi on the root directly.
-    log::ls -n "Mounting ${cyan}${PART_BOOT}${none} as ${cyan}${ROOT_DIR}/boot${none}..."
-    mkdir -p ${ROOT_DIR}/boot
-    mount ${PART_BOOT} ${ROOT_DIR}/boot &>/dev/null
-    log::status
+    # UEFI: boot partition needs to be mounted over the root at /boot to capture the Linux
+    # standard boot file install e.g. kernel and initramfs. We keep them on the same partition
+    # as the EFI/BOOT/BOOTX64.efi as EFI can't mount a ext4 filesystem.
+    if [[ "x${EFI}" == "x1" ]]; then
+        log::ls -n "Mounting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}${ROOT_DIR}/boot${none}..."
+        mkdir -p ${ROOT_DIR}/boot
+        mount ${PART_BOOT} ${ROOT_DIR}/boot &>/dev/null
+        log::status
+    fi
+
+    # $PART_BOOT i.e. BIOS boot partition doesn't need to be formatted or mounted as its just 
+    # reserving space at the begining of the disk for the MBR to be installed into by GRUB.
 
     log::d "Leaving install::prepare_disk"
 }
