@@ -44,7 +44,7 @@ flake::ensure_target()
 
 # Switch flake
 # - $1 - machine or profile with preceding path prefix 'profiles/' or 'machines/'
-# - $2 - flag 'install' indcating behavior should be for an install
+# - $2 - '--install' flag indcating behavior should be for an install
 #
 # Example: flake::switch machines/homelab
 flake::switch()
@@ -75,7 +75,7 @@ flake::switch()
     git add flake.lock -f
 
     # Decrypt if not installing
-    if [[ "$2" != "install" ]]; then
+    if [[ "$2" != "--install" ]]; then
         git decrypt
         [[ -e "args.dec.json" ]] && git add "args.dec.json" -f
     fi
@@ -147,13 +147,14 @@ flake::trap()
 # Stage for tempory flake files
 # - files that the flake depends on must be git staged to be used.
 # - $1 - machine or profile to use for switching to the given target
-# - $2 - flag 'install' indcating behavior should be for an install
+# - $2 - '--install' flag indcating behavior should be for an install
+# - $3 - '--no-trap' flag to optionally not call TRAP
 #
 # Example: flake::switch machines/homelab
 flake::stage_files()
 {
     # Don't need to shutdown anything on a fresh install
-    if [[ "$2" != "install" ]]; then
+    if [[ "$2" != "--install" ]]; then
         log::ls "Shutting down ${cyan}xfconfd${none} to avoid conflicts"
         pgrep xfconfd || true
     fi
@@ -164,7 +165,9 @@ flake::stage_files()
 
     flake::switch $1 $2
 
-    trap flake::unstage_files EXIT
+    if [[ "$3" != "--no-trap" ]]; then
+        trap flake::unstage_files EXIT
+    fi
 }
 
 # Remove the tempory flake files

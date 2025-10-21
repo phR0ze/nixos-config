@@ -143,7 +143,7 @@ install::prepare_disk()
 install::install_system()
 {
     log::header1 "Installing NixOS based on the staged configuration"
-    flake::stage_files "${MACHINE}" install
+    flake::stage_files "${MACHINE}" --install --no-trap
 
     # Run the installer: $CONFIG_DIR will be /mnt/etc/nixos unless testing
     log::ls "Launching installation with ${cyan}nixos-install${none}..."
@@ -154,8 +154,7 @@ install::install_system()
         echo -e "   2. Rerun: ${cyan}nixos-install --no-root-passwd --no-channel-copy --flake ${CONFIG_DIR}#target${none}"
     fi
 
-    # Not needed as trp will trigger it during EXIT
-    #flake::unstage_files
+    flake::unstage_files
     log::d "Leaving install::install_system"
 }
 
