@@ -125,9 +125,9 @@ flake::restore()
     fi
 
     if [[ "$(git diff --staged --name-only -- args.nix)" != "" ]]; then
-        echo -n "Restoring ${cyan}args.nix${none} to prestine"
+        log::ls "Restoring ${cyan}${CONFIG_DIR}/args.nix${none} to prestine"
         git restore --staged args.nix
-        git checkout args.nix           # also clear changes
+        git checkout args.nix
     fi
 
     # Find and delete all decrypted files every time
@@ -173,7 +173,7 @@ flake::unstage_files()
 {
     flake::restore
 
-    log::ls -n "Adding ${cyan}${ROOT_DIR}/nix/files.lock${none} to avoid updates during reboots"
+    log::ls -n "Adding ${cyan}${ROOT_DIR}/nix/files.lock${none} to avoid updates during reboots..."
     touch "${ROOT_DIR}/nix/files.lock"
     log::status
 }

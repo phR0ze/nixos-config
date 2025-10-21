@@ -153,7 +153,8 @@ install::install_system()
         echo -e "   2. Rerun: ${cyan}nixos-install --no-root-passwd --no-channel-copy --flake ${CONFIG_DIR}#target${none}"
     fi
 
-    flake::unstage_files
+    # Not needed as trp will trigger it during EXIT
+    #flake::unstage_files
     log::d "Leaving install::install_system"
 }
 
@@ -584,7 +585,6 @@ install::run()
     if [[ "x$TESTING" != "xy" ]]; then
 
         # Partition the target disk and mount it for deployment
-        # Note: requires `unmount /mnt` to re-run
         install::prepare_disk
 
         # Create the target system config directory /mnt/etc/nixos
