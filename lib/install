@@ -134,7 +134,10 @@ install::prepare_disk()
         mount ${PART_BOOT} ${ROOT_DIR}/boot &>/dev/null
         log::status
     fi
-    # BIOS: boot partition shouldn't be formatted or mounted in this case as its just for the MBR
+
+    # $PART_BOOT i.e. BIOS boot partition shouldn't be formatted or mounted as its just reserving 
+    # space at the begining of the disk for the MBR to be installed into by GRUB.
+
     log::d "Leaving install::prepare_disk"
 }
 
