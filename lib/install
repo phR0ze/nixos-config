@@ -267,13 +267,16 @@ install::install_config_dir()
     cp -r $SCRIPT_DIR/. ${CONFIG_DIR}
     log::status
 
-    pushd "${CONFIG_DIR}" &>/dev/null
-    log::ls -n "Stage NIXOS configuration files at ${cyan}${CONFIG_DIR}${none}..."
-    git init &>/dev/null
-    git add . &>/dev/null
-    git commit -m "init" &>/dev/null
-    log::status
-    popd &>/dev/null
+    # In the local debug case we'll already have a git repo otherwise convert
+    if [[ ! -d "${CONFIG_DIR}/.git" ]]; then
+        pushd "${CONFIG_DIR}" &>/dev/null
+        log::ls -n "Convert ${cyan}${CONFIG_DIR}${none} into git repo..."
+        git init &>/dev/null
+        git add . &>/dev/null
+        git commit -m "init" &>/dev/null
+        log::status
+        popd &>/dev/null
+    fi
 
     log::ls -n "Generating hardware configuration..."
     nixos-generate-config --root ${ROOT_DIR} &>/dev/null
