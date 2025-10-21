@@ -87,7 +87,10 @@ install::prepare_disk()
     # EFI and BIOS both require their respective boot partitions to be formatted to FAT 32 and 
     # mounted at PART_ROOT/boot for maximum compatibility with older systems.
     log::ls -n "Formatting ${cyan}${PART_BOOT}${none} as ${cyan}FAT32${none}..."
-    mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
+    mkfs.fat -F 32 ${PART_BOOT} &>/dev/null
+    log::status
+    log::ls -n "Labeling ${cyan}${PART_BOOT}${none} as ${cyan}BOOT${none}..."
+    fatlabel ${PART_BOOT} "BOOT"
     log::status
 
     # Create SWAP partition 8200
