@@ -104,8 +104,10 @@ install::prepare_disk()
     log::status
 
     # Set boot flag for device
+    # '1' is the target partition 1
+    # '2' is the legacy BIOS bootable flag in GPT
     log::ls -n "Setting boot flag on ${cyan}${DESTDEV}${none}..."
-    sgdisk ${DESTDEV} --attributes=3:set:2 &>/dev/null
+    sgdisk ${DESTDEV} --attributes=1:set:2 &>/dev/null
     log::status
 
     # Configure swap partition
