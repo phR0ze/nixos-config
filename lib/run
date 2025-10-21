@@ -48,31 +48,48 @@ run::vm()
     core::preamble
     utils::ensure_not_root
 
-    local machine="${1#vm-}"  # trim vm- prefix
-    [[ "$machine" == "" ]] && machine="test"
-    MACHINE="vm-${machine}"
+    # Determine the kind of VM being run i.e. either direct path to an isolated VM or a keyword to 
+    # map into a host dependent VM.
+    local machine="$1"
 
-    # Target includes the prefix path
-    TARGET="machines/$MACHINE"
+    # Local isolated VM
+    if [[ -d "${machine}" ]]; then
+        log::header1 "Running VM ${cyan}${machine}${none}"
 
-    log::header1 "Running VM ${cyan}${TARGET}${none}"
+        qemu-system-x86_64 \
+            -name NixOS \
+            -enable-kvm \
+            -m 4G -cpu host -smp 4 \
+            -nic user \
+            -vga virtio -display sdl,gl=on \
+            -hda "${machine}/nixos.qcow2"
+    else
+        # Default to the test vm if not given
+        [[ "$machine" == "" ]] && machine="test"
+        MACHINE="vm-${machine}"
 
-    # Optionally clean first
-    if [[ $CLEAN -eq 1 ]]; then
-        log::ls "Cleaning ${cyan}${MACHINE}${none}"
-        rm -rf "${CONFIG_DIR}/${MACHINE}"
+        # Target includes the prefix path
+        TARGET="machines/$MACHINE"
+
+        log::header1 "Running VM ${cyan}${TARGET}${none}"
+
+        # Optionally clean first
+        if [[ $CLEAN -eq 1 ]]; then
+            log::ls "Cleaning ${cyan}${MACHINE}${none}"
+            rm -rf "${CONFIG_DIR}/${MACHINE}"
+        fi
+
+        local runner="${CONFIG_DIR}/${MACHINE}/result/bin/run"
+
+        # Build and install if needed
+        if [[ ! -f "$runner" ]]; then
+            NO_PREAMBLE=1 && build::vm $MACHINE
+            flake::restore
+        fi
+
+        log::ls "Running ${cyan}${runner}${none}"
+        $runner
     fi
-
-    local runner="${CONFIG_DIR}/${MACHINE}/result/bin/run"
-
-    # Build and install if needed
-    if [[ ! -f "$runner" ]]; then
-        NO_PREAMBLE=1 && build::vm $MACHINE
-        flake::restore
-    fi
-
-    log::ls "Running ${cyan}${runner}${none}"
-    $runner
 }
  
 # Create a new VM and boot from the ISO
