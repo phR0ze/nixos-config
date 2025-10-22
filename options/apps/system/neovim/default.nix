@@ -17,29 +17,33 @@
 
   # Plugins to have loaded on boot
   startPlugins = with vimPlugins; [
-    snacks-nvim                                   # Collection of lua modules
+    #snacks-nvim                     # Collection of lua modules
   ];
 
-  # Plugins to make available but don't load on boot
+  # Plugins to make available but don't load on boot.
   # These will be lazy loaded by lz-n as needed based on triggers
   optPlugins = with vimPlugins; [
-    lz-n
+    lz-n                            # Light weight lazy plugin loader
 
     # Colorschemes
-    vim-deus
-    gruvbox-nvim
-    tokyonight-nvim
+    vim-deus                        # Color scheme I've used for years
+    gruvbox-nvim                    # Lua port of the most famous vim colorscheme
+    tokyonight-nvim                 # A clean dark Neovim theme
+    catppuccin-nvim                 # Soothing pastel theme for Neovim 
+
+    # Coding
+    nvim-autopairs                  # Intelligent pairing, better than mini.pairs
 
     #codecompanion-nvim
     #plenary-nvim 
     #telescope-nvim
     #vim-startuptime                               # 
-    which-key-nvim                                # Shows available keybindings in a popup as you type
-    (vimUtils.buildVimPlugin {                    # 
-      pname = "mini-pairs"; version = "2025-10-08";
-      src = fetchFromGitHub { owner = "nvim-mini"; repo = "mini.pairs";
-        rev = "b9aada8c0e59f2b938e98fbf4eae0799eba96ad9";
-        sha256 = "sha256-KFWpyITaKc9AGhvpLkeq9B3a5MELqed2UBo9X8oC6Ac="; };})
+    #which-key-nvim                                # Shows available keybindings in a popup as you type
+    #(vimUtils.buildVimPlugin {                    # 
+    #  pname = "mini-pairs"; version = "2025-10-08";
+    #  src = fetchFromGitHub { owner = "nvim-mini"; repo = "mini.pairs";
+    #    rev = "b9aada8c0e59f2b938e98fbf4eae0799eba96ad9";
+    #    sha256 = "sha256-KFWpyITaKc9AGhvpLkeq9B3a5MELqed2UBo9X8oC6Ac="; };})
   ];
   
   # Build the plugins package for Neovim
