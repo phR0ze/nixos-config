@@ -85,12 +85,13 @@ install::prepare_disk()
 
     # (PART_ROOT i.e. #1) create the root partition 'Linux filesystem' type 8300 
     # - fills the disk except for the end where swap will live and the begining 512MiB for boot
-    log::ls -n "Creating ${cyan}${PART_ROOT}${none} as ${cyan}Linux filesystem${none}..."
     if [ $MBR -eq 0 ]; then
+        log::ls -n "Creating ${cyan}${PART_ROOT}${none} for ${cyan}GPT partition table${none}..."
         parted "${DESTDEV}" -- mkpart "ROOT" ext4 512MiB -4GiB &>/dev/null
         log::status
     else
-        parted "${DESTDEV}" -- mkpart "ROOT" ext4 1MiB -4GiB &>/dev/null
+        log::ls -n "Creating ${cyan}${PART_ROOT}${none} for ${cyan}MBR partition table${none}..."
+        parted "${DESTDEV}" -- mkpart "ROOT" ext4 1MiB -4GiB
         log::status
     fi
 
