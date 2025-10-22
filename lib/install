@@ -87,18 +87,18 @@ install::prepare_disk()
     # - fills the disk except for the end where swap will live and the begining 512MiB for boot
     if [ $MBR -eq 0 ]; then
         log::ls -n "Creating ${cyan}${PART_ROOT}${none} for ${cyan}GPT partition table${none}..."
-        parted "${DESTDEV}" -- mkpart "ROOT" ext4 512MiB -4GiB &>/dev/null
+        parted "${DESTDEV}" -- mkpart primary ext4 512MiB -4GiB &>/dev/null
         log::status
     else
         log::ls -n "Creating ${cyan}${PART_ROOT}${none} for ${cyan}MBR partition table${none}..."
-        parted "${DESTDEV}" -- mkpart "ROOT" ext4 1MiB -4GiB
+        parted "${DESTDEV}" -- mkpart primary ext4 1MiB -4GiB &>/dev/null
         log::status
     fi
 
     # (PART_SWAP i.e. #2) create the SWAP partition 8200
     # - this is the same regardless of the partition table type
     log::ls -n "Creating ${cyan}${PART_SWAP}${none} as ${cyan}Linux swap partition${none}..."
-    parted "${DESTDEV}" -- mkpart "SWAP" linux-swap -4GiB 100% &>/dev/null
+    parted "${DESTDEV}" -- mkpart primary linux-swap -4GiB 100% &>/dev/null
     log::status
     log::ls -n "Formatting ${cyan}${PART_SWAP}${none} as ${cyan}swap${none}..."
     mkswap -L SWAP ${PART_SWAP} &>/dev/null
