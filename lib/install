@@ -623,6 +623,7 @@ install::run()
     log::subln3 "auto_login=${cyan}${AUTO_LOGIN}${none}"
     log::subln3 "dest_dev=${cyan}${DESTDEV}${none}"
     log::subln3 "SCSI=${cyan}${SCSI}${none}"
+    log::subln3 "MBR=${cyan}${MBR}${none}"
     log::subln3 "EFI=${cyan}${EFI}${none}"
 
     # Setup the NixOS configuration files
