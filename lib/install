@@ -98,7 +98,7 @@ install::prepare_disk()
     # (PART_SWAP i.e. #2) create the SWAP partition 8200
     # - this is the same regardless of the partition table type
     log::ls -n "Creating ${cyan}${PART_SWAP}${none} as ${cyan}Linux swap partition${none}..."
-    parted "${DESTDEV}" -- mkpart primary linux-swap -4GiB 100% &>/dev/null
+    parted "${DESTDEV}" -- mkpart primary linux-swap -4GiB 100%
     log::status
     log::ls -n "Formatting ${cyan}${PART_SWAP}${none} as ${cyan}swap${none}..."
     mkswap -L SWAP ${PART_SWAP} &>/dev/null
