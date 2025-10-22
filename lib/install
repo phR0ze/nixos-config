@@ -462,11 +462,11 @@ install::select_install_disk_options()
         bios_year=$(awk -F'/' '{print $3}' /sys/class/dmi/id/bios_date) 
         if [ $bios_year -le 2012 ]; then
             MBR=1
-            log::ls "Legacy BIOS detected using ${cyan}MBR partition table${none}"
+            log::d "Legacy BIOS detected using ${cyan}MBR partition table${none}"
         fi
     fi
     if [ $MBR -eq 0 ]; then
-        log::ls "Newer BIOS/UEFI detected using ${cyan}GPT partition table${none}"
+        log::d "Newer BIOS/UEFI detected using ${cyan}GPT partition table${none}"
     fi
 
     log::d "Leaving install::select_install_disk_options"
