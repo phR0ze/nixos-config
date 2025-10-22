@@ -34,14 +34,15 @@ install::prepare_disk()
     log::header1 "Partitioning and mounting destination disk ${cyan}${DESTDEV}${none}..."
 
     # Set partition identifiers
-    if [[ "x${SCSI}" == "x1" ]]; then
-        PART_BOOT="${DESTDEV}1"
+    # - [GPT partitioning](https://nixos.org/manual/nixos/stable/#sec-installation-manual-partitioning-UEFI)
+    if [[ $SCSI -eq 1 ]]; then
+        PART_ROOT="${DESTDEV}1"
         PART_SWAP="${DESTDEV}2"
-        PART_ROOT="${DESTDEV}3"
+        PART_BOOT="${DESTDEV}3"
     else
-        PART_BOOT="${DESTDEV}p1"
+        PART_ROOT="${DESTDEV}p1"
         PART_SWAP="${DESTDEV}p2"
-        PART_ROOT="${DESTDEV}p3"
+        PART_BOOT="${DESTDEV}p3"
     fi
 
     # Wipe, partition and format disk
@@ -69,43 +70,35 @@ install::prepare_disk()
     sgdisk --zap ${DESTDEV} &>/dev/null
     log::status
 
-    # EFI: Create an ESP (EFI system partition) using linux code EF00
-    # to act as a storage place for the EFI bootloaders to be launched by the UEFI firmware.
-    # https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition
-    if [[ "x${EFI}" == "x1" ]]; then
-        log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
-        sgdisk -n 0:0:+512M -t 0:EF00 -c 0:"EFI system" ${DESTDEV} &>/dev/null
+    # Create the partition table type
+    # - GPT is for UEFI or newer BIOS that support disks >= 2TB
+    # - MBR is for legacy systems with BIOS 2012 or older
+    if [ $MBR -eq 0 ]; then
+        log::ls -n "Creating ${cyan}Modern GPT partition table${none}..."
+        parted "${DESTDEV}" -- mklabel gpt &>/dev/null
         log::status
-        log::ls -n "Formatting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}FAT32${none}..."
-        mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
-        log::status
-
-    # BIOS: Create a BIOS boot partition EF02
-    # There is no need to mount it or do anything other than create it as GRUB will handle this
     else
-        log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
-        sgdisk -n 0:0:+2M -t 0:EF02 -c 0:"BIOS system" ${DESTDEV} &>/dev/null
+        log::ls -n "Creating ${cyan}Legacy MBR partition table${none}..."
+        parted "${DESTDEV}" -- mklabel msdos &>/dev/null
         log::status
     fi
 
-    # Create SWAP partition 8200
+    # (PART_ROOT i.e. #1) create the root partition 'Linux filesystem' type 8300 
+    # - fills the disk except for the end where swap will live and the begining 512MiB for boot
+    log::ls -n "Creating ${cyan}${PART_ROOT}${none} as ${cyan}Linux filesystem${none}..."
+    if [ $MBR -eq 0 ]; then
+        parted "${DESTDEV}" -- mkpart "ROOT" ext4 512MiB -4GiB &>/dev/null
+        log::status
+    else
+        parted "${DESTDEV}" -- mkpart "ROOT" ext4 1MiB -4GiB &>/dev/null
+        log::status
+    fi
+
+    # (PART_SWAP i.e. #2) create the SWAP partition 8200
+    # - this is the same regardless of the partition table type
     log::ls -n "Creating ${cyan}${PART_SWAP}${none} as ${cyan}Linux swap partition${none}..."
-    sgdisk -n 0:0:+4G -t 0:8200 -c 0:"Linux swap" ${DESTDEV} &>/dev/null
+    parted "${DESTDEV}" -- mkpart "SWAP" linux-swap -4GiB 100% &>/dev/null
     log::status
-
-    # Create root partition 8300
-    log::ls -n "Creating ${cyan}${PART_ROOT}${none} as ${cyan}Linux filesystem partition${none}..."
-    sgdisk -n 0:0:0 -t 0:8300 -c 0:"Linux filesystem" ${DESTDEV} &>/dev/null
-    log::status
-
-    # Set boot flag for device
-    # '3' is the target partition 3
-    # '2' is the legacy BIOS bootable flag in GPT
-    log::ls -n "Setting boot flag on ${cyan}${PART_BOOT}${none}..."
-    sgdisk ${DESTDEV} --attributes=3:set:2 &>/dev/null
-    log::status
-
-    # Configure swap partition
     log::ls -n "Formatting ${cyan}${PART_SWAP}${none} as ${cyan}swap${none}..."
     mkswap -L SWAP ${PART_SWAP} &>/dev/null
     log::status
@@ -113,10 +106,41 @@ install::prepare_disk()
     swapon ${PART_SWAP} &>/dev/null
     log::status
 
+    # (PART_BOOT i.e. #3) configure boot process for:
+    # - EFI: Create an ESP (EFI system partition) using linux code EF00
+    #   - to act as a storage place for the EFI bootloaders to be launched by the UEFI firmware.
+    #   - https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition
+    # - GPT: modern BIOS need a partition EF02 created and GRUB will handle the rest
+    # - MBR: legacy BIOS need the ROOT partition's to have a boot flag set
+    if [ $EFI -eq 1 ]; then
+        log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
+        parted "${DESTDEV}" -- mkpart "ESP" fat32 1MiB 512MiB &>/dev/null
+        log::status
+        log::ls -n "Mark ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
+        parted "${DESTDEV}" -- set 3 esp on &>/dev/null
+        log::status
+        log::ls -n "Formatting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}FAT32${none}..."
+        mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
+        log::status
+    elif [ $MBR -eq 0 ]; then
+        log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
+        parted "${DESTDEV}" -- mkpart "ESP" fat32 1MiB 512MiB &>/dev/null
+        log::status
+        log::ls -n "Setting boot flag ${cyan}${PART_BOOT}${none} for modern GPT..."
+        parted "${DESTDEV}" -- set 1 bios_grub on &>/dev/null
+        log::status
+        # No need to format or mount this, GRUB will handle anything needed
+    else
+        log::ls -n "Setting boot flag ${cyan}${PART_ROOT}${none} for Legacy MBR..."
+        parted "${DESTDEV}" -- set 1 boot on &>/dev/null
+        log::status
+    fi
+
+    # Format the ROOT partition
     # mkfs.ext4 option descriptions
     # -F            force creation even if some params don't make sense
     # -L            set volume name to well known label used by bootloaders
-    # -m 0          don't reserve blocks for super user daemons
+    # -m 0          don't reserve blocks for root services
     # -q            run in quiet mode for scripts
     log::ls -n "Formatting ${cyan}${PART_ROOT}${none} as ${cyan}ext4${none}..."
     mkfs.ext4 -F -m 0 -q -L ROOT ${PART_ROOT} &>/dev/null
@@ -130,7 +154,7 @@ install::prepare_disk()
     # UEFI: boot partition needs to be mounted over the root at /boot to capture the Linux
     # standard boot file install e.g. kernel and initramfs. We keep them on the same partition
     # as the EFI/BOOT/BOOTX64.efi as EFI can't mount a ext4 filesystem.
-    if [[ "x${EFI}" == "x1" ]]; then
+    if [ $EFI -eq 1 ]; then
         log::ls -n "Mounting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}${ROOT_DIR}/boot${none}..."
         mkdir -p ${ROOT_DIR}/boot
         mount ${PART_BOOT} ${ROOT_DIR}/boot &>/dev/null
@@ -179,7 +203,7 @@ install::install_config()
 
     # Configure boot device target
     log::ls -n "Storing boot device type setting..."
-    [[ "x${EFI}" == "x1" ]] && options+=("efi = true;") || options+=("mbr = \"${DESTDEV}\";")
+    [[ $EFI -eq 1 ]] && options+=("efi = true;") || options+=("mbr = \"${DESTDEV}\";")
     log::status
 
     log::ls -n "Update NIXOS target version to ${cyan}${NIXOS_VER}${none}..."
@@ -431,6 +455,20 @@ install::select_install_disk_options()
     # Match DESTDEV with /dev/sda and /dev/vda
     [ -z "${DESTDEV##*/dev/sd*}" ] || [ -z "${DESTDEV##*/dev/vd*}" ] && SCSI=1
 
+    # Determine the disk partitioning mode to use:
+    # - Modern systems from 2012 support the GPT partition table supporting disks >= 2TB
+    # - Legacy systems with older BIOS versions require a MBR partition table and disks <= 2TB
+    if [[ $EFI -eq 0 && -f /sys/class/dmi/id/bios_date ]]; then
+        bios_year=$(awk -F'/' '{print $3}' /sys/class/dmi/id/bios_date) 
+        if [ $bios_year -le 2012 ]; then
+            MBR=1
+            log::ls "Legacy BIOS detected using ${cyan}MBR partition table${none}"
+        fi
+    fi
+    if [ $MBR -eq 0 ]; then
+        log::ls "Newer BIOS/UEFI detected using ${cyan}GPT partition table${none}"
+    fi
+
     log::d "Leaving install::select_install_disk_options"
 }
 
@@ -502,6 +540,7 @@ install::run()
 
     DEFAULT="n"
     TESTING="${TESTING:-n}"
+    MBR=0
     [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
     SCSI=0
     TIMEZONE='America/Boise'
@@ -526,7 +565,7 @@ install::run()
     NEW_MACHINE='y'
     NFS_SHARES='n'
 
-    # Prompt to reinstall of an existing machine or install a brand new machine
+    # Prompt install a brand new machine or reinstall an existing machine
     install::select_deployment_options
 
     # Determine if this is a default deployment
@@ -602,7 +641,7 @@ install::run()
             install::install_config
         else
             log::header1 "Load existing system configuration"
-            log::ls -n "NOT YET SUPPORTED..."
+            log::ls "NOT YET SUPPORTED..."
         fi
 
         # Perform the actual install
