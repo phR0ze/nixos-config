@@ -187,7 +187,7 @@ install::install_system()
         echo -e "   2. Rerun: ${cyan}nixos-install --no-root-passwd --no-channel-copy --flake ${CONFIG_DIR}#target${none}"
     fi
 
-    flake::unstage_files
+    flake::unstage_files --install
     log::d "Leaving install::install_system"
 }
 
@@ -196,7 +196,7 @@ install::install_config()
 {
     MACHINE="machines/$HOSTNAME"
     local machine_args="${MACHINE}/args.dec.json"
-    log::header1 "Install system ${cyan}${MACHINE}${none}"
+    log::header1 "Stage system configuration at ${MACHINE}"
 
     # Create the new machine directory
     pushd "${CONFIG_DIR}" &>/dev/null
@@ -352,13 +352,13 @@ EOF
 # Create the target system config directory
 install::install_config_dir()
 {
-    log::header1 "Configure new system nix config"
+    log::header1 "Configure new system NixOS config"
 
     log::ls -n "Create the NixOS config dir ${cyan}${CONFIG_DIR}${none}..."
     mkdir -p ${CONFIG_DIR}
     log::status
 
-    log::ls -n "Stage NIXOS configuration files at ${cyan}${CONFIG_DIR}${none}..."
+    log::ls -n "Stage NixOS configuration files at ${cyan}${CONFIG_DIR}${none}..."
     cp -r $SCRIPT_DIR/. ${CONFIG_DIR}
     log::status
 
