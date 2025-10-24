@@ -129,7 +129,7 @@ ensure the new configuration is persisted in your `nixos-config` repo.
       $ sops --encrypt machines/$MACHINE/args.dec.json > machines/$MACHINE/args.enc.json
       ```
 3. Update `machines/$MACHINE/configuration.nix`
-   1. Set the desired profile as wanted
+   1. Set the desired profile
       ```nix
       imports = [ ./hardware-configuration.nix ../../profiles/xfce/desktop.nix ];
       ```
