@@ -118,6 +118,13 @@ ensure the new configuration is persisted in your `nixos-config` repo.
       $ cd /etc/nixos
       ```
    2. Add the disk drives ids
+      ```json
+      "drives": [
+        {
+          "uuid": "ID HERE"
+        }
+      ],
+      ```
    3. Update `hardware-configuration.nix` to use it
       ```nix
       fileSystems."/" = {
@@ -134,16 +141,13 @@ ensure the new configuration is persisted in your `nixos-config` repo.
       ```nix
       imports = [ ./hardware-configuration.nix ../../profiles/xfce/desktop.nix ];
       ```
-   2. Initialize the dir for clu
-      ```bash
-      $ ./clu init
-      ```
-4. Link github repo
+4. Link github repo once internet access is established
    1. Store changes `git stash`
    2. Add remote `git remote add origin https://github.com/phR0ze/nixos-config`
    3. Setup remote tracking `git branch -u origin/main`
    4. Pull `git pull`
    5. Apply changes `git stash pop`
+   6. Init repo `clu init`
 
 ## Update and Upgrade
 I'm defining `update` as configuration changes while an `upgrade` would be changing the versions of 
