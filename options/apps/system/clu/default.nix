@@ -12,8 +12,8 @@ stdenvNoCC.mkDerivation {
   src = fetchFromGitHub {
     owner = "phR0ze";
     repo = "nixos-config";
-    rev = "f0ad721b71f5e1376264b966d33b8662a5a76b72";
-    hash = "sha256-dDzmEiicx7rzHRn8QAvUpjzpOvNRLkFThzWChEiGg2M=";
+    rev = "57e7f6077c65af7d5790ec7d3b400268ff8c2415";
+    hash = "sha256-bPkaFRMO9OqXSju62OkzJZ3eEtGOTUPXpQn1QgqqV3s=";
   };
 
   nativeBuildInputs = [
