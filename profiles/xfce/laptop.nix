@@ -9,6 +9,8 @@
     ./desktop.nix
   ];
 
+  services.raw.rustdesk.autostart = false;
+
   # Slick captive portal solutions for hotels etc...
 #  programs = {
 #    captive-browser = {
@@ -19,6 +21,6 @@
 
   # Add additional packages
   #environment.systemPackages = with pkgs; [
-  #  zoom-us                   # Video conferencing application
+  #  
   #];
 }
