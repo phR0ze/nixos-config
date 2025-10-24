@@ -16,6 +16,8 @@
   config = {
     machine.type.bootable = true;
     machine.nix.cache.enable = true;
-    devices.gpu.nvidiaLegacy340 = true;
+
+    # Broken
+    #devices.gpu.nvidiaLegacy340 = true;
   };
 }
