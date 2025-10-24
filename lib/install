@@ -195,64 +195,131 @@ install::install_system()
 install::install_config()
 {
     MACHINE="machines/$HOSTNAME"
-    local machine_args="${MACHINE}/args.nix"
+    local machine_args="${MACHINE}/args.dec.json"
     log::header1 "Install system ${cyan}${MACHINE}${none}"
 
     # Create the new machine directory
     pushd "${CONFIG_DIR}" &>/dev/null
     mkdir "${MACHINE}"
 
-    # Construct options array to be included in the configuration.nix
-    local options=()
-    options+=("id = \"$(dbus-uuidgen)\";")
+    # Construct machines/$MACHINE/args.dec.json to be encrypted after install
+    local args=$(jq -n '{}')
 
-    # Configure boot device target
-    log::ls -n "Storing boot device type setting..."
-    [[ $EFI -eq 1 ]] && options+=("efi = true;") || options+=("mbr = \"${DESTDEV}\";")
+    # Convert general options to json
+    log::ls -n "Staging ${cyan}hostname=${HOSTNAME}${none}..."
+    args=$(echo "$args" | jq --arg k "hostname" --arg v "${HOSTNAME}" '. + {$k: $v}')
+    log::status
+    log::ls -n "Staging ${cyan}timezone=${TIMEZONE}${none}..."
+    args=$(echo "$args" | jq --arg k "timezone" --arg v "${TIMEZONE}" '. + {$k: $v}')
+    log::status
+    local uuid="$(dbus-uuidgen)"
+    log::ls -n "Staging ${cyan}id=${uuid}${none}..."
+    args=$(echo "$args" | jq --arg k "id" --arg v "${uuid}" '. + {$k: $v}')
+    log::status
+    if [[ $EFI -eq 1 ]]; then
+        log::ls -n "Staging ${cyan}efi=true${none}..."
+        args=$(echo "$args" | jq --arg k "efi" --argjson v true '. + {$k: $v}')
+        log::status
+    else
+        log::ls -n "Staging ${cyan}mbr=${DESTDEV}${none}..."
+        args=$(echo "$args" | jq --arg k "mbr" --arg v "${DESTDEV}" '. + {$k: $v}')
+        log::status
+    fi
+
+    log::ls -n "Staging ${cyan}nix.minVer=${NIXOS_VER}${none}..."
+    args=$(echo "$args" | jq --arg k "nix.minVer" --arg v "${NIXOS_VER}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
 
-    log::ls -n "Update NIXOS target version to ${cyan}${NIXOS_VER}${none}..."
-    options+=("nix.minVer = \"${NIXOS_VER}\";")
+    # Convert user options to json
+    local pass="*******"
+    [[ "x$DEFAULT" == "xy" ]] && pass="${DEFAULT_PASS}" || true
+    log::ls -n "Staging ${cyan}user.fullname=${FULL_NAME}${none}..."
+    args=$(echo "$args" | jq --arg k "user.fullname" --arg v "${FULL_NAME}" '($k | split(".")) as $p | setpath($p; $v)')
+    log::status
+    log::ls -n "Staging ${cyan}user.email=${USER_EMAIL}${none}..."
+    args=$(echo "$args" | jq --arg k "user.email" --arg v "${USER_EMAIL}" '($k | split(".")) as $p | setpath($p; $v)')
+    log::status
+    log::ls -n "Staging ${cyan}user.name=${USER_NAME}${none}..."
+    args=$(echo "$args" | jq --arg k "user.name" --arg v "${USER_NAME}" '($k | split(".")) as $p | setpath($p; $v)')
+    log::status
+    log::ls -n "Staging ${cyan}user.pass=${pass}${none}..."
+    args=$(echo "$args" | jq --arg k "user.pass" --arg v "${USER_PASS}" '($k | split(".")) as $p | setpath($p; $v)')
+    log::status
+    log::ls -n "Staging ${cyan}user.group=${USER_NAME}${none}..."
+    args=$(echo "$args" | jq --arg k "user.group" --arg v "${USER_NAME}" '($k | split(".")) as $p | setpath($p; $v)')
+    log::status
+    log::ls -n "Staging ${cyan}git.user=${GIT_USER}${none}..."
+    args=$(echo "$args" | jq --arg k "git.user" --arg v "${GIT_USER}" '($k | split(".")) as $p | setpath($p; $v)')
+    log::status
+    log::ls -n "Staging ${cyan}git.email=${GIT_EMAIL}${none}..."
+    args=$(echo "$args" | jq --arg k "git.email" --arg v "${GIT_EMAIL}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
 
-    log::ls -n "Update set hostname and timezone..."
-    options+=("hostname  = \"${HOSTNAME}\";")
-    options+=("timezone = \"${TIMEZONE}\";")
-    log::status
-
-    # Extract networking for use during install
+    # Convert networking options to json
     NICS=($(ls /sys/class/net))
-    log::ls -n "Storing NIC0 ${cyan}${NICS[0]}${none}..."
-    options+=("net.nic0.name = \"${NICS[0]}\";")
+    log::ls -n "Staging ${cyan}net.nic0.name=${NICS[0]}${none}..."
+    args=$(echo "$args" | jq --arg k "net.nic0.name" --arg v "${NICS[0]}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
-
-    # Configure new user and root user
-    local pass=""
-    [[ "x$DEFAULT" == "xy" ]] && pass=" (default: ${cyan}${DEFAULT_PASS}${none})" || true
-    log::ls -n "Storing new ${cyan}${USER_NAME}${none} and ${cyan}root${none} passwords${pass}..."
-    options+=("user.fullname = \"${FULL_NAME}\";")
-    options+=("user.email = \"${USER_EMAIL}\";")
-    options+=("user.name = \"${USER_NAME}\";")
-    options+=("user.group = \"${USER_NAME}\";")
-    options+=("user.pass = \"${USER_PASS}\";")
-    options+=("git.user = \"${GIT_USER}\";")
-    options+=("git.email = \"${GIT_EMAIL}\";")
-    log::status
-
-    log::ls -n "Storing new networking options..."
-    [[ "x$SUBNET" != "x" ]] && options+=("net.subnet = \"${SUBNET}\";") || true
-    [[ "x$GATEWAY" != "x" ]] && options+=("net.gateway = \"${GATEWAY}\";") || true
-    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("net.dns.primary = \"${PRIMARY_DNS}\";") || true
-    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("net.dns.fallback = \"${FALLBACK_DNS}\";") || true
-    [[ "x$IP" != "xDHCP" ]] && options+=("net.nic0.ip = \"${IP}\";") || true
-    [[ "x$SUBNET" != "x" ]] && options+=("net.nic0.subnet = \"${SUBNET}\";") || true
-    [[ "x$GATEWAY" != "x" ]] && options+=("net.nic0.gateway = \"${GATEWAY}\";") || true
-    [[ "x$PRIMARY_DNS" != "x" ]] && options+=("net.nic0.dns.primary = \"${PRIMARY_DNS}\";") || true
-    [[ "x$FALLBACK_DNS" != "x" ]] && options+=("net.nic0.dns.fallback = \"${FALLBACK_DNS}\";") || true
-    [[ "x$BLUETOOTH" == "xy" ]] && options+=("bluetooth = true;") || true
-    [[ "x$AUTO_LOGIN" == "xy" ]] && options+=("autologin = true;") || true
-    [[ "x$NFS_SHARES" == "xy" ]] && options+=("nfs.enable = true;") || true
-    log::status
+    if [[ "x$SUBNET" != "x" ]]; then
+        log::ls -n "Staging ${cyan}net.subnet=${SUBNET}${none}..."
+        args=$(echo "$args" | jq --arg k "net.subnet" --arg v "${SUBNET}" '($k | split(".")) as $p | setpath($p; $v)')
+        log::status
+    fi
+    if [[ "x$GATEWAY" != "x" ]]; then
+        log::ls -n "Staging ${cyan}net.gateway=${GATEWAY}${none}..."
+        args=$(echo "$args" | jq --arg k "net.gateway" --arg v "${GATEWAY}" '($k | split(".")) as $p | setpath($p; $v)')
+        log::status
+    fi
+    if [[ "x$PRIMARY_DNS" != "x" ]]; then
+        log::ls -n "Staging ${cyan}net.dns.primary=${PRIMARY_DNS}${none}..."
+        args=$(echo "$args" | jq --arg k "net.dns.primary" --arg v "${PRIMARY_DNS}" '($k | split(".")) as $p | setpath($p; $v)')
+        log::status
+    fi
+    if [[ "x$FALLBACK_DNS" != "x" ]]; then
+        log::ls -n "Staging ${cyan}net.dns.fallback=${FALLBACK_DNS}${none}..."
+        args=$(echo "$args" | jq --arg k "net.dns.fallback" --arg v "${FALLBACK_DNS}" '($k | split(".")) as $p | setpath($p; $v)')
+        log::status
+    fi
+    if [[ "x$IP" != "xDHCP" ]]; then
+        log::ls -n "Staging ${cyan}net.nic0.ip=${IP}${none}..."
+        args=$(echo "$args" | jq --arg k "net.nic0.ip" --arg v "${IP}" '($k | split(".")) as $p | setpath($p; $v)')
+        log::status
+    fi
+    if [[ "x$SUBNET" != "x" ]]; then
+        log::ls -n "Staging ${cyan}net.nic0.subnet=${SUBNET}${none}..."
+        args=$(echo "$args" | jq --arg k "net.nic0.subnet" --arg v "${SUBNET}" '($k | split(".")) as $p | setpath($p; $v)')
+        log::status
+    fi
+    if [[ "x$GATEWAY" != "x" ]]; then
+        log::ls -n "Staging ${cyan}net.nic0.gateway=${GATEWAY}${none}..."
+        args=$(echo "$args" | jq --arg k "net.nic0.gateway" --arg v "${GATEWAY}" '($k | split(".")) as $p | setpath($p; $v)')
+        log::status
+    fi
+    if [[ "x$PRIMARY_DNS" != "x" ]]; then
+        log::ls -n "Staging ${cyan}net.nic0.dns.primary=${PRIMARY_DNS}${none}..."
+        args=$(echo "$args" | jq --arg k "net.nic0.dns.primary" --arg v "${PRIMARY_DNS}" '($k | split(".")) as $p | setpath($p; $v)')
+        log::status
+    fi
+    if [[ "x$FALLBACK_DNS" != "x" ]]; then
+        log::ls -n "Staging ${cyan}net.nic0.dns.fallback=${FALLBACK_DNS}${none}..."
+        args=$(echo "$args" | jq --arg k "net.nic0.dns.fallback" --arg v "${FALLBACK_DNS}" '($k | split(".")) as $p | setpath($p; $v)')
+        log::status
+    fi
+    if [[ "x$BLUETOOTH" == "xy" ]]; then
+        log::ls -n "Staging ${cyan}bluetooth=true${none}..."
+        args=$(echo "$args" | jq --arg k "bluetooth" --argjson v true '. + {$k: $v}')
+        log::status
+    fi
+    if [[ "x$AUTO_LOGIN" == "xy" ]]; then
+        log::ls -n "Staging ${cyan}autologin=true${none}..."
+        args=$(echo "$args" | jq --arg k "autologin" --argjson v true '. + {$k: $v}')
+        log::status
+    fi
+    if [[ "x$NFS_SHARES" == "xy" ]]; then
+        log::ls -n "Staging ${cyan}nfs.enable=true${none}..."
+        args=$(echo "$args" | jq --arg k "nfs.enable" --argjson v true '($k | split(".")) as $p | setpath($p; $v)')
+        log::status
+    fi
 
     # Write out the file to machines/$HOSTNAME/configuration.nix
     log::ls -n "Generating ${MACHINE}/configuration.nix..."
@@ -269,11 +336,7 @@ EOF
 
     # Add the /mnt/etc/nixos/machines/$HOSTNAME/args.nix
     log::ls -n "Generating install time ${machine_args}..."
-    cat > "${machine_args}" <<EOF
-{
-$(for x in "${options[@]}"; do echo "  $x"; done)
-}
-EOF
+    echo "$args" | jq -r > "${machine_args}"
     log::status
 
     # Files must be at least git added for the flake to recognize them
