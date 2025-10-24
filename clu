@@ -116,7 +116,7 @@ ARGS=("${ARGS[@]}") # rebuild to remove deleted items
 [[ "$CMD" == "-h" || "$CMD" == "--help" ]] && core::usage
 
 # Output debug information
-if [[ "$LOG_LEVEL" == "debug" && "$CMD" == "" ]];then
+if [[ "$LOG_LEVEL" == "debug" && "$CMD" == "" ]]; then
     core::preamble
     echo
     log::d "SCRIPT_DIR: ${cyan}${SCRIPT_DIR}${none}"
@@ -124,8 +124,13 @@ if [[ "$LOG_LEVEL" == "debug" && "$CMD" == "" ]];then
     exit
 fi
 
+# Installs are run from anywhere and use the /nix/store based config for install
+# and installation derived paths for CONFIG_DIR so no need to worry about that here.
+if [[ "$CMD" != "install" ]]; then
+    flake::ensure_config_path
+fi
+
 # Process the command
-flake::ensure_config_path
 case "$CMD" in
     init) init::run "${ARGS[@]}" ;;
     build) build::run "${ARGS[@]}" ;;
