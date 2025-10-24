@@ -200,7 +200,7 @@ install::install_config()
 
     # Create the new machine directory
     pushd "${CONFIG_DIR}" &>/dev/null
-    mkdir "${MACHINE}"
+    mkdir -p "${MACHINE}"
 
     # Construct machines/$MACHINE/args.dec.json to be encrypted after install
     local args=$(jq -n '{}')
