@@ -19,6 +19,7 @@ fork it and build on my work.
 * [Getting Started](#getting-started)
   * [Install from upstream ISO](#install-from-upstream-iso)
   * [Install from custom ISO](#install-from-custom-iso)
+  * [Configure post install](#configure-post-install)
 * [Update and Upgrade](#update-and-upgrade)
   * [Update configuration](#update-configuration)
   * [Upgrade unstable](#upgrade-unstable)
@@ -92,13 +93,56 @@ during install with prebuilt binaries (i.e. you can think of it as a local binar
 speed up the installation tremendously as you don't need to download nearly as much and any custom 
 built binaries will already be built.
 
-Of course this is really only useful if you install a lot of systems or your target system is rather 
-limited in resources while your build system is beefy.
-
 1. [Build the ISO for installation](#build-the-iso-for-installation)
 2. Burn the ISO to USB see step 2 of [Install from upstream ISO](#install-from-upstream-iso)
 3. Boot from the new USB and open a shell
 4. You'll be greeted with the clu installer
+5. Work through the installer and reboot
+
+### Configure post install
+Steps for completing setting up the NixOS configuration locally. Once installed you'll still want to 
+ensure the new configuration is persisted in your `nixos-config` repo.
+
+1. Copy your SOPS configuration from an existing machine
+   ```bash
+   $ cd ~/.config
+   $ scp -r $IP_TO_EXISTING_MACHINE:~/.config/sops .
+   $ sudo su
+   $ cd ~/.config
+   $ cp -r /home/$SUDO_USER/.config/sops .
+   ```
+2. Update and encrypt the `/etc/nixos/machines/$MACHINE/args.dec.json`
+   1. Switch to the config dir as root
+      ```bash
+      $ cd /etc/nixos
+      ```
+   2. Add the disk drives ids
+   3. Update `hardware-configuration.nix` to use it
+      ```nix
+      fileSystems."/" = {
+        device = "/dev/disk/by-uuid/${(builtins.elemAt config.machine.drives 0).uuid}";
+        fsType = "ext4";
+      };
+      ```
+   4. Finally encrypt the file
+      ```bash
+      $ sops --encrypt machines/$MACHINE/args.dec.json > machines/$MACHINE/args.enc.json
+      ```
+3. Update `machines/$MACHINE/configuration.nix`
+   1. Set the desired profile as wanted
+      ```nix
+      imports = [ ./hardware-configuration.nix ../../profiles/xfce/desktop.nix ];
+      ```
+   2. Initialize the dir for clu
+      ```bash
+      $ ./clu init
+      ```
+4. Link github repo
+   1. Store changes `git stash`
+   2. Add remote `git remote add origin https://github.com/phR0ze/nixos-config`
+   3. Setup remote tracking `git branch -u origin/main`
+   4. Pull `git pull`
+   5. Apply changes `git stash pop`
 
 ## Update and Upgrade
 I'm defining `update` as configuration changes while an `upgrade` would be changing the versions of 
@@ -282,7 +326,8 @@ $ git clone -b nixos-unstable --depth 1 https://github.com/NixOS/nixpkgs
 ```
 
 ## Backlog
-* [ ] 
+* [ ] Convert initial `machines/$MACHINE/args.nix` into a `machines/$MACHINE/args.dec.json`
+* [ ] Local DNS server seems to be unreachable ??
 
 ### Sometime
 * [ ] Change image mime associatation
