@@ -34,6 +34,7 @@ fork it and build on my work.
 * [Development](#development)
   * [Dev environment](#dev-environment)
   * [Clone nixpkgs locally](#clone-nixpkgs-locally)
+  * [Upgrade CLU installer](#upgrade-clu-installer)
 * [Backlog](#backlog)
   * [Next](#next)
   * [Sometime](#sometime)
@@ -324,6 +325,17 @@ It's nice to have a copy of nixpkgs to reference for options
 ```bash
 $ git clone -b nixos-unstable --depth 1 https://github.com/NixOS/nixpkgs
 ```
+
+### Upgrade CLU installer
+I've included my `clu` installer and nix automation tool as a package. However it it is dependent on 
+the state of this repo, which takes one additional step to include changes.
+
+1. Make changes to this repo and command push
+2. Update the `rev` field of `options/apps/system/clu/default.nix` to the new commit sha
+3. Zero out the sha in the file
+4. In the same directory run `nix build -f build.nix` to determine the new build SHA to use
+5. Add the new build sha and save and commit and push the new bits
+6. Build the iso `./clu build iso`
 
 ## Backlog
 * [ ] Convert initial `machines/$MACHINE/args.nix` into a `machines/$MACHINE/args.dec.json`
