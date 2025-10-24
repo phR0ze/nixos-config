@@ -1,13 +1,11 @@
-HP Notebook
-====================================================================================================
-
-<img align="left" width="48" height="48" src="../../art/logo_256x256.png">
-Documenting the steps I went through to deploy <b><i>cyberlinux</i></b> onto the
+HP Notebook 15-af123c1 <img style="margin: 6px 13px 0px 0px" align="left" src="../../art/logo_36x36.png" />
 
 ### Quick links
 * [.. up dir](../../README.md)
 * [Hardware](#hardware)
   * [Bios Access](#bios-access)
+* [Troubleshooting](#troubleshooting)
+  * [X11 fails to start](#x11-fails-to-start)
 
 ## Hardware
 * HP Notebook 15-af123cl
@@ -16,7 +14,7 @@ Documenting the steps I went through to deploy <b><i>cyberlinux</i></b> onto the
   * Touchscreen 15.6" 1366x768
   * 5 GB DDR3-SDRAM
   * Samsung SSD 840 Pro
-  * AMD Radeon R5
+  * AMD Radeon R5 graphics
   * SD, SDHC, SDXC
   * DVD Super Multi
   * Wi-Fi 4 802.11n
@@ -25,9 +23,14 @@ Documenting the steps I went through to deploy <b><i>cyberlinux</i></b> onto the
   * Battery 3 cell 2800 mAh
 
 ### Bios Access
-Press `F10` at boot
+* Press `F10` at boot
+* Disable the TPM in the bios and hide it to avoid odd timeout failures with `/dev/tpmrm0`
 
-### Radeon driver failure in logs
+## Troubleshooting
+
+### X11 fails to start
+Radeon driver failure in logs
+
 Reading the `/var/log/X.0.log` shows the following:
 
 ```

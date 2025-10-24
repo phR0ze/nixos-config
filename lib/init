@@ -33,7 +33,7 @@ init::run()
     utils::help "$@" zero "init::usage"
 
     core::preamble
-    log::header0 "Initializing nixos-config repo"
+    log::header0 "Initializing repo ${cyan}${CONFIG_DIR}${none}"
 
     pushd "${CONFIG_DIR}" &>/dev/null
     log::ln "Configuring core.hooksPath: ${cyan}.githooks${none}"

@@ -33,7 +33,7 @@ set -e
 SCRIPT="$(basename $0)"                                 # clu
 SCRIPT_DIR="$(readlink -f $(dirname $BASH_SOURCE[0]))"  # /path/to/nixos-config
 ROOT_DIR="" # more intuitive to concat with / so blank  # changeable root for testing and installs
-CONFIG_DIR="${SCRIPT_DIR}"
+[[ "${SCRIPT_DIR}" == "/nix/store"* ]] && CONFIG_DIR="$(pwd)" || CONFIG_DIR="${SCRIPT_DIR}"
 source "${SCRIPT_DIR}/lib/all"
 
 core::preamble()
