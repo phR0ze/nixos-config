@@ -113,21 +113,19 @@ install::prepare_disk()
             mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
             log::status
         else
+            # Note: no need to format or mount this as GRUB will auto handle as needed
+            # but it does have to be the first partition to work correctly.
             log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
             parted -s -a optimal "${DESTDEV}" -- mkpart primary 1MB 512MB &>/dev/null
             log::status
             log::ls -n "Setting boot flag ${cyan}${PART_BOOT}${none} for modern GPT..."
             parted "${DESTDEV}" -- set 1 bios_grub on &>/dev/null
             log::status
-            # No need to format or mount this, GRUB will handle anything needed
         fi
 
         log::ls -n "Creating ROOT ${cyan}${PART_ROOT}${none} partition for ${cyan}GPT partition table${none}..."
         parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 512MB -5GB &>/dev/null
         log::status
-        #log::ls -n "Setting boot flag on ${cyan}${PART_ROOT}${none}..."
-        #parted "${DESTDEV}" -- set 2 boot on &>/dev/null
-        #log::status
     fi
 
     # (PART_SWAP i.e. #2 (MBR) or #3 (GPT)) create the SWAP partition 8200
