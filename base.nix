@@ -28,9 +28,10 @@
       config.allowUnfreePredicate = pkg: true;
       config.android_sdk.accept_license = true;
       config.nvidia.acceptLicense = true;
-      #config.permittedInsecurePackages = [
+      config.permittedInsecurePackages = [
+        "broadcom-sta-6.30.223.271-57-6.12.41"
         #"freeimage-3.18.0-unstable-2024-04-18"     # Allowing this for wii tools
-      #];
+      ];
 
       # Modify package defaults with overlays
       # --------------------------------------------------------------------------------------------
