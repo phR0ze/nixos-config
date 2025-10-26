@@ -36,13 +36,13 @@ install::prepare_disk()
     # Set partition identifiers
     # - [GPT partitioning](https://nixos.org/manual/nixos/stable/#sec-installation-manual-partitioning-UEFI)
     if [[ $SCSI -eq 1 ]]; then
-        PART_ROOT="${DESTDEV}1"
-        PART_SWAP="${DESTDEV}2"
-        PART_BOOT="${DESTDEV}3"
+        PART_BOOT="${DESTDEV}1"
+        PART_ROOT="${DESTDEV}2"
+        PART_SWAP="${DESTDEV}3"
     else
-        PART_ROOT="${DESTDEV}p1"
-        PART_SWAP="${DESTDEV}p2"
-        PART_BOOT="${DESTDEV}p3"
+        PART_BOOT="${DESTDEV}p1"
+        PART_ROOT="${DESTDEV}p2"
+        PART_SWAP="${DESTDEV}p3"
     fi
 
     # Wipe, partition and format disk
@@ -74,32 +74,63 @@ install::prepare_disk()
     # - Parted interprets MiB and GiB notation as exact byte values and doesn't auto-align the 
     #   partitions causing failure.
 
-    # Create the partition table type
-    # - GPT is for UEFI or newer BIOS that support disks >= 2TB
-    # - MBR is for legacy systems with BIOS 2012 or older
-    if [ $MBR -eq 0 ]; then
-        log::ls -n "Creating ${cyan}Modern GPT partition table${none}..."
-        parted "${DESTDEV}" -- mklabel gpt &>/dev/null
-        log::status
-    else
+    # PART_BOOT & PART_ROOT for Legacy MBR partition table
+    # - MBR is for BIOS based systems 2012 or older
+    # - create the root partition 'Linux filesystem' type 8300 
+    # - fill the disk except for a small 1MB space at the begining that will contain the MBR
+    # - also leave 5GB at the end for a separate SWAP partition
+    # - set the boot flag on the root partition
+    if [ $MBR -eq 1 ]; then
         log::ls -n "Creating ${cyan}Legacy MBR partition table${none}..."
         parted "${DESTDEV}" -- mklabel msdos &>/dev/null
         log::status
-    fi
-
-    # (PART_ROOT i.e. #1) create the root partition 'Linux filesystem' type 8300 
-    # - fills the disk except for the end where swap will live and the begining 512MB for boot
-    if [ $MBR -eq 0 ]; then
-        log::ls -n "Creating ROOT ${cyan}${PART_ROOT}${none} partition for ${cyan}GPT partition table${none}..."
-        parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 512MB -5GB &>/dev/null
-        log::status
-    else
         log::ls -n "Creating ROOT ${cyan}${PART_ROOT}${none} partition for ${cyan}MBR partition table${none}..."
         parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 1MB -5GB &>/dev/null
         log::status
+        log::ls -n "Setting boot flag ${cyan}${PART_ROOT}${none} for Legacy MBR..."
+        parted "${DESTDEV}" -- set 1 boot on &>/dev/null
+        log::status
+
+    # PART_BOOT & PART_ROOT for GPT partition table
+    # - GPT is for UEFI or newer BIOS that support disks >= 2TB
+    # - EFI: Create an ESP (EFI system partition) using linux code EF00
+    #   - to act as a storage place for the EFI bootloaders to be launched by the UEFI firmware.
+    #   - https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition
+    # - GPT: modern BIOS need a partition EF02 created and GRUB will handle the rest
+    else
+        log::ls -n "Creating ${cyan}Modern GPT partition table${none}..."
+        parted "${DESTDEV}" -- mklabel gpt &>/dev/null
+        log::status
+
+        if [ $EFI -eq 1 ]; then
+            log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
+            parted -s -a optimal "${DESTDEV}" -- mkpart "ESP" fat32 1MB 512MB &>/dev/null
+            log::status
+            log::ls -n "Mark ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
+            parted "${DESTDEV}" -- set 1 esp on &>/dev/null
+            log::status
+            log::ls -n "Formatting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}FAT32${none}..."
+            mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
+            log::status
+        else
+            log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
+            parted -s -a optimal "${DESTDEV}" -- mkpart primary 1MB 512MB &>/dev/null
+            log::status
+            log::ls -n "Setting boot flag ${cyan}${PART_BOOT}${none} for modern GPT..."
+            parted "${DESTDEV}" -- set 1 bios_grub on &>/dev/null
+            log::status
+            # No need to format or mount this, GRUB will handle anything needed
+        fi
+
+        log::ls -n "Creating ROOT ${cyan}${PART_ROOT}${none} partition for ${cyan}GPT partition table${none}..."
+        parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 512MB -5GB &>/dev/null
+        log::status
+        #log::ls -n "Setting boot flag on ${cyan}${PART_ROOT}${none}..."
+        #parted "${DESTDEV}" -- set 2 boot on &>/dev/null
+        #log::status
     fi
 
-    # (PART_SWAP i.e. #2) create the SWAP partition 8200
+    # (PART_SWAP i.e. #2 (MBR) or #3 (GPT)) create the SWAP partition 8200
     # - this is the same regardless of the partition table type
     log::ls -n "Creating ${cyan}${PART_SWAP}${none} as ${cyan}Linux swap partition${none}..."
     parted -s -a optimal "${DESTDEV}" -- mkpart primary linux-swap -5GB 100% &>/dev/null
@@ -110,36 +141,6 @@ install::prepare_disk()
     log::ls -n "Starting swap on ${cyan}${PART_SWAP}${none}..."
     swapon ${PART_SWAP} &>/dev/null
     log::status
-
-    # (PART_BOOT i.e. #3) configure boot process for:
-    # - EFI: Create an ESP (EFI system partition) using linux code EF00
-    #   - to act as a storage place for the EFI bootloaders to be launched by the UEFI firmware.
-    #   - https://wiki.archlinux.org/index.php/EFI_System_Partition#Create_the_partition
-    # - GPT: modern BIOS need a partition EF02 created and GRUB will handle the rest
-    # - MBR: legacy BIOS need the ROOT partition's to have a boot flag set
-    if [ $EFI -eq 1 ]; then
-        log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
-        parted -s -a optimal "${DESTDEV}" -- mkpart "ESP" fat32 1MB 512MB &>/dev/null
-        log::status
-        log::ls -n "Mark ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
-        parted "${DESTDEV}" -- set 3 esp on &>/dev/null
-        log::status
-        log::ls -n "Formatting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}FAT32${none}..."
-        mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
-        log::status
-    elif [ $MBR -eq 0 ]; then
-        log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
-        parted -s -a optimal "${DESTDEV}" -- mkpart "ESP" fat32 1MB 512MB &>/dev/null
-        log::status
-        log::ls -n "Setting boot flag ${cyan}${PART_BOOT}${none} for modern GPT..."
-        parted "${DESTDEV}" -- set 1 bios_grub on &>/dev/null
-        log::status
-        # No need to format or mount this, GRUB will handle anything needed
-    else
-        log::ls -n "Setting boot flag ${cyan}${PART_ROOT}${none} for Legacy MBR..."
-        parted "${DESTDEV}" -- set 1 boot on &>/dev/null
-        log::status
-    fi
 
     # Format the ROOT partition
     # mkfs.ext4 option descriptions
