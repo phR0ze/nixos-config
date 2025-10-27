@@ -1,4 +1,4 @@
-HP Notebook 15-af123c1 <img style="margin: 6px 13px 0px 0px" align="left" src="../../art/logo_36x36.png" />
+# HP Notebook 15-af123c1 <img style="margin: 6px 13px 0px 0px" align="left" src="../../art/logo_36x36.png" />
 
 ### Quick links
 * [.. up dir](../../README.md)
@@ -16,7 +16,8 @@ HP Notebook 15-af123c1 <img style="margin: 6px 13px 0px 0px" align="left" src=".
   * SD, SDHC, SDXC
   * DVD Super Multi
   * Wi-Fi 4 802.11n
-  * LAN 100 Mbit/s
+    * Broadcom BCM43142 rev 01
+  * LAN 100 Mbps
   * Bluetooth 4.0
   * Battery 3 cell 2800 mAh
     - HP HS04
@@ -25,3 +26,14 @@ HP Notebook 15-af123c1 <img style="margin: 6px 13px 0px 0px" align="left" src=".
 ### Bios Access
 * Press `F10` at boot
 * Disable the TPM in the bios and hide it to avoid odd timeout failures with `/dev/tpmrm0`
+
+### WiFi configuration
+Broadcom is notorious for poor support on Linux but there is a closed source driver available using 
+the option `hardware.broadcom.enable = true` on NixOS.
+
+```nix
+{
+  networking.networkmanager.enable = true;
+  hardware.broadcom.enable = true;
+}
+```

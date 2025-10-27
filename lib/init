@@ -35,11 +35,57 @@ init::run()
     core::preamble
     log::header0 "Initializing repo ${cyan}${CONFIG_DIR}${none}"
 
-    pushd "${CONFIG_DIR}" &>/dev/null
-    log::ln "Configuring core.hooksPath: ${cyan}.githooks${none}"
-    git config --local core.hooksPath .githooks
+    # Prompt user to copy SOPS keys from existing machine for new system
+    if [[ ! -d ~/.config/sops ]]; then
+        utils::read SCP_SOPS 'Do you want to copy sops keys from an existing machine' 'n'
+        if [[ "x${SCP_SOPS}" == "xy" ]]; then
+            utils::read SCP_HANDLE 'Enter the scp target i.e. user@ip-address'
+            if [[ "x${SCP_HANDLE}" != "x" ]]; then
+                utils::get_user
+                local config_dir="/home/$USER/.config"
+                set -x
+                scp -r ${SCP_HANDLE}:~/.config/sops "$config_dir"
+                sudo cp -r "${config_dir}/sops" /root/.config/
+                set +x
+            fi
+        fi
+    fi
 
-    log::ln "Configuring decrypt alias: ${cyan}git decrypt${none}"
+    pushd "${CONFIG_DIR}" &>/dev/null
+
+    if [[ "$(git remote -v)" != *"phR0ze/nixos-config"* ]]; then
+        log::ls -n "Stash current changes to the repo..."
+        git stash &>/dev/null
+        log::status
+
+        log::ls -n "Add remote ${cyan}https://github.com/phR0ze/nixos-config${none}..."
+        git remote add origin https://github.com/phR0ze/nixos-config &>/dev/null
+        log::status
+
+        log::ls -n "Fetch latest from the remote..."
+        git fetch &>/dev/null
+        log::status
+
+        log::ls -n "Setup branch tracking for ${cyan}origin/main${none}..."
+        git branch -u origin/main &>/dev/null
+        log::status
+
+        log::ls -n "Reset hard on ${cyan}origin/main${none}..."
+        git reset --hard origin/main &>/dev/null
+        log::status
+
+        log::ls -n "Pop the stashed changes..."
+        git stash pop &>/dev/null
+        log::status
+    fi
+
+    log::ls -n "Configuring core.hooksPath: ${cyan}.githooks${none}..."
+    git config --local core.hooksPath .githooks &>/dev/null
+    log::status
+
+    log::ls -n "Configuring decrypt alias: ${cyan}git decrypt${none}..."
     git config --local alias.decrypt '!decrypt() { .githooks/decrypt; }; decrypt'
+    log::status
+
     popd &>/dev/null
 }

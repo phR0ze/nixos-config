@@ -104,51 +104,23 @@ built binaries will already be built.
 Steps for completing setting up the NixOS configuration locally. Once installed you'll still want to 
 ensure the new configuration is persisted in your `nixos-config` repo.
 
-1. Copy your SOPS configuration from an existing machine
+1. Initialize the new repo
    ```bash
-   $ cd ~/.config
-   $ scp -r $IP_TO_EXISTING_MACHINE:~/.config/sops .
-   $ sudo su
-   $ cd ~/.config
-   $ cp -r /home/$SUDO_USER/.config/sops .
+   $ cd /etc/nixos
+   $ clu init
    ```
 2. Update and encrypt the `/etc/nixos/machines/$MACHINE/args.dec.json`
-   1. Switch to the config dir as root
-      ```bash
-      $ cd /etc/nixos
-      ```
-   2. Add the disk drives ids
-      ```json
-      "drives": [
-        {
-          "uuid": "ID HERE"
-        }
-      ],
-      ```
-   3. Update `hardware-configuration.nix` to use it
+   1. Update `hardware-configuration.nix` to use it
       ```nix
       fileSystems."/" = {
         device = "/dev/disk/by-uuid/${(builtins.elemAt config.machine.drives 0).uuid}";
         fsType = "ext4";
       };
       ```
-   4. Finally encrypt the file
+   2. Encrypt the file
       ```bash
       $ sops --encrypt machines/$MACHINE/args.dec.json > machines/$MACHINE/args.enc.json
       ```
-3. Update `machines/$MACHINE/configuration.nix`
-   1. Set the desired profile
-      ```nix
-      imports = [ ./hardware-configuration.nix ../../profiles/xfce/desktop.nix ];
-      ```
-4. Link github repo once internet access is established
-   1. Store changes `git stash`
-   2. Add remote `git remote add origin https://github.com/phR0ze/nixos-config`
-   3. Fetch all `git fetch`
-   4. Setup remote tracking `git branch -u origin/main`
-   5. Reset on upstream `git reset --hard origin/main`
-   6. Apply changes `git stash pop`
-   7. Init repo `clu init`
 
 ## Update and Upgrade
 I'm defining `update` as configuration changes while an `upgrade` would be changing the versions of 

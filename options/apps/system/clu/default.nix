@@ -16,6 +16,16 @@ stdenvNoCC.mkDerivation {
     hash = "sha256-2U6kRTitp2ZVHWH3WrZe4oKxtSDMW0ALh+OEgo9Ii8w=";
   };
 
+  propagatedBuildInputs = [
+    git                                 # git is used to manage nixos-config
+    gnused                              # sed is used to search and replace
+    inxi                                # inxi is used to discover system details
+    jq                                  # jg is used to generate and work with json
+    openssh                             # scp is used to automated retrieving sops secrets
+    psmisc                              # Ensure general purpose tooling available
+    sops                                # sops is used to decrypt and encrypt secrets
+  ];
+
   nativeBuildInputs = [
     makeWrapper
   ];
