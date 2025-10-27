@@ -29,7 +29,7 @@
       config.android_sdk.accept_license = true;
       config.nvidia.acceptLicense = true;
       config.permittedInsecurePackages = [
-        "broadcom-sta-6.30.223.271-57-6.12.41"
+        "broadcom-sta-6.30.223.271-57-6.12.41"      # Required for HP Notebook 15-AF123CL
         #"freeimage-3.18.0-unstable-2024-04-18"     # Allowing this for wii tools
       ];
 

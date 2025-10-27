@@ -74,13 +74,15 @@ install::prepare_disk()
     # - Parted interprets MiB and GiB notation as exact byte values and doesn't auto-align the 
     #   partitions causing failure.
 
-    # PART_BOOT & PART_ROOT for Legacy MBR partition table
+    # PART_ROOT for Legacy MBR partition table
     # - MBR is for BIOS based systems 2012 or older
     # - create the root partition 'Linux filesystem' type 8300 
     # - fill the disk except for a small 1MB space at the begining that will contain the MBR
     # - also leave 5GB at the end for a separate SWAP partition
     # - set the boot flag on the root partition
     if [ $MBR -eq 1 ]; then
+        PART_ROOT="${DESTDEV}1" # need to rename for MBR mode
+        PART_SWAP="${DESTDEV}2" # need to rename for MBR mode
         log::ls -n "Creating ${cyan}Legacy MBR partition table${none}..."
         parted "${DESTDEV}" -- mklabel msdos &>/dev/null
         log::status
@@ -225,6 +227,11 @@ install::install_config()
         log::status
     fi
 
+    local root_uuid=$(blkid -s UUID -o value ${PART_ROOT})
+    log::ls -n "Injecting root partition UUID ${cyan}${root_uuid}${none}..."
+    args=$(echo "$args" | jq --argjson existing "{\"drives\":[{\"uuid\":\"$root_uuid\"}]}" '. + $existing')
+    log::status
+
     log::ls -n "Staging ${cyan}nix.minVer=${NIXOS_VER}${none}..."
     args=$(echo "$args" | jq --arg k "nix.minVer" --arg v "${NIXOS_VER}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
@@ -323,11 +330,24 @@ install::install_config()
     # Write out the file to machines/$HOSTNAME/configuration.nix
     log::ls -n "Generating ${MACHINE}/configuration.nix..."
     cat > "${MACHINE}/configuration.nix" <<EOF
+# ${HOSTNAME} configuration
+#
+# ### Machine specs
+# - ?
+#
+# ### Features
+# - Basic deployment
+# --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, args, f, ... }: with lib.types;
 {
-  imports = [ ./hardware-configuration.nix ../../${PROFILE} ];
+  imports = [
+    ./hardware-configuration.nix
+    ../../${PROFILE}
+  ];
+
   config = {
     machine.type.bootable = true;
+    #machine.nix.cache.enable = true;
   };
 }
 EOF
