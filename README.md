@@ -104,7 +104,7 @@ built binaries will already be built.
 Steps for completing setting up the NixOS configuration locally. Once installed you'll still want to 
 ensure the new configuration is persisted in your `nixos-config` repo.
 
-1. Initialize the new repo
+1. Initialize the new system configuration
    ```bash
    $ cd /etc/nixos
    $ clu init
