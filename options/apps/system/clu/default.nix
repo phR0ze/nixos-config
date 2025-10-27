@@ -3,7 +3,7 @@
 # ### Details
 # - NixOS automation
 #---------------------------------------------------------------------------------------------------
-{ lib, stdenvNoCC, fetchFromGitHub, makeWrapper }:
+{ lib, pkgs, stdenvNoCC, fetchFromGitHub, makeWrapper }:
 
 # Create the package from Github
 stdenvNoCC.mkDerivation {
@@ -12,11 +12,11 @@ stdenvNoCC.mkDerivation {
   src = fetchFromGitHub {
     owner = "phR0ze";
     repo = "nixos-config";
-    rev = "e67c741692d967839225c4c48b32f30c49b1d769";
-    hash = "sha256-2U6kRTitp2ZVHWH3WrZe4oKxtSDMW0ALh+OEgo9Ii8w=";
+    rev = "28bf52a089a836f2a724f902126a5c7ea77dff77";
+    hash = "sha256-8GS4qcR4fsPpsMexpcHCRM/xnTHiWdIl1sSAh3XWE5g=";
   };
 
-  propagatedBuildInputs = [
+  propagatedBuildInputs = with pkgs; [
     git                                 # git is used to manage nixos-config
     gnused                              # sed is used to search and replace
     inxi                                # inxi is used to discover system details
