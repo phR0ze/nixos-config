@@ -56,18 +56,18 @@ install::prepare_disk()
     # Check if we restarted and need to unmount first
     if [[ "$(mount | grep ${PART_ROOT})" != "" || "$(swapon --show)" != "" ]]; then
         log::ls -n "${cyan}Restart detected${none} - unmounting previous paritions..."
-        swapoff ${PART_SWAP} &>/dev/null || true
-        umount ${ROOT_DIR}/boot &>/dev/null || true
-        umount ${ROOT_DIR} &>/dev/null || true
+        sudo swapoff ${PART_SWAP} &>/dev/null || true
+        sudo umount ${ROOT_DIR}/boot &>/dev/null || true
+        sudo umount ${ROOT_DIR} &>/dev/null || true
         log::status
     fi
 
     log::ls -n "Destroying any magic strings and/or signatures on ${cyan}${DESTDEV}${none}..."
-    wipefs --all --force ${DESTDEV} &>/dev/null
+    sudo wipefs --all --force ${DESTDEV} &>/dev/null
     log::status
 
     log::ls -n "Wiping partition table on ${cyan}${DESTDEV}${none}..."
-    sgdisk --zap ${DESTDEV} &>/dev/null
+    sudo sgdisk --zap ${DESTDEV} &>/dev/null
     log::status
 
     # Parted notes
@@ -84,13 +84,13 @@ install::prepare_disk()
         PART_ROOT="${DESTDEV}1" # need to rename for MBR mode
         PART_SWAP="${DESTDEV}2" # need to rename for MBR mode
         log::ls -n "Creating ${cyan}Legacy MBR partition table${none}..."
-        parted "${DESTDEV}" -- mklabel msdos &>/dev/null
+        sudo parted "${DESTDEV}" -- mklabel msdos &>/dev/null
         log::status
         log::ls -n "Creating ROOT ${cyan}${PART_ROOT}${none} partition for ${cyan}MBR partition table${none}..."
-        parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 1MB -5GB &>/dev/null
+        sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 1MB -5GB &>/dev/null
         log::status
         log::ls -n "Setting boot flag ${cyan}${PART_ROOT}${none} for Legacy MBR..."
-        parted "${DESTDEV}" -- set 1 boot on &>/dev/null
+        sudo parted "${DESTDEV}" -- set 1 boot on &>/dev/null
         log::status
 
     # PART_BOOT & PART_ROOT for GPT partition table
@@ -101,45 +101,45 @@ install::prepare_disk()
     # - GPT: modern BIOS need a partition EF02 created and GRUB will handle the rest
     else
         log::ls -n "Creating ${cyan}Modern GPT partition table${none}..."
-        parted "${DESTDEV}" -- mklabel gpt &>/dev/null
+        sudo parted "${DESTDEV}" -- mklabel gpt &>/dev/null
         log::status
 
         if [ $EFI -eq 1 ]; then
             log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
-            parted -s -a optimal "${DESTDEV}" -- mkpart "ESP" fat32 1MB 512MB &>/dev/null
+            sudo parted -s -a optimal "${DESTDEV}" -- mkpart "ESP" fat32 1MB 512MB &>/dev/null
             log::status
             log::ls -n "Mark ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
-            parted "${DESTDEV}" -- set 1 esp on &>/dev/null
+            sudo parted "${DESTDEV}" -- set 1 esp on &>/dev/null
             log::status
             log::ls -n "Formatting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}FAT32${none}..."
-            mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
+            sudo mkfs.vfat -n "BOOT" ${PART_BOOT} &>/dev/null
             log::status
         else
             # Note: no need to format or mount this as GRUB will auto handle as needed
             # but it does have to be the first partition to work correctly.
             log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
-            parted -s -a optimal "${DESTDEV}" -- mkpart primary 1MB 512MB &>/dev/null
+            sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary 1MB 512MB &>/dev/null
             log::status
             log::ls -n "Setting boot flag ${cyan}${PART_BOOT}${none} for modern GPT..."
-            parted "${DESTDEV}" -- set 1 bios_grub on &>/dev/null
+            sudo parted "${DESTDEV}" -- set 1 bios_grub on &>/dev/null
             log::status
         fi
 
         log::ls -n "Creating ROOT ${cyan}${PART_ROOT}${none} partition for ${cyan}GPT partition table${none}..."
-        parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 512MB -5GB &>/dev/null
+        sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 512MB -5GB &>/dev/null
         log::status
     fi
 
     # (PART_SWAP i.e. #2 (MBR) or #3 (GPT)) create the SWAP partition 8200
     # - this is the same regardless of the partition table type
     log::ls -n "Creating ${cyan}${PART_SWAP}${none} as ${cyan}Linux swap partition${none}..."
-    parted -s -a optimal "${DESTDEV}" -- mkpart primary linux-swap -5GB 100% &>/dev/null
+    sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary linux-swap -5GB 100% &>/dev/null
     log::status
     log::ls -n "Formatting ${cyan}${PART_SWAP}${none} as ${cyan}swap${none}..."
-    mkswap -L SWAP ${PART_SWAP} &>/dev/null
+    sudo mkswap -L SWAP ${PART_SWAP} &>/dev/null
     log::status
     log::ls -n "Starting swap on ${cyan}${PART_SWAP}${none}..."
-    swapon ${PART_SWAP} &>/dev/null
+    sudo swapon ${PART_SWAP} &>/dev/null
     log::status
 
     # Format the ROOT partition
@@ -149,12 +149,12 @@ install::prepare_disk()
     # -m 0          don't reserve blocks for root services
     # -q            run in quiet mode for scripts
     log::ls -n "Formatting ${cyan}${PART_ROOT}${none} as ${cyan}ext4${none}..."
-    mkfs.ext4 -F -m 0 -q -L ROOT ${PART_ROOT} &>/dev/null
+    sudo mkfs.ext4 -F -m 0 -q -L ROOT ${PART_ROOT} &>/dev/null
     log::status
 
     # Mount root as ROOT_DIR and disable access time writes (speeds things up)
     log::ls -n "Mounting ${cyan}${PART_ROOT}${none} as ${cyan}${ROOT_DIR}${none}..."
-    mount -o noatime ${PART_ROOT} ${ROOT_DIR} &>/dev/null
+    sudo mount -o noatime ${PART_ROOT} ${ROOT_DIR} &>/dev/null
     log::status
 
     # UEFI: boot partition needs to be mounted over the root at /boot to capture the Linux
@@ -162,8 +162,8 @@ install::prepare_disk()
     # as the EFI/BOOT/BOOTX64.efi as EFI can't mount a ext4 filesystem.
     if [ $EFI -eq 1 ]; then
         log::ls -n "Mounting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}${ROOT_DIR}/boot${none}..."
-        mkdir -p ${ROOT_DIR}/boot
-        mount ${PART_BOOT} ${ROOT_DIR}/boot &>/dev/null
+        sudo mkdir -p ${ROOT_DIR}/boot
+        sudo mount ${PART_BOOT} ${ROOT_DIR}/boot &>/dev/null
         log::status
     fi
 
@@ -181,7 +181,7 @@ install::install_system()
 
     # Run the installer: $CONFIG_DIR will be /mnt/etc/nixos unless testing
     log::ls "Launching installation with ${cyan}nixos-install${none}..."
-    nixos-install --no-root-passwd --no-channel-copy --flake "${CONFIG_DIR}#target"
+    sudo nixos-install --no-root-passwd --no-channel-copy --flake "${CONFIG_DIR}#target"
     if [ $? -ne 0 ]; then
         echo -e ":: ${red}Failure building the install flake${none}"
         echo -e "   1. Fix the flake issue at ${cyan}${CONFIG_DIR}${none}"
@@ -201,7 +201,7 @@ install::install_config()
 
     # Create the new machine directory
     pushd "${CONFIG_DIR}" &>/dev/null
-    mkdir -p "${MACHINE}"
+    sudo mkdir -p "${MACHINE}"
 
     # Construct machines/$MACHINE/args.dec.json to be encrypted after install
     local args=$(jq -n '{}')
@@ -227,7 +227,7 @@ install::install_config()
         log::status
     fi
 
-    local root_uuid=$(blkid -s UUID -o value ${PART_ROOT})
+    local root_uuid=$(sudo blkid -s UUID -o value ${PART_ROOT})
     log::ls -n "Injecting root partition UUID ${cyan}${root_uuid}${none}..."
     args=$(echo "$args" | jq --argjson existing "{\"drives\":[{\"uuid\":\"$root_uuid\"}]}" '. + $existing')
     log::status
@@ -329,7 +329,7 @@ install::install_config()
 
     # Write out the file to machines/$HOSTNAME/configuration.nix
     log::ls -n "Generating ${MACHINE}/configuration.nix..."
-    cat > "${MACHINE}/configuration.nix" <<EOF
+    sudo cat > "${MACHINE}/configuration.nix" <<EOF
 # ${HOSTNAME} configuration
 #
 # ### Machine specs
@@ -360,8 +360,8 @@ EOF
 
     # Files must be at least git added for the flake to recognize them
     log::ls -n "Re-locate hardware config to ${MACHINE}/hardware-configuration.nix..."
-    mv hardware-configuration.nix "${MACHINE}"
-    git add "${MACHINE}"
+    sudo mv hardware-configuration.nix "${MACHINE}"
+    sudo git add "${MACHINE}"
     log::status
 
     popd &>/dev/null
@@ -374,26 +374,26 @@ install::install_config_dir()
     log::header1 "Configure new system NixOS config"
 
     log::ls -n "Create the NixOS config dir ${cyan}${CONFIG_DIR}${none}..."
-    mkdir -p ${CONFIG_DIR}
+    sudo mkdir -p ${CONFIG_DIR}
     log::status
 
     log::ls -n "Stage NixOS configuration files at ${cyan}${CONFIG_DIR}${none}..."
-    cp -r $SCRIPT_DIR/. ${CONFIG_DIR}
+    sudo cp -r $SCRIPT_DIR/. ${CONFIG_DIR}
     log::status
 
     # In the local debug case we'll already have a git repo otherwise convert
     if [[ ! -d "${CONFIG_DIR}/.git" ]]; then
         pushd "${CONFIG_DIR}" &>/dev/null
         log::ls -n "Convert ${cyan}${CONFIG_DIR}${none} into git repo..."
-        git init &>/dev/null
-        git add . &>/dev/null
-        git commit -m "init" &>/dev/null
+        sudo git init &>/dev/null
+        sudo git add . &>/dev/null
+        sudo git commit -m "init" &>/dev/null
         log::status
         popd &>/dev/null
     fi
 
     log::ls -n "Generating hardware configuration..."
-    nixos-generate-config --root ${ROOT_DIR} &>/dev/null
+    sudo nixos-generate-config --root ${ROOT_DIR} &>/dev/null
     log::status
 
     # Extract the current NIXOS version from the generated configuration.nix file
@@ -497,7 +497,7 @@ install::select_install_disk_options()
     # -n    do not print headings line
     # -e    exclude sepcified devices, loop(7), floppy(2)
     # -x    sort by the size of the drive smallest first
-    DISKS_DETAILED=$(lsblk -dn -e ${excludes} -o NAME,SIZE,MODEL,TYPE,HOTPLUG,LABEL -x SIZE --json | \
+    DISKS_DETAILED=$(sudo lsblk -dn -e ${excludes} -o NAME,SIZE,MODEL,TYPE,HOTPLUG,LABEL -x SIZE --json | \
       jq -rc '[.blockdevices[] | . += {mag: (.size | capture("(?<other>[0-9.]+)(?<value>[A-Z])")) } | select(.type == "disk" and .hotplug != true and .mag.value != "M" and .mag.value != "B" and .label != "cyberlinux-installer")]')
 
     # Get all the disks by name to provide to the user for selection
@@ -542,20 +542,6 @@ install::select_install_disk_options()
     # Match DESTDEV with /dev/sda and /dev/vda
     [ -z "${DESTDEV##*/dev/sd*}" ] || [ -z "${DESTDEV##*/dev/vd*}" ] && SCSI=1
 
-    # Determine the disk partitioning mode to use:
-    # - Modern systems from 2012 support the GPT partition table supporting disks >= 2TB
-    # - Legacy systems with older BIOS versions require a MBR partition table and disks <= 2TB
-    if [[ $EFI -eq 0 && -f /sys/class/dmi/id/bios_date ]]; then
-        bios_year=$(awk -F'/' '{print $3}' /sys/class/dmi/id/bios_date) 
-        if [ $bios_year -le 2012 ]; then
-            MBR=1
-            log::d "Legacy BIOS detected using ${cyan}MBR partition table${none}"
-        fi
-    fi
-    if [ $MBR -eq 0 ]; then
-        log::d "Newer BIOS/UEFI detected using ${cyan}GPT partition table${none}"
-    fi
-
     log::d "Leaving install::select_install_disk_options"
 }
 
@@ -589,7 +575,7 @@ install::select_deployment_options()
         PROFILE="profiles/${PROFILE}.nix"
     else
         local machines_dir="${SCRIPT_DIR}/machines"
-        local _machines=($(echo $(find $machines_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/machines/vm*" | sort)))
+        local _machines=($(echo $(sudo find $machines_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/machines/vm*" | sort)))
         log::header0 "Select a deployment machine:"
         local i=0
         for x in "${_machines[@]}"; do
@@ -624,11 +610,10 @@ install::run()
         ROOT_DIR="/mnt"
         CONFIG_DIR="${ROOT_DIR}/etc/nixos"
     fi
+    utils::get_mbr_efi_vars
 
     DEFAULT="n"
     TESTING="${TESTING:-n}"
-    MBR=0
-    [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
     SCSI=0
     TIMEZONE='America/Boise'
 

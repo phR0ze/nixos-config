@@ -104,23 +104,11 @@ built binaries will already be built.
 Steps for completing setting up the NixOS configuration locally. Once installed you'll still want to 
 ensure the new configuration is persisted in your `nixos-config` repo.
 
-1. Initialize the new system configuration
-   ```bash
-   $ cd /etc/nixos
-   $ clu init
-   ```
-2. Update and encrypt the `/etc/nixos/machines/$MACHINE/args.dec.json`
-   1. Update `hardware-configuration.nix` to use it
-      ```nix
-      fileSystems."/" = {
-        device = "/dev/disk/by-uuid/${(builtins.elemAt config.machine.drives 0).uuid}";
-        fsType = "ext4";
-      };
-      ```
-   2. Encrypt the file
-      ```bash
-      $ sops --encrypt machines/$MACHINE/args.dec.json > machines/$MACHINE/args.enc.json
-      ```
+**Initialize the new system configuration**
+```bash
+$ cd /etc/nixos
+$ clu init
+```
 
 ## Update and Upgrade
 I'm defining `update` as configuration changes while an `upgrade` would be changing the versions of 
