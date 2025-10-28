@@ -35,15 +35,12 @@ SCRIPT_DIR="$(readlink -f $(dirname $BASH_SOURCE[0]))"  # /path/to/nixos-config
 ROOT_DIR="" # more intuitive to concat with / so blank  # changeable root for testing and installs
 [[ "${SCRIPT_DIR}" == "/nix/store"* ]] && CONFIG_DIR="$(pwd)" || CONFIG_DIR="${SCRIPT_DIR}"
 source "${SCRIPT_DIR}/lib/all"
-
-# Ensure we run as a non root user which is easier and safer to control
-utils::ensure_not_root
+utils::handle_root
 
 core::preamble()
 {
     VERSION=0.1.0
-    #VERSION=$(cat VERSION)
-    log::header "${cyan}" "Codified Likeness Utility - clu v${VERSION}" 2 '='
+    log::header "${cyan}" "Codified Likeness Utility - clu v${VERSION}, user=$(whoami)" 2 '='
     echo -e "${green}that is to say, build me a NixOS that I like${none}"
 }
 

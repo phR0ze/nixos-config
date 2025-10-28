@@ -46,7 +46,6 @@ run::run()
 run::vm()
 {
     core::preamble
-    utils::ensure_not_root
 
     # Determine the kind of VM being run i.e. either direct path to an isolated VM or a keyword to 
     # map into a host dependent VM.
@@ -97,7 +96,6 @@ run::vm()
 run::iso()
 {
     core::preamble
-    utils::ensure_not_root
 
     MACHINE="vm-iso"
     log::header1 "Boot VM with ${cyan}result/iso/*.iso${none}"
