@@ -18,29 +18,33 @@ ERRFILE=/tmp/clu.err
 # --------------------------------------------------------------------------------------------------
 utils::handle_root()
 {
-    # First bail if using root user directly
-    if [[ $EUID -eq 0 && "x${SUDO_USER}" == "x" ]]; then
-        log::ls "${red}Error: root user detected without $SUDO_USER set!${none}"
-        log::ls "${yellow}Run with user that has passwordless sudo privileges or with sudo${none}"
-        exit 1
-    fi
+    # Protect against looping with sentinel
+    if [[ "x${1}" != "x--as-user" ]]; then
 
-    # Next set $USER correctly and drop elevated privileges
-    if [[ "x${SUDO_USER}" != "x" ]]; then
-        log::ls "Dropping root privileges..."
-        USER="$SUDO_USER"
-
-        # exec      gets rid of the original sudo shell
-        # sudo -u   runs new shell as non root user
-        # $0        original target
-        # --as-user sentinel to avoid looping
-        # $@        original params
-        if [[ "x${1}" != "x--as-user" ]]; then
-            exec sudo -u "$SUDO_USER" -- bash "$0" --as-user "$@"
-        else
-            # Drop the sentinel so $@ contains original args
-            shift
+        # First bail if using root user directly
+        if [[ $EUID -eq 0 && "x${SUDO_USER}" == "x" ]]; then
+            log::ls "${red}Error: root user detected without $SUDO_USER set!${none}"
+            log::ls "${yellow}Run with user that has passwordless sudo privileges or with sudo${none}"
+            exit 1
         fi
+
+        # Next set $USER correctly and drop elevated privileges
+        if [[ "x${SUDO_USER}" != "x" ]]; then
+            log::ls "Dropping root privileges..."
+            USER="$SUDO_USER"
+
+            # exec      gets rid of the original sudo shell
+            # sudo -u   runs new shell as non root user
+            # $0        original target
+            # --as-user sentinel to avoid looping
+            # $@        original params
+            if [[ "x${1}" != "x--as-user" ]]; then
+                exec sudo -u "$SUDO_USER" -- bash "$0" --as-user "$@"
+            fi
+        fi
+    else
+        # Drop the sentinel so $@ contains original args
+        shift
     fi
 }
 
