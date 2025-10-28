@@ -83,7 +83,7 @@ flake::switch()
     # Optionally include machine's configuration
     if [[ "$target" == "machines"* ]]; then
         # - Using relative path here on purpose
-        ln -sf "$target/configuration.nix" configuration.nix
+        $SUDO ln -sf "$target/configuration.nix" configuration.nix
         $SUDO git add configuration.nix -f
         [[ -e "${target}/args.dec.json" ]] && git add "$target/args.dec.json" -f
 
