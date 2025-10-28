@@ -638,7 +638,6 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::d "Entering debug mode"
     log::d "Debug lines are prefixed with violet ${violet}>>${none}"
-    log::vars
 
     install::select_install_disk_options
 
@@ -690,7 +689,7 @@ install::run()
     # Setup the NixOS configuration files
     # - Prep /mnt/etc/nixos and trigger install from that location
     # ----------------------------------------------------------------------------------------------
-    if [ "$TEST" -eq 1 ]; then
+    if [ "$TEST" -eq 0 ]; then
 
         # Partition the target disk and mount it for deployment
         install::prepare_disk

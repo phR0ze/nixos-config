@@ -224,9 +224,3 @@ log::status()
         exit 1
     fi
 }
-
-# Dump out debug variables
-log::vars()
-{
-    log::d "Debug variables"
-}
