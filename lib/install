@@ -329,7 +329,7 @@ install::install_config()
 
     # Write out the file to machines/$HOSTNAME/configuration.nix
     log::ls -n "Generating ${MACHINE}/configuration.nix..."
-    sudo cat > "${MACHINE}/configuration.nix" <<EOF
+    sudo bash -c "cat > '${MACHINE}/configuration.nix' <<'EOF'
 # ${HOSTNAME} configuration
 #
 # ### Machine specs
@@ -350,7 +350,7 @@ install::install_config()
     #machine.nix.cache.enable = true;
   };
 }
-EOF
+EOF"
     log::status
 
     # Add the /mnt/etc/nixos/machines/$HOSTNAME/args.nix
