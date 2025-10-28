@@ -84,7 +84,7 @@ install::prepare_disk()
         PART_ROOT="${DESTDEV}1" # need to rename for MBR mode
         PART_SWAP="${DESTDEV}2" # need to rename for MBR mode
         log::ls -n "Creating ${cyan}Legacy MBR partition table${none}..."
-        sutils::run udo parted "${DESTDEV}" -- mklabel msdos
+        sutils::run sudo parted "${DESTDEV}" -- mklabel msdos
         log::status
         log::ls -n "Creating ROOT ${cyan}${PART_ROOT}${none} partition for ${cyan}MBR partition table${none}..."
         utils::run sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 1MB -5GB
@@ -403,7 +403,7 @@ install::install_config_dir()
 
     log::ls -n "Update the swap entry to use the device UUID..."
     local swap_uuid=$(blkid -s UUID -o value ${PART_SWAP})
-    sudo utils::replace "${CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
+    utils::replace "sudo" "${CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
     log::status
     log::d "Leaving install::install_config_dir"
 }

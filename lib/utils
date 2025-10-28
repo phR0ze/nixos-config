@@ -20,7 +20,7 @@ ERRFILE=/tmp/clu.err
 # --------------------------------------------------------------------------------------------------
 utils::process_args()
 {
-    ARGS=("$@"); CLEAN=0; QUIET=0; DEBUG=0; IMPURE=""; TRACE="";
+    ARGS=("$@"); CLEAN=0; QUIET=0; DEBUG=0; IMPURE=""; TRACE=""; SUDO="";
     for i in "${!ARGS[@]}"; do
         if [[ "${ARGS[i]}" == "--debug" ]]; then
             LOG_LEVEL="debug" && _log_level=$_debug && unset 'ARGS[i]'
@@ -34,6 +34,14 @@ utils::process_args()
             QUIET=1 && LOG_LEVEL="error" && _log_level=$_error && unset 'ARGS[i]'
         fi
     done
+
+    # Check if the target CONFIG_DIR is owned by root
+    if [[ "$(stat -c %U "$CONFIG_DIR")" == "root" ]]; then
+        log::d "Handling root owned CONFIG_DIR=$CONFIG_DIR"
+        SUDO="sudo";
+    else
+        log::d "Handling user owned CONFIG_DIR=$CONFIG_DIR"
+    fi
 
     # Optionally rebuild the array to clean out the removed items
     if [[ "x${1}" == "xtrue" ]]; then
@@ -305,44 +313,55 @@ utils::pad_suffix()
 # Replace the given value in the given file
 # --------------------------------------------------------------------------------------------------
 # ### Params
-# - $1 file to target
-# - $2 type of replacement [str | bool | int]
-# - $3 value to search for
-# - $4 value to replace with
+# - $1 optional 'sudo' arg
+# - $2 file to target
+# - $3 type of replacement [str | bool | int]
+# - $4 value to search for
+# - $5 value to replace with
 #
 utils::replace()
 {
-    local file=$1
-    local kind=$2
-    local target=$3
-    local value=$4
+    local _sudo=""
+    local file kind target value
+
+    if [[ "x$1" == "xsudo" ]]; then
+        _sudo="sudo"
+        shift
+    fi
+
+    file="$1"; kind="$2"; target="$3"; value="$4";
 
     if [[ "x$kind" == "xbool" || "x$kind" == "xint" ]]; then
-        sed -i -e "s|\(^.*${target} = \).*\(;.*$\)|\1${value}\2|" "${file}"
+        ${_sudo} sed -i -e "s|\(^.*${target} = \).*\(;.*$\)|\1${value}\2|" "${file}"
     elif [ "x$kind" == "xstr" ]; then
-        sed -i -e "s|\(^.*${target} = \"\).*\(\";.*$\)|\1${value}\2|" "${file}"
+        ${_sudo} sed -i -e "s|\(^.*${target} = \"\).*\(\";.*$\)|\1${value}\2|" "${file}"
     fi
 }
 
 # Builds on utils::replace to update an argument pair name=value
 # --------------------------------------------------------------------------------------------------
-# $1 - file to target
-# $2 - the kind of value [str | bool | int]
-# $3 - the name of the variable to change in the args file
-# $4 - the value to set
-# $5 - the value is a pair to split [ true ]
+# - $1 optional 'sudo' arg
+# - $2 file to target
+# - $3 the kind of value [str | bool | int]
+# - $4 the name of the variable to change in the args file
+# - $5 the value to set
+# - $6 the value is a pair to split [ true ]
 utils::update()
 {
-    local file="$1"
-    local kind="$2"
-    local var="$3"
-    local value="$4"
-    local pair="$5"
+    local _sudo=""
+    local file kind var value pair
+
+    if [[ "x$1" == "xsudo" ]]; then
+        _sudo="sudo"
+        shift
+    fi
+
+    file="$1"; kind="$2"; var="$3"; value="$4"; pair="$5";
 
     # Parse the value from the pair, triming the prefix including the '='
     [[ "$pair" == "true" ]] && value="${value#*=}"
 
     # Update the value in the arg file
     log::ls "Updating ${file}: ${cyan}${var}${none} => ${cyan}${value}${none}"
-    utils::replace "$file" "${kind}" "${var}" "${value}"
+    utils::replace "$_sudo" "$file" "${kind}" "${var}" "${value}"
 }

@@ -17,6 +17,7 @@ stdenvNoCC.mkDerivation {
   };
 
   propagatedBuildInputs = with pkgs; [
+    coreutils                           # stat provide file ownership
     gawk                                # awk provides text extraction
     git                                 # git is used to manage nixos-config
     gnused                              # sed is used to search and replace
