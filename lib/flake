@@ -59,24 +59,24 @@ flake::switch()
     # Stage the flake files
     if [ -e "$machine_flake" ]; then
         # Use the machine specific flake files if they exist
-        cp "$machine_flake" "${CONFIG_DIR}/flake.nix"
-        cp "$machine_flake_lock" "${CONFIG_DIR}/flake.lock"
+        $SUDO cp "$machine_flake" "${CONFIG_DIR}/flake.nix"
+        $SUDO cp "$machine_flake_lock" "${CONFIG_DIR}/flake.lock"
     else
         # Use the shared flake base files if they exist
-        cp "${CONFIG_DIR}/base.nix" "${CONFIG_DIR}/flake.nix"
-        cp "${CONFIG_DIR}/base.lock" "${CONFIG_DIR}/flake.lock"
+        $SUDO cp "${CONFIG_DIR}/base.nix" "${CONFIG_DIR}/flake.nix"
+        $SUDO cp "${CONFIG_DIR}/base.lock" "${CONFIG_DIR}/flake.lock"
     fi
 
     # Git requires being run from the correct directory
     pushd "${CONFIG_DIR}" &>/dev/null
 
     # Add flake file dependencies to be seen by the configuration system
-    git add flake.nix -f
-    git add flake.lock -f
+    $SUDO git add flake.nix -f
+    $SUDO git add flake.lock -f
 
     # Decrypt if not installing
     if [[ "$2" != "--install" ]]; then
-        git decrypt
+        $SUDO git decrypt
         [[ -e "args.dec.json" ]] && git add "args.dec.json" -f
     fi
 
@@ -84,18 +84,18 @@ flake::switch()
     if [[ "$target" == "machines"* ]]; then
         # - Using relative path here on purpose
         ln -sf "$target/configuration.nix" configuration.nix
-        git add configuration.nix -f
+        $SUDO git add configuration.nix -f
         [[ -e "${target}/args.dec.json" ]] && git add "$target/args.dec.json" -f
 
         # Update the target hostname
         local hostname="${target#machines/}"
-        utils::update "args.nix" str "hostname" "${hostname}"
+        $SUDO utils::update "args.nix" str "hostname" "${hostname}"
     fi
 
     # Update the args.nix as a mechanism to tell the flake which machine/profile to build 
-    utils::update "args.nix" str "target" "${target}"
-    utils::update "args.nix" str "git.comment" "$(git log -1 --oneline --no-decorate)"
-    git add "args.nix"
+    $SUDO utils::update "args.nix" str "target" "${target}"
+    $SUDO utils::update "args.nix" str "git.comment" "$(git log -1 --oneline --no-decorate)"
+    $SUDO git add "args.nix"
     popd &>/dev/null
 }
 
@@ -103,11 +103,11 @@ flake::switch()
 # - $1 - '--install' flag indcating behavior should be for an install
 flake::restore()
 {
-    pushd "${CONFIG_DIR}" &>/dev/null
+    utils::run pushd "${CONFIG_DIR}"
 
     if [[ "$(git diff --staged --name-only -- flake.nix flake.lock)" != "" ]]; then
         log::ls "Restoring flake files in ${cyan}${CONFIG_DIR}${none} back to prestine"
-        git restore --staged flake.nix flake.lock
+        $SUDO git restore --staged flake.nix flake.lock
     fi
 
     # Don't need to bother with this on install as there are no decrypted files except those we are 
@@ -115,36 +115,36 @@ flake::restore()
     if [[ "$1" != "--install" ]]; then
         if [[ "$(git diff --staged --name-only -- *.dec*)" != "" ]]; then
             log::ls "Restoring decrypted files in ${cyan}${CONFIG_DIR}${none} back to prestine"
-            git restore --staged *.dec*
+            $SUDO git restore --staged *.dec*
         fi
     fi
 
     if [[ "$(git diff --staged --name-only -- configuration.nix)" != "" ]]; then
         log::ls "Restoring ${cyan}${CONFIG_DIR}/configuration.nix${none} back to prestine"
-        git restore --staged configuration.nix
+        $SUDO git restore --staged configuration.nix
     fi
 
     # Skip the dec files on install as were using this to stage values that have yet to get encrypted
     if [[ "$1" != "--install" ]]; then
         if [[ "$(git diff --staged --name-only -- */*.dec*)" != "" ]]; then
             log::ls "Restoring ${cyan}${CONFIG_DIR}/*/*.dec*${none} back to prestine"
-            git restore --staged */*.dec*
+            $SUDO git restore --staged */*.dec*
         fi
     fi
 
     if [[ "$(git diff --staged --name-only -- args.nix)" != "" ]]; then
         log::ls "Restoring ${cyan}${CONFIG_DIR}/args.nix${none} to prestine"
-        git restore --staged args.nix
-        git checkout args.nix
+        $SUDO git restore --staged args.nix
+        $SUDO git checkout args.nix
     fi
 
     # Find and delete all decrypted files every time
     # - Don't need to to do this on install
     if [[ "$1" != "--install" ]]; then
-        find "$CONFIG_DIR" -type f -name "*.dec*" -delete
+        $SUDO find "$CONFIG_DIR" -type f -name "*.dec*" -delete
     fi
 
-    popd &>/dev/null
+    utils::run popd
 }
 
 # Cleanup trap function. Typically not used as the local functions will have their own which will
@@ -189,6 +189,6 @@ flake::unstage_files()
     flake::restore $1
 
     log::ls -n "Adding ${cyan}${ROOT_DIR}/nix/files.lock${none} to avoid updates during reboots..."
-    touch "${ROOT_DIR}/nix/files.lock"
+    $SUDO touch "${ROOT_DIR}/nix/files.lock"
     log::status
 }

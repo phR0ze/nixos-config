@@ -60,29 +60,29 @@ update::flake()
     TARGET="machines/$MACHINE"
 
     # Switch to target flake
-    pushd "${CONFIG_DIR}" &>/dev/null
+    utils::run pushd "${CONFIG_DIR}"
     if [[ "$MACHINE" != "" ]]; then
         flake::switch $TARGET
         trap flake::restore EXIT
     else
         log::header0 "Switching to base flake"
-        cp base.nix flake.nix
-        cp base.lock flake.lock
-        git add flake.nix flake.lock -f
+        $SUDO cp base.nix flake.nix
+        $SUDO cp base.lock flake.lock
+        $SUDO git add flake.nix flake.lock -f
     fi
 
     # Update flake
-    nix flake update
+    $SUDO nix flake update
 
     # Clean up after
     if [[ "$MACHINE" != "" ]]; then
-        cp flake.lock "$TARGET"
+        $SUDO cp flake.lock "$TARGET"
         # cleanup will be done by trap
     else
         cp flake.lock base.lock
-        git restore --staged flake.nix flake.lock
+        $SUDO git restore --staged flake.nix flake.lock
     fi
-    popd &>/dev/null
+    utils::run popd
 }
 
 # Update the system with the system configuration changes
@@ -120,7 +120,7 @@ update::system()
     fi
 
     # Execute update
-    nixos-rebuild switch $TRACE $IMPURE --flake "${CONFIG_DIR}#target"
+    $SUDO nixos-rebuild switch $TRACE $IMPURE --flake "${CONFIG_DIR}#target"
 }
 
 # Remove user xfce configurations to get a clean point to start from
