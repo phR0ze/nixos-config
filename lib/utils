@@ -48,6 +48,7 @@ utils::process_args()
 # --------------------------------------------------------------------------------------------------
 utils::handle_root()
 {
+    log::d "Processing sudo with ARGS=${ARGS[@]}..."
     if [[ "x${SUDO_USER}" == "x" ]]; then
         log::d "Skipping sudo privilege dropping..."
         return
