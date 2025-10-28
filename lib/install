@@ -355,7 +355,7 @@ EOF"
 
     # Add the /mnt/etc/nixos/machines/$HOSTNAME/args.nix
     log::ls -n "Generating install time ${machine_args}..."
-    echo "$args" | jq -r > "${machine_args}"
+    sudo bash -c "echo '$args' | jq -r > '${machine_args}'"
     log::status
 
     # Files must be at least git added for the flake to recognize them
