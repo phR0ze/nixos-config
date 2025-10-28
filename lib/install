@@ -600,20 +600,9 @@ install::run()
     core::preamble
     args=($@)
 
-    # Optionally enable testing
-    if [[ "${args[0]}" == "testing" ]]; then
-        log::header0 "Testing installer with local nixos-config"
-        TESTING="y"
-        ROOT_DIR=.      # use local nixos-config
-        CONFIG_DIR=.
-    else
-        ROOT_DIR="/mnt"
-        CONFIG_DIR="${ROOT_DIR}/etc/nixos"
-    fi
     utils::get_mbr_efi_vars
 
     DEFAULT="n"
-    TESTING="${TESTING:-n}"
     SCSI=0
     TIMEZONE='America/Boise'
 
@@ -701,7 +690,7 @@ install::run()
     # Setup the NixOS configuration files
     # - Prep /mnt/etc/nixos and trigger install from that location
     # ----------------------------------------------------------------------------------------------
-    if [[ "x$TESTING" != "xy" ]]; then
+    if [ "$TEST" -eq 1 ]; then
 
         # Partition the target disk and mount it for deployment
         install::prepare_disk

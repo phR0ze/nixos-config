@@ -20,9 +20,19 @@ ERRFILE=/tmp/clu.err
 # --------------------------------------------------------------------------------------------------
 utils::process_args()
 {
-    ARGS=("$@"); CLEAN=0; QUIET=0; DEBUG=0; IMPURE=""; TRACE=""; SUDO="";
+    ROOT_DIR="$(pwd)"; CONFIG_DIR="$ROOT_DIR"
+    ARGS=("$@"); CLEAN=0; QUIET=0; DEBUG=0; TEST=0; INSTALL=0; IMPURE=""; TRACE=""; SUDO="";
     for i in "${!ARGS[@]}"; do
-        if [[ "${ARGS[i]}" == "--debug" ]]; then
+        if [[ "${ARGS[i]}" == "install" ]]; then
+            INSTALL=1 # don't unset we'll need this later
+            ROOT_DIR="/mnt"
+            CONFIG_DIR="${ROOT_DIR}/etc/nixos"
+        elif [[ "${ARGS[i]}" == "--debug" ]]; then
+            LOG_LEVEL="debug" && _log_level=$_debug && unset 'ARGS[i]'
+            DEBUG=1
+            TRACE="--show-trace"
+        elif [[ "${ARGS[i]}" == "--test" ]]; then
+            TEST=1 && unset 'ARGS[i]'
             LOG_LEVEL="debug" && _log_level=$_debug && unset 'ARGS[i]'
             DEBUG=1
             TRACE="--show-trace"
@@ -36,7 +46,7 @@ utils::process_args()
     done
 
     # Check if the target CONFIG_DIR is owned by root
-    if [[ "$(stat -c %U "$CONFIG_DIR")" == "root" ]]; then
+    if [[ "$(stat -c %U "$CONFIG_DIR")" == "root" || "${INSTALL}" -eq 1 ]]; then
         log::d "Handling root owned CONFIG_DIR=$CONFIG_DIR"
         SUDO="sudo";
     else
@@ -44,6 +54,8 @@ utils::process_args()
     fi
 
     # Optionally rebuild the array to clean out the removed items
+    log::d "INSTALL=$INSTALL; SUDO=$SUDO; CONFIG_DIR=$CONFIG_DIR"
+    log::d "CLEAN=$CLEAN; QUIET=$QUIET; DEBUG=$DEBUG; TEST=$TEST; IMPURE=$IMPURE; TRACE=$TRACE;"
     if [[ "x${1}" == "xtrue" ]]; then
         unset 'ARGS[0]'
         ARGS=("${ARGS[@]}")
