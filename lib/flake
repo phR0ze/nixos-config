@@ -92,7 +92,7 @@ flake::switch()
         $SUDO git add configuration.nix -f
         if [[ -e "${target}/args.dec.json" ]]; then
             log::d "Link ${cyan}${CONFIG_DIR}/${target}/args.dec.json${none}"
-            git add "$target/args.dec.json" -f
+            $SUDO git add "$target/args.dec.json" -f
         fi
 
         # Update the target hostname
