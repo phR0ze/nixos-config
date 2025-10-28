@@ -12,11 +12,12 @@ stdenvNoCC.mkDerivation {
   src = fetchFromGitHub {
     owner = "phR0ze";
     repo = "nixos-config";
-    rev = "800fd12d5d2fcd065c034868cccc51f243ea1584";
-    hash = "sha256-+0ugNTu7/1xXBqEoFj14jiDzAPdYcL0Ko1+hstLAKQM=";
+    rev = "a17face83ce1f27c4b64343903d311eaa36d4efb";
+    hash = "sha256-4E0SsBSbxgfFghXR3eDB5RiWzhRtVt+jjE4ab26/sHE=";
   };
 
   propagatedBuildInputs = with pkgs; [
+    gawk                                # awk provides text extraction
     git                                 # git is used to manage nixos-config
     gnused                              # sed is used to search and replace
     inxi                                # inxi is used to discover system details
