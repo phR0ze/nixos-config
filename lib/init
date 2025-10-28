@@ -55,40 +55,40 @@ init::run()
         fi
     fi
 
-    pushd "${CONFIG_DIR}" $REDIRECT
+    utils::run pushd "${CONFIG_DIR}"
 
     if [[ "$(git remote -v)" != *"phR0ze/nixos-config"* ]]; then
         log::ls -n "Stash current changes to the repo..."
-        sudo git stash $REDIRECT
+        utils::run sudo git stash
         log::status
 
         log::ls -n "Add remote ${cyan}https://github.com/phR0ze/nixos-config${none}..."
-        sudo git remote add origin https://github.com/phR0ze/nixos-config $REDIRECT
+        utils::run sudo git remote add origin https://github.com/phR0ze/nixos-config
         log::status
 
         log::ls -n "Fetch latest from the remote..."
-        sudo git fetch $REDIRECT
+        utils::run sudo git fetch
         log::status
 
         log::ls -n "Setup branch tracking for ${cyan}origin/main${none}..."
-        sudo git branch -u origin/main $REDIRECT
+        utils::run sudo git branch -u origin/main
         log::status
 
         log::ls -n "Reset hard on ${cyan}origin/main${none}..."
-        sudo git reset --hard origin/main $REDIRECT
+        utils::run sudo git reset --hard origin/main
         log::status
 
         log::ls -n "Pop the stashed changes..."
-        sudo git stash pop $REDIRECT
+        utils::run sudo git stash pop
         log::status
     fi
 
     log::ls -n "Configuring core.hooksPath: ${cyan}.githooks${none}..."
-    sudo git config --local core.hooksPath .githooks $REDIRECT
+    utils::run sudo git config --local core.hooksPath .githooks
     log::status
 
     log::ls -n "Configuring decrypt alias: ${cyan}git decrypt${none}..."
-    sudo git config --local alias.decrypt '!decrypt() { .githooks/decrypt; }; decrypt' $REDIRECT
+    utils::run sudo git config --local alias.decrypt '!decrypt() { .githooks/decrypt; }; decrypt'
     log::status
 
     # Optionally encrypt the temp install args file
@@ -100,7 +100,7 @@ init::run()
         local hardware="${machine}/hardware-configuration.nix"
         if [[ "$(grep ${root_uuid} ${hardware})" != "" ]]; then
             log::ls -n "Updating ${cyan}${hardware}${none} with drive uuid variable"
-            sudo sed -i "s/${root_uuid}/\${(builtins.elemAt config.machine.drives 0).uuid}/g" $hardware $REDIRECT
+            utils::run sudo sed -i "s/${root_uuid}/\${(builtins.elemAt config.machine.drives 0).uuid}/g" $hardware
             log::status
         fi
         log::ls -n "Encrypting ${cyan}${install_dec}${none} to ${cyan}${install_enc}${none}"
@@ -108,5 +108,5 @@ init::run()
         log::status
     fi
 
-    popd $REDIRECT
+    utils::run popd
 }

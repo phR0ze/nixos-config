@@ -56,18 +56,18 @@ install::prepare_disk()
     # Check if we restarted and need to unmount first
     if [[ "$(mount | grep ${PART_ROOT})" != "" || "$(swapon --show)" != "" ]]; then
         log::ls -n "${cyan}Restart detected${none} - unmounting previous paritions..."
-        sudo swapoff ${PART_SWAP} $REDIRECT || true
-        sudo umount ${ROOT_DIR}/boot $REDIRECT || true
-        sudo umount ${ROOT_DIR} $REDIRECT || true
+        utils::run sudo swapoff ${PART_SWAP} || true
+        utils::run sudo umount ${ROOT_DIR}/boot || true
+        utils::run sudo umount ${ROOT_DIR} || true
         log::status
     fi
 
     log::ls -n "Destroying any magic strings and/or signatures on ${cyan}${DESTDEV}${none}..."
-    sudo wipefs --all --force ${DESTDEV} $REDIRECT
+    utils::run sudo wipefs --all --force ${DESTDEV}
     log::status
 
     log::ls -n "Wiping partition table on ${cyan}${DESTDEV}${none}..."
-    sudo sgdisk --zap ${DESTDEV} $REDIRECT
+    utils::run sudo sgdisk --zap ${DESTDEV}
     log::status
 
     # Parted notes
@@ -84,13 +84,13 @@ install::prepare_disk()
         PART_ROOT="${DESTDEV}1" # need to rename for MBR mode
         PART_SWAP="${DESTDEV}2" # need to rename for MBR mode
         log::ls -n "Creating ${cyan}Legacy MBR partition table${none}..."
-        sudo parted "${DESTDEV}" -- mklabel msdos $REDIRECT
+        sutils::run udo parted "${DESTDEV}" -- mklabel msdos
         log::status
         log::ls -n "Creating ROOT ${cyan}${PART_ROOT}${none} partition for ${cyan}MBR partition table${none}..."
-        sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 1MB -5GB $REDIRECT
+        utils::run sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 1MB -5GB
         log::status
         log::ls -n "Setting boot flag ${cyan}${PART_ROOT}${none} for Legacy MBR..."
-        sudo parted "${DESTDEV}" -- set 1 boot on $REDIRECT
+        utils::run sudo parted "${DESTDEV}" -- set 1 boot on
         log::status
 
     # PART_BOOT & PART_ROOT for GPT partition table
@@ -101,45 +101,45 @@ install::prepare_disk()
     # - GPT: modern BIOS need a partition EF02 created and GRUB will handle the rest
     else
         log::ls -n "Creating ${cyan}Modern GPT partition table${none}..."
-        sudo parted "${DESTDEV}" -- mklabel gpt $REDIRECT
+        utils::run sudo parted "${DESTDEV}" -- mklabel gpt
         log::status
 
         if [ $EFI -eq 1 ]; then
             log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
-            sudo parted -s -a optimal "${DESTDEV}" -- mkpart "ESP" fat32 1MB 512MB $REDIRECT
+            utils::run sudo parted -s -a optimal "${DESTDEV}" -- mkpart "ESP" fat32 1MB 512MB
             log::status
             log::ls -n "Mark ${cyan}${PART_BOOT}${none} as ${cyan}ESP boot partition${none}..."
-            sudo parted "${DESTDEV}" -- set 1 esp on $REDIRECT
+            utils::run sudo parted "${DESTDEV}" -- set 1 esp on
             log::status
             log::ls -n "Formatting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}FAT32${none}..."
-            sudo mkfs.vfat -n "BOOT" ${PART_BOOT} $REDIRECT
+            utils::run sudo mkfs.vfat -n "BOOT" ${PART_BOOT}
             log::status
         else
             # Note: no need to format or mount this as GRUB will auto handle as needed
             # but it does have to be the first partition to work correctly.
             log::ls -n "Creating ${cyan}${PART_BOOT}${none} as ${cyan}BIOS boot partition${none}..."
-            sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary 1MB 512MB $REDIRECT
+            utils::run sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary 1MB 512MB
             log::status
             log::ls -n "Setting boot flag ${cyan}${PART_BOOT}${none} for modern GPT..."
-            sudo parted "${DESTDEV}" -- set 1 bios_grub on $REDIRECT
+            utils::run sudo parted "${DESTDEV}" -- set 1 bios_grub on
             log::status
         fi
 
         log::ls -n "Creating ROOT ${cyan}${PART_ROOT}${none} partition for ${cyan}GPT partition table${none}..."
-        sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 512MB -5GB $REDIRECT
+        utils::run sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary ext4 512MB -5GB
         log::status
     fi
 
     # (PART_SWAP i.e. #2 (MBR) or #3 (GPT)) create the SWAP partition 8200
     # - this is the same regardless of the partition table type
     log::ls -n "Creating ${cyan}${PART_SWAP}${none} as ${cyan}Linux swap partition${none}..."
-    sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary linux-swap -5GB 100% $REDIRECT
+    utils::run sudo parted -s -a optimal "${DESTDEV}" -- mkpart primary linux-swap -5GB 100%
     log::status
     log::ls -n "Formatting ${cyan}${PART_SWAP}${none} as ${cyan}swap${none}..."
-    sudo mkswap -L SWAP ${PART_SWAP} $REDIRECT
+    utils::run sudo mkswap -L SWAP ${PART_SWAP}
     log::status
     log::ls -n "Starting swap on ${cyan}${PART_SWAP}${none}..."
-    sudo swapon ${PART_SWAP} $REDIRECT
+    utils::run sudo swapon ${PART_SWAP}
     log::status
 
     # Format the ROOT partition
@@ -149,12 +149,12 @@ install::prepare_disk()
     # -m 0          don't reserve blocks for root services
     # -q            run in quiet mode for scripts
     log::ls -n "Formatting ${cyan}${PART_ROOT}${none} as ${cyan}ext4${none}..."
-    sudo mkfs.ext4 -F -m 0 -q -L ROOT ${PART_ROOT} $REDIRECT
+    utils::run sudo mkfs.ext4 -F -m 0 -q -L ROOT ${PART_ROOT}
     log::status
 
     # Mount root as ROOT_DIR and disable access time writes (speeds things up)
     log::ls -n "Mounting ${cyan}${PART_ROOT}${none} as ${cyan}${ROOT_DIR}${none}..."
-    sudo mount -o noatime ${PART_ROOT} ${ROOT_DIR} $REDIRECT
+    utils::run sudo mount -o noatime ${PART_ROOT} ${ROOT_DIR}
     log::status
 
     # UEFI: boot partition needs to be mounted over the root at /boot to capture the Linux
@@ -163,7 +163,7 @@ install::prepare_disk()
     if [ $EFI -eq 1 ]; then
         log::ls -n "Mounting ${cyan}${PART_BOOT}${none} (ESP) as ${cyan}${ROOT_DIR}/boot${none}..."
         sudo mkdir -p ${ROOT_DIR}/boot
-        sudo mount ${PART_BOOT} ${ROOT_DIR}/boot $REDIRECT
+        utils::run sudo mount ${PART_BOOT} ${ROOT_DIR}/boot
         log::status
     fi
 
@@ -200,7 +200,7 @@ install::install_config()
     log::header1 "Stage system configuration at ${MACHINE}"
 
     # Create the new machine directory
-    pushd "${CONFIG_DIR}" $REDIRECT
+    utils::run pushd "${CONFIG_DIR}"
     sudo mkdir -p "${MACHINE}"
 
     # Construct machines/$MACHINE/args.dec.json to be encrypted after install
@@ -364,7 +364,7 @@ EOF
     sudo git add "${MACHINE}"
     log::status
 
-    popd $REDIRECT
+    utils::run popd
     log::d "Leaving install::install_config"
 }
 
@@ -383,17 +383,17 @@ install::install_config_dir()
 
     # In the local debug case we'll already have a git repo otherwise convert
     if [[ ! -d "${CONFIG_DIR}/.git" ]]; then
-        pushd "${CONFIG_DIR}" $REDIRECT
+        utils::run pushd "${CONFIG_DIR}"
         log::ls -n "Convert ${cyan}${CONFIG_DIR}${none} into git repo..."
-        sudo git init $REDIRECT
-        sudo git add . $REDIRECT
-        sudo git commit -m "init" $REDIRECT
+        utils::run sudo git init
+        utils::run sudo git add .
+        utils::run sudo git commit -m "init"
         log::status
-        popd $REDIRECT
+        utils::run popd
     fi
 
     log::ls -n "Generating hardware configuration..."
-    sudo nixos-generate-config --root ${ROOT_DIR} $REDIRECT
+    utils::run sudo nixos-generate-config --root ${ROOT_DIR}
     log::status
 
     # Extract the current NIXOS version from the generated configuration.nix file
@@ -456,7 +456,7 @@ install::select_date_time_options()
         if [ "x$TIMEDATE_SET" == "xy" ]; then
             while true; do
                 utils::read TIMEDATE "Use ${cyan}ISO 8601 seconds${none} format" "$(date --iso-8601=seconds)"
-                date -s "${TIMEDATE}" $REDIRECT
+                date -s "${TIMEDATE}" &>/dev/null
                 [ $? -eq 0 ] && break
             done
         fi
