@@ -114,6 +114,7 @@ if [[ "$CMD" != "install" ]]; then
 fi
 
 # Process the command
+log::d "Debug vars: CLEAN=$CLEAN; QUIET=$QUIET; DEBUG=$DEBUG; IMPURE=$IMPURE; TRACE=$TRACE; SUDO=$SUDO;
 case "$CMD" in
     init) init::run "${ARGS[@]}" ;;
     build) build::run "${ARGS[@]}" ;;

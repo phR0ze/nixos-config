@@ -68,7 +68,7 @@ flake::switch()
     fi
 
     # Git requires being run from the correct directory
-    pushd "${CONFIG_DIR}" &>/dev/null
+    utils::run pushd "${CONFIG_DIR}"
 
     # Add flake file dependencies to be seen by the configuration system
     $SUDO git add flake.nix -f
@@ -96,7 +96,7 @@ flake::switch()
     $SUDO utils::update "args.nix" str "target" "${target}"
     $SUDO utils::update "args.nix" str "git.comment" "$(git log -1 --oneline --no-decorate)"
     $SUDO git add "args.nix"
-    popd &>/dev/null
+    utils::run popd
 }
 
 # Restore the flake files back to prestine in git
