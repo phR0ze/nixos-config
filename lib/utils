@@ -14,40 +14,73 @@ yellow="\e[1;33m"
 # Temporary file for reading command errors
 ERRFILE=/tmp/clu.err
 
+# Process args first thing for logging
+# - Handle globals by detecting them, taking action then removing them from the array.
+# - $1 clean args if 'true'
+# --------------------------------------------------------------------------------------------------
+utils::process_args()
+{
+    ARGS=("$@"); CLEAN=0; QUIET=0; DEBUG=0; IMPURE=""; TRACE="";
+    for i in "${!ARGS[@]}"; do
+        if [[ "${ARGS[i]}" == "--debug" ]]; then
+            LOG_LEVEL="debug" && _log_level=$_debug && unset 'ARGS[i]'
+            DEBUG=1
+            TRACE="--show-trace"
+        elif [[ "${ARGS[i]}" == "-c" || "${ARGS[i]}" == "--clean" ]]; then
+            CLEAN=1 && unset 'ARGS[i]'
+        elif [[ "${ARGS[i]}" == "--impure" ]]; then
+            IMPURE="--impure" && unset 'ARGS[i]'
+        elif [[ "${ARGS[i]}" == "-q" || "${ARGS[i]}" == "--quiet" ]]; then
+            QUIET=1 && LOG_LEVEL="error" && _log_level=$_error && unset 'ARGS[i]'
+        fi
+    done
+
+    # Optionally rebuild the array to clean out the removed items
+    if [[ "x${1}" == "xtrue" ]]; then
+        unset 'ARGS[0]'
+        ARGS=("${ARGS[@]}")
+    else
+        ARGS=("$@")
+    fi
+}
+
 # Handle root or sudo access
 # --------------------------------------------------------------------------------------------------
 utils::handle_root()
 {
-    [[ "x${SUDO_USER}" == "x" ]] && return || true
+    if [[ "x${SUDO_USER}" == "x" ]]; then
+        log::d "Skipping sudo privilege dropping..."
+        return
+    fi
 
     # Protect against looping with sentinel
     if [[ "x${1}" != "x--as-user" ]]; then
 
         # First bail if using root user directly
-        if [[ $EUID -eq 0 && "x${SUDO_USER}" == "x" ]]; then
+        if [[ $EUID -eq 0 ]]; then
             log::ls "${red}Error: root user detected without $SUDO_USER set!${none}"
             log::ls "${yellow}Run with user that has passwordless sudo privileges or with sudo${none}"
             exit 1
         fi
 
         # Next set $USER correctly and drop elevated privileges
-        if [[ "x${SUDO_USER}" != "x" ]]; then
-            log::ls "Dropping root privileges..."
-            USER="$SUDO_USER"
+        log::ls "Dropping root privileges..."
+        USER="$SUDO_USER"
 
-            # exec      gets rid of the original sudo shell
-            # sudo -u   runs new shell as non root user
-            # $0        original target
-            # --as-user sentinel to avoid looping
-            # $@        original params
-            if [[ "x${1}" != "x--as-user" ]]; then
-                exec sudo -u "$SUDO_USER" -- bash "$0" --as-user "$@"
-            fi
+        # exec      gets rid of the original sudo shell
+        # sudo -u   runs new shell as non root user
+        # $0        original target
+        # --as-user sentinel to avoid looping
+        # $@        original params
+        if [[ "x${1}" != "x--as-user" ]]; then
+            exec sudo -u "$SUDO_USER" -- bash "$0" --as-user "$@"
         fi
     else
         # Drop the sentinel so $@ contains original args
+        log::d "Drop --as-user sentinel: $@"
         shift
         ARGS=("$@")
+        log::d "Resulting ARGS: $@"
     fi
 }
 
