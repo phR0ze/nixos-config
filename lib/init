@@ -41,7 +41,6 @@ init::run()
         if [[ "x${SCP_SOPS}" == "xy" ]]; then
             utils::read SCP_HANDLE 'Enter the scp target i.e. user@ip-address'
             if [[ "x${SCP_HANDLE}" != "x" ]]; then
-                utils::get_user
                 local config_dir="/home/$USER/.config"
 
                 log::ls -n "SCP SOPS keys to user .config/..."

@@ -14,6 +14,29 @@ yellow="\e[1;33m"
 # Temporary file for reading command errors
 ERRFILE=/tmp/clu.err
 
+# Handle root or sudo access
+# --------------------------------------------------------------------------------------------------
+utils::handle_root()
+{
+    # First bail if using root user directly
+    if [[ $EUID -eq 0 && "x${SUDO_USER}" == "x" ]]; then
+        log::ls "${red}Error: root user detected without $SUDO_USER set!${none}"
+        log::ls "${yellow}Run with user that has passwordless sudo privileges or with sudo${none}"
+        exit 1
+    fi
+
+    # Next set $USER correctly and drop elevated privileges
+    if [[ "x${SUDO_USER}" != "x" ]]; then
+        USER="$SUDO_USER"
+
+        # exec      gets rid of the original sudo shell
+        # sudo -u   runs new shell as non root user
+        # $0        original target
+        # $@        original params
+        exec sudo -u "$SUDO_USER" -- bash "$0" "$@"
+    fi
+}
+
 # Execute the given command with conditional redirecto for cleaner output while allowing for 
 # debugging if the --debug flag is given which sets $DEBUG
 # - runs the given args as pass through
@@ -24,17 +47,6 @@ utils::run()
         "$@" &>/dev/null
     else
         "$@"
-    fi
-}
-
-
-# Set $USER to the actual user even if sudo is being used
-# --------------------------------------------------------------------------------------------------
-utils::get_user()
-{
-    USER="$USER"
-    if [[ "x${SUDO_USER}" != "x" ]]; then
-        USER="$SUDO_USER"
     fi
 }
 
@@ -58,17 +70,6 @@ utils::get_mbr_efi_vars()
     fi
     if [ $MBR -eq 0 ]; then
         log::d "Newer BIOS/UEFI detected use ${cyan}GPT partition table${none}"
-    fi
-}
-
-# Block root access
-# --------------------------------------------------------------------------------------------------
-utils::ensure_not_root()
-{
-    if [[ $EUID -eq 0 || "x${SUDO_USER}" != "x" ]]; then
-        log::ls "${red}Error: root user detected!${none}"
-        log::ls "${yellow}Run with user that has passwordless sudo priviledges but not as root${none}"
-        exit 1
     fi
 }
 
