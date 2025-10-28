@@ -43,10 +43,14 @@ init::run()
             if [[ "x${SCP_HANDLE}" != "x" ]]; then
                 utils::get_user
                 local config_dir="/home/$USER/.config"
-                set -x
+
+                log::ls -n "SCP SOPS keys to user .config/..."
                 scp -r ${SCP_HANDLE}:~/.config/sops "$config_dir"
+                log::status
+
+                log::ls -n "Copy SOPS keys to root .config/ as well..."
                 sudo cp -r "${config_dir}/sops" /root/.config/
-                set +x
+                log::status
             fi
         fi
     fi
@@ -55,27 +59,27 @@ init::run()
 
     if [[ "$(git remote -v)" != *"phR0ze/nixos-config"* ]]; then
         log::ls -n "Stash current changes to the repo..."
-        sudo git stash &>/dev/null
+        sudo git stash
         log::status
 
         log::ls -n "Add remote ${cyan}https://github.com/phR0ze/nixos-config${none}..."
-        sudo git remote add origin https://github.com/phR0ze/nixos-config &>/dev/null
+        sudo git remote add origin https://github.com/phR0ze/nixos-config
         log::status
 
         log::ls -n "Fetch latest from the remote..."
-        sudo git fetch &>/dev/null
+        sudo git fetch
         log::status
 
         log::ls -n "Setup branch tracking for ${cyan}origin/main${none}..."
-        sudo git branch -u origin/main &>/dev/null
+        sudo git branch -u origin/main
         log::status
 
         log::ls -n "Reset hard on ${cyan}origin/main${none}..."
-        sudo git reset --hard origin/main &>/dev/null
+        sudo git reset --hard origin/main
         log::status
 
         log::ls -n "Pop the stashed changes..."
-        sudo git stash pop &>/dev/null
+        sudo git stash pop
         log::status
     fi
 
