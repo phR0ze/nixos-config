@@ -58,7 +58,7 @@ utils::handle_root()
     if [[ "${ARGS[0]}" != "--as-user" ]]; then
 
         # First bail if using root user directly
-        if [[ $EUID -eq 0 ]]; then
+        if [[ $EUID -eq 0 && "x${SUDO_USER}" == "x" ]]; then
             log::ls "${red}Error: root user detected without $SUDO_USER set!${none}"
             log::ls "${yellow}Run with user that has passwordless sudo privileges or with sudo${none}"
             exit 1
