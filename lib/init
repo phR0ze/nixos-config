@@ -55,37 +55,54 @@ init::run()
 
     if [[ "$(git remote -v)" != *"phR0ze/nixos-config"* ]]; then
         log::ls -n "Stash current changes to the repo..."
-        git stash &>/dev/null
+        sudo git stash &>/dev/null
         log::status
 
         log::ls -n "Add remote ${cyan}https://github.com/phR0ze/nixos-config${none}..."
-        git remote add origin https://github.com/phR0ze/nixos-config &>/dev/null
+        sudo git remote add origin https://github.com/phR0ze/nixos-config &>/dev/null
         log::status
 
         log::ls -n "Fetch latest from the remote..."
-        git fetch &>/dev/null
+        sudo git fetch &>/dev/null
         log::status
 
         log::ls -n "Setup branch tracking for ${cyan}origin/main${none}..."
-        git branch -u origin/main &>/dev/null
+        sudo git branch -u origin/main &>/dev/null
         log::status
 
         log::ls -n "Reset hard on ${cyan}origin/main${none}..."
-        git reset --hard origin/main &>/dev/null
+        sudo git reset --hard origin/main &>/dev/null
         log::status
 
         log::ls -n "Pop the stashed changes..."
-        git stash pop &>/dev/null
+        sudo git stash pop &>/dev/null
         log::status
     fi
 
     log::ls -n "Configuring core.hooksPath: ${cyan}.githooks${none}..."
-    git config --local core.hooksPath .githooks &>/dev/null
+    sudo git config --local core.hooksPath .githooks &>/dev/null
     log::status
 
     log::ls -n "Configuring decrypt alias: ${cyan}git decrypt${none}..."
-    git config --local alias.decrypt '!decrypt() { .githooks/decrypt; }; decrypt'
+    sudo git config --local alias.decrypt '!decrypt() { .githooks/decrypt; }; decrypt'
     log::status
+
+    # Optionally encrypt the temp install args file
+    local machine="machines/$(hostname)"
+    local install_dec="${machine}/args.dec.json"
+    if [[ "$(git diff --staged --name-only -- ${install_dec})" != "" ]]; then
+        local install_enc="${machine}/args.enc.json"
+        local root_uuid="$(cat $install_dec | jq -r '.drives[0].uuid')"
+        local hardware="${machine}/hardware-configuration.nix"
+        if [[ "$(grep ${root_uuid} ${hardware})" != "" ]]; then
+            log::ls -n "Updating ${cyan}${hardware}${none} with drive uuid variable"
+            sudo sed -i "s/${root_uuid}/\${(builtins.elemAt config.machine.drives 0).uuid}/g" $hardware
+            log::status
+        fi
+        log::ls -n "Encrypting ${cyan}${install_dec}${none} to ${cyan}${install_enc}${none}"
+        sudo sops --encrypt $install_dec > $install_enc
+        log::status
+    fi
 
     popd &>/dev/null
 }
