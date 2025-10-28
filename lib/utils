@@ -55,7 +55,7 @@ utils::handle_root()
     fi
 
     # Protect against looping with sentinel
-    if [[ "x${1}" != "x--as-user" ]]; then
+    if [[ "${ARGS[0]}" != "--as-user" ]]; then
 
         # First bail if using root user directly
         if [[ $EUID -eq 0 ]]; then
@@ -73,15 +73,13 @@ utils::handle_root()
         # $0        original target
         # --as-user sentinel to avoid looping
         # $@        original params
-        if [[ "x${1}" != "x--as-user" ]]; then
-            exec sudo -u "$SUDO_USER" -- bash "$0" --as-user "$@"
-        fi
+        exec sudo -u "$SUDO_USER" -- bash "$0" --as-user "${ARGS[@]}"
     else
-        # Drop the sentinel so $@ contains original args
-        log::d "Drop --as-user sentinel: $@"
-        shift
-        ARGS=("$@")
-        log::d "Resulting ARGS: $@"
+        # Drop the sentinel so $ARGS contains original args
+        log::d "Drop --as-user sentinel: ${ARGS[@]}"
+        unset 'ARGS[0]'
+        ARGS=("${ARGS[@]}")
+        log::d "Resulting ARGS: ${ARGS[@]}"
     fi
 }
 
