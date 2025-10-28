@@ -18,6 +18,8 @@ ERRFILE=/tmp/clu.err
 # --------------------------------------------------------------------------------------------------
 utils::handle_root()
 {
+    [[ "x${SUDO_USER}" == "x" ]] && return || true
+
     # Protect against looping with sentinel
     if [[ "x${1}" != "x--as-user" ]]; then
 
@@ -45,6 +47,7 @@ utils::handle_root()
     else
         # Drop the sentinel so $@ contains original args
         shift
+        ARGS=("$@")
     fi
 }
 

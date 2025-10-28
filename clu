@@ -35,7 +35,7 @@ SCRIPT_DIR="$(readlink -f $(dirname $BASH_SOURCE[0]))"  # /path/to/nixos-config
 ROOT_DIR="" # more intuitive to concat with / so blank  # changeable root for testing and installs
 [[ "${SCRIPT_DIR}" == "/nix/store"* ]] && CONFIG_DIR="$(pwd)" || CONFIG_DIR="${SCRIPT_DIR}"
 source "${SCRIPT_DIR}/lib/all"
-utils::handle_root
+utils::handle_root "$@"
 
 core::preamble()
 {
@@ -90,7 +90,7 @@ USAGE
 # Parse commands
 # --------------------------------------------------------------------------------------------------
 [[ $# -eq 0 ]] && core::usage
-ARGS=("$@")
+[[ ! -v ${ARGS} ]] && ARGS=("$@") || true # gets set by utils::handle_root
 CLEAN=0
 QUIET=0
 DEBUG=0
@@ -152,5 +152,5 @@ case "$CMD" in
     test) test::run "${ARGS[@]}" ;;
     update) update::run "${ARGS[@]}" ;;
     upgrade) upgrade::run "${ARGS[@]}" ;;
-    *) log::error "Invalid command: ${cyan}${command}${none}"; core::usage ;;
+    *) log::error "Invalid command: ${cyan}${CMD}${none}"; core::usage ;;
 esac
