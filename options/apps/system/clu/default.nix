@@ -26,6 +26,7 @@ stdenvNoCC.mkDerivation {
     openssh                             # scp is used to automated retrieving sops secrets
     psmisc                              # Ensure general purpose tooling available
     sops                                # sops is used to decrypt and encrypt secrets
+    sudo                                # provides the ability to elevate privileges safely
   ];
 
   nativeBuildInputs = [
