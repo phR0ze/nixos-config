@@ -55,7 +55,7 @@ run::vm()
     if [[ -d "${machine}" ]]; then
         log::header1 "Running VM ${cyan}${machine}${none}"
 
-        qemu-system-x86_64 \
+        $SUDO qemu-system-x86_64 \
             -name NixOS \
             -enable-kvm \
             -m 4G -cpu host -smp 4 \
@@ -75,7 +75,7 @@ run::vm()
         # Optionally clean first
         if [[ $CLEAN -eq 1 ]]; then
             log::ls "Cleaning ${cyan}${MACHINE}${none}"
-            rm -rf "${CONFIG_DIR}/${MACHINE}"
+            $SUDO rm -rf "${CONFIG_DIR}/${MACHINE}"
         fi
 
         local runner="${CONFIG_DIR}/${MACHINE}/result/bin/run"
@@ -114,25 +114,25 @@ run::iso()
     # Optionally clean first
     if [[ $CLEAN -eq 1 ]]; then
         log::ls "Cleaning ${cyan}${MACHINE}${none}"
-        rm -rf "${CONFIG_DIR}/${MACHINE}"
+        $SUDO rm -rf "${CONFIG_DIR}/${MACHINE}"
     fi
 
     # Create the vm directory and volume if needed
     log::ls "Launching VM with ISO"
-    mkdir -p "${CONFIG_DIR}/${MACHINE}"
+    $SUDO mkdir -p "${CONFIG_DIR}/${MACHINE}"
     if [ ! -d "${CONFIG_DIR}/${MACHINE}" ]; then
         log::subln3 "${cyan}$iso${none}"
     fi
-    pushd "${CONFIG_DIR}/${MACHINE}" &>/dev/null
+    utils::run pushd "${CONFIG_DIR}/${MACHINE}"
 
     # Create the volume if needed
     local vol="nixos.qcow2"
     if [ ! -f "$vol" ]; then
-        qemu-img create -f qcow2 $vol 40G
+        $SUDO qemu-img create -f qcow2 $vol 40G
     fi
     
     # Run the VM using the ISO to boot from
-    qemu-system-x86_64 \
+    $SUDO qemu-system-x86_64 \
         -name NixOS \
         -enable-kvm \
         -m 4G -cpu host -smp 4 \
@@ -140,5 +140,5 @@ run::iso()
         -vga virtio -display sdl,gl=on \
         -hda $vol \
         -cdrom "$iso"
-    popd &>/dev/null
+    utils::run popd
 }

@@ -331,15 +331,17 @@ utils::pad_suffix()
 #
 utils::replace()
 {
+    log::d "Replace ($#): $@"
     local _sudo=""
     local file kind target value
 
     if [[ "x$1" == "xsudo" ]]; then
         _sudo="sudo"
-        shift
     fi
+    shift # always shift one off as the white space gets interpreted as an arg
 
     file="$1"; kind="$2"; target="$3"; value="$4";
+    log::d "Replace: file=$file; kind=$kind; target=$target; value=$value;"
 
     if [[ "x$kind" == "xbool" || "x$kind" == "xint" ]]; then
         ${_sudo} sed -i -e "s|\(^.*${target} = \).*\(;.*$\)|\1${value}\2|" "${file}"
@@ -358,15 +360,17 @@ utils::replace()
 # - $6 the value is a pair to split [ true ]
 utils::update()
 {
+    log::d "Update ($#): $@"
     local _sudo=""
     local file kind var value pair
 
     if [[ "x$1" == "xsudo" ]]; then
         _sudo="sudo"
-        shift
     fi
+    shift # always shift one off as the white space gets interpreted as an arg
 
     file="$1"; kind="$2"; var="$3"; value="$4"; pair="$5";
+    log::d "Update: file=$file; kind=$kind; var=$var; value=$value; pair=$pair"
 
     # Parse the value from the pair, triming the prefix including the '='
     [[ "$pair" == "true" ]] && value="${value#*=}"
