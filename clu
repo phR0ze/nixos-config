@@ -35,7 +35,7 @@ SCRIPT_DIR="$(readlink -f $(dirname $BASH_SOURCE[0]))"  # /path/to/nixos-config
 ROOT_DIR="" # more intuitive to concat with / so blank  # changeable root for testing and installs
 [[ "${SCRIPT_DIR}" == "/nix/store"* ]] && CONFIG_DIR="$(pwd)" || CONFIG_DIR="${SCRIPT_DIR}"
 source "${SCRIPT_DIR}/lib/all"
-utils::process_args "${ARGS[@]}"    # handle global args
+utils::process_args "$@"            # handle global args
 utils::handle_root "${ARGS[@]}"     # handle sudo use case passing cleaned args
 
 core::preamble()
