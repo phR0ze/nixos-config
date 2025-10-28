@@ -92,7 +92,7 @@ flake::switch()
         $SUDO git add configuration.nix -f
         if [[ -e "${target}/args.dec.json" ]]; then
             log::d "Link ${cyan}${CONFIG_DIR}/${target}/args.dec.json${none}"
-            $SUDO git add "$target/args.dec.json" -f &>/dev/null # always suppress
+            $SUDO git add "$target/args.dec.json" -f
         fi
 
         # Update the target hostname
@@ -105,7 +105,7 @@ flake::switch()
     log::d "Update ${cyan}${target}${none} in ${cyan}${CONFIG_DIR}/args.nix${none}"
     utils::update "$SUDO" "args.nix" str "target" "${target}"
     log::d "Update ${cyan}git.comment${none} in ${cyan}${CONFIG_DIR}/args.nix${none}"
-    utils::update "$SUDO" "args.nix" str "git.comment" "$(git log -1 --oneline --no-decorate)"
+    utils::update "$SUDO" "args.nix" str "git.comment" "$($SUDO git log -1 --oneline --no-decorate)"
     log::d "Add to git repo ${cyan}${CONFIG_DIR}/args.nix${none}"
     $SUDO git add "args.nix"
     utils::run popd
