@@ -399,7 +399,7 @@ install::install_config_dir()
     # Extract the current NIXOS version from the generated configuration.nix file
     GEN_CONFIG="${CONFIG_DIR}/configuration.nix"
     NIXOS_VER=$(sed -n 's|^\s*system.stateVersion\s*=\s*"\(.*\)";.*|\1|p' "${GEN_CONFIG}")
-    rm -f "${GEN_CONFIG}" # clean up
+    sudo rm -f "${GEN_CONFIG}" # clean up
 
     log::ls -n "Update the swap entry to use the device UUID..."
     local swap_uuid=$(blkid -s UUID -o value ${PART_SWAP})
