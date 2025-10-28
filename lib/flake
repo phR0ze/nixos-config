@@ -44,7 +44,6 @@ flake::ensure_target()
 
 # Switch flake
 # - $1 - machine or profile with preceding path prefix 'profiles/' or 'machines/'
-# - $2 - '--install' flag indcating behavior should be for an install
 #
 # Example: flake::switch machines/homelab
 flake::switch()
@@ -78,7 +77,7 @@ flake::switch()
     $SUDO git add flake.lock -f
 
     # Decrypt if not installing
-    if [[ "$2" != "--install" ]]; then
+    if [ $INSTALL -eq 0 ]; then
         $SUDO git decrypt
         [[ -e "args.dec.json" ]] && git add "args.dec.json" -f
     fi
@@ -112,39 +111,38 @@ flake::switch()
 }
 
 # Restore the flake files back to prestine in git
-# - $1 - '--install' flag indcating behavior should be for an install
 flake::restore()
 {
     utils::run pushd "${CONFIG_DIR}"
 
-    if [[ "$(git diff --staged --name-only -- flake.nix flake.lock)" != "" ]]; then
+    if [[ "$($SUDO git diff --staged --name-only -- flake.nix flake.lock)" != "" ]]; then
         log::ls "Restoring flake files in ${cyan}${CONFIG_DIR}${none} back to prestine"
         $SUDO git restore --staged flake.nix flake.lock
     fi
 
     # Don't need to bother with this on install as there are no decrypted files except those we are 
     # using for staging arguments to be encrypted post install
-    if [[ "$1" != "--install" ]]; then
-        if [[ "$(git diff --staged --name-only -- *.dec*)" != "" ]]; then
+    if [ $INSTALL -eq 0 ]; then
+        if [[ "$($SUDO git diff --staged --name-only -- *.dec*)" != "" ]]; then
             log::ls "Restoring decrypted files in ${cyan}${CONFIG_DIR}${none} back to prestine"
             $SUDO git restore --staged *.dec*
         fi
     fi
 
-    if [[ "$(git diff --staged --name-only -- configuration.nix)" != "" ]]; then
+    if [[ "$($SUDO git diff --staged --name-only -- configuration.nix)" != "" ]]; then
         log::ls "Restoring ${cyan}${CONFIG_DIR}/configuration.nix${none} back to prestine"
         $SUDO git restore --staged configuration.nix
     fi
 
     # Skip the dec files on install as were using this to stage values that have yet to get encrypted
-    if [[ "$1" != "--install" ]]; then
-        if [[ "$(git diff --staged --name-only -- */*.dec*)" != "" ]]; then
+    if [ $INSTALL -eq 0 ]; then
+        if [[ "$($SUDO git diff --staged --name-only -- */*.dec*)" != "" ]]; then
             log::ls "Restoring ${cyan}${CONFIG_DIR}/*/*.dec*${none} back to prestine"
             $SUDO git restore --staged */*.dec*
         fi
     fi
 
-    if [[ "$(git diff --staged --name-only -- args.nix)" != "" ]]; then
+    if [[ "$($SUDO git diff --staged --name-only -- args.nix)" != "" ]]; then
         log::ls "Restoring ${cyan}${CONFIG_DIR}/args.nix${none} to prestine"
         $SUDO git restore --staged args.nix
         $SUDO git checkout args.nix
@@ -152,7 +150,7 @@ flake::restore()
 
     # Find and delete all decrypted files every time
     # - Don't need to to do this on install
-    if [[ "$1" != "--install" ]]; then
+    if [ $INSTALL -eq 0 ]; then
         $SUDO find "$CONFIG_DIR" -type f -name "*.dec*" -delete
     fi
 
@@ -170,35 +168,32 @@ flake::trap()
 # Stage for tempory flake files
 # - files that the flake depends on must be git staged to be used.
 # - $1 - machine or profile to use for switching to the given target
-# - $2 - '--install' flag indcating behavior should be for an install
-# - $3 - '--no-trap' flag to optionally not call TRAP
 #
 # Example: flake::switch machines/homelab
 flake::stage_files()
 {
     # Don't need to shutdown anything on a fresh install
-    if [[ "$2" != "--install" ]]; then
+    if [ $INSTALL -eq 0 ]; then
         log::ls "Shutting down ${cyan}xfconfd${none} to avoid conflicts"
         pgrep xfconfd || true
     fi
 
     log::ls -n "Removing ${cyan}${ROOT_DIR}/nix/files.lock${none} to permit files update..."
-    rm -f "${ROOT_DIR}/nix/files.lock"
+    $SUDO rm -f "${ROOT_DIR}/nix/files.lock"
     log::status
 
-    flake::switch $1 $2
+    flake::switch $1
 
-    if [[ "$3" != "--no-trap" ]]; then
+    if [ $INSTALL -eq 0 ]; then
         trap flake::unstage_files EXIT
     fi
 }
 
 # Remove the tempory flake files
 # - files that the flake depends but don't want persisted
-# - $1 - '--install' flag indcating behavior should be for an install
 flake::unstage_files()
 {
-    flake::restore $1
+    flake::restore
 
     log::ls -n "Adding ${cyan}${ROOT_DIR}/nix/files.lock${none} to avoid updates during reboots..."
     $SUDO touch "${ROOT_DIR}/nix/files.lock"
