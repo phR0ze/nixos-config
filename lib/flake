@@ -89,12 +89,12 @@ flake::switch()
 
         # Update the target hostname
         local hostname="${target#machines/}"
-        $SUDO utils::update "args.nix" str "hostname" "${hostname}"
+        utils::update "$SUDO" "args.nix" str "hostname" "${hostname}"
     fi
 
     # Update the args.nix as a mechanism to tell the flake which machine/profile to build 
-    $SUDO utils::update "args.nix" str "target" "${target}"
-    $SUDO utils::update "args.nix" str "git.comment" "$(git log -1 --oneline --no-decorate)"
+    utils::update "$SUDO" "args.nix" str "target" "${target}"
+    utils::update "$SUDO" "args.nix" str "git.comment" "$(git log -1 --oneline --no-decorate)"
     $SUDO git add "args.nix"
     utils::run popd
 }
