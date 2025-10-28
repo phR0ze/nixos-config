@@ -403,7 +403,7 @@ install::install_config_dir()
 
     log::ls -n "Update the swap entry to use the device UUID..."
     local swap_uuid=$(blkid -s UUID -o value ${PART_SWAP})
-    utils::replace "${CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
+    sudo utils::replace "${CONFIG_DIR}/hardware-configuration.nix" str "${PART_SWAP}" "/dev/disk/by-uuid/${swap_uuid}"
     log::status
     log::d "Leaving install::install_config_dir"
 }
