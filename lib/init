@@ -103,7 +103,7 @@ init::run()
             log::status
         fi
         log::ls -n "Encrypting ${cyan}${install_dec}${none} to ${cyan}${install_enc}${none}"
-        sudo sops --encrypt $install_dec > $install_enc
+        sudo bash -c "sops --encrypt '$install_dec' > '$install_enc'"
         log::status
     fi
 
