@@ -46,7 +46,6 @@ let
     nvim-ts-autotag
     nvim-ts-context-commentstring
     nvim-web-devicons
-    oil-nvim
     overseer-nvim
     persistence-nvim
     plenary-nvim
