@@ -16,12 +16,14 @@
 }: let
 
   # Plugins to have loaded on boot
+  # - End up in ./result/pack/plugins/start
   startPlugins = with vimPlugins; [
     #snacks-nvim                     # Collection of lua modules
   ];
 
   # Plugins to make available but don't load on boot.
-  # These will be lazy loaded by lz-n as needed based on triggers
+  # - These will be lazy loaded by lz-n as needed based on triggers
+  # - End up in ./result/pack/plugins/opt
   optPlugins = with vimPlugins; [
     lz-n                            # Light weight lazy plugin loader
 
@@ -32,18 +34,51 @@
     catppuccin-nvim                 # Soothing pastel theme for Neovim 
 
     # Coding
-    nvim-autopairs                  # Intelligent pairing, better than mini.pairs
+    (vimUtils.buildVimPlugin {      # Intelligent pairing, better than mini.pairs
+      pname = "nvim-autopairs"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "windwp"; repo = "nvim-autopairs";
+        rev = "7a2c97cccd60abc559344042fefb1d5a85b3e33b";
+        sha256 = "sha256-cRIg1qO3WMxzcDQti0GEJl77KnlRCqyBN+g76PviWt0="; };})
+
+    # Editor
+    (vimUtils.buildVimPlugin {      # Shows available keybindings in a popup as you type
+      pname = "which-key.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "which-key.nvim";
+        rev = "v3.17.0"; sha256 = "sha256-kYpiw2Syu54B/nNVqTZeUHJIPNzAv3JpFaMWR9Ai3p4="; };})
+
+    # UI
+    (vimUtils.buildVimPlugin {      # Replacement icons for nvim-web-devicons
+      pname = "mini.icons"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "nvim-mini"; repo = "mini.icons";
+        rev = "v0.16.0"; sha256 = "sha256-/sdLtMOOGeVvFDBB9N4CyUHpGXtUi1ZJ9dIpvxZ9C4Q="; };})
+
+    (vimUtils.buildVimPlugin {      # Collection of quality of life plugins
+      pname = "snacks.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "snacks.nvim";
+        rev = "v2.27.0"; sha256 = "sha256-QkcOKPgiJeA5LmQvC7DZ6ddjaoW8AE5I08Gm8jlEkT8="; };})
+
+    (vimUtils.buildVimPlugin {      # Blazing fast neovim statusline written in pure lua
+      pname = "lualine.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "nvim-lualine"; repo = "lualine.nvim";
+        rev = "3946f0122255bc377d14a59b27b609fb3ab25768";
+        sha256 = "sha256-hdrAdG3hC2sAevQ6a9xizqPgEgnNKxuc5rBYn0pKM1c="; };})
+
+    (vimUtils.buildVimPlugin {      # A snazzy bufferline for Neovim 
+      pname = "bufferline.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "akinsho"; repo = "bufferline.nvim";
+        rev = "v4.9.1"; sha256 = "sha256-ae4MB6+6v3awvfSUWlau9ASJ147ZpwuX1fvJdfMwo1Q="; };})
+
+    # Utility
+    #(vimUtils.buildVimPlugin {      # Toggle a terminal window inside Neovim
+    #  pname = "toggleterm-nvim"; version = "2025-10-30";
+    #  src = fetchFromGitHub { owner = "akinsho"; repo = "toggleterm.nvim";
+    #    rev = "v2.13.1";
+    #    sha256 = "sha256-Xc3TZUA6glsuchignUSk4gLZs1IBvI+YnWeP1r+snbQ="; };})
 
     #codecompanion-nvim
     #plenary-nvim 
     #telescope-nvim
     #vim-startuptime                               # 
-    #which-key-nvim                                # Shows available keybindings in a popup as you type
-    #(vimUtils.buildVimPlugin {                    # 
-    #  pname = "mini-pairs"; version = "2025-10-08";
-    #  src = fetchFromGitHub { owner = "nvim-mini"; repo = "mini.pairs";
-    #    rev = "b9aada8c0e59f2b938e98fbf4eae0799eba96ad9";
-    #    sha256 = "sha256-KFWpyITaKc9AGhvpLkeq9B3a5MELqed2UBo9X8oC6Ac="; };})
   ];
   
   # Build the plugins package for Neovim

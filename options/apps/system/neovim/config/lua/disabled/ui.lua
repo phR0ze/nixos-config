@@ -1,0 +1,58 @@
+return {
+--  {
+--    "bufferline.nvim",
+--    event = "DeferredUIEnter",  -- equivalent of VeryLazy in lazy.nvim
+--    keys = {
+--      { "<leader>bp", function() vim.cmd.BufferLineTogglePin() end, desc = "Toggle Pin" },
+--      { "<leader>bP", function() vim.cmd("BufferLineGroupClose ungrouped") end, desc = "Delete Non-Pinned Buffers" },
+--      { "<leader>br", function() vim.cmd.BufferLineCloseRight() end, desc = "Delete Buffers to the Right" },
+--      { "<leader>bl", function() vim.cmd.BufferLineCloseLeft() end, desc = "Delete Buffers to the Left" },
+--      { "<S-h>", function() vim.cmd.BufferLineCyclePrev() end, desc = "Prev Buffer" },
+--      { "<S-l>", function() vim.cmd(BufferLineCycleNext) end, desc = "Next Buffer" },
+--      { "[b", function() vim.cmd.BufferLineCyclePrev() end, desc = "Prev Buffer" },
+--      { "]b", function() vim.cmd.BufferLineCycleNext() end, desc = "Next Buffer" },
+--      { "[B", function() vim.cmd.BufferLineMovePrev() end, desc = "Move buffer prev" },
+--      { "]B", function() vim.cmd.BufferLineMoveNext() end, desc = "Move buffer next" },
+--    },
+--    after = function()
+--      -- configuration code
+--      local opts = {
+--        options = {
+--          close_command = function(n) Snacks.bufdelete(n) end,
+--          right_mouse_command = function(n) Snacks.bufdelete(n) end,
+--          diagnostics = "nvim_lsp",
+--          always_show_bufferline = false,
+--          diagnostics_indicator = function(_, _, diag)
+--            local icons = LazyVim.config.icons.diagnostics
+--            local ret = (diag.error and icons.Error .. diag.error .. " " or "")
+--              .. (diag.warning and icons.Warn .. diag.warning or "")
+--            return vim.trim(ret)
+--          end,
+--          offsets = {
+--            {
+--              filetype = "neo-tree",
+--              text = "Neo-tree",
+--              highlight = "Directory",
+--              text_align = "left",
+--            },
+--            {
+--              filetype = "snacks_layout_box",
+--            },
+--          },
+--          get_element_icon = function(opts)
+--            return LazyVim.config.icons.ft[opts.filetype]
+--          end,
+--        },
+--      }
+--      require("bufferline-nvim").setup(opts)
+--
+--      vim.api.nvim_create_autocmd({ "BufAdd", "BufDelete" }, {
+--        callback = function()
+--          vim.schedule(function()
+--            pcall(nvim_bufferline)
+--          end)
+--        end,
+--      })
+--    end,
+--  }
+}
