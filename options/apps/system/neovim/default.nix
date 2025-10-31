@@ -40,17 +40,32 @@
         rev = "7a2c97cccd60abc559344042fefb1d5a85b3e33b";
         sha256 = "sha256-cRIg1qO3WMxzcDQti0GEJl77KnlRCqyBN+g76PviWt0="; };})
 
-    # Editor
-    (vimUtils.buildVimPlugin {      # Shows available keybindings in a popup as you type
-      pname = "which-key.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "folke"; repo = "which-key.nvim";
-        rev = "v3.17.0"; sha256 = "sha256-kYpiw2Syu54B/nNVqTZeUHJIPNzAv3JpFaMWR9Ai3p4="; };})
+    (vimUtils.buildVimPlugin {      # Better comments and override support for treesitter languages
+      pname = "ts-comments.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "ts-comments.nvim";
+        rev = "v1.5.0";
+        sha256 = "sha256-nYdU5KlSSgxWgxu/EgpBUNDQ9zEXkEbiTkBO4ThHPfo="; };})
+
+    (vimUtils.buildVimPlugin {      # Navigate code with search labels, enhanced character motions and Treesitter integration 
+      pname = "flash.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "flash.nvim";
+        rev = "v2.1.0"; sha256 = "sha256-Qh9ty28xtRS3qXxE/ugx9FqAKrdeFGEf7W6yEORnZV8="; };})
+
+    (vimUtils.buildVimPlugin {      # Open todos in a quick fix list
+      pname = "todo-comments.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "todo-comments.nvim";
+        rev = "v1.4.0"; sha256 = "sha256-EH4Sy7qNkzOgA1INFzrtsRfD79TgMqSbKUdundyw22w="; };})
 
     # UI
     (vimUtils.buildVimPlugin {      # Replacement icons for nvim-web-devicons
       pname = "mini.icons"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "nvim-mini"; repo = "mini.icons";
         rev = "v0.16.0"; sha256 = "sha256-/sdLtMOOGeVvFDBB9N4CyUHpGXtUi1ZJ9dIpvxZ9C4Q="; };})
+
+    (vimUtils.buildVimPlugin {      # Shows available keybindings in a popup as you type
+      pname = "which-key.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "which-key.nvim";
+        rev = "v3.17.0"; sha256 = "sha256-kYpiw2Syu54B/nNVqTZeUHJIPNzAv3JpFaMWR9Ai3p4="; };})
 
     (vimUtils.buildVimPlugin {      # Collection of quality of life plugins
       pname = "snacks.nvim"; version = "2025-10-30";
@@ -69,11 +84,6 @@
         rev = "v4.9.1"; sha256 = "sha256-ae4MB6+6v3awvfSUWlau9ASJ147ZpwuX1fvJdfMwo1Q="; };})
 
     # Utility
-    #(vimUtils.buildVimPlugin {      # Toggle a terminal window inside Neovim
-    #  pname = "toggleterm-nvim"; version = "2025-10-30";
-    #  src = fetchFromGitHub { owner = "akinsho"; repo = "toggleterm.nvim";
-    #    rev = "v2.13.1";
-    #    sha256 = "sha256-Xc3TZUA6glsuchignUSk4gLZs1IBvI+YnWeP1r+snbQ="; };})
 
     #codecompanion-nvim
     #plenary-nvim 
