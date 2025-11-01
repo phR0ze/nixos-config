@@ -1,11 +1,49 @@
 return {
+  -- Test by running :TSModuleInfo
+  -- Test by running :TSUpdate
   {
     "nvim-treesitter",
     lazy = false,
     after = function()
-      require("treesitter").setup()
+      require("nvim-treesitter").setup()
     end,
   },
+  -- {
+  --   "nvim-treesitter",
+  --   event = { "BufReadPost", "BufNewFile" },
+  --   after = function()
+  --     require("nvim-treesitter.configs").setup({
+  --       highlight = { enable = true },
+  --       indent = { enable = true },
+  --       auto_install = true,
+  --       ensure_installed = {
+  --         "bash", "c", "cpp", "css", "go", "html", "json", "javascript", "lua", 
+  --         "nix", "python", "rust", "toml", "typescript",
+  --       },
+  --     })
+  --   end,
+  -- },
+  -- {
+  --   "nvim-treesitter",
+  --   event = "FileType",
+  --   after = function()
+  --     require("nvim-treesitter.configs").setup({
+  --       highlight = { enable = true, additional_vim_regex_highlighting = false },
+  --       ensure_installed = { "c", "lua", "rust", "nix", "toml", "yaml", "json" },
+  --       auto_install = true,
+  --       incremental_selection = {
+  --         enable = true,
+  --         keymaps = {
+  --           init_selection = false,
+  --           node_decremental = "<A-CR>",
+  --           node_incremental = "<CR>",
+  --           -- scope_incremental = "grc",
+  --         },
+  --       },
+  --       indent = { enable = true },
+  --     })
+  --   end,
+  -- },
   {
     "nvim-treesitter-context",
     event = { "BufReadPre", "BufNewFile" },
