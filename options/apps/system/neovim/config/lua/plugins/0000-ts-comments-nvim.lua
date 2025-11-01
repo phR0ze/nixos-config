@@ -1,7 +1,8 @@
 return {
   -- [ts-comments.nvim](https://github.com/folke/ts-comments.nvim)
-  -- Better comments and override support for treesitter languages
-  -- Has no external dependencies
+  -- better comments and override support for treesitter languages
+  -- using LazyVim configuration as is
+  -- no external dependencies
   "ts-comments.nvim",                               -- Lua result/pack/opt module name
   event = "DeferredUIEnter",                        -- Equivalent of VeryLazy
   after = function()
