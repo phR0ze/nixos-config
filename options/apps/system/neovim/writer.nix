@@ -1,24 +1,13 @@
-# Neovim configuration
-#
-# ### References
-# - [Lazyvim Nix](https://github.com/jla2000/lazyvim-nix)
-# - [Nvim-bundle](https://github.com/jla2000/nvim-bundle)
-# - [Neovim Wrapper](https://ayats.org/blog/neovim-wrapper)
-# - [Lz.n](https://github.com/lumen-oss/lz.n)
+# Neovim configuration for writing
 #
 # ### Details
-# - All plugins are built and stored in the nix store
-# - Configuration is all written in lua
-# - Plugins are lazy loaded using lz.n
+# - see default.nix for more details on how this was built
 #---------------------------------------------------------------------------------------------------
 {
   neovim-unwrapped, symlinkJoin, fetchFromGitHub, makeWrapper, runCommandLocal, vimPlugins, vimUtils,
   writeTextFile, lib,
 }: let
 
-  # Plugins to make available but don't load on boot.
-  # - these will be lazy loaded by lz-n as needed based on triggers
-  # - end up in ./result/pack/plugins/opt
   plugins = with vimPlugins; [
     lz-n                            # Light weight lazy plugin loader
 
@@ -28,10 +17,6 @@
     tokyonight-nvim                 # A clean dark Neovim theme
     catppuccin-nvim                 # Soothing pastel theme for Neovim
 
-    # Modern, minimal, pure lua replacement for nvim-web-devicons
-    # - configuration ./config/lua/plugins/0000-mini-icons.lua
-    # - can patch itself into plugins expecting nvim-web-devicons thus eliminating the need for both
-    # - no external dependencies
     (vimUtils.buildVimPlugin {
       pname = "mini.icons"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "nvim-mini"; repo = "mini.icons";
@@ -55,38 +40,26 @@
       src = fetchFromGitHub { owner = "folke"; repo = "persistence.nvim";
         rev = "v3.1.0"; sha256 = "sha256-xZij+CYjAoxWcN/Z2JvJWoNkgBkz83pSjUGOfc9x8M0="; };})
 
-    # Installs and manages languages parsers and provides this syntax tree to other plugins
-    (vimUtils.buildVimPlugin {
-      pname = "nvim-treesitter"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter";
-        rev = "42fc28ba918343ebfd5565147a42a26580579482";
-        sha256 = "sha256-CVs9FTdg3oKtRjz2YqwkMr0W5qYLGfVyxyhE3qnGYbI="; };})
-
-    # Builds on treesitter to provide context about your code objects
-    (vimUtils.buildVimPlugin {
-      pname = "nvim-treesitter-context"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter-context";
-        rev = "ec308c7827b5f8cb2dd0ad303a059c945dd21969";
-        sha256 = "sha256-QdZstxKsEILwe7eUZCmMdyLPyvNKc/e7cfdYQowHWPQ="; };})
-
-    # Builds on treesitter to provide code navigation motions 
-    (vimUtils.buildVimPlugin {
-      pname = "nvim-treesitter-textobjects"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter-textobjects";
-        rev = "5ca4aaa6efdcc59be46b95a3e876300cfead05ef";
-        sha256 = "sha256-lf+AwSu96iKO1vWWU2D7jWHGfjXkbX9R2CX3gMZaD4M="; };})
-
-    nvim-treesitter-parsers.c
-    nvim-treesitter-parsers.dockerfile
-    nvim-treesitter-parsers.gitattributes
-    nvim-treesitter-parsers.lua
-    nvim-treesitter-parsers.helm
-    nvim-treesitter-parsers.nix
-    nvim-treesitter-parsers.python
-    nvim-treesitter-parsers.ruby
-    nvim-treesitter-parsers.rust
-    nvim-treesitter-parsers.toml
-    nvim-treesitter-parsers.vim
+    # # Installs and manages languages parsers and provides this syntax tree to other plugins
+    # (vimUtils.buildVimPlugin {
+    #   pname = "nvim-treesitter"; version = "2025-10-30";
+    #   src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter";
+    #     rev = "42fc28ba918343ebfd5565147a42a26580579482";
+    #     sha256 = "sha256-CVs9FTdg3oKtRjz2YqwkMr0W5qYLGfVyxyhE3qnGYbI="; };})
+    #
+    # # Builds on treesitter to provide context about your code objects
+    # (vimUtils.buildVimPlugin {
+    #   pname = "nvim-treesitter-context"; version = "2025-10-30";
+    #   src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter-context";
+    #     rev = "ec308c7827b5f8cb2dd0ad303a059c945dd21969";
+    #     sha256 = "sha256-QdZstxKsEILwe7eUZCmMdyLPyvNKc/e7cfdYQowHWPQ="; };})
+    #
+    # # Builds on treesitter to provide code navigation motions 
+    # (vimUtils.buildVimPlugin {
+    #   pname = "nvim-treesitter-textobjects"; version = "2025-10-30";
+    #   src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter-textobjects";
+    #     rev = "5ca4aaa6efdcc59be46b95a3e876300cfead05ef";
+    #     sha256 = "sha256-lf+AwSu96iKO1vWWU2D7jWHGfjXkbX9R2CX3gMZaD4M="; };})
 
     # Better comments and override support for treesitter languages
     # - configuration ./config/lua/plugins/0000-ts-comments-nvim.lua
