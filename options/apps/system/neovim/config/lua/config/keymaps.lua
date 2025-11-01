@@ -13,8 +13,8 @@
 vim.keymap.set("n", "<esc>", "<cmd>nohl<cr><esc>")
 
 -- Switch to the next or previous buffer
--- vim.keymap.set("n", "<tab>", "<cmd>bn<cr>")
--- vim.keymap.set("n", "<s-tab>", "<cmd>bp<cr>")
+vim.keymap.set("n", "<tab>", "<cmd>bn<cr>")
+vim.keymap.set("n", "<s-tab>", "<cmd>bp<cr>")
 
 -- Indent a full selected block and then reselect the block
 vim.keymap.set("v", ">", ">gv")
