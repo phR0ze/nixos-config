@@ -50,21 +50,6 @@ return {
       require("lazydev").setup()
     end,
   },
-  {
-    "persistence.nvim",
-    event = "BufReadPre",
-    after = function()
-      require("persistence").setup()
-    end,
-    keys = {
-      {
-        "<leader>ql",
-        function()
-          require("persistence").load({ last = true })
-        end,
-      },
-    },
-  },
   { "cfilter", ft = "qf" },
   {
     "gitsigns.nvim",

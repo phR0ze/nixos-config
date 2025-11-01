@@ -11,109 +11,156 @@
 # - Plugins are lazy loaded using lz.n
 #---------------------------------------------------------------------------------------------------
 {
-  neovim-unwrapped, symlinkJoin, fetchFromGitHub, makeWrapper, runCommandLocal, vimPlugins, vimUtils, 
+  neovim-unwrapped, symlinkJoin, fetchFromGitHub, makeWrapper, runCommandLocal, vimPlugins, vimUtils,
   writeTextFile, lib,
 }: let
 
-  # Plugins to have loaded on boot
-  # - End up in ./result/pack/plugins/start
-  startPlugins = with vimPlugins; [
-    #snacks-nvim                     # Collection of lua modules
-  ];
-
   # Plugins to make available but don't load on boot.
-  # - These will be lazy loaded by lz-n as needed based on triggers
-  # - End up in ./result/pack/plugins/opt
-  optPlugins = with vimPlugins; [
+  # - these will be lazy loaded by lz-n as needed based on triggers
+  # - end up in ./result/pack/plugins/opt
+  plugins = with vimPlugins; [
     lz-n                            # Light weight lazy plugin loader
 
     # Colorschemes
     vim-deus                        # Color scheme I've used for years
     gruvbox-nvim                    # Lua port of the most famous vim colorscheme
     tokyonight-nvim                 # A clean dark Neovim theme
-    catppuccin-nvim                 # Soothing pastel theme for Neovim 
+    catppuccin-nvim                 # Soothing pastel theme for Neovim
 
-    # Coding
-    (vimUtils.buildVimPlugin {      # Intelligent pairing, better than mini.pairs
+    # Modern, minimal, pure lua replacement for nvim-web-devicons
+    # - configuration ./config/lua/plugins/0000-mini-icons.lua
+    # - can patch itself into plugins expecting nvim-web-devicons thus eliminating the need for both
+    # - no external dependencies
+    (vimUtils.buildVimPlugin {
+      pname = "mini.icons"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "nvim-mini"; repo = "mini.icons";
+        rev = "v0.16.0"; sha256 = "sha256-/sdLtMOOGeVvFDBB9N4CyUHpGXtUi1ZJ9dIpvxZ9C4Q="; };})
+
+    # Intelligent pairing, better than mini.pairs
+    # - configuration ./config/lua/plugins/0000-nvim-autopairs.lua
+    # - does so intelligently with context awareness unlike the LazyVim's choice of mini.pairs
+    # - no external dependencies
+    (vimUtils.buildVimPlugin {
       pname = "nvim-autopairs"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "windwp"; repo = "nvim-autopairs";
         rev = "7a2c97cccd60abc559344042fefb1d5a85b3e33b";
         sha256 = "sha256-cRIg1qO3WMxzcDQti0GEJl77KnlRCqyBN+g76PviWt0="; };})
 
-    (vimUtils.buildVimPlugin {      # Better comments and override support for treesitter languages
+    # Persistence is a simple lua plugin for automated session management.
+    # - configuration ./config/lua/plugins/0000-persistence-nvim.lua
+    # - saves active session under ~/.local/state/nvim/sessions on exit
+    (vimUtils.buildVimPlugin {
+      pname = "persistence.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "persistence.nvim";
+        rev = "v3.1.0"; sha256 = "sha256-xZij+CYjAoxWcN/Z2JvJWoNkgBkz83pSjUGOfc9x8M0="; };})
+
+    # https://github.com/nvim-treesitter/nvim-treesitter
+    # https://github.com/nvim-treesitter/nvim-treesitter-context
+    # https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+    (vimUtils.buildVimPlugin {
+      pname = "nvim-treesitter"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter";
+        rev = "64f4755b9d6ea9008265b09eb79fd91727311682";
+        sha256 = "sha256-yER4ODJGWywRpW5jVvbPik1EONRf3p6/VomQjCR3BFk="; };})
+    (vimUtils.buildVimPlugin {
+      pname = "nvim-treesitter-context"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter-context";
+        rev = "ec308c7827b5f8cb2dd0ad303a059c945dd21969";
+        sha256 = "sha256-QdZstxKsEILwe7eUZCmMdyLPyvNKc/e7cfdYQowHWPQ="; };})
+    (vimUtils.buildVimPlugin {
+      pname = "nvim-treesitter-textobjects"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter-textobjects";
+        rev = "5d63945ad7002ee3702c2f2150a662d5ed20626b";
+        sha256 = "sha256-IKDUNoOrAkBZ8Hgb+VNsrH6f2FPzusxn0sbQN0A9axM="; };})
+
+    # Better comments and override support for treesitter languages
+    # - configuration ./config/lua/plugins/0000-ts-comments-nvim.lua
+    # - no external dependencies
+    (vimUtils.buildVimPlugin {
       pname = "ts-comments.nvim"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "folke"; repo = "ts-comments.nvim";
         rev = "v1.5.0";
         sha256 = "sha256-nYdU5KlSSgxWgxu/EgpBUNDQ9zEXkEbiTkBO4ThHPfo="; };})
 
-    (vimUtils.buildVimPlugin {      # Navigate code with search labels, enhanced character motions and Treesitter integration 
-      pname = "flash.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "folke"; repo = "flash.nvim";
-        rev = "v2.1.0"; sha256 = "sha256-Qh9ty28xtRS3qXxE/ugx9FqAKrdeFGEf7W6yEORnZV8="; };})
+    # A snazy pure lua buffer line
+    # - configuration ./config/lua/plugins/0100-bufferline-nvim.lua
+    # - depends on mini.icons
+    (vimUtils.buildVimPlugin {
+      pname = "bufferline.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "akinsho"; repo = "bufferline.nvim";
+        rev = "v4.9.1"; sha256 = "sha256-ae4MB6+6v3awvfSUWlau9ASJ147ZpwuX1fvJdfMwo1Q="; };})
 
-    (vimUtils.buildVimPlugin {      # Open todos in a quick fix list
-      pname = "todo-comments.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "folke"; repo = "todo-comments.nvim";
-        rev = "v1.4.0"; sha256 = "sha256-EH4Sy7qNkzOgA1INFzrtsRfD79TgMqSbKUdundyw22w="; };})
-
-    # UI
-    (vimUtils.buildVimPlugin {      # Replacement icons for nvim-web-devicons
-      pname = "mini.icons"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "nvim-mini"; repo = "mini.icons";
-        rev = "v0.16.0"; sha256 = "sha256-/sdLtMOOGeVvFDBB9N4CyUHpGXtUi1ZJ9dIpvxZ9C4Q="; };})
-
-    (vimUtils.buildVimPlugin {      # Shows available keybindings in a popup as you type
-      pname = "which-key.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "folke"; repo = "which-key.nvim";
-        rev = "v3.17.0"; sha256 = "sha256-kYpiw2Syu54B/nNVqTZeUHJIPNzAv3JpFaMWR9Ai3p4="; };})
-
-    (vimUtils.buildVimPlugin {      # Collection of quality of life plugins
-      pname = "snacks.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "folke"; repo = "snacks.nvim";
-        rev = "v2.27.0"; sha256 = "sha256-QkcOKPgiJeA5LmQvC7DZ6ddjaoW8AE5I08Gm8jlEkT8="; };})
-
-    (vimUtils.buildVimPlugin {      # Blazing fast neovim statusline written in pure lua
+    # Blazing fast neovim statusline written in pure lua
+    # - configuration ./config/lua/plugins/0100-lualine-nvim.lua
+    # - depends on mini.icons
+    (vimUtils.buildVimPlugin {
       pname = "lualine.nvim"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "nvim-lualine"; repo = "lualine.nvim";
         rev = "3946f0122255bc377d14a59b27b609fb3ab25768";
         sha256 = "sha256-hdrAdG3hC2sAevQ6a9xizqPgEgnNKxuc5rBYn0pKM1c="; };})
 
-    (vimUtils.buildVimPlugin {      # A snazzy bufferline for Neovim 
-      pname = "bufferline.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "akinsho"; repo = "bufferline.nvim";
-        rev = "v4.9.1"; sha256 = "sha256-ae4MB6+6v3awvfSUWlau9ASJ147ZpwuX1fvJdfMwo1Q="; };})
+    # Collection of plugins you enable in the configuration
+    # - configuration ./config/lua/plugins/0100-snacks-nvim.lua
+    # - depends on mini.icons
+    (vimUtils.buildVimPlugin {
+      pname = "snacks.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "snacks.nvim";
+        rev = "v2.27.0"; sha256 = "sha256-QkcOKPgiJeA5LmQvC7DZ6ddjaoW8AE5I08Gm8jlEkT8="; };})
 
-    # Utility
+    # Pops up a window on different hot keys that shows keymaps as you are typing
+    # - configuration ./config/lua/plugins/0100-which-key.lua
+    # - depends on mini.icons
+    (vimUtils.buildVimPlugin {
+      pname = "which-key.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "which-key.nvim";
+        rev = "v3.17.0"; sha256 = "sha256-kYpiw2Syu54B/nNVqTZeUHJIPNzAv3JpFaMWR9Ai3p4="; };})
+
+
+
+
+
+
+
+    (vimUtils.buildVimPlugin {
+      pname = "flash.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "flash.nvim";
+        rev = "v2.1.0"; sha256 = "sha256-Qh9ty28xtRS3qXxE/ugx9FqAKrdeFGEf7W6yEORnZV8="; };})
+
+    (vimUtils.buildVimPlugin {
+      pname = "todo-comments.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "todo-comments.nvim";
+        rev = "v1.4.0"; sha256 = "sha256-EH4Sy7qNkzOgA1INFzrtsRfD79TgMqSbKUdundyw22w="; };})
+
+
+           # Utility
 
     #codecompanion-nvim
-    #plenary-nvim 
+    #plenary-nvim
     #telescope-nvim
-    #vim-startuptime                               # 
+    #vim-startuptime
   ];
-  
+
   # Build the plugins package for Neovim
   # - Packages are a named collection of plugins organized by purpose i.e. MODE=('start' | 'opt')
   # - Packages are in the `packpath` under `pack/$NAME/$MODE/{$PLUGIN_1...$PLUGIN_n}`
   # - Plugins under the `start` sub folder are automatically loaded by nvim on boot
   # - Plugins under `opt` are available to be loaded manually with `:packadd` from within nvim
   # - All .lua files in any pack/$NAME/start/$PLUGIN/plugin/ path will be automatically loaded
-  # - Lua modules are looked for in any `lua` sub-folders in any path in the `runtimepath` 
+  # - Lua modules are looked for in any `lua` sub-folders in any path in the `runtimepath`
   # - Lua require calls reference the folder structure e.g. `require('a.b')` for `lua/a/b.lua`
   packName = "plugins";                     # can be anything
   pluginPath = runCommandLocal "nvim-plugins" {} ''
     mkdir -p $out/pack/${packName}/{start,opt}
     ln -vsfT ${./config/lua} $out/lua
     ln -vsfT ${./config/init} $out/pack/${packName}/start/init
-
     ${
       lib.concatMapStringsSep "\n"
 
       # Include the plugin with the appropriate folder structure
-      (x: "ln -vsfT ${x.plugin} $out/pack/${packName}/${x.mode}/${lib.getName x.plugin}")
+      (plugin: "ln -vsfT ${plugin} $out/pack/${packName}/opt/${lib.getName plugin}")
 
-      # Combine the plugin lists while tracking the mode
-      (map (x: { plugin = x; mode = "start"; }) startPlugins
-       ++ map (x: { plugin = x; mode = "opt"; }) optPlugins)
+      # Plugins list to run through
+      plugins
     }
   '';
 
