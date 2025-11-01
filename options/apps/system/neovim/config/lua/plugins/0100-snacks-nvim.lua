@@ -19,6 +19,7 @@ return {
     })
   end,
   keys = {
+    { "<leader>bd", function() Snacks.bufdelete() end, "Buffer Delete" },
     { "<leader>.", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
     { "<leader>S", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer" },
     { "<leader>dps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Buffer" },
