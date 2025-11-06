@@ -1,25 +1,24 @@
 return {
   -- Test by running :TSModuleInfo
-  -- Test by running :TSUpdate
   -- [Nvim-nix guide](https://github.com/adman44532/nvim-nix)
   {
     "nvim-treesitter",
     after = function()
       require("nvim-treesitter.configs").setup({
+        auto_install = false,                         -- manage parser installs with Nix
+        sync_install = false,                         -- manage parser installs with Nix
         modules = {},
-        sync_install = false,
         ignore_install = {},
-        ensure_installed = {},
-        auto_install = false,
-        indent = {
-          enable = true,
-        },
         context_commentstring = {
           enable = true,
         },
-        highlight = {
+        indent = {
           enable = true,
-          additional_vim_regex_highlighting = false,
+          --disable = { "yaml" },                       -- disable for yaml b/c doesn't work well
+        },
+        highlight = {
+          enable = true,                              -- enable treesitter highlighting
+          additional_vim_regex_highlighting = false,  -- disable default regex highlighting
         },
       })
     end,

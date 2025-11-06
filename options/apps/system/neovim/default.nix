@@ -4,6 +4,8 @@
 # - [Lazyvim Nix](https://github.com/jla2000/lazyvim-nix)
 # - [Nvim-bundle](https://github.com/jla2000/nvim-bundle)
 # - [Neovim Wrapper](https://ayats.org/blog/neovim-wrapper)
+# - [NixVim](https://github.com/nix-community/nixvim)
+# - [Nix Lazy Vim example](https://github.com/matadaniel/LazyVim-module)
 # - [Lz.n](https://github.com/lumen-oss/lz.n)
 #
 # ### Details
@@ -35,7 +37,8 @@
     (vimUtils.buildVimPlugin {
       pname = "mini.icons"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "nvim-mini"; repo = "mini.icons";
-        rev = "v0.16.0"; sha256 = "sha256-/sdLtMOOGeVvFDBB9N4CyUHpGXtUi1ZJ9dIpvxZ9C4Q="; };})
+        rev = "v0.16.0"; sha256 = "sha256-/sdLtMOOGeVvFDBB9N4CyUHpGXtUi1ZJ9dIpvxZ9C4Q="; };
+      doCheck = false; doNvimRequireCheck = false; })
 
     # Intelligent pairing, better than mini.pairs
     # - configuration ./config/lua/plugins/0000-nvim-autopairs.lua
@@ -45,7 +48,8 @@
       pname = "nvim-autopairs"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "windwp"; repo = "nvim-autopairs";
         rev = "7a2c97cccd60abc559344042fefb1d5a85b3e33b";
-        sha256 = "sha256-cRIg1qO3WMxzcDQti0GEJl77KnlRCqyBN+g76PviWt0="; };})
+        sha256 = "sha256-cRIg1qO3WMxzcDQti0GEJl77KnlRCqyBN+g76PviWt0="; };
+      doCheck = false; doNvimRequireCheck = false; })
 
     # Persistence is a simple lua plugin for automated session management.
     # - configuration ./config/lua/plugins/0000-persistence-nvim.lua
@@ -55,12 +59,12 @@
       src = fetchFromGitHub { owner = "folke"; repo = "persistence.nvim";
         rev = "v3.1.0"; sha256 = "sha256-xZij+CYjAoxWcN/Z2JvJWoNkgBkz83pSjUGOfc9x8M0="; };})
 
-    # Installs and manages languages parsers and provides this syntax tree to other plugins
-    (vimUtils.buildVimPlugin {
-      pname = "nvim-treesitter"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter";
-        rev = "42fc28ba918343ebfd5565147a42a26580579482";
-        sha256 = "sha256-CVs9FTdg3oKtRjz2YqwkMr0W5qYLGfVyxyhE3qnGYbI="; };})
+#    # Installs and manages languages parsers and provides this syntax tree to other plugins
+#    (vimUtils.buildVimPlugin {
+#      pname = "nvim-treesitter"; version = "2025-10-30";
+#      src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter";
+#        rev = "42fc28ba918343ebfd5565147a42a26580579482";
+#        sha256 = "sha256-CVs9FTdg3oKtRjz2YqwkMr0W5qYLGfVyxyhE3qnGYbI="; };})
 
     # Builds on treesitter to provide context about your code objects
     (vimUtils.buildVimPlugin {
@@ -74,19 +78,33 @@
       pname = "nvim-treesitter-textobjects"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter-textobjects";
         rev = "5ca4aaa6efdcc59be46b95a3e876300cfead05ef";
-        sha256 = "sha256-lf+AwSu96iKO1vWWU2D7jWHGfjXkbX9R2CX3gMZaD4M="; };})
+        sha256 = "sha256-lf+AwSu96iKO1vWWU2D7jWHGfjXkbX9R2CX3gMZaD4M="; };
+      doCheck = false; doNvimRequireCheck = false; })
 
-    nvim-treesitter-parsers.c
-    nvim-treesitter-parsers.dockerfile
-    nvim-treesitter-parsers.gitattributes
-    nvim-treesitter-parsers.lua
-    nvim-treesitter-parsers.helm
-    nvim-treesitter-parsers.nix
-    nvim-treesitter-parsers.python
-    nvim-treesitter-parsers.ruby
-    nvim-treesitter-parsers.rust
-    nvim-treesitter-parsers.toml
-    nvim-treesitter-parsers.vim
+    # Include nvim-treesitter (TS) parsers along with the plugin
+    # - parsers get included at `nvim-treesitter/parser/` which is autoloaded by TS
+    # - all grammars can be included with nvim-treesitter.withAllGrammars.dependencies
+    (symlinkJoin {
+      name = "nvim-treesitter"; # use the same name to match plugin name expectations
+      paths = [ nvim-treesitter (nvim-treesitter.withPlugins (x: [
+        x.dart
+        x.rust
+      ])).dependencies];
+    })
+
+    # Building with a grammar example
+    # (nvim-treesitter.withPlugins (_: nvim-treesitter.allGrammars ++ [
+    #   (pkgs.tree-sitter.buildGrammar {
+    #     language = "just";
+    #     version = "8af0aab";
+    #     src = pkgs.fetchFromGitHub {
+    #       owner = "IndianBoy42";
+    #       repo = "tree-sitter-just";
+    #       rev = "8af0aab79854aaf25b620a52c39485849922f766";
+    #       sha256 = "sha256-hYKFidN3LHJg2NLM1EiJFki+0nqi1URnoLLPknUbFJY=";
+    #     };
+    #   })
+    # ]))
 
     # Better comments and override support for treesitter languages
     # - configuration ./config/lua/plugins/0000-ts-comments-nvim.lua
@@ -103,7 +121,8 @@
     (vimUtils.buildVimPlugin {
       pname = "bufferline.nvim"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "akinsho"; repo = "bufferline.nvim";
-        rev = "v4.9.1"; sha256 = "sha256-ae4MB6+6v3awvfSUWlau9ASJ147ZpwuX1fvJdfMwo1Q="; };})
+        rev = "v4.9.1"; sha256 = "sha256-ae4MB6+6v3awvfSUWlau9ASJ147ZpwuX1fvJdfMwo1Q="; };
+      doCheck = false; doNvimRequireCheck = false; })
 
     # Blazing fast neovim statusline written in pure lua
     # - configuration ./config/lua/plugins/0100-lualine-nvim.lua
@@ -120,7 +139,8 @@
     (vimUtils.buildVimPlugin {
       pname = "snacks.nvim"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "folke"; repo = "snacks.nvim";
-        rev = "v2.27.0"; sha256 = "sha256-QkcOKPgiJeA5LmQvC7DZ6ddjaoW8AE5I08Gm8jlEkT8="; };})
+        rev = "v2.27.0"; sha256 = "sha256-QkcOKPgiJeA5LmQvC7DZ6ddjaoW8AE5I08Gm8jlEkT8="; };
+      doCheck = false; doNvimRequireCheck = false; })
 
     # Pops up a window on different hot keys that shows keymaps as you are typing
     # - configuration ./config/lua/plugins/0100-which-key.lua
@@ -128,26 +148,18 @@
     (vimUtils.buildVimPlugin {
       pname = "which-key.nvim"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "folke"; repo = "which-key.nvim";
-        rev = "v3.17.0"; sha256 = "sha256-kYpiw2Syu54B/nNVqTZeUHJIPNzAv3JpFaMWR9Ai3p4="; };})
+        rev = "v3.17.0"; sha256 = "sha256-kYpiw2Syu54B/nNVqTZeUHJIPNzAv3JpFaMWR9Ai3p4="; };
+      doCheck = false; doNvimRequireCheck = false; })
 
-
-
-
-
-
-
-    (vimUtils.buildVimPlugin {
-      pname = "flash.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "folke"; repo = "flash.nvim";
-        rev = "v2.1.0"; sha256 = "sha256-Qh9ty28xtRS3qXxE/ugx9FqAKrdeFGEf7W6yEORnZV8="; };})
-
-    (vimUtils.buildVimPlugin {
-      pname = "todo-comments.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "folke"; repo = "todo-comments.nvim";
-        rev = "v1.4.0"; sha256 = "sha256-EH4Sy7qNkzOgA1INFzrtsRfD79TgMqSbKUdundyw22w="; };})
-
-
-           # Utility
+    # (vimUtils.buildVimPlugin {
+    #   pname = "flash.nvim"; version = "2025-10-30";
+    #   src = fetchFromGitHub { owner = "folke"; repo = "flash.nvim";
+    #     rev = "v2.1.0"; sha256 = "sha256-Qh9ty28xtRS3qXxE/ugx9FqAKrdeFGEf7W6yEORnZV8="; };})
+    #
+    # (vimUtils.buildVimPlugin {
+    #   pname = "todo-comments.nvim"; version = "2025-10-30";
+    #   src = fetchFromGitHub { owner = "folke"; repo = "todo-comments.nvim";
+    #     rev = "v1.4.0"; sha256 = "sha256-EH4Sy7qNkzOgA1INFzrtsRfD79TgMqSbKUdundyw22w="; };})
 
     #codecompanion-nvim
     #plenary-nvim
@@ -155,26 +167,24 @@
     #vim-startuptime
   ];
 
-  # Build the plugins package for Neovim
-  # - Packages are a named collection of plugins organized by purpose i.e. MODE=('start' | 'opt')
+  # Name to give to this custom version of Neovim
+  appName = "nvim-custom";
+
+  # Build the plugins into a package for Neovim
+  # - Packages are a named collection of plugins organized by mode i.e. MODE=('start' | 'opt')
   # - Packages are in the `packpath` under `pack/$NAME/$MODE/{$PLUGIN_1...$PLUGIN_n}`
   # - Plugins under the `start` sub folder are automatically loaded by nvim on boot
   # - Plugins under `opt` are available to be loaded manually with `:packadd` from within nvim
   # - All .lua files in any pack/$NAME/start/$PLUGIN/plugin/ path will be automatically loaded
   # - Lua modules are looked for in any `lua` sub-folders in any path in the `runtimepath`
   # - Lua require calls reference the folder structure e.g. `require('a.b')` for `lua/a/b.lua`
-  packName = "plugins";                     # can be anything
-  pluginPath = runCommandLocal "nvim-plugins" {} ''
-    mkdir -p $out/pack/${packName}/{start,opt}
+  pluginPkg = runCommandLocal "nvim-plugins" {} ''
+    mkdir -p $out/pack/${appName}/{start,opt}
     ln -vsfT ${./config/lua} $out/lua
-    ln -vsfT ${./config/init} $out/pack/${packName}/start/init
+    ln -vsfT ${./config/init} $out/pack/${appName}/start/init
     ${
       lib.concatMapStringsSep "\n"
-
-      # Include the plugin with the appropriate folder structure
-      (plugin: "ln -vsfT ${plugin} $out/pack/${packName}/opt/${lib.getName plugin}")
-
-      # Plugins list to run through
+      (plugin: "ln -vsfT ${plugin} $out/pack/${appName}/opt/${lib.getName plugin}")
       plugins
     }
   '';
@@ -182,8 +192,7 @@
   # Create a simple lua init script
   # Not using this in favor of my custom plugin ./config/init which loads ./config/lua/init.lua to
   # configure Nvim with all options, keymaps, plugins etc... instead of inline like it is here. The 
-  # benefits are you get Lua syntax highlighting and full Lua module support which this inline here 
-  # lacks.
+  # benefits are you get Lua syntax highlighting and full Lua module support which is lacking here.
   initLua = writeTextFile {
     name = "init.lua";
     text = ''
@@ -196,8 +205,11 @@ in
   # the files were moved to the store individually. This makes it easier to modify the original 
   # package while reusing its binaries to be efficient.
   symlinkJoin {
-    name = "neovim-custom";                 # Package name being created
-    paths = [neovim-unwrapped pluginPath];  # Paths being symlinked
+    name = appName;                         # Package name being created
+    paths = [                               # Paths being symlinked
+      neovim-unwrapped                      # Neovim and its files
+      pluginPkg                             # Plugin files
+    ];
     nativeBuildInputs = [makeWrapper];      # Build tools to make available during build
 
     # Wrap the target passing in custom arguments
@@ -211,14 +223,14 @@ in
         --add-flags '-u' \
         --add-flags '${initLua}' \
         --add-flags '--cmd' \
-        --add-flags "'set packpath^=${pluginPath} | set runtimepath^=${pluginPath}'" \
-        --set-default NVIM_APPNAME nvim-custom
+        --add-flags "'set packpath^=${pluginPkg} | set runtimepath^=${pluginPkg}'" \
+        --set-default NVIM_APPNAME ${appName}
       ln -s $out/bin/nvim $out/bin/vim
     '';
 
     # Make the plugins derivation available for build commands like
     # nix build -f ./direct.nix plugins
     passthru = {
-      inherit pluginPath;
+      inherit pluginPkg;
     };
   }
