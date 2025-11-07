@@ -9,7 +9,6 @@
 # - [Lz.n](https://github.com/lumen-oss/lz.n)
 #
 # ### Details
-# - All plugins are built and stored in the nix store
 # - Configuration is all written in lua
 # - Plugins are lazy loaded using lz.n
 #---------------------------------------------------------------------------------------------------
@@ -54,19 +53,45 @@
     # Persistence is a simple lua plugin for automated session management.
     # - configuration ./config/lua/plugins/0000-persistence-nvim.lua
     # - saves active session under ~/.local/state/nvim/sessions on exit
+    # - no external dependencies
     (vimUtils.buildVimPlugin {
       pname = "persistence.nvim"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "folke"; repo = "persistence.nvim";
         rev = "v3.1.0"; sha256 = "sha256-xZij+CYjAoxWcN/Z2JvJWoNkgBkz83pSjUGOfc9x8M0="; };})
 
-#    # Installs and manages languages parsers and provides this syntax tree to other plugins
-#    (vimUtils.buildVimPlugin {
-#      pname = "nvim-treesitter"; version = "2025-10-30";
-#      src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter";
-#        rev = "42fc28ba918343ebfd5565147a42a26580579482";
-#        sha256 = "sha256-CVs9FTdg3oKtRjz2YqwkMr0W5qYLGfVyxyhE3qnGYbI="; };})
+    # Include nvim-treesitter (TS) parsers along with the plugin
+    # - modern parser for faster, more accurate syntax highlighting and language awareness
+    # - parsers get included at `nvim-treesitter/parser/` which is autoloaded by TS
+    # - all grammars can be included with nvim-treesitter.withAllGrammars.dependencies
+    # - no external dependencies
+    (symlinkJoin {
+      name = "nvim-treesitter"; # use the same name to match plugin name expectations
+      paths = [ nvim-treesitter (nvim-treesitter.withPlugins (x: [
+        x.bash
+        x.diff
+        x.dart
+        x.html
+        x.javascript
+        x.jsdoc
+        x.json
+        x.lua
+        x.luadoc
+        x.markdown
+        x.markdown_inline
+        x.printf
+        x.python
+        x.regex
+        x.rust
+        x.toml
+        x.vim
+        x.vimdoc
+        x.xml
+        x.yaml
+      ])).dependencies];
+    })
 
     # Builds on treesitter to provide context about your code objects
+    # - depends on treesitter
     (vimUtils.buildVimPlugin {
       pname = "nvim-treesitter-context"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter-context";
@@ -74,37 +99,13 @@
         sha256 = "sha256-QdZstxKsEILwe7eUZCmMdyLPyvNKc/e7cfdYQowHWPQ="; };})
 
     # Builds on treesitter to provide code navigation motions 
+    # - depends on treesitter
     (vimUtils.buildVimPlugin {
       pname = "nvim-treesitter-textobjects"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter-textobjects";
         rev = "5ca4aaa6efdcc59be46b95a3e876300cfead05ef";
         sha256 = "sha256-lf+AwSu96iKO1vWWU2D7jWHGfjXkbX9R2CX3gMZaD4M="; };
       doCheck = false; doNvimRequireCheck = false; })
-
-    # Include nvim-treesitter (TS) parsers along with the plugin
-    # - parsers get included at `nvim-treesitter/parser/` which is autoloaded by TS
-    # - all grammars can be included with nvim-treesitter.withAllGrammars.dependencies
-    (symlinkJoin {
-      name = "nvim-treesitter"; # use the same name to match plugin name expectations
-      paths = [ nvim-treesitter (nvim-treesitter.withPlugins (x: [
-        x.dart
-        x.rust
-      ])).dependencies];
-    })
-
-    # Building with a grammar example
-    # (nvim-treesitter.withPlugins (_: nvim-treesitter.allGrammars ++ [
-    #   (pkgs.tree-sitter.buildGrammar {
-    #     language = "just";
-    #     version = "8af0aab";
-    #     src = pkgs.fetchFromGitHub {
-    #       owner = "IndianBoy42";
-    #       repo = "tree-sitter-just";
-    #       rev = "8af0aab79854aaf25b620a52c39485849922f766";
-    #       sha256 = "sha256-hYKFidN3LHJg2NLM1EiJFki+0nqi1URnoLLPknUbFJY=";
-    #     };
-    #   })
-    # ]))
 
     # Better comments and override support for treesitter languages
     # - configuration ./config/lua/plugins/0000-ts-comments-nvim.lua
@@ -149,6 +150,15 @@
       pname = "which-key.nvim"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "folke"; repo = "which-key.nvim";
         rev = "v3.17.0"; sha256 = "sha256-kYpiw2Syu54B/nNVqTZeUHJIPNzAv3JpFaMWR9Ai3p4="; };
+      doCheck = false; doNvimRequireCheck = false; })
+
+    # Edit your file system like a buffer
+    # - configuration ./config/lua/plugins/0200-oil-nvim.lua
+    # - depends on mini.icons and snacks
+    (vimUtils.buildVimPlugin {
+      pname = "oil.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "stevearc"; repo = "oil.nvim";
+        rev = "v2.15.0"; sha256 = "sha256-jCuOwTd6QIy3USuE7X/rHYUbriW6+2WaK9JxCx4/O2c="; };
       doCheck = false; doNvimRequireCheck = false; })
 
     # (vimUtils.buildVimPlugin {
