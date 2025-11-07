@@ -1,7 +1,12 @@
 return {
+  -- Fast fuzzy finder - better than telescope
+  -- depends on mini.icons and optionally lsps
   "fzf-lua",
   cmd = "FzfLua",
   keys = {
+    -- Adding this one, maybe there is a better way
+    { "<leader>ff", "<cmd>FzfLua files<cr>", desc = "Find files in Current Working Directory" },
+
     { "<leader>sg", "<cmd>FzfLua live_grep<cr>", desc = "Search files" },
     { "<leader>sR", "<cmd>FzfLua resume<cr>", desc = "Search files" },
     { "<leader>ss", "<cmd>FzfLua lsp_document_symbols<cr>", desc = "Find symbol" },
@@ -27,9 +32,7 @@ return {
         },
       },
       keymap = {
-        fzf = {
-          ["ctrl-q"] = "select-all+accept",
-        },
+        fzf = { ["ctrl-q"] = "select-all+accept", },
       },
       fzf_colors = true,
     })

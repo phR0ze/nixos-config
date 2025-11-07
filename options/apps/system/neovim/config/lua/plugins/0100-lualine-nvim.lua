@@ -3,6 +3,9 @@ return {
   -- depends on mini.icons
   "lualine.nvim",                                   -- Lua result/pack/opt module name
   event = "DeferredUIEnter",                        -- Equivalent of VeryLazy
+  before = function()
+    require("lz.n").trigger_load("mini.icons")
+  end,
   after = function()                                -- Function to load after the event
     require("lualine").setup({
       options = {

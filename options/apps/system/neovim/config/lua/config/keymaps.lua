@@ -21,8 +21,19 @@ vim.keymap.set("v", ">", ">gv")
 vim.keymap.set("v", "<", "<gv")
 
 -- Yank and Paste with the system clipboard
-vim.keymap.set("v", "<leader>y", '"+y')
-vim.keymap.set({ "n", "v" }, "<leader>p", '"+p')
+-- Configure copy/paste and select all
+vim.keymap.set("v", "<C-c>", '"+y')
+vim.keymap.set({ "n", "v" }, "<C-v>", '"+p')
+vim.keymap.set("n", "<C-a>", 'ggVG')
+
+-- Keybinds to make split navigation easier.
+--  Use CTRL+<hjkl> to switch between windows
+--
+--  See `:help wincmd` for a list of all window commands
+-- vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+-- vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+-- vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+-- vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- Filter the quick fixes list by pattern
 -- vim.keymap.set("n", "<leader>cf", ":Cfilter ")

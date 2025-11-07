@@ -9,8 +9,12 @@ vim.api.nvim_create_autocmd("User", {
 
 return {
   -- File manager for Neovim
+  -- depends on snacks which is in turn dependent on mini.icons
   "oil.nvim",
   cmd = "Oil",
+  before = function()
+    require("lz.n").trigger_load("snacks.nvim")
+  end,
   after = function()
     require("oil").setup({
       default_file_explorer = true,               -- replace the default file explorer

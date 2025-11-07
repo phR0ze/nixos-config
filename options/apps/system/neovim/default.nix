@@ -5,7 +5,7 @@
 # - [Nvim-bundle](https://github.com/jla2000/nvim-bundle)
 # - [Neovim Wrapper](https://ayats.org/blog/neovim-wrapper)
 # - [NixVim](https://github.com/nix-community/nixvim)
-# - [Nix Lazy Vim example](https://github.com/matadaniel/LazyVim-module)
+# - [Frosty Vim](https://github.com/SystematicError/frosty-vim)
 # - [Lz.n](https://github.com/lumen-oss/lz.n)
 #
 # ### Details
@@ -14,7 +14,7 @@
 #---------------------------------------------------------------------------------------------------
 {
   neovim-unwrapped, symlinkJoin, fetchFromGitHub, makeWrapper, runCommandLocal, vimPlugins, vimUtils,
-  writeTextFile, lib,
+  writeTextFile, lib, pkgs
 }: let
 
   # Plugins to make available but don't load on boot.
@@ -152,7 +152,26 @@
         rev = "v3.17.0"; sha256 = "sha256-kYpiw2Syu54B/nNVqTZeUHJIPNzAv3JpFaMWR9Ai3p4="; };
       doCheck = false; doNvimRequireCheck = false; })
 
-    # Edit your file system like a buffer
+    # Navigate code with search labels, enhanced character motions and Treesitter integration 
+    # - configuration ./config/lua/plugins/0100-flash-nvim.lua
+    # - depends on treesitter
+    (vimUtils.buildVimPlugin {
+      pname = "flash.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "flash.nvim";
+        rev = "v2.1.0"; sha256 = "sha256-Qh9ty28xtRS3qXxE/ugx9FqAKrdeFGEf7W6yEORnZV8="; };
+        doCheck = false; doNvimRequireCheck = false; })
+
+    # Fast fuzzy finding - better than telescope
+    # - configuration ./config/lua/plugins/0100-fzf-lua.lua
+    # - depends on mini.icons
+    (vimUtils.buildVimPlugin {
+      pname = "fzf-lua"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "ibhagwan"; repo = "fzf-lua";
+        rev = "a8458b79a957a6e3e217d84106a0fd4b9470ff4c";
+        sha256 = "sha256-OloQKfJZIP8Hu9O6+b2iVUtaD52dyYrfDy16Kd3KXHM="; };
+        doCheck = false; doNvimRequireCheck = false; })
+
+    # File explorer that lets you edit your file system like a buffer
     # - configuration ./config/lua/plugins/0200-oil-nvim.lua
     # - depends on mini.icons and snacks
     (vimUtils.buildVimPlugin {
@@ -161,11 +180,6 @@
         rev = "v2.15.0"; sha256 = "sha256-jCuOwTd6QIy3USuE7X/rHYUbriW6+2WaK9JxCx4/O2c="; };
       doCheck = false; doNvimRequireCheck = false; })
 
-    # (vimUtils.buildVimPlugin {
-    #   pname = "flash.nvim"; version = "2025-10-30";
-    #   src = fetchFromGitHub { owner = "folke"; repo = "flash.nvim";
-    #     rev = "v2.1.0"; sha256 = "sha256-Qh9ty28xtRS3qXxE/ugx9FqAKrdeFGEf7W6yEORnZV8="; };})
-    #
     # (vimUtils.buildVimPlugin {
     #   pname = "todo-comments.nvim"; version = "2025-10-30";
     #   src = fetchFromGitHub { owner = "folke"; repo = "todo-comments.nvim";
@@ -210,6 +224,13 @@
     '';
   };
 
+  # Runtime dependencies to support Neovim and Neovimthe  plugins
+  runtimeDeps = with pkgs; [
+    fzf                                     # Fast fuzzy finder: dep of fzf-lua
+    ripgrep                                 # Faster more capable grep: dep of fzf-lua
+    stylua                                  # Opinionated Lua code formatter
+  ];
+
 in 
   # symlinkJoin creates a new derivation that replaces all files in the given path with links where 
   # the files were moved to the store individually. This makes it easier to modify the original 
@@ -219,7 +240,7 @@ in
     paths = [                               # Paths being symlinked
       neovim-unwrapped                      # Neovim and its files
       pluginPkg                             # Plugin files
-    ];
+    ] ++ runtimeDeps;                       # Include other runtime dependencies
     nativeBuildInputs = [makeWrapper];      # Build tools to make available during build
 
     # Wrap the target passing in custom arguments
@@ -230,6 +251,7 @@ in
     # - Also create the alias links
     postBuild = ''
       wrapProgram $out/bin/nvim \
+        --prefix PATH : ${ lib.makeBinPath runtimeDeps } \
         --add-flags '-u' \
         --add-flags '${initLua}' \
         --add-flags '--cmd' \
