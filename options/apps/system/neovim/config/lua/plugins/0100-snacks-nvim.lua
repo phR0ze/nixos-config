@@ -4,22 +4,22 @@ return {
   -- depends on mini.icons
   "snacks.nvim",                                    -- Lua result/pack/opt module name
   lazy = false,                                     -- Just load on boot 
+  before = function()
+    require("lz.n").trigger_load("mini.icons")
+  end,
   after = function()
     require("snacks").setup({                       -- Lua module path
-      bigfile = { enabled = true },
-      indent = { enabled = true },
+      bigfile = { enabled = true },                 -- 
       input = { enabled = true },
       notifier = { enabled = true },
       quickfile = { enabled = true },
-      scope = { enabled = true },
-      scroll = { enabled = true },
-      statuscolumn = { enabled = false }, -- we set this in options.lua
-      --toggle = { map = LazyVim.safe_keymap_set },
+      scroll = { enabled = true },                  -- properly handle smooth scrolling
+      statuscolumn = { enabled = false },           -- we set this in options.lua??
       words = { enabled = true },
     })
   end,
   keys = {
-    { "<leader>bd", function() Snacks.bufdelete() end, "Buffer Delete" },
+    { "<leader>bd", function() Snacks.bufdelete() end, desc = "Buffer Delete" },
     { "<leader>.", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
     { "<leader>S", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer" },
     { "<leader>dps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Buffer" },
@@ -38,9 +38,6 @@ return {
 -- {
 --   "snacks.nvim",
 --   opts = {
---     indent = { enabled = true },
---     input = { enabled = true },
---     notifier = { enabled = true },
 --     scope = { enabled = true },
 --     scroll = { enabled = true },
 --     statuscolumn = { enabled = false }, -- we set this in options.lua
