@@ -44,8 +44,8 @@ vim.opt.shiftwidth = 2                                -- Number of spaces to use
 vim.opt.softtabstop=2                                 -- How many columns a tab counts for, only used when expandtab is not set
 vim.opt.expandtab = true                              -- Insert spaces instead of a literal tab character
 vim.opt.wrap = false                                  -- Don't wrap long lines, instead let them scroll horizontally
--- set cindent                   " Enables automatic C program indenting
--- set cinkeys-=0#               " Solve for having # indented intuitively
+-- vim.opt.cindent = true                                -- Enables automatic C program indenting
+-- vim.opt.cinkeys-=0#               " Solve for having # indented intuitively
 -- set indentkeys-=0#            " Solve for having # indented intuitively
 vim.opt.smarttab = true                               -- Navigate tabstop spaces by when it detects them
 vim.opt.autoindent = true                             -- Enables automatic C program indenting
