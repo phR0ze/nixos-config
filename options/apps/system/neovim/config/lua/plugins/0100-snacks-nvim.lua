@@ -58,13 +58,15 @@ return {
                 title = "{title} {live} {flags}",     -- add the input window title using the live variable
                 title_pos = "center"                  -- center the title
               },
-              { win = "list", border = "hpad" },
+              {
+                win = "list",                         -- list of items portion of the picker
+                border = "hpad"                       -- 
+              },
               {
                 win = "preview",                      -- preview window
                 title = "{preview}",                  -- preview title is the preview variable
                 height = 0.5,                         -- use 50% of the total picker space for the preview
-                border = "top",                       -- place a border at the top to separate the preview from the picker
-                --border = "hpad",                  -- place a border at the top to separate the preview from the picker
+                border = "single",                    -- place a border around the preview portion
               },
             },
           },
