@@ -66,7 +66,7 @@ return {
                 win = "preview",                      -- preview window
                 title = "{preview}",                  -- preview title is the preview variable
                 height = 0.5,                         -- use 50% of the total picker space for the preview
-                border = "single",                    -- place a border around the preview portion
+                border = "single",                    -- place a border around the preview portion with square edges
               },
             },
           },
@@ -116,10 +116,10 @@ return {
       local bufCnt = vim.tbl_filter(function(b)
         if 1 ~= vim.fn.buflisted(b) then
           -- Close nvim since this is the last buffer
-          Snacks.bufdelete()
+          vim.api.nvim_exec([[:q]], true)
         else
           -- Close buffer since its not the last
-          vim.api.nvim_exec([[:q]], true)
+          Snacks.bufdelete()
         end
       end, vim.api.nvim_list_bufs())
     end, desc = "Close the current buffer or Neovim" },
@@ -130,18 +130,16 @@ return {
     { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Find in buffers" },
 
     -- Find help with preview layout
-    { "<leader>fh", function() Snacks.picker.help({
-      layout = "dropdown_preview",
-    }) end, desc = "Find help pages" },
-
+    { "<leader>fg", function() Snacks.picker.grep({ layout = "dropdown_preview", }) end, desc = "Find grep through files" },
+    { "<leader>fh", function() Snacks.picker.help({ layout = "dropdown_preview", }) end, desc = "Find help pages" },
     { "<leader>ff", function() Snacks.picker.files() end, desc = "Find files in current working directory" },
-    { "<leader>fk", function() Snacks.picker.keymaps() end, desc = "Find keymaps" },
+    { "<leader>fk", function() Snacks.picker.keymaps({ layout = "dropdown_preview", }) end, desc = "Find keymaps" },
     { "<leader>fp", function() Snacks.picker() end, desc = "Find picker from picker list" },
+    { "<leader>fr", function() Snacks.picker.recent() end, desc = "Find recent files" },
 
     { "<leader>e", function() Snacks.explorer() end, desc = "File Explorer" },
     { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
     { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
-
 
     { "<leader>.", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
     { "<leader>S", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer" },
