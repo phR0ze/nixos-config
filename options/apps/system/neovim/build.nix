@@ -10,5 +10,5 @@
 let
   pkgs = import <nixpkgs> {};
 in
-  #pkgs.callPackage ./default.nix {}
-  pkgs.callPackage ./writer.nix {}
+  pkgs.callPackage ./default.nix {}
+  #pkgs.callPackage ./writer.nix {}

@@ -171,6 +171,15 @@
         sha256 = "sha256-OloQKfJZIP8Hu9O6+b2iVUtaD52dyYrfDy16Kd3KXHM="; };
         doCheck = false; doNvimRequireCheck = false; })
 
+    # Twilight is a Lua plugin for Neovim 0.5 that dims inactive portions of the code you're editing.
+    # - configuration ./config/lua/plugins/0100-twilight-nvim.lua
+    # - depends on treesitter
+    (vimUtils.buildVimPlugin {
+      pname = "twilight.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "twilight.nvim";
+        rev = "664e752f4a219801265cc3fc18782b457b58c1e1";
+        sha256 = "sha256-V6DFwvShvX6mYMRJajwOaxbHMNuCHCZzVrfT73iMuQo="; };})
+
     # File explorer that lets you edit your file system like a buffer
     # - configuration ./config/lua/plugins/0200-oil-nvim.lua
     # - depends on mini.icons and snacks
@@ -180,14 +189,16 @@
         rev = "v2.15.0"; sha256 = "sha256-jCuOwTd6QIy3USuE7X/rHYUbriW6+2WaK9JxCx4/O2c="; };
       doCheck = false; doNvimRequireCheck = false; })
 
-    # (vimUtils.buildVimPlugin {
-    #   pname = "todo-comments.nvim"; version = "2025-10-30";
-    #   src = fetchFromGitHub { owner = "folke"; repo = "todo-comments.nvim";
-    #     rev = "v1.4.0"; sha256 = "sha256-EH4Sy7qNkzOgA1INFzrtsRfD79TgMqSbKUdundyw22w="; };})
+    # Zen mode for distraction free writing
+    # - configuration ./config/lua/plugins/0200-zen-mode-nvim.lua
+    # - Open current buffer in new full-screen floating window
+    (vimUtils.buildVimPlugin {
+      pname = "zen-mode.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "zen-mode.nvim";
+        rev = "v1.4.1"; sha256 = "sha256-vRJynz3bnkhfHKya+iEgm4PIEwT2P9kvkskgTt5UUU4="; };})
 
     #codecompanion-nvim
     #plenary-nvim
-    #telescope-nvim
     #vim-startuptime
   ];
 

@@ -4,6 +4,9 @@ return {
   -- optionally depends on twilight.nvim which in turn depends on treesitter
   "zen-mode.nvim",                                  -- Lua result/pack/opt module name
   event = "DeferredUIEnter",                        -- Equivalent of VeryLazy
+  keys = {
+    { "<leader>z", "<cmd>ZenMode<cr>", desc = "ZenMode toggle" },
+  },
   before = function()
     require("lz.n").trigger_load("twilight.nvim")
   end,
@@ -35,22 +38,19 @@ return {
         --tmux = { enabled = true },                  -- disables the tmux statusline
         alacritty = {                               -- zoom alacritty terminal font to the given size
           enabled = true,
-          font = "16",                              -- font size
+          font = "14",                              -- font size
         },
       },
       -- on_open = function()
       --   require('cmp').setup { enabled = false }
       --   vim.cmd("Copilot disable")
       -- end,
-      -- on_close = function()
-      --   require('cmp').setup { enabled = true }
-      --   vim.cmd("Copilot enable")
-      -- end,
+      --on_close = function()
+        --require('cmp').setup { enabled = true }
+        --vim.cmd("Copilot enable")
+      --end,
     })
   end,
-  keys = {
-    { "<leader>z", "<cmd>ZenMode<cr>", desc = "ZenMode toggle" },
-  },
 }
 
 -- local value = 1
