@@ -7,16 +7,14 @@ return {
     --{ "<leader><leader>", "<cmd>FzfLua buffers<cr>", desc = "Find in open buffers" },
     --{ "<leader>fb", "<cmd>FzfLua builtin<cr>", desc = "Find builtin fuzzy finders" },
     --{ "<leader>ff", "<cmd>FzfLua files<cr>", desc = "Find files in Current Working Directory" },
-    { "<leader>fg", "<cmd>FzfLua live_grep<cr>", desc = "Find grep through files" },
+    --{ "<leader>fg", "<cmd>FzfLua live_grep<cr>", desc = "Find grep through files" },
     --{ "<leader>fh", "<cmd>FzfLua helptags<cr>", desc = "Find help for Neovim" },
     --{ "<leader>fk", "<cmd>FzfLua keymaps<cr>", desc = "Find key maps" },
-    { "<leader>fr", "<cmd>FzfLua oldfiles<cr>", desc = "Find recent files" },
+    --{ "<leader>fr", "<cmd>FzfLua oldfiles<cr>", desc = "Find recent files" },
     { "<leader>fR", "<cmd>FzfLua resume<cr>", desc = "Find resume recent find" },
     { "<leader>fw", "<cmd>FzfLua grep_cword<cr>", desc = "Find word" },
 
     -- LazyVim bindings, maybe not useful
-    { "<leader>sg", "<cmd>FzfLua live_grep<cr>", desc = "Search files" },
-    { "<leader>sR", "<cmd>FzfLua resume<cr>", desc = "Search files" },
     { "<leader>ss", "<cmd>FzfLua lsp_document_symbols<cr>", desc = "Find symbol" },
     --{ "<leader>fb", "<cmd>FzfLua buffers<cr>", desc = "Find symbol" },
     { "grr", "<cmd>FzfLua lsp_references<cr>", desc = "Lsp references" },
@@ -38,9 +36,6 @@ return {
         preview = {
           layout = "vertical",
         },
-      },
-      keymap = {
-        fzf = { ["ctrl-q"] = "select-all+accept", },
       },
       fzf_colors = true,
     })
