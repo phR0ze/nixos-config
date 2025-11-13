@@ -29,7 +29,13 @@ return {
         show_hidden = true,                       -- show dot prefixed files
       },
       float = {
-        padding = 8,                              -- vertical and horizontal padding for float window
+        -- padding = 0,                           -- vertical and horizontal are the same which is aweful
+        max_width = 0.7,                          -- max width for the floating window relative to the parent
+        max_height = 0.8,                         -- max height for the floating window relative to the parent
+        override = function(cfg)
+          cfg["row"] = 1                          -- override row offset to 1 to pull floating window to top
+          return cfg
+        end,
       },
       keymaps = {
         ["<ESC>"] = "actions.close",              -- ESC to close
