@@ -32,12 +32,74 @@ return {
       picker = {
         sources = {
           explorer = {                              -- explorer picker configuration
+            hidden = true,                          -- show hidden files as well
+            ignored = true,                         -- show files that are ignored by.gitignore
+            --exclude = {"**/.git"},                -- exclude specific types
+            auto_close = true,                      -- auto close picker when focusing on another window
             jump = { close = true },                -- close the explorer picker after opening a file
             layout = {
               preset = "dropdown",                  -- use this layout for your picker
               preview = false,                      -- don't show the preview window by default
             },
+
+            -- custom actions to trigger in the explorer
+            actions = {
+
+              -- provide a popup window to select different file text copy options
+              copy_file_path = {
+                action = function(_, item)
+                  if not item then return end
+
+                  -- compute the different segment text values then filter on not empty and sort
+                  local vals = {
+                    vim.fn.fnamemodify(item.file, ":t"),  -- filename only
+                    vim.fn.fnamemodify(item.file, ":~"),  -- ~/ path if available
+                    item.file,                            -- full path
+                  }
+                  local opts = vim.tbl_filter(function(val)
+                    return vals[val] ~= ""
+                  end, vim.tbl_keys(vals))
+                  if vim.tbl_isempty(opts) then return end
+                  table.sort(opts)
+
+                  -- present the table of options for user selection
+                  vim.ui.select(opts, {
+                    prompt = "Select to copy to clipboard:",
+                    format_item = function(item) return ("%s"):format(vals[item]) end,
+                  }, function(i)
+                    if vals[i] then vim.fn.setreg("+", vals[i]) end
+                  end)
+
+                  -- put the window in normal mode
+                  vim.schedule(function() vim.cmd("stopinsert") end)
+                end,
+              },
+            },
+            win = {
+              list = {
+                keys = {
+                  -- Put the delete popup window in normal mode rather than insert by default
+                  -- ["d"] = { function(picker)
+                  --   --vim.cmd.stopinsert()
+                  --   picker:action("explorer_delete")
+                  -- end, mode = "n", desc = "Delete with Normal-mode prompt" },
+                  ["Y"] = "copy_file_path",
+
+                  -- don't work
+                  -- ["W"] = "explorer_close",
+                  -- ["C"] = "confirm",
+                },
+              },
+            },
           },
+          files = {
+            hidden = true,
+            ignored = true,
+          },
+          -- grep = {
+          --   hidden = false,
+          --   ignored = false,
+          -- }
         },
         layout = {
           preset = "dropdown",                      -- drop down file picker only without preview
@@ -47,6 +109,7 @@ return {
           dropdown = {                              -- Custom picker based on built in vscode preset
             hidden = { "preview" },                 -- don't want the preview
             layout = {
+              box = "vertical",                     -- vertical stacking of windows
               backdrop = true,                      -- dims the backround making picker pop out
               row = 1,                              -- draw the picker this many rows from the top of the screen
               width = 0.8,                          -- percentage of screen width to use for picker
@@ -54,14 +117,14 @@ return {
               max_width = 120,                      -- maximum number of columns to make the width of the picker
               height = 0.6,                         -- percentage of the screen height to user for picker
               border = false,                       -- don't draw the border as it collides with the search box
-              box = "vertical",
-              { win = "input", height = 1, border = true, title = "{title} {live} {flags}", title_pos = "center" },
+              { win = "input", height = 1, border = true, title = "{title}", title_pos = "center" },
               { win = "list", border = "hpad" },
               { win = "preview", title = "{preview}", border = true },
             },
           },
           dropdown_preview = {                      -- Custom picker based on built in vscode preset with preview
             layout = {
+              box = "vertical",                     -- vertical stacking of windows
               backdrop = true,                      -- dims the backround making picker pop out
               row = 1,                              -- draw the picker this many rows from the top of the screen
               width = 0.8,                          -- percentage of screen width to use for picker
@@ -69,13 +132,16 @@ return {
               max_width = 120,                      -- maximum number of columns to make the width of the picker
               height = 0.9,                         -- percentage of the screen height to user for picker
               border = false,                       -- don't draw the border as it collides with the search box
-              box = "vertical",
               {
                 win = "input",                      -- input window
                 height = 1,                         -- make the input window a height of 1 row
                 border = true,                      -- draw a border around the input window
-                title = "{title} {live} {flags}",   -- add the input window title using the live variable
+                title = "{title}",                  -- add the input window title
                 title_pos = "center"                -- center the title
+                -- Can change the colors of layout components
+                -- wo = {
+                --   winhighlight = "FloatBorder:Normal,NormalFloat:Normal,SnacksPickerPrompt:SnacksPickerPromptTransparent",
+                -- },
               },
               {
                 win = "list",                       -- list of items portion of the picker
