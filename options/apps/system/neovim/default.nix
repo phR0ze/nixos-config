@@ -161,16 +161,6 @@
         rev = "v2.1.0"; sha256 = "sha256-Qh9ty28xtRS3qXxE/ugx9FqAKrdeFGEf7W6yEORnZV8="; };
         doCheck = false; doNvimRequireCheck = false; })
 
-    # Fast fuzzy finding - better than telescope
-    # - configuration ./config/lua/plugins/0100-fzf-lua.lua
-    # - depends on mini.icons
-    (vimUtils.buildVimPlugin {
-      pname = "fzf-lua"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "ibhagwan"; repo = "fzf-lua";
-        rev = "a8458b79a957a6e3e217d84106a0fd4b9470ff4c";
-        sha256 = "sha256-OloQKfJZIP8Hu9O6+b2iVUtaD52dyYrfDy16Kd3KXHM="; };
-        doCheck = false; doNvimRequireCheck = false; })
-
     # Twilight is a Lua plugin for Neovim 0.5 that dims inactive portions of the code you're editing.
     # - configuration ./config/lua/plugins/0100-twilight-nvim.lua
     # - depends on treesitter
@@ -179,15 +169,6 @@
       src = fetchFromGitHub { owner = "folke"; repo = "twilight.nvim";
         rev = "664e752f4a219801265cc3fc18782b457b58c1e1";
         sha256 = "sha256-V6DFwvShvX6mYMRJajwOaxbHMNuCHCZzVrfT73iMuQo="; };})
-
-    # File explorer that lets you edit your file system like a buffer
-    # - configuration ./config/lua/plugins/0200-oil-nvim.lua
-    # - depends on mini.icons and snacks
-    (vimUtils.buildVimPlugin {
-      pname = "oil.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "stevearc"; repo = "oil.nvim";
-        rev = "v2.15.0"; sha256 = "sha256-jCuOwTd6QIy3USuE7X/rHYUbriW6+2WaK9JxCx4/O2c="; };
-      doCheck = false; doNvimRequireCheck = false; })
 
     # Zen mode for distraction free writing
     # - configuration ./config/lua/plugins/0200-zen-mode-nvim.lua
@@ -237,8 +218,8 @@
 
   # Runtime dependencies to support Neovim and Neovimthe  plugins
   runtimeDeps = with pkgs; [
-    fzf                                     # Fast fuzzy finder: dep of fzf-lua
-    ripgrep                                 # Faster more capable grep: dep of fzf-lua
+    fd                                      # Simple fast Rust alternative to find
+    ripgrep                                 # Faster more capable Rust grep
     stylua                                  # Opinionated Lua code formatter
   ];
 
