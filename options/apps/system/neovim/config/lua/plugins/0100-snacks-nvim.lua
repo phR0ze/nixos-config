@@ -22,7 +22,7 @@ return {
       "--vimgrep", "--smart-case", "--hidden", "--color", "never", "--glob", "!.git", "--glob",
       "!node_modules", "--glob", "!dist", "--glob", "!.DS_Store",
     }
-    require("snacks").setup({                       -- Lua module path
+    require("snacks").setup({
       bigfile = { enabled = true },                 -- 
       input = { enabled = true },
       notifier = { enabled = true },
@@ -82,13 +82,6 @@ return {
                 end)
               end,
 
-              -- grep in the selected directory with grep
-              grep_in_dir = function(_, selected)
-                local item = selected or picker:selected()
-                if not item then return end
-                local dir = vim.fn.fnamemodify(item.file, ":p:h")
-                Snacks.picker.grep({ cwd = dir, supports_live = true, }) 
-              end,
               -- custom diff action
               -- diff = {
               --   action = function(picker)
@@ -121,19 +114,19 @@ return {
               -- -- alternate explorer delete function to be in normal mode
               -- normal_explorer_del = function(picker, item)
               --   vim.schedule(function() vim.cmd("stopinsert") end)  -- put the window in normal mode
-              --   Snacks.picker.actions.jump(picker, item, "explorer_del")
+              --   Snacks.picker.actions.explorer_del(picker)
               -- end,
             },
             win = {
               list = {
-                keys = {
+                keys = {                            -- key mappings for the explorer list window
                   -- Put the delete popup window in normal mode rather than insert by default
                   -- ["d"] = { function(picker)
                   --   vim.cmd.stopinsert()
                   --   return "explorer_del"
                   -- end, mode = "n", desc = "Delete with Normal-mode prompt" },
-                  ["g"] = {"grep_in_dir", mode = { "n"}, desc = "Grep the given directory"},
-                  ["Y"] = {"copy_file_path", mode = { "n"}, desc = "Copy file path text to clipboard"},
+                  ["Y"] = { "copy_file_path", mode = "n", desc = "Copy file path text to clipboard"},
+                  -- ["S"] = "normal_explorer_del",
                 },
               },
             },
@@ -143,7 +136,7 @@ return {
             ignored = true,
           },
           grep = {
-            layout = "dropdown_preview",
+            layout = "dropdown_with_preview",
             cmd = "rg",
             args = rg_args,
             show_empty = true,
@@ -158,7 +151,6 @@ return {
         },
         layouts = {
           dropdown = {                              -- Custom picker based on built in vscode preset
-            hidden = { "preview" },                 -- don't want the preview
             layout = {
               box = "vertical",                     -- vertical stacking of windows
               backdrop = true,                      -- dims the backround making picker pop out
@@ -170,10 +162,9 @@ return {
               border = false,                       -- don't draw the border as it collides with the search box
               { win = "input", height = 1, border = true, title = "{title}", title_pos = "center" },
               { win = "list", border = "hpad" },
-              { win = "preview", title = "{preview}", border = true },
             },
           },
-          dropdown_preview = {                      -- Custom picker based on built in vscode preset with preview
+          dropdown_with_preview = {                 -- Custom picker based on built in vscode preset with preview
             layout = {
               box = "vertical",                     -- vertical stacking of windows
               backdrop = true,                      -- dims the backround making picker pop out
@@ -194,16 +185,34 @@ return {
                 --   winhighlight = "FloatBorder:Normal,NormalFloat:Normal,SnacksPickerPrompt:SnacksPickerPromptTransparent",
                 -- },
               },
-              {
-                win = "list",                       -- list of items portion of the picker
-                border = "hpad"                     -- 
-              },
+              { win = "list", border = "hpad" },
               {
                 win = "preview",                    -- preview window
                 title = "{preview}",                -- preview title is the preview variable
                 height = 0.5,                       -- use 50% of the total picker space for the preview
-                border = "single",                  -- place a border around the preview portion with square edges
+                border = true,                      -- place a border around the preview portion with square edges
               },
+            },
+          },
+        },
+        win = {
+          -- slick custom bindings to help navigate between the picker windows
+          input = {
+            keys = {
+              ["<c-p>"] = { "focus_preview", mode = { "i", "n" }, desc = "Focus on the preview window from input" },
+              ["<c-l>"] = { "focus_list", mode = { "i", "n" }, desc = "Focus on the list window from input" },
+            },
+          },
+          list = {
+            keys = {
+              ["<c-i>"] = { "focus_input", mode = { "i", "n" }, desc = "Focus on the input window from list" },
+              ["<c-p>"] = { "focus_preview", mode = { "i", "n" }, desc = "Focus on the preview window from list" },
+            },
+          },
+          preview = {
+            keys = {
+              ["<c-i>"] = { "focus_input", mode = { "i", "n" }, desc = "Focus on the input window from preview" },
+              ["<c-l>"] = { "focus_list", mode = { "i", "n" }, desc = "Focus on the list window from preview" },
             },
           },
         },
@@ -244,30 +253,33 @@ return {
           --{ section = "startup" },
         },
       },
-      -- terminal = {
-      --   keys = {
-      --
-      --   },
-      -- },
+      terminal = {
+        start_insert = true,
+        auto_insert = true,
+        win = {
+          position = "float",
+          row = 0,
+          width = 0.8,
+          height = 0.6,
+        },
+        -- TODO dismiss with double <Esc>
+        -- keys = {
+        --
+        -- },
+      },
     })
   end,
   keys = {
     -- Ctrl+q to close the current buffer or Neovim if its the last buffer
-    -- TODO: not working currently
     { "<C-q>", function()
-      local bufCnt = vim.tbl_filter(function(b)
-        if 1 ~= vim.fn.buflisted(b) then
-          -- Close nvim since this is the last buffer
-          vim.api.nvim_exec([[:q]], true)
-        else
-          -- Close buffer since its not the last
-          Snacks.bufdelete()
-        end
-      end, vim.api.nvim_list_bufs())
+        local bufs = vim.fn.getbufinfo({ buflisted = 1 })
+        if #bufs <= 1 then vim.cmd("q") else Snacks.bufdelete()
+      end
     end, desc = "Close the current buffer or Neovim" },
 
     -- Snacks terminal functionality
-    { "<leader>t", function() Snacks.terminal() end, desc = "Toggle Terminal" },
+    -- Have to hit <Esc><Esc> to get to normal mode
+    { "<leader>t", function() Snacks.terminal() end, desc = "Terminal toggle" },
 
     -- Snacks explorer functionality
     { "<leader>e", function() Snacks.explorer() end, desc = "File Explorer" },
@@ -276,9 +288,9 @@ return {
     { "<leader><space>", function() Snacks.picker.smart() end, desc = "Smart find files" },
     { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Find in buffers" },
     { "<leader>fg", function() Snacks.picker.grep() end, desc = "Find grep through files" },
-    { "<leader>fh", function() Snacks.picker.help({ layout = "dropdown_preview", }) end, desc = "Find help pages" },
+    { "<leader>fh", function() Snacks.picker.help({ layout = "dropdown_with_preview", }) end, desc = "Find help pages" },
     { "<leader>ff", function() Snacks.picker.files() end, desc = "Find files in current working directory" },
-    { "<leader>fk", function() Snacks.picker.keymaps({ layout = "dropdown_preview", }) end, desc = "Find keymaps" },
+    { "<leader>fk", function() Snacks.picker.keymaps({ layout = "dropdown_with_preview", }) end, desc = "Find keymaps" },
     { "<leader>fp", function() Snacks.picker() end, desc = "Find picker from picker list" },
     { "<leader>fr", function() Snacks.picker.recent() end, desc = "Find recent files" },
 
