@@ -14,6 +14,14 @@ return {
     require("lz.n").trigger_load("mini.icons")
   end,
   after = function()
+    local fd_args = {
+      "--full-path", "--hidden", "--color", "never", "--type", "f", "--exclude", ".git",
+      "--exclude", "node_modules", "--exclude", "dist", "--exclude", ".DS_Store",
+    }
+    local rg_args = {
+      "--vimgrep", "--smart-case", "--hidden", "--color", "never", "--glob", "!.git", "--glob",
+      "!node_modules", "--glob", "!dist", "--glob", "!.DS_Store",
+    }
     require("snacks").setup({                       -- Lua module path
       bigfile = { enabled = true },                 -- 
       input = { enabled = true },
@@ -46,48 +54,86 @@ return {
             actions = {
 
               -- provide a popup window to select different file text copy options
-              copy_file_path = {
-                action = function(_, item)
-                  if not item then return end
+              copy_file_path = function(_, selected)
+                local item = selected or picker:selected()
+                if not item then return end
 
-                  -- compute the different segment text values then filter on not empty and sort
-                  local vals = {
-                    vim.fn.fnamemodify(item.file, ":t"),  -- filename only
-                    vim.fn.fnamemodify(item.file, ":~"),  -- ~/ path if available
-                    item.file,                            -- full path
-                  }
-                  local opts = vim.tbl_filter(function(val)
-                    return vals[val] ~= ""
-                  end, vim.tbl_keys(vals))
-                  if vim.tbl_isempty(opts) then return end
-                  table.sort(opts)
+                -- put the window in normal mode
+                vim.schedule(function() vim.cmd("stopinsert") end)
 
-                  -- present the table of options for user selection
-                  vim.ui.select(opts, {
-                    prompt = "Select to copy to clipboard:",
-                    format_item = function(item) return ("%s"):format(vals[item]) end,
-                  }, function(i)
-                    if vals[i] then vim.fn.setreg("+", vals[i]) end
-                  end)
+                -- compute the different segment text values then filter on not empty and sort
+                local vals = {
+                  vim.fn.fnamemodify(item.file, ":t"),  -- filename only
+                  vim.fn.fnamemodify(item.file, ":~"),  -- ~/ path if available
+                  item.file,                            -- full path
+                }
+                local opts = vim.tbl_filter(function(val)
+                  return vals[val] ~= ""
+                end, vim.tbl_keys(vals))
+                if vim.tbl_isempty(opts) then return end
+                table.sort(opts)
 
-                  -- put the window in normal mode
-                  vim.schedule(function() vim.cmd("stopinsert") end)
-                end,
-              },
+                -- present the table of options for user selection
+                vim.ui.select(opts, {
+                  prompt = "Select to copy to clipboard:",
+                  format_item = function(item) return ("%s"):format(vals[item]) end,
+                }, function(i)
+                  if vals[i] then vim.fn.setreg("+", vals[i]) end
+                end)
+              end,
+
+              -- grep in the selected directory with grep
+              grep_in_dir = function(_, selected)
+                local item = selected or picker:selected()
+                if not item then return end
+                local dir = vim.fn.fnamemodify(item.file, ":p:h")
+                Snacks.picker.grep({ cwd = dir, supports_live = true, }) 
+              end,
+              -- custom diff action
+              -- diff = {
+              --   action = function(picker)
+              --     picker:close()
+              --     local sel = picker:selected()
+              --     if #sel > 0 and sel then
+              --       vim.cmd("tabnew " .. sel[1].file)
+              --       vim.cmd("vert diffs " .. sel[2].file)
+              --       return
+              --     end
+              --   end,
+              -- },
+
+              -- -- alternate explorer_del implementation with custom select prompt
+              -- explorer_del = function(picker)
+              --   local _, res = pcall(function()
+              --     return vim.fn.confirm("Do you want to put files into trash?", "&Yes\n&No\n&Cancel", 1, "Question")
+              --   end)
+              --   if res ~= 1 then return end
+              --   for _, item in ipairs(picker:selected({ fallback = true })) do
+              --     vim.fn.jobstart("trash " .. item.file, {
+              --       detach = true,
+              --       on_exit = function()
+              --         picker:update()
+              --       end,
+              --     })
+              --   end
+              -- end,
+
+              -- -- alternate explorer delete function to be in normal mode
+              -- normal_explorer_del = function(picker, item)
+              --   vim.schedule(function() vim.cmd("stopinsert") end)  -- put the window in normal mode
+              --   Snacks.picker.actions.jump(picker, item, "explorer_del")
+              -- end,
             },
             win = {
               list = {
                 keys = {
                   -- Put the delete popup window in normal mode rather than insert by default
                   -- ["d"] = { function(picker)
-                  --   --vim.cmd.stopinsert()
-                  --   picker:action("explorer_delete")
+                  --   vim.cmd.stopinsert()
+                  --   return "explorer_del"
                   -- end, mode = "n", desc = "Delete with Normal-mode prompt" },
-                  ["Y"] = "copy_file_path",
-
-                  -- don't work
-                  -- ["W"] = "explorer_close",
-                  -- ["C"] = "confirm",
+                  ["g"] = {"grep_in_dir", mode = { "n"}, desc = "Grep the given directory"},
+                  ["Y"] = {"copy_file_path", mode = { "n"}, desc = "Copy file path text to clipboard"},
                 },
               },
             },
@@ -96,10 +142,15 @@ return {
             hidden = true,
             ignored = true,
           },
-          -- grep = {
-          --   hidden = false,
-          --   ignored = false,
-          -- }
+          grep = {
+            layout = "dropdown_preview",
+            cmd = "rg",
+            args = rg_args,
+            show_empty = true,
+            hidden = true,
+            ignored = true,
+            follow = false,
+          }
         },
         layout = {
           preset = "dropdown",                      -- drop down file picker only without preview
@@ -193,6 +244,11 @@ return {
           --{ section = "startup" },
         },
       },
+      -- terminal = {
+      --   keys = {
+      --
+      --   },
+      -- },
     })
   end,
   keys = {
@@ -219,7 +275,7 @@ return {
     -- Snacks fuzzy find functionality
     { "<leader><space>", function() Snacks.picker.smart() end, desc = "Smart find files" },
     { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Find in buffers" },
-    { "<leader>fg", function() Snacks.picker.grep({ layout = "dropdown_preview", }) end, desc = "Find grep through files" },
+    { "<leader>fg", function() Snacks.picker.grep() end, desc = "Find grep through files" },
     { "<leader>fh", function() Snacks.picker.help({ layout = "dropdown_preview", }) end, desc = "Find help pages" },
     { "<leader>ff", function() Snacks.picker.files() end, desc = "Find files in current working directory" },
     { "<leader>fk", function() Snacks.picker.keymaps({ layout = "dropdown_preview", }) end, desc = "Find keymaps" },
@@ -243,7 +299,6 @@ return {
     --
     -- LazyVim keys
     -- { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
-    -- { "<leader>/", LazyVim.pick("grep"), desc = "Grep (Root Dir)" },
     -- { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
     -- { "<leader><space>", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
     -- { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
