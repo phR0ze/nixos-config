@@ -178,6 +178,30 @@
       src = fetchFromGitHub { owner = "folke"; repo = "zen-mode.nvim";
         rev = "v1.4.1"; sha256 = "sha256-vRJynz3bnkhfHKya+iEgm4PIEwT2P9kvkskgTt5UUU4="; };})
 
+    # [figet.nvim](https://github.com/j-hui/fidget.nvim)
+    # - shows LSP diagnostic output in the bottom right hand side
+    # - configuration ./config/lua/plugins/0100-figget-nvim.lua
+    # - depends on ?
+    (vimUtils.buildVimPlugin {
+      pname = "fidget.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "j-hui"; repo = "fidget.nvim";
+        rev = "v1.6.1"; sha256 = "sha256-W0l2XW8/MfMRkQYr4AvXT4md2OPe8CD4hAHTtsJpU5w="; };})
+
+    # [blink.cmp]
+    # - autocompletion
+    # (vimUtils.buildVimPlugin {
+    #   pname = "fidget.nvim"; version = "2025-10-30";
+    #   src = fetchFromGitHub { owner = "j-hui"; repo = "fidget.nvim";
+    #     rev = "v1.6.1"; sha256 = ""; };})
+
+    # nvim-lspconfig is a lua plugin to assist in LSP configuration
+    # - configuration ./config/lua/plugins/0300-nvim-lspconfig.lua
+    # - depends on treesitter, snacks.picker, mini.icons
+    (vimUtils.buildVimPlugin {
+      pname = "nvim-lspconfig"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "neovim"; repo = "nvim-lspconfig";
+        rev = "v2.5.0"; sha256 = "sha256-BrY4l2irKsAmxDNPhW9eosOwsVdZjULyY6AOkqTAU4E="; };})
+
     #codecompanion-nvim
     #plenary-nvim
     #vim-startuptime
@@ -216,7 +240,8 @@
     '';
   };
 
-  # Runtime dependencies to support Neovim and Neovimthe  plugins
+  # Runtime dependencies to support Neovim and Neovim plugins
+  # - this would include LSPs, utilities, linting tools etc...
   runtimeDeps = with pkgs; [
     fd                                      # Simple fast Rust alternative to find
     ripgrep                                 # Faster more capable Rust grep
