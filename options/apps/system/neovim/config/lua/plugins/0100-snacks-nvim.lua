@@ -277,15 +277,14 @@ return {
       end
     end, desc = "Close the current buffer or Neovim" },
 
-    -- Snacks terminal functionality
-    -- Have to hit <Esc><Esc> to get to normal mode
+    -- Snacks terminal functionality: hit <Esc><Esc> to get to normal mode
     { "<leader>t", function() Snacks.terminal() end, desc = "Terminal toggle" },
 
     -- Snacks explorer functionality
     { "<leader>e", function() Snacks.explorer() end, desc = "File Explorer" },
 
     -- Snacks fuzzy find functionality
-    { "<leader><space>", function() Snacks.picker.smart() end, desc = "Smart find files" },
+    { "<leader><leader>", function() Snacks.picker.smart() end, desc = "Smart find files" },
     { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Find in buffers" },
     { "<leader>fg", function() Snacks.picker.grep() end, desc = "Find grep through files" },
     { "<leader>fh", function() Snacks.picker.help({ layout = "dropdown_with_preview", }) end, desc = "Find help pages" },
@@ -301,6 +300,7 @@ return {
     { "<leader>S", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer" },
     { "<leader>dps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Buffer" },
     { "<leader>un", function() Snacks.notifier.hide() end, desc = "Dismiss All Notifications" },
+
     -- { "<leader>n", function()
     --   if Snacks.config.picker and Snacks.config.picker.enabled then
     --     Snacks.picker.notifications()
@@ -312,16 +312,10 @@ return {
     -- LazyVim keys
     -- { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
     -- { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
-    -- { "<leader><space>", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
     -- { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
     -- -- find
-    -- { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
     -- { "<leader>fB", function() Snacks.picker.buffers({ hidden = true, nofile = true }) end, desc = "Buffers (all)" },
-    -- { "<leader>fc", LazyVim.pick.config_files(), desc = "Find Config File" },
-    -- { "<leader>ff", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
-    -- { "<leader>fF", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
     -- { "<leader>fg", function() Snacks.picker.git_files() end, desc = "Find Files (git-files)" },
-    -- { "<leader>fr", LazyVim.pick("oldfiles"), desc = "Recent" },
     -- { "<leader>fR", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
     -- { "<leader>fp", function() Snacks.picker.projects() end, desc = "Projects" },
     -- -- git
@@ -364,16 +358,3 @@ return {
     -- { "<leader>uC", function() Snacks.picker.colorschemes() end, desc = "Colorschemes" },
   },
 }
---   opts = {
---     quickfile = { enabled = true },
---     terminal = {
---       win = {
---         keys = {
---           nav_h = { "<C-h>", term_nav("h"), desc = "Go to Left Window", expr = true, mode = "t" },
---           nav_j = { "<C-j>", term_nav("j"), desc = "Go to Lower Window", expr = true, mode = "t" },
---           nav_k = { "<C-k>", term_nav("k"), desc = "Go to Upper Window", expr = true, mode = "t" },
---           nav_l = { "<C-l>", term_nav("l"), desc = "Go to Right Window", expr = true, mode = "t" },
---           hide_slash = { "<C-/>", "hide", desc = "Hide Terminal", mode = { "t", "n" } },
---           hide_underscore = { "<c-_>", "hide", desc = "which_key_ignore", mode = { "t", "n" } },
---         },
---       },
