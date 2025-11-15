@@ -180,7 +180,7 @@
 
     # [figet.nvim](https://github.com/j-hui/fidget.nvim)
     # - shows LSP diagnostic output in the bottom right hand side
-    # - configuration ./config/lua/plugins/0100-figget-nvim.lua
+    # - configuration ./config/lua/plugins/0000-figget-nvim.lua
     # - depends on ?
     (vimUtils.buildVimPlugin {
       pname = "fidget.nvim"; version = "2025-10-30";
