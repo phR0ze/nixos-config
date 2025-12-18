@@ -1,5 +1,7 @@
--- Options
+-- -------------------------------------------------------------------------------------------------
+-- General options
 -- [Kickstart.nvim for more options](https://github.com/nvim-lua/kickstart.nvim)
+-- -------------------------------------------------------------------------------------------------
 vim.g.mapleader = " "                                 -- Set the <leader> key to a space
 vim.g.maplocalleader = " "                            -- Set the <leader> key to a space
 vim.g.have_nerd_font = true                           -- ?
@@ -72,23 +74,3 @@ if vim.g.neovide then
   vim.opt.linespace = 3
 end
 
--- Configures the global behavior of Neovim's built-in LSP diagnostics system to show errors/warnings 
--- as virtual text (inline in the buffer) with signs (in the gutter) and floating window popups.
-vim.diagnostic.config({
-  virtual_text = {
-    source = true,
-    prefix = "󰄛 ",
-  },
-  signs = {
-    text = {
-      [vim.diagnostic.severity.ERROR] = " ",
-      [vim.diagnostic.severity.WARN] = " ",
-      [vim.diagnostic.severity.INFO] = " ",
-      [vim.diagnostic.severity.HINT] = " ",
-    },
-  },
-  float = { source = true },
-  jump = { float = true },
-  severity_sort = true,
-  update_in_insert = true,
-})

@@ -24,10 +24,14 @@
     lz-n                            # Light weight lazy plugin loader
 
     # Colorschemes
-    vim-deus                        # Color scheme I've used for years
     gruvbox-nvim                    # Lua port of the most famous vim colorscheme
     tokyonight-nvim                 # A clean dark Neovim theme
-    catppuccin-nvim                 # Soothing pastel theme for Neovim
+    catppuccin-nvim                 # Soothing pastel theme for NeoVIM
+
+    # ----------------------------------------------------------------------------------------------
+    # Essential plugins
+    # - ./config/lua/plugins/0000-essential.lua
+    # ----------------------------------------------------------------------------------------------
 
     # Modern, minimal, pure lua replacement for nvim-web-devicons
     # - configuration ./config/lua/plugins/0000-mini-icons.lua
@@ -59,6 +63,33 @@
       src = fetchFromGitHub { owner = "folke"; repo = "persistence.nvim";
         rev = "v3.1.0"; sha256 = "sha256-xZij+CYjAoxWcN/Z2JvJWoNkgBkz83pSjUGOfc9x8M0="; };})
 
+    # Better comments and override support for treesitter languages
+    # - configuration ./config/lua/plugins/0000-ts-comments-nvim.lua
+    # - no external dependencies
+    (vimUtils.buildVimPlugin {
+      pname = "ts-comments.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "ts-comments.nvim";
+        rev = "v1.5.0";
+        sha256 = "sha256-nYdU5KlSSgxWgxu/EgpBUNDQ9zEXkEbiTkBO4ThHPfo="; };})
+
+    # A snazy pure lua buffer line
+    # - depends on mini.icons
+    (vimUtils.buildVimPlugin {
+      pname = "bufferline.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "akinsho"; repo = "bufferline.nvim";
+        rev = "v4.9.1"; sha256 = "sha256-ae4MB6+6v3awvfSUWlau9ASJ147ZpwuX1fvJdfMwo1Q="; };
+      doCheck = false; doNvimRequireCheck = false; })
+
+    # - configuration ./config/lua/plugins/0100-lualine-nvim.lua
+    # - depends on mini.icons
+    (vimUtils.buildVimPlugin {
+      pname = "lualine.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "nvim-lualine"; repo = "lualine.nvim";
+        rev = "3946f0122255bc377d14a59b27b609fb3ab25768";
+        sha256 = "sha256-hdrAdG3hC2sAevQ6a9xizqPgEgnNKxuc5rBYn0pKM1c="; };})
+
+    # Collection of plugins you enable in the configuration
+    # Blazing fast neovim statusline written in pure lua
     # Include nvim-treesitter (TS) parsers along with the plugin
     # - modern parser for faster, more accurate syntax highlighting and language awareness
     # - parsers get included at `nvim-treesitter/parser/` which is autoloaded by TS
@@ -107,34 +138,6 @@
         sha256 = "sha256-lf+AwSu96iKO1vWWU2D7jWHGfjXkbX9R2CX3gMZaD4M="; };
       doCheck = false; doNvimRequireCheck = false; })
 
-    # Better comments and override support for treesitter languages
-    # - configuration ./config/lua/plugins/0000-ts-comments-nvim.lua
-    # - no external dependencies
-    (vimUtils.buildVimPlugin {
-      pname = "ts-comments.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "folke"; repo = "ts-comments.nvim";
-        rev = "v1.5.0";
-        sha256 = "sha256-nYdU5KlSSgxWgxu/EgpBUNDQ9zEXkEbiTkBO4ThHPfo="; };})
-
-    # A snazy pure lua buffer line
-    # - configuration ./config/lua/plugins/0100-bufferline-nvim.lua
-    # - depends on mini.icons
-    (vimUtils.buildVimPlugin {
-      pname = "bufferline.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "akinsho"; repo = "bufferline.nvim";
-        rev = "v4.9.1"; sha256 = "sha256-ae4MB6+6v3awvfSUWlau9ASJ147ZpwuX1fvJdfMwo1Q="; };
-      doCheck = false; doNvimRequireCheck = false; })
-
-    # Blazing fast neovim statusline written in pure lua
-    # - configuration ./config/lua/plugins/0100-lualine-nvim.lua
-    # - depends on mini.icons
-    (vimUtils.buildVimPlugin {
-      pname = "lualine.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "nvim-lualine"; repo = "lualine.nvim";
-        rev = "3946f0122255bc377d14a59b27b609fb3ab25768";
-        sha256 = "sha256-hdrAdG3hC2sAevQ6a9xizqPgEgnNKxuc5rBYn0pKM1c="; };})
-
-    # Collection of plugins you enable in the configuration
     # - configuration ./config/lua/plugins/0100-snacks-nvim.lua
     # - depends on mini.icons
     (vimUtils.buildVimPlugin {
@@ -152,7 +155,7 @@
         rev = "v3.17.0"; sha256 = "sha256-kYpiw2Syu54B/nNVqTZeUHJIPNzAv3JpFaMWR9Ai3p4="; };
       doCheck = false; doNvimRequireCheck = false; })
 
-    # Navigate code with search labels, enhanced character motions and Treesitter integration 
+    # Navigate code with search labels, enhanced character motions and Treesitter integration
     # - configuration ./config/lua/plugins/0100-flash-nvim.lua
     # - depends on treesitter
     (vimUtils.buildVimPlugin {
@@ -161,9 +164,12 @@
         rev = "v2.1.0"; sha256 = "sha256-Qh9ty28xtRS3qXxE/ugx9FqAKrdeFGEf7W6yEORnZV8="; };
         doCheck = false; doNvimRequireCheck = false; })
 
-    # Twilight is a Lua plugin for Neovim 0.5 that dims inactive portions of the code you're editing.
-    # - configuration ./config/lua/plugins/0100-twilight-nvim.lua
-    # - depends on treesitter
+    # ----------------------------------------------------------------------------------------------
+    # Writer related plugins
+    # - ./config/lua/plugins/0200-writer.lua
+    # ----------------------------------------------------------------------------------------------
+
+    # Twilight dims inactive portions of the code you're editing.
     (vimUtils.buildVimPlugin {
       pname = "twilight.nvim"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "folke"; repo = "twilight.nvim";
@@ -171,36 +177,49 @@
         sha256 = "sha256-V6DFwvShvX6mYMRJajwOaxbHMNuCHCZzVrfT73iMuQo="; };})
 
     # Zen mode for distraction free writing
-    # - configuration ./config/lua/plugins/0200-zen-mode-nvim.lua
-    # - Open current buffer in new full-screen floating window
     (vimUtils.buildVimPlugin {
       pname = "zen-mode.nvim"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "folke"; repo = "zen-mode.nvim";
         rev = "v1.4.1"; sha256 = "sha256-vRJynz3bnkhfHKya+iEgm4PIEwT2P9kvkskgTt5UUU4="; };})
 
-    # [figet.nvim](https://github.com/j-hui/fidget.nvim)
-    # - shows LSP diagnostic output in the bottom right hand side
-    # - configuration ./config/lua/plugins/0000-figget-nvim.lua
-    # - depends on ?
+    # ----------------------------------------------------------------------------------------------
+    # LSP related plugins
+    # - ./config/lua/plugins/0300-lsp.lua
+    # ----------------------------------------------------------------------------------------------
+
+    # Manage crates.io dependencies with autocompletion of versions and features
+    (vimUtils.buildVimPlugin {
+      pname = "crates.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "saecki"; repo = "crates.nvim";
+        rev = "v0.7.1"; sha256 = "sha256-9BE6Co+519h5RswwmEnW6Od5hPcet47BwoXNMZaYAx8="; };
+        doCheck = false; doNvimRequireCheck = false; })
+
+    # Fidget shows LSP logging output in the bottom right hand side
     (vimUtils.buildVimPlugin {
       pname = "fidget.nvim"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "j-hui"; repo = "fidget.nvim";
         rev = "v1.6.1"; sha256 = "sha256-W0l2XW8/MfMRkQYr4AvXT4md2OPe8CD4hAHTtsJpU5w="; };})
 
-    # [blink.cmp]
-    # - autocompletion
-    # (vimUtils.buildVimPlugin {
-    #   pname = "fidget.nvim"; version = "2025-10-30";
-    #   src = fetchFromGitHub { owner = "j-hui"; repo = "fidget.nvim";
-    #     rev = "v1.6.1"; sha256 = ""; };})
-
-    # nvim-lspconfig is a lua plugin to assist in LSP configuration
-    # - configuration ./config/lua/plugins/0300-nvim-lspconfig.lua
+    # nvim-lspconfig assists in LSP configuration
     # - depends on treesitter, snacks.picker, mini.icons
     (vimUtils.buildVimPlugin {
       pname = "nvim-lspconfig"; version = "2025-10-30";
       src = fetchFromGitHub { owner = "neovim"; repo = "nvim-lspconfig";
         rev = "v2.5.0"; sha256 = "sha256-BrY4l2irKsAmxDNPhW9eosOwsVdZjULyY6AOkqTAU4E="; };})
+
+    # Lazydev provides a ready made Lua LSP configuration which fixes some errors
+    # - depends on nvim-lspconfig
+    (vimUtils.buildVimPlugin {
+      pname = "lazydev.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "folke"; repo = "lazydev.nvim";
+        rev = "v1.10.0"; sha256 = "sha256-sqtdijEnUZrgp+4GKpetZmenA4hkFNHk/jw57y+25co="; };})
+
+
+    # blink.cmp provides autocompletion
+    # (vimUtils.buildVimPlugin {
+    #   pname = "fidget.nvim"; version = "2025-10-30";
+    #   src = fetchFromGitHub { owner = "j-hui"; repo = "fidget.nvim";
+    #     rev = "v1.6.1"; sha256 = ""; };})
 
     #codecompanion-nvim
     #plenary-nvim
@@ -245,7 +264,9 @@
   runtimeDeps = with pkgs; [
     fd                                      # Simple fast Rust alternative to find
     ripgrep                                 # Faster more capable Rust grep
+    rust-analyzer                           # Rust LSP
     stylua                                  # Opinionated Lua code formatter
+    lua-language-server                     # Lua LSP
   ];
 
 in 

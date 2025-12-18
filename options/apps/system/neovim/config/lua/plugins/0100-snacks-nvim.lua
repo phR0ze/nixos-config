@@ -14,10 +14,6 @@ return {
     require("lz.n").trigger_load("mini.icons")
   end,
   after = function()
-    local fd_args = {
-      "--full-path", "--hidden", "--color", "never", "--type", "f", "--exclude", ".git",
-      "--exclude", "node_modules", "--exclude", "dist", "--exclude", ".DS_Store",
-    }
     local rg_args = {
       "--vimgrep", "--smart-case", "--hidden", "--color", "never", "--glob", "!.git", "--glob",
       "!node_modules", "--glob", "!dist", "--glob", "!.DS_Store",
@@ -30,13 +26,22 @@ return {
       scroll = { enabled = true },                  -- properly handle smooth scrolling
       statuscolumn = { enabled = false },           -- we set this in options.lua??
 
+      -- -------------------------------------------------------------------------------------------
       -- Explorer specific configuration
+      -- -------------------------------------------------------------------------------------------
       explorer = {
         replace_netrw = true,                       -- open snacks explorer instead
         trash = true,                               -- use the system trash when deleting files
       },
 
+      -- -------------------------------------------------------------------------------------------
+      -- Picker configuration
+      -- <Delete>   moves up a directory in the file picker
       -- <Esc> drops you into normal mode to navigate pickers with hjkl
+      -- Ctrl+i     activates the input window
+      -- Ctrl+l     activates the list window
+      -- Ctrl+p     activates the preview window
+      -- -------------------------------------------------------------------------------------------
       picker = {
         sources = {
           explorer = {                              -- explorer picker configuration
@@ -217,19 +222,28 @@ return {
           },
         },
       },
+
+      -- -------------------------------------------------------------------------------------------
+      -- Words configuration
+      -- -------------------------------------------------------------------------------------------
       words = { enabled = true },
       -- layout = {
       --
       -- },
+
+      -- -------------------------------------------------------------------------------------------
+      -- Dashboard configuration
+      -- -------------------------------------------------------------------------------------------
       dashboard = {
         preset = {
           pick = nil,
           keys = {
-            { icon = " ", key = "f", desc = "Find File", action = ":lua Snacks.dashboard.pick('files')" },
-            { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
-            { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
-            { icon = " ", key = "s", desc = "Restore Session", section = "session" },
-            { icon = " ", key = "q", desc = "Quit", action = ":qa" },
+            { icon = "", key = "e", desc = "Explorer", action = ":lua Snacks.explorer()" },
+            { icon = "", key = "f", desc = "Find File", action = ":lua Snacks.dashboard.pick('files')" },
+            { icon = "", key = "n", desc = "New File", action = ":ene | startinsert" },
+            { icon = "", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
+            { icon = "󱀸", key = "s", desc = "Restore Session", action = ":lua Snacks.explorer()" },
+            { icon = "󰿅", key = "q", desc = "Quit", action = ":qa" },
           },
           header = [[
                                                                                  
@@ -245,14 +259,24 @@ return {
         sections = {
           { section = 'header' },
           {
-            section = "keys",
-            indent = 1,
-            padding = 1,
+            section = "keys",                       -- speed keys section
+            indent = 0,                             -- don't indent then recent files lines up
+            padding = 1,                            -- padding around this section
           },
-          { section = 'recent_files', icon = " ", title = 'Recent Files', indent = 3, padding = 2 },
-          --{ section = "startup" },
+          {
+            section = 'recent_files',               -- section identifier
+            --icon = "",                             -- section icon, looks better without it
+            title = 'Recent Files',                 -- section title
+            indent = 1,                             -- indent for content rows
+            padding = 2 
+          },
+          --{ section = "startup" },                -- doesn't work without lazy stats??
         },
       },
+
+      -- -------------------------------------------------------------------------------------------
+      -- Terminal configuration
+      -- -------------------------------------------------------------------------------------------
       terminal = {
         start_insert = true,
         auto_insert = true,
@@ -285,7 +309,9 @@ return {
 
     -- Snacks fuzzy find functionality
     { "<leader><leader>", function() Snacks.picker.smart() end, desc = "Smart find files" },
+    { "<leader>.", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
     { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Find in buffers" },
+    { "<leader>fc", function() Snacks.picker.colorschemes() end, desc = "Find color schemes" },
     { "<leader>fg", function() Snacks.picker.grep() end, desc = "Find grep through files" },
     { "<leader>fh", function() Snacks.picker.help({ layout = "dropdown_with_preview", }) end, desc = "Find help pages" },
     { "<leader>ff", function() Snacks.picker.files() end, desc = "Find files in current working directory" },
@@ -296,7 +322,6 @@ return {
     { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
     { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
 
-    { "<leader>.", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
     { "<leader>S", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer" },
     { "<leader>dps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Buffer" },
     { "<leader>un", function() Snacks.notifier.hide() end, desc = "Dismiss All Notifications" },
@@ -310,7 +335,6 @@ return {
     -- end, desc = "Notification History" },
     --
     -- LazyVim keys
-    -- { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
     -- { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
     -- { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
     -- -- find
@@ -330,11 +354,7 @@ return {
     -- -- Grep
     -- { "<leader>sb", function() Snacks.picker.lines() end, desc = "Buffer Lines" },
     -- { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep Open Buffers" },
-    -- { "<leader>sg", LazyVim.pick("live_grep"), desc = "Grep (Root Dir)" },
-    -- { "<leader>sG", LazyVim.pick("live_grep", { root = false }), desc = "Grep (cwd)" },
     -- { "<leader>sp", function() Snacks.picker.lazy() end, desc = "Search for Plugin Spec" },
-    -- { "<leader>sw", LazyVim.pick("grep_word"), desc = "Visual selection or word (Root Dir)", mode = { "n", "x" } },
-    -- { "<leader>sW", LazyVim.pick("grep_word", { root = false }), desc = "Visual selection or word (cwd)", mode = { "n", "x" } },
     -- -- search
     -- { '<leader>s"', function() Snacks.picker.registers() end, desc = "Registers" },
     -- { '<leader>s/', function() Snacks.picker.search_history() end, desc = "Search History" },
@@ -354,7 +374,5 @@ return {
     -- { "<leader>sR", function() Snacks.picker.resume() end, desc = "Resume" },
     -- { "<leader>sq", function() Snacks.picker.qflist() end, desc = "Quickfix List" },
     -- { "<leader>su", function() Snacks.picker.undo() end, desc = "Undotree" },
-    -- -- ui
-    -- { "<leader>uC", function() Snacks.picker.colorschemes() end, desc = "Colorschemes" },
   },
 }

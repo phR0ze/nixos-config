@@ -303,6 +303,9 @@ the state of this repo, which takes one additional step to include changes.
 6. Build the iso `./clu build iso`
 
 ## Backlog
+* [ ] NVIM dev configuration
+  * [ ] Word wrapping and reflow are not working
+* [ ] NVIM writer configuration
 * [ ] Convert initial `machines/$MACHINE/args.nix` into a `machines/$MACHINE/args.dec.json`
 * [ ] Local DNS server seems to be unreachable ??
 

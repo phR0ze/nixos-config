@@ -1,12 +1,13 @@
 -- Initialize configuration
-require("config.options")               -- Load options from ../lua/config/options.lua
-require("config.keymaps")               -- load keymaps from ../lua/config/keymaps.lua
---require("config.autocmds")              -- load keymaps from ../lua/config/autocmds.lua
+require("config.options")               -- Load options from ./config/options.lua
+require("config.keymaps")               -- load keymaps from ./config/keymaps.lua
+--require("config.autocmds")              -- load keymaps from ./config/autocmds.lua
+
+-- Manually load color schemes
 
 -- Initialize plugin loading
-vim.cmd.packadd("lz.n")                 -- don't rely on nvim to load lz.n
-vim.cmd.packadd("vim-deus")             -- don't rely on nvim to load lz.n
-require("lz.n").load("plugins")         -- load plugins from ./lua/plugins
+vim.cmd.packadd("lz.n")                 -- load our package manager
+require("lz.n").load("plugins")         -- load all other plugins from ./plugins
 
-vim.cmd.colorscheme("deus")
---vim.cmd.colorscheme("catppuccin-macchiato")
+-- Set the target color scheme
+vim.cmd.colorscheme("tokyonight-storm")
