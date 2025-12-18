@@ -109,7 +109,8 @@ return {
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
         callback = function(event)
-          vim.keymap.set("n", "<F2>", vim.lsp.buf.rename, {buffer = event.buf, desc = "LSP: Rename" })
+          -- Code Action keymaps
+          vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, {buffer = event.buf, desc = "LSP: [C]ode [R]ename" })
           vim.keymap.set({"n", "x"}, "<leader>ca", vim.lsp.buf.code_action, {buffer = event.buf, desc = "LSP: [C]ode [A]ction" })
         end,
       })
