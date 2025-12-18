@@ -6,6 +6,8 @@
 -- s Select mode map. Defined using :smap or snoremap
 -- c Command-line mode map. Defined using :cmap or cnoremap
 -- noremap ignores other mappings - always use this mode
+vim.keymap.set("n", "gl", function() vim.diagnostic.open_float() end,
+  { desc = "Open diagnostics in float window" })
 
 -- Useful for clearing search results triggered with / or * without needing :nohlsearch
 -- normal: clears highlighted search matches
