@@ -43,6 +43,7 @@ return {
       -- Ctrl+p     activates the preview window
       -- -------------------------------------------------------------------------------------------
       picker = {
+        focus = "list",                             -- default focus on list for all pickers
         sources = {
           explorer = {                              -- explorer picker configuration
             hidden = true,                          -- show hidden files as well
@@ -56,7 +57,7 @@ return {
             actions = {
 
               -- provide a popup window to select different file text copy options
-              copy_file_path = function(_, selected)
+              copy_file_path = function(picker, selected)
                 local item = selected or picker:selected()
                 if not item then return end
 
@@ -317,14 +318,17 @@ return {
     { "<leader>e", function() Snacks.explorer() end, desc = "File Explorer" },
 
     -- Find
-    { "<leader><leader>", function() Snacks.picker.smart() end, desc = "Smart find files" },
-    { "<leader>.", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
-    { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Find in buffers" },
-    { "<leader>fc", function() Snacks.picker.colorschemes() end, desc = "Find color schemes" },
-    { "<leader>fg", function() Snacks.picker.grep() end, desc = "Find grep through files" },
-    { "<leader>fh", function() Snacks.picker.help({ layout = "dropdown_with_preview", }) end, desc = "Find help pages" },
-    { "<leader>ff", function() Snacks.picker.files() end, desc = "Find files in current working directory" },
-    { "<leader>fk", function() Snacks.picker.keymaps({ layout = "dropdown_with_preview", }) end, desc = "Find keymaps" },
+    { "<leader><leader>", function() Snacks.picker.smart({focus = "input"}) end, desc = "Smart find files" },
+    { "<leader>.", function() Snacks.scratch({focus = "input"}) end, desc = "Toggle Scratch Buffer" },
+    { "<leader>fb", function() Snacks.picker.buffers() end, desc = "[F]ind [b]uffers" },
+    { "<leader>fc", function() Snacks.picker.colorschemes() end, desc = "[F]ind [c]olor schemes" },
+    { "<leader>fg", function() Snacks.picker.grep({focus = "input"}) end, desc = "[F]ind [g]rep through files" },
+    { "<leader>fh", function() Snacks.picker.help(
+      { layout = "dropdown_with_preview", focus = "input"}) end, desc = "[F]ind [h]elp pages" },
+    { "<leader>ff", function() Snacks.picker.files(
+      { focus = "input"}) end, desc = "Find files in current working directory" },
+    { "<leader>fk", function() Snacks.picker.keymaps(
+      { layout = "dropdown_with_preview", focus = "input"}) end, desc = "Find keymaps" },
     { "<leader>fp", function() Snacks.picker() end, desc = "Find picker from picker list" },
     { "<leader>fr", function() Snacks.picker.recent() end, desc = "Find recent files" },
 
@@ -339,26 +343,16 @@ return {
     { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Goto Definition" },
     { "gD", function() Snacks.picker.lsp_declarations() end, desc = "Goto Declaration" },
     { "gr", function() Snacks.picker.lsp_references(
-      { layout = "dropdown_with_preview", focus = "list" }) end, nowait = true, desc = "References" },
+      { layout = "dropdown_with_preview" }) end, nowait = true, desc = "References" },
     { "gI", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
     { "gy", function() Snacks.picker.lsp_type_definitions(
-      { layout = "dropdown_with_preview", focus = "list" }) end, desc = "Goto T[y]pe Definition" },
+      { layout = "dropdown_with_preview" }) end, desc = "Goto T[y]pe Definition" },
     { "gai", function() Snacks.picker.lsp_incoming_calls() end, desc = "C[a]lls Incoming" },
     { "gao", function() Snacks.picker.lsp_outgoing_calls() end, desc = "C[a]lls Outgoing" },
-    { "<leader>ss", function() Snacks.picker.lsp_symbols({ focus = "list" }) end, desc = "LSP Symbols" },
-    { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols({ focus = "list" }) end, desc = "LSP Workspace Symbols" },
+    { "<leader>ss", function() Snacks.picker.lsp_symbols() end, desc = "LSP Symbols" },
+    { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols() end, desc = "LSP Workspace Symbols" },
 
-    -- { "<leader>n", function()
-    --   if Snacks.config.picker and Snacks.config.picker.enabled then
-    --     Snacks.picker.notifications()
-    --   else
-    --     Snacks.notifier.show_history()
-    --   end
-    -- end, desc = "Notification History" },
-    --
     -- LazyVim keys
-    -- { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
-    -- { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
     -- -- find
     -- { "<leader>fB", function() Snacks.picker.buffers({ hidden = true, nofile = true }) end, desc = "Buffers (all)" },
     -- { "<leader>fg", function() Snacks.picker.git_files() end, desc = "Find Files (git-files)" },
