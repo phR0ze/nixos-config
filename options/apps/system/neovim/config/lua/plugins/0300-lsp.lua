@@ -67,6 +67,16 @@ return {
       require("lz.n").trigger_load("lazydev.nvim")
     end,
     after = function()
+      -- -------------------------------------------------------------------------------------------
+      -- Configure all LSP floating windows with window outline with rounded corners
+      -- -------------------------------------------------------------------------------------------
+      vim.lsp.util.open_floating_preview = (function(orig)
+        return function(contents, syntax, opts, ...)
+          opts = opts or {}
+          opts.border = opts.border or "rounded"
+          return orig(contents, syntax, opts, ...)
+        end
+      end)(vim.lsp.util.open_floating_preview)
 
       -- -------------------------------------------------------------------------------------------
       -- Configure LSP diagnostics system to show errors/warnings with a floating window when
@@ -94,18 +104,17 @@ return {
       })
 
       -- -------------------------------------------------------------------------------------------
-      -- Configure LSP key mappings
+      -- Configure additional LSP key mappings not covered in `0100-snacks-nvim.lua`
       -- -------------------------------------------------------------------------------------------
       vim.api.nvim_create_autocmd('LspAttach', {
-        group = vim.api.nvim_create_augroup('lsp-attach', { clear = true}),
+        group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
         callback = function(event)
           local map = function(keys, func, desc, mode)
             mode = mode or 'n'
             vim.keymap.set(mode, keys, func, {buffer = event.buf, desc = 'LSP: ' .. desc })
           end
-          -- map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
-          -- map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-          -- map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementations')
+          map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
+          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
         end,
       })
 
