@@ -3,8 +3,6 @@ require("config.options")               -- Load options from ./config/options.lu
 require("config.keymaps")               -- load keymaps from ./config/keymaps.lua
 --require("config.autocmds")              -- load keymaps from ./config/autocmds.lua
 
--- Manually load color schemes
-
 -- Initialize plugin loading
 vim.cmd.packadd("lz.n")                 -- load our package manager
 require("lz.n").load("plugins")         -- load all other plugins from ./plugins

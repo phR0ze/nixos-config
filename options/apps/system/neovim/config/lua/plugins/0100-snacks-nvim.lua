@@ -50,10 +50,7 @@ return {
             --exclude = {"**/.git"},                -- exclude specific types
             auto_close = true,                      -- auto close picker when focusing on another window
             jump = { close = true },                -- close the explorer picker after opening a file
-            layout = {
-              preset = "dropdown",                  -- use this layout for your picker
-              preview = false,                      -- don't show the preview window by default
-            },
+            layout = { preset = "dropdown" },       -- use this layout for the explorer picker
 
             -- custom actions to trigger in the explorer
             actions = {
@@ -81,7 +78,7 @@ return {
                 -- present the table of options for user selection
                 vim.ui.select(opts, {
                   prompt = "Select to copy to clipboard:",
-                  format_item = function(item) return ("%s"):format(vals[item]) end,
+                  format_item = function(x) return ("%s"):format(vals[x]) end,
                 }, function(i)
                   if vals[i] then vim.fn.setreg("+", vals[i]) end
                 end)
@@ -158,7 +155,7 @@ return {
           dropdown = {                              -- Custom picker based on built in vscode preset
             layout = {
               box = "vertical",                     -- vertical stacking of windows
-              backdrop = true,                      -- dims the backround making picker pop out
+              backdrop = 60,                        -- opacity which dims the backround making picker pop out
               row = 1,                              -- draw the picker this many rows from the top of the screen
               width = 0.8,                          -- percentage of screen width to use for picker
               min_width = 80,                       -- minimum number of columns to make the width of the picker
@@ -172,19 +169,19 @@ return {
           dropdown_with_preview = {                 -- Custom picker based on built in vscode preset with preview
             layout = {
               box = "vertical",                     -- vertical stacking of windows
-              backdrop = true,                      -- dims the backround making picker pop out
+              backdrop = 60,                        -- opacity which dims the backround making picker pop out
               row = 1,                              -- draw the picker this many rows from the top of the screen
               width = 0.8,                          -- percentage of screen width to use for picker
               min_width = 80,                       -- minimum number of columns to make the width of the picker
               max_width = 120,                      -- maximum number of columns to make the width of the picker
-              height = 0.9,                         -- percentage of the screen height to user for picker
+              height = 0.6,                         -- percentage of the screen height to user for picker
               border = false,                       -- don't draw the border as it collides with the search box
               {
                 win = "input",                      -- input window
                 height = 1,                         -- make the input window a height of 1 row
                 border = true,                      -- draw a border around the input window
                 title = "{title}",                  -- add the input window title
-                title_pos = "center"                -- center the title
+                title_pos = "center",               -- center the title
                 -- Can change the colors of layout components
                 -- wo = {
                 --   winhighlight = "FloatBorder:Normal,NormalFloat:Normal,SnacksPickerPrompt:SnacksPickerPromptTransparent",
@@ -204,6 +201,7 @@ return {
           -- slick custom bindings to help navigate between the picker windows
           input = {
             keys = {
+              ["<Esc>"] = { "close", mode = { "i", "n" }, desc = "Close help or picker" },
               ["<c-p>"] = { "focus_preview", mode = { "i", "n" }, desc = "Focus on the preview window from input" },
               ["<c-l>"] = { "focus_list", mode = { "i", "n" }, desc = "Focus on the list window from input" },
             },
@@ -267,8 +265,8 @@ return {
             section = 'recent_files',               -- section identifier
             --icon = "",                             -- section icon, looks better without it
             title = 'Recent Files',                 -- section title
-            indent = 1,                             -- indent for content rows
-            padding = 2 
+            indent = 1,                             -- indent for recent files
+            padding = 2,                            -- padding for recent files
           },
           --{ section = "startup" },                -- doesn't work without lazy stats??
         },
@@ -293,21 +291,32 @@ return {
       },
     })
   end,
-  keys = {
-    -- Ctrl+q to close the current buffer or Neovim if its the last buffer
-    { "<C-q>", function()
-        local bufs = vim.fn.getbufinfo({ buflisted = 1 })
-        if #bufs <= 1 then vim.cmd("q") else Snacks.bufdelete()
-      end
-    end, desc = "Close the current buffer or Neovim" },
 
-    -- Snacks terminal functionality: hit <Esc><Esc> to get to normal mode
+  -- -----------------------------------------------------------------------------------------------
+  -- Key maps
+  -- [Snacks example configuration has good keymaps](https://github.com/folke/snacks.nvim?tab=readme-ov-file#-usage)
+  -- -----------------------------------------------------------------------------------------------
+  keys = {
+    -- Ctrl+q to close the transient window or buffer or NVIM if its the last one
+    { "<C-q>", function()
+      local buf = vim.api.nvim_get_current_buf()
+      local buftype = vim.bo[buf].buftype
+      local filetype = vim.bo[buf].filetype
+      if buftype ~= "" or filetype == "help" then
+        vim.cmd("close")
+        return
+      end
+      local bufs = vim.fn.getbufinfo({ buflisted = 1 })
+      if #bufs <= 1 then vim.cmd("q") else Snacks.bufdelete() end
+    end, desc = "Close the current buffer/window or Neovim" },
+
+    -- Terminal: hit <Esc><Esc> to get to normal mode
     { "<leader>t", function() Snacks.terminal() end, desc = "Terminal toggle" },
 
-    -- Snacks explorer functionality
+    -- Explorer
     { "<leader>e", function() Snacks.explorer() end, desc = "File Explorer" },
 
-    -- Snacks fuzzy find functionality
+    -- Find
     { "<leader><leader>", function() Snacks.picker.smart() end, desc = "Smart find files" },
     { "<leader>.", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
     { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Find in buffers" },
@@ -325,6 +334,19 @@ return {
     { "<leader>S", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer" },
     { "<leader>dps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Buffer" },
     { "<leader>un", function() Snacks.notifier.hide() end, desc = "Dismiss All Notifications" },
+
+    -- LSP
+    { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Goto Definition" },
+    { "gD", function() Snacks.picker.lsp_declarations() end, desc = "Goto Declaration" },
+    { "gr", function() Snacks.picker.lsp_references(
+      { layout = "dropdown_with_preview", focus = "list" }) end, nowait = true, desc = "References" },
+    { "gI", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
+    { "gy", function() Snacks.picker.lsp_type_definitions(
+      { layout = "dropdown_with_preview", focus = "list" }) end, desc = "Goto T[y]pe Definition" },
+    { "gai", function() Snacks.picker.lsp_incoming_calls() end, desc = "C[a]lls Incoming" },
+    { "gao", function() Snacks.picker.lsp_outgoing_calls() end, desc = "C[a]lls Outgoing" },
+    { "<leader>ss", function() Snacks.picker.lsp_symbols({ focus = "list" }) end, desc = "LSP Symbols" },
+    { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols({ focus = "list" }) end, desc = "LSP Workspace Symbols" },
 
     -- { "<leader>n", function()
     --   if Snacks.config.picker and Snacks.config.picker.enabled then
