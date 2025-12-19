@@ -265,8 +265,10 @@
     fd                                      # Simple fast Rust alternative to find
     ripgrep                                 # Faster more capable Rust grep
     rust-analyzer                           # Rust LSP
-    stylua                                  # Opinionated Lua code formatter
+    stylua                                  # Lua opinionated code formatter
     lua-language-server                     # Lua LSP
+    bash-language-server                    # Bash LSP
+    shellcheck                              # Bash script analysis linting tool
   ];
 
 in 

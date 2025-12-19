@@ -298,15 +298,17 @@ return {
   -- [Snacks example configuration has good keymaps](https://github.com/folke/snacks.nvim?tab=readme-ov-file#-usage)
   -- -----------------------------------------------------------------------------------------------
   keys = {
-    -- Ctrl+q to close the transient window or buffer or NVIM if its the last one
     { "<C-q>", function()
+      -- Close transient normal window e.g. help, code referencdes
       local buf = vim.api.nvim_get_current_buf()
       local buftype = vim.bo[buf].buftype
       local filetype = vim.bo[buf].filetype
       if buftype ~= "" or filetype == "help" then
-        vim.cmd("close")
+        vim.cmd("bdelete") -- using "bdelete" b/c "close" doesn't always work
         return
       end
+
+      -- Close buffer or NVIM
       local bufs = vim.fn.getbufinfo({ buflisted = 1 })
       if #bufs <= 1 then vim.cmd("q") else Snacks.bufdelete() end
     end, desc = "Close the current buffer/window or Neovim" },
