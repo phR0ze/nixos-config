@@ -101,6 +101,7 @@
         x.bash
         x.diff
         x.dart
+        x.go
         x.html
         x.javascript
         x.jsdoc
@@ -112,6 +113,7 @@
         x.printf
         x.python
         x.regex
+        x.ruby
         x.rust
         x.toml
         x.vim
@@ -264,11 +266,22 @@
   runtimeDeps = with pkgs; [
     fd                                      # Simple fast Rust alternative to find
     ripgrep                                 # Faster more capable Rust grep
-    rust-analyzer                           # Rust LSP
+    gopls                                   # GO LSP
+    helm-ls                                 # Helm LSP
     stylua                                  # Lua opinionated code formatter
     lua-language-server                     # Lua LSP
     bash-language-server                    # Bash LSP
     shellcheck                              # Bash script analysis linting tool
+    marksman                                # Markdown LSP
+    #md-lsp                                 # Markdown LSP alternative
+    nixd                                    # Nix LSP
+    #crates-lsp                              # Rust cargo.toml LSP
+    rust-analyzer                           # Rust LSP
+    superhtml                               # HTML LSP
+    systemd-language-server                 # Systemd LSP
+    tailwindcss-language-server             # Tailwind LSP
+    yaml-language-server                    # YAML LSP
+    #zuban                                   # Python LSP
   ];
 
 in 
