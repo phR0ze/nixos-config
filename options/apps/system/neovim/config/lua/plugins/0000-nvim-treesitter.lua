@@ -1,12 +1,17 @@
 return {
+  -- -----------------------------------------------------------------------------------------------
   -- [Nvim-nix guide](https://github.com/adman44532/nvim-nix)
   -- modern, faster more accurate syntax highlighting and code traversal
+  -- -----------------------------------------------------------------------------------------------
   {
     "nvim-treesitter",
     after = function()
       require("nvim-treesitter.configs").setup({
         auto_install = false,                         -- manage parser installs with Nix
         sync_install = false,                         -- manage parser installs with Nix
+        modules = {},                                 -- manage parser installs with Nix
+        ensure_installed = {},                        -- manage parser installs with Nix
+        ignore_install = {},                          -- manage parser installs with Nix
         context_commentstring = {
           enable = true,
         },
@@ -34,8 +39,10 @@ return {
     end,
   },
 
+  -- -----------------------------------------------------------------------------------------------
   -- TreeSitter context provides a context line at the top of your editor that shows the surrounding 
   -- code object e.g. function definition if your in the function and scrolling off the window.
+  -- -----------------------------------------------------------------------------------------------
   {
     "nvim-treesitter-context",
     event = "DeferredUIEnter",
@@ -54,7 +61,9 @@ return {
     end,
   },
 
+  -- -----------------------------------------------------------------------------------------------
   -- TreeSitter TextObjects
+  -- -----------------------------------------------------------------------------------------------
   {
     "nvim-treesitter-textobjects",
     event = "DeferredUIEnter",
@@ -63,6 +72,12 @@ return {
     end,
     after = function()
       require("nvim-treesitter.configs").setup({
+        auto_install = false,                         -- manage parser installs with Nix
+        sync_install = false,                         -- manage parser installs with Nix
+        modules = {},                                 -- manage parser installs with Nix
+        ensure_installed = {},                        -- manage parser installs with Nix
+        ignore_install = {},                          -- manage parser installs with Nix
+
         textobjects = {
 
           -- define text object selection keymaps and behavior

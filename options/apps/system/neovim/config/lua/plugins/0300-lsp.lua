@@ -1,30 +1,10 @@
-vim.api.nvim_create_autocmd("LspAttach", {
-  callback = function(args)
-    local client = vim.lsp.get_client_by_id(args.data.client_id)
-    if client and client.server_capabilities.inlayHintProvider then
-      vim.lsp.inlay_hint.enable(true, { buffer = args.buf })
-    end
-  end,
-})
-
-vim.api.nvim_create_autocmd("LspAttach", {
-  callback = function(args)
-    local client = vim.lsp.get_client_by_id(args.data.client_id)
-    if client and client.name == "rust_analyzer" then
-      vim.fn.matchadd("ErrorMsg", "\\<SAFETY\\ze:")
-      local error = vim.api.nvim_get_hl(0, { name = "ErrorMsg" })
-      vim.api.nvim_set_hl(0, "@lsp.typemod.operator.unsafe.rust", { underline = true, sp = error.fg })
-      vim.api.nvim_set_hl(0, "@lsp.typemod.function.unsafe.rust", { underline = true, sp = error.fg })
-      vim.api.nvim_set_hl(0, "@lsp.typemod.method.unsafe.rust", { underline = true, sp = error.fg })
-    end
-  end,
-})
-
 return {
   {
+    -- ---------------------------------------------------------------------------------------------
     -- [crates.nvim](https://github.com/saecki/crates.nvim)
     -- manage crates.io dependencies with autocompletion of versions and features
     -- no dependencies
+    -- ---------------------------------------------------------------------------------------------
     "crates.nvim",
     event = "BufRead Cargo.toml",
     after = function()
@@ -32,9 +12,11 @@ return {
     end,
   },
   {
+    -- ---------------------------------------------------------------------------------------------
     -- [figet.nvim](https://github.com/j-hui/fidget.nvim)
     -- shows LSP logging output in the bottom right hand side
     -- no dependencies
+    -- ---------------------------------------------------------------------------------------------
     "fidget.nvim",
     event = "DeferredUIEnter",
     after = function()
@@ -44,9 +26,11 @@ return {
     end,
   },
   {
+    -- ---------------------------------------------------------------------------------------------
     -- [lazydev.nvim](https://github.com/folke/lazydev.nvim/releases)
     -- Ready made Lua LSP configuration to fix some LSP issues
     -- no dependencies
+    -- ---------------------------------------------------------------------------------------------
     "lazydev.nvim",
     after = function()
       require("lazydev").setup({
@@ -57,10 +41,13 @@ return {
     end,
   },
   {
+    -- ---------------------------------------------------------------------------------------------
     -- nvim-lspconfig is a lua plugin to assist in LSP configuration
-    -- depends on treesitter, snacks.picker, mini.icons, rust-analyzer
+    -- * depends on treesitter, snacks.picker, mini.icons
+    -- * configure via vim.lsp.config commands according to the docs
+    -- ---------------------------------------------------------------------------------------------
     "nvim-lspconfig",
-    event = { "BufReadPre", "BufNewFile" },
+    event = { "BufReadPre", "BufNewFile", "FileType" },
     before = function()
       require("lz.n").trigger_load("nvim-treesitter")
       require("lz.n").trigger_load("snacks.nvim")
@@ -68,7 +55,7 @@ return {
     end,
     after = function()
       -- -------------------------------------------------------------------------------------------
-      -- Configure all LSP floating windows with window outline with rounded corners
+      -- Configure all LSP floating windows with outline and rounded corners
       -- -------------------------------------------------------------------------------------------
       vim.lsp.util.open_floating_preview = (function(orig)
         return function(contents, syntax, opts, ...)
@@ -83,7 +70,7 @@ return {
       -- invoked with `gl` and signs in the gutter.
       -- -------------------------------------------------------------------------------------------
       vim.diagnostic.config({
-        -- Not using virtual (i.e. inline) text as it's always clipped off and unreadable
+        -- Not using virtual text (i.e. inline) as it's always clipped off and unreadable
         -- virtual_text = { source = true, prefix = "󰄛 ", },
         signs = {
           text = {
@@ -104,6 +91,18 @@ return {
       })
 
       -- -------------------------------------------------------------------------------------------
+      -- Check for and use inlay hints if supported
+      -- -------------------------------------------------------------------------------------------
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client and client.server_capabilities.inlayHintProvider then
+            vim.lsp.inlay_hint.enable(true, { buffer = args.buf })
+          end
+        end,
+      })
+
+      -- -------------------------------------------------------------------------------------------
       -- Configure additional LSP key mappings not covered in `0100-snacks-nvim.lua`
       -- -------------------------------------------------------------------------------------------
       vim.api.nvim_create_autocmd('LspAttach', {
@@ -114,6 +113,56 @@ return {
           vim.keymap.set({"n", "x"}, "<leader>ca", vim.lsp.buf.code_action, {buffer = event.buf, desc = "LSP: [C]ode [A]ction" })
         end,
       })
+
+      -- -------------------------------------------------------------------------------------------
+      -- Configure custom highlighting for rust unsafe code blocks
+      -- -------------------------------------------------------------------------------------------
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client and client.name == "rust_analyzer" then
+            vim.fn.matchadd("ErrorMsg", "\\<SAFETY\\ze:")
+            local error = vim.api.nvim_get_hl(0, { name = "ErrorMsg" })
+            vim.api.nvim_set_hl(0, "@lsp.typemod.operator.unsafe.rust", { underline = true, sp = error.fg })
+            vim.api.nvim_set_hl(0, "@lsp.typemod.function.unsafe.rust", { underline = true, sp = error.fg })
+            vim.api.nvim_set_hl(0, "@lsp.typemod.method.unsafe.rust", { underline = true, sp = error.fg })
+          end
+        end,
+      })
+
+      -- -------------------------------------------------------------------------------------------
+      -- Bash LSP configuration
+      -- requires nix package `bash-language-server` and `shellcheck`
+      -- -------------------------------------------------------------------------------------------
+      vim.lsp.enable("bashls")
+
+      -- -------------------------------------------------------------------------------------------
+      -- Clang LSP configuration
+      -- -------------------------------------------------------------------------------------------
+      --vim.lsp.enable("clangd")
+
+      -- -------------------------------------------------------------------------------------------
+      -- GO LSP configuration
+      -- -------------------------------------------------------------------------------------------
+      vim.lsp.enable("gopls")
+
+      -- -------------------------------------------------------------------------------------------
+      -- Lua LSP configuration
+      -- requires nix package `lua-language-server`
+      -- requires `lazydev.nvim` plugin to avoid "vim" global errors
+      -- -------------------------------------------------------------------------------------------
+      vim.lsp.enable("lua_ls")
+
+      -- -------------------------------------------------------------------------------------------
+      -- Markdown LSP configuration
+      -- requires nix package `marksman`
+      -- -------------------------------------------------------------------------------------------
+      vim.lsp.enable("marksman")
+
+      -- -------------------------------------------------------------------------------------------
+      -- Nix LSP configuration
+      -- -------------------------------------------------------------------------------------------
+      vim.lsp.enable("nixd")
 
       -- -------------------------------------------------------------------------------------------
       -- Rust LSP configuration
@@ -145,27 +194,10 @@ return {
       vim.lsp.enable("rust_analyzer")
 
       -- -------------------------------------------------------------------------------------------
-      -- Lua LSP configuration
-      -- requires nix package `lua-language-server`
-      -- requires `lazydev.nvim` plugin to avoid "vim" global errors
+      -- YAML LSP configuration
+      -- depends on the yaml LSP being installed via nix
       -- -------------------------------------------------------------------------------------------
-      vim.lsp.enable("lua_ls")
-
-      -- -------------------------------------------------------------------------------------------
-      -- Bash LSP configuration
-      -- requires nix package `bash-language-server` and `shellcheck`
-      -- -------------------------------------------------------------------------------------------
-      vim.lsp.enable("bashls")
-
-      -- -------------------------------------------------------------------------------------------
-      -- Nix LSP configuration
-      -- -------------------------------------------------------------------------------------------
-      vim.lsp.enable("nixd")
-
-      -- -------------------------------------------------------------------------------------------
-      -- Clang LSP configuration
-      -- -------------------------------------------------------------------------------------------
-      vim.lsp.enable("clangd")
+      vim.lsp.enable("yamlls")
     end,
   },
 }

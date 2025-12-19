@@ -1,7 +1,9 @@
 return {
   {
+    -- ---------------------------------------------------------------------------------------------
     -- [catppuccin/nvim](https://github.com/catppuccin/nvim)
     -- Soothing pastel color scheme
+    -- ---------------------------------------------------------------------------------------------
     "catppuccin-nvim",                                -- Lua result/pack/nvim-custom/opt module name
     lazy = false,                                     -- Make it immediately available
     after = function()
@@ -19,8 +21,10 @@ return {
   --   end,
   -- },
   {
+    -- ---------------------------------------------------------------------------------------------
     -- [gruvbox](https://github.com/ellisonleao/gruvbox.nvim)
     -- Lua port of the most famous vim colorscheme
+    -- ---------------------------------------------------------------------------------------------
     "gruvbox.nvim",                                   -- Lua result/pack/nvim-custom/opt module name
     event = "DeferredUIEnter",                        -- Equivalent of VeryLazy
     after = function()
@@ -28,9 +32,11 @@ return {
     end,
   },
   {
+    -- ---------------------------------------------------------------------------------------------
     -- [tokyonight.nvim](https://github.com/tolke/tokyonight.nvim)
     -- A clean, dark Neovim theme written in Lua with support for LSP, treesitter and other plugins
     -- no external dependencies
+    -- ---------------------------------------------------------------------------------------------
     "tokyonight.nvim",                                -- Lua result/pack/nvim-custom/opt module name
     lazy = false,                                     -- Make it immediately available
     after = function()
@@ -38,11 +44,13 @@ return {
     end,
   },
   {
+    -- ---------------------------------------------------------------------------------------------
     -- [mini.icons](https://github.com/nvim-mini/mini.icons)
     -- Modern, minimal, pure lua replacement for nvim-web-devicons
     -- Can patch itself into plugins expecting nvim-web-devicons thus eliminating the need for both
     -- Using LazyVim configuration as is
     -- no external dependencies
+    -- ---------------------------------------------------------------------------------------------
     "mini.icons",                                     -- Lua result/pack/nvim-custom/opt module name
     event = "DeferredUIEnter",                        -- Equivalent of VeryLazy
     after = function()
@@ -60,9 +68,11 @@ return {
     end,
   },
   {
+    -- ---------------------------------------------------------------------------------------------
     -- Automatically inserts a matching closing character when you type an opening character like ", [, or (
     -- and does so intelligently with context awareness unlike the LazyVim choice of mini.pairs which 
     -- does it no matter what without context awareness
+    -- ---------------------------------------------------------------------------------------------
     "nvim-autopairs",                                 -- Lua result/pack/opt module name
     event = "InsertEnter",                            -- Equivalent of VeryLazy
     after = function()
@@ -70,10 +80,12 @@ return {
     end,
   },
   {
+    -- ---------------------------------------------------------------------------------------------
     -- Persistence is a simple lua plugin for automated session management.
     -- saves active session under ~/.local/state/nvim/sessions on exit
     -- using the LazyVim configuration as is
     -- no external dependencies
+    -- ---------------------------------------------------------------------------------------------
     "persistence.nvim",
     event = "BufReadPre",
     after = function()
@@ -87,10 +99,12 @@ return {
     },
   },
   {
+    -- ---------------------------------------------------------------------------------------------
     -- [ts-comments.nvim](https://github.com/folke/ts-comments.nvim)
     -- better comments and override support for treesitter languages
     -- using LazyVim configuration as is
     -- no external dependencies
+    -- ---------------------------------------------------------------------------------------------
     "ts-comments.nvim",                               -- Lua result/pack/opt module name
     event = "DeferredUIEnter",                        -- Equivalent of VeryLazy
     after = function()
@@ -98,9 +112,11 @@ return {
     end,
   },
   {
+    -- ---------------------------------------------------------------------------------------------
     -- [bufferline.nvim](https://github.com/akinsho/bufferline.nvim)
     -- A snazy pure lua buffer line
     -- depends on mini.icons
+    -- ---------------------------------------------------------------------------------------------
     "bufferline.nvim",                                -- Lua result/pack/opt module name
     event = "DeferredUIEnter",                        -- Equivalent of VeryLazy
     before = function()
@@ -121,8 +137,10 @@ return {
     },
   },
   {
+    -- ---------------------------------------------------------------------------------------------
     -- Blazing fast neovim statusline written in pure lua
     -- depends on mini.icons
+    -- ---------------------------------------------------------------------------------------------
     "lualine.nvim",                                   -- Lua result/pack/opt module name
     event = "DeferredUIEnter",                        -- Equivalent of VeryLazy
     before = function()
@@ -130,8 +148,21 @@ return {
     end,
     after = function()                                -- Function to load after the event
       require("lualine").setup({
-        options = {
-          theme = 'auto',                             -- Default, but can manually change here
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff', 'diagnostics' },
+          lualine_c = { { 'filename', path = 2, shorting_rule = 'minimal' } },
+          lualine_x = { 'encoding', 'fileformat', 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { 'location' }
+        },
+        inactive_sections = {
+          lualine_a = {},
+          lualine_b = {},
+          lualine_c = { { 'filename', path = 2, shorting_rule = 'minimal' } },
+          lualine_x = { 'location' },
+          lualine_y = {},
+          lualine_z = {}
         },
       })
     end,
