@@ -9,6 +9,7 @@
     ./immich.nix
     ./jellyfin.nix
     ./kasmvnc.nix
+    ./keyd.nix
     ./minecraft.nix
     ./nfs.nix
     ./nix-cache.nix

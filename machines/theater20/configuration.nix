@@ -16,6 +16,7 @@
     machine.autologin = true;
     machine.nix.cache.enable = true;
 
+    services.raw.keyd.enable = true;
     apps.games.hedgewars.enable = true;
     apps.games.superTuxKart.enable = true;
   };
