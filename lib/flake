@@ -9,6 +9,7 @@
 MACHINE=""
 PROFILE=""
 TARGET=""
+LOCK_FILE="/nix/files.lock"
 
 # Ensure the config path is accurate
 flake::ensure_config_path()
@@ -165,7 +166,7 @@ flake::trap()
     exit 1
 }
 
-# Stage for tempory flake files
+# Stage flake files for install or updates
 # - files that the flake depends on must be git staged to be used.
 # - $1 - machine or profile to use for switching to the given target
 #
@@ -179,7 +180,7 @@ flake::stage_files()
     fi
 
     log::ls -n "Removing ${cyan}${ROOT_DIR}/nix/files.lock${none} to permit files update..."
-    $SUDO rm -f "${ROOT_DIR}/nix/files.lock"
+    $SUDO rm -f "${LOCK_FILE}"
     log::status
 
     flake::switch $1
@@ -196,6 +197,6 @@ flake::unstage_files()
     flake::restore
 
     log::ls -n "Adding ${cyan}${ROOT_DIR}/nix/files.lock${none} to avoid updates during reboots..."
-    $SUDO touch "${ROOT_DIR}/nix/files.lock"
+    $SUDO touch "${LOCK_FILE}"
     log::status
 }
