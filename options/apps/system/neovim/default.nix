@@ -216,6 +216,20 @@
       src = fetchFromGitHub { owner = "folke"; repo = "lazydev.nvim";
         rev = "v1.10.0"; sha256 = "sha256-sqtdijEnUZrgp+4GKpetZmenA4hkFNHk/jw57y+25co="; };})
 
+    # Rustaceanvim provides a ready made Rust LSP configuration to handle all the things
+    # - depends on nvim-dap, lldb, rust-analyzer
+    (vimUtils.buildVimPlugin {
+      pname = "rustaceanvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "mrcjkb"; repo = "rustaceanvim";
+        rev = "v7.0.6"; sha256 = "sha256-t7xAQ9sczLyA1zODmD+nEuWuLnhrfSOoPu/4G/YTGdU="; };
+        doCheck = false; doNvimRequireCheck = false; })
+
+    # Conform provides code formatting for various languages
+    # - depends ?
+    (vimUtils.buildVimPlugin {
+      pname = "conform.nvim"; version = "2025-10-30";
+      src = fetchFromGitHub { owner = "stevearc"; repo = "conform.nvim";
+        rev = "v9.1.0"; sha256 = "sha256-pUF9F5QoDzCZuVRcJEF91M8Qjkh/xosMkf9tRavkmJs="; };})
 
     # blink.cmp provides autocompletion
     # (vimUtils.buildVimPlugin {
@@ -276,6 +290,7 @@
     #md-lsp                                 # Markdown LSP alternative
     nixd                                    # Nix LSP
     #crates-lsp                              # Rust cargo.toml LSP
+    lldb                                    # Rust debug adaptor
     rust-analyzer                           # Rust LSP
     superhtml                               # HTML LSP
     systemd-language-server                 # Systemd LSP

@@ -54,9 +54,7 @@ return {
       require("lz.n").trigger_load("lazydev.nvim")
     end,
     after = function()
-      -- -------------------------------------------------------------------------------------------
       -- Configure all LSP floating windows with outline and rounded corners
-      -- -------------------------------------------------------------------------------------------
       vim.lsp.util.open_floating_preview = (function(orig)
         return function(contents, syntax, opts, ...)
           opts = opts or {}
@@ -65,13 +63,11 @@ return {
         end
       end)(vim.lsp.util.open_floating_preview)
 
-      -- -------------------------------------------------------------------------------------------
       -- Configure LSP diagnostics system to show errors/warnings with a floating window when
       -- invoked with `gl` and signs in the gutter.
-      -- -------------------------------------------------------------------------------------------
       vim.diagnostic.config({
         -- Not using virtual text (i.e. inline) as it's always clipped off and unreadable
-        -- virtual_text = { source = true, prefix = "󰄛 ", },
+        --virtual_text = { source = true, prefix = "󰄛 ", },
         signs = {
           text = {
             [vim.diagnostic.severity.ERROR] = " ",
@@ -90,9 +86,7 @@ return {
         update_in_insert = true,
       })
 
-      -- -------------------------------------------------------------------------------------------
       -- Check for and use inlay hints if supported
-      -- -------------------------------------------------------------------------------------------
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(args)
           local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -102,9 +96,7 @@ return {
         end,
       })
 
-      -- -------------------------------------------------------------------------------------------
       -- Configure additional LSP key mappings not covered in `0100-snacks-nvim.lua`
-      -- -------------------------------------------------------------------------------------------
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
         callback = function(event)
@@ -114,60 +106,44 @@ return {
         end,
       })
 
-      -- -------------------------------------------------------------------------------------------
-      -- Configure custom highlighting for rust unsafe code blocks
-      -- -------------------------------------------------------------------------------------------
-      vim.api.nvim_create_autocmd("LspAttach", {
-        callback = function(args)
-          local client = vim.lsp.get_client_by_id(args.data.client_id)
-          if client and client.name == "rust_analyzer" then
-            vim.fn.matchadd("ErrorMsg", "\\<SAFETY\\ze:")
-            local error = vim.api.nvim_get_hl(0, { name = "ErrorMsg" })
-            vim.api.nvim_set_hl(0, "@lsp.typemod.operator.unsafe.rust", { underline = true, sp = error.fg })
-            vim.api.nvim_set_hl(0, "@lsp.typemod.function.unsafe.rust", { underline = true, sp = error.fg })
-            vim.api.nvim_set_hl(0, "@lsp.typemod.method.unsafe.rust", { underline = true, sp = error.fg })
-          end
-        end,
-      })
-
-      -- -------------------------------------------------------------------------------------------
       -- Bash LSP configuration
       -- requires nix package `bash-language-server` and `shellcheck`
-      -- -------------------------------------------------------------------------------------------
       vim.lsp.enable("bashls")
 
-      -- -------------------------------------------------------------------------------------------
       -- Clang LSP configuration
-      -- -------------------------------------------------------------------------------------------
       --vim.lsp.enable("clangd")
 
-      -- -------------------------------------------------------------------------------------------
       -- GO LSP configuration
-      -- -------------------------------------------------------------------------------------------
       vim.lsp.enable("gopls")
 
-      -- -------------------------------------------------------------------------------------------
       -- Lua LSP configuration
       -- requires nix package `lua-language-server`
       -- requires `lazydev.nvim` plugin to avoid "vim" global errors
-      -- -------------------------------------------------------------------------------------------
       vim.lsp.enable("lua_ls")
 
-      -- -------------------------------------------------------------------------------------------
       -- Markdown LSP configuration
       -- requires nix package `marksman`
-      -- -------------------------------------------------------------------------------------------
       vim.lsp.enable("marksman")
 
-      -- -------------------------------------------------------------------------------------------
       -- Nix LSP configuration
-      -- -------------------------------------------------------------------------------------------
       vim.lsp.enable("nixd")
 
-      -- -------------------------------------------------------------------------------------------
-      -- Rust LSP configuration
-      -- requires nix package `rust-analyzer`
-      -- -------------------------------------------------------------------------------------------
+      -- YAML LSP configuration
+      -- depends on the yaml LSP being installed via nix
+      vim.lsp.enable("yamlls")
+    end,
+  },
+  {
+    -- ---------------------------------------------------------------------------------------------
+    -- [rustaceanvim](https://github.com/mrcjkb/rustaceanvim)
+    -- Ready made Rust LSP configuration to handle all the things
+    -- ---------------------------------------------------------------------------------------------
+    "rustaceanvim",                                   -- Lua result/pack/nvim-custom/opt/? module name
+    lazy = false,                                     -- This plugin is already lazy
+    after = function()
+      require("rustaceanvim")                         -- no need to call setup
+
+      -- Custom configuration
       vim.lsp.config("rust_analyzer", {
         settings = {
           ["rust-analyzer"] = {
@@ -191,13 +167,60 @@ return {
           },
         },
       })
-      vim.lsp.enable("rust_analyzer")
 
-      -- -------------------------------------------------------------------------------------------
-      -- YAML LSP configuration
-      -- depends on the yaml LSP being installed via nix
-      -- -------------------------------------------------------------------------------------------
-      vim.lsp.enable("yamlls")
+      -- Configure custom highlighting for rust unsafe code blocks
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client and client.name == "rust_analyzer" then
+            vim.fn.matchadd("ErrorMsg", "\\<SAFETY\\ze:")
+            local error = vim.api.nvim_get_hl(0, { name = "ErrorMsg" })
+            vim.api.nvim_set_hl(0, "@lsp.typemod.operator.unsafe.rust", { underline = true, sp = error.fg })
+            vim.api.nvim_set_hl(0, "@lsp.typemod.function.unsafe.rust", { underline = true, sp = error.fg })
+            vim.api.nvim_set_hl(0, "@lsp.typemod.method.unsafe.rust", { underline = true, sp = error.fg })
+          end
+        end,
+      })
+    end,
+  },
+  {
+    "conform.nvim",
+    event = "BufWritePre",
+    after = function()
+      require("conform").setup({
+        formatters_by_ft = {
+          lua = { "stylua" },
+          nix = { "nixpkgs_fmt", "injected" },
+          rust = { "rustfmt" },
+          --python = { "black" },
+          toml = { "taplo" },
+          markdown = { "markdownlint-cli2" },
+        },
+        format_on_save = function(bufnr)
+          if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+            return
+          end
+          return { timeout_ms = 500, lsp_format = "fallback" }
+        end,
+      })
+
+      -- FormatDisable! will disable formatting just for this buffer
+      vim.api.nvim_create_user_command("FormatDisable", function(args)
+        if args.bang then
+          vim.b.disable_autoformat = true
+        else
+          vim.g.disable_autoformat = true
+        end
+      end, {
+        desc = "Disable autoformat-on-save",
+        bang = true,
+      })
+      vim.api.nvim_create_user_command("FormatEnable", function()
+        vim.b.disable_autoformat = false
+        vim.g.disable_autoformat = false
+      end, {
+        desc = "Re-enable autoformat-on-save",
+      })
     end,
   },
 }
