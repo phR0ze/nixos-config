@@ -28,8 +28,8 @@
     services.raw.minecraft.enable = true;
     services.raw.nix-cache.host.enable = true;
     services.raw.adguardhome.enable = true;
+    services.raw.mullvad.enable = true;
     services.raw.synology-drive-client.enable = true;
-    #services.raw.private-internet-access.enable = true;
     services.oci.homarr = { enable = true; port = 80; };
     services.oci.oneup = { enable = true; port = 8002; };
     services.oci.stirling-pdf = { enable = true; port = 8001; };
