@@ -79,7 +79,7 @@ flake::switch()
     # Decrypt if not installing
     if [ $INSTALL -eq 0 ]; then
         $SUDO git decrypt
-        [[ -e "args.dec.json" ]] && git add "args.dec.json" -f
+        [[ -e "args.dec.json" ]] && $SUDO git add "args.dec.json" -f
     fi
 
     # Optionally include machine's configuration
