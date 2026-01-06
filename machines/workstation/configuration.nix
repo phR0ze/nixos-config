@@ -29,7 +29,6 @@
     devices.printers.brother-hll2405w = true;
 
     services.raw.barriers.enable = true;
-    services.raw.mullvad.enable = true;
     services.raw.rustdesk.autostart = false;
 
     virtualisation.podman.enable = true;

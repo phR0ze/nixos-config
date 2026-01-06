@@ -38,9 +38,9 @@ vim.opt.scrolloff = 8 -- Keep 8 lines visible above/below the cursor for scrolli
 -- Display special characters
 vim.opt.list = true
 vim.opt.listchars = { -- Display whitespace characters as these special symbols
-	tab = "» ",
-	trail = "·",
-	nbsp = "␣",
+  tab = "» ",
+  trail = "·",
+  nbsp = "␣",
 }
 
 -- Set tabbing/indenting
@@ -75,5 +75,5 @@ vim.opt.grepprg = "rg --vimgrep --hidden -g '!.git/*'" -- Sets :grep to use ripg
 -- Neovide's default vertical space between lines is too cramped. 3 matches Neovim's default look and
 -- feel when being used directly in the terminal
 if vim.g.neovide then
-	vim.opt.linespace = 3
+  vim.opt.linespace = 3
 end
