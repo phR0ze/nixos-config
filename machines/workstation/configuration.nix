@@ -13,7 +13,7 @@
 # - Barrier server configuration
 # 
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, lib, args, f, ... }: with lib.types;
+{ pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -29,6 +29,7 @@
     devices.printers.brother-hll2405w = true;
 
     services.raw.barriers.enable = true;
+    services.raw.mullvad.enable = true;
     services.raw.rustdesk.autostart = false;
 
     virtualisation.podman.enable = true;
