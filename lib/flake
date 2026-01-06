@@ -9,12 +9,11 @@
 MACHINE=""
 PROFILE=""
 TARGET=""
-LOCK_FILE="/nix/files.lock"
 
 # Ensure the config path is accurate
 flake::ensure_config_path()
 {
-    if [[ ! -e "${CONFIG_DIR}/base.nix" || ! -e "${CONFIG_DIR}/base.lock" ]]; then
+    if [[ $(utils::cwd_is_nixos_config) -eq 1 ]]; then
         log::fatal "Config directory not detected, please run clu from config directory."
     fi
 }
@@ -180,7 +179,7 @@ flake::stage_files()
     fi
 
     log::ls -n "Removing ${cyan}${ROOT_DIR}/nix/files.lock${none} to permit files update..."
-    $SUDO rm -f "${LOCK_FILE}"
+    $SUDO rm -f "${ROOT_DIR}/nix/files.lock"
     log::status
 
     flake::switch $1
@@ -197,6 +196,6 @@ flake::unstage_files()
     flake::restore
 
     log::ls -n "Adding ${cyan}${ROOT_DIR}/nix/files.lock${none} to avoid updates during reboots..."
-    $SUDO touch "${LOCK_FILE}"
+    $SUDO touch "${ROOT_DIR}/nix/files.lock"
     log::status
 }
