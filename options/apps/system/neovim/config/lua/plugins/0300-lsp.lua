@@ -78,11 +78,11 @@ return {
         },
         -- float rounded provides a nice window that can be invoked with my 'gl' key map
         float = {
-          border = "rounded",       -- add a rounded border around the flowing window
+          border = "rounded", -- add a rounded border around the flowing window
           source = true,
         },
         jump = { float = true },
-        severity_sort = true,       -- sort diagnostics by severity if more than one in a window
+        severity_sort = true, -- sort diagnostics by severity if more than one in a window
         update_in_insert = true,
       })
 
@@ -97,12 +97,17 @@ return {
       })
 
       -- Configure additional LSP key mappings not covered in `0100-snacks-nvim.lua`
-      vim.api.nvim_create_autocmd('LspAttach', {
-        group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
+      vim.api.nvim_create_autocmd("LspAttach", {
+        group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
         callback = function(event)
           -- Code Action keymaps
-          vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, {buffer = event.buf, desc = "LSP: [C]ode [R]ename" })
-          vim.keymap.set({"n", "x"}, "<leader>ca", vim.lsp.buf.code_action, {buffer = event.buf, desc = "LSP: [C]ode [A]ction" })
+          vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, { buffer = event.buf, desc = "LSP: [C]ode [R]ename" })
+          vim.keymap.set(
+            { "n", "x" },
+            "<leader>ca",
+            vim.lsp.buf.code_action,
+            { buffer = event.buf, desc = "LSP: [C]ode [A]ction" }
+          )
         end,
       })
 
@@ -138,10 +143,10 @@ return {
     -- [rustaceanvim](https://github.com/mrcjkb/rustaceanvim)
     -- Ready made Rust LSP configuration to handle all the things
     -- ---------------------------------------------------------------------------------------------
-    "rustaceanvim",                                   -- Lua result/pack/nvim-custom/opt/? module name
-    lazy = false,                                     -- This plugin is already lazy
+    "rustaceanvim", -- Lua result/pack/nvim-custom/opt/? module name
+    lazy = false, -- This plugin is already lazy
     after = function()
-      require("rustaceanvim")                         -- no need to call setup
+      require("rustaceanvim") -- no need to call setup
 
       -- Custom configuration
       vim.lsp.config("rust_analyzer", {

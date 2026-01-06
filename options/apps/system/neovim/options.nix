@@ -34,9 +34,17 @@ in
       environment.variables.KUBE_EDITOR = "nvim";       # Set the editor to use for Kubernetes edit commands
 
       # Install supporting packages
-      environment.systemPackages = with pkgs; [
+      environment.systemPackages = [
         (pkgs.callPackage ./default.nix {})             # Call the local neovim package
       ];
+
+      # Create default style configurations
+      files.user.".config/stylua/stylua.toml".link = (
+        pkgs.writeText "stylua.toml" ''
+          indent_type = "Spaces"
+          indent_width = 2
+        ''
+      );
     })
   ];
 }
