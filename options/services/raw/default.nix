@@ -11,6 +11,7 @@
     ./kasmvnc.nix
     ./keyd.nix
     ./minecraft.nix
+    ./mullvad.nix
     ./nfs.nix
     ./nix-cache.nix
     ./private-internet-access.nix
