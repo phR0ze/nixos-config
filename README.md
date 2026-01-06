@@ -304,9 +304,7 @@ the state of this repo, which takes one additional step to include changes.
 
 ## Backlog
 * [ ] NVIM dev configuration
-  * [ ] Getting tabs in my lua file
-  * [ ] Stylua is annoying - disable
-  * [ ] Word wrapping and reflow are not working
+  * [ ] ?
 * [ ] NVIM writer configuration
 * [ ] Convert initial `machines/$MACHINE/args.nix` into a `machines/$MACHINE/args.dec.json`
 * [ ] Local DNS server seems to be unreachable ??

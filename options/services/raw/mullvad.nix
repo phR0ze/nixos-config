@@ -2,27 +2,18 @@
 #
 # ### Description
 # Mullvad offers anonymous registration. They don't require your personal information to create an 
-# Mullvad is a privacy focused VPN provider. Mullvad offers anonymous
-# registration. They don't require your personal information to create an 
-# account. They generate an account number and that is it. You can then login and add time to your 
-# account and setup your VPN configuration.
-
+# Mullvad is a privacy focused VPN provider. They offer anonymous registration via a generated
+# account number. With the anonymous account you can then use a voucher to pay for VPN time
+# anonymously as well.
 #
 # ### Deployment notes
 # For this to work correctly you'll need some manual setup as well:
-# 1. Run `vopono sync --protocol wireguard PrivateInternetAccess`
-# 2. Enter your PIA credentials and answer the port forwarding No
-# 3. Restart your service `systemctl --user restart APP-over-vpn`
-#
-# * Note: you can manually start with `xdg-open "/etc/xdg/autostart/${APP}-over-vpn.desktop"`
-# * Service will not be restarted if it fails
-# * Requires passwordless sudo access to be able to elevate privileges when needed
-# * Validation can be done by using firefox as the app and navigating to 
-#   https://www.privateinternetaccess.com/pages/whats-my-ip
+# 1. Ensure the daemon is running `sudo systemctl status mullvad-daemon`
+# 2. Login to your account with your auto generated account number
+# 3. Configure using [Mullvad config guide](https://github.com/phR0ze/tech-docs/tree/main/src/networking/vpns/mullvad)
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }:
 let
-  nic = config.net.primary.name;
   cfg = config.services.raw.mullvad;
 in
 {
@@ -44,21 +35,5 @@ in
         pkgs.iptables               # Low level firewall tools
       ];    
     })
-
-    # Configure to autostart after login
-    # Creates `/etc/xdg/autostart/APP-over-vpn.desktop`
-    # (lib.mkIf (cfg.enable && cfg.autostart) {
-    #   environment.etc."xdg/autostart/${cfg.app}-over-vpn.desktop".text = ''
-    #     [Desktop Entry]
-    #     Type=Application
-    #     Terminal=true
-    #     Exec=${pkgs.writeScript "${cfg.app}-over-vpn" ''
-    #       #!${pkgs.runtimeShell}
-    #       if [[ -e "$HOME/.config/vopono" ]]; then
-    #         vopono exec --interface ${nic} --provider PrivateInternetAccess --server ${cfg.server} --protocol wireguard ${cfg.app}
-    #       fi
-    #     ''}
-    #   '';
-    # })
   ];
 }
