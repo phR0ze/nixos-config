@@ -31,17 +31,15 @@ set -e
 # - Provides wrappers around common NixOS functions to make them more approachable
 # --------------------------------------------------------------------------------------------------
 SCRIPT="$(basename $0)"                                 # clu
-SCRIPT_DIR="$(readlink -f $(dirname $BASH_SOURCE[0]))"  # /path/to/nixos-config
-ROOT_DIR="" # more intuitive to concat with / so blank  # changeable root for testing and installs
-[[ "${SCRIPT_DIR}" == "/nix/store"* ]] && CONFIG_DIR="$(pwd)" || CONFIG_DIR="${SCRIPT_DIR}"
-source "${SCRIPT_DIR}/lib/all"
-utils::process_args "$@"            # handle global args
-utils::handle_root "${ARGS[@]}"     # handle sudo use case passing cleaned args
+SCRIPT_DIR="$(readlink -f $(dirname $BASH_SOURCE[0]))"  # determine associated script dir
+source "${SCRIPT_DIR}/lib/all"                          # load associated libs from the script dir
+utils::process_args "$@"                                # handle some basic args upfront
+utils::handle_root "${ARGS[@]}"                         # handle root
 
 core::preamble()
 {
     VERSION=0.1.0
-    log::header "${cyan}" "Codified Likeness Utility - clu v${VERSION}, user=$(whoami)" 2 '='
+    log::header "${cyan}" "Codified Likeness Utility - clu v${VERSION}" 2 '='
     echo -e "${green}that is to say, build me a NixOS that I like${none}"
 }
 
@@ -91,7 +89,6 @@ USAGE
 # Parse commands
 # --------------------------------------------------------------------------------------------------
 [[ $# -eq 0 ]] && core::usage
-utils::process_args true "${ARGS[@]}"    # handle global args and clean them
 CMD="${ARGS[0]}" && unset 'ARGS[0]'
 ARGS=("${ARGS[@]}") # rebuild to remove deleted items
 
@@ -100,11 +97,9 @@ ARGS=("${ARGS[@]}") # rebuild to remove deleted items
 
 # Output debug information
 if [[ "$LOG_LEVEL" == "debug" && "$CMD" == "" ]]; then
-    core::preamble
-    echo
+    log::d "USER=$(whoami), SUDO_USER=$SUDO_USER"
     log::d "SCRIPT_DIR: ${cyan}${SCRIPT_DIR}${none}"
     log::d "CONFIG_DIR: ${cyan}${CONFIG_DIR}${none}"
-    exit
 fi
 
 # Installs are run from anywhere and use the /nix/store based config for install
@@ -114,24 +109,28 @@ if [[ "$CMD" != "install" ]]; then
 fi
 
 # Process the command
-case "$CMD" in
-    init) init::run "${ARGS[@]}" ;;
-    build) build::run "${ARGS[@]}" ;;
-    clean) clean::run "${ARGS[@]}" ;;
-    deploy) deploy::run "${ARGS[@]}" ;;
-    dev) dev::run "${ARGS[@]}" ;;
-    install) install::run "${ARGS[@]}" ;;
-    list) list::run "${ARGS[@]}" ;;
-    ll) list::run "${ARGS[@]}" ;;   # list alias
-    manage) manage::run "${ARGS[@]}" ;;
-    pkgs) pkgs::run "${ARGS[@]}" ;;
-    registry) registry::run "${ARGS[@]}" ;;
-    repl) repl::run "${ARGS[@]}" ;;
-    run) run::run "${ARGS[@]}" ;;
-    shell) shell::run "${ARGS[@]}" ;;
-    switch) switch::run "${ARGS[@]}" ;;
-    test) test::run "${ARGS[@]}" ;;
-    update) update::run "${ARGS[@]}" ;;
-    upgrade) upgrade::run "${ARGS[@]}" ;;
-    *) log::error "Invalid command: ${cyan}${CMD}${none}"; core::usage ;;
-esac
+if [[ "x$CMD" != "x" ]]; then
+    case "$CMD" in
+        init) init::run "${ARGS[@]}" ;;
+        build) build::run "${ARGS[@]}" ;;
+        clean) clean::run "${ARGS[@]}" ;;
+        deploy) deploy::run "${ARGS[@]}" ;;
+        dev) dev::run "${ARGS[@]}" ;;
+        install) install::run "${ARGS[@]}" ;;
+        list) list::run "${ARGS[@]}" ;;
+        ll) list::run "${ARGS[@]}" ;;   # list alias
+        manage) manage::run "${ARGS[@]}" ;;
+        pkgs) pkgs::run "${ARGS[@]}" ;;
+        registry) registry::run "${ARGS[@]}" ;;
+        repl) repl::run "${ARGS[@]}" ;;
+        run) run::run "${ARGS[@]}" ;;
+        shell) shell::run "${ARGS[@]}" ;;
+        switch) switch::run "${ARGS[@]}" ;;
+        test) test::run "${ARGS[@]}" ;;
+        update) update::run "${ARGS[@]}" ;;
+        upgrade) upgrade::run "${ARGS[@]}" ;;
+        *) log::error "Invalid command: ${cyan}${CMD}${none}"; core::usage ;;
+    esac
+else
+    core::usage
+fi
