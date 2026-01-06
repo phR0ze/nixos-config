@@ -30,11 +30,11 @@ set -e
 # - Allows for customizing common install settings
 # - Provides wrappers around common NixOS functions to make them more approachable
 # --------------------------------------------------------------------------------------------------
-SCRIPT="$(basename $0)"                                 # clu
-SCRIPT_DIR="$(readlink -f $(dirname $BASH_SOURCE[0]))"  # determine associated script dir
-source "${SCRIPT_DIR}/lib/all"                          # load associated libs from the script dir
-utils::process_args "$@"                                # handle some basic args upfront
-utils::handle_root "${ARGS[@]}"                         # handle root
+SCRIPT="$(basename "$0")"                                     # clu
+SCRIPT_DIR="$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")"  # determine associated script dir
+source "${SCRIPT_DIR}/lib/all"                                # load associated libs from the script dir
+utils::process_args "$@"                                      # handle some basic args upfront
+utils::handle_root "${ARGS[@]}"                               # handle root
 
 core::preamble()
 {
