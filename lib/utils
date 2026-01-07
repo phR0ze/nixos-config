@@ -160,6 +160,8 @@ utils::decrypt()
 
 # Add all decrypted files to git
 # --------------------------------------------------------------------------------------------------
+# - assumes the caller has used pushd to switch directories for git to work correctly
+#
 # ### Params
 # - $1 directory to recursively check
 #
@@ -172,6 +174,31 @@ utils::add_decrypted_to_git()
   log::d "Adding decrypted files to git from ${cyan}${target}${none}"
   mapfile -d '' -t decrypted_files < <(find "$target" -type f -name "*.dec.*" -print0)
   $SUDO git add -f -- "${decrypted_files[@]}"
+}
+
+# Remove decrypted from git and disk
+# --------------------------------------------------------------------------------------------------
+# - assumes the caller has used pushd to switch directories for git to work correctly
+#
+# ### Params
+# - $1 directory to recursively check
+#
+# ### Examples
+# utils::remove_decrypted_from_git "$CONFIG_DIR"
+# --------------------------------------------------------------------------------------------------
+utils::remove_decrypted()
+{
+  local target="$1"
+  mapfile -d '' -t decrypted_files < <(find "$target" -type f -name "*.dec.*" -print0)
+  if [ ${#decrypted_files[@]} -ne 0 ]; then
+    log::d "Removing decrypted files from git for ${cyan}${target}${none}"
+    $SUDO git restore --staged -- "${decrypted_files[@]}"
+
+    log::d "Removing decrypted files from disk for ${cyan}${target}${none}"
+    $SUDO rm -- "${decrypted_files[@]}"
+  else
+    log::d "No decrypted files to remove for ${cyan}${target}${none}"
+  fi
 }
 
 # Execute the given command with conditional redirect for cleaner output while allowing for 
