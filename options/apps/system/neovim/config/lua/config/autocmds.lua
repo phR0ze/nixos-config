@@ -6,13 +6,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   end,
 })
 
-vim.api.nvim_create_autocmd({ "BufRead", "BufWritePre" }, {
-  pattern = { "**/fenet/**.rs", "**/fenet/**.rst", "**/fenet/**.md" },
-  callback = function()
-    require("lint").try_lint("cspell")
-  end,
-})
-
 vim.api.nvim_create_autocmd("QuickFixCmdPost", {
   pattern = "grep",
   callback = function()
@@ -28,4 +21,21 @@ vim.api.nvim_create_autocmd("CmdlineChanged", {
       vim.fn.wildtrigger()
     end
   end,
+})
+
+-- Set custom settings for markdown files
+local md_group = vim.api.nvim_create_augroup("MarkdownSettings", { clear = true })
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead", "FileType" }, {
+  pattern = { "*.markdown", "*.mdown", "*.mkd", "*.mkdn", "*.mdwn", "*.md", "markdown" },
+  callback = function()
+    -- Ensure buffer filetype is markdown
+    vim.bo.filetype = "markdown"
+
+    -- 2-space indentation
+    vim.opt_local.tabstop = 2
+    vim.opt_local.shiftwidth = 2
+    vim.opt_local.softtabstop = 2
+    vim.opt_local.expandtab = true
+  end,
+  group = md_group,
 })
