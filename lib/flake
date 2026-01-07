@@ -79,8 +79,8 @@ flake::switch()
     # Decrypt if not installing
     if [ $INSTALL -eq 0 ]; then
         utils::decrypt "$CONFIG_DIR"
+        utils::add_decrypted_to_git "$CONFIG_DIR"
     fi
-    exit 1
 
     # Optionally include machine's configuration
     if [[ "$target" == "machines"* ]]; then
@@ -89,10 +89,6 @@ flake::switch()
         $SUDO ln -sf "$target/configuration.nix" configuration.nix
         log::d "Add to git repo ${cyan}${CONFIG_DIR}/${target}/configuration.nix${none}"
         $SUDO git add configuration.nix -f
-        if [[ -e "${target}/args.dec.json" ]]; then
-            log::d "Link ${cyan}${CONFIG_DIR}/${target}/args.dec.json${none}"
-            $SUDO git add "$target/args.dec.json" -f
-        fi
 
         # Update the target hostname
         local hostname="${target#machines/}"
@@ -120,26 +116,9 @@ flake::restore()
         $SUDO git restore --staged flake.nix flake.lock
     fi
 
-    # Don't need to bother with this on install as there are no decrypted files except those we are 
-    # using for staging arguments to be encrypted post install
-    if [ $INSTALL -eq 0 ]; then
-        if [[ "$($SUDO git diff --staged --name-only -- *.dec*)" != "" ]]; then
-            log::ls "Restoring decrypted files in ${cyan}${CONFIG_DIR}${none} back to prestine"
-            $SUDO git restore --staged *.dec*
-        fi
-    fi
-
     if [[ "$($SUDO git diff --staged --name-only -- configuration.nix)" != "" ]]; then
         log::ls "Restoring ${cyan}${CONFIG_DIR}/configuration.nix${none} back to prestine"
         $SUDO git restore --staged configuration.nix
-    fi
-
-    # Skip the dec files on install as were using this to stage values that have yet to get encrypted
-    if [ $INSTALL -eq 0 ]; then
-        if [[ "$($SUDO git diff --staged --name-only -- */*.dec*)" != "" ]]; then
-            log::ls "Restoring ${cyan}${CONFIG_DIR}/*/*.dec*${none} back to prestine"
-            $SUDO git restore --staged */*.dec*
-        fi
     fi
 
     if [[ "$($SUDO git diff --staged --name-only -- args.nix)" != "" ]]; then
@@ -148,11 +127,8 @@ flake::restore()
         $SUDO git checkout args.nix
     fi
 
-    # Find and delete all decrypted files every time
-    # - Don't need to to do this on install
-    if [ $INSTALL -eq 0 ]; then
-        $SUDO find "$CONFIG_DIR" -type f -name "*.dec*" -delete
-    fi
+    # Clean up decrypted files after were done
+    utils::remove_decrypted "$CONFIG_DIR"
 
     utils::run popd
 }

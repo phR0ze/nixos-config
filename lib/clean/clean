@@ -58,9 +58,7 @@ clean::run()
 # --------------------------------------------------------------------------------------------------
 clean::dec()
 {
-  log::d "Removing decrypted files from git for ${cyan}${target}${none}"
-  mapfile -d '' -t decrypted_files < <(find "$target" -type f -name "*.dec.*" -print0)
-  $SUDO git restore --staged -- "${decrypted_files[@]}"
+  flake::restore
 }
 
 # Clean the given package from the nix store
