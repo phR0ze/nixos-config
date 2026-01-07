@@ -151,11 +151,8 @@ utils::decrypt()
     decrypted_files+=("$decrypted")     # add it to the decrypted array
 
     # Execute decryption for target
-    $SUDO sops --decrypt "$encrypted" > "$decrypted"
+    $SUDO bash -c "sops --decrypt '$encrypted' > '$decrypted'"
   done
-
-  # Now add them all to git
-  #git add -- "${files[@]}"
 }
 
 # Add all decrypted files to git
