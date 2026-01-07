@@ -3,7 +3,7 @@
 # ### Features
 # - Directly installable: desktop with additional laptop tooling/configs
 # --------------------------------------------------------------------------------------------------
-{ lib, ... }:
+{ ... }:
 {
   imports = [
     ./desktop.nix
