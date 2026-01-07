@@ -11,7 +11,6 @@
 # - VM hard disk can be tiny e.g. 1 GiB as all the predefined apps and configs are in the host's nix 
 #   store and mounted readonly in the VM.
 # --------------------------------------------------------------------------------------------------
-ARGS=""
 
 # Usage for the build command and its sub commands
 # --------------------------------------------------------------------------------------------------

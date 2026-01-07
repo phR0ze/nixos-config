@@ -22,7 +22,7 @@
 # - RustDesk supports encoding settings into the filename
 #   - https://github.com/v0tti/rustdesk-configstring
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   machine = config.machine;
   cfg = config.services.raw.rustdesk;
@@ -129,12 +129,14 @@ in
     # Configure RustDesk Flutter client
     (lib.mkIf cfg.enable {
       environment.systemPackages = [
+        pkgs.rdutil                   # custom tool for setting rustdesk password
         pkgs.rustdesk-flutter         # new standard client
         pkgs.xorg.xf86videodummy      # support for linux headless
       ];
 
-      # Open up ports for the client to receive connections
+      # Open up ports for the client to receive direct peer connections only
       networking.firewall.allowedTCPPorts = [ 21118 ];
+      networking.firewall.allowedUDPPorts = [ 21118 ];
 
       # Configure rustdesk local client settings
       files.all.".config/rustdesk/RustDesk_local.toml".text = (lib.concatStringsSep "\n"

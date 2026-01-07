@@ -18,7 +18,7 @@
 # - Exposing apps directly on the host provides isolation but becomes unwieldy and difficult to 
 #   juggle all the various port mappings.
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, f, ... }: with lib.types;
 let
   net = config.net;
   machine = config.machine;
