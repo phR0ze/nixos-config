@@ -3,7 +3,7 @@
 # ### Features
 # - Homelab server deployment
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, lib, args, f, ... }: with lib.types;
+{ pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -36,7 +36,7 @@
     services.oci.immich = { enable = true; port = 2283; tag = "v2.0.1"; };
 
     environment.systemPackages = [
-      #pkgs.synology-drive-client
+      pkgs.brave
     ];
   };
 }
