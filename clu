@@ -115,6 +115,7 @@ if [[ "x$CMD" != "x" ]]; then
         build) build::run "${ARGS[@]}" ;;
         clean) clean::run "${ARGS[@]}" ;;
         deploy) deploy::run "${ARGS[@]}" ;;
+        decrypt) decrypt::run "${ARGS[@]}" ;;
         dev) dev::run "${ARGS[@]}" ;;
         install) install::run "${ARGS[@]}" ;;
         list) list::run "${ARGS[@]}" ;;

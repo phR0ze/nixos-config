@@ -18,6 +18,7 @@ Options:
 
 Commands:
   all               Clean nix store and generations
+  dec               Clean decrypted files from git and disk
   pkg               Clean the given package out of the nix store
   store             Clean the nix store
   vm                Clean the current vm (qcow2, result and store)
@@ -28,6 +29,7 @@ USAGE
     log::subln "Clean nix store only: ${green}./${SCRIPT} clean store${none}"
     log::subln "Clean nix store and generations: ${green}./${SCRIPT} clean all${none}"
     log::subln "Clean nix store package: ${green}./${SCRIPT} clean pkg /nix/store/1234${none}"
+    log::subln "Clean decrypted files from git and disk: ${green}./${SCRIPT} clean dec${none}"
     echo
     exit
 }
@@ -43,6 +45,7 @@ clean::run()
     local command=$1; shift
     case "$command" in
         all) clean::store -d ;;
+        dec) clean::dec "$@" ;;
         pkg) clean::pkg "$@" ;;
         store) clean::store ;;
         vm) clean::vm ;;
@@ -51,11 +54,20 @@ clean::run()
     esac
 }
 
+# Clean the decrypted files from git and disk
+# --------------------------------------------------------------------------------------------------
+clean::dec()
+{
+  log::d "Removing decrypted files from git for ${cyan}${target}${none}"
+  mapfile -d '' -t decrypted_files < <(find "$target" -type f -name "*.dec.*" -print0)
+  $SUDO git restore --staged -- "${decrypted_files[@]}"
+}
+
 # Clean the given package from the nix store
 # --------------------------------------------------------------------------------------------------
 clean::pkg()
 {
-    nix-store --delete $@
+    nix-store --delete "$@"
 }
 
 # Clean up nix store
