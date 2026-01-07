@@ -40,6 +40,7 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead", "FileType" }, {
   end,
   group = html_group,
 })
+
 -- make files
 local make_group = vim.api.nvim_create_augroup("MakeSettings", { clear = true })
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead", "FileType" }, {
@@ -49,7 +50,7 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead", "FileType" }, {
     vim.opt_local.expandtab = false -- don't expand tabs for Makefiles
   end,
   group = make_group,
-}
+})
 
 -- markdown files
 local md_group = vim.api.nvim_create_augroup("MarkdownSettings", { clear = true })
