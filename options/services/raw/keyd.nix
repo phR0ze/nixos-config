@@ -6,7 +6,7 @@
 # that you can then have mapped to a function via a standard shotcut tool like XFCE's keyboard 
 # shortcuts.
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }: with lib.types;
+{ config, lib, ... }:
 let
   cfg = config.services.raw.keyd;
 in
