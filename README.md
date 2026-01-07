@@ -304,7 +304,6 @@ the state of this repo, which takes one additional step to include changes.
 
 ## Backlog
 * [ ] NVIM dev configuration
-  * [ ] Markdown indenting to 2 spaces
 * [ ] NVIM writer configuration
 * [ ] Convert initial `machines/$MACHINE/args.nix` into a `machines/$MACHINE/args.dec.json`
 * [ ] Local DNS server seems to be unreachable ??
