@@ -121,7 +121,7 @@ in
       ];
     })
 
-    # Configure RustDesk to autostart after login
+    # Configure desktop to autolock after login
     (lib.mkIf x11.autolock.enable {
       environment.etc."xdg/autostart/autolock.desktop".text = ''
         [Desktop Entry]

@@ -6,7 +6,6 @@
 # ## Features
 # - Setup the local flake for the target machine to be used in the REPL
 # --------------------------------------------------------------------------------------------------
-ARGS=""
 
 # Usage for the repl command and its sub commands
 # --------------------------------------------------------------------------------------------------
@@ -36,9 +35,8 @@ repl::run()
 {
     utils::help "$@" zero "repl::usage"
 
-    # Process the given argument
-    local arg=$1; shift
-    repl::machine "$arg"
+    # Process the given arguments
+    repl::machine "$@"
 }
  
 # Repl the target machine

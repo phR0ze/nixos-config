@@ -66,7 +66,6 @@
     scribus                   # Open Source Desktop Publishing
 
     # Utilities
-    rdutil                    # Custom package for rustdesk util
     kdePackages.filelight     # View disk usage information
     awf                       # A widget factory for viewing theme changes
   ];
