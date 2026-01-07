@@ -3,7 +3,7 @@
 # ### Features
 # - Directly installable: desktop with additional media apps/configs
 # --------------------------------------------------------------------------------------------------
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./desktop.nix
@@ -22,8 +22,10 @@
   system.xfce.displays.connectingDisplay = 0;
 
   # Configure theater system background
-  system.xfce.background = "${pkgs.desktop-assets}/share/backgrounds/theater_curtains1.jpg";
+  system.xfce.desktop.background = "${pkgs.desktop-assets}/share/backgrounds/theater_curtains1.jpg";
 
   # Add additional theater package
-  environment.systemPackages = with pkgs; [ ];
+  environment.systemPackages = [
+    # pkgs.
+  ];
 }

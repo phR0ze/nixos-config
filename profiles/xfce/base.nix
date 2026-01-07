@@ -3,7 +3,7 @@
 # ### Features
 # - Directly installable: minimal general purpose desktop environment
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 {
   imports = [
     ../base.nix
