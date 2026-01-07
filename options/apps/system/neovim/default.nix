@@ -108,6 +108,7 @@
         x.json
         x.lua
         x.luadoc
+        x.nix
         x.markdown
         x.markdown_inline
         x.printf
