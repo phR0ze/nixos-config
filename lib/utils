@@ -192,13 +192,12 @@ utils::remove_decrypted()
   mapfile -d '' -t decrypted_files < <(find "$target" -type f -name "*.dec.*" -print0)
   if [ ${#decrypted_files[@]} -ne 0 ]; then
     log::d "Removing decrypted files from git for ${cyan}${target}${none}"
-    $SUDO git restore --staged -- "${decrypted_files[@]}"
-
-    log::d "Removing decrypted files from disk for ${cyan}${target}${none}"
-    $SUDO rm -- "${decrypted_files[@]}"
-  else
-    log::d "No decrypted files to remove for ${cyan}${target}${none}"
+    $SUDO git restore --staged -- "${decrypted_files[@]}" &>/dev/null || true
   fi
+
+  # Always attempt to remove the files
+  log::d "Removing decrypted files from disk for ${cyan}${target}${none}"
+  $SUDO rm -f -- "${decrypted_files[@]}"
 }
 
 # Execute the given command with conditional redirect for cleaner output while allowing for 
