@@ -49,7 +49,7 @@ flake::ensure_target()
 flake::switch()
 {
     local target="$1"
-    flake::ensure_target $target
+    flake::ensure_target "$target"
 
     local machine_flake="${CONFIG_DIR}/${target}/flake.nix"
     local machine_flake_lock="${CONFIG_DIR}/${target}/flake.lock"
@@ -78,9 +78,9 @@ flake::switch()
 
     # Decrypt if not installing
     if [ $INSTALL -eq 0 ]; then
-        $SUDO git decrypt
-        [[ -e "args.dec.json" ]] && $SUDO git add "args.dec.json" -f
+        utils::decrypt "$CONFIG_DIR"
     fi
+    exit 1
 
     # Optionally include machine's configuration
     if [[ "$target" == "machines"* ]]; then

@@ -127,6 +127,53 @@ utils::handle_root()
     fi
 }
 
+# Decrypt all encrypted files recursively in the current configuration directory
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 directory to recursively check
+#
+# ### Examples
+# utils::decrypt "$CONFIG_DIR"
+# --------------------------------------------------------------------------------------------------
+utils::decrypt()
+{
+  local target="$1"
+  local dir filename name ext decrypted encrypted encrypted_files decrypted_files
+
+  mapfile -d '' -t encrypted_files < <(find "$target" -type f -name "*.enc.*" -print0)
+  for encrypted in "${encrypted_files[@]}"; do
+    log::d "Decrypting ${cyan}${encrypted}${none}"
+    dir="${encrypted%/*}"               # get the diretory name
+    filename="${encrypted##*/}"         # get the full file name
+    name="${filename%%.*}"              # trim off the file extension
+    ext="${filename##*.}"               # trim off the prefix including the '.'
+    decrypted="$dir/${name}.dec.${ext}" # construct the decrypted file's name
+    decrypted_files+=("$decrypted")     # add it to the decrypted array
+
+    # Execute decryption for target
+    $SUDO sops --decrypt "$encrypted" > "$decrypted"
+  done
+
+  # Now add them all to git
+  #git add -- "${files[@]}"
+}
+
+# Add all decrypted files to git
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 directory to recursively check
+#
+# ### Examples
+# utils::add_decrypted_to_git "$CONFIG_DIR"
+# --------------------------------------------------------------------------------------------------
+utils::add_decrypted_to_git()
+{
+  local target="$1"
+  log::d "Adding decrypted files to git from ${cyan}${target}${none}"
+  mapfile -d '' -t decrypted_files < <(find "$target" -type f -name "*.dec.*" -print0)
+  $SUDO git add -f -- "${decrypted_files[@]}"
+}
+
 # Execute the given command with conditional redirect for cleaner output while allowing for 
 # --------------------------------------------------------------------------------------------------
 # debugging if the --debug flag is given which sets $DEBUG
@@ -134,7 +181,7 @@ utils::handle_root()
 # --------------------------------------------------------------------------------------------------
 utils::run()
 {
-    if [ $DEBUG -eq 1 ]; then
+    if [ $DEBUG -eq 0 ]; then
         "$@" &>/dev/null
     else
         "$@"
@@ -252,20 +299,20 @@ utils::read()
     local multi=$4
 
     # Notify user as directed
-    if [[ "x${result}" == "x" ]]; then
+    if [[ "${result}" == "" ]]; then
         echo -en "   ${msg}: "
     else
         echo -en "   ${msg} (default=${cyan}${result}${none}): "
     fi
 
     # Defaulting settings is true then add a newline to format nicely
-    if [[ "x$multi" != "xf" && "x$DEFAULT" == "xy" ]]; then
+    if [[ "$multi" != "f" && "$DEFAULT" == "y" ]]; then
       echo
     fi
 
     # Handle non default options 
-    if [[ "x$multi" == "xf" || "x$DEFAULT" == "xn" ]]; then
-        if [ "x$multi" == "xs" ]; then
+    if [[ "$multi" == "f" || "$DEFAULT" == "n" ]]; then
+        if [ "$multi" == "s" ]; then
             read -s value
             echo
         else
@@ -305,9 +352,9 @@ utils::select()
     # Present options and retry if an invalid selection is given
     while true; do
         echo -en "   Enter your numbered selection (default=${cyan}1${none}): "
-        [ "x$DEFAULT" == "xy" ] && echo || read choice
+        [ "$DEFAULT" == "y" ] && echo || read choice
         [ "$choice" == "exit" ] && utils::exit
-        [ "x$choice" == "x" ] && choice=1
+        [ "$choice" == "" ] && choice=1
         log::d "Choice: $choice"
         if [[ $choice -gt 0 && $choice -lt $out_of_bounds ]]; then
             choice=$((choice-1))
