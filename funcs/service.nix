@@ -73,7 +73,7 @@
   # - name: name of the podman-SUFFIX to use
   # - deps: an optional argument that when given are additional dependency services
   #-------------------------------------------------------------------------------------------------
-  extendContService = { name, deps ? null }: rec {
+  extendContService = { name, deps ? null }: {
 
     # Don't start this container unless the required services start
     requires = [

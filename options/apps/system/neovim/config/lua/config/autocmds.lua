@@ -1,4 +1,6 @@
 -- Autocommands
+
+-- Briefly highlight the yanked text as a visual indicator as to what you yanked
 vim.api.nvim_create_autocmd("TextYankPost", {
   pattern = "*",
   callback = function()

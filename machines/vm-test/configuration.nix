@@ -3,7 +3,7 @@
 # ### Features
 # - Virtual Machine deployment
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, lib, args, f, ... }: with lib.types;
+{ ... }:
 {
   imports = [
     ../../options/virtualisation/qemu/guest.nix
@@ -18,6 +18,7 @@
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 
+    services.raw.tailscale.enable = true;
     # Beefed up VM specs with DHCP full LAN presence
     # --------------------------------------------
 #    virtualisation.qemu.guest = {

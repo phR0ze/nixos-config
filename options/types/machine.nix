@@ -11,7 +11,7 @@
 # because of this odd behavior we must pass in the 'args' to each sub module as well so that all 
 # defaults are set at every level to cover all the use cases.
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, args, f, ... }: with lib.types;
 let
   smb = import ./smb.nix { inherit lib; };
 
@@ -228,6 +228,27 @@ in
               email = args.git.email or "";
               comment = args.git.comment or "";
             };
+          };
+
+          # Secrets for various services and purposes
+          # ----------------------------------------------------------------------------------------------
+          secrets = lib.mkOption {
+            description = lib.mdDoc "Decrypted secrets";
+            type = types.listOf (types.submodule {
+              options = {
+                name = lib.mkOption {
+                  description = lib.mdDoc "Name of the secret";
+                  type = types.str;
+                  example = "tailscale";
+                };
+                value = lib.mkOption {
+                  description = lib.mdDoc "Value of the secret";
+                  type = types.str;
+                  example = "super-secret-auth-key";
+                };
+              };
+            });
+            default = args.secrets or [];
           };
 
           # Networking options for the whole machine

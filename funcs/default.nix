@@ -46,4 +46,16 @@
     (lib.mkIf p yes)
     (lib.mkIf (!p) no)
   ];
+
+  # Extract the specific secret by name
+  # - secrets: is the list of secrets
+  # - name: the target secret's name to key off from
+  # - returns secret's value
+  #-------------------------------------------------------------------------------------------------
+  getSecret = secrets: name: let
+    secret = lib.findFirst(x: x.name == name) null secrets;
+  in
+    if secret == null then
+      throw "No secret with name \"${name}\" found"
+    else secret.value;
 }

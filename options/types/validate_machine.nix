@@ -1,4 +1,4 @@
-{ config, lib, args, f, ... }:
+{ config, args, f, ... }:
 let
   cfg = config.machine;
 in
@@ -9,8 +9,8 @@ in
     #  message = "echo '${builtins.toJSON args}' | jq"; }
 
     # Debug final values
-    #{ assertion = (args.user.name != null && args.user.name == "bob");
-    #  message = "echo '${builtins.toJSON cfg}' | jq"; }
+    # { assertion = (args.user.name != null && args.user.name == "bob");
+    #   message = "echo '${builtins.toJSON cfg}' | jq"; }
 
     # Ensure the existance of input args
     # ----------------------------------------------------------------------------------------------
@@ -75,6 +75,7 @@ in
     { assertion = (cfg.nix.cache.ip != null); message = "assert machine.nix.cache.ip: ${cfg.nix.cache.ip}"; }
 
     { assertion = (cfg.drives != null); message = "assert machine.drives: ${toString (builtins.length cfg.drives)}"; }
+    { assertion = (cfg.secrets != null); message = "assert machine.secrets: ${toString (builtins.length cfg.secrets)}"; }
     { assertion = (cfg.smb.entries != null); message = "assert machine.smb.entries: ${toString (builtins.length cfg.smb.entries)}"; }
     { assertion = (cfg.nfs.entries != null); message = "assert machine.nfs.entries: ${toString (builtins.length cfg.nfs.entries)}"; }
   ];

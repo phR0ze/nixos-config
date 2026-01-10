@@ -6,8 +6,9 @@
 -- s Select mode map. Defined using :smap or snoremap
 -- c Command-line mode map. Defined using :cmap or cnoremap
 -- noremap ignores other mappings - always use this mode
-vim.keymap.set("n", "gl", function() vim.diagnostic.open_float() end,
-  { desc = "Open diagnostics in float window" })
+vim.keymap.set("n", "gl", function()
+  vim.diagnostic.open_float()
+end, { desc = "Open diagnostics in float window" })
 
 -- Useful for clearing search results triggered with / or * without needing :nohlsearch
 -- normal: clears highlighted search matches
@@ -25,8 +26,9 @@ vim.keymap.set("v", "<", "<gv")
 -- Yank and Paste with the system clipboard
 -- Configure copy/paste and select all
 vim.keymap.set("v", "<C-c>", '"+y')
-vim.keymap.set({ "n", "v" }, "<C-v>", '"+p')
-vim.keymap.set("n", "<C-a>", 'ggVG')
+vim.keymap.set("n", "<C-v>", '"+p')
+vim.keymap.set("v", "<C-v>", '"_dP') -- paste over the top of the selection
+vim.keymap.set("n", "<C-a>", "ggVG")
 
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
