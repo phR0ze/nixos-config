@@ -1,4 +1,4 @@
-{ config, lib, pkgs, f, cfg, ... }: with lib.types;
+{ config, lib, cfg, ... }:
 let
   machine = config.machine;
 in

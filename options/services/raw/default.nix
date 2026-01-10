@@ -21,6 +21,7 @@
     ./sshd.nix
     ./sunshine.nix
     ./synology-drive-client.nix
+    ./tailscale.nix
     ./x11vnc.nix
     ./x2go.nix
   ];

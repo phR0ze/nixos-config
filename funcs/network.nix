@@ -14,6 +14,7 @@
   # Extract the target nic and process defaults
   # - args: is the json input used by the machine and related types
   # - name: the target nic's name
+  # - returns "nic" object
   #-------------------------------------------------------------------------------------------------
   getNic = args: name: let
     target = args.net."${name}" or {};
@@ -23,8 +24,8 @@
       link = target.link or "";
       subnet = target.subnet or "";
       gateway = target.gateway or "";
-      dns.primary = target.dns.primary;
-      dns.fallback = target.dns.fallback;
+      dns.primary = target.dns.primary or "";
+      dns.fallback = target.dns.fallback or "";
     };
   in nic;
 }

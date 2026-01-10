@@ -108,7 +108,7 @@
         x.json
         x.lua
         x.luadoc
-        x.nix
+        x.nix           # provides inline syntax hilighting support
         x.markdown
         x.markdown_inline
         x.printf
