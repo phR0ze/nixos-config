@@ -146,7 +146,7 @@ update to pick it up as follows.
    ```bash
    $ ./clu update flake
    ```
-2. Update target app overrides to use latest unstable updates
+2. Now apply the changes to your system per the normal update prcoess
    ```bash
    $ ./clu update system
    ```

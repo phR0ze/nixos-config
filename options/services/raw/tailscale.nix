@@ -19,6 +19,7 @@
 #       }
 #     ]
 # 3. Optionall run: sudo tailscale cert ${MACHINE_NAME}.${TAILNET_NAME}
+# 4. Check service status: sudo systemctl status tailscaled
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
@@ -58,9 +59,6 @@ in
         # Ensure that the authkey exists
         { assertion = (authKey != null); message = "assert authKey: ${authKey}"; }
       ];
-
-      # Install userspace tools
-      environment.systemPackages = [ pkgs.tailscale ];    
 
       # Configure the tailscale service
       services.tailscale = {
