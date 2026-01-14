@@ -303,6 +303,7 @@ the state of this repo, which takes one additional step to include changes.
 6. Build the iso `./clu build iso`
 
 ## Backlog
+* [ ] Persist host bridge generated MAC addresses
 * [ ] NVIM dev configuration
 * [ ] NVIM writer configuration
 * [ ] Convert initial `machines/$MACHINE/args.nix` into a `machines/$MACHINE/args.dec.json`

@@ -14,7 +14,7 @@
 # ### Features:
 # - makes use of direct boot rather than using a bootloader
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   vm = config.machine.vm;
   machine = config.machine;
@@ -177,7 +177,7 @@ in
           - Use `type = "user"` for a simple NAT experience. The VM can connect out to the internet 
             but not access or be accessed by devices on the LAN.
           - Use `type = "macvtap"` for a full presence on the LAN such that the host or any other 
-            device can connec to this VM and this VM can connect to the host or any other device on the 
+            device can connect to this VM and this VM can connect to the host or any other device on the 
             LAN.
         '';
         type = types.listOf (types.submodule {
