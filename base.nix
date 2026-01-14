@@ -52,6 +52,7 @@
           zoom-us = pkgs-unstable.zoom-us;
           rust-analyzer = pkgs-unstable.rust-analyzer;
           rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
+          synology-drive-client = pkgs-unstable.synology-drive-client;
           tailscale = pkgs-unstable.tailscale;
           vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
           yt-dlp = pkgs-unstable.yt-dlp;

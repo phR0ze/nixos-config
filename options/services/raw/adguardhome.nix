@@ -31,7 +31,7 @@
 # - podman-adguard
 # - podman-network-adguard
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }:
 let
   machine = config.machine;
   cfg = config.services.raw.adguardhome;
@@ -54,10 +54,15 @@ in
   };
  
   config = lib.mkIf cfg.enable {
+
+    # Explicitly adding here as only the TCP port seems to be allowed in the service
+    networking.firewall.allowedTCPPorts = [ 53 ];
+    networking.firewall.allowedUDPPorts = [ 53 ];
+
     services.adguardhome = {
       enable = true;
       host = ipAddress;
-      openFirewall = true;
+      openFirewall = true; # only opens TCP 53
       settings = {
         theme = "dark";
         users = [{
