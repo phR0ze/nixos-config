@@ -20,8 +20,8 @@
 		"subnet": "ENC[AES256_GCM,data:4qGba+0aRuS7HYXyllE=,iv:1HaH5+LRxvH5wVx0kklkzfpGJvphr7tQvA6/ATJJiag=,tag:k0Pz+/B0DIgs1y0tiP6wYQ==,type:str]",
 		"gateway": "ENC[AES256_GCM,data:938Obnb2xF5Gasc=,iv:sCOkLSXeohTLKk6yeRBKBafTucy4JiJXHCFZwpI2D34=,tag:VvNxpmLkqxZwpxfwh6bw6g==,type:str]",
 		"dns": {
-			"primary": "ENC[AES256_GCM,data:4z7PjjuB8c/vUyA=,iv:hUBY+lVI9WpwUpSsYuRsMBuZD96ByiKsJFMoPjrpRQQ=,tag:3+SHu8gRkK/UgRw9ozuupw==,type:str]",
-			"fallback": "ENC[AES256_GCM,data:UuKaljFfaGUXuo0=,iv:K8Hvjxi/qSy0kfEQn7snnWBJFxyUmL50lmc2CBXslJY=,tag:LpfRkfEW35Id3kPGMF1hgA==,type:str]"
+			"primary": "ENC[AES256_GCM,data:eEF1HYZl1kFKtds=,iv:R7CowHO5xpD7DogokxR6zwsNcZ/izZ8QgohzvmPWpkg=,tag:tfLZQlCUGy0wiQckwJJlVA==,type:str]",
+			"fallback": "ENC[AES256_GCM,data:bgESyrVhq05WwXE=,iv:/TmTehnr8AxPzxU3kFpoudarRBxn1LACUn4FBjPoZ/k=,tag:nNGR1+S+vqpVtSmsjXtEXQ==,type:str]"
 		}
 	},
 	"smb": {
@@ -49,8 +49,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBRYmw3ZGJVS3FFdHgwaGM1\naDVSbjFmV0NjNE1aa2dEdHIrRm9MSkZJbDBFCmg5eWlad242NkR5dHp2Y25qTlpl\nKzRRbDBvdkljcFB4ZTVTUW1mQ3dzLzgKLS0tIERKaVk1dUlxWTNUQ0FlQURiSXdx\nUjJnQnZ3dGd5S2hIZUZySExWZ0pwcDAKwHcHH1MMTAJZIth2rBXsaR+gOsYeFJJc\nDSXjqWMsEq3tggObMfqOH9mYmFzHaqbEDbYgNsJY9j4XsCISOSv82A==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2026-01-15T21:16:05Z",
-		"mac": "ENC[AES256_GCM,data:akzv0JNXOXM/lR3eV88y+IiOx+GYuAG99/AE6H8qGjm3iA+naAqhhb89PSfUWvFimIcQAPyIIOlithj8vNfrQqO72yqLU5Qdu5q4+ZUD+tQ7aVQNzDjPHr4hfSRAZPgxB14l8dJpPTeFGqb3xtgqOQa2ptq3d64wGNU5oFO+RU0=,iv:x/ILJByiYPhjuUHpCJASmXK9hAuLSPvtiuwcSacjrV4=,tag:zPL7b+2HxwAe3q1K9N5Duw==,type:str]",
+		"lastmodified": "2026-01-15T22:40:23Z",
+		"mac": "ENC[AES256_GCM,data:Mcgn/jGyK7Lh/ZO1zms/1mS5sZY8TfxwPstzGWCARRSXL+3berPbA+RdbSkT3+/E+kMqlvy6dIzu71ED/13mq8ty+43cmN4nDaMFEzVQKMW3S3Vjivkn0gzWJCH+Y2g714DOFkyBYFS9DnneJD995T6SoRGGnrDruXl/XMEwK1s=,iv:o3kj+GwOkfVqFE8n6d2sXOLAsxy7TOguJ4cR8QCNqQE=,tag:MOtJlLCkAWC7j247h83LyQ==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.10.2"
 	}
