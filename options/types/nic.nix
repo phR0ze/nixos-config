@@ -21,6 +21,12 @@
       default = defaults.ip or "";
     };
 
+    mac = lib.mkOption {
+      type = types.str;
+      description = lib.mdDoc "MacVLAN MAC address";
+      default = "";
+    };
+
     link = lib.mkOption {
       description = lib.mdDoc ''
         NIC link name. Useful for containers and VMs when creating a macvlan on the host bridge 

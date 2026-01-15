@@ -127,6 +127,10 @@ in
       } {
         networking.interfaces."${machine.net.macvlan.name}".useDHCP = true;
       })
+      # optionally set the MAC address of the macvlan, note the first octet must be '02'
+      (lib.mkIf (machine.net.macvlan.mac != "") {
+        networking.interfaces."${machine.net.macvlan.name}".macAddress = machine.net.macvlan.mac;
+      })
 
     # Otherwise configure primary NIC with static IP
     # ----------------------------------------------------------------------------------------------
