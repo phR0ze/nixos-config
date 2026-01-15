@@ -3,7 +3,7 @@
 # ### Features
 # - Daily driver desktop deployment
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, lib, args, f, ... }: with lib.types;
+{ pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix

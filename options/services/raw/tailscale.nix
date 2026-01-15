@@ -65,15 +65,26 @@ in
         enable = true;
         openFirewall = true;
 
-        # Taildrop is a Tailscale feature for sharing files between devices
-        #disableTaildrop = true;
+        # Don't need tailscale's built in file transfer
+        disableTaildrop = true;
+
+        # Don't need or want logging back to the mother ship
+        #disableUpstreamLogging = true;
+
+        # Enable routing features
+        useRoutingFeatures = cfg.useRoutingFeatures;
+
+        #extraSetFlags = [ ];
+
+        #extraDaemonFlags = [ "TS_DEBUG_DISABLE_IPV6=1" ];
+
+        # Extra flags to pass in to the `tailscale up` oneshot when authKeyFile is set below
+        #extraUpFlags = ["--disable-ipv6" ];
 
         # Generated a nix store file with the authkey then pass in the path here
         authKeyFile = "${pkgs.runCommandLocal "tailscale-authkey" {} ''
           mkdir $out; echo "${authKey}" > "$out/authkey"
         ''}/authkey";
-        #disableUpstreamLogging = true;
-        useRoutingFeatures = cfg.useRoutingFeatures;
       };
     })
   ];

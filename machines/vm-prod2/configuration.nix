@@ -3,7 +3,7 @@
 # ### Features
 # - Virtual Machine deployment
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, lib, args, f, ... }: with lib.types;
+{ config, ... }:
 {
   imports = [
     ../../profiles/xfce/desktop.nix
@@ -36,7 +36,7 @@
 #      };
       interfaces = [{
         type = "macvtap";
-        id = cfg.hostname;
+        id = config.hostname;
         fd = 3;
         macvtap.mode = "bridge";
         macvtap.link = "br0";

@@ -3,7 +3,7 @@
 # ### Features
 # - MacBook laptop deployment
 # --------------------------------------------------------------------------------------------------
-{ inputs, config, pkgs, lib, args, f, ... }: with lib.types;
+{ inputs, pkgs, lib, ... }:
 {
   imports = [
     ./hardware-configuration.nix

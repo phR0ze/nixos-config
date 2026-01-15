@@ -8,7 +8,7 @@
 # - 1TB Samsung 850 Pro SSD
 #
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, lib, args, f, ... }: with lib.types;
+{ ... }:
 {
   imports = [
     ./hardware-configuration.nix

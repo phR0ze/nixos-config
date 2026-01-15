@@ -6,7 +6,7 @@
 # ### Features
 # - Basic desktop deployment
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, lib, args, f, ... }: with lib.types;
+{ ... }:
 {
   imports = [
     ./hardware-configuration.nix

@@ -3,7 +3,7 @@
 # ### Features
 # - Theater focused desktop deployment
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, lib, args, f, ... }: with lib.types;
+{ ... }:
 {
   imports = [
     ./hardware-configuration.nix
