@@ -21,6 +21,7 @@
     nic = {
       name = target.name or "";
       ip = target.ip or "";
+      mac = target.mac or "";
       link = target.link or "";
       subnet = target.subnet or "";
       gateway = target.gateway or "";

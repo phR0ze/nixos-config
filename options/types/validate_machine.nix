@@ -70,6 +70,7 @@ in
     { assertion = (cfg.net.bridge.name != null); message = "assert machine.net.bridge.name: ${cfg.net.bridge.name}"; }
     { assertion = (cfg.net.macvlan.name != null); message = "assert machine.net.macvlan.name: ${cfg.net.macvlan.name}"; }
     { assertion = (cfg.net.macvlan.ip != null); message = "assert machine.net.macvlan.ip: ${cfg.net.macvlan.ip}"; }
+    { assertion = (cfg.net.macvlan.mac != null); message = "assert machine.net.macvlan.mac: ${cfg.net.macvlan.mac}"; }
 
     { assertion = (cfg.nix.cache.enable != null); message = "assert machine.nix.cache.enable: ${cfg.nix.cache.enable}"; }
     { assertion = (cfg.nix.cache.ip != null); message = "assert machine.nix.cache.ip: ${cfg.nix.cache.ip}"; }
