@@ -54,11 +54,6 @@ in
   };
  
   config = lib.mkIf cfg.enable {
-
-    # Explicitly adding here as only the TCP port seems to be allowed in the service
-    networking.firewall.allowedTCPPorts = [ 53 ];
-    networking.firewall.allowedUDPPorts = [ 53 ];
-
     services.adguardhome = {
       enable = true;
       host = ipAddress;
