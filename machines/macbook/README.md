@@ -69,7 +69,8 @@ environment.systemPackages = [
 **apple.nix** from https://github.com/t2linux/wiki/blob/master/docs/tools/firmware.sh depends on 
 `python3` and `dmg2img` to work properly.
 ```nix
-{ stdenvNoCC, fetchurl, lib }: stdenvNoCC.mkDerivation (final: {
+{
+  stdenvNoCC, fetchurl, lib }: stdenvNoCC.mkDerivation (final: {
   pname = "get-apple-firmware";
   version = "fe8c338e6cf1238a390984ba06544833ab8792d3";
   src = fetchurl {
