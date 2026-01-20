@@ -35,6 +35,11 @@ in
         default = false;
         description = lib.mdDoc "Whether to automatically connect to the tailnet.";
       };
+      acceptRoutes = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = lib.mdDoc "Automatically accept routes offered by peers.";
+      };
       useRoutingFeatures = lib.mkOption {
         type = types.enum [
           "none"
@@ -78,9 +83,6 @@ in
 
         #extraDaemonFlags = [ "TS_DEBUG_DISABLE_IPV6=1" ];
 
-        # Extra flags to pass in to the `tailscale up` oneshot when authKeyFile is set below
-        #extraUpFlags = ["--disable-ipv6" ];
-
         # Generated a nix store file with the authkey then pass in the path here
         authKeyFile = "${pkgs.runCommandLocal "tailscale-authkey" {} ''
           mkdir $out; echo "${authKey}" > "$out/authkey"
@@ -92,6 +94,11 @@ in
     # - this allows for starting the service with `sudo systemctl start tailscaled-autoconnect`
     (lib.mkIf (!cfg.autoStart) {
       systemd.services.tailscaled-autoconnect.wantedBy = lib.mkForce [ ];
+    })
+
+    # Conditionally accept routes from peers in the tailnet
+    (lib.mkIf cfg.acceptRoutes {
+      services.tailscale.extraUpFlags = [ "--accept-routes" ];
     })
   ];
 }
