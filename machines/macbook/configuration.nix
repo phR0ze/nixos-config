@@ -7,8 +7,10 @@
 {
   imports = [
     ./hardware-configuration.nix
-    inputs.nixos-hardware.nixosModules.apple-t2
     ../../profiles/xfce/develop.nix
+
+    # t2 modules from nixos hardware are pinned in the flake
+    inputs.nixos-hardware.nixosModules.apple-t2
   ];
 
   config = {
@@ -44,9 +46,10 @@
         '';
       }))
     ];
-    environment.systemPackages = with pkgs; [
-      python3
-      dmg2img
+
+    environment.systemPackages = [
+      pkgs.python3
+      pkgs.dmg2img
       (pkgs.callPackage ../../modules/hardware/apple.nix {})
     ];
   };

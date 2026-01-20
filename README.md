@@ -155,7 +155,15 @@ update to pick it up as follows.
 Note the `base.nix` is set to a specific unstable version. You'll need to change it to the next 
 version you'd like.
 
-1. Modifying `base.nix` to use your preferred nixpkgs sha e.g.
+Note: if building t2linux system check [Soopy Hydra instance](https://hydra.soopy.moe/project/nixos-t2/all)
+and use a version that matches with a building soopy cached instance.
+
+1. Choose an unstable build to upgrade to
+   1. Search [NixOS's tested unstable list](https://hydra.nixos.org/job/nixos/unstable/tested) for a
+      passing build. This ensures you'll get hits in the cache so you don't have to rebuild everything.
+   2. Click the build and switch to the `inputs` tab to get the nixpkgs `Revision`
+
+1. Modifying `base.nix` to use the Revision you selected
    ```
    nixpkgs.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
    ```
