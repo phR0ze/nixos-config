@@ -87,5 +87,11 @@ in
         ''}/authkey";
       };
     })
+
+    # Conditionally override the autostart that is automatically triggered when authKeyFile is set
+    # - this allows for starting the service with `sudo systemctl start tailscaled-autoconnect`
+    (lib.mkIf (!cfg.autoStart) {
+      systemd.services.tailscaled-autoconnect.wantedBy = lib.mkForce [ ];
+    })
   ];
 }
