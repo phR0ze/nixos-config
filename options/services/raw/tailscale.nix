@@ -92,11 +92,14 @@ in
 
     # Conditionally override the autostart that is automatically triggered when authKeyFile is set
     # - this allows for starting the service with `sudo systemctl start tailscaled-autoconnect`
+    # - manually run `sudo tailscale down` when done
+    # - manually run `sudo tailscale up` to start back up
     (lib.mkIf (!cfg.autoStart) {
       systemd.services.tailscaled-autoconnect.wantedBy = lib.mkForce [ ];
     })
 
     # Conditionally accept routes from peers in the tailnet
+    # - tailscaled-autoconnect above will inject this new flag
     (lib.mkIf cfg.acceptRoutes {
       services.tailscale.extraUpFlags = [ "--accept-routes" ];
     })
