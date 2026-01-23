@@ -9,9 +9,11 @@ Usage:
   shell [COMMAND] [ARGS...] [OPTIONS]
 
 Options:
-  -h, --help        Print out usage
-  -p, --packages    Space delimited list of packages to include in the shell
+  -h, --help            Print out usage
+  -p, --packages        Space delimited list of packages to include in the shell
 
+Commands:
+  latest [NAME]         Create a shell with access to the latest version of the given app NAME
 Commands:
 USAGE
 
@@ -19,6 +21,7 @@ USAGE
     log::subln "Shell with wmctrl present: ${green}./${SCRIPT} shell -p wmctrl${none}"
     log::subln "Shell with pyserial present: ${green}./${SCRIPT} shell -p python311Packages.pyserial${none}"
     log::subln "Shell with multiple packages: ${green}./${SCRIPT} shell -p libjpeg openjdk${none}"
+    log::subln "Latest given package: ${green}./${SCRIPT} shell latest yt-dlp${none}"
     echo
     exit
 }
@@ -30,6 +33,14 @@ shell::run()
 {
     utils::help "$@" "shell::usage"
 
-    # Pass the command on to nix-shell
-    nix-shell $@
+    # Check if latest command was given
+    if [[ "$1" == "latest" ]]; then
+        local app="$2"
+        log::header1 "Sourcing latest ${cyan}${app}${none}"
+        if [[ "$app" != "" ]]; then
+          nix-shell -p "(import (fetchTarball \"https://github.com/NixOS/nixpkgs/archive/nixpkgs-unstable.tar.gz\") {}).${app}"
+        fi
+    else
+        nix-shell "$@"
+    fi
 }
