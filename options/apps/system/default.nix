@@ -1,10 +1,10 @@
 { ... }:
 {
   imports = [
-    ./clu/options.nix
+    ./clu
     ./hardinfo.nix
     ./neovide.nix
-    ./neovim/options.nix
+    ./neovim
     ./veracrypt.nix
   ];
 }

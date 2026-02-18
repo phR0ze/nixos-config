@@ -6,10 +6,7 @@
 # - Bash custom configuration
 # - Nix flake and commands configuration
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, lib, ... }:
-let
-  machine = config.machine;
-in
+{ config, pkgs, ... }:
 {
   imports = [
     ../modules/users.nix

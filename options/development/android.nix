@@ -8,7 +8,7 @@
 # - [Android app deloyments](https://sandervanderburg.blogspot.com/2014/02/reproducing-android-app-deployments-or.html)
 # - [Build and emulate Android apps](http://sandervanderburg.blogspot.com/2012/11/building-android-applications-with-nix.html)
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }: with lib.types;
+{ config, lib, pkgs, ... }:
 let
   cfg = config.development.android;
   machine = config.machine;
