@@ -3,7 +3,7 @@
 # ### References
 # - [Claude Code NixPkgs](https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/cl/claude-code/package.nix)
 #
-# ### Update
+# ### Update instructions
 # 1. run: ./get_new_version.sh
 # 2. update the the instructions below
 #    1. Set 'version' to the new value
@@ -13,6 +13,7 @@
 # 4. copy paste in the new 'hash' value
 # 5. run: nix build -f ./build.nix
 # 6. copy paste in the new 'npmDepsHash' value
+# 7. run: ./update_lock_file.sh
 #---------------------------------------------------------------------------------------------------
 {
   lib,
@@ -27,11 +28,11 @@
 }:
 buildNpmPackage (finalAttrs: {
   pname = "claude-code";
-  version = "2.1.45";
+  version = "2.1.47";
 
   src = fetchzip {
     url = "https://registry.npmjs.org/@anthropic-ai/claude-code/-/claude-code-${finalAttrs.version}.tgz";
-    hash = "sha256-EWpGw/5rX4NBPx4sGnz3uzvUtSQKBzCBZPSCTYarsPI=";
+    hash = "sha256-zog13iz4gP9LPcF5qglvyViqox6iiRWeCU0r0TqnWlk=";
   };
 
   npmDepsHash = "sha256-VWw1bYkFch95JDlOwKoTAQYOr8R80ICJ8QUI4E64W7o=";
