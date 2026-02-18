@@ -4,7 +4,7 @@
 # - implemented in nixpkgs/nixos/modules/programs/dconf.nix
 # - run `dconf watch /` to monitor changes
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, ... }: with lib.types;
 let
   cfg = config.system.dconf;
 
@@ -30,7 +30,7 @@ in
       enable = true;
       profiles = {
         user.databases = [{
-          settings = with lib.gvariant; {
+          settings = {
             "ca/desrt/dconf-editor" = {
               show-warning = false;
             };

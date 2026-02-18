@@ -37,8 +37,10 @@
       # --------------------------------------------------------------------------------------------
       overlays = [
         (before: after: {
-          # Include custom packages in global pkgs variable
-          clu = pkgs.callPackage options/apps/system/clu {};
+          # Include custom packages in global pkgs variable to make them available throughout my
+          # codebase rather than having to call them with a full path. Note I'm using package.nix
+          # rather than default.nix as default.nix will be used for options.
+          clu = pkgs.callPackage options/apps/system/clu/package.nix {};
           arcologout = pkgs.callPackage packages/arcologout {};
           desktop-assets = pkgs.callPackage packages/desktop-assets {};
           rdutil = pkgs.callPackage packages/rdutil {};

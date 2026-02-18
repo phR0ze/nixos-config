@@ -27,7 +27,6 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   x11 = config.system.x11;
-  autolock = x11.autolock;
   machine = config.machine;
 in
 {

@@ -3,7 +3,7 @@
 # ### Details
 # - centralizing all font configuration here
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   x11 = config.system.x11;
   xft = x11.xft;

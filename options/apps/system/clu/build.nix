@@ -9,4 +9,4 @@ let
   # getting built with as well otherwise there would be a mismatch.
   pkgs = import <nixpkgs> {};
 in
-  pkgs.callPackage ./default.nix {}
+  pkgs.callPackage ./package.nix {}
