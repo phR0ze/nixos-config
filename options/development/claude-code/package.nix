@@ -5,15 +5,16 @@
 #
 # ### Update instructions
 # 1. run: ./get_new_version.sh
-# 2. update the the instructions below
+# 2. run: ./update_lock_file.sh
+# 3. update the the instructions below
 #    1. Set 'version' to the new value
 #    2. Zero out: hash = ""
 #    3. Zero out: npmDepsHash = ""
-# 3. run: nix build -f ./build.nix
-# 4. copy paste in the new 'hash' value
-# 5. run: nix build -f ./build.nix
-# 6. copy paste in the new 'npmDepsHash' value
-# 7. run: ./update_lock_file.sh
+# 4. run: nix build -f ./build.nix
+# 5. copy paste in the new 'hash' value
+# 6. run: nix build -f ./build.nix
+# 7. copy paste in the new 'npmDepsHash' value
+# 8. run: ./update_lock_file.sh
 #---------------------------------------------------------------------------------------------------
 {
   lib,
@@ -35,7 +36,7 @@ buildNpmPackage (finalAttrs: {
     hash = "sha256-zog13iz4gP9LPcF5qglvyViqox6iiRWeCU0r0TqnWlk=";
   };
 
-  npmDepsHash = "sha256-VWw1bYkFch95JDlOwKoTAQYOr8R80ICJ8QUI4E64W7o=";
+  npmDepsHash = "sha256-1wvl0vwl9CMntNDuh7sTWqNTnAg1AYgnuUukZOXU+PU=";
 
   strictDeps = true;
 
