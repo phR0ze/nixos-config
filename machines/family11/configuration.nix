@@ -14,6 +14,7 @@
     machine.type.bootable = true;
     machine.nix.cache.enable = true;
     apps.games.warcraft2.enable = true;
+    apps.games.roblox.enable = true;
     devices.gpu.nvidiaLegacy470 = true;
   };
 }
