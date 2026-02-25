@@ -8,5 +8,6 @@
     ./flutter.nix
     ./rust.nix
     ./vscode.nix
+    ./zed
   ];
 }
