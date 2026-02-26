@@ -1,12 +1,12 @@
 { ... }:
 {
   imports = [
-    ./hedgewars.nix
+    ./hedgewars
     ./prismlauncher
-    ./protontricks.nix
-    ./roblox.nix
-    ./supertuxkart.nix
-    ./steam.nix
-    ./warcraft2.nix
+    ./protontricks
+    ./roblox
+    ./steam
+    ./supertuxkart
+    ./warcraft2
   ];
 }
