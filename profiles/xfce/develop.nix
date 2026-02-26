@@ -15,7 +15,7 @@
   apps.dev.gh.enable = true;
   apps.dev.rust.enable = true;
   apps.dev.flutter.enable = true;
-  apps.dev.claude-code.enable = true;
+  apps.dev.claude.enable = true;
 
   environment.systemPackages = with pkgs; [
     chromium                            # An open source web browser from Google
