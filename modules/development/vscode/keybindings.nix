@@ -1,7 +1,7 @@
 # Visual Studio Code keybindings.json
 #---------------------------------------------------------------------------------------------------
 {
-  development.vscode.keybindings = [
+  apps.dev.vscode.keybindings = [
     {
       key = "ctrl+shift+s";
       command = "workbench.action.files.saveAll";

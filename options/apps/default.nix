@@ -1,6 +1,7 @@
 { ... }:
 {
   imports = [
+    ./dev
     ./games
     ./media
     ./network

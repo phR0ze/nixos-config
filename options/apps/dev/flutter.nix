@@ -8,11 +8,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.development.flutter;
+  cfg = config.apps.dev.flutter;
 in
 {
   options = {
-    development.flutter = {
+    apps.dev.flutter = {
       enable = lib.mkEnableOption "Configure flutter dev environment";
     };
   };
@@ -25,7 +25,7 @@ in
     environment.sessionVariables.CHROME_EXECUTABLE ="${pkgs.chromium}/bin/chromium";
 
     # Enable Android development
-    development.android.enable = true;
+    apps.dev.android.enable = true;
 
     # Install flutter and dependencies
     environment.systemPackages = [

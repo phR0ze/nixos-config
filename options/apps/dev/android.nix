@@ -10,7 +10,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
-  cfg = config.development.android;
+  cfg = config.apps.dev.android;
   machine = config.machine;
 
   # Install Android SDK and NDK with custom versions and components
@@ -55,7 +55,7 @@ let
 in
 {
   options = {
-    development.android = {
+    apps.dev.android = {
       enable = lib.mkEnableOption "Install and configure android tooling";
     };
   };
