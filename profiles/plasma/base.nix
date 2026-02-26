@@ -29,7 +29,7 @@
   apps.network.filezilla.enable = true;       # Network/Transfer
   apps.system.hardinfo.enable = true;         # A system information and benchmark tool
   apps.system.neovide.enable = true;          # Graphical interface for Neovim
-  apps.system.ghostty.enable = true;          # GPU accelerated terminal
+  apps.system.wezterm.enable = true;          # GPU accelerated terminal
 
   services.fwupd.enable = true;               # Firmware update tool for BIOS, etc...
   services.gvfs.enable = true;
