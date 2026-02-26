@@ -1,6 +1,11 @@
 # Ghostty
 # A fast, feature-rich, and cross-platform terminal emulator that uses platform-native UI.
 #
+# ### Review
+# - window decorations don't follow system theme, seems focused on MacOS for look and feel.
+# - multi-tab support was awkward and has odd terminal view for all tabs
+# - tokyonight theme isn't as nice as WezTerm's
+#
 # ### Details
 # - Configured with font, color scheme, and opacity options
 # - Uses GTK on Linux
@@ -26,13 +31,13 @@ let
       scrollback-limit = 10000
 
       # Quake style drop-down terminal
-      keybind = global:f12=toggle_quick_terminal
-      quick-terminal-position = top
-      quick-terminal-screen = main
-      quick-terminal-animation-duration = 0.2
-      quick-terminal-autohide = unfocused
-      window-height = 50%
-      window-width = 60%
+      #keybind = global:f12=toggle_quick_terminal
+      #quick-terminal-position = top
+      #quick-terminal-screen = main
+      #quick-terminal-animation-duration = 0.2
+      #quick-terminal-autohide = unfocused
+      #window-height = 50%
+      #window-width = 60%
     '');
 in
 {
