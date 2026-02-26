@@ -8,5 +8,5 @@
     ./extensions.nix
   ];
 
-  development.vscode.enable = true; 
+  apps.dev.vscode.enable = true; 
 }

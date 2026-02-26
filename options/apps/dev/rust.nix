@@ -2,11 +2,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.development.rust;
+  cfg = config.apps.dev.rust;
 in
 {
   options = {
-    development.rust = {
+    apps.dev.rust = {
       enable = lib.mkEnableOption "Install and configure rust tooling";
     };
   };

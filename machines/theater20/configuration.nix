@@ -20,8 +20,8 @@
     apps.games.hedgewars.enable = true;
     apps.games.superTuxKart.enable = true;
 
-    development.rust.enable = true;
-    development.flutter.enable = true;
+    apps.dev.rust.enable = true;
+    apps.dev.flutter.enable = true;
 
     environment.systemPackages = [
       pkgs.rust-analyzer

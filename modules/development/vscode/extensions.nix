@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
-  development.vscode.extensions = with pkgs.vscode-extensions; [
+  apps.dev.vscode.extensions = with pkgs.vscode-extensions; [
 
     # Native package dependencies
     # ----------------------------------------------------------------------------------------

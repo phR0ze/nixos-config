@@ -6,7 +6,7 @@ let
 
 in
 {
-  development.vscode.settings = {
+  apps.dev.vscode.settings = {
 
     # Debug configuration
     # ----------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.development.vscode;
+  cfg = config.apps.dev.vscode;
 
   jsonFormat = pkgs.formats.json { };
   dropNullFields = lib.filterAttrs (_: v: v != null);
@@ -17,7 +17,7 @@ let
 in
 {
   options = {
-    development.vscode = {
+    apps.dev.vscode = {
       enable = lib.mkEnableOption "Install and configure Visual Studio Code"; 
 
       enableUpdateCheck = lib.mkOption {

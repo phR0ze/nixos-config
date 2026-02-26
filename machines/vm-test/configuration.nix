@@ -19,8 +19,8 @@
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 
-    development.zed.enable = true;
-    development.claude-code.enable = true;
+    apps.dev.zed.enable = true;
+    apps.dev.claude-code.enable = true;
 
     #services.raw.tailscale.enable = true;
     # Beefed up VM specs with DHCP full LAN presence

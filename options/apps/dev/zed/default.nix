@@ -10,7 +10,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.development.zed;
+  cfg = config.apps.dev.zed;
 
   jsonFormat = pkgs.formats.json { };
 
@@ -36,7 +36,7 @@ let
 in
 {
   options = {
-    development.zed = {
+    apps.dev.zed = {
       enable = lib.mkEnableOption "Install and configure Zed";
 
       settings = lib.mkOption {

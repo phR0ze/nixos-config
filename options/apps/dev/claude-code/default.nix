@@ -5,11 +5,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
-  cfg = config.development.claude-code;
+  cfg = config.apps.dev.claude-code;
 in
 {
   options = {
-    development.claude-code = {
+    apps.dev.claude-code = {
       enable = lib.mkEnableOption "Install and configure Claude Code";
     };
   };
