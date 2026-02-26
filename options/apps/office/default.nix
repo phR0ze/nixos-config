@@ -1,6 +1,6 @@
 { ... }:
 {
   imports = [
-    ./evince.nix
+    ./evince
   ];
 }
