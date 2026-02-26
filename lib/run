@@ -78,12 +78,14 @@ run::vm()
             $SUDO rm -rf "${CONFIG_DIR}/${MACHINE}"
         fi
 
-        local runner="${CONFIG_DIR}/${MACHINE}/result/bin/run"
+        local runner
+        runner="$(find "${CONFIG_DIR}/${MACHINE}/result/bin" -maxdepth 1 -type l -o -type f 2>/dev/null | head -n1)"
 
         # Build and install if needed
-        if [[ ! -f "$runner" ]]; then
+        if [[ -z "$runner" || ! -f "$runner" ]]; then
             NO_PREAMBLE=1 && build::vm $MACHINE
             flake::restore
+            runner="$(find "${CONFIG_DIR}/${MACHINE}/result/bin" -maxdepth 1 -type l -o -type f 2>/dev/null | head -n1)"
         fi
 
         log::ls "Running ${cyan}${runner}${none}"

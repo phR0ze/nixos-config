@@ -60,9 +60,9 @@ return {
           twilight = { enabled = true },              -- enable to start Twilight when zen mode opens
           gitsigns = { enabled = false },             -- disables git signs
           --tmux = { enabled = true },                  -- disables the tmux statusline
-          alacritty = {                               -- zoom alacritty terminal font to the given size
+          wezterm = {                                 -- zoom wezterm terminal font via user-var
             enabled = true,
-            font = "14",                              -- font size
+            font = "+4",                              -- font size increment
           },
         },
         -- on_open = function()
