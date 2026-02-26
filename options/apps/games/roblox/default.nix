@@ -1,10 +1,4 @@
-# Roblox
-#
-# Manual steps
-# 1. flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-# 2. flatpak install flathub org.vinegarhq.Sober
-# 3. flatpak run org.vinegarhq.Sober
-#---------------------------------------------------------------------------------------------------
+# Roblox via Sober (Flatpak)
 { config, lib, pkgs, ... }:
 let
   xfce = config.system.xfce;
@@ -21,7 +15,10 @@ in
 
     # Install roblox
     (lib.mkIf (cfg.enable) {
-      services.flatpak.enable = true;
+      apps.system.flatpak = {
+        enable = true;
+        packages = [{ appId = "org.vinegarhq.Sober"; }];
+      };
     })
 
     # XFCE supporting configuration
