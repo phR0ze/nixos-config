@@ -4,7 +4,7 @@
 {
   imports = [
     ./android
-    ./claude-code
+    ./claude
     ./flutter
     ./gh
     ./rust

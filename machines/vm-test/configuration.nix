@@ -20,7 +20,7 @@
     machine.autologin = true;
 
     apps.dev.zed.enable = true;
-    apps.dev.claude-code.enable = true;
+    apps.dev.claude.enable = true;
 
     #services.raw.tailscale.enable = true;
     # Beefed up VM specs with DHCP full LAN presence
