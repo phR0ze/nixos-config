@@ -1,13 +1,13 @@
 { ... }:
 {
   imports = [
-    ./freecad.nix
-    ./jellyfin.nix
-    ./kodi.nix
-    ./obs.nix
-    ./qview.nix
-    ./smplayer.nix
-    ./tinymediamanager.nix
-    ./xnviewmp.nix
+    ./freecad
+    ./jellyfin
+    ./kodi
+    ./obs
+    ./qview
+    ./smplayer
+    ./tinymediamanager
+    ./xnviewmp
   ];
 }

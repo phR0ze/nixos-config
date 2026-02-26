@@ -3,10 +3,10 @@
   imports = [
     ./clu
     ./ghostty
-    ./hardinfo.nix
-    ./neovide.nix
+    ./hardinfo
+    ./neovide
     ./neovim
-    ./veracrypt.nix
+    ./veracrypt
     ./wezterm
   ];
 }
