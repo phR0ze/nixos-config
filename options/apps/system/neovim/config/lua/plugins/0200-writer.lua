@@ -60,7 +60,7 @@ return {
           twilight = { enabled = true },              -- enable to start Twilight when zen mode opens
           gitsigns = { enabled = false },             -- disables git signs
           --tmux = { enabled = true },                  -- disables the tmux statusline
-          wezterm = {                                 -- zoom wezterm terminal font via user-var
+          kitty = {                                   -- zoom terminal font (works with ghostty)
             enabled = true,
             font = "+4",                              -- font size increment
           },
