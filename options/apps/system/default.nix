@@ -2,6 +2,7 @@
 {
   imports = [
     ./clu
+    ./flatpak
     ./ghostty
     ./hardinfo
     ./neovide
