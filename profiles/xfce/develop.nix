@@ -12,6 +12,7 @@
 
   machine.type.develop = true;
 
+  apps.dev.gh.enable = true;
   apps.dev.rust.enable = true;
   apps.dev.flutter.enable = true;
   apps.dev.claude-code.enable = true;

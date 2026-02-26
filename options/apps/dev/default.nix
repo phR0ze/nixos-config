@@ -3,12 +3,12 @@
 { ... }:
 {
   imports = [
-    ./android.nix
+    ./android
     ./claude-code
-    ./flutter.nix
+    ./flutter
     ./gh
-    ./rust.nix
-    ./vscode.nix
+    ./rust
+    ./vscode
     ./zed
   ];
 }

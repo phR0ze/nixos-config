@@ -6,11 +6,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
-  cfg = config.development.gh;
+  cfg = config.apps.dev.gh;
 in
 {
   options = {
-    development.gh = {
+    apps.dev.gh = {
       enable = lib.mkEnableOption "Install GitHub CLI (gh)";
     };
   };
