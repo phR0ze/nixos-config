@@ -7,7 +7,8 @@
 {
   imports = [
     ../../options/virtualisation/qemu/guest.nix
-    ../../profiles/xfce/desktop.nix
+    #../../profiles/xfce/desktop.nix
+    ../../profiles/plasma/base.nix
   ];
 
   config = {

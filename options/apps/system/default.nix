@@ -6,5 +6,6 @@
     ./neovide.nix
     ./neovim
     ./veracrypt.nix
+    ./wezterm
   ];
 }

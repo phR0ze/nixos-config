@@ -54,7 +54,7 @@ let
             <property name="&lt;Super&gt;p" type="string" value="xfce4-display-settings --minimal"/>
             <property name="XF86Display" type="string" value="xfce4-display-settings --minimal"/>
             <property name="override" type="bool" value="true"/>
-            <property name="&lt;Super&gt;t" type="string" value="alacritty"/>
+            <property name="&lt;Super&gt;t" type="string" value="wezterm"/>
             <property name="&lt;Super&gt;f" type="string" value="thunar"/>
             <property name="&lt;Super&gt;e" type="string" value="code"/>
             <property name="&lt;Super&gt;w" type="string" value="firefox"/>

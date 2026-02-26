@@ -1,19 +1,24 @@
-# XFCE minimal desktop configuration
+# KDE Plasma 6 minimal desktop configuration
 #
 # ### Features
 # - Directly installable: minimal general purpose desktop environment
 # --------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   imports = [
     ../base.nix
   ];
 
-  # Enable XFCE
-  system.x11.enable = true;
-  system.xfce.enable = true;
-  system.dmenu.enable = true;                 # Configure dmenu
-  system.dconf.enable = true;                 # General configuration manager that replaces gconf
+  # Enable Plasma 6 with SDDM
+  system.x11.enable = true;                   # Fonts, XFT, XDG, themes, libinput
+  services.xserver.displayManager.lightdm.enable = lib.mkForce false;
+  services.displayManager.sddm = {
+    enable = true;
+    wayland.enable = true;
+  };
+  services.desktopManager.plasma6.enable = true;
+
+  system.dconf.enable = true;                 # General configuration manager for GTK app settings
   net.network-manager.enable = true;          # Enable network manager
   devices.audio.enable = true;                # Install necessary support for audio
   devices.bluetooth.enable = true;            # Install necessary support for bluetooth
@@ -27,21 +32,9 @@
   apps.system.wezterm.enable = true;          # GPU accelerated terminal
 
   services.fwupd.enable = true;               # Firmware update tool for BIOS, etc...
-  programs.file-roller.enable = true;         # Generic Gnome file archive utility needed for Thunar
-
-  # XFCE comes with a slimmed down version of GVFS by default so we need to set a package override
-  # to include smb:// support in Thunar
   services.gvfs.enable = true;
-#  services.gvfs = {
-#    enable = true;
-#    package = lib.mkForce pkgs.gnome.gvfs;
-#  };
 
-  # Configure gnome keyring for VPN and Copilot and automatically unlock on login
-  services.gnome.gnome-keyring.enable = true;
-  security.pam.services.lightdm.enableGnomeKeyring = true;
-
-  # Link the desktop-assets package's content to the system path /run/current-system/sw 
+  # Link the desktop-assets package's content to the system path /run/current-system/sw
   # - searches all packages that have paths matching the list and merge links them
   environment.pathsToLink = [
     "/share/backgrounds"  # /run/current-system/sw/share/backgrounds
@@ -56,8 +49,6 @@
 
     # System
     desktop-file-utils                  # Command line utilities for working with desktop entries
-    i3lock-color                    # Simple lightweight screen locker
-    paprefs                              # Pulse audio server preferences for simultaneous output
 
     # VPN
     networkmanager-openvpn            # NetworkManager VPN plugin for OpenVPN
@@ -65,7 +56,6 @@
     # Network
     freerdp                           # RDP client plugin for remmina
     remmina                           # Nice remoting UI for RDP and other protocols
-    #tdesktop                                 # Telegram Desktop messaging app
 
     # Office
     keepassxc                         # Offline password manager with many features
@@ -73,10 +63,10 @@
     # Utilities
     conky                             # Advanced, highly configurable system monitor
     exiftool                           # A tool to read, write and edit EXIF meta information
-    galculator                         # Simple calculator
     gnome-multi-writer               # Tool for writing an ISO file to multiple USB devices at once
     htop                               # Better top tool
-    light                              # Control backlights for screen and keyboard
-    system-config-printer             # GTK app for CUPS printing administration
+
+    # Wayland support
+    kdePackages.xwaylandvideobridge            # Enables screen sharing under Wayland
   ];
 }

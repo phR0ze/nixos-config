@@ -53,7 +53,7 @@ in
     system.x11.enable = true;
 
     system.xfce.panel.launchers = [
-      { name = "Alacritty"; exec = "alacritty"; icon = "Alacritty"; }
+      { name = "Wezterm"; exec = "wezterm"; icon = "org.wezfurlong.wezterm"; }
       { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
       {
         name = "Jellyfin";
