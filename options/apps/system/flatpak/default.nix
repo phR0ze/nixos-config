@@ -65,6 +65,9 @@ in
       script =
         let
           flatpak = "${pkgs.flatpak}/bin/flatpak";
+          desiredState = builtins.toJSON { inherit (cfg) remotes packages; };
+          stateHash = builtins.hashString "sha256" desiredState;
+          stampFile = "/var/lib/flatpak-managed/.state-hash";
           remoteCommands = map (r:
             "${flatpak} remote-add --system --if-not-exists ${lib.escapeShellArg r.name} ${lib.escapeShellArg r.location}"
           ) cfg.remotes;
@@ -72,7 +75,17 @@ in
             "${flatpak} install --system --noninteractive --or-update ${lib.escapeShellArg p.origin} ${lib.escapeShellArg p.appId}"
           ) cfg.packages;
         in
-        lib.concatStringsSep "\n" (remoteCommands ++ installCommands);
+        ''
+          if [ -f ${stampFile} ] && [ "$(cat ${stampFile})" = "${stateHash}" ]; then
+            echo "Flatpak config unchanged, skipping."
+            exit 0
+          fi
+
+          ${lib.concatStringsSep "\n" (remoteCommands ++ installCommands)}
+
+          mkdir -p "$(dirname ${stampFile})"
+          echo "${stateHash}" > ${stampFile}
+        '';
     };
   };
 }

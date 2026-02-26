@@ -34,6 +34,7 @@
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 
+    apps.games.roblox.enable = true;
     apps.games.hedgewars.enable = true;
     apps.games.superTuxKart.enable = true;
     apps.media.freecad.enable = true;
