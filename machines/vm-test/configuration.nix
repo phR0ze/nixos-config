@@ -8,7 +8,7 @@
   imports = [
     ../../options/virtualisation/qemu/guest.nix
     #../../profiles/xfce/desktop.nix
-    ../../profiles/plasma/base.nix
+    ../../profiles/budgie/base.nix
   ];
 
   config = {
