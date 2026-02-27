@@ -6,7 +6,7 @@
 #   populate with the various menu items.
 # - By providing our own toplevel template we can modify the layout
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   xfce = config.system.xfce;
 
