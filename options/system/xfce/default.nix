@@ -91,9 +91,13 @@ in
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-accessibility-settings.desktop"; noDisplay = true; }
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce-settings-manager.desktop"; noDisplay = true; }
       { source = "${pkgs.libreoffice}/share/applications/math.desktop"; categories = "Office"; }
-      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; name = "Terminal"; }
       { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
-      #{ source = "${pkgs.libsForQt5.qtstyleplugin-kvantum}/share/applications/kvantummanager.desktop"; categories = "Settings"; }
+
+      # By setting the category to X-Xfce-Toplevel
+      { source = "${pkgs.wezterm}/share/applications/org.wezfurlong.wezterm.desktop"; categories = "X-Xfce-Toplevel"; }
+
+      # By setting categories to Utility we've removed it from X-Xfce-Toplevel
+      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; categories = "Utility"; }
     ];
 
     environment.xfce.excludePackages = with pkgs.xfce // pkgs; [
