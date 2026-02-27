@@ -14,7 +14,7 @@ in
   config = lib.mkMerge [
 
     # Install roblox
-    (lib.mkIf (cfg.enable) {
+    (lib.mkIf cfg.enable {
       apps.system.flatpak = {
         enable = true;
         packages = [{ appId = "org.vinegarhq.Sober"; }];
@@ -22,15 +22,26 @@ in
     })
 
     # XFCE supporting configuration
-    (lib.mkIf (xfce.enable) {
-      xdg.portal.enable = true;
-      xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-
-      # TODO: add desktop icon in menu
-      #files.all.".config/xfce4/xfconf/xfce-perchannel-xml/displays.xml".copy = xmlfile;
-      #system.xdg.menu.itemOverrides = [
-      #  { source = "${pkgs.vscode}/share/applications/code.desktop"; categories = "Development"; }
-      #];
+    (lib.mkIf (cfg.enable && xfce.enable) {
+      system.xdg.menu.itemOverrides = [
+        {
+          source = pkgs.writeTextFile {
+            name = "org.vinegarhq.Sober.desktop";
+            text = ''
+              [Desktop Entry]
+              Name=Roblox
+              Exec=flatpak run org.vinegarhq.Sober
+              Icon=org.vinegarhq.Sober
+              Terminal=false
+              Type=Application
+              Categories=Games;
+              StartupNotify=true
+              Comment=Play Roblox via Sober
+            '';
+          };
+          categories = "Games";
+        }
+      ];
     })
   ];
 }
