@@ -7,7 +7,7 @@ vim.g.mapleader = " "                                 -- Set the <leader> key to
 vim.g.maplocalleader = " " -- Set the <leader> key to a space
 vim.g.have_nerd_font = true -- ?
 
-vim.opt.title = true -- Change window title to your current buffer name
+vim.opt.title = false -- Don't change window title, allow terminal to control tab names
 -- set encoding=UTF-8            " Required for vim-devicons to work correctly
 vim.opt.autochdir = true -- Automatically switch working directory to current file
 vim.opt.backspace = { "indent", "eol", "start" } -- Configure backspace to work as normal
