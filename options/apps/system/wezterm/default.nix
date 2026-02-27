@@ -30,6 +30,8 @@ let
       config.window_background_opacity = ${cfg.opacity}
       config.hide_tab_bar_if_only_one_tab = true
       config.adjust_window_size_when_changing_font_size = false
+      config.initial_cols = ${toString cfg.initialCols}
+      config.initial_rows = ${toString cfg.initialRows}
 
       -- Other
       config.audible_bell = "Disabled"
@@ -95,6 +97,18 @@ in
         type = types.str;
         description = lib.mdDoc "Color scheme name to use";
         default = "Tokyo Night Storm";
+      };
+
+      initialCols = lib.mkOption {
+        type = types.int;
+        description = lib.mdDoc "Number of columns for new windows";
+        default = 130;
+      };
+
+      initialRows = lib.mkOption {
+        type = types.int;
+        description = lib.mdDoc "Number of rows for new windows";
+        default = 50;
       };
     };
   };
