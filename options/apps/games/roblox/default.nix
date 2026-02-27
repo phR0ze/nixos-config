@@ -1,7 +1,7 @@
 # Roblox via Sober (Flatpak)
-{ config, lib, pkgs, ... }:
+#
+{ config, lib, ... }:
 let
-  xfce = config.system.xfce;
   cfg = config.apps.games.roblox;
 in
 {
