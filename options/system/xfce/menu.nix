@@ -22,7 +22,7 @@ let
           </Include>
 
           <Layout>
-              <Filename>xfce4-terminal-emulator.desktop</Filename>
+              <Filename>wezterm.desktop</Filename>
               <Filename>xfce4-file-manager.desktop</Filename>
               <Separator/>
               <Menuname>Settings</Menuname>
@@ -66,8 +66,8 @@ let
               </Include>
               <Exclude>
                   <Or>
+                      <Filename>wezterm.desktop</Filename>
                       <Filename>xfce4-file-manager.desktop</Filename>
-                      <Filename>xfce4-terminal-emulator.desktop</Filename>
                       <Filename>xfce4-about.desktop</Filename>
                       <Filename>xfce4-run.desktop</Filename>
                   </Or>
