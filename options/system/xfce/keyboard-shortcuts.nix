@@ -75,7 +75,6 @@ let
             <property name="&lt;Super&gt;minus" type="string" value="wmctl shape shrink"/>
             <property name="&lt;Super&gt;Left" type="string" value="wmctl place halfw top-left"/>
             <property name="&lt;Super&gt;Right" type="string" value="wmctl place halfw top-right"/>
-            <property name="${cfg.dropDownTerminalKey}" type="string" value="xfce4-terminal --hide-menubar --drop-down"/>
             <property name="${cfg.appMenuKey}" type="string" value="xfce4-popup-applicationsmenu"/>
           </property>
         </property>

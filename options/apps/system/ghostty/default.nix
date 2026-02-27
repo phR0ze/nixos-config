@@ -31,13 +31,11 @@ let
       scrollback-limit = 10000
 
       # Quake style drop-down terminal
-      #keybind = global:f12=toggle_quick_terminal
-      #quick-terminal-position = top
-      #quick-terminal-screen = main
-      #quick-terminal-animation-duration = 0.2
-      #quick-terminal-autohide = unfocused
-      #window-height = 50%
-      #window-width = 60%
+      keybind = global:f12=toggle_quick_terminal
+      quick-terminal-position = top
+      quick-terminal-screen = main
+      quick-terminal-autohide = unfocused
+      quick-terminal-size = 50%,80%
     '');
 in
 {
