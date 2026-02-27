@@ -48,6 +48,10 @@ let
         { key = "7", mods = "CTRL", action = wezterm.action.ActivateTab(6) },
         { key = "8", mods = "CTRL", action = wezterm.action.ActivateTab(7) },
         { key = "9", mods = "CTRL", action = wezterm.action.ActivateTab(8) },
+
+        -- Move current tab left/right
+        { key = "LeftArrow", mods = "CTRL", action = wezterm.action.MoveTabRelative(-1) },
+        { key = "RightArrow", mods = "CTRL", action = wezterm.action.MoveTabRelative(1) },
       }
 
       -- Zen-mode integration for neovim
