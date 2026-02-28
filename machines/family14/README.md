@@ -10,6 +10,7 @@
   * 62 GB RAM
 * Graphics
   * AMD/ATI Turks GL [FirePro V490] radeon
+  * Use the `radeon` kernel driver with `Mesa OpenGL` not `amdgpu` or `Vulkan`
 * Drives
   * 250 GB Micron SSD 
 

@@ -2,7 +2,7 @@
 #
 # ### Supported systems
 # - AMD Radeon RX 550   => hardware.gpu.amd = true;
-# - Geforce GTX 1050 Ti => hardware.gpu.nvidia = truep;
+# - Geforce GTX 1050 Ti => hardware.gpu.nvidia = true;
 # - Geforce GTX 650 Ti  => hardware.gpu.nvidiaLegacy470 = true;
 #
 # ### Research
@@ -34,6 +34,7 @@
 #    services.xserver.videoDrivers = [ "amdgpu" ];
 #
 # ### Testing
+# - Check kernel driver: `lspci -k | grep -A3 VGA`
 # - OpenGL with: `glxgears`
 # - Check VA-API support: `nix-shell -p libva-utils --run vainfo`
 # - OpenCL with: `clinfo | head -n3`
@@ -52,10 +53,11 @@ in
     devices.gpu = {
       amd = lib.mkEnableOption "Install and configure AMD graphics";
       intel = lib.mkEnableOption "Install and configure Intel graphics";
-      nvidia = lib.mkEnableOption "Install and configure Nvidia graphics stable";
+      nvidia = lib.mkEnableOption "Install and configure Nvidia graphics";
       nvidiaLegacy470 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_470";
       nvidiaLegacy390 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_390";
       nvidiaLegacy340 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_340";
+      radeon = lib.mkEnableOption "Install and configure Radeon graphics";
     };
   };
 
@@ -173,6 +175,12 @@ in
     })
     (lib.mkIf (x11.enable && (cfg.nvidia || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340)) {
       services.xserver.videoDrivers = [ "nvidia" ];
+    })
+
+    # Radeon graphics
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf (cfg.radeon && x11.enable) {
+      services.xserver.videoDrivers = [ "radeon" ];
     })
   ];
 }
