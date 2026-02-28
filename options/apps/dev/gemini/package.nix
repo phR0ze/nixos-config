@@ -9,28 +9,30 @@
   libsecret,
   ripgrep,
   nodejs_22,
+  makeWrapper,
   nix-update-script,
 }:
 
 buildNpmPackage (finalAttrs: {
   pname = "gemini-cli";
-  version = "0.29.5";
+  version = "0.31.0";
 
   src = fetchFromGitHub {
     owner = "google-gemini";
     repo = "gemini-cli";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-+gFSTq0CXMZa2OhP2gOuWa5WtteKW7Ys78lgnz7J72g=";
+    hash = "sha256-huPd4W7Jf4/dZshWElicYpcHhktE83wPs/z5jVYwynM=";
   };
 
   nodejs = nodejs_22;
 
-  npmDepsHash = "sha256-RGiWtJkLFV1UfFahHPzxtzJIsPCseEwfSsPdLfBkavI=";
+  npmDepsHash = "sha256-iRlwCSGigRi/ilfXi8rI68vlfkeec3vB5nZWPmTLnK8=";
 
   dontPatchElf = stdenv.isDarwin;
 
   nativeBuildInputs = [
     jq
+    makeWrapper
     pkg-config
   ]
   ++ lib.optionals stdenv.isDarwin [ clang_20 ]; # clang_21 breaks @vscode/vsce's optionalDependencies keytar
@@ -41,8 +43,12 @@ buildNpmPackage (finalAttrs: {
   ];
 
   preConfigure = ''
-    mkdir -p packages/generated
-    echo "export const GIT_COMMIT_INFO = { commitHash: '${finalAttrs.src.rev}' };" > packages/generated/git-commit.ts
+    mkdir -p packages/cli/src/generated packages/core/src/generated
+    cat > packages/cli/src/generated/git-commit.ts <<'GENEOF'
+    export const GIT_COMMIT_INFO = '${finalAttrs.src.rev}';
+    export const CLI_VERSION = '${finalAttrs.version}';
+    GENEOF
+    cp packages/cli/src/generated/git-commit.ts packages/core/src/generated/git-commit.ts
   '';
 
   postPatch = ''
@@ -59,6 +65,10 @@ buildNpmPackage (finalAttrs: {
     # Disable auto-update by changing default values in settings schema
     sed -i '/enableAutoUpdate:/,/default: true/ s/default: true/default: false/' packages/cli/src/config/settingsSchema.ts
     sed -i '/enableAutoUpdateNotification:/,/default: true/ s/default: true/default: false/' packages/cli/src/config/settingsSchema.ts
+
+    # Suppress TypeScript error for devtools dynamic import (runtime-only dependency, types not needed at build time)
+    substituteInPlace packages/cli/src/utils/devtoolsService.ts \
+      --replace-fail "const mod = await import('@google/gemini-cli-devtools');" "const mod = await import('@google/gemini-cli-devtools' as string);"
 
     # Also make sure the values are disabled in runtime code by changing condition checks to false
     substituteInPlace packages/cli/src/utils/handleAutoUpdate.ts \
@@ -90,16 +100,22 @@ buildNpmPackage (finalAttrs: {
     rm -f $out/share/gemini-cli/node_modules/@google/gemini-cli
     rm -f $out/share/gemini-cli/node_modules/@google/gemini-cli-core
     rm -f $out/share/gemini-cli/node_modules/@google/gemini-cli-a2a-server
+    rm -f $out/share/gemini-cli/node_modules/@google/gemini-cli-devtools
+    rm -f $out/share/gemini-cli/node_modules/@google/gemini-cli-sdk
     rm -f $out/share/gemini-cli/node_modules/@google/gemini-cli-test-utils
     rm -f $out/share/gemini-cli/node_modules/gemini-cli-vscode-ide-companion
     cp -r packages/cli $out/share/gemini-cli/node_modules/@google/gemini-cli
     cp -r packages/core $out/share/gemini-cli/node_modules/@google/gemini-cli-core
     cp -r packages/a2a-server $out/share/gemini-cli/node_modules/@google/gemini-cli-a2a-server
+    cp -r packages/devtools $out/share/gemini-cli/node_modules/@google/gemini-cli-devtools
+    cp -r packages/sdk $out/share/gemini-cli/node_modules/@google/gemini-cli-sdk
 
     rm -f $out/share/gemini-cli/node_modules/@google/gemini-cli-core/dist/docs/CONTRIBUTING.md
 
-    ln -s $out/share/gemini-cli/node_modules/@google/gemini-cli/dist/index.js $out/bin/gemini
-    chmod +x "$out/bin/gemini"
+    makeWrapper ${nodejs_22}/bin/node $out/bin/gemini \
+      --add-flags "--no-warnings=DEP0040" \
+      --add-flags "$out/share/gemini-cli/node_modules/@google/gemini-cli/dist/index.js" \
+      --prefix PATH : ${lib.makeBinPath [ ripgrep ]}
 
     # Clean up any remaining references to npmDeps in node_modules metadata
     find $out/share/gemini-cli/node_modules -name "package-lock.json" -delete
