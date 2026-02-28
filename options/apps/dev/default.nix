@@ -7,6 +7,7 @@
     ./claude
     ./flutter
     ./gh
+    ./gemini
     ./rust
     ./vscode
     ./zed
