@@ -1,9 +1,9 @@
 # Graphics configuration
 #
 # ### Supported systems
-# - AMD Radeon RX 550   => hardware.gpu.amd = true;
-# - Geforce GTX 1050 Ti => hardware.gpu.nvidia = true;
-# - Geforce GTX 650 Ti  => hardware.gpu.nvidiaLegacy470 = true;
+# - AMD Radeon RX 550   => devices.gpu.amd = true;
+# - Geforce GTX 1050 Ti => devices.gpu.nvidia = true;
+# - Geforce GTX 650 Ti  => devices.gpu.nvidiaLegacy470 = true;
 #
 # ### Research
 # - [Nvidia legacy driver selection](https://www.nvidia.com/en-us/drivers/unix/legacy-gpu/)
