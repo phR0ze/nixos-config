@@ -13,6 +13,8 @@
   config = {
     machine.type.bootable = true;
     machine.nix.cache.enable = true;
+    hardware.gpu.radeon.enable = true;
+
     apps.games.warcraft2.enable = true;
     apps.games.roblox.enable = true;
   };
