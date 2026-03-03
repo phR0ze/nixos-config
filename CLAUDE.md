@@ -43,6 +43,10 @@ dispatches to `<command>::run()`.
 | `repl` | `lib/repl` | Launch `nix repl` with machine's flake |
 | `pkgs` | `lib/pkgs` | Package lookup via nix-index-database |
 | `decrypt` | `lib/decrypt` | Decrypt all `*.enc.*` files |
+| `logs` | `lib/logs` | Print derivation build logs for packages |
+| `manage` | `lib/manage` | Manage the clu repo (e.g. `repo` subcommand) |
+| `registry` | `lib/registry` | Interact with Nix registry (e.g. `list` subcommand) |
+| `test` | `lib/test` | Testing function for development |
 
 ### Core Utilities: `lib/utils`
 
@@ -145,8 +149,9 @@ Custom packages injected into the global `pkgs` namespace:
 ├── configuration.nix            # SYMLINK to active machine's configuration.nix
 ├── options/                     # Custom NixOS option modules
 │   ├── default.nix              # Imports all subdirectories
-│   ├── apps/                    # Application options (games/, media/, network/, office/, system/)
-│   ├── development/             # Dev tool options (claude-code/, rust, flutter, vscode, android, zed/)
+│   ├── apps/                    # Application options (dev/, games/, media/, network/, office/, system/)
+│   │   ├── dev/                 # Dev tool options (android/, claude/, flutter/, gemini/, gh/, rust/, vscode/, zed/)
+│   │   └── system/              # System utilities (clu/, flatpak/, ghostty/, neovide/, neovim/, veracrypt/, wezterm/)
 │   ├── devices/                 # Hardware options (audio, bluetooth, boot, firmware, gpu, kernel, printers)
 │   ├── files/                   # File management options
 │   ├── networking.nix           # Global networking
@@ -158,10 +163,14 @@ Custom packages injected into the global `pkgs` namespace:
 │   ├── core.nix                 # Minimal (bash, git, nix essentials)
 │   ├── base.nix                 # CLI environment (core + locale, nix config, terminal, utils)
 │   ├── iso.nix / iso_args.nix   # ISO build profile
-│   └── xfce/                    # Desktop profiles
+│   ├── budgie/                  # Budgie desktop profiles
+│   │   └── base.nix             # Budgie with LightDM
+│   ├── plasma/                  # KDE Plasma desktop profiles
+│   │   └── base.nix             # Plasma 6 with SDDM and Wayland
+│   └── xfce/                    # XFCE desktop profiles
 │       ├── base.nix             # XFCE minimal (X11, fonts, firefox, audio)
 │       ├── desktop.nix          # Full desktop (base + media, games, office)
-│       ├── develop.nix          # Development (desktop + rust, flutter, claude-code, vscode)
+│       ├── develop.nix          # Development (desktop + rust, flutter, claude, vscode)
 │       ├── laptop.nix           # Laptop-specific
 │       └── theater.nix          # Media center
 ├── machines/                    # Per-machine configurations (22+ machines)
@@ -178,6 +187,10 @@ Custom packages injected into the global `pkgs` namespace:
 │   ├── services/                # i3lock, smartd, systemd
 │   ├── terminal/                # bash, env, git, starship
 │   ├── locale.nix, nix.nix, users.nix
+├── include/                     # Static file templates
+│   ├── home/                    # User home directory templates (config, dircolors, face)
+│   ├── usr/share/fonts/TTF/     # Custom TTF fonts
+│   └── var/lib/nix-cache/       # Nix cache keys
 ├── packages/                    # Custom package definitions
 │   ├── arcologout/, desktop-assets/, kasmvnc/, rdutil/, selkies/, tinymediamanager/, wmctl/
 ├── funcs/                       # Nix helper functions (network.nix, service.nix)
@@ -207,13 +220,13 @@ in {
 ```
 
 ### Option Namespaces
+- `apps.dev.<name>.enable` - Development tools (claude, gemini, gh, rust, flutter, vscode, android, zed)
 - `apps.games.<name>.enable` - Games
 - `apps.media.<name>.enable` - Media applications
 - `apps.network.<name>.enable` - Network applications
 - `apps.office.<name>.enable` - Office applications
-- `apps.system.<name>.enable` - System utilities
-- `development.<name>.enable` - Development tools
-- `devices.<name>.enable` / `devices.<name>.<variant>` - Hardware
+- `apps.system.<name>.enable` - System utilities (clu, flatpak, ghostty, neovide, neovim, veracrypt, wezterm)
+- `devices.<name>.enable` / `devices.<name>.<variant>` - Hardware (audio, bluetooth, boot, firmware, gpu, kernel, printers)
 - `services.raw.<name>.enable` - Host services
 - `services.oci.<name>.enable` - OCI container services
 - `services.nspawn.<name>.enable` - nspawn container services
@@ -240,12 +253,14 @@ Central hub defining all machine-level configuration. Every field defaults from 
 
 ## 7. Profile Composition
 
-Profiles form an inheritance chain:
+Profiles form inheritance chains:
 
 ```
 core.nix -> base.nix -> xfce/base.nix -> xfce/desktop.nix -> xfce/develop.nix
-                                       -> xfce/laptop.nix
-                                       -> xfce/theater.nix
+                     |                 -> xfce/laptop.nix
+                     |                 -> xfce/theater.nix
+                     -> budgie/base.nix
+                     -> plasma/base.nix
 ```
 
 Each profile layer adds:
