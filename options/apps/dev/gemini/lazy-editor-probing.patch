@@ -1,0 +1,227 @@
+diff --git a/packages/cli/src/ui/components/EditorSettingsDialog.test.tsx b/packages/cli/src/ui/components/EditorSettingsDialog.test.tsx
+index 36832c166..0adf3076c 100644
+--- a/packages/cli/src/ui/components/EditorSettingsDialog.test.tsx
++++ b/packages/cli/src/ui/components/EditorSettingsDialog.test.tsx
+@@ -14,22 +14,16 @@ import { act } from 'react';
+ import { waitFor } from '../../test-utils/async.js';
+ import { debugLogger } from '@google/gemini-cli-core';
+ 
+-vi.mock('@google/gemini-cli-core', async (importOriginal) => {
+-  const actual =
+-    await importOriginal<typeof import('@google/gemini-cli-core')>();
+-  return {
+-    ...actual,
+-    isEditorAvailable: () => true, // Mock to behave predictably in CI
+-  };
+-});
++const mockEditorDisplays = [
++  { name: 'VS Code', type: 'vscode', disabled: false },
++  { name: 'Vim', type: 'vim', disabled: false },
++];
+ 
+ // Mock editorSettingsManager
+ vi.mock('../editors/editorSettingsManager.js', () => ({
+   editorSettingsManager: {
+-    getAvailableEditorDisplays: () => [
+-      { name: 'VS Code', type: 'vscode', disabled: false },
+-      { name: 'Vim', type: 'vim', disabled: false },
+-    ],
++    getAvailableEditorDisplays: () => mockEditorDisplays,
++    loadAvailability: () => Promise.resolve(mockEditorDisplays),
+   },
+ }));
+ 
+diff --git a/packages/cli/src/ui/components/EditorSettingsDialog.tsx b/packages/cli/src/ui/components/EditorSettingsDialog.tsx
+index f75b1c27b..471f7c093 100644
+--- a/packages/cli/src/ui/components/EditorSettingsDialog.tsx
++++ b/packages/cli/src/ui/components/EditorSettingsDialog.tsx
+@@ -5,7 +5,7 @@
+  */
+ 
+ import type React from 'react';
+-import { useState } from 'react';
++import { useState, useEffect } from 'react';
+ import { Box, Text } from 'ink';
+ import { theme } from '../semantic-colors.js';
+ import {
+@@ -20,7 +20,6 @@ import type {
+ import { SettingScope } from '../../config/settings.js';
+ import {
+   type EditorType,
+-  isEditorAvailable,
+   EDITOR_DISPLAY_NAMES,
+ } from '@google/gemini-cli-core';
+ import { useKeypress } from '../hooks/useKeypress.js';
+@@ -46,6 +45,30 @@ export function EditorSettingsDialog({
+   const [focusedSection, setFocusedSection] = useState<'editor' | 'scope'>(
+     'editor',
+   );
++  const [editorItems, setEditorItems] = useState<EditorDisplay[]>(
++    editorSettingsManager.getAvailableEditorDisplays(),
++  );
++
++  useEffect(() => {
++    let mounted = true;
++    editorSettingsManager
++      .loadAvailability()
++      .then((items) => {
++        if (mounted) {
++          setEditorItems(items);
++        }
++      })
++      .catch((error) => {
++        if (mounted) {
++          // eslint-disable-next-line no-console
++          console.error('Failed to load editor availability:', error);
++        }
++      });
++    return () => {
++      mounted = false;
++    };
++  }, []);
++
+   useKeypress(
+     (key) => {
+       if (key.name === 'tab') {
+@@ -61,9 +84,6 @@ export function EditorSettingsDialog({
+     { isActive: true },
+   );
+ 
+-  const editorItems: EditorDisplay[] =
+-    editorSettingsManager.getAvailableEditorDisplays();
+-
+   const currentPreference =
+     settings.forScope(selectedScope).settings.general?.preferredEditor;
+   let editorIndex = currentPreference
+@@ -126,15 +146,18 @@ export function EditorSettingsDialog({
+   }
+ 
+   let mergedEditorName = 'None';
+-  if (
+-    settings.merged.general.preferredEditor &&
+-    isEditorAvailable(settings.merged.general.preferredEditor)
+-  ) {
+-    mergedEditorName =
+-      EDITOR_DISPLAY_NAMES[
+-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+-        settings.merged.general.preferredEditor as EditorType
+-      ];
++  if (settings.merged.general.preferredEditor) {
++    const editorEntry = editorItems.find(
++      (item: EditorDisplay) =>
++        item.type === settings.merged.general.preferredEditor,
++    );
++    if (editorEntry && !editorEntry.disabled) {
++      mergedEditorName =
++        EDITOR_DISPLAY_NAMES[
++          // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
++          settings.merged.general.preferredEditor as EditorType
++        ];
++    }
+   }
+ 
+   return (
+diff --git a/packages/cli/src/ui/editors/editorSettingsManager.ts b/packages/cli/src/ui/editors/editorSettingsManager.ts
+index d8aab97a6..d678617c8 100644
+--- a/packages/cli/src/ui/editors/editorSettingsManager.ts
++++ b/packages/cli/src/ui/editors/editorSettingsManager.ts
+@@ -6,7 +6,7 @@
+ 
+ import {
+   allowEditorTypeInSandbox,
+-  hasValidEditorCommand,
++  hasValidEditorCommandAsync,
+   type EditorType,
+   EDITOR_DISPLAY_NAMES,
+ } from '@google/gemini-cli-core';
+@@ -18,39 +18,70 @@ export interface EditorDisplay {
+ }
+ 
+ class EditorSettingsManager {
+-  private readonly availableEditors: EditorDisplay[];
++  private availabilityCache: EditorDisplay[] | null = null;
++
++  getAvailableEditorDisplays(): EditorDisplay[] {
++    if (this.availabilityCache) {
++      return this.availabilityCache;
++    }
+ 
+-  constructor() {
+     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+     const editorTypes = Object.keys(
+       EDITOR_DISPLAY_NAMES,
+     ).sort() as EditorType[];
+-    this.availableEditors = [
++
++    return [
+       {
+         name: 'None',
+         type: 'not_set',
+         disabled: false,
+       },
+-      ...editorTypes.map((type) => {
+-        const hasEditor = hasValidEditorCommand(type);
+-        const isAllowedInSandbox = allowEditorTypeInSandbox(type);
+-
+-        let labelSuffix = !isAllowedInSandbox
+-          ? ' (Not available in sandbox)'
+-          : '';
+-        labelSuffix = !hasEditor ? ' (Not installed)' : labelSuffix;
+-
+-        return {
+-          name: EDITOR_DISPLAY_NAMES[type] + labelSuffix,
+-          type,
+-          disabled: !hasEditor || !isAllowedInSandbox,
+-        };
+-      }),
++      ...editorTypes.map((type) => ({
++        name: EDITOR_DISPLAY_NAMES[type],
++        type,
++        disabled: false,
++      })),
+     ];
+   }
+ 
+-  getAvailableEditorDisplays(): EditorDisplay[] {
+-    return this.availableEditors;
++  async loadAvailability(): Promise<EditorDisplay[]> {
++    if (this.availabilityCache) {
++      return this.availabilityCache;
++    }
++
++    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
++    const editorTypes = Object.keys(
++      EDITOR_DISPLAY_NAMES,
++    ).sort() as EditorType[];
++
++    const editorPromises = editorTypes.map(async (type) => {
++      const hasEditor = await hasValidEditorCommandAsync(type);
++      const isAllowedInSandbox = allowEditorTypeInSandbox(type);
++
++      let labelSuffix = !isAllowedInSandbox
++        ? ' (Not available in sandbox)'
++        : '';
++      labelSuffix = !hasEditor ? ' (Not installed)' : labelSuffix;
++
++      return {
++        name: EDITOR_DISPLAY_NAMES[type] + labelSuffix,
++        type,
++        disabled: !hasEditor || !isAllowedInSandbox,
++      };
++    });
++
++    const displays = await Promise.all(editorPromises);
++
++    this.availabilityCache = [
++      {
++        name: 'None',
++        type: 'not_set',
++        disabled: false,
++      },
++      ...displays,
++    ];
++
++    return this.availabilityCache;
+   }
+ }
+ 
