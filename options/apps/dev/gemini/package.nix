@@ -42,6 +42,10 @@ buildNpmPackage (finalAttrs: {
     libsecret
   ];
 
+  patches = [
+    ./lazy-editor-probing.patch
+  ];
+
   preConfigure = ''
     mkdir -p packages/cli/src/generated packages/core/src/generated
     cat > packages/cli/src/generated/git-commit.ts <<'GENEOF'
