@@ -1,10 +1,12 @@
 # NixOS Configuration Repository Specification
 
-## Context
+## AI Agent Context
 
-This document is a reference specification describing the architecture and conventions of this NixOS
-configuration repository. It is intended as context for future feature additions, not as an
-implementation plan for a specific change.
+This document serves as the primary technical specification and operational guide for any AI agent
+(Gemini, Claude, GPT, etc.) interacting with this repository. It defines the architecture,
+conventions, and workflows required to safely and effectively contribute to this NixOS configuration.
+
+It is intended as persistent context for all tasks, not as an implementation plan for a specific change.
 
 ---
 
