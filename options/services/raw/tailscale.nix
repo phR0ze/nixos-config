@@ -18,8 +18,9 @@
 #         "value": "super-secret-auth-key"
 #       }
 #     ]
-# 3. Optionall run: sudo tailscale cert ${MACHINE_NAME}.${TAILNET_NAME}
+# 3. Optional run: sudo tailscale cert ${MACHINE_NAME}.${TAILNET_NAME}
 # 4. Check service status: sudo systemctl status tailscaled
+# 5. Enable with: services.raw.tailscale.enable = true;
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
