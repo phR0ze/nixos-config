@@ -31,22 +31,11 @@ in
 
     # Bash prompt
     # - Using green prompt for admin and red for user in dumb TERM cases
-    # - Using starship configuration for smart TERMs. The 'programs.starship' option only checks for 
-    #   'dumb' TERM so manually handling this myself here for more flexibility.
     promptInit = ''
       # Dumb term default
       PROMPT_COLOR="1;31m"
       ((UID)) && PROMPT_COLOR="1;32m"
       PS1="\n\[\033[$PROMPT_COLOR\][\[\e]0;\u@\h: \w\a\]\u@\h:\w]\\$\[\033[0m\] "
-
-      # Smart term starship
-      if [[ "$TERM" != "dumb" && "$TERM" != "linux" ]]; then
-        export STARSHIP_CONFIG=${
-          pkgs.writeText "starship.toml"
-          (lib.fileContents ../../include/home/.config/starship.toml)
-        }
-        eval "$(${pkgs.starship}/bin/starship init bash)"
-      fi
     '';
 
     # Adds this to the /etc/bashrc
