@@ -22,6 +22,7 @@ in
 
   programs.tmux.enable = true;
   apps.system.clu.enable = true;
+  apps.system.starship.enable = true;
 
   environment.systemPackages = with pkgs; [
     nfs-utils                     # Support programs for Network File Systems

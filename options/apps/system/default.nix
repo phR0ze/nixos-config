@@ -7,6 +7,7 @@
     ./hardinfo
     ./neovide
     ./neovim
+    ./starship
     ./veracrypt
     ./wezterm
   ];
