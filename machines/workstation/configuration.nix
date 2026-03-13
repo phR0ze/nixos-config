@@ -37,6 +37,7 @@
 
     apps.dev.claude.enable = true;
     apps.dev.gemini.enable = true;
+    apps.dev.opencode.enable = true;
 
     apps.games.roblox.enable = true;
     apps.games.hedgewars.enable = true;
