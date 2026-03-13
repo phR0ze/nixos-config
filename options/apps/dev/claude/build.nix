@@ -1,13 +1,6 @@
-# Used for building directly for local tests
-# 
-# ### Build locally
-# cd ~/Projects/nix-config/options/development/claude-code
-# nix build -f ./build.nix
+# See README.md for update and build instructions.
 #---------------------------------------------------------------------------------------------------
-let
-  pkgs = import <nixpkgs> {
-    config = {
-      allowUnfree = true;
-    };
-  };
-in pkgs.callPackage ./package.nix {}
+{ pkgs ? import <nixpkgs> { config.allowUnfree = true; } }:
+{
+  claude-code = pkgs.callPackage ./package.nix {};
+}

@@ -1,19 +1,6 @@
 # Claude Code configuration
 #
-# ### References
-# - [Claude Code NixPkgs](https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/cl/claude-code/package.nix)
-#
-# ### Update instructions
-# 1. run: ./get_new_version.sh
-# 2. run: ./update_lock_file.sh
-# 3. update this file below using these instructions:
-#    1. Set 'version' to the new value
-#    2. Zero out: hash = ""
-#    3. Zero out: npmDepsHash = ""
-# 4. run: nix build -f ./build.nix
-# 5. copy paste in the new 'hash' value
-# 6. run: nix build -f ./build.nix
-# 7. copy paste in the new 'npmDepsHash' value
+# See README.md for update and build instructions.
 #---------------------------------------------------------------------------------------------------
 {
   lib,
@@ -28,14 +15,14 @@
 }:
 buildNpmPackage (finalAttrs: {
   pname = "claude-code";
-  version = "2.1.52";
+  version = "2.1.75";
 
   src = fetchzip {
     url = "https://registry.npmjs.org/@anthropic-ai/claude-code/-/claude-code-${finalAttrs.version}.tgz";
-    hash = "sha256-z2KnyIcVabboBFJCTPHICheQHq1rjh/LZ2Y1MQGHTA0=";
+    hash = "sha256-EgwxqiCl7c8PoRYyHDvcgvK8txDd0XJeZD1vybZyp4E=";
   };
 
-  npmDepsHash = "sha256-ZE+qjgNNbA6p5HLZU+9Flla4S0v8m1Svu/kziC9Jz58=";
+  npmDepsHash = "sha256-eVeQUdFq8UdGQAsQghJmA3YO8XSeXDDondTMn6pEbHk=";
 
   strictDeps = true;
 
@@ -86,13 +73,6 @@ buildNpmPackage (finalAttrs: {
     homepage = "https://github.com/anthropics/claude-code";
     downloadPage = "https://www.npmjs.com/package/@anthropic-ai/claude-code";
     license = lib.licenses.unfree;
-    maintainers = with lib.maintainers; [
-      adeci
-      malo
-      markus1189
-      omarjatoi
-      xiaoxiangmoe
-    ];
     mainProgram = "claude";
   };
 })
