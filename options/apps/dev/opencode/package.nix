@@ -1,183 +1,102 @@
 # OpenCode configuration
 #
-# ### References
-# - [OpenCode NixPkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/op/opencode/package.nix)
-#
 # ### Update instructions
 # 1. run: ./get_new_version.sh
-# 2. update this file below using these instructions:
-#    1. Set 'version' to the new value
-#    2. Zero out: hash = ""
-#    3. Zero out: outputHash = ""
-# 3. run: nix build -f ./build.nix
-# 4. copy paste in the new 'hash' value
-# 5. run: nix build -f ./build.nix
-# 6. copy paste in the new 'outputHash' value
+# 2. update this file using the new version
+# 3. get the new hashes using nix-prefetch-url
 #---------------------------------------------------------------------------------------------------
 {
   lib,
-  stdenvNoCC,
-  bun,
-  fetchFromGitHub,
-  makeBinaryWrapper,
-  models-dev,
-  nix-update-script,
+  stdenv,
+  fetchurl,
+  makeWrapper,
   ripgrep,
   sysctl,
-  installShellFiles,
-  versionCheckHook,
-  writableTmpDirAsHomeHook,
+  unzip,
 }:
-stdenvNoCC.mkDerivation (finalAttrs: {
-  pname = "opencode";
+
+let
   version = "1.2.26";
-  src = fetchFromGitHub {
-    owner = "anomalyco";
-    repo = "opencode";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-+bQEfrqv9tAmXUMcvyUM0hJGpXgt09IWoKYt8I/jBlU=";
+
+  srcMap = {
+    "x86_64-linux" = {
+      url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-x64.tar.gz";
+      hash = "sha256-PHpt0dxG4+OaYODi83EXb789loHim2cJkUkfEXIGJFQ=";
+    };
+    "aarch64-linux" = {
+      url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-arm64.tar.gz";
+      hash = "sha256-wvOH3O9FE3nu3VFwLAKbGQZnqc9waQN9nRnyWLBZphw=";
+    };
+    "x86_64-darwin" = {
+      url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-darwin-x64.zip";
+      hash = "sha256-lQyZGN9Mkj9rnphC+Bl0/TQb+/eT/adoEZxNFxWc3Ic=";
+    };
+    "aarch64-darwin" = {
+      url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-darwin-arm64.zip";
+      hash = "sha256-IUuX9iP4cEeEaKrSvhWVRKsxLzNUsjQCx1rohT3j6CE=";
+    };
   };
 
-  node_modules = stdenvNoCC.mkDerivation {
-    pname = "${finalAttrs.pname}-node_modules";
-    inherit (finalAttrs) version src;
+  srcData = srcMap.${stdenv.hostPlatform.system} or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
 
-    impureEnvVars = lib.fetchers.proxyImpureEnvVars ++ [
-      "GIT_PROXY_COMMAND"
-      "SOCKS_SERVER"
-    ];
+in stdenv.mkDerivation {
+  pname = "opencode";
+  inherit version;
 
-    nativeBuildInputs = [
-      bun
-      writableTmpDirAsHomeHook
-    ];
-
-    dontConfigure = true;
-
-    buildPhase = ''
-      runHook preBuild
-
-      bun install \
-        --cpu="*" \
-        --frozen-lockfile \
-        --filter ./packages/opencode \
-        --filter ./packages/desktop \
-        --ignore-scripts \
-        --no-progress \
-        --os="*"
-
-      bun --bun ./nix/scripts/canonicalize-node-modules.ts
-      bun --bun ./nix/scripts/normalize-bun-binaries.ts
-
-      runHook postBuild
-    '';
-
-    installPhase = ''
-      runHook preInstall
-
-      mkdir -p $out
-      find . -type d -name node_modules -exec cp -R --parents {} $out \;
-
-      runHook postInstall
-    '';
-
-    # NOTE: Required else we get errors that our fixed-output derivation references store paths
-    dontFixup = true;
-
-    outputHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-    outputHashAlgo = "sha256";
-    outputHashMode = "recursive";
+  src = fetchurl {
+    inherit (srcData) url hash;
   };
 
-  nativeBuildInputs = [
-    bun
-    installShellFiles
-    makeBinaryWrapper
-    models-dev
-    writableTmpDirAsHomeHook
-  ];
+  nativeBuildInputs = [ makeWrapper ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ unzip ];
 
-  postPatch = ''
-    # NOTE: Relax Bun version check to be a warning instead of an error
-    substituteInPlace packages/script/src/index.ts \
-      --replace-fail 'throw new Error(`This script requires bun@''${expectedBunVersionRange}' \
-                     'console.warn(`Warning: This script requires bun@''${expectedBunVersionRange}'
+  sourceRoot = ".";
+
+  # zip archives for darwin will extract to a dir or just opencode.
+  # tar.gz for linux extracts just the opencode file.
+  unpackPhase = ''
+    runHook preUnpack
+    if [[ "$src" == *.zip ]]; then
+      unzip -q $src
+    else
+      tar -xf $src
+    fi
+    runHook postUnpack
   '';
 
-  configurePhase = ''
-    runHook preConfigure
-
-    cp -R ''${finalAttrs.node_modules}/. .
-
-    runHook postConfigure
-  '';
-
-  env.MODELS_DEV_API_JSON = "''${models-dev}/dist/_api.json";
-  env.OPENCODE_VERSION = finalAttrs.version;
-  env.OPENCODE_CHANNEL = "stable";
-
-  buildPhase = ''
-    runHook preBuild
-
-    cd ./packages/opencode
-    bun --bun ./script/build.ts --single --skip-install
-    bun --bun ./script/schema.ts schema.json
-
-    runHook postBuild
-  '';
+  dontStrip = true;
+  dontPatchELF = true;
 
   installPhase = ''
     runHook preInstall
 
-    install -Dm755 dist/opencode-*/bin/opencode $out/bin/opencode
-    wrapProgram $out/bin/opencode \
-     --prefix PATH : ''${
+    mkdir -p $out/bin $out/libexec/opencode
+    # Bun standalone executables check /proc/self/exe to determine their entrypoint.
+    # If the file is renamed (e.g. to .opencode-wrapped by wrapProgram), it falls back to the bun CLI.
+    # Therefore, we place the binary in libexec/opencode/opencode and wrap it in bin/opencode.
+    install -Dm755 opencode $out/libexec/opencode/opencode
+
+    # Patch the executable before wrapping
+    ${lib.optionalString stdenv.hostPlatform.isLinux ''
+      patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $out/libexec/opencode/opencode
+    ''}
+
+    makeWrapper $out/libexec/opencode/opencode $out/bin/opencode \
+     --argv0 opencode \
+     --prefix PATH : ${
        lib.makeBinPath (
-         [
-           ripgrep
-         ]
-         ++ lib.optionals stdenvNoCC.hostPlatform.isDarwin [
-           sysctl
-         ]
+         [ ripgrep ]
+         ++ lib.optionals stdenv.hostPlatform.isDarwin [ sysctl ]
        )
      }
 
-    install -Dm644 schema.json $out/share/opencode/schema.json
-
     runHook postInstall
   '';
-
-  postInstall = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
-    installShellCompletion --cmd opencode \
-      --bash <($out/bin/opencode completion) \
-      --zsh <(SHELL=/bin/zsh $out/bin/opencode completion)
-  '';
-
-  nativeInstallCheckInputs = [
-    versionCheckHook
-    writableTmpDirAsHomeHook
-  ];
-  doInstallCheck = true;
-  versionCheckKeepEnvironment = [ "HOME" ];
-  versionCheckProgramArg = "--version";
-
-  passthru = {
-    jsonschema = "''${placeholder "out"}/share/opencode/schema.json";
-    updateScript = nix-update-script {
-      extraArgs = [
-        "--subpackage"
-        "node_modules"
-      ];
-    };
-  };
 
   meta = {
     description = "AI coding agent built for the terminal";
     homepage = "https://github.com/anomalyco/opencode";
     license = lib.licenses.mit;
-    maintainers = [
-    ];
-    sourceProvenance = with lib.sourceTypes; [ fromSource ];
+    maintainers = [];
     platforms = [
       "aarch64-linux"
       "x86_64-linux"
@@ -186,4 +105,4 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     ];
     mainProgram = "opencode";
   };
-})
+}
