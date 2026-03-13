@@ -17,7 +17,7 @@ return {
         },
         indent = {
           enable = true,
-          --disable = { "yaml" },                       -- disable for yaml b/c doesn't work well
+          disable = { "yaml" },                       -- disable for yaml b/c doesn't work well
         },
         highlight = {
           enable = true,                              -- enable treesitter highlighting

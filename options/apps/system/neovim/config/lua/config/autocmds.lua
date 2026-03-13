@@ -68,19 +68,6 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead", "FileType" }, {
   group = md_group,
 })
 
--- yaml files
-local yaml_group = vim.api.nvim_create_augroup("YamlSettings", { clear = true })
-vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead", "FileType" }, {
-  pattern = { "yaml", "*.yaml" },
-  callback = function()
-    vim.bo.filetype = "yaml"
-    vim.opt_local.tabstop = 2
-    vim.opt_local.shiftwidth = 2
-    vim.opt_local.softtabstop = 2
-    vim.opt_local.expandtab = true
-  end,
-  group = yaml_group,
-})
 
 -- xml files
 local xml_group = vim.api.nvim_create_augroup("XmlSettings", { clear = true })
