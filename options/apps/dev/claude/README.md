@@ -5,12 +5,18 @@ This directory contains the Nix configuration for
 
 ## Updating
 
-To update Claude Code to the latest version and regenerate the `package-lock.json`, run the following
-command from this directory:
+To update Claude Code to the latest version and regenerate the `package-lock.json`, run the helper script from this directory:
+
+```bash
+./update.sh
+```
+
+Alternatively, you can run the command manually:
 
 ```bash
 nix-shell -p nix-update nodejs --run "AUTHORIZED=1 nix-update -f ./build.nix claude-code --generate-lockfile"
 ```
+
 
 ## Local Testing
 
