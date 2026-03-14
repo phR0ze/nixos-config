@@ -18,6 +18,6 @@
     machine.nix.cache.enable = true;
 
     # Broken
-    #devices.gpu.nvidiaLegacy340 = true;
+    #devices.gpu.nvidia = { enable = true; legacy340 = true; };
   };
 }

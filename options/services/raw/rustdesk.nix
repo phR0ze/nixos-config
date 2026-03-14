@@ -29,7 +29,7 @@ let
 
   # Generate a machine-id encoded password for RustDesk
   encoded-pass = builtins.readFile (pkgs.runCommandLocal "encoded-rustdesk-pass" {} ''
-    ${pkgs.rdutil}/bin/rdutil encrypt ${machine.user.pass} --key ${machine.id} > $out
+    ${pkgs.rdutil}/bin/rdutil encrypt "${machine.user.pass}" --key "${machine.id}" > $out
   '');
 in
 {

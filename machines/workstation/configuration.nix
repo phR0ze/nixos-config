@@ -22,7 +22,7 @@
 
   config = {
     machine.type.bootable = true;
-    devices.gpu.amd = true;
+    devices.gpu.amd.enable = true;
     machine.net.bridge.enable = true;
 
     devices.printers.epson-wf7710 = true;
