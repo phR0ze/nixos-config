@@ -43,7 +43,7 @@ in
       # - https://wiki.nixos.org/wiki/Immich
       users.users.${cfg.user.name} = f.createUser cfg.user // {
         extraGroups = [ "video" "render" ]
-          ++ lib.optionals (gpu.nvidia) [ "nvidia" ];
+          ++ lib.optionals (gpu.nvidia.enable) [ "nvidia" ];
       };
 
       # Create persistent directories for application
@@ -79,9 +79,9 @@ in
 
       # Create the "podman-${cfg.name}-machine-learning" service
       virtualisation.oci-containers.containers."${cfg.name}-machine-learning" = let
-        tag = if (gpu.nvidia) then "${cfg.tag}-cuda"
-          else (if (gpu.amd) then "${cfg.tag}-rocm"
-            else (if (gpu.intel) then "${cfg.tag}-openvino"
+        tag = if (gpu.nvidia.enable) then "${cfg.tag}-cuda"
+          else (if (gpu.amd.enable) then "${cfg.tag}-rocm"
+            else (if (gpu.intel.enable) then "${cfg.tag}-openvino"
               else "${cfg.tag}"));
       in {
         hostname = "immich-machine-learning";     # name server is looking for
@@ -95,7 +95,7 @@ in
           "NVIDIA_DRIVER_CAPABILITIES" = "all";   # 
         };
         extraOptions = [ ]
-          ++ lib.optionals (gpu.nvidia) [
+          ++ lib.optionals (gpu.nvidia.enable) [
             # Docker allows you to simply pass `--gpus=all`. Podman requires all this
             "--device=/dev/nvidia0"
             "--device=/dev/nvidiactl"
@@ -105,7 +105,7 @@ in
             "--hooks-dir=/etc/containers/oci/hooks.d"
             # Only line needed when using nvidia-container-toolkit
             "--device=nvidia.com/gpu=all"
-          ] ++ lib.optionals (gpu.amd) [
+          ] ++ lib.optionals (gpu.amd.enable) [
             "--device=/dev/video"
             "--device=/dev/dri:/dev/dri"
             "--device=/dev/kfd:/dev/kfd"
@@ -156,7 +156,7 @@ in
     # Installs Nvidia Container Toolkit which is a replacement for the older nvidia-docker
     # Essentially it makes the Nvidia GPU available to containers if you then pass in the
     # appropriate --device=/dev/nvidia* and hooks.d to the podman invocation
-    (lib.mkIf gpu.nvidia {
+    (lib.mkIf gpu.nvidia.enable {
 
       # Getting an error that I can't have both X11 and datacenter enabled at the same time
       #hardware.nvidia.datacenter.enable = true;

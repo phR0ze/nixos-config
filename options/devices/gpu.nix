@@ -1,9 +1,10 @@
 # Graphics configuration
 #
 # ### Supported systems
-# - AMD Radeon RX 550   => devices.gpu.amd = true;
-# - Geforce GTX 1050 Ti => devices.gpu.nvidia = true;
-# - Geforce GTX 650 Ti  => devices.gpu.nvidiaLegacy470 = true;
+# - AMD Radeon RX 550   => devices.gpu.amd.enable = true;
+# - Geforce GTX 1660    => devices.gpu.nvidia = { enable = true; open = true; };
+# - Geforce GTX 1050 Ti => devices.gpu.nvidia.enable = true;
+# - Geforce GTX 650 Ti  => devices.gpu.nvidia = { enable = true; legacy470 = true; };
 #
 # ### Research
 # - [Nvidia legacy driver selection](https://www.nvidia.com/en-us/drivers/unix/legacy-gpu/)
@@ -51,13 +52,16 @@ in
 {
   options = {
     devices.gpu = {
-      amd = lib.mkEnableOption "Install and configure AMD graphics";
-      intel = lib.mkEnableOption "Install and configure Intel graphics";
-      nvidia = lib.mkEnableOption "Install and configure Nvidia graphics";
-      nvidiaLegacy470 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_470";
-      nvidiaLegacy390 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_390";
-      nvidiaLegacy340 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_340";
-      radeon = lib.mkEnableOption "Install and configure Radeon graphics";
+      amd.enable = lib.mkEnableOption "Install and configure AMD graphics";
+      intel.enable = lib.mkEnableOption "Install and configure Intel graphics";
+      nvidia = {
+        enable = lib.mkEnableOption "Install and configure Nvidia graphics";
+        open = lib.mkEnableOption "Use the NVIDIA open source kernel module (Turing+ only)";
+        legacy470 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_470";
+        legacy390 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_390";
+        legacy340 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_340";
+      };
+      radeon.enable = lib.mkEnableOption "Install and configure Radeon graphics";
     };
   };
 
@@ -91,7 +95,7 @@ in
 
     # AMD graphics
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf cfg.amd {
+    (lib.mkIf cfg.amd.enable {
 
       # Have the kernel load the correct GPU driver as soon as possible
       hardware.amdgpu.initrd.enable = true;
@@ -103,13 +107,13 @@ in
         nvtopPackages.amd           # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
       ];
     })
-    (lib.mkIf (cfg.amd && x11.enable) {
+    (lib.mkIf (cfg.amd.enable && x11.enable) {
       services.xserver.videoDrivers = [ "amdgpu" ];
     })
 
     # Intel graphics
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf cfg.intel {
+    (lib.mkIf cfg.intel.enable {
       hardware.graphics.extraPackages = with pkgs; [
         intel-media-driver          # VA-API for Intel iHD Broadwell (2014) or newer
         intel-vaapi-driver          # VA-API for Intel i965 Broadwell (2014), better for Firefox?
@@ -124,7 +128,7 @@ in
 
     # Nvidia graphics
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.nvidia || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340) {
+    (lib.mkIf cfg.nvidia.enable {
 
       # Enable this when using containers that need Nvidia GPU access
       #hardware.nvidia-container-toolkit.enable = true;
@@ -136,8 +140,7 @@ in
         # Support is limited to the Turing and later architectures. Full list of supported GPUs is at: 
         # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus 
         # Only available from driver 515.43.04+
-        # Currently alpha-quality/buggy, so false is currently the recommended setting.
-        open = false;
+        open = cfg.nvidia.open;
 
         # Have the kernel load the correct GPU driver as soon as possible
         # Enabling this fixes screen tearing and Wayland compositors in some cases
@@ -151,7 +154,7 @@ in
 
         # Fine-grained power management. Turns off GPU when not in use.
         # Experimental and only works on modern Nvidia GPUs (Turing or newer).
-        powerManagement.finegrained = false;
+        powerManagement.finegrained = cfg.nvidia.open;
 
         # Enables the Nvidia settings menu entry by installing `nvidia-settings`
         nvidiaSettings = true;
@@ -160,11 +163,11 @@ in
         nvidiaPersistenced = true;
 
         # Optionally, for older cards you'll need to select the driver version for your specific GPU.
-        package = if cfg.nvidiaLegacy470 then
+        package = if cfg.nvidia.legacy470 then
           config.boot.kernelPackages.nvidiaPackages.legacy_470 else
-          if cfg.nvidiaLegacy390 then
+          if cfg.nvidia.legacy390 then
             config.boot.kernelPackages.nvidiaPackages.legacy_390 else
-          if cfg.nvidiaLegacy340 then
+          if cfg.nvidia.legacy340 then
             config.boot.kernelPackages.nvidiaPackages.legacy_340 else
           config.boot.kernelPackages.nvidiaPackages.stable;
       };
@@ -173,13 +176,13 @@ in
         nvtopPackages.nvidia        # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
       ];
     })
-    (lib.mkIf (x11.enable && (cfg.nvidia || cfg.nvidiaLegacy470 || cfg.nvidiaLegacy390 || cfg.nvidiaLegacy340)) {
+    (lib.mkIf (x11.enable && cfg.nvidia.enable) {
       services.xserver.videoDrivers = [ "nvidia" ];
     })
 
     # Radeon graphics
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.radeon && x11.enable) {
+    (lib.mkIf (cfg.radeon.enable && x11.enable) {
       services.xserver.videoDrivers = [ "radeon" ];
     })
   ];
