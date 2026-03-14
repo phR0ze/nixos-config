@@ -250,8 +250,7 @@ testing.
 
 ### Build the ISO for installation
 NixOS has a lot of reusable automation built into it. In the Arch world typically you have to start 
-from scratch and build your own automation if you want control over how its being built. In the Nix 
-world though this already exists.
+from scratch and build your own automation if you want control. In the Nix world though this already exists.
 
 1. Clone this repo
    ```bash
@@ -271,7 +270,7 @@ world though this already exists.
    $ ./clu build iso
 
    # Build with a profile specifically called out
-   $ ./clu build iso base
+   $ ./clu build iso xfce/desktop.nix
    ```
 5. The ISO will end up in `result/iso/`
 
