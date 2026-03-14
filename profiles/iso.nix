@@ -6,7 +6,7 @@
 # ./clu build iso
 #
 # ### Features
-# - Automatically run installation wizard to guide you through the install
+# - Automatically runs the installation wizard to guide you through the install
 # - Automation for installing NixOS including partitioning and customization
 # - Includes packages on ISO for offline installations
 # --------------------------------------------------------------------------------------------------
