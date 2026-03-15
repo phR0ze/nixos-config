@@ -55,12 +55,20 @@ run::vm()
     if [[ -d "${machine}" ]]; then
         log::header1 "Running VM ${cyan}${machine}${none}"
 
+        # Launch QEMU with performance optimizations:
+        # - machine q35: Modern PCIe-based machine type
+        # - enable-kvm: Hardware acceleration
+        # - virtio-vga-gl & gtk,gl=on: 3D acceleration
+        # - virtio-tablet-pci: Absolute mouse coordinates (no lag)
         $SUDO qemu-system-x86_64 \
             -name NixOS \
+            -machine q35 \
             -enable-kvm \
             -m 4G -cpu host -smp 4 \
             -nic user \
-            -vga virtio -display sdl,gl=on \
+            -device virtio-vga-gl \
+            -display gtk,gl=on \
+            -device virtio-tablet-pci \
             -hda "${machine}/nixos.qcow2"
     else
         # Default to the test vm if not given
@@ -134,12 +142,20 @@ run::iso()
     fi
     
     # Run the VM using the ISO to boot from
+    # Launch QEMU with performance optimizations:
+    # - machine q35: Modern PCIe-based machine type
+    # - enable-kvm: Hardware acceleration
+    # - virtio-vga-gl & gtk,gl=on: 3D acceleration
+    # - virtio-tablet-pci: Absolute mouse coordinates (no lag)
     $SUDO qemu-system-x86_64 \
         -name NixOS \
+        -machine q35 \
         -enable-kvm \
         -m 4G -cpu host -smp 4 \
         -nic user \
-        -vga virtio -display sdl,gl=on \
+        -device virtio-vga-gl \
+        -display gtk,gl=on \
+        -device virtio-tablet-pci \
         -hda $vol \
         -cdrom "$iso"
     utils::run popd

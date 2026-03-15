@@ -20,6 +20,7 @@ in
   machine.hostname = "nixos";
   machine.user.name = "nixos";
   machine.user.group = "nixos";
+  machine.resolution = { x = 1920; y = 1080; };
 
   imports = [
     # The ISO building automation I'm levaraging from Nix will automatically include all derevations 
@@ -35,6 +36,14 @@ in
   # Original example naming: "nixos-23.11.20240225.5bf1cad-x86_64-linux"
   image.baseName = lib.mkForce "cyberlinux-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}";
   isoImage.volumeID = "cyberlinux-installer";
+
+  # Set the compression level to use
+  # - for largest ISO but fast, use "1" e.g. took 3 min and 9.6 GB for xfce/desktop.nix
+  # - for a balanced approach, use "10" e.g. took 3.5 min and 8.4 GB for xfce/desktop.nix
+  # - for a balanced approach, use "15" e.g. took 6.0 min and 8.3 GB for xfce/desktop.nix
+  # - for a balanced approach, use "19" e.g. took 16.5 min and 7.8 GB for xfce/desktop.nix
+  # - for smallest ISO size but slow, use "19" (default).
+  isoImage.squashfsCompression = "zstd -Xcompression-level 19";
 
   # Clearing out the hashed form to avoid the warning during ISO creation.
   # The passwords are set in the ../../modules/users.nix file via the flake_private.nix
