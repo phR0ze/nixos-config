@@ -68,9 +68,19 @@ My configuration can be installed using the pre-built upstream NixOS ISOs
       ```bash
       $ sudo wipefs --all --force YOUR/DEVICE
       ```
-   3. Copy to the dev leaving off the partition
+   3. Copy to the device leaving off the partition
       ```bash
-      $ sudo dd bs=4M if=latest-nixos-minimal-x86_64-linux.iso of=YOUR/DEVICE status=progress conv=fsync oflag=direct
+      # Burn the ISO with performance and reliability enhancements:
+      # - bs=4M: Use 4MB block size for much faster transfers than the default.
+      # - status=progress: Show real-time transfer speed and progress.
+      # - conv=fsync: Force physical write to the USB drive before finishing to prevent corruption.
+      # For cheap slow drives
+      # - drop `conv=fsync` and use `oflag=direct` instead
+      $ sudo dd if=latest-nixos-minimal-x86_64-linux.iso of=/dev/sdX bs=4M status=progress conv=fsync
+      ```
+   4. Eject
+      ```bash
+      $ sudo eject /dev/sdX
       ```
 3. Boot from the new USB and start a nix shell
    ```bash
@@ -274,7 +284,29 @@ from scratch and build your own automation if you want control. In the Nix world
    ```
 5. The ISO will end up in `result/iso/`
 
-### Test the ISO in a QEMU VM
+### Burning your custom ISO to USB
+Once you've built your custom image, use `dd` to burn it to a physical USB drive:
+
+1. Identify your USB device:
+   ```bash
+   $ lsblk
+   ```
+2. Burn the ISO with performance and reliability enhancements:
+   ```bash
+   # Replace /dev/sdX with your actual device (e.g., /dev/sdb)
+   # - bs=4M: Speeds up the transfer by using 4MB blocks instead of the 512-byte default.
+   # - status=progress: Provides a real-time progress bar and transfer speed.
+   # - conv=fsync: Ensures all data is physically written to the hardware before finishing.
+   # For cheap slow drives
+   # - drop `conv=fsync` and use `oflag=direct` instead
+   $ sudo dd if=$(ls result/iso/*.iso | head -n 1) of=/dev/sdX bs=4M status=progress conv=fsync
+   ```
+3. Eject
+   ```bash
+   $ sudo eject /dev/sdX
+   ```
+
+## Test the ISO in a QEMU VM
 ```
 $ ./clu run iso
 ```
