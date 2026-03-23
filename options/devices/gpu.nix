@@ -154,7 +154,8 @@ in
 
         # Fine-grained power management. Turns off GPU when not in use.
         # Experimental and only works on modern Nvidia GPUs (Turing or newer).
-        powerManagement.finegrained = cfg.nvidia.open;
+        #powerManagement.finegrained = cfg.nvidia.open;
+        powerManagement.finegrained = false;
 
         # Enables the Nvidia settings menu entry by installing `nvidia-settings`
         nvidiaSettings = true;
