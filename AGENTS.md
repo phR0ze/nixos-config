@@ -1,16 +1,4 @@
-# NixOS Configuration Repository Specification
-
-## AI Agent Context
-
-This document serves as the primary technical specification and operational guide for any AI agent
-(Gemini, Claude, GPT, etc.) interacting with this repository. It defines the architecture,
-conventions, and workflows required to safely and effectively contribute to this NixOS configuration.
-
-It is intended as persistent context for all tasks, not as an implementation plan for a specific change.
-
----
-
-## 1. Repository Overview
+# NixOS Configuration Repository
 
 A multi-machine NixOS configuration managing 22+ physical and virtual machines through a custom bash
 automation layer (`clu`) that orchestrates Nix flake evaluation. The key architectural distinction is
@@ -19,7 +7,7 @@ evaluates, rather than through conventional per-host `nixosConfigurations.<hostn
 
 ---
 
-## 2. The `clu` Bash Framework
+## 1. The `clu` Bash Framework
 
 ### Entry Point: `/clu`
 
@@ -67,10 +55,10 @@ headers and indented sub-logging.
 
 ---
 
-## 3. The Machine-Linking Mechanism (`lib/flake`)
+## 2. The Machine-Linking Mechanism (`lib/flake`)
 
-This is the most unconventional aspect of the repo. Instead of defining
-`nixosConfigurations.<hostname>` for each machine, the flake defines a single generic entry:
+Instead of defining `nixosConfigurations.<hostname>` for each machine, the flake defines a single
+generic entry:
 
 ```nix
 nixosConfigurations.target = lib.nixosSystem {
@@ -108,7 +96,7 @@ trap on EXIT ensures cleanup even on failure.
 
 ---
 
-## 4. Flake Structure (`flake.nix`)
+## 3. Flake Structure (`flake.nix`)
 
 ### Inputs
 - `nixpkgs`: Pinned to a specific commit (currently 2025.08.09 unstable)
@@ -137,7 +125,7 @@ Custom packages injected into the global `pkgs` namespace:
 
 ---
 
-## 5. Directory Structure
+## 4. Directory Structure
 
 ```
 /
@@ -201,7 +189,7 @@ Custom packages injected into the global `pkgs` namespace:
 
 ---
 
-## 6. Option Architecture
+## 5. Option Architecture
 
 ### Pattern
 
@@ -253,7 +241,7 @@ Central hub defining all machine-level configuration. Every field defaults from 
 
 ---
 
-## 7. Profile Composition
+## 6. Profile Composition
 
 Profiles form inheritance chains:
 
@@ -275,7 +263,7 @@ Machine configs import exactly one profile and add machine-specific overrides.
 
 ---
 
-## 8. Secrets Management
+## 7. Secrets Management
 
 - **Tool**: sops with age encryption
 - **Config**: `.sops.yaml` at repo root with age public key
@@ -286,7 +274,7 @@ Machine configs import exactly one profile and add machine-specific overrides.
 
 ---
 
-## 9. Conventions for Adding Features
+## 8. Conventions for Adding Features
 
 ### Adding a New Machine
 1. Create `machines/<name>/` with `configuration.nix` and `hardware-configuration.nix`
@@ -318,7 +306,7 @@ Machine configs import exactly one profile and add machine-specific overrides.
 
 ---
 
-## 10. Build Flow Summary
+## 9. Build Flow Summary
 
 ```
 User runs: clu update workstation
