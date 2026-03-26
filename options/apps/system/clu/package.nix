@@ -1,20 +1,27 @@
-# clu configuration
-# 
-# ### Details
-# - NixOS automation
+# clu package
+#
+# ### Source strategy: using `self` instead of `fetchFromGitHub`
+#
+# This package is the nixos-config repo itself, bundled as a Nix derivation so
+# the ISO installer can run `clu install` with the exact configuration that was
+# used to build the ISO.
+#
+# Previously this fetched from GitHub at a pinned commit hash, which meant the
+# ISO always contained a stale snapshot requiring manual hash updates.
+#
+# The idiomatic Nix flake approach is to pass `self` — the flake's own source
+# reference — from `base.nix` via `callPackage ... { src = self; }`. When Nix
+# evaluates a flake, `self` is automatically bound to the exact source tree
+# being built (the staged git content in the working directory). Passing it here
+# as `src` means the bundled clu always matches the version you built the ISO
+# from, with no manual maintenance required.
 #---------------------------------------------------------------------------------------------------
-{ pkgs, stdenvNoCC, fetchFromGitHub, makeWrapper }:
+{ pkgs, stdenvNoCC, src, makeWrapper }:
 
-# Create the package from Github
 stdenvNoCC.mkDerivation {
   name = "clu";
   version = "1.0.0";
-  src = fetchFromGitHub {
-    owner = "phR0ze";
-    repo = "nixos-config";
-    rev = "2fc0bb3bf1d6700c09bcdc57876c9badaa09fb9e";
-    hash = "sha256-YYFy3n8Fn7D2xgkTFby5zVOA+/EXgpIKzA8vFnQvFcg=";
-  };
+  inherit src;
 
   propagatedBuildInputs = with pkgs; [
     coreutils                           # stat provide file ownership
