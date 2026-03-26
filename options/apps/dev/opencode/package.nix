@@ -1,9 +1,20 @@
-# OpenCode configuration
+# OpenCode configuration - uses pre-built binaries from GitHub releases
+#
+# ### Why not build from source?
+# The standard nixpkgs approach builds opencode from source using bun. However, bun itself
+# requires AVX2 CPU support and will crash with "Illegal instruction" on CPUs that only have
+# AVX (not AVX2). Since this config targets machines without AVX2, we use the pre-built
+# standalone executables released by the opencode project instead.
 #
 # ### Update instructions
 # 1. run: ./get_new_version.sh
-# 2. update this file using the new version
-# 3. get the new hashes using nix-prefetch-url
+# 2. update `version` below
+# 3. get new hashes:
+#    nix-prefetch-url --type sha256 https://github.com/anomalyco/opencode/releases/download/v<version>/opencode-linux-x64.tar.gz
+#    nix-prefetch-url --type sha256 https://github.com/anomalyco/opencode/releases/download/v<version>/opencode-linux-arm64.tar.gz
+#    nix-prefetch-url --type sha256 https://github.com/anomalyco/opencode/releases/download/v<version>/opencode-darwin-x64.zip
+#    nix-prefetch-url --type sha256 https://github.com/anomalyco/opencode/releases/download/v<version>/opencode-darwin-arm64.zip
+#    nix hash convert --hash-algo sha256 --to base64 <hash>
 #---------------------------------------------------------------------------------------------------
 {
   lib,
@@ -16,24 +27,24 @@
 }:
 
 let
-  version = "1.2.26";
+  version = "1.3.3";
 
   srcMap = {
     "x86_64-linux" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-x64.tar.gz";
-      hash = "sha256-PHpt0dxG4+OaYODi83EXb789loHim2cJkUkfEXIGJFQ=";
+      hash = "sha256-krs2sW7R37CGl/0rfY99Cf38us1eW/amf00Ven9TOxM=";
     };
     "aarch64-linux" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-arm64.tar.gz";
-      hash = "sha256-wvOH3O9FE3nu3VFwLAKbGQZnqc9waQN9nRnyWLBZphw=";
+      hash = "sha256-ocVx/JBB4fHbF0rF7sT/B48curk5J9he2pgvG8k5NKQ=";
     };
     "x86_64-darwin" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-darwin-x64.zip";
-      hash = "sha256-lQyZGN9Mkj9rnphC+Bl0/TQb+/eT/adoEZxNFxWc3Ic=";
+      hash = "sha256-hjAdFXtsFhvQvCZq1eKEWOAeTEyVRKc/6Z+XqtvDV5M=";
     };
     "aarch64-darwin" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-darwin-arm64.zip";
-      hash = "sha256-IUuX9iP4cEeEaKrSvhWVRKsxLzNUsjQCx1rohT3j6CE=";
+      hash = "sha256-5wg/AWIU3ZXBRCug8WjlbC46aOZyHQT6B55myoXbF6U=";
     };
   };
 
