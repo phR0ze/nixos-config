@@ -44,8 +44,11 @@ stdenvNoCC.mkDerivation {
     mkdir -p $out/bin
     cp -a $src/. $out/
 
-    makeWrapper $out/clu $out/bin/clu
+    # Nix store sources are read-only (444/555); restore write bits so makeWrapper
+    # can create $out/bin/clu and subsequent fixup phases can patch shebangs.
+    chmod -R u+w $out
 
     chmod +x $out/clu
+    makeWrapper $out/clu $out/bin/clu
   '';
 }
