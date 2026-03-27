@@ -359,9 +359,11 @@ EOF"
     log::status
 
     # Files must be at least git added for the flake to recognize them
+    # Note: args.dec.json matches *.dec.* in .gitignore so it requires -f to stage it
     log::ls -n "Re-locate hardware config to ${MACHINE}/hardware-configuration.nix..."
     sudo mv hardware-configuration.nix "${MACHINE}"
     sudo git add "${MACHINE}"
+    sudo git add -f "${MACHINE}/args.dec.json"
     log::status
 
     utils::run popd

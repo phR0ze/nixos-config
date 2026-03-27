@@ -20,6 +20,8 @@
   resolution.y = 0;                     # Machine Y resolution e.g. 1080
   nix.minVer = "25.05";                 # Nixpkgs minimum version
   drives = [];                          # List of drives to configure in hardware-configuration.nix
+  git.user = "";                        # Git user name
+  git.email = "";                       # Git user email
   git.comment = "";
 
   # User configuration
