@@ -88,7 +88,7 @@ utils::handle_root()
     fi
 
     # Check if the target CONFIG_DIR is owned by root
-    if [[ "$(stat -c %U "$CONFIG_DIR")" == "root" || "${INSTALL}" -eq 1 ]]; then
+    if [[ "${INSTALL}" -eq 1 || "$(stat -c %U "$CONFIG_DIR")" == "root" ]]; then
         log::d "Handling root owned CONFIG_DIR=$CONFIG_DIR"
         SUDO="sudo";
     else
