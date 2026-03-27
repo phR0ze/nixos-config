@@ -11,6 +11,7 @@
 
   # Enable apps
   apps.office.evince.enable = true;         # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
+  apps.media.handbrake.enable = true;       # Video encoding tool for mp4/mkv
   apps.media.jellyfin.enable = true;        # Install Jellyfin media player
   apps.media.xnviewmp.enable = true;        # Versatile image viewer with lossless JPEG rotation
   apps.network.qbittorrent.enable = true;   # Excellent bittorrent client
@@ -44,7 +45,6 @@
     kdePackages.kolourpaint   # Paint application that saves jpg in format for GFXBoot
     libdvdcss                 # DVD decrypting media codec support
     losslesscut-bin           # Crossplatform GUI tool for lossless trimming/cuttong of video/audio files
-    handbrake                 # Video encoding tool for mp4/mkv
     lame                      # High quality MPEG layer III audio encoder
     mkvtoolnix                # Cross-platform tools for Matroska
     mpv                       # General purpose media player, fork of MPlayer and mplayer2

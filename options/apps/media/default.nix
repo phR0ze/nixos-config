@@ -2,6 +2,7 @@
 {
   imports = [
     ./freecad
+    ./handbrake
     ./jellyfin
     ./kodi
     ./obs

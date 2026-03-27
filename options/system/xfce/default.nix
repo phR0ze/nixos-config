@@ -55,21 +55,23 @@ in
     system.xfce.panel.launchers = [
       { name = "WezTerm"; exec = "wezterm"; icon = "org.wezfurlong.wezterm"; }
       { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
-      {
-        name = "Jellyfin";
-        exec = "jellyfinmediaplayer";
-        icon = "com.github.iwalton3.jellyfin-media-player";
-      }
+    ]
+    ++ lib.optional config.apps.media.jellyfin.enable
+      { name = "Jellyfin"; exec = "jellyfinmediaplayer"; icon = "com.github.iwalton3.jellyfin-media-player"; }
+    ++ [
       { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
+    ]
+    ++ lib.optional config.apps.media.handbrake.enable
       { name = "HandBrake"; exec = "ghb"; icon = "fr.handbrake.ghb"; }
+    ++ [
       { name = "VLC Media Player"; exec = "vlc"; icon = "vlc"; }
       { name = "FileZilla"; exec = "filezilla"; icon = "filezilla"; }
       { name = "Firefox"; exec = "firefox"; icon = "firefox"; }
       { name = "LibreOffice Calc"; exec = "libreoffice --calc"; icon = "libreoffice-calc"; }
-      { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; 
-      }]
-    ++
-      lib.optional machine.type.develop { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
+      { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; }
+    ]
+    ++ lib.optional machine.type.develop
+      { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
 
     # 1. Determine the desktop directory filename
     #    e.g `ll /run/current-system/sw/share/desktop-directories/xfce-network.directory`
