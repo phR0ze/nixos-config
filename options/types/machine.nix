@@ -17,13 +17,16 @@ let
 
   # Defaults to use for uniformity across the different default use cases
   defaults = {
-    user = {
-      name = args.user.name;
-      pass = args.user.pass;
-      fullname = args.user.fullname;
-      email = args.user.email;
-      uid = config.users.users.${args.user.name}.uid;
-      gid = config.users.groups.${args.user.name}.gid;
+    user = let
+      u    = args.user or {};
+      name = u.name or "admin";
+    in {
+      name     = name;
+      pass     = u.pass     or "admin";
+      fullname = u.fullname or name;
+      email    = u.email    or "";
+      uid      = config.users.users.${name}.uid  or null;
+      gid      = config.users.groups.${name}.gid or null;
     };
     macvlan = (f.getNic args "macvlan");
     nic0 = (f.getNic args "nic0");

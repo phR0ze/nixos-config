@@ -22,6 +22,13 @@
   drives = [];                          # List of drives to configure in hardware-configuration.nix
   git.comment = "";
 
+  # User configuration
+  # ------------------------------------------------------------------------------------------------
+  user.name = "admin";                  # Default user name
+  user.pass = "admin";                  # Default user password
+  user.fullname = "admin";              # Default user full name
+  user.email = "nixos@nixos.org";       # Default user email address
+
   # Services configuration
   # ------------------------------------------------------------------------------------------------
   smb.enable = false;               # Enable pre-configured samba shares for this system
