@@ -33,7 +33,7 @@
 
   # Services configuration
   # ------------------------------------------------------------------------------------------------
-  smb.enable = false;               # Enable pre-configured samba shares for this system
-  nfs.enable = false;               # Enable pre-configured nfs shares for this system
-  nix.cache.enable = false;         # Enable using the local Nix binary cache
+  smb.enable = false;                   # Enable pre-configured samba shares for this system
+  nfs.enable = false;                   # Enable pre-configured nfs shares for this system
+  nix.cache.enable = false;             # Enable using the local Nix binary cache
 }
