@@ -714,5 +714,6 @@ install::run()
         log::ls "${yellow}1. Power down your system:${none} sudo poweroff"
         log::ls "${yellow}2. Remove the install media${none}"
         log::ls "${yellow}3. Boot the system back up${none}"
+        log::ls "${yellow}4. Configure keys and clone repo: ${cyan}clu init <user@ip>${none}"
     fi
 }
