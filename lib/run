@@ -91,6 +91,25 @@ run::vm()
 
         # Build and install if needed
         if [[ -z "$runner" || ! -f "$runner" ]]; then
+
+            # Fallback: boot a disk image produced by 'clu run iso' + 'clu install' directly,
+            # without a Nix VM rebuild.  This is the path used after 'clu conv <src> <name>'.
+            local disk="${CONFIG_DIR}/${MACHINE}/nixos.qcow2"
+            if [[ -f "$disk" ]]; then
+                log::ls "Booting ${cyan}${MACHINE}${none} from disk image"
+                $SUDO qemu-system-x86_64 \
+                    -name NixOS \
+                    -machine q35 \
+                    -enable-kvm \
+                    -m 4G -cpu host -smp 4 \
+                    -nic user \
+                    -device virtio-vga-gl \
+                    -display gtk,gl=on \
+                    -device virtio-tablet-pci \
+                    -hda "$disk"
+                return
+            fi
+
             NO_PREAMBLE=1 && build::vm $MACHINE
             flake::restore
             runner="$(find "${CONFIG_DIR}/${MACHINE}/result/bin" -maxdepth 1 -type l -o -type f 2>/dev/null | head -n1)"

@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+# Usage for the conv command and its sub commands
+# --------------------------------------------------------------------------------------------------
+conv::usage()
+{
+    cat <<USAGE
+Usage:
+  conv [SOURCE] [NAME] [OPTIONS]
+
+Options:
+  -h, --help            Print out usage
+
+Arguments:
+  SOURCE                Source VM name (e.g. 'iso' for vm-iso, or 'vm-iso')
+  NAME                  Target VM name (e.g. 'foo' to create vm-foo)
+USAGE
+
+    log::ln "\nExamples:"
+    log::subln "Convert ISO VM to named VM: ${green}./${SCRIPT} conv iso foo${none}"
+    echo
+    exit
+}
+
+
+# Convert an ISO-installed VM disk image into a named VM
+# - $1 - source VM name (e.g. 'iso' or 'vm-iso')
+# - $2 - target VM name (e.g. 'foo')
+# --------------------------------------------------------------------------------------------------
+conv::run()
+{
+    core::preamble
+    utils::help "$@" "conv::usage"
+
+    # Parse source and destination names, stripping any vm- prefix
+    local src="${1#vm-}"
+    local dst="${2#vm-}"
+
+    if [[ -z "$src" || -z "$dst" ]]; then
+        log::error "Both SOURCE and NAME are required"
+        conv::usage
+    fi
+
+    local SRC_DIR="${CONFIG_DIR}/vm-${src}"
+    local SRC_IMG="${SRC_DIR}/nixos.qcow2"
+    local DST_DIR="${CONFIG_DIR}/vm-${dst}"
+    local DST_IMG="${DST_DIR}/nixos.qcow2"
+
+    log::header1 "Converting ${cyan}vm-${src}${none} -> ${cyan}vm-${dst}${none}"
+
+    # Validate source image exists
+    log::ls -n "Locating source disk ${cyan}${SRC_IMG}${none}..."
+    if [[ -f "$SRC_IMG" ]]; then
+        log::status
+    else
+        log::status 1
+        log::fatal "No disk image found at ${SRC_IMG}. Run: ./${SCRIPT} run iso -c to create one."
+    fi
+
+    # Refuse to clobber an existing target image
+    if [[ -f "$DST_IMG" ]]; then
+        log::fatal "Target ${DST_IMG} already exists. Remove it first or choose a different name."
+    fi
+
+    # Create destination directory and move the disk image
+    log::ls -n "Moving disk image to ${cyan}${DST_DIR}${none}..."
+    $SUDO mkdir -p "$DST_DIR"
+    $SUDO mv "$SRC_IMG" "$DST_IMG"
+    log::status
+
+    # Remove the source directory if it is now empty
+    $SUDO rmdir "$SRC_DIR" 2>/dev/null || true
+
+    log::ls "VM ${cyan}vm-${dst}${none} is ready"
+    log::ls "Run with: ${green}./${SCRIPT} run vm ${dst}${none}"
+}
