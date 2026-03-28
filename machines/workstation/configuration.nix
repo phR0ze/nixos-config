@@ -46,7 +46,6 @@
 
     # Misc
     environment.systemPackages = [
-      pkgs.vdhcoapp                 # Companion app for the Video DownloadHelper browser add-on
       pkgs.xchm                     # App for reading Microsoft help files for technical manuals
       pkgs.synology-drive-client
       pkgs.freetube
