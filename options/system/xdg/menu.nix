@@ -103,7 +103,7 @@ in
         example = [
           {
             noDisplay = true;
-            source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop";
+            source = "${pkgs.libxfce4ui}/share/applications/xfce4-about.desktop";
           }
         ];
         description = lib.mdDoc "";
@@ -115,7 +115,7 @@ in
         example = [
           {
             name = "Network";
-            source = "${pkgs.xfce.libxfce4ui}/share/desktop-directories/xfce-network.directory";
+            source = "${pkgs.libxfce4ui}/share/desktop-directories/xfce-network.directory";
           }
         ];
         description = lib.mdDoc "";

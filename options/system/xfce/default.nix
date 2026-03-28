@@ -76,10 +76,10 @@ in
     # 1. Determine the desktop directory filename
     #    e.g `ll /run/current-system/sw/share/desktop-directories/xfce-network.directory`
     # 2. Add an override to change the desktop entry
-    #    e.g. { source = "${pkgs.xfce.garcon}/share/desktop-directories/xfce-network.directory"; name = "Network"; }
+    #    e.g. { source = "${pkgs.garcon}/share/desktop-directories/xfce-network.directory"; name = "Network"; }
     system.xdg.menu.dirOverrides = [
-      { source = "${pkgs.xfce.garcon}/share/desktop-directories/xfce-network.directory"; name = "Network"; }
-      { source = "${pkgs.xfce.garcon}/share/desktop-directories/xfce-accessories.directory"; icon = "applications-utilities"; }
+      { source = "${pkgs.garcon}/share/desktop-directories/xfce-network.directory"; name = "Network"; }
+      { source = "${pkgs.garcon}/share/desktop-directories/xfce-accessories.directory"; icon = "applications-utilities"; }
     ];
 
     # 1. Determine the current app's desktop filename
@@ -87,19 +87,15 @@ in
     # 2. Add an override to change the desktop entry
     #    e.g. { source = "${pkgs.xfce.xfce4-appfinder}/share/applications/xfce4-appfinder.desktop"; noDisplay = true; }
     system.xdg.menu.itemOverrides = [
-      { source = "${pkgs.xfce.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
-      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; noDisplay = true; }
-      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; noDisplay = true; }
-      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-accessibility-settings.desktop"; noDisplay = true; }
-      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce-settings-manager.desktop"; noDisplay = true; }
+      { source = "${pkgs.libxfce4ui}/share/applications/xfce4-about.desktop"; noDisplay = true; }
+      { source = "${pkgs.xfce4-settings}/share/applications/xfce4-web-browser.desktop"; noDisplay = true; }
+      { source = "${pkgs.xfce4-settings}/share/applications/xfce4-mail-reader.desktop"; noDisplay = true; }
+      { source = "${pkgs.xfce4-settings}/share/applications/xfce4-accessibility-settings.desktop"; noDisplay = true; }
+      { source = "${pkgs.xfce4-settings}/share/applications/xfce-settings-manager.desktop"; noDisplay = true; }
       { source = "${pkgs.libreoffice}/share/applications/math.desktop"; categories = "Office"; }
-      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
-
-      # By setting the category to X-Xfce-Toplevel
+      { source = "${pkgs.xfce4-settings}/share/applications/xfce4-file-manager.desktop"; icon = "Thunar"; }
       { source = "${pkgs.wezterm}/share/applications/org.wezfurlong.wezterm.desktop"; categories = "X-Xfce-Toplevel"; }
-
-      # By setting categories to Utility we've removed it from X-Xfce-Toplevel
-      { source = "${pkgs.xfce.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; categories = "Utility"; }
+      { source = "${pkgs.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; categories = "Utility"; }
     ];
 
     environment.xfce.excludePackages = with pkgs.xfce // pkgs; [

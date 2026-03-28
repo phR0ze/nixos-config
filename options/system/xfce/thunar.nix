@@ -60,7 +60,7 @@ in
   # Install the generated xml file
   config = lib.mkIf (xfce.enable) {
     programs.thunar.enable = true;            # install and configure thunar
-    programs.thunar.plugins = with pkgs.xfce; [
+    programs.thunar.plugins = with pkgs; [
       thunar-volman                           # install volman plugin
       thunar-archive-plugin                   # install archive plugin
       thunar-media-tags-plugin                # install media tags plugin

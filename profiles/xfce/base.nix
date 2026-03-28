@@ -27,7 +27,6 @@
   apps.system.wezterm.enable = true;          # GPU accelerated terminal
 
   services.fwupd.enable = true;               # Firmware update tool for BIOS, etc...
-  programs.file-roller.enable = true;         # Generic Gnome file archive utility needed for Thunar
 
   # XFCE comes with a slimmed down version of GVFS by default so we need to set a package override
   # to include smb:// support in Thunar
@@ -55,6 +54,7 @@
     wmctl                                     # Custom package for wmctl
 
     # System
+    file-roller                         # Generic Gnome file archive utility needed for Thunar
     desktop-file-utils                  # Command line utilities for working with desktop entries
     i3lock-color                    # Simple lightweight screen locker
     paprefs                              # Pulse audio server preferences for simultaneous output
@@ -73,10 +73,10 @@
     # Utilities
     conky                             # Advanced, highly configurable system monitor
     exiftool                           # A tool to read, write and edit EXIF meta information
-    galculator                         # Simple calculator
+    gnome-calculator                   # Calculator
     gnome-multi-writer               # Tool for writing an ISO file to multiple USB devices at once
     htop                               # Better top tool
-    light                              # Control backlights for screen and keyboard
+    brightnessctl                      # Control backlights for screen and keyboard
     system-config-printer             # GTK app for CUPS printing administration
   ];
 }
