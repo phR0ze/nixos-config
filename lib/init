@@ -87,18 +87,30 @@ init::keys()
         chmod 700 "${user_ssh}"
         log::status
 
+        # Open a single master SSH connection so the user is only prompted for
+        # their password once across all file transfers
+        local ctl_socket="/tmp/clu-init-${handle//[@.]/-}"
+        log::ls -n "Opening SSH connection to ${cyan}${handle}${none}..."
+        ssh -fNM -o ControlMaster=yes -o ControlPath="${ctl_socket}" \
+            -o ControlPersist=60s "${handle}"
+        log::status
+        local _scp_opts=(-o ControlMaster=auto -o ControlPath="${ctl_socket}")
+
         for f in "${ssh_files[@]}"; do
             if [[ -f "${user_ssh}/${f}" ]]; then
                 log::ls "Skipping ${cyan}~/.ssh/${f}${none}: already exists locally"
                 continue
             fi
             log::ls -n "Copying ${cyan}~/.ssh/${f}${none}..."
-            if scp "${handle}:~/.ssh/${f}" "${user_ssh}/" 2>/dev/null; then
+            if scp "${_scp_opts[@]}" "${handle}:~/.ssh/${f}" "${user_ssh}/" 2>/dev/null; then
                 echo -e "${green}success${none}"
             else
                 echo -e "${yellow}not found on remote, skipping${none}"
             fi
         done
+
+        # Close the master connection
+        ssh -O exit -o ControlPath="${ctl_socket}" "${handle}" 2>/dev/null || true
 
         if [[ -f "${user_ssh}/id_rsa" ]]; then
             log::ls -n "Setting permissions on ${cyan}${user_ssh}/id_rsa${none}..."
