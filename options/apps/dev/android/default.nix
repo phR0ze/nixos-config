@@ -62,16 +62,14 @@ in
  
   config = lib.mkIf (cfg.enable) {
 
-    # Enable ADB and provide user access
-    programs.adb.enable = true;
-    users.users.${machine.user.name}.extraGroups = [ "adbusers" ];
-
     # Set Android Environment variables
     environment.sessionVariables.ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
 
-    # Install custon Android SDK
+    # Install custom Android SDK
+    # Note: programs.adb was removed in NixOS; systemd 258 handles uaccess rules automatically.
     environment.systemPackages = [
       pkgs.jdk                # Android dependency
+      pkgs.android-tools      # Provides adb, fastboot, etc.
       androidSdk              # Custom Android SDK
     ];
   };

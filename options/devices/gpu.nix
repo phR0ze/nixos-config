@@ -100,8 +100,8 @@ in
       # Have the kernel load the correct GPU driver as soon as possible
       hardware.amdgpu.initrd.enable = true;
 
+      # Note: hardware.amdgpu.amdvlk was removed; RADV (part of Mesa) is now the default Vulkan driver.
       hardware.amdgpu.opencl.enable = true;
-      hardware.amdgpu.amdvlk.enable = true;
 
       environment.systemPackages = with pkgs; [
         nvtopPackages.amd           # A (h)top like task monitor for AMD, Adreno, Intel and NVIDIA
