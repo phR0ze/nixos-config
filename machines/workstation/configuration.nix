@@ -28,7 +28,7 @@
     devices.printers.epson-wf7710 = true;
     devices.printers.brother-hll2405w = true;
 
-    services.raw.barriers.enable = true;
+    apps.network.barrier.server.enable = true;
     services.raw.tailscale = { enable = true; autoStart = true; };
     services.raw.rustdesk.autostart = false;
 
