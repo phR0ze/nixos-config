@@ -10,10 +10,12 @@
   curl,
   fetchFromGitHub,
   fetchpatch,
+  libx11,
+  libxext,
+  libxtst,
   openssl,
   qt5,
   wrapGAppsHook3,
-  xorg,
   avahiWithLibdnssdCompat ? avahi.override { withLibdnssdCompat = true; },
 }:
 
@@ -46,9 +48,9 @@ qt5.mkDerivation rec {
 
   buildInputs = [
     curl
-    xorg.libX11
-    xorg.libXext
-    xorg.libXtst
+    libx11
+    libxext
+    libxtst
     avahiWithLibdnssdCompat
     qt5.qtbase
   ];
