@@ -5,7 +5,6 @@
 {
   imports = [
     ./adguardhome.nix
-    ./barrier.nix
     ./immich.nix
     ./jellyfin.nix
     ./kasmvnc.nix
