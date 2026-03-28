@@ -118,7 +118,7 @@ stdenv.mkDerivation rec {
     xorg.libXtst        #
     xorg.xauth          #
     xorg.xkbutils       # Collection of small XKB utilities
-    xorg.xdpyinfo       #
+    xdpyinfo            #
     perl                # Kasm uses a lot of perl scripting for configuration and setup
     pixman              # Low-level library for pixel manipulation
     util-linux          # System utilties for linux e.g. blkid, dmesg, fdisk, kill etc...

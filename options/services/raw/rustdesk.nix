@@ -131,7 +131,7 @@ in
       environment.systemPackages = [
         pkgs.rdutil                   # custom tool for setting rustdesk password
         pkgs.rustdesk-flutter         # new standard client
-        pkgs.xorg.xf86videodummy      # support for linux headless
+        pkgs.xf86-video-dummy         # support for linux headless
       ];
 
       # Open up ports for the client to receive direct peer connections only

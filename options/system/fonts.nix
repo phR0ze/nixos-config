@@ -84,7 +84,7 @@ in
         font-awesome                  # Font Awesome OTF font
         google-fonts                  # Google Fonts includes: Fira, Roboto
         liberation_ttf                # Font replacements for Times New Roman, Arial and Courier New
-        ubuntu_font_family            # Ubuntu font family
+        ubuntu-classic                # Ubuntu font family
         source-code-pro               # Monospaced font family for coding environments
         source-sans-pro               # Sans variant of source pro fonts
         source-serif-pro              # Serif variant of source pro fonts

@@ -23,10 +23,10 @@ in
   # - Defaults were changed here https://github.com/NixOS/nixpkgs/pull/16021
   # - Want shutdown to kill all users process immediately for fast shutdown
   # ------------------------------------------------------------------------------------------------
-  services.logind.killUserProcesses = true;
-  services.logind.extraConfig = ''
-    UserStopDelaySec=0
-  '';
+  services.logind.settings.Login = {
+    KillUserProcesses = true;
+    UserStopDelaySec = 0;
+  };
 
   # Journald configuration
   # ------------------------------------------------------------------------------------------------

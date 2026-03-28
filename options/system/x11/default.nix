@@ -108,9 +108,9 @@ in
 
       environment.systemPackages = with pkgs; [
         xclip                               # Required for neovim to copy paster to/from other apps
-        xorg.xkill                          # Kill for X windows instances
-        xorg.xrdb                           # X server resource database utility
-        xorg.xdpyinfo                       # Display information utility for X
+        xkill                               # Kill for X windows instances
+        xrdb                                # X server resource database utility
+        xdpyinfo                            # Display information utility for X
 
         # Themes, icons and backgrounds
         arc-theme                           # Flat theme with transparent elements for GTK 3 and GTK 2

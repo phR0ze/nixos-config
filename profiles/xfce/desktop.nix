@@ -67,6 +67,5 @@
 
     # Utilities
     kdePackages.filelight     # View disk usage information
-    awf                       # A widget factory for viewing theme changes
   ];
 }

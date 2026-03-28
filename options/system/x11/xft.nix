@@ -111,7 +111,7 @@ in
 
     # Configure .Xresources
     services.xserver.displayManager.sessionCommands = ''
-      ${pkgs.xorg.xrdb}/bin/xrdb -merge <${pkgs.writeText "Xresources" ''
+      ${pkgs.xrdb}/bin/xrdb -merge <${pkgs.writeText "Xresources" ''
         Xft.dpi: ${toString cfg.dpi}
         Xft.rgba: ${cfg.rgba}
         Xft.hinting: true
