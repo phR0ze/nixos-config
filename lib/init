@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
 #set -x
 
-# Initialize clu and or the nixos-config flake repo
-# 
+# Initialize the nixos-config repo post-install
+#
+# ## Usage
+# Must be run from /etc/nixos via sudo (e.g. sudo su) immediately after first boot.
+# The existing privilege drop in utils::handle_root re-execs as the original user,
+# ensuring $HOME and $USER are correct before any init functions run.
+#
 # ## Features
-# - setting up git hooks so decrypt secrets locally on git events
+# - Retrieve SSH keys and SOPS config from an existing machine via SCP
+# - Clone the nixos-config repo into ~/Projects/nixos-config
+# - Configure the git remote for the nixos-config repo
 # --------------------------------------------------------------------------------------------------
 
 # Usage for the init command and its sub commands
@@ -13,97 +20,213 @@ init::usage()
 {
     cat <<USAGE
 Usage:
-  init [COMMAND] [ARGS...] [OPTIONS] 
+  init [user@ip] [OPTIONS]
+
+  Must be run from /etc/nixos via sudo after first boot.
+
+Arguments:
+  user@ip           Optional SCP source to retrieve SSH keys and SOPS config from
 
 Options:
-  -h, --help            Print out usage
+  -h, --help        Print out usage
 
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "Init: ${green}./${SCRIPT} init${none}"
+    log::subln "Elevate and init: ${green}sudo su && cd /etc/nixos && ./clu init admin@192.168.1.10${none}"
     echo
     exit
 }
 
+# Retrieve SSH keys and SOPS config from a remote machine via SCP
+# - Skips SSH key retrieval if ~/.ssh already exists locally
+# - Skips SOPS config retrieval if ~/.config/sops already exists locally
+# - Mirrors all retrieved files to /root/ as well
+# - $HOME and $USER are already the real user's values via utils::handle_root privilege drop
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 optional SCP handle i.e. user@ip-address; prompts if not provided and files are needed
+# --------------------------------------------------------------------------------------------------
+init::keys()
+{
+    local handle="$1"
+    local user_ssh="${HOME}/.ssh"
+    local user_sops="${HOME}/.config/sops"
+    local needs_keys=0
+    local needs_sops=0
+
+    [[ ! -d "${user_ssh}" ]] && needs_keys=1
+    [[ ! -d "${user_sops}" ]] && needs_sops=1
+
+    # Nothing to retrieve
+    if [[ $needs_keys -eq 0 && $needs_sops -eq 0 ]]; then
+        log::ls "SSH keys and SOPS config already exist locally, skipping retrieval"
+        return
+    fi
+
+    # Prompt for handle if not provided and we have work to do
+    if [[ "x${handle}" == "x" ]]; then
+        utils::read handle 'Enter the SCP source i.e. user@ip-address'
+    fi
+    [[ "x${handle}" == "x" ]] && log::fatal "No SCP handle provided"
+
+    # SSH keys
+    # --------------------------------------------------------------------------
+    if [[ $needs_keys -eq 1 ]]; then
+        log::header1 "Retrieving SSH keys from ${cyan}${handle}${none}"
+
+        log::ls -n "Creating ${cyan}${user_ssh}${none}..."
+        mkdir -p "${user_ssh}"
+        log::status
+
+        log::ls -n "Setting permissions on ${cyan}${user_ssh}${none}..."
+        chmod 700 "${user_ssh}"
+        log::status
+
+        local ssh_files=("authorized_keys" "id_rsa" "id_rsa.pub" "known_hosts" "private.ppk")
+        for f in "${ssh_files[@]}"; do
+            log::ls -n "Copying ${cyan}~/.ssh/${f}${none}..."
+            if scp "${handle}:~/.ssh/${f}" "${user_ssh}/" 2>/dev/null; then
+                echo -e "${green}success${none}"
+            else
+                echo -e "${yellow}not found, skipping${none}"
+            fi
+        done
+
+        if [[ -f "${user_ssh}/id_rsa" ]]; then
+            log::ls -n "Setting permissions on ${cyan}${user_ssh}/id_rsa${none}..."
+            chmod 600 "${user_ssh}/id_rsa"
+            log::status
+        fi
+
+        log::ls -n "Mirroring SSH keys to ${cyan}/root/.ssh${none}..."
+        sudo mkdir -p /root/.ssh
+        sudo chmod 700 /root/.ssh
+        sudo cp -r "${user_ssh}/." /root/.ssh/
+        [[ -f /root/.ssh/id_rsa ]] && sudo chmod 600 /root/.ssh/id_rsa || true
+        log::status
+    else
+        log::ls "SSH keys already exist at ${cyan}${user_ssh}${none}, skipping"
+    fi
+
+    # SOPS config
+    # --------------------------------------------------------------------------
+    if [[ $needs_sops -eq 1 ]]; then
+        log::header1 "Retrieving SOPS config from ${cyan}${handle}${none}"
+
+        log::ls -n "Creating ${cyan}${HOME}/.config${none}..."
+        mkdir -p "${HOME}/.config"
+        log::status
+
+        log::ls -n "Copying ${cyan}~/.config/sops${none}..."
+        scp -r "${handle}:~/.config/sops" "${HOME}/.config/"
+        log::status
+
+        log::ls -n "Mirroring SOPS config to ${cyan}/root/.config${none}..."
+        sudo mkdir -p /root/.config
+        sudo cp -r "${HOME}/.config/sops" /root/.config/
+        log::status
+    else
+        log::ls "SOPS config already exists at ${cyan}${user_sops}${none}, skipping"
+    fi
+}
+
+# Clone the nixos-config repo into ~/Projects/nixos-config
+# - Skips if ~/Projects/nixos-config already exists
+# - $HOME is already the real user's home via utils::handle_root privilege drop
+# --------------------------------------------------------------------------------------------------
+# ### Params
+# - $1 repo URL to clone from
+# --------------------------------------------------------------------------------------------------
+init::clone()
+{
+    local repo_url="$1"
+    local dest="${HOME}/Projects/nixos-config"
+
+    log::header1 "Cloning nixos-config repo"
+
+    if [[ -d "${dest}" ]]; then
+        log::ls "nixos-config already cloned at ${cyan}${dest}${none}, skipping"
+        return
+    fi
+
+    log::ls -n "Creating ${cyan}${HOME}/Projects${none}..."
+    mkdir -p "${HOME}/Projects"
+    log::status
+
+    log::ls -n "Cloning ${cyan}${repo_url}${none} into ${cyan}${dest}${none}..."
+    utils::run git clone --quiet "${repo_url}" "${dest}"
+    log::status
+}
+
 # Parse the init commands and execute
+# - Must be run from /etc/nixos via sudo after first boot
+# - utils::handle_root re-execs as the original user so $HOME/$USER are correct on entry
 # --------------------------------------------------------------------------------------------------
 init::run()
 {
     utils::help "$@" zero "init::usage"
 
+    # Enforce entry point: must be run from /etc/nixos
+    if [[ "${CONFIG_DIR}" != "/etc/nixos" ]]; then
+        log::fatal "init must be run from ${cyan}/etc/nixos${none} via ${cyan}sudo${none}"
+    fi
+
+    # Determine the upstream repo to use
+    local default_url="git@github.com:phR0ze/nixos-config"
+    utils::read REPO_URL 'Enter nixos-config repo URL' "${default_url}"
+
     core::preamble
     log::header0 "Initializing repo ${cyan}${CONFIG_DIR}${none}"
 
-    # Prompt user to copy SOPS keys from existing machine for new system
-    if [[ ! -d ~/.config/sops ]]; then
-        utils::read SCP_SOPS 'Do you want to copy sops keys from an existing machine' 'n'
-        if [[ "x${SCP_SOPS}" == "xy" ]]; then
-            utils::read SCP_HANDLE 'Enter the scp target i.e. user@ip-address'
-            if [[ "x${SCP_HANDLE}" != "x" ]]; then
-                local config_dir="/home/$USER/.config"
+    # Retrieve SSH keys and SOPS config from an existing machine
+    init::keys "$1"
 
-                log::ls -n "SCP SOPS keys to user .config/..."
-                scp -r ${SCP_HANDLE}:~/.config/sops "$config_dir"
-                log::status
-
-                log::ls -n "Copy SOPS keys to root .config/ as well..."
-                sudo cp -r "${config_dir}/sops" /root/.config/
-                log::status
-            fi
-        fi
-    fi
+    # Clone the nixos-config repo into ~/Projects/nixos-config
+    init::clone "${REPO_URL}"
 
     utils::run pushd "${CONFIG_DIR}"
 
-    if [[ "$(git remote -v)" != *"phR0ze/nixos-config"* ]]; then
+    if [[ "$($SUDO git remote -v)" != *"${REPO_URL}"* ]]; then
         log::ls -n "Stash current changes to the repo..."
-        utils::run sudo git stash
+        utils::run $SUDO git stash
         log::status
 
-        log::ls -n "Add remote ${cyan}https://github.com/phR0ze/nixos-config${none}..."
-        utils::run sudo git remote add origin https://github.com/phR0ze/nixos-config
+        log::ls -n "Add remote ${cyan}${REPO_URL}${none}..."
+        utils::run $SUDO git remote add origin "${REPO_URL}"
         log::status
 
         log::ls -n "Fetch latest from the remote..."
-        utils::run sudo git fetch
+        utils::run $SUDO git fetch
         log::status
 
         log::ls -n "Setup branch tracking for ${cyan}origin/main${none}..."
-        utils::run sudo git branch -u origin/main
+        utils::run $SUDO git branch -u origin/main
         log::status
 
         log::ls -n "Reset hard on ${cyan}origin/main${none}..."
-        utils::run sudo git reset --hard origin/main
+        utils::run $SUDO git reset --hard origin/main
         log::status
 
         log::ls -n "Pop the stashed changes..."
-        utils::run sudo git stash pop
+        utils::run $SUDO git stash pop
         log::status
     fi
-
-    log::ls -n "Configuring core.hooksPath: ${cyan}.githooks${none}..."
-    utils::run sudo git config --local core.hooksPath .githooks
-    log::status
-
-    log::ls -n "Configuring decrypt alias: ${cyan}git decrypt${none}..."
-    utils::run sudo git config --local alias.decrypt '!decrypt() { .githooks/decrypt; }; decrypt'
-    log::status
 
     # Optionally encrypt the temp install args file
     local machine="machines/$(hostname)"
     local install_dec="${machine}/args.dec.json"
-    if [[ "$(git diff --staged --name-only -- ${install_dec})" != "" ]]; then
+    if [[ "$($SUDO git diff --staged --name-only -- ${install_dec})" != "" ]]; then
         local install_enc="${machine}/args.enc.json"
         local root_uuid="$(cat $install_dec | jq -r '.drives[0].uuid')"
         local hardware="${machine}/hardware-configuration.nix"
         if [[ "$(grep ${root_uuid} ${hardware})" != "" ]]; then
             log::ls -n "Updating ${cyan}${hardware}${none} with drive uuid variable"
-            utils::run sudo sed -i "s/${root_uuid}/\${(builtins.elemAt config.machine.drives 0).uuid}/g" $hardware
+            utils::run $SUDO sed -i "s/${root_uuid}/\${(builtins.elemAt config.machine.drives 0).uuid}/g" $hardware
             log::status
         fi
         log::ls -n "Encrypting ${cyan}${install_dec}${none} to ${cyan}${install_enc}${none}"
-        sudo bash -c "sops --encrypt '$install_dec' > '$install_enc'"
+        $SUDO bash -c "sops --encrypt '$install_dec' > '$install_enc'"
         log::status
     fi
 
