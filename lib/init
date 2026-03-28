@@ -39,7 +39,7 @@ USAGE
 }
 
 # Retrieve SSH keys and SOPS config from a remote machine via SCP
-# - Skips SSH key retrieval if ~/.ssh already exists locally
+# - Skips individual SSH key files that already exist locally
 # - Skips SOPS config retrieval if ~/.config/sops already exists locally
 # - Mirrors all retrieved files to /root/ as well
 # - $HOME and $USER are already the real user's values via utils::handle_root privilege drop
@@ -55,7 +55,11 @@ init::keys()
     local needs_keys=0
     local needs_sops=0
 
-    [[ ! -d "${user_ssh}" ]] && needs_keys=1
+    # Check if any individual SSH key files are missing (directory may already exist)
+    local ssh_files=("authorized_keys" "id_rsa" "id_rsa.pub" "known_hosts" "private.ppk")
+    for f in "${ssh_files[@]}"; do
+        [[ ! -f "${user_ssh}/${f}" ]] && needs_keys=1 && break
+    done
     [[ ! -d "${user_sops}" ]] && needs_sops=1
 
     # Nothing to retrieve
@@ -83,13 +87,16 @@ init::keys()
         chmod 700 "${user_ssh}"
         log::status
 
-        local ssh_files=("authorized_keys" "id_rsa" "id_rsa.pub" "known_hosts" "private.ppk")
         for f in "${ssh_files[@]}"; do
+            if [[ -f "${user_ssh}/${f}" ]]; then
+                log::ls "Skipping ${cyan}~/.ssh/${f}${none}: already exists locally"
+                continue
+            fi
             log::ls -n "Copying ${cyan}~/.ssh/${f}${none}..."
             if scp "${handle}:~/.ssh/${f}" "${user_ssh}/" 2>/dev/null; then
                 echo -e "${green}success${none}"
             else
-                echo -e "${yellow}not found, skipping${none}"
+                echo -e "${yellow}not found on remote, skipping${none}"
             fi
         done
 
@@ -106,7 +113,7 @@ init::keys()
         [[ -f /root/.ssh/id_rsa ]] && sudo chmod 600 /root/.ssh/id_rsa || true
         log::status
     else
-        log::ls "SSH keys already exist at ${cyan}${user_ssh}${none}, skipping"
+        log::ls "All SSH key files already exist at ${cyan}${user_ssh}${none}, skipping"
     fi
 
     # SOPS config
