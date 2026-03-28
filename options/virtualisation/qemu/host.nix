@@ -137,7 +137,7 @@ in
         spice-protocol    # SPICE support
         virglrenderer     # Support Guests using Virtio ro get host OpenGL acceleration
         virt-viewer       # Provides SPICE client `remote-viewer spice:://<host>:5900`
-        win-virtio        # QEMU support for windows
+        virtio-win        # QEMU support for windows
         win-spice         # SPICE support for windows
       ];
 
