@@ -46,6 +46,10 @@ qt5.mkDerivation rec {
     "-include cstdint"
   ];
 
+  # barrier's CMakeLists.txt declares cmake_minimum_required < 3.5, which
+  # newer cmake rejects. This flag restores the old permissive behaviour.
+  cmakeFlags = [ "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" ];
+
   buildInputs = [
     curl
     libx11
