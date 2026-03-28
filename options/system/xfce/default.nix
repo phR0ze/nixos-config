@@ -57,7 +57,7 @@ in
       { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
     ]
     ++ lib.optional config.apps.media.jellyfin.enable
-      { name = "Jellyfin"; exec = "jellyfinmediaplayer"; icon = "com.github.iwalton3.jellyfin-media-player"; }
+      { name = "Jellyfin"; exec = "jellyfin-desktop"; icon = "org.jellyfin.JellyfinDesktop"; }
     ++ [
       { name = "SMPlayer"; exec = "smplayer"; icon = "smplayer"; }
     ]
