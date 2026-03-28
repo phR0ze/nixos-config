@@ -1,10 +1,10 @@
 {
   inputs = {
-    # nixos-unstable from 2025.08.09
-    nixpkgs.url = "github:nixos/nixpkgs/85dbfc7aaf52ecb755f87e577ddbe6dbbdbc1054";
+    # nixos-unstable from 2026.03.24
+    nixpkgs.url = "github:nixos/nixpkgs/46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9";
 
-    # nixos-unstable from 2025.08.31
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    # nixos-unstable from 2026.03.24
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9";
 
     # nixos-unstable from 2024.12.13
     nixpkgs-rustdesk.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";

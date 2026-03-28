@@ -61,6 +61,7 @@ Commands:
   init              Configure the current git repo with sops git hooks
   build             Build components
   clean             Clean various system components
+  conv              Convert an ISO-installed VM disk to a named VM
   deploy            Deploy Virtual Machine
   dev               Setup a shell environment
   help              Get help for a command
@@ -114,6 +115,7 @@ if [[ "x$CMD" != "x" ]]; then
         init) init::run "${ARGS[@]}" ;;
         build) build::run "${ARGS[@]}" ;;
         clean) clean::run "${ARGS[@]}" ;;
+        conv) conv::run "${ARGS[@]}" ;;
         deploy) deploy::run "${ARGS[@]}" ;;
         decrypt) decrypt::run "${ARGS[@]}" ;;
         dev) dev::run "${ARGS[@]}" ;;
