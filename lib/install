@@ -476,8 +476,8 @@ install::select_networking_options()
         if [[ "x${IP}" != "xDHCP" ]]; then
             utils::read SUBNET 'Enter subnet' $(echo $IP | awk -F. '{print $1"."$2"."$3".0/24"}')
             utils::read GATEWAY 'Enter gateway' $(echo $IP | awk -F. '{print $1"."$2"."$3".1"}')
-            utils::read PRIMARY_DNS 'Enter primary dns' $(echo $IP | awk -F. '{print $1"."$2"."$3".53"}')
-            utils::read FALLBACK_DNS 'Enter fallback dns' $(echo $IP | awk -F. '{print $1"."$2"."$3".53"}')
+            utils::read PRIMARY_DNS 'Enter primary dns' $(echo $IP | awk -F. '{print $1"."$2"."$3".5"}')
+            utils::read FALLBACK_DNS 'Enter fallback dns' $(echo $IP | awk -F. '{print $1"."$2"."$3".5"}')
         fi
         utils::read BLUETOOTH 'Enable bluetooth support' 'n'
     fi
