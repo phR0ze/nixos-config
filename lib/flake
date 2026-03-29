@@ -148,13 +148,6 @@ flake::trap()
 # Example: flake::switch machines/homelab
 flake::stage_files()
 {
-    # Don't need to shutdown anything on a fresh install
-    if [ $INSTALL -eq 0 ]; then
-        log::ls -n "Shutting down ${cyan}xfconfd${none} to avoid conflicts..."
-        pkill xfconfd 2>/dev/null || true
-        log::status
-    fi
-
     log::ls -n "Removing ${cyan}${ROOT_DIR}/nix/files.lock${none} to permit files update..."
     $SUDO rm -f "${ROOT_DIR}/nix/files.lock"
     log::status
