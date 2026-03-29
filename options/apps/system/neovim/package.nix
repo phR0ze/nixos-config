@@ -134,12 +134,8 @@
 
     # Builds on treesitter to provide code navigation motions 
     # - depends on treesitter
-    (vimUtils.buildVimPlugin {
-      pname = "nvim-treesitter-textobjects"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "nvim-treesitter"; repo = "nvim-treesitter-textobjects";
-        rev = "5ca4aaa6efdcc59be46b95a3e876300cfead05ef";
-        sha256 = "sha256-lf+AwSu96iKO1vWWU2D7jWHGfjXkbX9R2CX3gMZaD4M="; };
-      doCheck = false; doNvimRequireCheck = false; })
+    # - use nixpkgs version to stay in sync with nvim-treesitter (api changes in 0.10.x)
+    nvim-treesitter-textobjects
 
     # - configuration ./config/lua/plugins/0100-snacks-nvim.lua
     # - depends on mini.icons

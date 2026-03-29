@@ -2,6 +2,12 @@ return {
   -- -----------------------------------------------------------------------------------------------
   -- [Nvim-nix guide](https://github.com/adman44532/nvim-nix)
   -- modern, faster more accurate syntax highlighting and code traversal
+  --
+  -- nvim-treesitter 0.10.x removed the old `nvim-treesitter.configs` module entirely.
+  -- Highlighting is now enabled via vim.treesitter.start() per buffer (FileType autocmd).
+  -- The configs.setup() API no longer exists; use require("nvim-treesitter").setup() only for
+  -- setting a custom install_dir if needed. All other features (indent, textobjects) are
+  -- configured separately via their own modules.
   -- -----------------------------------------------------------------------------------------------
   {
     "nvim-treesitter",
@@ -11,35 +17,28 @@ return {
     event = "DeferredUIEnter",
     priority = 100,                               -- load before dependents (default is 50)
     after = function()
-      require("nvim-treesitter.configs").setup({
-        auto_install = false,                         -- manage parser installs with Nix
-        sync_install = false,                         -- manage parser installs with Nix
-        modules = {},                                 -- manage parser installs with Nix
-        ensure_installed = {},                        -- manage parser installs with Nix
-        ignore_install = {},                          -- manage parser installs with Nix
-        context_commentstring = {
-          enable = true,
-        },
-        indent = {
-          enable = true,
-          disable = { "yaml" },                       -- disable for yaml b/c doesn't work well
-        },
-        highlight = {
-          enable = true,                              -- enable treesitter highlighting
-          additional_vim_regex_highlighting = false,  -- disable default regex highlighting
-        },
+      -- Enable treesitter highlighting for every buffer that has a parser available.
+      -- vim.treesitter.start() is idempotent and silently skips unsupported filetypes.
+      vim.api.nvim_create_autocmd("FileType", {
+        group = vim.api.nvim_create_augroup("nvim-treesitter-highlight", { clear = true }),
+        callback = function(ev)
+          pcall(vim.treesitter.start, ev.buf)
+        end,
+      })
+      -- Also enable for whichever buffer is open right now (if any)
+      pcall(vim.treesitter.start, 0)
 
-        -- incremental selection allows you to select code blocks in an expanding or contracting way 
-        -- with hot keys to quickly select code blocks.
-        incremental_selection = {
-          enable = true,
-          keymaps = {
-            init_selection = "<Enter>",
-            node_incremental = "<Enter>",
-            scope_incremental = false,
-            node_decremental = "<Backspace>",
-          },
-        },
+      -- Enable treesitter-based indentation via nvim-treesitter's indentexpr,
+      -- but skip yaml where it doesn't behave well.
+      vim.api.nvim_create_autocmd("FileType", {
+        group = vim.api.nvim_create_augroup("nvim-treesitter-indent", { clear = true }),
+        pattern = "*",
+        callback = function(ev)
+          local ft = vim.bo[ev.buf].filetype
+          if ft ~= "yaml" then
+            vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+        end,
       })
     end,
   },
@@ -67,7 +66,9 @@ return {
   },
 
   -- -----------------------------------------------------------------------------------------------
-  -- TreeSitter TextObjects
+  -- TreeSitter TextObjects (nvim-treesitter 0.10.x compatible API)
+  -- The old nvim-treesitter.configs.setup({ textobjects = {...} }) is gone.
+  -- Keymaps are registered via vim.keymap.set calling into the textobjects sub-modules directly.
   -- -----------------------------------------------------------------------------------------------
   {
     "nvim-treesitter-textobjects",
@@ -76,51 +77,51 @@ return {
       vim.cmd("packadd nvim-treesitter") -- direct packadd bypasses lz.n state during event processing
     end,
     after = function()
-      require("nvim-treesitter.configs").setup({
-        auto_install = false,                         -- manage parser installs with Nix
-        sync_install = false,                         -- manage parser installs with Nix
-        modules = {},                                 -- manage parser installs with Nix
-        ensure_installed = {},                        -- manage parser installs with Nix
-        ignore_install = {},                          -- manage parser installs with Nix
-
-        textobjects = {
-
-          -- define text object selection keymaps and behavior
-          select = {
-            enable = true,
-            lookahead = true,
-
-            -- Select code. You must be in visual mode before these take affect
-            keymaps = {
-              ["af"] = "@function.outer",
-              ["if"] = "@function.inner",
-              ["ac"] = "@class.outer",
-              ["ic"] = "@class.inner",
-              ["ia"] = "@parameter.inner",
-              ["aa"] = "@parameter.outer",
-              ["ix"] = "@comment.inner",
-              ["ax"] = "@comment.outer",
-            },
-          },
-
-          -- define code swap
-          swap = {
-            enable = true,
-            swap_next = { ["<leader>a"] = "@parameter.inner", },
-            swap_previous = { ["<leader>A"] = "@parameter.inner", },
-          },
-
-          -- define code navigation hot keys
-          move = {
-            enable = true,
-            set_jumps = true,
-            goto_next_start = { ["]f"] = "@function.outer", ["]c"] = "@class.outer", ["]a"] = "@parameter.inner" },
-            goto_next_end = { ["]F"] = "@function.outer", ["]C"] = "@class.outer", ["]A"] = "@parameter.inner" },
-            goto_previous_start = { ["[f"] = "@function.outer", ["[c"] = "@class.outer", ["[a"] = "@parameter.inner" },
-            goto_previous_end = { ["[F"] = "@function.outer", ["[C"] = "@class.outer", ["[A"] = "@parameter.inner" },
-          },
+      require("nvim-treesitter-textobjects").setup({
+        select = {
+          lookahead = true,                           -- jump forward to textobj automatically
+        },
+        move = {
+          set_jumps = true,                           -- add navigation to the jumplist
         },
       })
+
+      local sel = require("nvim-treesitter-textobjects.select")
+      local swap = require("nvim-treesitter-textobjects.swap")
+      local move = require("nvim-treesitter-textobjects.move")
+
+      -- Select text objects (visual / operator-pending mode)
+      vim.keymap.set({ "x", "o" }, "af", function() sel.select_textobject("@function.outer", "textobjects") end, { desc = "outer function" })
+      vim.keymap.set({ "x", "o" }, "if", function() sel.select_textobject("@function.inner", "textobjects") end, { desc = "inner function" })
+      vim.keymap.set({ "x", "o" }, "ac", function() sel.select_textobject("@class.outer",    "textobjects") end, { desc = "outer class" })
+      vim.keymap.set({ "x", "o" }, "ic", function() sel.select_textobject("@class.inner",    "textobjects") end, { desc = "inner class" })
+      vim.keymap.set({ "x", "o" }, "aa", function() sel.select_textobject("@parameter.outer","textobjects") end, { desc = "outer parameter" })
+      vim.keymap.set({ "x", "o" }, "ia", function() sel.select_textobject("@parameter.inner","textobjects") end, { desc = "inner parameter" })
+      vim.keymap.set({ "x", "o" }, "ax", function() sel.select_textobject("@comment.outer",  "textobjects") end, { desc = "outer comment" })
+      vim.keymap.set({ "x", "o" }, "ix", function() sel.select_textobject("@comment.inner",  "textobjects") end, { desc = "inner comment" })
+
+      -- Swap parameters
+      vim.keymap.set("n", "<leader>a", function() swap.swap_next("@parameter.inner")     end, { desc = "Swap next parameter" })
+      vim.keymap.set("n", "<leader>A", function() swap.swap_previous("@parameter.inner") end, { desc = "Swap previous parameter" })
+
+      -- Navigate to next/prev function
+      vim.keymap.set({ "n", "x", "o" }, "]f", function() move.goto_next_start("@function.outer",     "textobjects") end, { desc = "Next function start" })
+      vim.keymap.set({ "n", "x", "o" }, "]F", function() move.goto_next_end("@function.outer",       "textobjects") end, { desc = "Next function end" })
+      vim.keymap.set({ "n", "x", "o" }, "[f", function() move.goto_previous_start("@function.outer", "textobjects") end, { desc = "Prev function start" })
+      vim.keymap.set({ "n", "x", "o" }, "[F", function() move.goto_previous_end("@function.outer",   "textobjects") end, { desc = "Prev function end" })
+
+      -- Navigate to next/prev class
+      vim.keymap.set({ "n", "x", "o" }, "]c", function() move.goto_next_start("@class.outer",     "textobjects") end, { desc = "Next class start" })
+      vim.keymap.set({ "n", "x", "o" }, "]C", function() move.goto_next_end("@class.outer",       "textobjects") end, { desc = "Next class end" })
+      vim.keymap.set({ "n", "x", "o" }, "[c", function() move.goto_previous_start("@class.outer", "textobjects") end, { desc = "Prev class start" })
+      vim.keymap.set({ "n", "x", "o" }, "[C", function() move.goto_previous_end("@class.outer",   "textobjects") end, { desc = "Prev class end" })
+
+      -- Navigate to next/prev parameter
+      vim.keymap.set({ "n", "x", "o" }, "]a", function() move.goto_next_start("@parameter.inner",     "textobjects") end, { desc = "Next parameter start" })
+      vim.keymap.set({ "n", "x", "o" }, "]A", function() move.goto_next_end("@parameter.inner",       "textobjects") end, { desc = "Next parameter end" })
+      vim.keymap.set({ "n", "x", "o" }, "[a", function() move.goto_previous_start("@parameter.inner", "textobjects") end, { desc = "Prev parameter start" })
+      vim.keymap.set({ "n", "x", "o" }, "[A", function() move.goto_previous_end("@parameter.inner",   "textobjects") end, { desc = "Prev parameter end" })
+
       vim.api.nvim_set_hl(0, "TreesitterContextBottom", { underline = false })
     end,
   },
