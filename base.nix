@@ -6,17 +6,14 @@
     # nixos-unstable from 2026.03.24
     nixpkgs-unstable.url = "github:nixos/nixpkgs/46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9";
 
-    # nixos-unstable from 2024.12.13
-    nixpkgs-rustdesk.url = "github:nixos/nixpkgs/3566ab7246670a43abd2ffa913cc62dad9cdf7d5";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixpkgs-rustdesk, ... }@inputs: let
+  outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
     _args = import ./args.nix;
 
     # Allow for package patches, overrides and additions
     # ----------------------------------------------------------------------------------------------
     system = _args.arch;
-    pkgs-rustdesk = import nixpkgs-rustdesk { inherit system; };
     pkgs-unstable = import nixpkgs-unstable {
       inherit system;
       config.allowUnfreePredicate = pkg: true;
@@ -58,9 +55,6 @@
           tailscale = pkgs-unstable.tailscale;
           vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
           yt-dlp = pkgs-unstable.yt-dlp;
-
-          # RustDesk is failing with the display dummy plug
-          #rustdesk-flutter = pkgs-rustdesk.rustdesk-flutter;
         })
       ];
     };
