@@ -93,7 +93,6 @@ init::keys()
         log::ls -n "Opening SSH connection to ${cyan}${handle}${none}..."
         ssh -fNM -o ControlMaster=yes -o ControlPath="${ctl_socket}" \
             -o ControlPersist=60s "${handle}"
-        log::status
         local _scp_opts=(-o ControlMaster=auto -o ControlPath="${ctl_socket}")
 
         for f in "${ssh_files[@]}"; do
@@ -101,12 +100,7 @@ init::keys()
                 log::ls "Skipping ${cyan}~/.ssh/${f}${none}: already exists locally"
                 continue
             fi
-            log::ls -n "Copying ${cyan}~/.ssh/${f}${none}..."
-            if scp "${_scp_opts[@]}" "${handle}:~/.ssh/${f}" "${user_ssh}/" 2>/dev/null; then
-                echo -e "${green}success${none}"
-            else
-                echo -e "${yellow}not found on remote, skipping${none}"
-            fi
+            scp "${_scp_opts[@]}" "${handle}:~/.ssh/${f}" "${user_ssh}/" 2>/dev/null || true
         done
 
         # Close the master connection
