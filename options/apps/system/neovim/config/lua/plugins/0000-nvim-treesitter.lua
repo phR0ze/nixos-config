@@ -5,9 +5,9 @@ return {
   -- -----------------------------------------------------------------------------------------------
   {
     "nvim-treesitter",
-    -- event registration is required so trigger_load() from dependent plugins' before hooks
-    -- can find this plugin via handler lookup. without an event, lz.n never registers it
-    -- with a handler and trigger_load("nvim-treesitter") silently does nothing.
+    -- event registration ensures lz.n runs the after hook (setup call) at DeferredUIEnter.
+    -- dependent plugins use vim.cmd("packadd nvim-treesitter") directly in their before hooks
+    -- to guarantee it's in the runtimepath before their own plugin/*.vim files are sourced.
     event = "DeferredUIEnter",
     priority = 100,                               -- load before dependents (default is 50)
     after = function()
@@ -52,7 +52,7 @@ return {
     "nvim-treesitter-context",
     event = "DeferredUIEnter",
     before = function()
-      require("lz.n").trigger_load("nvim-treesitter")
+      vim.cmd("packadd nvim-treesitter") -- direct packadd bypasses lz.n state during event processing
     end,
     after = function()
       require("treesitter-context").setup({
@@ -73,7 +73,7 @@ return {
     "nvim-treesitter-textobjects",
     event = "DeferredUIEnter",
     before = function()
-      require("lz.n").trigger_load("nvim-treesitter")
+      vim.cmd("packadd nvim-treesitter") -- direct packadd bypasses lz.n state during event processing
     end,
     after = function()
       require("nvim-treesitter.configs").setup({
