@@ -31,7 +31,7 @@ in
       SCRIPTS=.local/bin
       MUSIC=Music
       PICTURES=Pictures
-      VIDEO=Video
+      VIDEO=Videos
     '';
 
     environment.systemPackages = with pkgs; [
