@@ -2,7 +2,7 @@
 # https://github.com/mickimnet/myth-prompt-themes/blob/main/colorful/pointed/starship/left_only/starship.toml
 add_newline = false
 command_timeout = 10000
-scan_timeout = 1000
+scan_timeout = 10000
 palette = "cyber"
 
 format = """
