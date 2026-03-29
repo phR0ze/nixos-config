@@ -117,6 +117,7 @@ update::system()
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
     if [ $reset_xfce -eq 1 ]; then
         _update::removeUserXfceConfigs
+        _update::clearXfceFileMarkers
     fi
 
     # Execute update
@@ -132,5 +133,22 @@ _update::removeUserXfceConfigs()
       local target="${x}/.config/xfce4"
       log::ls "Cleaning up: ${cyan}${target}${none}"
       rm -rf "$target"
+    done
+}
+
+# Remove xfce entries from the files tracking logs so the install script treats them as
+# never-installed, ensuring they are re-copied even if xfconfd has regenerated them.
+_update::clearXfceFileMarkers()
+{
+    local owned_log="${ROOT_DIR}/nix/files.owned"
+    local unowned_log="${ROOT_DIR}/nix/files.unowned"
+
+    for log in "$owned_log" "$unowned_log"; do
+        if [[ -f "$log" ]]; then
+            log::ls "Clearing xfce markers from ${cyan}${log}${none}"
+            local tmp="${log}.tmp"
+            $SUDO grep -v '\.config/xfce4' "$log" > "$tmp" || true
+            $SUDO mv "$tmp" "$log"
+        fi
     done
 }
