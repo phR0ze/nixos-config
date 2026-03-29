@@ -5,6 +5,11 @@ return {
   -- -----------------------------------------------------------------------------------------------
   {
     "nvim-treesitter",
+    -- event registration is required so trigger_load() from dependent plugins' before hooks
+    -- can find this plugin via handler lookup. without an event, lz.n never registers it
+    -- with a handler and trigger_load("nvim-treesitter") silently does nothing.
+    event = "DeferredUIEnter",
+    priority = 100,                               -- load before dependents (default is 50)
     after = function()
       require("nvim-treesitter.configs").setup({
         auto_install = false,                         -- manage parser installs with Nix
