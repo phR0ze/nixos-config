@@ -1,5 +1,8 @@
 # Family11 configuration
 #
+# ### Machine specs
+# - ?
+#
 # ### Features
 # - Basic desktop deployment
 # --------------------------------------------------------------------------------------------------
@@ -13,8 +16,6 @@
   config = {
     machine.type.bootable = true;
     machine.nix.cache.enable = true;
-    apps.games.warcraft2.enable = true;
-    apps.games.roblox.enable = true;
-    devices.gpu.nvidia = { enable = true; legacy470 = true; };
+    devices.gpu.nvidia = { enable = true; open = true; };
   };
 }
