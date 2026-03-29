@@ -18,7 +18,7 @@
     #machine.net.bridge.enable = true;
     virtualisation.podman.enable = true;
     #virtualisation.qemu.host.enable = true;
-    services.raw.rustdesk.autostart = false;
+    apps.network.rustdesk.autostart = false;
     apps.media.obs.enable = true;
 
     # Misc

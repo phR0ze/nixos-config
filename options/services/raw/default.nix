@@ -14,7 +14,6 @@
     ./nfs.nix
     ./nix-cache.nix
     ./private-internet-access.nix
-    ./rustdesk.nix
     ./selkies.nix
     ./smb.nix
     ./sshd.nix

@@ -21,7 +21,7 @@ in
     environment.systemPackages = [ selkies ];
 
     # Configure firewall exceptions
-    services.raw.rustdesk.enable = lib.mkForce false;
+    apps.network.rustdesk.enable = lib.mkForce false;
     #networking.firewall.interfaces.allowedTCPPorts = [ 8080 ];
 
 #    systemd.user.services."selkies" = {

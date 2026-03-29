@@ -30,7 +30,7 @@
 
     apps.network.barrier.server.enable = true;
     services.raw.tailscale = { enable = true; autoStart = true; };
-    services.raw.rustdesk.autostart = false;
+    apps.network.rustdesk.autostart = false;
 
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
