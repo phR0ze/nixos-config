@@ -132,7 +132,7 @@ _update::removeUserXfceConfigs()
     for x in ${users[@]}; do
       local target="${x}/.config/xfce4"
       log::ls "Cleaning up: ${cyan}${target}${none}"
-      rm -rf "$target"
+      $SUDO rm -rf "$target"
     done
 }
 
@@ -147,7 +147,7 @@ _update::clearXfceFileMarkers()
         if [[ -f "$log" ]]; then
             log::ls "Clearing xfce markers from ${cyan}${log}${none}"
             local tmp="${log}.tmp"
-            $SUDO grep -v '\.config/xfce4' "$log" > "$tmp" || true
+            $SUDO grep -v '\.config/xfce4' "$log" | $SUDO tee "$tmp" > /dev/null || true
             $SUDO mv "$tmp" "$log"
         fi
     done
