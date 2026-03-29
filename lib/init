@@ -47,7 +47,7 @@ USAGE
 # ### Params
 # - $1 optional SCP handle i.e. user@ip-address; prompts if not provided and files are needed
 # --------------------------------------------------------------------------------------------------
-init::keys()
+_init::keys()
 {
     local handle="$1"
     local user_ssh="${HOME}/.ssh"
@@ -151,7 +151,7 @@ init::keys()
 # ### Params
 # - $1 repo URL to clone from
 # --------------------------------------------------------------------------------------------------
-init::clone()
+_init::clone()
 {
     local repo_url="$1"
     local dest="${HOME}/Projects/nixos-config"
@@ -193,10 +193,10 @@ init::run()
     log::header0 "Initializing repo ${cyan}${CONFIG_DIR}${none}"
 
     # Retrieve SSH keys and SOPS config from an existing machine
-    init::keys "$1"
+    _init::keys "$1"
 
     # Clone the nixos-config repo into ~/Projects/nixos-config
-    init::clone "${REPO_URL}"
+    _init::clone "${REPO_URL}"
 
     utils::run pushd "${CONFIG_DIR}"
 
