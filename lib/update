@@ -121,14 +121,6 @@ update::system()
 
     # Execute update
     $SUDO nixos-rebuild switch $TRACE $IMPURE --flake "${CONFIG_DIR}#target"
-
-    # After the install script has deployed the new Nix configs, kill xfconfd so it re-reads
-    # them from disk on the next D-Bus activation rather than flushing stale in-memory state.
-    if [ $reset_xfce -eq 1 ]; then
-        log::ls -n "Reloading ${cyan}xfconfd${none} to pick up new configuration..."
-        pkill xfconfd 2>/dev/null || true
-        log::status
-    fi
 }
 
 # Remove user xfce configurations to get a clean point to start from
