@@ -24,7 +24,7 @@
   programs.winetricks.enable = true;        # A script to install DLLs needed to work around problems in Wine
 
   # Enable services
-  services.raw.rustdesk.enable = true;      # Simple fast remote desktop solution
+  apps.network.rustdesk.enable = true;      # Simple fast remote desktop solution
 
   # Additional apps
   environment.systemPackages = with pkgs; [

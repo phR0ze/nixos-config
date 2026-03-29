@@ -9,7 +9,7 @@
     ./desktop.nix
   ];
 
-  services.raw.rustdesk.autostart = false;
+  apps.network.rustdesk.autostart = false;
 
   # Slick captive portal solutions for hotels etc...
 #  programs = {

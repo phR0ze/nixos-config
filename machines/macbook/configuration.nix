@@ -20,7 +20,7 @@
 
     apps.media.obs.enable = true;
     services.raw.tailscale.enable = true;
-    services.raw.rustdesk.autostart = false;
+    apps.network.rustdesk.autostart = false;
 
     # Increase the default DPI size
     machine.resolution = { x = 1920; y = 1200; } ;

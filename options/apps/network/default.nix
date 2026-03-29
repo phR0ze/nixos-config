@@ -5,5 +5,6 @@
     ./filezilla
     ./firefox
     ./qbittorrent
+    ./rustdesk
   ];
 }

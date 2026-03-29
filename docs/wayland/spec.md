@@ -344,7 +344,7 @@ Differences from `xfce/desktop.nix`:
 
 - `system.xdg.menu.itemOverrides` blocks are omitted (XFCE-specific; Plasma manages menus natively)
 - `services.raw.x11vnc` is not enabled (remote access is RustDesk only)
-- `services.raw.rustdesk.enable = true` is included
+- `apps.network.rustdesk.enable = true` is included
 - `simplescreenrecorder` stays (runs via XWayland)
 - All media, games, and office packages are identical
 
@@ -407,7 +407,7 @@ Differences from `xfce/theater.nix`:
 { ... }:
 {
   imports = [ ./desktop.nix ];
-  services.raw.rustdesk.autostart = false;
+  apps.network.rustdesk.autostart = false;
 }
 ```
 
