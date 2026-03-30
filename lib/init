@@ -172,6 +172,43 @@ _init::clone()
     log::status
 }
 
+# Migrate the generated machine configuration to the newly cloned repo and clean up /etc/nixos
+# - Copies /etc/nixos/machines/$hostname to ~/Projects/nixos-config/machines/$hostname
+# - Removes args.dec.json from the destination (secrets should not persist in the cloned repo)
+# - Unstages and resets any changes in /etc/nixos
+# - Removes the generated machine directory from /etc/nixos
+# Must be called from within the /etc/nixos directory (inside the pushd CONFIG_DIR block)
+# --------------------------------------------------------------------------------------------------
+_init::migrate_machine()
+{
+    local hostname
+    hostname="$(hostname)"
+    local src="${CONFIG_DIR}/machines/${hostname}"
+    local dest="${HOME}/Projects/nixos-config/machines/${hostname}"
+
+    log::header1 "Migrating machine configuration for ${cyan}${hostname}${none}"
+
+    log::ls -n "Copying ${cyan}${src}${none} to ${cyan}${HOME}/Projects/nixos-config/machines/${none}..."
+    $SUDO cp -r "${src}" "${HOME}/Projects/nixos-config/machines/"
+    log::status
+
+    log::ls -n "Removing ${cyan}${dest}/args.dec.json${none}..."
+    rm -f "${dest}/args.dec.json"
+    log::status
+
+    log::ls -n "Unstaging changes in ${cyan}${CONFIG_DIR}${none}..."
+    utils::run $SUDO git restore --staged .
+    log::status
+
+    log::ls -n "Resetting changes in ${cyan}${CONFIG_DIR}${none}..."
+    utils::run $SUDO git checkout .
+    log::status
+
+    log::ls -n "Removing ${cyan}${src}${none}..."
+    utils::run $SUDO rm -rf "${src}"
+    log::status
+}
+
 # Parse the init commands and execute
 # - Must be run from /etc/nixos via sudo after first boot
 # - utils::handle_root re-execs as the original user so $HOME/$USER are correct on entry
@@ -242,6 +279,9 @@ init::run()
         $SUDO bash -c "sops --encrypt '$install_dec' > '$install_enc'"
         log::status
     fi
+
+    # Now migrate the machine config to the new repo to be committed
+    _init::migrate_machine
 
     utils::run popd
 }
