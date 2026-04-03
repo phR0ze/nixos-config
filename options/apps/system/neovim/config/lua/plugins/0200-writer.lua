@@ -65,14 +65,12 @@ return {
           vim.wo.wrap = true
           vim.wo.linebreak = true
           vim.wo.spell = true
-          -- smoothscroll makes scrolloff count visual (screen) rows instead of logical lines,
-          -- so viewport adjustments when the cursor moves near the edge happen one visual row
-          -- at a time rather than jumping an entire logical line into view.
-          -- A moderate scrolloff keeps natural padding without pinning the cursor to the center.
+          -- Disable scrolloff to prevent logical-line jumps on wrapped paragraphs
           vim.g._zen_scrolloff = vim.opt.scrolloff:get()
           vim.g._zen_smoothscroll = vim.opt.smoothscroll:get()
-          vim.opt.smoothscroll = true
           vim.opt.scrolloff = 0
+          vim.opt.smoothscroll = true
+
           -- Visual-line navigation: remap motion keys buffer-locally
           for _, m in ipairs(writing_maps) do
             vim.keymap.set(m.mode, m.lhs, m.rhs, { buffer = true, silent = true })
@@ -83,9 +81,10 @@ return {
           vim.wo.wrap = false
           vim.wo.linebreak = false
           vim.wo.spell = false
-          -- Restore scrolloff and smoothscroll to whatever was set before zen mode
+          -- Restore scrolloff and smoothscroll
           vim.opt.smoothscroll = vim.g._zen_smoothscroll or false
           vim.opt.scrolloff = vim.g._zen_scrolloff or 8
+
           -- Remove the buffer-local navigation remaps
           for _, m in ipairs(writing_maps) do
             pcall(vim.keymap.del, m.mode, m.lhs, { buffer = true })
