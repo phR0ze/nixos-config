@@ -174,6 +174,8 @@
       src = fetchFromGitHub { owner = "folke"; repo = "zen-mode.nvim";
         rev = "v1.4.1"; sha256 = "sha256-vRJynz3bnkhfHKya+iEgm4PIEwT2P9kvkskgTt5UUU4="; };})
 
+
+
     # ----------------------------------------------------------------------------------------------
     # LSP related plugins
     # - ./config/lua/plugins/0300-lsp.lua
