@@ -168,13 +168,6 @@
     # - ./config/lua/plugins/0200-writer.lua
     # ----------------------------------------------------------------------------------------------
 
-    # Twilight dims inactive portions of the code you're editing.
-    (vimUtils.buildVimPlugin {
-      pname = "twilight.nvim"; version = "2025-10-30";
-      src = fetchFromGitHub { owner = "folke"; repo = "twilight.nvim";
-        rev = "664e752f4a219801265cc3fc18782b457b58c1e1";
-        sha256 = "sha256-V6DFwvShvX6mYMRJajwOaxbHMNuCHCZzVrfT73iMuQo="; };})
-
     # Zen mode for distraction free writing
     (vimUtils.buildVimPlugin {
       pname = "zen-mode.nvim"; version = "2025-10-30";
