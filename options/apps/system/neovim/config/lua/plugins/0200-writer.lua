@@ -41,7 +41,6 @@ return {
           backdrop = 0.95,
           width = 80, -- width of the Zen window
           height = 1, -- height of the Zen window
-          border = "rounded", -- rounded border on the zen floating window
           options = {
             number = false, -- disable number column
             signcolumn = "no", -- disable signcolumn
