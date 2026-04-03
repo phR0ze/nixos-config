@@ -21,6 +21,7 @@ in
   ];
 
   programs.tmux.enable = true;
+  apps.dev.git.enable = true;
   apps.system.clu.enable = true;
   apps.system.starship.enable = true;
 
