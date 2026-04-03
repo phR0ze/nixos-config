@@ -59,11 +59,6 @@ return {
             laststatus = 0, -- 0 = turn off, 3 = enable the statusline in zen mode
           },
           gitsigns = { enabled = false }, -- disables git signs
-          --tmux = { enabled = true },                -- disables the tmux statusline
-          wezterm = { -- zoom terminal font (works with ghostty)
-            enabled = true,
-            font = "+0", -- font size increment
-          },
         },
         on_open = function()
           -- Soft wrap at word boundaries
