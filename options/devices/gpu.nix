@@ -117,7 +117,7 @@ in
       hardware.graphics.extraPackages = with pkgs; [
         intel-media-driver          # VA-API for Intel iHD Broadwell (2014) or newer
         intel-vaapi-driver          # VA-API for Intel i965 Broadwell (2014), better for Firefox?
-        vaapiVdpau                  # VDPAU driver for the VAAPI library
+        libva-vdpau-driver          # VDPAU driver for the VAAPI library
         libvdpau-va-gl              # VDPAU driver with OpenGL/VAAPI backend
       ];
       environment.systemPackages = with pkgs; [
