@@ -35,7 +35,8 @@ in
           plugins = with pkgs.obs-studio-plugins; [
             obs-backgroundremoval                 # Remove or blur the video background
             obs-pipewire-audio-capture            # Capture appliation audio with PipeWire
-          ] ++ lib.optionals cfg.ndi [ obs-ndi ]; # Optional NDI support
+          ]
+          #] ++ lib.optionals cfg.ndi [ obs-ndi ]; # Optional NDI support
         })
       ];
 
