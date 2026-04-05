@@ -15,15 +15,20 @@
     devices.gpu.intel.enable = true;
     system.x11.xft.dpi = 115;
 
-    #machine.net.bridge.enable = true;
-    virtualisation.podman.enable = true;
-    #virtualisation.qemu.host.enable = true;
-    apps.network.rustdesk.autostart = false;
-    apps.media.obs.enable = true;
+    devices.printers.brother-hll2405w = true;
 
-    # Misc
+    apps.dev.claude.enable = true;
+    apps.dev.gemini.enable = true;
+    apps.dev.opencode.enable = true;
+    apps.media.obs.enable = true;
+    apps.network.rustdesk.autostart = false;
+
+    virtualisation.podman.enable = true;
+    virtualisation.qemu.host.enable = true;
+
     environment.systemPackages = [
       pkgs.freetube
+      pkgs.rust-analyzer
     ];
   };
 }
