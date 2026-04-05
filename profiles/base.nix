@@ -56,6 +56,7 @@ in
 
     # Network
     nftables                     # NixOS use nft rules for the firewall
+    iw                            # nl80211 based CLI configuration utility for wireless devices
     net-tools                     # hostname, ifconfig, netstat, route
     openvpn                       # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
     update-systemd-resolved       # OpenVPN systemd-resolved updater
