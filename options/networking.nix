@@ -57,7 +57,23 @@ in
         unmanaged = [                       # Ignore virtualization networks
           "interface-name:podman*"
         ];
+
+        wifi = {
+          # Disable WiFi power saving to prevent intermittent disconnections. NetworkManager's default
+          # powersave mode (2/enabled) causes adapters — especially Intel iwlwifi — to aggressively
+          # enter low-power states between bursts of activity, resulting in dropped connections and
+          # latency spikes.
+          powersave = false;
+        };
       };
+
+      # Disable WiFi power saving at the kernel module level as a second line of defense. Some drivers
+      # (e.g. iwlwifi) manage their own power state independently of NetworkManager and must be
+      # explicitly told not to power save via a modprobe option. This complements the NetworkManager
+      # setting above and ensures coverage across Intel, Realtek, and Broadcom drivers.
+      boot.extraModprobeConfig = ''
+        options iwlwifi power_save=0
+      '';
 
       # Enables ability for user to make network manager changes
       users.users.${machine.user.name}.extraGroups = [ "networkmanager" ];
