@@ -34,6 +34,12 @@
     options = [ "nofail" ];
   };
 
+  fileSystems."/mnt/storage2" = {
+    device = "/dev/disk/by-uuid/${(builtins.elemAt config.machine.drives 2).uuid}";
+    fsType = "ext4";
+    options = [ "nofail" ];
+  };
+
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }
