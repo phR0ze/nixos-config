@@ -21,9 +21,10 @@
     devices.printers.epson-wf7710 = true;
     devices.printers.brother-hll2405w = true;
 
-    #apps.network.barrier.server.enable = true;
-    #services.raw.tailscale = { enable = true; autoStart = true; };
+    apps.network.barrier.server.enable = true;
     apps.network.rustdesk.autostart = false;
+
+    services.raw.tailscale = { enable = true; autoStart = true; };
 
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
