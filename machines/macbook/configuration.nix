@@ -19,7 +19,7 @@
     virtualisation.qemu.host.enable = true;
 
     apps.media.obs.enable = true;
-    services.raw.tailscale.enable = true;
+    apps.network.tailscale.enable = true;
     apps.network.rustdesk.autostart = false;
 
     # Increase the default DPI size

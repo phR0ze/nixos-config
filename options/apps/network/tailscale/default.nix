@@ -11,7 +11,7 @@
 # ### Deployment notes
 # For this to work correctly you'll need some manual setup as well:
 # 1. Generate a new key from https://login.tailscale.com/admin/machines/new-linux
-# 2. Update the `args.enc.json` with the tailscale secrete as follows
+# 2. Update the `args.enc.json` with the tailscale secret as follows
 #    "secrets": [
 #       {
 #         "name": "tailscale",
@@ -20,16 +20,16 @@
 #     ]
 # 3. Optional run: sudo tailscale cert ${MACHINE_NAME}.${TAILNET_NAME}
 # 4. Check service status: sudo systemctl status tailscaled
-# 5. Enable with: services.raw.tailscale = { enable = true; autoStart = true; };
+# 5. Enable with: apps.network.tailscale = { enable = true; autoStart = true; };
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  cfg = config.services.raw.tailscale;
+  cfg = config.apps.network.tailscale;
   authKey = (f.getSecret config.machine.secrets "tailscale");
 in
 {
   options = {
-    services.raw.tailscale = {
+    apps.network.tailscale = {
       enable = lib.mkEnableOption "Configure Tailscale mesh service";
       autoStart = lib.mkOption {
         type = types.bool;
@@ -58,7 +58,7 @@ in
       };
     };
   };
- 
+
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
       assertions = [
