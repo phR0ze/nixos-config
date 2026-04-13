@@ -2,6 +2,7 @@
 {
   imports = [
     ./barrier
+    ./deskflow
     ./filezilla
     ./firefox
     ./qbittorrent
