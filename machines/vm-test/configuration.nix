@@ -22,7 +22,7 @@
     apps.dev.zed.enable = true;
     apps.dev.claude.enable = true;
 
-    #services.raw.tailscale.enable = true;
+    #apps.network.tailscale.enable = true;
     # Beefed up VM specs with DHCP full LAN presence
     # --------------------------------------------
 #    virtualisation.qemu.guest = {

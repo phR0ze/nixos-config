@@ -17,6 +17,6 @@
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 
-    services.raw.tailscale.enable = true;
+    apps.network.tailscale.enable = true;
   };
 }

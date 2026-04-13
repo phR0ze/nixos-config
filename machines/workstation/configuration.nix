@@ -29,7 +29,7 @@
     devices.printers.brother-hll2405w = true;
 
     apps.network.barrier.server.enable = true;
-    services.raw.tailscale = { enable = true; autoStart = true; };
+    apps.network.tailscale = { enable = true; autoStart = true; };
     apps.network.rustdesk.autostart = false;
 
     virtualisation.podman.enable = true;
