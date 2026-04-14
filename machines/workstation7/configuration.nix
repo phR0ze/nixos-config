@@ -73,10 +73,11 @@ EOF
     ];
 
     boot.extraModprobeConfig = ''
-      # Creative HDA card is at index 1 (USB audio loads as index 0).
+      # Creative HDA card is at index 0 (NVIDIA HDMI audio loads as index 1).
+      # USB audio devices load later as snd_usb_audio at indices 2+.
       # Apply pin config patch to override jack detection on output pins so that
       # ALSA (and in turn WirePlumber) sees them as always-connected.
-      options snd-hda-intel patch=,hda-creative-sb.fw
+      options snd-hda-intel patch=hda-creative-sb.fw
     '';
 
     # WirePlumber: force the 5.1 surround profile for the Creative card and boost
