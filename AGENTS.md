@@ -306,7 +306,15 @@ Machine configs import exactly one profile and add machine-specific overrides.
 
 ---
 
-## 9. Build Flow Summary
+## 9. Agent Guidelines
+
+- **Never run `./clu build` or `./clu update`** directly. These commands invoke `nixos-rebuild` and
+  make system-level changes (or trigger long Nix evaluations) that must be run explicitly by the
+  user. Make config changes and explain what command the user should run to apply them.
+
+---
+
+## 10. Build Flow Summary
 
 ```
 User runs: clu update workstation
