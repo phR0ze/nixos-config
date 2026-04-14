@@ -38,8 +38,11 @@ in
       };
       acceptRoutes = lib.mkOption {
         type = types.bool;
-        default = true;
-        description = lib.mdDoc "Automatically accept routes offered by peers.";
+        default = false;
+        description = lib.mdDoc ''
+          Automatically accept routes offered by peers. Enabling this can cause exit nodes to take
+          over all routing and block local LAN access.
+        '';
       };
       useRoutingFeatures = lib.mkOption {
         type = types.enum [
