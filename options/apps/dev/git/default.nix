@@ -5,7 +5,7 @@
 # - Configures user identity from machine args
 # - Sets vim as the default editor
 # - Enables rebase on pull
-# - Defaults `git diff` to word-diff=color mode
+# - Adds 'git d' alias for 'git diff --word-diff=color'
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
@@ -43,7 +43,7 @@ in
           directory = "/etc/nixos";
         };
         alias = {
-          diff = "diff --word-diff=color";
+          d = "diff --word-diff=color";
         };
       };
     };
