@@ -17,7 +17,6 @@
   config = {
     machine.type.bootable = true;
     machine.nix.cache.enable = true;
-    apps.dev.claude.enable = true;
     devices.gpu.nvidia = { enable = true; open = true; };
 
     # RTL8822BU USB WiFi adapter (Realtek 0bda:b812, rtw88_8822bu driver).
@@ -27,5 +26,8 @@
     services.udev.extraRules = ''
       ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="b812", TEST=="power/control", ATTR{power/control}="on"
     '';
+
+    # Custom apps
+    apps.dev.claude.enable = true;
   };
 }
