@@ -15,7 +15,7 @@ writeShellScriptBin "gen-thumbs" ''
       echo ""
       echo "Recursively pre-generates thumbnails for all images and videos under"
       echo "<directory> by queuing them with tumblerd via D-Bus. Thumbnails land"
-      echo "in ~/.cache/thumbnails/large/ so Thunar finds them already cached."
+      echo "in ~/.cache/thumbnails/<flavor>/ matching Thunar's current zoom level."
       echo ""
       echo "Supported formats:"
       echo "  Images: jpg jpeg png gif webp bmp tiff tif heic avif jxl"
@@ -44,7 +44,18 @@ writeShellScriptBin "gen-thumbs" ''
 
   DIR="$(realpath "$DIR")"
   BATCH=50
-  THUMB_DIR="$HOME/.cache/thumbnails/large"
+
+  # Map Thunar's current zoom level to the thumbnail flavor it requests.
+  # Icons <= 128px use "normal" (128x128), <= 256px use "large" (256x256),
+  # anything larger uses "x-large" (512x512).
+  zoom=$(xfconf-query -c thunar -p /last-icon-view-zoom-level 2>/dev/null || echo "THUNAR_ZOOM_LEVEL_100_PERCENT")
+  case "$zoom" in
+      *_25_*|*_38_*|*_50_*|*_75_*|*_100_*|*_150_*|*_200_*) FLAVOR="normal" ;;
+      *_250_*|*_300_*|*_400_*)                               FLAVOR="large" ;;
+      *)                                                      FLAVOR="x-large" ;;
+  esac
+  THUMB_DIR="$HOME/.cache/thumbnails/$FLAVOR"
+  echo "Thumbnail flavor: $FLAVOR (Thunar zoom: $zoom)"
 
   # Collect all image and video files
   mapfile -d $'\0' -t files < <(find "$DIR" -type f \( \
@@ -81,7 +92,7 @@ writeShellScriptBin "gen-thumbs" ''
           --dest org.freedesktop.thumbnails.Thumbnailer1 \
           --object-path /org/freedesktop/thumbnails/Thumbnailer1 \
           --method org.freedesktop.thumbnails.Thumbnailer1.Queue \
-          "$uri_gv" "$mime_gv" "'large'" "'default'" "uint32 0" >/dev/null || true
+          "$uri_gv" "$mime_gv" "'$FLAVOR'" "'default'" "uint32 0" >/dev/null || true
       uris=(); mimes=()
   }
 
