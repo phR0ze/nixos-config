@@ -5,7 +5,7 @@
 #
 # ### Features
 # - Basic desktop deployment
-# - RTL8822BU USB WiFi (0bda:b812) via rtw88_8822bu driver
+# - RTL8822BU USB WiFi (0bda:b812) via morrownr out-of-tree 88x2bu driver
 # --------------------------------------------------------------------------------------------------
 { ... }:
 {
@@ -19,22 +19,9 @@
     machine.nix.cache.enable = true;
     devices.gpu.nvidia = { enable = true; open = true; };
 
-    # RTL8822BU USB WiFi adapter (Realtek 0bda:b812, rtw88_8822bu driver).
-    # USB autosuspend causes the adapter to enter low-power states between
-    # bursts of activity and fail to wake, producing stalls and disconnects.
-    # The udev rule pins power/control to "on" for this specific device.
-    services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="b812", TEST=="power/control", ATTR{power/control}="on"
-    '';
-
-    # Disable rtw88 deep link power save (LPS-deep). This mode allows the radio
-    # to enter an aggressive low-power state during brief idle periods; under
-    # bursty traffic it stalls for hundreds of milliseconds waiting to wake back
-    # up. NetworkManager power save and USB autosuspend are already disabled
-    # above; this is the third layer needed for the RTL8822BU specifically.
-    boot.extraModprobeConfig = ''
-      options rtw88_core disable_lps_deep=Y
-    '';
+    # RTL8822BU USB WiFi — use the morrownr out-of-tree driver to fix 20-30s
+    # throughput collapses caused by the in-kernel rtw88 TX reporting bug.
+    devices.rtw88x2bu.enable = true;
 
     apps.dev.claude.enable = true;
 
