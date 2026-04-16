@@ -59,6 +59,11 @@ writeShellScriptBin "gen-thumbs" ''
   THUMB_DIR="$HOME/.cache/thumbnails/$FLAVOR"
   echo "Thumbnail flavor: $FLAVOR (Thunar zoom: $zoom)"
 
+  # Timestamp marker — set before queuing so the watch loop can count only
+  # thumbnails produced by this run (find -newer STAMP)
+  STAMP=$(mktemp)
+  trap 'rm -f "$STAMP"' EXIT
+
   # Collect all image and video files
   mapfile -d $'\0' -t files < <(find "$DIR" -type f \( \
       -iname "*.jpg"  -o -iname "*.jpeg" -o -iname "*.png"  \
@@ -75,9 +80,9 @@ writeShellScriptBin "gen-thumbs" ''
   [[ $total -eq 0 ]] && exit 0
 
   count=0
+  cached=0
   uris=()
   mimes=()
-  thumbpaths=()
 
   flush_batch() {
       [[ ''${#uris[@]} -eq 0 ]] && return
@@ -139,19 +144,29 @@ writeShellScriptBin "gen-thumbs" ''
 
   for file in "''${files[@]}"; do
       uri="file://$(urlencode "$file")"
+      hash=$(printf '%s' "$uri" | md5sum | cut -d' ' -f1)
+      # Skip files whose thumbnail already exists — avoids re-queuing and
+      # keeps the watch counter accurate on repeat runs
+      if [[ -f "$THUMB_DIR/$hash.png" ]]; then
+          cached=$(( cached + 1 ))
+          continue
+      fi
       mime="$(mime_from_ext "$file")"
       uris+=("$uri")
       mimes+=("$mime")
-      # Precompute expected thumbnail path (MD5 of the URI, per freedesktop spec)
-      # Only needed for --watch but cheap enough to always compute
-      hash=$(printf '%s' "$uri" | md5sum | cut -d' ' -f1)
-      thumbpaths+=("$THUMB_DIR/$hash.png")
       count=$(( count + 1 ))
       if [[ ''${#uris[@]} -ge $BATCH ]]; then
           flush_batch
           echo "Queued $count/$total..."
       fi
   done
+
+  echo "Skipped $cached already-cached files."
+
+  if [[ $count -eq 0 ]]; then
+      echo "All $total files already cached."
+      exit 0
+  fi
 
   flush_batch
   echo "Done — queued $count files. Tumblerd is processing in the background."
@@ -162,10 +177,9 @@ writeShellScriptBin "gen-thumbs" ''
       stall=0
       iters=0
       while true; do
-          completed=0
-          for tp in "''${thumbpaths[@]}"; do
-              [[ -f "$tp" ]] && completed=$(( completed + 1 ))
-          done
+          # Count only thumbnails created since this run started — O(1) and
+          # immune to pre-existing cached thumbnails from prior runs
+          completed=$(find "$THUMB_DIR" -name "*.png" -newer "$STAMP" -type f 2>/dev/null | wc -l)
           printf "\r  Progress: %d/%d (%d%%)" "$completed" "$count" "$(( completed * 100 / count ))"
           if [[ $completed -ge $count ]]; then
               printf " -- Done!\n"
