@@ -33,18 +33,20 @@ writeShellScriptBin "gen-thumbs" ''
 
   flush_batch() {
       [[ ''${#uris[@]} -eq 0 ]] && return
-      local uri_gv="[" mime_gv="[" first=true
+      local uri_gv="[" mime_gv="[" sep="" u m
       for i in "''${!uris[@]}"; do
-          [[ "$first" == true ]] && first=false || { uri_gv+=", "; mime_gv+=", "; }
-          uri_gv+="'''${uris[$i]}'"
-          mime_gv+="'''${mimes[$i]}'"
+          u="''${uris[$i]}"
+          m="''${mimes[$i]}"
+          uri_gv+="$sep'$u'"
+          mime_gv+="$sep'$m'"
+          sep=", "
       done
       uri_gv+="]"; mime_gv+="]"
       gdbus call --session \
           --dest org.freedesktop.thumbnails.Thumbnailer1 \
           --object-path /org/freedesktop/thumbnails/Thumbnailer1 \
           --method org.freedesktop.thumbnails.Thumbnailer1.Queue \
-          "$uri_gv" "$mime_gv" "'''large'" "'''background'" "uint32 0" >/dev/null 2>&1
+          "$uri_gv" "$mime_gv" "'large'" "'background'" "uint32 0" >/dev/null 2>&1
       uris=(); mimes=()
   }
 
