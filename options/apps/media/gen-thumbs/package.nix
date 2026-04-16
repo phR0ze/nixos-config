@@ -65,7 +65,7 @@ writeShellScriptBin "gen-thumbs" ''
   trap 'rm -f "$STAMP"' EXIT
 
   # Collect all image and video files
-  mapfile -d $'\0' -t files < <(find "$DIR" -type f \( \
+  mapfile -d $'\0' -t files < <(find -L "$DIR" -type f \( \
       -iname "*.jpg"  -o -iname "*.jpeg" -o -iname "*.png"  \
       -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.bmp"  \
       -o -iname "*.tiff" -o -iname "*.tif" -o -iname "*.heic" \
