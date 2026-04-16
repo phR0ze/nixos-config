@@ -27,7 +27,9 @@
       ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="b812", TEST=="power/control", ATTR{power/control}="on"
     '';
 
-    # Custom apps
     apps.dev.claude.enable = true;
+
+    # Pre-generate thumbnails via tumblerd; run: gen-thumbs /mnt/Data
+    apps.media.gen-thumbs.enable = true;
   };
 }
