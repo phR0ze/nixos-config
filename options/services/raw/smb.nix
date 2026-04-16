@@ -47,14 +47,17 @@ in
           # Ensures systemd understands that the mount is network dependent
           "_netdev"
 
-          # Mount the drive on first access
-          "x-systemd.automount,noauto,x-systemd.mount-timeout=5s"
+          # Mount the drive on first access. mount-timeout must be generous enough
+          # for CIFS session setup to complete over WiFi (5s was too short).
+          "x-systemd.automount,noauto,x-systemd.mount-timeout=60s"
 
-          # Automatically unmount after idle for this time
-          "x-systemd.idle-timeout=1min"
+          # Automatically unmount after idle for this time. 1min caused constant
+          # remount churn when browsing with Thunar — all mounts would drop and
+          # re-trigger simultaneously on the next directory access.
+          "x-systemd.idle-timeout=10min"
 
           # Fail connecting to external mount after this time rather than default 90s
-          "x-systemd.device-timeout=5s"
+          "x-systemd.device-timeout=30s"
 
           # Specify the mount type, read-only (ro), read-write (rw)
           (if x.writable then "rw" else "ro")
