@@ -9,7 +9,28 @@
 
 writeShellScriptBin "gen-thumbs" ''
   set -euo pipefail
-  DIR="$(realpath "''${1:-.}")"
+
+  usage() {
+      echo "Usage: gen-thumbs <directory>"
+      echo ""
+      echo "Recursively pre-generates thumbnails for all images and videos under"
+      echo "<directory> by queuing them with tumblerd via D-Bus. Thumbnails land"
+      echo "in ~/.cache/thumbnails/large/ so Thunar finds them already cached."
+      echo ""
+      echo "Supported formats:"
+      echo "  Images: jpg jpeg png gif webp bmp tiff tif heic avif jxl"
+      echo "  Video:  mp4 mkv mov avi wmv m4v flv webm"
+      echo ""
+      echo "Options:"
+      echo "  -h, --help    Show this help"
+  }
+
+  if [[ $# -eq 0 || "''${1:-}" == "-h" || "''${1:-}" == "--help" ]]; then
+      usage
+      exit 0
+  fi
+
+  DIR="$(realpath "$1")"
   BATCH=50
 
   # Collect all image and video files
