@@ -42,7 +42,9 @@ writeShellScriptBin "gen-thumbs" ''
       exit 0
   fi
 
-  DIR="$(realpath "$DIR")"
+  # Use pwd -L (logical path) to preserve symlinks — Thunar generates thumbnail
+  # keys from the symlink path, not the resolved physical path
+  DIR="$(cd "$DIR" && pwd -L)"
   BATCH=50
 
   # Map Thunar's current zoom level to the thumbnail flavor it requests.
@@ -96,6 +98,21 @@ writeShellScriptBin "gen-thumbs" ''
       uris=(); mimes=()
   }
 
+  # Percent-encode a file path for use in a file:// URI.
+  # Encodes everything except unreserved chars (letters, digits, ._~) and /.
+  urlencode() {
+      local str="$1" encoded="" i c hex
+      for (( i=0; i<''${#str}; i++ )); do
+          c="''${str:$i:1}"
+          case "$c" in
+              [a-zA-Z0-9._~/-]) encoded+="$c" ;;
+              *) printf -v hex '%%%02X' "'$c"
+                 encoded+="$hex" ;;
+          esac
+      done
+      printf '%s' "$encoded"
+  }
+
   # Infer MIME type from extension — avoids reading file contents over the network
   mime_from_ext() {
       case "''${1,,}" in
@@ -121,7 +138,7 @@ writeShellScriptBin "gen-thumbs" ''
   }
 
   for file in "''${files[@]}"; do
-      uri="file://$(realpath "$file")"
+      uri="file://$(urlencode "$file")"
       mime="$(mime_from_ext "$file")"
       uris+=("$uri")
       mimes+=("$mime")
