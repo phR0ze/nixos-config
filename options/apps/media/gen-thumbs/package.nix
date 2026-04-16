@@ -11,7 +11,7 @@ writeShellScriptBin "gen-thumbs" ''
   set -euo pipefail
 
   usage() {
-      echo "Usage: gen-thumbs <directory>"
+      echo "Usage: gen-thumbs [-w] <directory>"
       echo ""
       echo "Recursively pre-generates thumbnails for all images and videos under"
       echo "<directory> by queuing them with tumblerd via D-Bus. Thumbnails land"
@@ -22,15 +22,27 @@ writeShellScriptBin "gen-thumbs" ''
       echo "  Video:  mp4 mkv mov avi wmv m4v flv webm"
       echo ""
       echo "Options:"
+      echo "  -w, --watch   Stay alive and print progress until tumblerd finishes"
       echo "  -h, --help    Show this help"
   }
 
-  if [[ $# -eq 0 || "''${1:-}" == "-h" || "''${1:-}" == "--help" ]]; then
+  WATCH=false
+  DIR=""
+  for arg in "$@"; do
+      case "$arg" in
+          -h|--help)  usage; exit 0 ;;
+          -w|--watch) WATCH=true ;;
+          -*)         echo "Unknown option: $arg"; usage; exit 1 ;;
+          *)          DIR="$arg" ;;
+      esac
+  done
+
+  if [[ -z "$DIR" ]]; then
       usage
       exit 0
   fi
 
-  DIR="$(realpath "$1")"
+  DIR="$(realpath "$DIR")"
   BATCH=50
 
   # Collect all image and video files
@@ -47,6 +59,10 @@ writeShellScriptBin "gen-thumbs" ''
   total="''${#files[@]}"
   echo "Found $total files in $DIR"
   [[ $total -eq 0 ]] && exit 0
+
+  # Temp file used as a timestamp reference for the watch loop
+  STAMP=$(mktemp)
+  trap 'rm -f "$STAMP"' EXIT
 
   count=0
   uris=()
@@ -85,4 +101,29 @@ writeShellScriptBin "gen-thumbs" ''
 
   flush_batch
   echo "Done — queued $count files. Tumblerd is processing in the background."
+
+  if $WATCH; then
+      echo "Watching progress..."
+      prev=0
+      stall=0
+      while true; do
+          completed=$(find "$HOME/.cache/thumbnails/large/" -name "*.png" -newer "$STAMP" -type f 2>/dev/null | wc -l)
+          printf "\r  Progress: %d/%d (%d%%)" "$completed" "$count" "$(( completed * 100 / count ))"
+          if [[ $completed -ge $count ]]; then
+              printf " -- Done!\n"
+              break
+          fi
+          if [[ $completed -eq $prev ]]; then
+              (( stall++ ))
+              if [[ $stall -ge 15 ]]; then
+                  printf " -- Stopped (no progress for 30s, %d remaining)\n" "$(( count - completed ))"
+                  break
+              fi
+          else
+              stall=0
+          fi
+          prev=$completed
+          sleep 2
+      done
+  fi
 ''
