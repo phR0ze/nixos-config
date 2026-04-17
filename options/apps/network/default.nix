@@ -1,7 +1,6 @@
 { ... }:
 {
   imports = [
-    ./barrier
     ./deskflow
     ./filezilla
     ./firefox
