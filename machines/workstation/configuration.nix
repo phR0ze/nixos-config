@@ -10,8 +10,6 @@
 #
 # ### Features
 # - Daily driver desktop deployment
-# - Barrier server configuration
-# 
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
@@ -28,7 +26,6 @@
     devices.printers.epson-wf7710 = true;
     devices.printers.brother-hll2405w = true;
 
-    apps.network.barrier.server.enable = true;
     apps.network.tailscale = { enable = true; autoStart = true; };
     apps.network.rustdesk.autostart = false;
 
