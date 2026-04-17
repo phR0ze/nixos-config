@@ -5,8 +5,9 @@
 # - Blacklists in-kernel rtw88 modules to avoid conflicts
 # - Disables USB autosuspend for the adapter
 # - Disables driver-internal LPS/IPS power save to prevent 10s TX stalls
+# - Installs diagnose-wifi.sh and recover-wifi.sh to /usr/local/bin
 #---------------------------------------------------------------------------------------------------
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
   cfg = config.devices.rtw88x2bu;
 in
@@ -38,7 +39,7 @@ in
       # Under heavy TX load the driver enters LPS and stalls for ~10s until its watchdog fires.
       # rtw_power_mgnt=0 disables LPS entirely; rtw_ips_mode=0 disables IPS.
       boot.extraModprobeConfig = ''
-        options 88x2bu rtw_power_mgnt=0 rtw_ips_mode=0 rtw_lps_level=0
+        options 88x2bu rtw_power_mgnt=0 rtw_ips_mode=0 rtw_lps_level=0 rtw_ampdu_enable=0
       '';
     })
   ];
