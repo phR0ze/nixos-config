@@ -4,6 +4,7 @@
 # - Replaces the in-kernel rtw88_8822bu with the morrownr out-of-tree driver
 # - Blacklists in-kernel rtw88 modules to avoid conflicts
 # - Disables USB autosuspend for the adapter
+# - Disables driver-internal LPS/IPS power save to prevent 10s TX stalls
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
@@ -31,6 +32,13 @@ in
       # bursty traffic. Pin power/control to "on" for this specific device (0bda:b812).
       services.udev.extraRules = ''
         ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="b812", TEST=="power/control", ATTR{power/control}="on"
+      '';
+
+      # Disable the driver's internal LPS (Legacy Power Save) and IPS (Inactive Power Save).
+      # Under heavy TX load the driver enters LPS and stalls for ~10s until its watchdog fires.
+      # rtw_power_mgnt=0 disables LPS entirely; rtw_ips_mode=0 disables IPS.
+      boot.extraModprobeConfig = ''
+        options 88x2bu rtw_power_mgnt=0 rtw_ips_mode=0 rtw_lps_level=0
       '';
     })
   ];
