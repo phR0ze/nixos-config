@@ -58,6 +58,7 @@
     desktop-file-utils                  # Command line utilities for working with desktop entries
     i3lock-color                    # Simple lightweight screen locker
     paprefs                              # Pulse audio server preferences for simultaneous output
+    pulseaudio                          # Provides pactl for sink volume control
 
     # VPN
     networkmanager-openvpn            # NetworkManager VPN plugin for OpenVPN
