@@ -38,7 +38,14 @@
     apps.media.freecad.enable = true;
 
     # Misc
-    environment.systemPackages = [
+    environment.systemPackages = with pkgs; [
+      (writeShellScriptBin "audio-desktop" ''
+        pactl set-sink-volume alsa_output.pci-0000_03_00.0.analog-surround-51 12% 18% 12% 12% 12% 12%
+      '')
+      (writeShellScriptBin "audio-headset" ''
+        pactl set-sink-volume alsa_output.pci-0000_03_00.0.analog-surround-51 12% 12% 12% 12% 12% 12%
+      '')
+    ] ++ [
       pkgs.xchm                     # App for reading Microsoft help files for technical manuals
       pkgs.synology-drive-client
       pkgs.freetube
