@@ -39,8 +39,9 @@
 
     # Misc
     environment.systemPackages = with pkgs; [
+      # Channel order: Front Left, Front Right, Front Center, LFE, Rear Left, Rear Right
       (writeShellScriptBin "audio-desktop" ''
-        pactl set-sink-volume alsa_output.pci-0000_03_00.0.analog-surround-51 12% 18% 12% 12% 12% 12%
+        pactl set-sink-volume alsa_output.pci-0000_03_00.0.analog-surround-51 14% 18% 12% 12% 12% 12%
       '')
       (writeShellScriptBin "audio-headset" ''
         pactl set-sink-volume alsa_output.pci-0000_03_00.0.analog-surround-51 12% 12% 12% 12% 12% 12%
