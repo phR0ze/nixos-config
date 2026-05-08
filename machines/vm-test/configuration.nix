@@ -15,20 +15,17 @@
     machine.hostname = "vm-test";
     machine.type.vm = true;
     machine.vm.type.local = true;
-    #machine.vm.type.local = false;
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 
-    apps.dev.zed.enable = true;
-    apps.dev.claude.enable = true;
+    services.oci.portainer.enable = true;
 
-    #apps.network.tailscale.enable = true;
     # Beefed up VM specs with DHCP full LAN presence
     # --------------------------------------------
-#    virtualisation.qemu.guest = {
-#      cores = 8;
-#      memorySize = 16;
-#      rootDrive.size = 40;
+    virtualisation.qemu.guest = {
+      cores = 4;
+      memorySize = 8;
+      rootDrive.size = 40;
 #      interfaces = [{
 #        type = "macvtap";
 #        id = cfg.hostname;
@@ -37,7 +34,7 @@
 #        macvtap.link = "br0";
 #        mac = "02:00:00:00:00:01";
 #      }];
-#    };
+    };
 #
 #    # Testing packages
 #    # --------------------------------------------

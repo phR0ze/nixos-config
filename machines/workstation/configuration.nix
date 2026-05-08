@@ -29,7 +29,7 @@
     apps.network.tailscale = { enable = true; autoStart = true; };
     apps.network.rustdesk.autostart = false;
 
-    virtualisation.podman.enable = true;
+    apps.system.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 
     apps.dev.claude.enable = true;

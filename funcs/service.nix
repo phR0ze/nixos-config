@@ -86,7 +86,7 @@
     ] ++ lib.optionals (deps != null) (map (x: "podman-${name}-${x}.service") deps);
 
     serviceConfig = {
-      Restart = "always";
+      Restart = lib.mkForce "always";
       WorkingDirectory = "/var/lib/${name}";
     };
   };
