@@ -13,6 +13,7 @@
     ./homarr.nix
     ./immich.nix
     ./oneup.nix
+    ./portainer
     ./stirling-pdf.nix
   ];
 }

@@ -18,7 +18,7 @@
     system.x11.autolock.enable = true;
 
     # Homelab services
-    virtualisation.podman.enable = true;
+    apps.system.podman.enable = true;
     virtualisation.qemu.host.enable = true;
     services.raw.jellyfin.enable = true;
     services.raw.minecraft.enable = true;

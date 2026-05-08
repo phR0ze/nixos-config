@@ -11,16 +11,22 @@
 # };
 # ```
 #
-# ### Features
-#
+# ### Notes
+# - See README.md for usage details
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.virtualisation.podman;
+  cfg = config.apps.system.podman;
 in
 {
-  config = lib.mkIf (cfg.enable) {
+  options = {
+    apps.system.podman = {
+      enable = lib.mkEnableOption "Install and configure Podman container runtime";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
 
     # Configure primary user permissions
     users.users.${machine.user.name}.extraGroups = [ "podman" ];
@@ -40,6 +46,7 @@ in
 
     # Enable and configure podman
     virtualisation.podman = {
+      enable = true;
       dockerCompat = true;            # provide docker alias
       dockerSocket.enable = true;     # link podman socket as /var/run/docker.sock requires restart
 

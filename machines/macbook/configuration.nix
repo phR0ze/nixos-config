@@ -15,7 +15,7 @@
 
   config = {
     machine.type.bootable = true;
-    virtualisation.podman.enable = true;
+    apps.system.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 
     apps.media.obs.enable = true;
