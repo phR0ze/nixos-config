@@ -183,17 +183,17 @@ in
         type = types.listOf (types.submodule {
           options = {
             type = lib.mkOption {
-              type = types.enum [ "user" "macvtap" ];
               description = "Interface type";
+              type = types.enum [ "user" "macvtap" ];
             };
             id = lib.mkOption {
-              type = types.str;
               description = "Interface name on the host. e.g. `vm-prod1@enp1s0`";
+              type = types.str;
               example = "vm-prod1";
             };
             fd = lib.mkOption {
-              type = types.int;
               description = "File descriptor number";
+              type = types.int;
               example = 3;
             };
             macvtap.link = lib.mkOption {
@@ -201,17 +201,38 @@ in
               description = "Host NIC to attach to";
             };
             macvtap.mode = lib.mkOption {
-              type = types.enum [ "bridge" ];
               description = "The MACVTAP mode to use";
+              type = types.enum [ "bridge" ];
             };
             mac = lib.mkOption {
-              type = types.str;
               description = ''
-                MAC address of the guest's network interface. Setting it to a prefix of 02 indicates 
-                that it is being adminstered locally. Then you can simply increment the final nibble 
+                MAC address of the guest's network interface. Setting it to a prefix of 02 indicates
+                that it is being adminstered locally. Then you can simply increment the final nibble
                 to provide unique identifiers for your VMs.
               '';
+              type = types.str;
               example = "02:00:00:00:00:01";
+            };
+            forwardPorts = lib.mkOption {
+              description = "List of ports to forward from host to guest (user/NAT mode only)";
+              type = types.listOf (types.submodule {
+                options = {
+                  host = lib.mkOption {
+                    type = types.port;
+                    description = "Host port to forward from";
+                  };
+                  guest = lib.mkOption {
+                    type = types.port;
+                    description = "Guest port to forward to";
+                  };
+                  proto = lib.mkOption {
+                    type = types.enum [ "tcp" "udp" ];
+                    description = "Protocol to forward";
+                    default = "tcp";
+                  };
+                };
+              });
+              default = [];
             };
           };
         });
@@ -223,7 +244,6 @@ in
         }];
       };
       registeredPaths = lib.mkOption {
-        type = types.listOf types.path;
         description = lib.mdDoc ''
           A list of paths whose closure should be made available to the VM.
 
@@ -231,6 +251,7 @@ in
           in the host Nix store appear in the guest Nix store as well, but are considered garbage
           (because they are not registered in the Nix database of the guest).
         '';
+        type = types.listOf types.path;
         default = [ config.system.build.toplevel ];
       };
 
@@ -258,11 +279,11 @@ in
       };
 
       options = lib.mkOption {
-        type = types.listOf types.str;
         description = lib.mdDoc ''
           Pass through arguments to the QEMU run function call. Will be filled out by configuration
           automation down below based on guest input options.
         '';
+        type = types.listOf types.str;
         example = [
           "-net nic,netdev=vm-prod1,model=virtio"
           "-netdev user,id=vm-prod1"
@@ -516,10 +537,15 @@ in
             "-device virtio-net-pci,netdev=nic0,mac=${x.mac}"
           ]) macvtapInterfaces)
         ++ lib.optionals (userInterfaces != [])
-          (builtins.concatMap (x: [
-            "-netdev user,id=nic0"
-            "-device virtio-net-pci,netdev=nic0"
-          ]) userInterfaces)
+          (builtins.concatMap (x:
+            let
+              hostfwds = lib.concatMapStrings
+                (p: ",hostfwd=${p.proto}::${toString p.host}-:${toString p.guest}")
+                x.forwardPorts;
+            in [
+              "-netdev user,id=nic0${hostfwds}"
+              "-device virtio-net-pci,netdev=nic0"
+            ]) userInterfaces)
 
         # Audio configuration
         # -----------------------------------------------
