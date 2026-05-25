@@ -26,10 +26,15 @@
       cores = 4;
       memorySize = 8;
       rootDrive.size = 40;
+      display.enable = false;
       interfaces = [{
         type = "user";
         id = "vm-test";
-        forwardPorts = [{ host = 9000; guest = 9000; }];
+        forwardPorts = [
+          { host = 8080; guest = 80; }
+          { host = 8443; guest = 443; }
+          { host = 9000; guest = 9000; }
+        ];
       }];
 #      interfaces = [{
 #        type = "macvtap";
