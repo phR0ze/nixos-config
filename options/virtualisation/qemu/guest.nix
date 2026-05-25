@@ -214,24 +214,29 @@ in
               example = "02:00:00:00:00:01";
             };
             forwardPorts = lib.mkOption {
-              description = "List of ports to forward from host to guest (user/NAT mode only)";
-              type = types.listOf (types.submodule {
-                options = {
-                  host = lib.mkOption {
-                    type = types.port;
-                    description = "Host port to forward from";
+              description = ''
+                List of ports to forward from host to guest (user/NAT mode only).
+                A bare integer (e.g. 9000) is shorthand for `{ host = 9000; guest = 9000; }`.
+              '';
+              type = types.listOf (types.coercedTo types.port
+                (p: { host = p; guest = p; })
+                (types.submodule {
+                  options = {
+                    host = lib.mkOption {
+                      type = types.port;
+                      description = "Host port to forward from";
+                    };
+                    guest = lib.mkOption {
+                      type = types.port;
+                      description = "Guest port to forward to";
+                    };
+                    proto = lib.mkOption {
+                      type = types.enum [ "tcp" "udp" ];
+                      description = "Protocol to forward";
+                      default = "tcp";
+                    };
                   };
-                  guest = lib.mkOption {
-                    type = types.port;
-                    description = "Guest port to forward to";
-                  };
-                  proto = lib.mkOption {
-                    type = types.enum [ "tcp" "udp" ];
-                    description = "Protocol to forward";
-                    default = "tcp";
-                  };
-                };
-              });
+                }));
               default = [];
             };
           };

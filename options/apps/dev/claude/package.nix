@@ -5,68 +5,58 @@
 {
   lib,
   stdenv,
-  buildNpmPackage,
   fetchzip,
-  versionCheckHook,
-  writableTmpDirAsHomeHook,
+  makeWrapper,
   bubblewrap,
   procps,
   socat,
 }:
-buildNpmPackage (finalAttrs: {
+stdenv.mkDerivation (finalAttrs: {
   pname = "claude-code";
-  version = "2.1.91";
+  version = "2.1.150";
 
   src = fetchzip {
-    url = "https://registry.npmjs.org/@anthropic-ai/claude-code/-/claude-code-${finalAttrs.version}.tgz";
-    hash = "sha256-u7jdM6hTYN05ZLPz630Yj7gI0PeCSArg4O6ItQRAMy4=";
+    url = "https://registry.npmjs.org/@anthropic-ai/claude-code-linux-x64/-/claude-code-linux-x64-${finalAttrs.version}.tgz";
+    hash = "sha256-vS6qYp/0AkvrJ0OeLWHkSjlKFtSMfNICAqFZy7OFn1I=";
   };
 
-  npmDepsHash = "sha256-0ppKP+XMgTzVVZtL7GDsOjgvSPUDrUa7SoG048RLaNg=";
+  nativeBuildInputs = [ makeWrapper ];
 
-  strictDeps = true;
+  dontBuild = true;
+  dontConfigure = true;
+  dontFixup = true;
 
-  postPatch = ''
-    cp ${./package-lock.json} package-lock.json
+  installPhase = ''
+    runHook preInstall
 
-    # https://github.com/anthropics/claude-code/issues/15195
-    substituteInPlace cli.js \
-          --replace-fail '#!/bin/sh' '#!/usr/bin/env sh'
-  '';
+    # Store the binary unmodified — patchelf corrupts the Bun SEA embedded bytecode
+    install -Dm755 claude $out/lib/claude-code/claude
 
-  dontNpmBuild = true;
-
-  env.AUTHORIZED = "1";
-
-  # `claude-code` tries to auto-update by default, this disables that functionality.
-  # https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview#environment-variables
-  # The DEV=true env var causes claude to crash with `TypeError: window.WebSocket is not a constructor`
-  postInstall = ''
-    wrapProgram $out/bin/claude \
+    # Invoke via the glibc dynamic linker so we never touch the binary itself.
+    # ld-linux supports --argv0 natively, which Bun SEA requires to identify itself.
+    makeWrapper ${stdenv.cc.libc}/lib/ld-linux-x86-64.so.2 $out/bin/claude \
+      --add-flags "--library-path ${lib.makeLibraryPath [ stdenv.cc.libc ]}" \
+      --add-flags "--argv0 claude" \
+      --add-flags "$out/lib/claude-code/claude" \
       --set DISABLE_AUTOUPDATER 1 \
       --set DISABLE_INSTALLATION_CHECKS 1 \
       --unset DEV \
       --prefix PATH : ${
         lib.makeBinPath (
           [
-            # claude-code uses [node-tree-kill](https://github.com/pkrumins/node-tree-kill) which requires procps's pgrep(darwin) or ps(linux)
             procps
           ]
-          # the following packages are required for the sandbox to work (Linux only)
           ++ lib.optionals stdenv.hostPlatform.isLinux [
             bubblewrap
             socat
           ]
         )
       }
+
+    runHook postInstall
   '';
 
-  doInstallCheck = true;
-  nativeInstallCheckInputs = [
-    writableTmpDirAsHomeHook
-    versionCheckHook
-  ];
-  versionCheckKeepEnvironment = [ "HOME" ];
+  doInstallCheck = false;
 
   meta = {
     description = "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster";
@@ -74,5 +64,6 @@ buildNpmPackage (finalAttrs: {
     downloadPage = "https://www.npmjs.com/package/@anthropic-ai/claude-code";
     license = lib.licenses.unfree;
     mainProgram = "claude";
+    platforms = [ "x86_64-linux" ];
   };
 })
