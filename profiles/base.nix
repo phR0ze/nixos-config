@@ -37,6 +37,7 @@ in
     gptfdisk                      # Disk tools e.g. sgdisk, gdisk, cgdisk
     #'intel-ucode'               # required for Intel Microcode update files to boot
     inxi                          # CLI system information tool
+    just                          # A handy way to save and run project-specific commands
     libisoburn                    # xorriso ISO creation tools
     nix-prefetch                  # Utility to fetch git source to compute hashes
     nix-tree                      # Interactively browse Nix store path dependenices in the terminal
