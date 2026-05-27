@@ -25,9 +25,6 @@
     apps.network.rustdesk.autostart = false;
     apps.network.tailscale = { enable = true; autoStart = true; };
 
-    apps.system.podman.enable = true;
-    virtualisation.qemu.host.enable = true;
-
     apps.dev.claude.enable = true;
     apps.dev.gemini.enable = true;
     apps.dev.opencode.enable = true;
@@ -36,6 +33,11 @@
     apps.games.hedgewars.enable = true;
     apps.games.superTuxKart.enable = true;
     apps.media.freecad.enable = true;
+
+    # Services
+    apps.system.podman.enable = true;
+    virtualisation.qemu.host.enable = true;
+    services.oci.oneup = { enable = true; port = 8002; };
 
     # Misc
     environment.systemPackages = with pkgs; [
