@@ -14,12 +14,12 @@ let
   defaults = (f.getService args "oneup" 2002 2002);
 in
 {
-  imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
+  imports = [ (import ../../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
 
   options = {
     services.oci.oneup = lib.mkOption {
       description = lib.mdDoc "OneUp service options";
-      type = types.submodule { imports = [ (import ../../types/service.nix { inherit lib defaults; }) ]; };
+      type = types.submodule { imports = [ (import ../../../types/service.nix { inherit lib defaults; }) ]; };
       default = defaults;
     };
   };
