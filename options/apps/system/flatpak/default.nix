@@ -43,6 +43,11 @@ in
               default = "flathub";
               description = "Flatpak remote origin to install from.";
             };
+            env = lib.mkOption {
+              type = lib.types.attrsOf lib.types.str;
+              default = {};
+              description = "Environment variable overrides for the Flatpak app.";
+            };
           };
         });
         default = [];
@@ -76,6 +81,11 @@ in
             installCommands = map (p:
               "${flatpak} install --system --noninteractive --or-update ${lib.escapeShellArg p.origin} ${lib.escapeShellArg p.appId}"
             ) cfg.packages;
+            overrideCommands = lib.concatMap (p:
+              lib.mapAttrsToList (k: v:
+                "${flatpak} override --system --env=${lib.escapeShellArg "${k}=${v}"} ${lib.escapeShellArg p.appId}"
+              ) p.env
+            ) cfg.packages;
           in
           ''
             if [ -f ${stampFile} ] && [ "$(cat ${stampFile})" = "${stateHash}" ]; then
@@ -83,7 +93,7 @@ in
               exit 0
             fi
 
-            ${lib.concatStringsSep "\n" (remoteCommands ++ installCommands)}
+            ${lib.concatStringsSep "\n" (remoteCommands ++ installCommands ++ overrideCommands)}
 
             mkdir -p "$(dirname ${stampFile})"
             echo "${stateHash}" > ${stampFile}
