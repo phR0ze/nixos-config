@@ -15,7 +15,10 @@ in
     (lib.mkIf cfg.enable {
       apps.system.flatpak = {
         enable = true;
-        packages = [{ appId = "org.vinegarhq.Sober"; }];
+        packages = [{
+          appId = "org.vinegarhq.Sober";
+          env.PULSE_SERVER = "unix:/run/user/1000/pulse/native";
+        }];
       };
     })
   ];
