@@ -6,7 +6,7 @@ let
   machine = config.machine;
   cfg = config.services.raw.selkies;
 
-  selkies = pkgs.python312Packages.callPackage ../../../packages/selkies {};
+  selkies = pkgs.python312Packages.callPackage ../../../../packages/selkies {};
 in
 {
   options = {

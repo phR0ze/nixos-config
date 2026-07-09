@@ -12,7 +12,7 @@ let
   machine = config.machine;
   cfg = config.services.raw.kasmvnc;
 
-  kasmvnc = pkgs.callPackage ../../../packages/kasmvnc {};
+  kasmvnc = pkgs.callPackage ../../../../packages/kasmvnc {};
   vncpass = pkgs.runCommandLocal "kasmvnc-passwd" {} ''
     mkdir $out
     echo "${machine.user.pass}" | ${kasmvnc}/bin/vncpasswd -u "${machine.user.name}" -o
