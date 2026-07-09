@@ -3,7 +3,7 @@
 # ### Supported systems
 # - AMD Radeon RX 550   => devices.gpu.amd.enable = true;
 # - Geforce GTX 1660    => devices.gpu.nvidia = { enable = true; open = true; };
-# - Geforce GTX 1050 Ti => devices.gpu.nvidia.enable = true;
+# - Geforce GTX 1050 Ti => devices.gpu.nvidia = { enable = true; legacy580 = true; }; (Pascal, dropped from "stable" branch)
 # - Geforce GTX 650 Ti  => devices.gpu.nvidia = { enable = true; legacy470 = true; };
 #
 # ### Research
@@ -57,6 +57,7 @@ in
       nvidia = {
         enable = lib.mkEnableOption "Install and configure Nvidia graphics";
         open = lib.mkEnableOption "Use the NVIDIA open source kernel module (Turing+ only)";
+        legacy580 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_580";
         legacy470 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_470";
         legacy390 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_390";
         legacy340 = lib.mkEnableOption "Install and configure Nvidia graphics legacy_340";
@@ -164,7 +165,9 @@ in
         nvidiaPersistenced = true;
 
         # Optionally, for older cards you'll need to select the driver version for your specific GPU.
-        package = if cfg.nvidia.legacy470 then
+        package = if cfg.nvidia.legacy580 then
+          config.boot.kernelPackages.nvidiaPackages.legacy_580 else
+          if cfg.nvidia.legacy470 then
           config.boot.kernelPackages.nvidiaPackages.legacy_470 else
           if cfg.nvidia.legacy390 then
             config.boot.kernelPackages.nvidiaPackages.legacy_390 else
