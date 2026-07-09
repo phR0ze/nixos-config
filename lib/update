@@ -16,6 +16,7 @@ Usage:
 
 Options:
   -h, --help        Print out usage
+  --boot            Stage config for next boot instead of switching immediately
   --impure          Pass impure into the system update
   --reset-xfce      Remove existing xfce configuration during system update
 
@@ -29,6 +30,7 @@ USAGE
     log::subln "Update system using hostname: ${green}./${SCRIPT} update system${none}"
     log::subln "Update system by name: ${green}./${SCRIPT} update system macbook${none}"
     log::subln "Update the system, resetting xfce: ${green}./${SCRIPT} update system --reset-xfce${none}"
+    log::subln "Stage config for next boot: ${green}./${SCRIPT} update system --boot${none}"
     echo
     exit
 }
@@ -98,10 +100,12 @@ update::system()
     log::header1 "Update system version"
 
     # Set additional flags as specified
+    local boot_mode=0
     local reset_xfce=0
     while [ $# -gt 0 ]; do
         local arg=$1; shift
         case "$arg" in
+            --boot) boot_mode=1 ;;
             --reset-xfce*) reset_xfce=1 ;;
             *) MACHINE="$arg" ;;
         esac
@@ -125,7 +129,12 @@ update::system()
     fi
 
     # Execute update
-    $SUDO nixos-rebuild switch $TRACE $IMPURE --flake "${CONFIG_DIR}#target"
+    local rebuild_action="switch"
+    [ $boot_mode -eq 1 ] && rebuild_action="boot"
+    $SUDO nixos-rebuild $rebuild_action $TRACE $IMPURE --flake "${CONFIG_DIR}#target"
+    if [ $boot_mode -eq 1 ]; then
+        log::info "Configuration staged for next boot. Run 'sudo reboot' to apply."
+    fi
 }
 
 # Remove user xfce configurations to get a clean point to start from
