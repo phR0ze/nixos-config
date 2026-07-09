@@ -17,7 +17,8 @@ Options:
   -h, --help        Print out usage
 
 Commands:
-  all               Clean nix store and generations
+  all [--keep N]    Clean nix store and generations, and orphaned boot kernels
+  boot              Remove orphaned /boot/kernels files whose store paths no longer exist
   dec               Clean decrypted files from git and disk
   pkg               Clean the given package out of the nix store
   store             Clean the nix store
@@ -44,7 +45,8 @@ clean::run()
     # Parse the clean commnand
     local command=$1; shift
     case "$command" in
-        all) clean::store -d ;;
+        all) clean::all "$@" ;;
+        boot) clean::boot ;;
         dec) clean::dec "$@" ;;
         pkg) clean::pkg "$@" ;;
         store) clean::store ;;
@@ -68,14 +70,54 @@ clean::pkg()
     nix-store --delete "$@"
 }
 
+# Clean nix store and generations, then clean orphaned boot kernel files
+# - --keep N  Keep the N most recent system generations (default: delete all old)
+# --------------------------------------------------------------------------------------------------
+clean::all()
+{
+    local keep=0
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --keep) keep="$2"; shift 2 ;;
+            *) shift ;;
+        esac
+    done
+
+    if [[ $keep -gt 0 ]]; then
+        log::ls "Deleting system generations, keeping last ${cyan}${keep}${none}"
+        $SUDO nix-env --delete-generations "+${keep}" --profile /nix/var/nix/profiles/system
+        nix-store --gc
+    else
+        log::ls "Deleting all old system generations"
+        nix-collect-garbage -d
+    fi
+
+    clean::boot
+}
+
+# Remove orphaned files in /boot/kernels whose nix store paths no longer exist
+# --------------------------------------------------------------------------------------------------
+clean::boot()
+{
+    log::header1 "Clean orphaned /boot/kernels files"
+    local found=0
+    for f in /boot/kernels/*; do
+        [[ -e "$f" ]] || continue
+        local hash
+        hash=$(basename "$f" | cut -d- -f1)
+        if ! ls /nix/store/${hash}-* &>/dev/null 2>&1; then
+            log::ls "Removing orphaned: ${cyan}${f}${none}"
+            $SUDO rm "$f"
+            ((found++)) || true
+        fi
+    done
+    [[ $found -eq 0 ]] && log::ls "No orphaned boot kernel files found"
+}
+
 # Clean up nix store
 # --------------------------------------------------------------------------------------------------
 clean::store()
 {
-    # First clean up all older generations
-    [[ $1 == "-d" ]] && nix-collect-garbage -d
-
-    # Now clean the nix store
     nix-store --gc
 }
 
