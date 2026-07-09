@@ -12,10 +12,9 @@
 # - /var/lib/jellyfin
 # - /var/lib/jellyfin/config
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }:
 let
   cfg = config.services.raw.jellyfin;
-  machine = config.machine;
 in
 {
   options = {

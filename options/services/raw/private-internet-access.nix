@@ -17,7 +17,7 @@
 # * Validation can be done by using firefox as the app and navigating to 
 #   https://www.privateinternetaccess.com/pages/whats-my-ip
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   nic = config.net.primary.name;
   cfg = config.services.raw.private-internet-access;

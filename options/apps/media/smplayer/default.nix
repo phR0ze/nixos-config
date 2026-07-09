@@ -17,7 +17,7 @@ let
     # Include build time dependencies
     buildInputs = [
       pkgs.optipng                # used below in modifying the pngs
-      pkgs.libsForQt5.qt5.qtbase  # used in the makefile to for qt's rcc
+      pkgs.qt5.qtbase             # used in the makefile to for qt's rcc
     ];
 
     dontWrapQtApps = true;        # Don't bother with the Qt environment variable overrides

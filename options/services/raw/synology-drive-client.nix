@@ -3,9 +3,8 @@
 # ### Configuration
 # - Autostarts after login
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, args, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
-  machine = config.machine;
   cfg = config.services.raw.synology-drive-client;
 in
 {
