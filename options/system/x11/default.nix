@@ -42,7 +42,7 @@ in
         exec = lib.mkOption {
           description = lib.mdDoc "Execution command for autolock";
           type = types.path;
-          default = "${pkgs.xfce.xfce4-session}/bin/xflock4";
+          default = "${pkgs.xfce4-session}/bin/xflock4";
         };
       };
     };
