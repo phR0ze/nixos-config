@@ -12,6 +12,7 @@ Options:
   -h, --help        Print out usage
 
 Commands:
+  boot              List orphaned /boot/kernels files
   profiles          List out available profiles
   versions, ver     List out the versions i.e. system versions
 USAGE
@@ -33,12 +34,31 @@ list::run()
     # Parse the commnand
     local command=$1; shift
     case "$command" in
+        boot) list::boot ;;
         profiles) list::profiles;;
         versions) list::versions;;
         ver) list::versions ;;
         *) log::error "Invalid list command: ${cyan}${command}${none}"; list::usage ;;
     esac
 
+}
+
+# List orphaned files in /boot/kernels whose nix store paths no longer exist
+#
+list::boot()
+{
+    log::header1 "List orphaned boot kernel files"
+    local found=0
+    for f in /boot/kernels/*; do
+        [[ -e "$f" ]] || continue
+        local hash
+        hash=$(basename "$f" | cut -d- -f1)
+        if ! ls /nix/store/${hash}-* &>/dev/null 2>&1; then
+            echo "$f"
+            ((found++)) || true
+        fi
+    done
+    [[ $found -eq 0 ]] && log::ls "No orphaned boot kernel files found"
 }
 
 # List all profiles in the current configuration repo
@@ -69,9 +89,9 @@ list::versions()
                 (.date | fromdate | strflocaltime("%Y-%m-%d %H:%M:%S")),
                 .nixosVersion,
                 .kernelVersion,
-                .configurationRevision
+                (.configurationRevision | split(" ")[0])
             ] | @tsv' |
-                column --separator $'\t' --table --table-columns "Version,Build-date,NixOS version,Kernel,Configuration Revision"
+                column --separator $'\t' --table --table-columns "Version,Build-date,NixOS version,Kernel,SHA"
 }
 
 # One line description of the system version
