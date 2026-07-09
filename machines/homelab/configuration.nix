@@ -13,7 +13,7 @@
   config = {
     machine.type.bootable = true;
     machine.net.bridge.enable = true;
-    devices.gpu.nvidia = { enable = true; open = true; };
+    devices.gpu.nvidia = { enable = true; legacy580 = true; };
     machine.autologin = true;
     system.x11.autolock.enable = true;
 
