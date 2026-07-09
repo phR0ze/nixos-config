@@ -7,7 +7,7 @@
 # standalone executables released by the opencode project instead.
 #
 # ### Update instructions
-# 1. run: ./get_new_version.sh
+# 1. run: ./update.sh
 # 2. update `version` below
 # 3. get new hashes:
 #    nix-prefetch-url --type sha256 https://github.com/anomalyco/opencode/releases/download/v<version>/opencode-linux-x64.tar.gz
@@ -27,24 +27,24 @@
 }:
 
 let
-  version = "1.4.3";
+  version = "1.17.15";
 
   srcMap = {
     "x86_64-linux" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-x64.tar.gz";
-      hash = "sha256-NNUD67AphTKTvm/U1EG7stuwORm/pFJeiLHKVdaPPhc=";
+      hash = "sha256-DhNTdxGSx9LcDGENYf9wZou4pEINxNnjXP0z1yRfPmc=";
     };
     "aarch64-linux" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-arm64.tar.gz";
-      hash = "sha256-TL8y9MMdp9rhRxK2Wq285qz6GnqFvumGos5Oqu1Otcg=";
+      hash = "sha256-lmconBQ9H73UQAVa9AQbtDL0Swfd8K7wSKjH8vfGXi0=";
     };
     "x86_64-darwin" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-darwin-x64.zip";
-      hash = "sha256-FDECjjJNzdIyLlqnEERKUsbedNGjgvgIKkrRL9rgdo8=";
+      hash = "sha256-S8QMEkobQZz6kiyts9aMLWeyCCJ2Ngs8o2ADqjUNmtQ=";
     };
     "aarch64-darwin" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-darwin-arm64.zip";
-      hash = "sha256-0IXAcgh/oc8HYFiuKHhaMak2jg88QpheqMVYA2/Lmww=";
+      hash = "sha256-I6rTWKhInNqenEbN586HsvxIRyA9200heb40IVrW7q4=";
     };
   };
 

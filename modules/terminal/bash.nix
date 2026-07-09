@@ -73,8 +73,8 @@ in
       # misc aliases
       tree = "tree -a";
       ip = "ip -c";
-      ls = "ls -h --group-directories-first --color=auto";
-      ll = "ls -lah --group-directories-first --color=auto";
+      ls = "LC_COLLATE=C ls -h --group-directories-first --color=auto";
+      ll = "LC_COLLATE=C ls -lah --group-directories-first --color=auto";
       diff = "diff --color=auto";
       grep = "grep --color=auto";
       free = "free -m";
