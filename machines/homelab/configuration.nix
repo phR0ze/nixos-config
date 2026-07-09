@@ -23,13 +23,14 @@
     services.raw.jellyfin.enable = true;
     services.raw.minecraft.enable = true;
     services.raw.nix-cache.host.enable = true;
-    services.raw.mullvad.enable = true;
+    #services.raw.mullvad.enable = true;
     #apps.network.tailscale.enable = true;
+    #services.raw.tailscale.enable = true;
     services.raw.synology-drive-client.enable = true;
     services.oci.homarr = { enable = true; port = 80; };
     services.oci.oneup = { enable = true; port = 8002; };
     services.oci.stirling-pdf = { enable = true; port = 8001; };
-    services.oci.immich = { enable = true; port = 2283; tag = "v2.0.1"; };
+    #services.oci.immich = { enable = true; port = 2283; tag = "v2.0.1"; };
 
     # Additional apps
     environment.systemPackages = [
