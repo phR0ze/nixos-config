@@ -133,7 +133,7 @@ update::system()
     [ $boot_mode -eq 1 ] && rebuild_action="boot"
     $SUDO nixos-rebuild $rebuild_action $TRACE $IMPURE --flake "${CONFIG_DIR}#target"
     if [ $boot_mode -eq 1 ]; then
-        log::info "Configuration staged for next boot. Run 'sudo reboot' to apply."
+        log::ln "Configuration staged for next boot. Run 'sudo reboot' to apply."
     fi
 }
 
