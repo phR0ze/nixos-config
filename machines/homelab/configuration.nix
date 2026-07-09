@@ -13,9 +13,12 @@
   config = {
     machine.type.bootable = true;
     machine.net.bridge.enable = true;
-    devices.gpu.nvidia.enable = true;
+    devices.gpu.nvidia = { enable = true; open = true; };
     machine.autologin = true;
     system.x11.autolock.enable = true;
+
+    # Apps
+    apps.dev.claude.enable = true;
 
     # Homelab services
     apps.system.podman.enable = true;
