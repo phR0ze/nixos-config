@@ -1,11 +1,10 @@
 {
   inputs = {
-    # nixos-unstable from 2026.03.24
-    nixpkgs.url = "github:nixos/nixpkgs/46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9";
+    # nixos-unstable from 2026.07.05
+    nixpkgs.url = "github:nixos/nixpkgs/d407951447dcd00442e97087bf374aad70c04cea";
 
-    # nixos-unstable from 2026.03.24
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9";
-
+    # nixos-unstable from 2026.07.05
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/d407951447dcd00442e97087bf374aad70c04cea";
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let

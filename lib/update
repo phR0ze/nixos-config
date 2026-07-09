@@ -76,7 +76,11 @@ update::flake()
 
     # Clean up after
     if [[ "$MACHINE" != "" ]]; then
-        $SUDO cp flake.lock "$TARGET"
+        if [ -e "${CONFIG_DIR}/${TARGET}/flake.nix" ]; then
+            $SUDO cp flake.lock "${CONFIG_DIR}/${TARGET}/flake.lock"
+        else
+            $SUDO cp flake.lock base.lock
+        fi
         # cleanup will be done by trap
     else
         cp flake.lock base.lock

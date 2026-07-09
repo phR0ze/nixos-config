@@ -149,10 +149,9 @@ misses. For a NixOS based system use the `nixos-unstable` branch.
   * [Upgrade unstable](#upgrade-unstable)
 
 ### Upgrade unstable
-Note the `base.nix` is all ready setup to use the latest unstable so all you really need to do is 
-update to pick it up as follows.
+The `base.nix` pins the current stable i'm using. Update it to your chosen revision then:
 
-1. Update the lock file to use latest `nixos-unstable`
+1. Update the lock file to use the version pinned in `base.nix`
    ```bash
    $ ./clu update flake
    ```
