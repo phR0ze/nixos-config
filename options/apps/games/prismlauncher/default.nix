@@ -29,7 +29,7 @@ in
       tag = lib.mkOption {
         description = lib.mdDoc "Version tag to match patches against";
         type = types.str;
-        default = "v9.1";
+        default = "v11.0";
       };
     };
   };
@@ -37,12 +37,8 @@ in
   config = lib.mkIf (cfg.enable) {
 
     # Patch the app then install it
-    environment.systemPackages = with pkgs; [
-      (prismlauncher.override (prev: {
-        prismlauncher-unwrapped = prev.prismlauncher-unwrapped.overrideAttrs (o: {
-          patches = (o.patches or [ ]) ++ [ ./patches/${cfg.tag}/offline.patch ];
-        });
-      }))
+    environment.systemPackages = [
+      (pkgs.callPackage ./package.nix { tag = cfg.tag; })
     ];
 
     # Create the initial user configuration
