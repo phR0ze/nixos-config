@@ -18,6 +18,7 @@
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 
+    apps.dev.claude.enable = true;
     services.oci.portainer.enable = true;
 
     # Beefed up VM specs with DHCP full LAN presence
