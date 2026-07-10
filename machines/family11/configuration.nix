@@ -20,6 +20,7 @@
     devices.gpu.nvidia = { enable = true; open = true; };
 
     apps.dev.claude.enable = true;
+    apps.media.musescore.enable = true;
 
     # Pre-generate thumbnails via tumblerd; run: gen-thumbs /mnt/Data
     apps.media.gen-thumbs.enable = true;
