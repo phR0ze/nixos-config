@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill",
+      "WebFetch",
+      "WebSearch",
+      "Read(~/.claude/**)",
+      "Read(./**)",
+      "Bash(ls -la ./ *)",
+      "Bash(ls -la ~/.claude/*)",
+      "Bash(ls -la @HOME@/.claude/*)",
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git show:*)",
+      "Bash(git stash list:*)",
+      "Bash(find . *)",
+      "Bash(mkdir ~/.claude/*)",
+      "Bash(mkdir -p ~/.claude/*)",
+      "Bash(mkdir @HOME@/.claude/*)",
+      "Bash(mkdir -p @HOME@/.claude/*)",
+      "Bash(mkdir ./*)",
+      "Bash(nix develop:*)"
+    ],
+    "deny": [
+      "Read(../*)",
+      "Read(./../*)",
+      "Bash(ls -la ./../ *)",
+      "Bash(find / *)",
+      "Bash(find .. *)",
+      "Bash(mkdir ./../*)",
+      "Bash(mkdir ../*)"
+    ],
+    "defaultMode": "auto"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh",
+    "padding": 0
+  },
+  "effortLevel": "medium",
+  "skipAutoPermissionPrompt": true,
+  "vim": true
+}
