@@ -89,9 +89,10 @@ list::versions()
                 (.date | fromdate | strflocaltime("%Y-%m-%d %H:%M:%S")),
                 .nixosVersion,
                 .kernelVersion,
-                (.configurationRevision | split(" ")[0])
+                (.configurationRevision | split(" ")[0]),
+                (.configurationRevision | split(" ")[1:] | join(" "))
             ] | @tsv' |
-                column --separator $'\t' --table --table-columns "Version,Build-date,NixOS version,Kernel,SHA"
+                column --separator $'\t' --table --table-columns "Version,Build-date,NixOS version,Kernel,SHA,Comment"
 }
 
 # One line description of the system version
