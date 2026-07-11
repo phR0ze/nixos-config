@@ -86,10 +86,10 @@ clean::all()
     if [[ $keep -gt 0 ]]; then
         log::ls "Deleting system generations, keeping last ${cyan}${keep}${none}"
         $SUDO nix-env --delete-generations "+${keep}" --profile /nix/var/nix/profiles/system
-        nix-store --gc
+        $SUDO nix-store --gc
     else
         log::ls "Deleting all old system generations"
-        nix-collect-garbage -d
+        $SUDO nix-collect-garbage -d
     fi
 
     clean::boot
@@ -118,7 +118,7 @@ clean::boot()
 # --------------------------------------------------------------------------------------------------
 clean::store()
 {
-    nix-store --gc
+    $SUDO nix-store --gc
 }
 
 # Clean up the vm
