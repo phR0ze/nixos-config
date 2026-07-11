@@ -157,9 +157,9 @@ if __name__ == "__main__":
         help="drop notes shorter than this many grid units after snapping (default: 1)",
     )
     parser.add_argument(
-        "--octave-overlap", type=float, default=0.85,
+        "--octave-overlap", type=float, default=0.65,
         help="time-overlap ratio (0-1) above which a same-timed octave pair is treated as a "
-        "harmonic-detection duplicate and the quieter note dropped; 0 disables this (default: 0.85)",
+        "harmonic-detection duplicate and the quieter note dropped; 0 disables this (default: 0.65)",
     )
     parser.add_argument(
         "--hand-split", type=int, default=60,
