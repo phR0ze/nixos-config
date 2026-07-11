@@ -6,7 +6,6 @@
     ./handbrake
     ./jellyfin
     ./kodi
-    ./musescore
     ./obs
     ./qview
     ./smplayer
