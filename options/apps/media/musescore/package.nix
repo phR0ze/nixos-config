@@ -35,9 +35,9 @@ writeShellScriptBin "basic-pitch-transcribe" ''
   # threaded through as $PY. The inner script is fed via stdin (bash -s)
   # rather than a second file; \INNER keeps it unexpanded until the inner
   # bash reads it, so $VAR refs resolve from its own environment.
-  ONSET_THRESHOLD="''${ONSET_THRESHOLD:-0.65}"
-  FRAME_THRESHOLD="''${FRAME_THRESHOLD:-0.4}"
-  MIN_NOTE_LENGTH_MS="''${MIN_NOTE_LENGTH_MS:-150}"
+  ONSET_THRESHOLD="''${ONSET_THRESHOLD:-0.75}"
+  FRAME_THRESHOLD="''${FRAME_THRESHOLD:-0.5}"
+  MIN_NOTE_LENGTH_MS="''${MIN_NOTE_LENGTH_MS:-200}"
   MIN_FREQUENCY_HZ="''${MIN_FREQUENCY_HZ:-27.5}"
   MAX_FREQUENCY_HZ="''${MAX_FREQUENCY_HZ:-4186}"
   export VENV_DIR OUT_DIR AUDIO_FILE ONSET_THRESHOLD FRAME_THRESHOLD MIN_NOTE_LENGTH_MS MIN_FREQUENCY_HZ MAX_FREQUENCY_HZ
@@ -92,7 +92,7 @@ writeShellScriptBin "basic-pitch-transcribe" ''
   ${quantizeEnv}/bin/python3 ${./quantize.py} "$MIDI_FILE" \
     --grid "''${QUANTIZE_GRID:-8}" \
     --min-duration "''${QUANTIZE_MIN_DURATION:-1}" \
-    --octave-overlap "''${QUANTIZE_OCTAVE_OVERLAP:-0.85}" \
+    --octave-overlap "''${QUANTIZE_OCTAVE_OVERLAP:-0.65}" \
     --hand-split "''${QUANTIZE_HAND_SPLIT:-60}"
 
   ${musescore}/bin/mscore -o "$PDF_FILE" "$MIDI_FILE"
