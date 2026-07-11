@@ -2,11 +2,15 @@
 #
 # Transcribes an audio file to MIDI using basic-pitch (inside a steam-run FHS
 # wrapper so TensorFlow's binary wheel can dynamically link on NixOS), then
-# renders the MIDI to PDF sheet music via MuseScore. Caches the pip venv at
-# ~/.cache/basic-pitch-venv so repeat runs skip reinstalling packages.
+# quantizes the raw MIDI timing and renders it to PDF sheet music via
+# MuseScore. Caches the pip venv at ~/.cache/basic-pitch-venv so repeat runs
+# skip reinstalling packages.
 #---------------------------------------------------------------------------------------------------
-{ writeShellScriptBin }:
+{ writeShellScriptBin, python311, musescore }:
 
+let
+  quantizeEnv = python311.withPackages (ps: [ ps.mido ]);
+in
 writeShellScriptBin "basic-pitch-transcribe" ''
   set -euo pipefail
 
@@ -40,21 +44,26 @@ writeShellScriptBin "basic-pitch-transcribe" ''
     "$PY" -m venv "$VENV_DIR"
   fi
   source "$VENV_DIR/bin/activate"
-  pip install --quiet --upgrade pip
-  pip install --quiet basic-pitch
+  if ! python -c "import basic_pitch" 2>/dev/null; then
+    pip install --quiet --upgrade pip
+    pip install --quiet basic-pitch
+  fi
   basic-pitch "$OUT_DIR" "$AUDIO_FILE"
   INNER
   '
 
-  # basic-pitch names its output "<stem>_basic_pitch.mid". MuseScore is
-  # installed alongside this script via the same option, so "mscore" is
-  # already on PATH here.
+  # basic-pitch names its output "<stem>_basic_pitch.mid".
   STEM=$(basename "$AUDIO_FILE")
   STEM="''${STEM%.*}"
   MIDI_FILE="$OUT_DIR/''${STEM}_basic_pitch.mid"
   PDF_FILE="$OUT_DIR/''${STEM}_basic_pitch.pdf"
 
-  mscore -o "$PDF_FILE" "$MIDI_FILE"
+  # basic-pitch reports continuous onset timing rather than musical time,
+  # which MuseScore would otherwise import as a mess of tied thirty-second
+  # notes. Snap it to a sixteenth-note grid first.
+  ${quantizeEnv}/bin/python3 ${./quantize.py} "$MIDI_FILE"
+
+  ${musescore}/bin/mscore -o "$PDF_FILE" "$MIDI_FILE"
 
   echo "Sheet music: $PDF_FILE"
 ''
