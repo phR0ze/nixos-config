@@ -65,7 +65,7 @@ in
     # Configure harmonia to serve up the nix store as a binary cache with package signing.
     # harmonia reads the signing key itself via systemd LoadCredential, so no need to also copy it
     # into /etc the way nix-serve required.
-    services.harmonia = {
+    services.harmonia.cache = {
       enable = true;
       signKeyPaths = [ cfg.secretKeyFile ];
       settings = {
