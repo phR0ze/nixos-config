@@ -21,6 +21,12 @@ in
         trusted-public-keys = [
           "${(builtins.readFile config.services.raw.nix-cache.host.publicKeyFile)}"
         ];
+
+        # The custom cache host runs a lot besides the binary cache server (Jellyfin, VMs, containers)
+        # and can stall under load. Fail fast against it instead of the 300s default so we fall
+        # through to cache.nixos.org or a local build quickly rather than hanging for tens of minutes.
+        connect-timeout = lib.mkDefault 5;
+        stalled-download-timeout = lib.mkDefault 30;
       };
     })
     {
