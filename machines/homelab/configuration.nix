@@ -26,7 +26,7 @@
     services.raw.jellyfin.enable = true;
     services.raw.minecraft.enable = true;
     services.raw.nix-cache.host.enable = true;
-    #services.raw.mullvad.enable = true;
+    services.raw.mullvad = { enable = true; autostart = false; };
     #apps.network.tailscale.enable = true;
     #services.raw.tailscale.enable = true;
     services.raw.synology-drive-client.enable = true;
