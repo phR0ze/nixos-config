@@ -61,20 +61,34 @@ in
     };
   };
  
-  config = lib.mkIf (cfg.enable) {
-    # Configure harmonia to serve up the nix store as a binary cache with package signing.
-    # harmonia reads the signing key itself via systemd LoadCredential, so no need to also copy it
-    # into /etc the way nix-serve required.
-    services.harmonia.cache = {
-      enable = true;
-      signKeyPaths = [ cfg.secretKeyFile ];
-      settings = {
-        bind = "${cfg.bindAddress}:${toString cfg.port}";
-        priority = 30;
+  config = lib.mkIf (cfg.enable) (
+    let
+      harmoniaCache = {
+        enable = true;
+        signKeyPaths = [ cfg.secretKeyFile ];
+        settings = {
+          bind = "${cfg.bindAddress}:${toString cfg.port}";
+          priority = 30;
+        };
       };
-    };
 
-    # Unlike nix-serve, harmonia has no openFirewall option
-    networking.firewall.allowedTCPPorts = [ cfg.port ];
-  };
+      # Configure harmonia to serve up the nix store as a binary cache with package signing.
+      # harmonia reads the signing key itself via systemd LoadCredential, so no need to also copy it
+      # into /etc the way nix-serve required.
+      #
+      # nixpkgs renamed services.harmonia -> services.harmonia.cache in 26.11. Machines can pin
+      # different nixpkgs revisions (e.g. macbook stays on an older T2-patched pin), so pick the
+      # attribute path matching the pinned nixpkgs version at eval time -- this must be a plain
+      # Nix if/else rather than lib.mkIf, since the module system validates that an option path
+      # exists even when its definition is conditionally disabled.
+      harmoniaConfig =
+        if lib.versionAtLeast pkgs.lib.version "26.11"
+        then { services.harmonia.cache = harmoniaCache; }
+        else { services.harmonia = harmoniaCache; };
+    in
+    harmoniaConfig // {
+      # Unlike nix-serve, harmonia has no openFirewall option
+      networking.firewall.allowedTCPPorts = [ cfg.port ];
+    }
+  );
 }
