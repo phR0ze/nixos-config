@@ -1,10 +1,10 @@
 {
   inputs = {
-    # nixos-unstable from 2025.08.09
-    nixpkgs.url = "github:nixos/nixpkgs/85dbfc7aaf52ecb755f87e577ddbe6dbbdbc1054";
+    # nixos-unstable from 2026.07.05 -- matches base.nix's pin
+    nixpkgs.url = "github:nixos/nixpkgs/d407951447dcd00442e97087bf374aad70c04cea";
 
-    # nixos-unstable from 2025.08.31
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    # nixos-unstable from 2026.07.05 -- matches base.nix's pin
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/d407951447dcd00442e97087bf374aad70c04cea";
 
     # Using [build on 2025.08.12 with 6.12.41 patches](https://hydra.soopy.moe/build/537#tabs-buildinputs)
     # - this build actually directly refers to "github:nixos/nixpkgs/85dbfc7aaf52ecb755f87e577ddbe6dbbdbc1054"
