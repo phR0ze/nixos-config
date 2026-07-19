@@ -81,13 +81,6 @@ in
         pkgs.wireguard-tools        # Wireguard VPN tooling
         pkgs.iptables               # Low level firewall tools
       ];
-
-      # Required for WireGuard's fwmark-based policy routing (e.g. used by vopono network
-      # namespaces) to work correctly. Without this the kernel's reverse-path filter treats
-      # return traffic as a martian packet and silently drops it, even though the WireGuard
-      # handshake succeeds.
-      boot.kernel.sysctl."net.ipv4.conf.all.src_valid_mark" = 1;
-      boot.kernel.sysctl."net.ipv4.conf.default.src_valid_mark" = 1;
     })
 
     # Install the supporting software
@@ -97,6 +90,13 @@ in
         pkgs.iptables               # Low level firewall tools
         pkgs.wireguard-tools        # Wireguard VPN tooling
       ];
+
+      # Required for WireGuard's fwmark-based policy routing (e.g. used by vopono network
+      # namespaces) to work correctly. Without this the kernel's reverse-path filter treats
+      # return traffic as a martian packet and silently drops it, even though the WireGuard
+      # handshake succeeds.
+      boot.kernel.sysctl."net.ipv4.conf.all.src_valid_mark" = 1;
+      boot.kernel.sysctl."net.ipv4.conf.default.src_valid_mark" = 1;
     })
 
     # Deploy vopono's config.toml with our default provider/server/protocol/firewall settings.
