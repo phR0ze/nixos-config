@@ -6,9 +6,9 @@
     # nixos-unstable from 2026.07.05 -- matches base.nix's pin
     nixpkgs-unstable.url = "github:nixos/nixpkgs/d407951447dcd00442e97087bf374aad70c04cea";
 
-    # Using [build on 2025.08.12 with 6.12.41 patches](https://hydra.soopy.moe/build/537#tabs-buildinputs)
-    # - this build actually directly refers to "github:nixos/nixpkgs/85dbfc7aaf52ecb755f87e577ddbe6dbbdbc1054"
-    nixos-hardware.url = "github:nixos/nixos-hardware/26ed7a0d4b8741fe1ef1ee6fa64453ca056ce113";
+    # T2 stable kernel target moved 6.12 -> 6.18 as of nixos-hardware commit f7d7e1c0 (2026-04-10),
+    # matching the kernel line the rest of the fleet is already on
+    nixos-hardware.url = "github:nixos/nixos-hardware/779c32a00155994c86cde8213a8dd4df139d4355";
   };
 
   nixConfig = {
