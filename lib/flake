@@ -51,6 +51,13 @@ flake::switch()
     local target="$1"
     flake::ensure_target "$target"
 
+    # macbook's configuration.nix reads /lib/firmware/brcm directly off the host for its firmware
+    # derivation, an absolute path outside the flake's source tree that pure evaluation can't see
+    if [[ "$target" == "machines/macbook" && -z "$IMPURE" ]]; then
+        log::ls "${yellow}Warning: macbook requires the --impure flag to build, but it wasn't given${none}"
+        utils::confirm_continue
+    fi
+
     local machine_flake="${CONFIG_DIR}/${target}/flake.nix"
     local machine_flake_lock="${CONFIG_DIR}/${target}/flake.lock"
     log::ls "Switching to target ${cyan}${target}${none}"
