@@ -50,7 +50,7 @@ in
       server = lib.mkOption {
         description = lib.mdDoc "VPN server to use";
         type = types.str;
-        default = "us-saltlakecity";
+        default = "usa-usslc301";
       };
       firewall = lib.mkOption {
         description = lib.mdDoc "Firewall backend for vopono to use, written into vopono's config.toml";
