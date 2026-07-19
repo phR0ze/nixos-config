@@ -80,9 +80,11 @@ in
       # different nixpkgs revisions (e.g. macbook stays on an older T2-patched pin), so pick the
       # attribute path matching the pinned nixpkgs version at eval time -- this must be a plain
       # Nix if/else rather than lib.mkIf, since the module system validates that an option path
-      # exists even when its definition is conditionally disabled.
+      # exists even when its definition is conditionally disabled. Use lib.version rather than
+      # pkgs.lib.version: pkgs is itself derived from the merged NixOS config in this flake, so
+      # forcing it here creates an infinite recursion.
       harmoniaConfig =
-        if lib.versionAtLeast pkgs.lib.version "26.11"
+        if lib.versionAtLeast lib.version "26.11"
         then { services.harmonia.cache = harmoniaCache; }
         else { services.harmonia = harmoniaCache; };
     in
