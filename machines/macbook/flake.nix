@@ -16,7 +16,7 @@
     extra-trusted-public-keys = [ "cache.soopy.moe-1:0RZVsQeR+GOh0VQI9rvnHz55nVXkFardDqfm4+afjPo=" ];
   };
 
-  outputs = { nixpkgs, nixpkgs-unstable, nixos-hardware, ... }@inputs: let
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, ... }@inputs: let
     _args = import ./args.nix;
 
     # Configure package repos
@@ -47,7 +47,7 @@
           # linuxPackagesFor = pkgs-kernel.linuxPackagesFor;
 
           # Include custom packages in global pkgs variable
-          clu = pkgs.callPackage options/apps/system/clu {};
+          clu = pkgs.callPackage options/apps/system/clu/package.nix { src = self; };
           arcologout = pkgs.callPackage packages/arcologout {};
           desktop-assets = pkgs.callPackage packages/desktop-assets {};
           rdutil = pkgs.callPackage packages/rdutil {};
