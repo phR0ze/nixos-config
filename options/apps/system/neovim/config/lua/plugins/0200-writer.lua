@@ -8,6 +8,15 @@ return {
       { "<leader>z", "<cmd>ZenMode<cr>", desc = "ZenMode toggle" },
     },
     after = function() -- Function to load after the event
+      -- Adjust the live Zen window width by delta columns, clamped to a sane range
+      local function zen_resize(delta)
+        local view = require("zen-mode.view")
+        if not view.is_open() then return end
+        local width = math.max(20, math.min((view.opts.window.width or 80) + delta, vim.o.columns))
+        view.opts.window.width = width
+        view.fix_layout(true)
+      end
+
       local writing_maps = {
         -- Normal mode visual-line navigation
         { mode = "n", lhs = "j",      rhs = "gj" },
@@ -34,6 +43,9 @@ return {
         { mode = "i", lhs = "<Up>",   rhs = "<C-o>gk" },
         { mode = "i", lhs = "<Home>", rhs = "<C-o>g<Home>" },
         { mode = "i", lhs = "<End>",  rhs = "<C-o>g<End>" },
+        -- Widen/narrow the Zen window
+        { mode = "n", lhs = "+", rhs = function() zen_resize(5) end },
+        { mode = "n", lhs = "-", rhs = function() zen_resize(-5) end },
       }
 
       require("zen-mode").setup({
