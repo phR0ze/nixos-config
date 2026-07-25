@@ -15,6 +15,7 @@ return {
         local width = math.max(20, math.min((view.opts.window.width or 80) + delta, vim.o.columns))
         view.opts.window.width = width
         view.fix_layout(true)
+        vim.notify(("width: %d"):format(width), vim.log.levels.INFO)
       end
 
       local writing_maps = {

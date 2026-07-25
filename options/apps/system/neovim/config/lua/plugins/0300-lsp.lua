@@ -21,7 +21,20 @@ return {
     event = "DeferredUIEnter",
     after = function()
       require("fidget").setup({
-        notification = { override_vim_notify = true },
+        notification = {
+          override_vim_notify = true,
+          configs = {
+            -- Nerd Font glyphs instead of fidget's plain-text level defaults (INFO/WARN/ERROR/...)
+            -- Codepoints resolved via nr2char to avoid literal PUA glyphs being mangled in this file
+            default = vim.tbl_extend("force", require("fidget.notification").default_config, {
+              icon = vim.fn.nr2char(0xf0f3),         -- bell (nf-fa-bell)
+              debug_annote = vim.fn.nr2char(0xf188), -- bug (nf-fa-bug)
+              info_annote = vim.fn.nr2char(0xf05a),  -- info-circle (nf-fa-info-circle)
+              warn_annote = vim.fn.nr2char(0xf071),  -- exclamation-triangle (nf-fa-warning)
+              error_annote = vim.fn.nr2char(0xf057), -- times-circle (nf-fa-times-circle)
+            }),
+          },
+        },
       })
     end,
   },
