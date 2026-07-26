@@ -99,12 +99,18 @@ in
         settings.Resolve.DNSSEC = "allow-downgrade"; # using "true" will break DNS if VPN DNS servers don't support
       };
     }
-    (f.mkIfElse (machine.net.dns.primary or "" != "" && machine.net.dns.fallback or "" != "") {
+    # Primary and fallback DNS are configured independently:
+    # - `primary` forces a global nameserver, overriding whatever DHCP hands out on every link. Leave
+    #   it unset (e.g. on roaming laptops) so DHCP-provided per-link DNS always wins, which lets
+    #   captive portals (airline wifi, hotels, etc.) resolve their own login domains automatically.
+    # - `fallback` is only used by resolved when a link provides no DNS at all, so it's safe to set
+    #   even when `primary` is unset.
+    (lib.mkIf (machine.net.dns.primary or "" != "") {
       networking.nameservers = [ "${machine.net.dns.primary}" ];
+    })
+    (lib.mkIf (machine.net.dns.fallback or "" != "") {
       services.resolved.settings.Resolve.FallbackDNS = [ "${machine.net.dns.fallback}" ];
-    } (lib.mkIf (machine.net.dns.primary or "" != "") {
-      networking.nameservers = [ "${machine.net.dns.primary}" ];
-    }))
+    })
 
     # Configure network bridge
     # ----------------------------------------------------------------------------------------------
