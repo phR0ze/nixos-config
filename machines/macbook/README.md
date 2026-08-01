@@ -137,6 +137,16 @@ blacklisted the broadcom drivers, but used the T2Linux project's firmware path f
    ```nix
    powerManagement.cpuFreqGovernor = "schedutil";
    ```
+4. Power off the discrete AMD Radeon Pro 555X GPU (Polaris, no amdgpu runtime PM support) via
+   `vga_switcheroo` since it otherwise stays powered on at all times, at a real idle power cost
+   (roughly 20W -> 9W). This forces the Intel iGPU to be primary and disables the dGPU before the
+   display manager starts (see `configuration.nix` for `apple_gmux force_igd=y` + the
+   `amdgpu-off.service`). Trades away dGPU acceleration for battery life.
+   * `dgpu-status`: `sudo cat /sys/kernel/debug/vgaswitcheroo/switch`
+   * To temporarily re-enable the dGPU: `sudo systemctl stop amdgpu-off && echo ON | sudo tee /sys/kernel/debug/vgaswitcheroo/switch`
+     (re-run `clu update macbook` to restore the off-at-boot behavior)
+   * Known caveat: possible black screen after resume from suspend; `i915.enable_guc=3` is set as
+     a mitigation. If suspend/resume issues appear, try `i915.enable_guc=2` instead.
 
 ## Configure System
 XFCE's Window Scaling option looked great until I opened another application that didn't support it. 

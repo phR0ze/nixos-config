@@ -32,6 +32,27 @@
     # Blacklist open source broadcom drivers
     boot.blacklistedKernelModules = [ "b43" "bcma" ];
 
+    # The discrete AMD Radeon Pro 555X GPU has no runtime power management support in the amdgpu
+    # driver for this Polaris-based chip, so it stays fully powered (D0) at all times, driving idle
+    # power draw way up (~20W -> ~9W once switched off). macOS avoids this via its GPU mux driver
+    # (gmux), which Linux doesn't support the switching side of, so force the Intel iGPU to be
+    # primary at boot and power the dGPU off entirely via vga_switcheroo before the display manager
+    # starts. Trades away dGPU acceleration (e.g. for OBS/games) for a large battery life win.
+    boot.extraModprobeConfig = ''
+      options apple_gmux force_igd=y
+    '';
+    boot.kernelParams = [ "i915.enable_guc=3" ];
+    systemd.services.amdgpu-off = {
+      description = "Power off the discrete AMD GPU via vga_switcheroo";
+      after = [ "systemd-modules-load.service" ];
+      before = [ "display-manager.service" ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.bash}/bin/sh -c 'for i in $(seq 1 30); do [ -e /sys/kernel/debug/vgaswitcheroo/switch ] && exec sh -c \"echo OFF > /sys/kernel/debug/vgaswitcheroo/switch\"; sleep 1; done; exit 1'";
+      };
+    };
+
     # Apple firmware configuration
     nix.settings = {
       trusted-substituters = [ "https://t2linux.cachix.org" ];
