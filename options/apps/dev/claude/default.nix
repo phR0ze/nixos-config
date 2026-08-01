@@ -13,6 +13,16 @@ in
   options = {
     apps.dev.claude = {
       enable = lib.mkEnableOption "Install and configure Claude Code";
+
+      extraInstructions = lib.mkOption {
+        type = lib.types.lines;
+        default = "";
+        description = ''
+          Machine-specific instructions appended to the base CLAUDE.md deployed to
+          '${homeDir}/.claude/CLAUDE.md'. Set this per-machine (e.g. in a machine's
+          configuration.nix) to layer on host-specific context without editing the shared base.
+        '';
+      };
     };
   };
 
@@ -33,6 +43,12 @@ in
       # Deploy settings.json, substituting the home directory for the target machine's user
       files.user.".claude/settings.json".text =
         builtins.replaceStrings [ "@HOME@" ] [ homeDir ] (lib.fileContents ./include/settings.json);
+
+      # Deploy the global CLAUDE.md instructions, appending any machine-specific instructions
+      files.user.".claude/CLAUDE.md".text =
+        let base = lib.fileContents ./include/CLAUDE.md;
+        in if (cfg.extraInstructions == "") then base
+           else "${base}\n${cfg.extraInstructions}";
     })
   ];
 }

@@ -40,6 +40,7 @@ stdenv.mkDerivation (finalAttrs: {
       --add-flags "$out/lib/claude-code/claude" \
       --set DISABLE_AUTOUPDATER 1 \
       --set DISABLE_INSTALLATION_CHECKS 1 \
+      --set CLAUDE_CODE_EXECPATH "$out/bin/claude" \
       --unset DEV \
       --prefix PATH : ${
         lib.makeBinPath (

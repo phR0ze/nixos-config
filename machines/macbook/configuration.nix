@@ -19,6 +19,15 @@
     virtualisation.qemu.host.enable = true;
 
     apps.dev.claude.enable = true;
+    apps.dev.claude.extraInstructions = ''
+      ## MacBook (Apple T2, Radeon Pro 555X dGPU)
+
+      This machine is an Apple MacBook Pro hackintosh with a T2 chip and a discrete AMD Radeon
+      Pro 555X GPU. The dGPU is powered off at boot via vga_switcheroo (see
+      systemd-service amdgpu-off in machines/macbook/configuration.nix) to save power, trading
+      away dGPU acceleration. Keep this in mind when changing GPU, power management, or kernel
+      module configuration for this machine.
+    '';
     apps.media.obs.enable = true;
     apps.network.rustdesk.autostart = false;
 
