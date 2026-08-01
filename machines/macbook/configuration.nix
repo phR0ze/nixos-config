@@ -49,7 +49,7 @@
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/sh -c 'for i in $(seq 1 30); do [ -e /sys/kernel/debug/vgaswitcheroo/switch ] && exec sh -c \"echo OFF > /sys/kernel/debug/vgaswitcheroo/switch\"; sleep 1; done; exit 1'";
+        ExecStart = "${pkgs.bash}/bin/sh -c 'for i in $(seq 1 30); do [ -e /sys/kernel/debug/vgaswitcheroo/switch ] && { echo OFF > /sys/kernel/debug/vgaswitcheroo/switch; exit 0; }; sleep 1; done; exit 1'";
       };
     };
 
