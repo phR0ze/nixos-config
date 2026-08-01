@@ -48,7 +48,7 @@ in
       files.user.".claude/CLAUDE.md".text =
         let base = lib.fileContents ./include/CLAUDE.md;
         in if (cfg.extraInstructions == "") then base
-           else "${base}\n${cfg.extraInstructions}";
+           else "${cfg.extraInstructions}\n${base}";
     })
   ];
 }
