@@ -28,6 +28,7 @@ let
             <property name="&lt;Primary&gt;&lt;Alt&gt;t" type="empty"/>
             <property name="XF86Display" type="empty"/>
             <property name="&lt;Super&gt;p" type="empty"/>
+            <property name="&lt;Super&gt;d" type="empty"/>
             <property name="&lt;Primary&gt;Escape" type="empty"/>
             <property name="XF86WWW" type="empty"/>
             <property name="HomePage" type="empty"/>
@@ -51,8 +52,9 @@ let
             </property>
             <property name="Print" type="string" value="xfce4-screenshooter"/>
             <property name="&lt;Shift&gt;Print" type="string" value="xfce4-screenshooter -r"/>
-            <property name="&lt;Super&gt;p" type="string" value="xfce4-display-settings --minimal"/>
+            <property name="&lt;Super&gt;d" type="string" value="xfce4-display-settings --minimal"/>
             <property name="XF86Display" type="string" value="xfce4-display-settings --minimal"/>
+            <property name="&lt;Super&gt;p" type="string" value="xfce4-screenshooter"/>
             <property name="override" type="bool" value="true"/>
             <property name="&lt;Super&gt;t" type="string" value="wezterm"/>
             <property name="&lt;Super&gt;f" type="string" value="thunar"/>
