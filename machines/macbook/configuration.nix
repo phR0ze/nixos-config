@@ -33,6 +33,12 @@ in
     # Blacklist open source broadcom drivers
     boot.blacklistedKernelModules = [ "b43" "bcma" ];
 
+    # The T2 chip's internal iBridge controller exposes a USB CDC-NCM "Ethernet" gadget
+    # (enp2s0f1u1) with carrier permanently on but no real link behind it. NetworkManager
+    # endlessly retries DHCP on it, which keeps nm-applet's tray icon spinning even though
+    # the real (WiFi) connection is fine. Leave it unmanaged so NM stops trying to activate it.
+    networking.networkmanager.unmanaged = [ "interface-name:enp2s0f1u1" ];
+
     boot.extraModprobeConfig = lib.mkIf dgpuPowerSave ''
       options apple_gmux force_igd=y
     '';
