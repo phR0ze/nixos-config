@@ -61,6 +61,14 @@ in
   config = lib.mkIf cfg.enable {
     services.caddy = {
       enable = true;
+
+      # Caddy's automatic HTTPS silently opens an HTTP->HTTPS redirect listener on :80 for any site
+      # using TLS, even though every virtualHost below only declares its own https port. Disable it so
+      # Caddy never touches port 80, matching this module's "no port 80 exposure" design.
+      globalConfig = ''
+        auto_https disable_redirects
+      '';
+
       virtualHosts = lib.listToAttrs (map
         (p: lib.nameValuePair ":${toString (httpsPortOf p)}" {
           extraConfig = ''
