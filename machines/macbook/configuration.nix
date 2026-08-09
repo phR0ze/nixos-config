@@ -4,14 +4,6 @@
 # - MacBook laptop deployment
 # --------------------------------------------------------------------------------------------------
 { inputs, pkgs, lib, ... }:
-let
-  # Toggle off temporarily (and reboot) when you need the dGPU for an external display (HDMI/USB-C).
-  # The amdgpu driver has no runtime PM support for this Polaris chip, so it can only be safely
-  # powered off before the display manager starts at boot - toggling it back on live via
-  # vga_switcheroo leaves it in a broken half-initialized state (D3hot->D0 resume failure, gfx
-  # ring test failure). Flip this back to true and reboot once you're done with the external display.
-  dgpuOff = false;
-in
 {
   imports = [
     ./hardware-configuration.nix
@@ -36,27 +28,6 @@ in
     # Blacklist open source broadcom drivers
     boot.blacklistedKernelModules = [ "b43" "bcma" ];
 
-    # The discrete AMD Radeon Pro 555X GPU has no runtime power management support in the amdgpu
-    # driver for this Polaris-based chip, so it stays fully powered (D0) at all times, driving idle
-    # power draw way up (~20W -> ~9W once switched off). macOS avoids this via its GPU mux driver
-    # (gmux), which Linux doesn't support the switching side of, so force the Intel iGPU to be
-    # primary at boot and power the dGPU off entirely via vga_switcheroo before the display manager
-    # starts. Trades away dGPU acceleration (e.g. for OBS/games) for a large battery life win.
-    boot.extraModprobeConfig = ''
-      options apple_gmux force_igd=${if dgpuOff then "y" else "n"}
-    '';
-    boot.kernelParams = [ "i915.enable_guc=3" ];
-    systemd.services.amdgpu-off = lib.mkIf dgpuOff {
-      description = "Power off the discrete AMD GPU via vga_switcheroo";
-      after = [ "systemd-modules-load.service" ];
-      before = [ "display-manager.service" ];
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/sh -c 'for i in $(seq 1 30); do [ -e /sys/kernel/debug/vgaswitcheroo/switch ] && { echo OFF > /sys/kernel/debug/vgaswitcheroo/switch; exit 0; }; sleep 1; done; exit 1'";
-      };
-    };
-
     # Apple firmware configuration
     nix.settings = {
       trusted-substituters = [ "https://t2linux.cachix.org" ];
@@ -74,15 +45,6 @@ in
     ];
 
     apps.dev.claude.enable = true;
-    apps.dev.claude.extraInstructions = ''
-      ## MacBook (Apple T2, Radeon Pro 555X dGPU)
-
-      This machine is an Apple MacBook Pro hackintosh with a T2 chip and a discrete AMD Radeon
-      Pro 555X GPU. The dGPU is powered off at boot via vga_switcheroo (see
-      systemd-service amdgpu-off in machines/macbook/configuration.nix) to save power, trading
-      away dGPU acceleration. Keep this in mind when changing GPU, power management, or kernel
-      module configuration for this machine.
-    '';
     apps.media.obs.enable = true;
     apps.network.rustdesk.autostart = false;
 
