@@ -5,17 +5,9 @@
 # --------------------------------------------------------------------------------------------------
 { inputs, pkgs, lib, ... }:
 let
-  # Toggle on (and reboot) for battery savings when not using an external display. Forces the Intel
-  # iGPU primary at boot and powers the dGPU off entirely via vga_switcheroo before the display
-  # manager starts (idle draw ~20W -> ~9W). Toggle off (and reboot) whenever you need the dGPU for
-  # external video (HDMI/USB-C) - T2 Macs have no Linux driver for Apple's USB-C DisplayPort
-  # Alt-Mode controller, so external video only works while the dGPU stays in its default power
-  # state; forcing the iGPU primary breaks it entirely, regardless of cable/dongle.
-  #
-  # The amdgpu driver has no runtime PM support for this Polaris chip, so this can only be toggled
-  # safely at boot - toggling it live via vga_switcheroo leaves it in a broken half-initialized
-  # state (D3hot->D0 resume failure, gfx ring test failure).
-  dgpuPowerSave = false;
+  # dGPU power savings vs HDMI/USB-C video toggle - mutually exclusive modes, boot-only (not
+  # hot-toggleable). See README.md "dGPU power saving vs HDMI/USB-C video" for full details.
+  dgpuPowerSave = true;
 in
 {
   imports = [
@@ -81,34 +73,5 @@ in
       pkgs.dmg2img
       (pkgs.callPackage ../../modules/hardware/apple.nix {})
     ];
-
-    # Built-in ethernet gets a worse route metric than wifi (600) so that whenever both are up
-    # (e.g. dock left plugged in while tethered to a phone hotspot), wifi always wins the default
-    # route/DNS instead of a dead or lower-priority ethernet link. Ethernet still works fine as the
-    # primary connection when it's the only one active.
-    #
-    # TEMPORARILY DISABLED 2026-08-09 for HDMI debugging: the combo USB-C dongle (HDMI + Ethernet)
-    # re-enumerates enp2s0f1u1 on every Alt-Mode retry cycle, and NetworkManager actively managing
-    # this interface is suspected of adding enumeration churn that both causes the typing stutter
-    # and interferes with the HDMI Alt-Mode negotiation completing. See
-    # claude-plan-to-solve-hdmi-issue.md. Re-enable (remove the `lib.mkIf false`) once confirmed/
-    # denied as the cause.
-    networking.networkmanager.ensureProfiles.profiles."Wired connection 1" = lib.mkIf false {
-      connection = {
-        id = "Wired connection 1";
-        type = "ethernet";
-        interface-name = "enp2s0f1u1";
-        autoconnect-priority = -999;
-      };
-      ipv4 = {
-        method = "auto";
-        route-metric = 700;
-      };
-      ipv6 = {
-        method = "auto";
-        addr-gen-mode = "default";
-        route-metric = 700;
-      };
-    };
   };
 }
