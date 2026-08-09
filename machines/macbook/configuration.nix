@@ -4,6 +4,14 @@
 # - MacBook laptop deployment
 # --------------------------------------------------------------------------------------------------
 { inputs, pkgs, lib, ... }:
+let
+  # Toggle off temporarily (and reboot) when you need the dGPU for an external display (HDMI/USB-C).
+  # The amdgpu driver has no runtime PM support for this Polaris chip, so it can only be safely
+  # powered off before the display manager starts at boot - toggling it back on live via
+  # vga_switcheroo leaves it in a broken half-initialized state (D3hot->D0 resume failure, gfx
+  # ring test failure). Flip this back to true and reboot once you're done with the external display.
+  dgpuOff = false;
+in
 {
   imports = [
     ./hardware-configuration.nix
@@ -38,7 +46,7 @@
       options apple_gmux force_igd=y
     '';
     boot.kernelParams = [ "i915.enable_guc=3" ];
-    systemd.services.amdgpu-off = {
+    systemd.services.amdgpu-off = lib.mkIf dgpuOff {
       description = "Power off the discrete AMD GPU via vga_switcheroo";
       after = [ "systemd-modules-load.service" ];
       before = [ "display-manager.service" ];
