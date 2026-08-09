@@ -43,7 +43,7 @@ in
     # primary at boot and power the dGPU off entirely via vga_switcheroo before the display manager
     # starts. Trades away dGPU acceleration (e.g. for OBS/games) for a large battery life win.
     boot.extraModprobeConfig = ''
-      options apple_gmux force_igd=y
+      options apple_gmux force_igd=${if dgpuOff then "y" else "n"}
     '';
     boot.kernelParams = [ "i915.enable_guc=3" ];
     systemd.services.amdgpu-off = lib.mkIf dgpuOff {
