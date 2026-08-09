@@ -15,7 +15,7 @@ let
   # The amdgpu driver has no runtime PM support for this Polaris chip, so this can only be toggled
   # safely at boot - toggling it live via vga_switcheroo leaves it in a broken half-initialized
   # state (D3hot->D0 resume failure, gfx ring test failure).
-  dgpuPowerSave = true;
+  dgpuPowerSave = false;
 in
 {
   imports = [
