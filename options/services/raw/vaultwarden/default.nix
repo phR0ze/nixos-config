@@ -18,6 +18,9 @@
 #     ]
 # 3. Point the Bitwarden client(s) at this server's `domain` (or `http://<host>:<port>` on the LAN)
 #    and log in as normal — the first account created is a regular user, not an admin.
+# 4. Browsers refuse to run the vault's crypto over plain HTTP unless the origin is `localhost` —
+#    accessing over `http://<lan-ip>:<port>` fails with a "not a secure context" error. Put this
+#    service behind a reverse proxy that terminates TLS (see the homelab reverse-proxy setup).
 #
 # ### Directories
 # - /var/lib/bitwarden_rs
@@ -62,6 +65,7 @@ in
           the `vaultwarden-admin` secret in `machine.secrets`.
         '';
       };
+
     };
   };
 

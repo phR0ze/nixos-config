@@ -5,6 +5,7 @@
 {
   imports = [
     ./adguardhome
+    ./caddy
     ./immich
     ./jellyfin
     ./kasmvnc

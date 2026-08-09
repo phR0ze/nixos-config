@@ -30,6 +30,12 @@
     #apps.network.tailscale.enable = true;
     services.raw.synology-drive-client.enable = true;
     services.raw.vaultwarden.enable = true;
+    services.raw.caddy = {
+      enable = true;
+      proxies = [
+        { name = "vaultwarden"; port = 8222; }
+      ];
+    };
     services.oci.homarr = { enable = true; port = 80; };
     services.oci.oneup = { enable = true; port = 8002; };
     services.oci.stirling-pdf = { enable = true; port = 8001; };
