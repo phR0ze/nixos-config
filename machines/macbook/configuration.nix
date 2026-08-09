@@ -4,6 +4,19 @@
 # - MacBook laptop deployment
 # --------------------------------------------------------------------------------------------------
 { inputs, pkgs, lib, ... }:
+let
+  # Toggle on (and reboot) for battery savings when not using an external display. Forces the Intel
+  # iGPU primary at boot and powers the dGPU off entirely via vga_switcheroo before the display
+  # manager starts (idle draw ~20W -> ~9W). Toggle off (and reboot) whenever you need the dGPU for
+  # external video (HDMI/USB-C) - T2 Macs have no Linux driver for Apple's USB-C DisplayPort
+  # Alt-Mode controller, so external video only works while the dGPU stays in its default power
+  # state; forcing the iGPU primary breaks it entirely, regardless of cable/dongle.
+  #
+  # The amdgpu driver has no runtime PM support for this Polaris chip, so this can only be toggled
+  # safely at boot - toggling it live via vga_switcheroo leaves it in a broken half-initialized
+  # state (D3hot->D0 resume failure, gfx ring test failure).
+  dgpuPowerSave = false;
+in
 {
   imports = [
     ./hardware-configuration.nix
@@ -27,6 +40,21 @@
 
     # Blacklist open source broadcom drivers
     boot.blacklistedKernelModules = [ "b43" "bcma" ];
+
+    boot.extraModprobeConfig = lib.mkIf dgpuPowerSave ''
+      options apple_gmux force_igd=y
+    '';
+    boot.kernelParams = lib.mkIf dgpuPowerSave [ "i915.enable_guc=3" ];
+    systemd.services.amdgpu-off = lib.mkIf dgpuPowerSave {
+      description = "Power off the discrete AMD GPU via vga_switcheroo";
+      after = [ "systemd-modules-load.service" ];
+      before = [ "display-manager.service" ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.bash}/bin/sh -c 'for i in $(seq 1 30); do [ -e /sys/kernel/debug/vgaswitcheroo/switch ] && { echo OFF > /sys/kernel/debug/vgaswitcheroo/switch; exit 0; }; sleep 1; done; exit 1'";
+      };
+    };
 
     # Apple firmware configuration
     nix.settings = {
