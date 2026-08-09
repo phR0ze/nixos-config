@@ -13,6 +13,7 @@ output with audio, keyboard, and touch pad.
   * [Install get-apple-firmware script](#install-get-apple-firmware-script)
   * [Install correct WiFi driver](#install-correct-wifi-driver)
   * [Other config](#other-config)
+* [dGPU power saving vs HDMI/USB-C video](#dgpu-power-saving-vs-hdmiusb-c-video)
 
 ## Install NixOS
 Note: I originally installed using an external USB WiFi adapter, mouse and keyboard as the MacBook 
@@ -141,12 +142,54 @@ blacklisted the broadcom drivers, but used the T2Linux project's firmware path f
    `vga_switcheroo` since it otherwise stays powered on at all times, at a real idle power cost
    (roughly 20W -> 9W). This forces the Intel iGPU to be primary and disables the dGPU before the
    display manager starts (see `configuration.nix` for `apple_gmux force_igd=y` + the
-   `amdgpu-off.service`). Trades away dGPU acceleration for battery life.
+   `amdgpu-off.service`). Trades away dGPU acceleration for battery life. See
+   [dGPU power saving vs HDMI/USB-C video](#dgpu-power-saving-vs-hdmiusb-c-video) below for the
+   full trade-off and how to switch modes.
    * `dgpu-status`: `sudo cat /sys/kernel/debug/vgaswitcheroo/switch`
    * To temporarily re-enable the dGPU: `sudo systemctl stop amdgpu-off && echo ON | sudo tee /sys/kernel/debug/vgaswitcheroo/switch`
      (re-run `clu update macbook` to restore the off-at-boot behavior)
    * Known caveat: possible black screen after resume from suspend; `i915.enable_guc=3` is set as
      a mitigation. If suspend/resume issues appear, try `i915.enable_guc=2` instead.
+
+## dGPU power saving vs HDMI/USB-C video
+
+The discrete AMD Radeon Pro 555X (Polaris, no `amdgpu` runtime PM support) stays powered on at all
+times unless forced off, costing roughly 20W -> 9W of idle draw. `machines/macbook/configuration.nix`
+exposes this as a toggle, `dgpuPowerSave` (currently `false`), rather than an unconditional setting,
+because **the two modes are mutually exclusive**:
+
+* **`dgpuPowerSave = true`** (battery savings): forces the Intel iGPU primary at boot and powers the
+  AMD dGPU off entirely via `vga_switcheroo` before the display manager starts
+  (`apple_gmux force_igd=y` + the `amdgpu-off.service`), plus `i915.enable_guc=3` as a suspend/resume
+  mitigation. **Expected result: external video over HDMI/USB-C does not work.** T2 Macs have no
+  Linux driver for Apple's USB-C DisplayPort Alt-Mode controller, so external video only works while
+  the dGPU stays in its default power state — forcing the iGPU primary breaks Alt-Mode negotiation
+  entirely, regardless of cable/dongle (the dongle enumerates only as a USB "Billboard" device, the
+  USB-IF fallback class for failed Alt-Mode negotiation).
+* **`dgpuPowerSave = false`** (default): dGPU stays in its normal power state. **Expected result:
+  HDMI/USB-C video works**, at the cost of the extra ~11W idle draw.
+
+The `amdgpu` driver has no runtime PM support for this chip, so this can only be toggled safely
+**at boot** — toggling `vga_switcheroo` live leaves the dGPU in a broken half-initialized state
+(D3hot->D0 resume failure, gfx ring test failure). Always change `dgpuPowerSave`, run
+`clu update macbook`, and do a full reboot (not just `switch`) to change modes.
+
+**Saved a known-good HDMI generation**: generation 49 boots with `dgpuPowerSave = false` and is kept
+around specifically so the working-HDMI mode can be selected directly from the bootloader/generation
+list, without needing to edit config and rebuild every time external video is needed.
+
+### Unrelated but easily confused: NetworkManager vs. combo USB-C dongle
+
+Separately from the dGPU state, a combo USB-C dongle (HDMI + Ethernet) surfaced a second issue: with
+`networking.networkmanager.ensureProfiles.profiles."Wired connection 1"` actively managing the
+dongle's `enp2s0f1u1` ethernet interface, every USB Alt-Mode retry cycle re-enumerated the hub and
+triggered NetworkManager churn on that interface, which both caused a typing stutter and interfered
+with the HDMI Alt-Mode negotiation completing. This was fixed by disabling that profile
+(`lib.mkIf false`) and was confirmed independent of the `dgpuPowerSave` state (tested with
+`dgpuPowerSave = false` both before and after the fix). The disabled profile's original purpose —
+giving wifi a better (lower) route metric than a dead/lower-priority wired link, e.g. when a dock is
+left plugged in while tethered to a phone hotspot — is a known, currently-accepted trade-off; ethernet
+still works fine as the primary connection when it's the only one active.
 
 ## Configure System
 XFCE's Window Scaling option looked great until I opened another application that didn't support it. 
