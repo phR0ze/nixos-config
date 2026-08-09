@@ -20,6 +20,7 @@ Commands:
   all [--keep N]    Clean nix store and generations, and orphaned boot kernels
   boot              Remove orphaned /boot/kernels files whose store paths no longer exist
   dec               Clean decrypted files from git and disk
+  gen N [N...]      Delete one or more specific system generations
   pkg               Clean the given package out of the nix store
   store             Clean the nix store
   vm                Clean the current vm (qcow2, result and store)
@@ -29,6 +30,8 @@ USAGE
     log::ln "\nExamples:"
     log::subln "Clean nix store only: ${green}./${SCRIPT} clean store${none}"
     log::subln "Clean nix store and generations: ${green}./${SCRIPT} clean all${none}"
+    log::subln "Clean specific generation: ${green}./${SCRIPT} clean gen 42${none}"
+    log::subln "Clean multiple generations: ${green}./${SCRIPT} clean gen 40 41 42${none}"
     log::subln "Clean nix store package: ${green}./${SCRIPT} clean pkg /nix/store/1234${none}"
     log::subln "Clean decrypted files from git and disk: ${green}./${SCRIPT} clean dec${none}"
     echo
@@ -48,6 +51,7 @@ clean::run()
         all) clean::all "$@" ;;
         boot) clean::boot ;;
         dec) clean::dec "$@" ;;
+        gen) clean::gen "$@" ;;
         pkg) clean::pkg "$@" ;;
         store) clean::store ;;
         vm) clean::vm ;;
@@ -61,6 +65,20 @@ clean::run()
 clean::dec()
 {
   flake::restore
+}
+
+# Delete one or more specific system generations
+# - $@ - one or more generation numbers to delete
+# --------------------------------------------------------------------------------------------------
+clean::gen()
+{
+    if [[ $# -eq 0 ]]; then
+        log::fatal "must provide at least one generation number to delete"
+    fi
+
+    log::ls "Deleting system generation(s): ${cyan}${*}${none}"
+    $SUDO nix-env --delete-generations "$@" --profile /nix/var/nix/profiles/system
+    $SUDO nix-store --gc
 }
 
 # Clean the given package from the nix store
