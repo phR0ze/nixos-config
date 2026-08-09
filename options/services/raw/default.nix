@@ -19,6 +19,7 @@
     ./sshd
     ./sunshine
     ./synology-drive-client
+    ./vaultwarden
     ./x11vnc
     ./x2go
   ];
