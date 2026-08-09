@@ -86,7 +86,14 @@ in
     # (e.g. dock left plugged in while tethered to a phone hotspot), wifi always wins the default
     # route/DNS instead of a dead or lower-priority ethernet link. Ethernet still works fine as the
     # primary connection when it's the only one active.
-    networking.networkmanager.ensureProfiles.profiles."Wired connection 1" = {
+    #
+    # TEMPORARILY DISABLED 2026-08-09 for HDMI debugging: the combo USB-C dongle (HDMI + Ethernet)
+    # re-enumerates enp2s0f1u1 on every Alt-Mode retry cycle, and NetworkManager actively managing
+    # this interface is suspected of adding enumeration churn that both causes the typing stutter
+    # and interferes with the HDMI Alt-Mode negotiation completing. See
+    # claude-plan-to-solve-hdmi-issue.md. Re-enable (remove the `lib.mkIf false`) once confirmed/
+    # denied as the cause.
+    networking.networkmanager.ensureProfiles.profiles."Wired connection 1" = lib.mkIf false {
       connection = {
         id = "Wired connection 1";
         type = "ethernet";
