@@ -10,7 +10,9 @@
 #
 # ### Deployment notes
 # 1. Add an entry to `proxies` per backend service: `{ name = "vaultwarden"; port = 8222; }`. It'll
-#    be reachable at `https://<host>:9222` (defaults to `port + 1000`; override with `httpsPort`).
+#    be reachable at `https://<machine.net.nic0.ip>:9222` (defaults to `port + 1000`; override with
+#    `httpsPort`). Site blocks bind to `machine.net.nic0.ip` rather than a bare port — Caddy needs a
+#    concrete host to match the incoming SNI against, or the TLS handshake fails outright.
 # 2. The first connection from each client will show an untrusted-certificate warning, since the CA
 #    is unique to this host. Export it once and trust it on your devices to stop seeing that:
 #      sudo find /var/lib/caddy -name root.crt
@@ -21,6 +23,12 @@
 { config, lib, ... }: with lib.types;
 let
   cfg = config.services.raw.caddy;
+
+  # Caddy's automatic HTTPS needs a concrete host in the site address to know which cert to
+  # issue/select — a bare ":<port>" address gives it nothing to match incoming SNI against, and the
+  # TLS handshake fails (SSL_ERROR_INTERNAL_ERROR_ALERT) even with a trusted CA. Bind to the
+  # machine's actual LAN IP instead, pulled from machine config rather than hardcoded.
+  bindHost = lib.head (lib.splitString "/" config.machine.net.nic0.ip);
 
   httpsPortOf = p: if p.httpsPort != null then p.httpsPort else p.port + 1000;
 in
@@ -70,7 +78,7 @@ in
       '';
 
       virtualHosts = lib.listToAttrs (map
-        (p: lib.nameValuePair ":${toString (httpsPortOf p)}" {
+        (p: lib.nameValuePair "${bindHost}:${toString (httpsPortOf p)}" {
           extraConfig = ''
             tls internal
             reverse_proxy 127.0.0.1:${toString p.port}
