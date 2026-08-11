@@ -6,8 +6,8 @@
 # official Bitwarden clients: browser extension, desktop app, mobile app and CLI.
 #
 # ### Deployment notes
-# 1. Optionally set `domain` to the externally reachable URL clients will connect to. Required for
-#    features like U2F/WebAuthn and correct icon/link generation, but not required for basic LAN use.
+# 1. `domain` defaults to `https://<machine.net.nic0.ip>:<port + 1000>`, matching the HTTPS port
+#    `services.raw.caddy` fronts this service on by default. 
 # 2. To enable the `/admin` diagnostics page, set `enableAdminPanel = true` and add an admin token to
 #    `args.enc.json`:
 #    "secrets": [
@@ -43,11 +43,14 @@ in
 
       domain = lib.mkOption {
         type = types.nullOr types.str;
-        default = null;
+        default = "https://${lib.head (lib.splitString "/" config.machine.net.nic0.ip)}:${toString (cfg.port + 1000)}";
+        defaultText = lib.literalExpression ''"https://''${machine.net.nic0.ip}:''${port + 1000}"'';
         example = "https://vault.example.com";
         description = lib.mdDoc ''
           Externally reachable URL clients will use to reach this server. Required for WebAuthn/U2F
-          and for icons/links to render correctly. Leave null for plain LAN-only access.
+          and for icons/links to render correctly. Defaults to this host's LAN IP on the Caddy HTTPS
+          port (`port + 1000`, matching `services.raw.caddy`'s default `httpsPort`). Set explicitly to
+          override.
         '';
       };
 
