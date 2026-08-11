@@ -3,8 +3,8 @@
     # nixos-unstable from 2026.07.05
     nixpkgs.url = "github:nixos/nixpkgs/d407951447dcd00442e97087bf374aad70c04cea";
 
-    # nixos-unstable from 2026.07.05
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/d407951447dcd00442e97087bf374aad70c04cea";
+    # nixos-unstable from 2026.08.09 (bumped for vaultwarden 1.37.1, fixes WASM client crashes)
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/f13ff45afd1bb73e640eaa08a7066dbed07e3238";
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
@@ -53,6 +53,7 @@
           synology-drive-client = pkgs-unstable.synology-drive-client;
           tailscale = pkgs-unstable.tailscale;
           vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
+          vaultwarden = pkgs-unstable.vaultwarden;
           yt-dlp = pkgs-unstable.yt-dlp;
         })
       ];
