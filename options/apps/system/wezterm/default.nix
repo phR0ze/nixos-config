@@ -97,5 +97,11 @@ in
     environment.systemPackages = with pkgs; [ wezterm ];
 
     files.all.".config/wezterm/wezterm.lua".weakCopy = confFile;
+
+    # Deploy the tab title emoji helper as an executable link to the nix store
+    files.user.".local/bin/tt" = {
+      link = ./include/tt;
+      filemode = "0755";
+    };
   };
 }
