@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+# Set the tab title with the given emoji and description
+#
+# ### Parameters
+app="$1"          # app trigger word to use for emoji lookup
+desc="$2"         # directory path or string title
+
+# Description might be a path, if so use the basename
+if [[ -d "$desc" ]]; then
+  name="$(basename "$(realpath "$desc")")"
+else
+  name="$desc"
+fi
+
+# Determine the emoji based on the calling script's name
+case "$app" in
+  claude) emoji="💥" ;;
+  gemini) emoji="⚙️" ;;
+  opencode) emoji="⚙️" ;;
+  vim) emoji="✨" ;;
+  mac) emoji="🖥️" ;;
+  red) emoji="🔴" ;;
+  yellow) emoji="🟡" ;;
+  green) emoji="🟢" ;;
+  blue) emoji="🔵" ;;
+  circle) emoji="⭕" ;;
+  *)  emoji="⛓️" ;;
+esac
+
+# Set the tab name for WezTerm using escape sequences
+printf '\033]1; %s %s\033\\' "$emoji" "$name"
+
+# 🎨 🦾 💻 🛸 💥 📥 🌐 🔣
+# 💬 📢 📣 🔔 🔕 📧 📨 📩
+# ⭐ 💡 🔑 🔒 🔓 🏷️  🎯 🧩 💥 🌟 💎 🏆
+# 🔨 🔧 🔩 ⚙️  🛠️  🔍 🔎 📦 🚀 🏗️  ✂️  📋 📌
