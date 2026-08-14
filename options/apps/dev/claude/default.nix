@@ -50,8 +50,8 @@ in
         in if (cfg.extraInstructions == "") then base
            else "${cfg.extraInstructions}\n${base}";
 
-      # Install the docs skill, but only if the user doesn't already have their own
-      files.user.".claude/skills/docs".weakCopy = ./include/skills/docs;
+      # Install the docs skill as a link to the nix store
+      files.user.".claude/skills/docs".link = ./include/skills/docs;
     })
   ];
 }
