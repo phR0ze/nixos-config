@@ -34,6 +34,9 @@ stdenv.mkDerivation (finalAttrs: {
 
     # Invoke via the glibc dynamic linker so we never touch the binary itself.
     # ld-linux supports --argv0 natively, which Bun SEA requires to identify itself.
+    #
+    # We set our own WezTerm tab title (emoji + cwd) via `tt` instead of letting
+    # Claude manage it, so CLAUDE_CODE_DISABLE_TERMINAL_TITLE is forced on here.
     makeWrapper ${stdenv.cc.libc}/lib/ld-linux-x86-64.so.2 $out/bin/claude \
       --add-flags "--library-path ${lib.makeLibraryPath [ stdenv.cc.libc ]}" \
       --add-flags "--argv0 claude" \
@@ -41,6 +44,8 @@ stdenv.mkDerivation (finalAttrs: {
       --set DISABLE_AUTOUPDATER 1 \
       --set DISABLE_INSTALLATION_CHECKS 1 \
       --set CLAUDE_CODE_EXECPATH "$out/bin/claude" \
+      --set CLAUDE_CODE_DISABLE_TERMINAL_TITLE 1 \
+      --run 'command -v tt >/dev/null && source tt claude "$PWD"' \
       --unset DEV \
       --prefix PATH : ${
         lib.makeBinPath (
