@@ -20,7 +20,7 @@
 #    outside (e.g. Pangolin), point it at the plain HTTP ports directly and this module can be
 #    disabled.
 # --------------------------------------------------------------------------------------------------
-{ config, lib, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.services.raw.caddy;
 
@@ -69,6 +69,10 @@ in
   config = lib.mkIf cfg.enable {
     services.caddy = {
       enable = true;
+
+      # Built with the caddy-dns/cloudflare module compiled in (see package.nix), so DNS-01 ACME
+      # challenges are available once the `tls internal` proxies below move to real certs.
+      package = pkgs.callPackage ./package.nix { };
 
       # Caddy's automatic HTTPS silently opens an HTTP->HTTPS redirect listener on :80 for any site
       # using TLS, even though every virtualHost below only declares its own https port. Disable it so
