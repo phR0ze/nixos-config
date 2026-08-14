@@ -49,6 +49,9 @@ in
         let base = lib.fileContents ./include/CLAUDE.md;
         in if (cfg.extraInstructions == "") then base
            else "${cfg.extraInstructions}\n${base}";
+
+      # Install the docs skill, but only if the user doesn't already have their own
+      files.user.".claude/skills/docs".weakCopy = ./include/skills/docs;
     })
   ];
 }
