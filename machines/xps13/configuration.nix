@@ -23,7 +23,7 @@
     apps.media.obs.enable = true;
     apps.network.rustdesk.autostart = false;
 
-    apps.system.podman.enable = true;
+    services.raw.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 
     environment.systemPackages = [

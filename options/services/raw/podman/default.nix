@@ -17,11 +17,11 @@
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.apps.system.podman;
+  cfg = config.services.raw.podman;
 in
 {
   options = {
-    apps.system.podman = {
+    services.raw.podman = {
       enable = lib.mkEnableOption "Install and configure Podman container runtime";
     };
   };
