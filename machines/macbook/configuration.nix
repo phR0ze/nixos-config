@@ -20,7 +20,7 @@ in
 
   config = {
     machine.type.bootable = true;
-    apps.system.podman.enable = true;
+    services.raw.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 
     # Increase the default DPI size

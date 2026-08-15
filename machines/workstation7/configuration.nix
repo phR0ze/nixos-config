@@ -35,7 +35,7 @@
     apps.media.freecad.enable = true;
 
     # Services
-    apps.system.podman.enable = true;
+    services.raw.podman.enable = true;
     virtualisation.qemu.host.enable = true;
     services.oci.oneup = { enable = true; port = 8002; };
 

@@ -21,7 +21,7 @@
     apps.dev.claude.enable = true;
 
     # Homelab services
-    apps.system.podman.enable = true;
+    services.raw.podman.enable = true;
     virtualisation.qemu.host.enable = true;
     services.raw.jellyfin.enable = true;
     services.raw.minecraft.enable = true;

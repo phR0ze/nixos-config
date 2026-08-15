@@ -63,7 +63,7 @@ in
   config = lib.mkIf cfg.enable {
 
     # Enable podman support
-    apps.system.podman.enable = true;
+    services.raw.podman.enable = true;
 
     # Create persistent data directory for backup purposes
     # - Args: type, path, mode, user, group, expiration
