@@ -135,9 +135,21 @@ _init::keys()
         scp -r "${handle}:~/.config/sops" "${HOME}/.config/"
         log::status
 
+        log::ls -n "Setting permissions on ${cyan}${user_sops}${none}..."
+        chmod 700 "${user_sops}"
+        [[ -d "${user_sops}/age" ]] && chmod 700 "${user_sops}/age"
+        [[ -f "${user_sops}/age/keys.txt" ]] && chmod 600 "${user_sops}/age/keys.txt"
+        log::status
+
         log::ls -n "Mirroring SOPS config to ${cyan}/root/.config${none}..."
         sudo mkdir -p /root/.config
         sudo cp -r "${HOME}/.config/sops" /root/.config/
+        log::status
+
+        log::ls -n "Setting permissions on ${cyan}/root/.config/sops${none}..."
+        sudo chmod 700 /root/.config/sops
+        [[ -d /root/.config/sops/age ]] && sudo chmod 700 /root/.config/sops/age
+        [[ -f /root/.config/sops/age/keys.txt ]] && sudo chmod 600 /root/.config/sops/age/keys.txt
         log::status
     else
         log::ls "SOPS config already exists at ${cyan}${user_sops}${none}, skipping"

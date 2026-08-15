@@ -18,6 +18,11 @@
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
 
+    # sops-nix test secret, decrypted to /run/secrets/test-secret at activation
+    sops.secrets.test-secret = {
+      sopsFile = ./secrets.enc.yaml;
+    };
+
     apps.dev.claude.enable = true;
     services.oci.portainer.enable = true;
 

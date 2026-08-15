@@ -5,6 +5,9 @@
 
     # nixos-unstable from 2026.08.09 (bumped for vaultwarden 1.37.1, fixes WASM client crashes)
     nixpkgs-unstable.url = "github:nixos/nixpkgs/f13ff45afd1bb73e640eaa08a7066dbed07e3238";
+
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
@@ -80,7 +83,7 @@
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.target = lib.nixosSystem {
       inherit pkgs system; specialArgs = { inherit args f inputs; };
-      modules = [ ./options ./configuration.nix ];
+      modules = [ inputs.sops-nix.nixosModules.sops ./options ./configuration.nix ];
     };
 
     # Generic install host configuration based on a generic profile
