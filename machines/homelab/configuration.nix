@@ -38,6 +38,7 @@
       secrets = ./secrets.enc.yaml;
       proxies = [
         { subdomain = "adguard"; host = config.machine.services.raw.adguard.host; port = 3000; }
+        { subdomain = "synology"; host = config.machine.services.raw.synology.host; port = 5000; }
       ];
     };
     services.oci.homarr = { enable = true; port = 80; };
