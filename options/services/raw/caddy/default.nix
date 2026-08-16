@@ -1,48 +1,69 @@
 # Caddy reverse proxy
 # - https://caddyserver.com/docs/
+# - https://caddyserver.com/docs/modules/dns.providers
 #
 # ### Description
-# Fronts one or more localhost-bound homelab services with Caddy-managed TLS. Each proxied service
-# gets its own HTTPS port using Caddy's `tls internal` directive, which auto-generates and manages
-# certificates signed by a local, Caddy-owned CA — no public domain, ACME, or port 80 exposure
-# required. The original HTTP port each service already listens on is left untouched, so this is
-# purely additive.
+# Fronts one or more homelab services with Caddy-managed TLS. Each proxied service
+# gets its own HTTPS port and a real, publicly-trusted Let's Encrypt certificate obtained via a
+# Cloudflare DNS-01 challenge (see `options/services/raw/caddy/package.nix` for the
+# caddy-dns/cloudflare build). The original HTTP port each service already listens on is left
+# untouched, so this is purely additive.
 #
 # ### Deployment notes
-# 1. Add an entry to `proxies` per backend service: `{ name = "vaultwarden"; port = 8222; }`. It'll
-#    be reachable at `https://<machine.net.nic0.ip>:9222` (defaults to `port + 1000`; override with
-#    `httpsPort`). Site blocks bind to `machine.net.nic0.ip` rather than a bare port — Caddy needs a
+# 1. Add an entry to `proxies` per backend service: `{ subdomain = "vault"; port = 8222; }`. It'll
+#    be reachable at `https://vault.<domain>:9222` (defaults to `port + 1000`; override with
+#    `httpsPort`). Site blocks bind to `<subdomain>.<domain>` rather than a bare port — Caddy needs a
 #    concrete host to match the incoming SNI against, or the TLS handshake fails outright.
-# 2. The first connection from each client will show an untrusted-certificate warning, since the CA
-#    is unique to this host. Export it once and trust it on your devices to stop seeing that:
-#      sudo find /var/lib/caddy -name root.crt
-# 3. This is a stopgap for LAN-local HTTPS. Once a real reverse proxy fronts these services from the
-#    outside (e.g. Pangolin), point it at the plain HTTP ports directly and this module can be
-#    disabled.
+# 2. Set `domain` to the zone Cloudflare manages, e.g. `domain = "example.com";`. DNS-01 only proves
+#    control of the zone — it doesn't create routing, so each `<subdomain>.<domain>` still needs an
+#    actual DNS record in Cloudflare (can be a greyed-out/non-proxied A/CNAME pointing anywhere, since
+#    clients reach this host directly on the LAN).
+# 3. Add a scoped Cloudflare API token (Zone:DNS:Edit + Zone:Zone:Read for the zone(s) in question —
+#    not the Global API Key) to a `secrets.enc.yaml` under the `caddy.cloudflareApiToken` key, then
+#    point `secrets` at it from the machine's `configuration.nix`:
+#      services.raw.caddy = {
+#        enable = true;
+#        secrets = ./secrets.enc.yaml;
+#        ...
+#      };
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.services.raw.caddy;
 
-  # Caddy's automatic HTTPS needs a concrete host in the site address to know which cert to
-  # issue/select — a bare ":<port>" address gives it nothing to match incoming SNI against, and the
-  # TLS handshake fails (SSL_ERROR_INTERNAL_ERROR_ALERT) even with a trusted CA. Bind to the
-  # machine's actual LAN IP instead, pulled from machine config rather than hardcoded.
-  bindHost = lib.head (lib.splitString "/" config.machine.net.nic0.ip);
-
   httpsPortOf = p: if p.httpsPort != null then p.httpsPort else p.port + 1000;
+  hostOf = p: "${p.subdomain}.${cfg.domain}";
 in
 {
   options = {
     services.raw.caddy = {
       enable = lib.mkEnableOption "Install and configure Caddy as a local TLS-terminating reverse proxy";
 
+      secrets = lib.mkOption {
+        type = types.path;
+        example = "./secrets.enc.yaml";
+        description = lib.mdDoc ''
+          Path to the sops-encrypted file holding the `caddy.cloudflareApiToken` secret. Declared here
+          so `sops.secrets."caddy/cloudflareApiToken"` doesn't need to be repeated in every machine's
+          `configuration.nix`.
+        '';
+      };
+
+      domain = lib.mkOption {
+        type = types.str;
+        example = "example.com";
+        description = lib.mdDoc ''
+          Cloudflare-managed zone used for certificate issuance. Each proxy is reachable at
+          `<subdomain>.<domain>`.
+        '';
+      };
+
       proxies = lib.mkOption {
         type = listOf (submodule {
           options = {
-            name = lib.mkOption {
+            subdomain = lib.mkOption {
               type = types.str;
-              description = lib.mdDoc "Label for this proxy entry, used only in Caddy's logs.";
+              description = lib.mdDoc "Subdomain this proxy is reachable at: `<subdomain>.<domain>`.";
             };
 
             port = lib.mkOption {
@@ -60,31 +81,48 @@ in
           };
         });
         default = [ ];
-        example = [{ name = "vaultwarden"; port = 8222; }];
+        example = [{ subdomain = "vault"; port = 8222; }];
         description = lib.mdDoc "Backend services to front with Caddy-managed local TLS.";
       };
     };
   };
 
   config = lib.mkIf cfg.enable {
+    sops.secrets."caddy/cloudflareApiToken" = {
+      sopsFile = cfg.secrets;
+    };
+
+    # Wraps the bare-token secret in a KEY=VALUE line sops-nix assembles at activation time (into
+    # /run/secrets-for-users or /run/secrets, mode 0400), suitable for systemd's EnvironmentFile=.
+    sops.templates."caddy-cloudflare.env".content = ''
+      CF_API_TOKEN=${config.sops.placeholder."caddy/cloudflareApiToken"}
+    '';
+
     services.caddy = {
       enable = true;
 
-      # Built with the caddy-dns/cloudflare module compiled in (see package.nix), so DNS-01 ACME
-      # challenges are available once the `tls internal` proxies below move to real certs.
+      # Built with the caddy-dns/cloudflare module compiled in (see package.nix), providing the `dns
+      # cloudflare` directive used below for DNS-01 ACME challenges.
       package = pkgs.callPackage ./package.nix { };
 
       # Caddy's automatic HTTPS silently opens an HTTP->HTTPS redirect listener on :80 for any site
       # using TLS, even though every virtualHost below only declares its own https port. Disable it so
-      # Caddy never touches port 80, matching this module's "no port 80 exposure" design.
+      # Caddy never touches port 80, matching this module's "no port 80 exposure" design. DNS-01
+      # doesn't need inbound HTTP challenge traffic either, so nothing is lost.
       globalConfig = ''
         auto_https disable_redirects
       '';
 
+      # Cloudflare API token handed to the caddy-dns/cloudflare module via an env var, sourced from
+      # the sops-nix-rendered template above rather than embedding the secret in the Caddyfile.
+      environmentFile = config.sops.templates."caddy-cloudflare.env".path;
+
       virtualHosts = lib.listToAttrs (map
-        (p: lib.nameValuePair "${bindHost}:${toString (httpsPortOf p)}" {
+        (p: lib.nameValuePair "${hostOf p}:${toString (httpsPortOf p)}" {
           extraConfig = ''
-            tls internal
+            tls {
+              dns cloudflare {env.CF_API_TOKEN}
+            }
             reverse_proxy 127.0.0.1:${toString p.port}
           '';
         })

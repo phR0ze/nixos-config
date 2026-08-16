@@ -6,6 +6,5 @@
     ./firefox
     ./qbittorrent
     ./rustdesk
-    ./tailscale
   ];
 }

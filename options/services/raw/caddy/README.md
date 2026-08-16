@@ -2,8 +2,8 @@
 
 This directory contains the Nix configuration for [Caddy](https://caddyserver.com/), built from
 source with the [`caddy-dns/cloudflare`](https://github.com/caddy-dns/cloudflare) module compiled
-in, so it can request real Let's Encrypt certificates via Cloudflare DNS-01 challenges instead of
-relying on `tls internal`'s local, self-signed CA.
+in, so it can request real Let's Encrypt certificates via Cloudflare DNS-01 challenges. See
+`default.nix` for the `domain` option and the `caddy-cloudflare-token` secret it requires.
 
 Built with `buildGoModule`, so the build is reproducible and fully offline like every other
 derivation in this flake — no live `go build`/module-proxy fetch happens inside `nix build`.
