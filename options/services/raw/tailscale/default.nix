@@ -11,11 +11,11 @@
 # ### Deployment notes
 # For this to work correctly you'll need some manual setup as well:
 # 1. Generate a new key from https://login.tailscale.com/admin/machines/new-linux
-# 2. Add it to a `secrets.enc.yaml` under the `tailscale.authKey` key, then declare it in the
-#    machine's `configuration.nix` (this module only consumes the secret, it doesn't declare it,
-#    since `sopsFile` is a path relative to wherever it's declared):
-#      sops.secrets."tailscale/authKey" = {
-#        sopsFile = ./secrets.enc.yaml;
+# 2. Add it to a `secrets.enc.yaml` under the `tailscale.authKey` key, then point `secrets` at it
+#    from the machine's `configuration.nix`:
+#      services.raw.tailscale = {
+#        enable = true;
+#        secrets = ./secrets.enc.yaml;
 #      };
 # 3. Optional run: sudo tailscale cert ${MACHINE_NAME}.${TAILNET_NAME}
 # 4. Check service status: sudo systemctl status tailscaled
@@ -29,6 +29,17 @@ in
   options = {
     services.raw.tailscale = {
       enable = lib.mkEnableOption "Configure Tailscale mesh service";
+
+      secrets = lib.mkOption {
+        type = types.path;
+        example = "./secrets.enc.yaml";
+        description = lib.mdDoc ''
+          Path to the sops-encrypted file holding the `tailscale.authKey` secret. Declared here so
+          `sops.secrets."tailscale/authKey"` doesn't need to be repeated in every machine's
+          `configuration.nix`.
+        '';
+      };
+
       autoStart = lib.mkOption {
         type = types.bool;
         default = false;
@@ -62,10 +73,9 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      assertions = [
-        # Ensure that the sops secret is declared
-        { assertion = config.sops.secrets ? "tailscale/authKey"; message = "services.raw.tailscale requires sops.secrets.\"tailscale/authKey\" to be declared"; }
-      ];
+      sops.secrets."tailscale/authKey" = {
+        sopsFile = cfg.secrets;
+      };
 
       # Configure the tailscale service
       services.tailscale = {

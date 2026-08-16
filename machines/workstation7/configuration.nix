@@ -23,10 +23,11 @@
 
     apps.network.deskflow.server.enable = true;
     apps.network.rustdesk.autostart = false;
-    sops.secrets."tailscale/authKey" = {
-      sopsFile = ./secrets.enc.yaml;
+    services.raw.tailscale = {
+      enable = true;
+      autoStart = true;
+      secrets = ./secrets.enc.yaml;
     };
-    services.raw.tailscale = { enable = true; autoStart = true; };
 
     apps.dev.claude.enable = true;
     apps.dev.gemini.enable = true;
