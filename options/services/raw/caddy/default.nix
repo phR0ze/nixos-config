@@ -115,5 +115,12 @@ in
     };
 
     networking.firewall.allowedTCPPorts = map (p: p.httpsPort) cfg.proxies;
+
+    # The NixOS caddy module runs the service as an unprivileged user with no capabilities, so
+    # binding any proxy's httpsPort below 1024 (443 by default) needs this granted explicitly.
+    systemd.services.caddy.serviceConfig = {
+      AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
+      CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
+    };
   };
 }
