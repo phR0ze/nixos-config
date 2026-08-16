@@ -76,7 +76,6 @@ in
     { assertion = (cfg.nix.cache.ip != null); message = "assert machine.nix.cache.ip: ${cfg.nix.cache.ip}"; }
 
     { assertion = (cfg.drives != null); message = "assert machine.drives: ${toString (builtins.length cfg.drives)}"; }
-    { assertion = (cfg.secrets != null); message = "assert machine.secrets: ${toString (builtins.length cfg.secrets)}"; }
     { assertion = (cfg.smb.entries != null); message = "assert machine.smb.entries: ${toString (builtins.length cfg.smb.entries)}"; }
     { assertion = (cfg.nfs.entries != null); message = "assert machine.nfs.entries: ${toString (builtins.length cfg.nfs.entries)}"; }
   ];
