@@ -10,10 +10,10 @@
 # untouched, so this is purely additive.
 #
 # ### Deployment notes
-# 1. Add an entry to `proxies` per backend service: `{ subdomain = "vault"; port = 8222; }`. It'll
-#    be reachable at `https://vault.<domain>:9222` (defaults to `port + 1000`; override with
-#    `httpsPort`). Site blocks bind to `<subdomain>.<domain>` rather than a bare port — Caddy needs a
-#    concrete host to match the incoming SNI against, or the TLS handshake fails outright.
+# 1. Add an entry to `proxies` per backend service: `{ subdomain = "vault"; port = 8222; }`. It'll be
+#    reachable at `https://vault.<domain>` (defaults to port 443; set `httpsPort` to put this proxy on
+#    a non-standard port instead). Multiple proxies can share port 443 — Caddy multiplexes by SNI, so
+#    site blocks bind to `<subdomain>.<domain>` rather than a bare port.
 # 2. Set `domain = config.machine.domain;` in the machine's `configuration.nix` (machine.domain comes
 #    from the `domain` key in `args.enc.json`/`args.nix`, keeping the literal zone name out of tracked
 #    files). DNS-01 only proves control of the zone — it doesn't create routing, so each
@@ -32,7 +32,6 @@
 let
   cfg = config.services.raw.caddy;
 
-  httpsPortOf = p: if p.httpsPort != null then p.httpsPort else p.port + 1000;
   hostOf = p: "${p.subdomain}.${cfg.domain}";
 in
 {
@@ -104,7 +103,7 @@ in
       environmentFile = config.sops.templates."caddy-cloudflare.env".path;
 
       virtualHosts = lib.listToAttrs (map
-        (p: lib.nameValuePair "${hostOf p}:${toString (httpsPortOf p)}" {
+        (p: lib.nameValuePair "${hostOf p}:${toString (p.httpsPort)}" {
           extraConfig = ''
             tls {
               dns cloudflare {env.CF_API_TOKEN}
@@ -115,6 +114,6 @@ in
         cfg.proxies);
     };
 
-    networking.firewall.allowedTCPPorts = map httpsPortOf cfg.proxies;
+    networking.firewall.allowedTCPPorts = map (p: p.httpsPort) cfg.proxies;
   };
 }
