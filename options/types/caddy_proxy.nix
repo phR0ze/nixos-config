@@ -17,10 +17,11 @@
     };
 
     httpsPort = lib.mkOption {
-      type = types.nullOr types.port;
-      default = null;
+      type = types.port;
+      default = 443;
       description = lib.mdDoc ''
-        HTTPS port Caddy listens on for this proxy. Defaults to `port + 1000` when unset.
+        HTTPS port Caddy listens on for this proxy. Defaults to 443; override to put this proxy on a
+        non-standard port instead.
       '';
     };
   };

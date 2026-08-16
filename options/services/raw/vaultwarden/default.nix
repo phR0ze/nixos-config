@@ -10,9 +10,9 @@
 #    accessing over `http://<lan-ip>:<port>` fails with a "not a secure context" error. Set
 #    `caddy.enable = true` (and a `caddy.subdomain`) to front this service with
 #    `services.raw.caddy`'s Let's Encrypt-backed TLS termination.
-# 2. `domain` defaults to `https://<caddy.subdomain>.<machine.domain>:<httpsPort>` when `caddy.enable`
-#    is set, otherwise `https://<machine.net.nic0.ip>:<port + 1000>` — matching the HTTPS port
-#    `services.raw.caddy` fronts this service on by default. Set explicitly to override.
+# 2. `domain` defaults to `https://<caddy.subdomain>.<machine.domain>` (Caddy's default HTTPS port is
+#    443) when `caddy.enable` is set, otherwise `https://<machine.net.nic0.ip>:<port + 1000>`. Set
+#    explicitly to override.
 # 3. To enable the `/admin` diagnostics page, set `enableAdminPanel = true` and add an admin token to
 #    a `secrets.enc.yaml` under the `vaultwarden.adminToken` key, then declare it in the machine's
 #    `configuration.nix` (this module only consumes the secret, it doesn't declare it, since
@@ -45,20 +45,18 @@ in
         type = types.nullOr types.str;
         default =
           if cfg.caddy.enable
-          then "https://${cfg.caddy.subdomain}.${config.machine.domain}:${toString (
-            if cfg.caddy.httpsPort != null then cfg.caddy.httpsPort else cfg.caddy.port + 1000
-          )}"
+          then "https://${cfg.caddy.subdomain}.${config.machine.domain}" + lib.optionalString (cfg.caddy.httpsPort != 443) ":${toString cfg.caddy.httpsPort}"
           else "https://${lib.head (lib.splitString "/" config.machine.net.nic0.ip)}:${toString (cfg.port + 1000)}";
         defaultText = lib.literalExpression ''
-          if caddy.enable then "https://''${caddy.subdomain}.''${machine.domain}:''${caddy.httpsPort or (port + 1000)}"
+          if caddy.enable then "https://''${caddy.subdomain}.''${machine.domain}" (plus ":''${caddy.httpsPort}" when not 443)
           else "https://''${machine.net.nic0.ip}:''${port + 1000}"
         '';
         example = "https://vault.example.com";
         description = lib.mdDoc ''
           Externally reachable URL clients will use to reach this server. Required for WebAuthn/U2F
           and for icons/links to render correctly. Defaults to `https://<caddy.subdomain>.<machine.domain>`
-          on the Caddy HTTPS port when `caddy.enable` is set, otherwise falls back to this host's LAN
-          IP on the Caddy HTTPS port (`port + 1000`). Set explicitly to override.
+          on the Caddy HTTPS port when `caddy.enable` is set (omitted when that's the standard 443),
+          otherwise falls back to this host's LAN IP on `port + 1000`. Set explicitly to override.
         '';
       };
 
