@@ -28,15 +28,14 @@
     services.raw.nix-cache.host.enable = true;
     services.raw.mullvad.enable = true;
     services.raw.synology-drive-client.enable = true;
-    services.raw.vaultwarden.enable = true;
-
+    services.raw.vaultwarden = {
+      enable = true;
+      caddy = { enable = true; subdomain = "vault"; };
+    };
     services.raw.caddy = {
       enable = true;
       domain = "";
       secrets = ./secrets.enc.yaml;
-      proxies = [
-        { subdomain = "vault"; port = 8222; }
-      ];
     };
     services.oci.homarr = { enable = true; port = 80; };
     services.oci.oneup = { enable = true; port = 8002; };

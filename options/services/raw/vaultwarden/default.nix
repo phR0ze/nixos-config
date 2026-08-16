@@ -69,6 +69,19 @@ in
         '';
       };
 
+      caddy = lib.mkOption {
+        description = lib.mdDoc ''
+          Front this service with `services.raw.caddy`. Set `enable = true` to add an entry to
+          `services.raw.caddy.proxies` automatically.
+        '';
+        type = types.submodule {
+          imports = [ (import ../../../types/caddy_proxy.nix { inherit lib; }) ];
+          options.enable = lib.mkEnableOption "Front Vaultwarden with services.raw.caddy";
+          config.port = lib.mkDefault cfg.port;
+        };
+        default = { };
+      };
+
     };
   };
 
@@ -92,6 +105,14 @@ in
 
       environment.systemPackages = [
         pkgs.vaultwarden      # Vaultwarden server (for the `vaultwarden` CLI tools)
+      ];
+    })
+
+    # Contribute a proxy entry to services.raw.caddy.proxies rather than requiring it be listed
+    # separately in the machine's configuration.nix
+    (lib.mkIf (cfg.enable && cfg.caddy.enable) {
+      services.raw.caddy.proxies = [
+        { inherit (cfg.caddy) subdomain port httpsPort; }
       ];
     })
 
