@@ -13,7 +13,9 @@
 # 1. Add an entry to `proxies` per backend service: `{ subdomain = "vault"; port = 8222; }`. It'll be
 #    reachable at `https://vault.<domain>` (defaults to port 443; set `httpsPort` to put this proxy on
 #    a non-standard port instead). Multiple proxies can share port 443 — Caddy multiplexes by SNI, so
-#    site blocks bind to `<subdomain>.<domain>` rather than a bare port.
+#    site blocks bind to `<subdomain>.<domain>` rather than a bare port. `host` defaults to `127.0.0.1`
+#    for a backend running on this same machine; set it to another host's LAN IP to front a service
+#    running elsewhere on the network (e.g. `{ subdomain = "adguard"; host = "192.168.1.5"; port = 3000; }`).
 # 2. Set `domain = config.machine.domain;` in the machine's `configuration.nix` (machine.domain comes
 #    from the `domain` key in `args.enc.json`/`args.nix`, keeping the literal zone name out of tracked
 #    files). DNS-01 only proves control of the zone — it doesn't create routing, so each
@@ -108,7 +110,7 @@ in
             tls {
               dns cloudflare {env.CF_API_TOKEN}
             }
-            reverse_proxy 127.0.0.1:${toString p.port}
+            reverse_proxy ${p.host}:${toString p.port}
           '';
         })
         cfg.proxies);

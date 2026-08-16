@@ -36,6 +36,9 @@
       enable = true;
       domain = config.machine.domain;
       secrets = ./secrets.enc.yaml;
+      proxies = [
+        { subdomain = "adguard"; host = config.machine.services.raw.adguard.host; port = 3000; }
+      ];
     };
     services.oci.homarr = { enable = true; port = 80; };
     services.oci.oneup = { enable = true; port = 8002; };
