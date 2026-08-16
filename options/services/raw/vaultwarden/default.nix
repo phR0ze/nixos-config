@@ -6,29 +6,29 @@
 # official Bitwarden clients: browser extension, desktop app, mobile app and CLI.
 #
 # ### Deployment notes
-# 1. `domain` defaults to `https://<machine.net.nic0.ip>:<port + 1000>`, matching the HTTPS port
-#    `services.raw.caddy` fronts this service on by default. 
-# 2. To enable the `/admin` diagnostics page, set `enableAdminPanel = true` and add an admin token to
-#    `args.enc.json`:
-#    "secrets": [
-#       {
-#         "name": "vaultwarden-admin",
-#         "value": "super-secret-admin-token"
-#       }
-#     ]
-# 3. Point the Bitwarden client(s) at this server's `domain` (or `http://<host>:<port>` on the LAN)
+# 1. Browsers refuse to run the vault's crypto over plain HTTP unless the origin is `localhost` —
+#    accessing over `http://<lan-ip>:<port>` fails with a "not a secure context" error. Set
+#    `caddy.enable = true` (and a `caddy.subdomain`) to front this service with
+#    `services.raw.caddy`'s Let's Encrypt-backed TLS termination.
+# 2. `domain` defaults to `https://<caddy.subdomain>.<machine.domain>:<httpsPort>` when `caddy.enable`
+#    is set, otherwise `https://<machine.net.nic0.ip>:<port + 1000>` — matching the HTTPS port
+#    `services.raw.caddy` fronts this service on by default. Set explicitly to override.
+# 3. To enable the `/admin` diagnostics page, set `enableAdminPanel = true` and add an admin token to
+#    a `secrets.enc.yaml` under the `vaultwarden.adminToken` key, then declare it in the machine's
+#    `configuration.nix` (this module only consumes the secret, it doesn't declare it, since
+#    `sopsFile` is a path relative to wherever it's declared):
+#      sops.secrets."vaultwarden/adminToken" = {
+#        sopsFile = ./secrets.enc.yaml;
+#      };
+# 4. Point the Bitwarden client(s) at this server's `domain` (or `http://<host>:<port>` on the LAN)
 #    and log in as normal — the first account created is a regular user, not an admin.
-# 4. Browsers refuse to run the vault's crypto over plain HTTP unless the origin is `localhost` —
-#    accessing over `http://<lan-ip>:<port>` fails with a "not a secure context" error. Put this
-#    service behind a reverse proxy that terminates TLS (see the homelab reverse-proxy setup).
 #
 # ### Directories
 # - /var/lib/bitwarden_rs
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.services.raw.vaultwarden;
-  adminToken = f.getSecret config.machine.secrets "vaultwarden-admin";
 in
 {
   options = {
@@ -43,14 +43,22 @@ in
 
       domain = lib.mkOption {
         type = types.nullOr types.str;
-        default = "https://${lib.head (lib.splitString "/" config.machine.net.nic0.ip)}:${toString (cfg.port + 1000)}";
-        defaultText = lib.literalExpression ''"https://''${machine.net.nic0.ip}:''${port + 1000}"'';
+        default =
+          if cfg.caddy.enable
+          then "https://${cfg.caddy.subdomain}.${config.machine.domain}:${toString (
+            if cfg.caddy.httpsPort != null then cfg.caddy.httpsPort else cfg.caddy.port + 1000
+          )}"
+          else "https://${lib.head (lib.splitString "/" config.machine.net.nic0.ip)}:${toString (cfg.port + 1000)}";
+        defaultText = lib.literalExpression ''
+          if caddy.enable then "https://''${caddy.subdomain}.''${machine.domain}:''${caddy.httpsPort or (port + 1000)}"
+          else "https://''${machine.net.nic0.ip}:''${port + 1000}"
+        '';
         example = "https://vault.example.com";
         description = lib.mdDoc ''
           Externally reachable URL clients will use to reach this server. Required for WebAuthn/U2F
-          and for icons/links to render correctly. Defaults to this host's LAN IP on the Caddy HTTPS
-          port (`port + 1000`, matching `services.raw.caddy`'s default `httpsPort`). Set explicitly to
-          override.
+          and for icons/links to render correctly. Defaults to `https://<caddy.subdomain>.<machine.domain>`
+          on the Caddy HTTPS port when `caddy.enable` is set, otherwise falls back to this host's LAN
+          IP on the Caddy HTTPS port (`port + 1000`). Set explicitly to override.
         '';
       };
 
@@ -65,7 +73,7 @@ in
         default = false;
         description = lib.mdDoc ''
           Whether to enable the `/admin` diagnostics page, protected by an admin token pulled from
-          the `vaultwarden-admin` secret in `machine.secrets`.
+          `sops.secrets."vaultwarden/adminToken"`.
         '';
       };
 
@@ -116,11 +124,18 @@ in
       ];
     })
 
-    # Conditionally enable the admin panel, pulling the token from a generated nix store file
+    # Conditionally enable the admin panel, pulling the token from the sops-nix secret rather than
+    # baking it into the nix store
     (lib.mkIf (cfg.enable && cfg.enableAdminPanel) {
-      services.vaultwarden.environmentFile = pkgs.runCommandLocal "vaultwarden-admin-token" {} ''
-        echo "ADMIN_TOKEN=${adminToken}" > "$out"
+      assertions = [
+        { assertion = config.sops.secrets ? "vaultwarden/adminToken"; message = "services.raw.vaultwarden with enableAdminPanel requires sops.secrets.\"vaultwarden/adminToken\" to be declared"; }
+      ];
+
+      sops.templates."vaultwarden-admin.env".content = ''
+        ADMIN_TOKEN=${config.sops.placeholder."vaultwarden/adminToken"}
       '';
+
+      services.vaultwarden.environmentFile = config.sops.templates."vaultwarden-admin.env".path;
     })
   ];
 }
