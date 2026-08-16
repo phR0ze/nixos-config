@@ -9,6 +9,9 @@
     # T2 stable kernel target moved 6.12 -> 6.18 as of nixos-hardware commit f7d7e1c0 (2026-04-10),
     # matching the kernel line the rest of the fleet is already on
     nixos-hardware.url = "github:nixos/nixos-hardware/779c32a00155994c86cde8213a8dd4df139d4355";
+
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   nixConfig = {
@@ -90,7 +93,7 @@
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.target = lib.nixosSystem {
       inherit pkgs system; specialArgs = { inherit args f inputs; };
-      modules = [ ./options ./configuration.nix ];
+      modules = [ inputs.sops-nix.nixosModules.sops ./options ./configuration.nix ];
     };
   };
 }
