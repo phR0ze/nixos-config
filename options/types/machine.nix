@@ -396,6 +396,38 @@ in
             type = types.submodule (import ./user.nix { inherit lib; defaults = defaults.user; });
             default = defaults.user;
           };
+
+          services = lib.mkOption {
+            description = lib.mdDoc ''
+              Per-service values sourced from args, keyed by service name, for details (like a remote
+              server's LAN IP) that should stay out of tracked files rather than being hardcoded in a
+              machine's configuration.nix.
+            '';
+            type = types.submodule {
+              options = {
+                raw = lib.mkOption {
+                  description = lib.mdDoc ''
+                    Values for `services.raw.*` modules, e.g. `machine.services.raw.adguard.host` for a
+                    remote AdGuard instance's LAN IP fronted by `services.raw.caddy`. Populated from
+                    `args.services.raw.<name>.host` in `args.enc.json`/`args.nix`.
+                  '';
+                  type = types.attrsOf (types.submodule {
+                    options = {
+                      host = lib.mkOption {
+                        description = lib.mdDoc "LAN IP or hostname of the target service";
+                        type = types.str;
+                        default = "";
+                      };
+                    };
+                  });
+                  default = args.services.raw or {};
+                };
+              };
+            };
+            default = {
+              raw = args.services.raw or {};
+            };
+          };
         };
       };
     };
