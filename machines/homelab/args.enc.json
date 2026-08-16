@@ -62,6 +62,9 @@
 		"raw": {
 			"adguard": {
 				"host": "ENC[AES256_GCM,data:h/SEMtA6Uy9knhQ=,iv:zVTS0xl0+p6Mazd4LVQ8oR3MiPhrBWtDkwvp94kx8Yk=,tag:RVDrL14QSHmYe3gCl9zaTw==,type:str]"
+			},
+			"synology": {
+				"host": "ENC[AES256_GCM,data:pi5R3W8DLtobE9M=,iv:8hUk6a4ZKXO7pZLjcy+2Z7+hr1ZEpN+MWvbAJtukxfM=,tag:RhTZidTVIocOx/Q4VQBpaw==,type:str]"
 			}
 		}
 	},
@@ -72,8 +75,8 @@
 				"recipient": "age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w"
 			}
 		],
-		"lastmodified": "2026-08-16T02:24:37Z",
-		"mac": "ENC[AES256_GCM,data:8HAfujNu9C5MbcsB4g6/wz0ETxYySWf1dQ7q11EwkUjtKSlk0LnACfPgWWMB+kpIFHWgK3BchPUaYi2LND5cyZUyaDEghl2DHGBUQF9R7PdBXV2r++Zkn2ICuoU1J32AZFU+SphnpFAX0qbyfxhTEDPGzit6t6cGjUXm8ARl+/U=,iv:LyTGBhTmOHGe47O76XEhy5y4amuUk7Je8JOEp3QmGbM=,tag:lOKjKQkWdt//5l7JdxJnDQ==,type:str]",
+		"lastmodified": "2026-08-16T02:34:08Z",
+		"mac": "ENC[AES256_GCM,data:bZqfEed0IrwBih7GqX5PhjdOTxBxE39o4lEZevlVODKtthaQpQuMKrq1bYI+qRp42vo1RH2/hLlGTxqxSBKTbA8Kum7Rtd5k3/bjRaaghkMjztD8KlUNaDd3hXMouh4i489sn8XHnijvsVByaHYn6gUaLleJdhTsl0VhxtEAj6I=,iv:eEpPrhnI7ZS1PR1Vb9DJnseN/HYWa8uRM1UoWYCrEd4=,tag:UfB/HrzrEKverOfpB55cCA==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.13.1"
 	}
