@@ -312,6 +312,9 @@ Machine configs import exactly one profile and add machine-specific overrides.
   make system-level changes (or trigger long Nix evaluations) that must be run explicitly by the
   user. Make config changes and explain what command the user should run to apply them.
 - **Always use `rg` (ripgrep) instead of `grep`** for searching file contents.
+- **When the user doesn't specify a machine name** (e.g. "my config", "this machine"), run `hostname`
+  and match it to the corresponding `machines/<hostname>/` directory. That machine's directory name
+  matches the actual hostname of the box you're running on.
 
 ---
 

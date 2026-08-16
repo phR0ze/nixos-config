@@ -7,7 +7,7 @@
 let
   # dGPU power savings vs HDMI/USB-C video toggle - mutually exclusive modes, boot-only (not
   # hot-toggleable). See README.md "dGPU power saving vs HDMI/USB-C video" for full details.
-  dgpuPowerSave = false;
+  dgpuPowerSave = true;
 in
 {
   imports = [
