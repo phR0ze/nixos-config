@@ -239,27 +239,6 @@ in
             };
           };
 
-          # Secrets for various services and purposes
-          # ----------------------------------------------------------------------------------------------
-          secrets = lib.mkOption {
-            description = lib.mdDoc "Decrypted secrets";
-            type = types.listOf (types.submodule {
-              options = {
-                name = lib.mkOption {
-                  description = lib.mdDoc "Name of the secret";
-                  type = types.str;
-                  example = "tailscale";
-                };
-                value = lib.mkOption {
-                  description = lib.mdDoc "Value of the secret";
-                  type = types.str;
-                  example = "super-secret-auth-key";
-                };
-              };
-            });
-            default = args.secrets or [];
-          };
-
           # Networking options for the whole machine
           # ----------------------------------------------------------------------------------------------
           net = lib.mkOption {
