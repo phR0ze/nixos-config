@@ -16,7 +16,5 @@
     machine.vm.type.local = true;
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
-
-    apps.network.tailscale.enable = true;
   };
 }

@@ -21,6 +21,7 @@
     ./sshd
     ./sunshine
     ./synology-drive-client
+    ./tailscale
     ./vaultwarden
     ./x11vnc
     ./x2go

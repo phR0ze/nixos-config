@@ -26,7 +26,6 @@
     devices.printers.epson-wf7710 = true;
     devices.printers.brother-hll2405w = true;
 
-    apps.network.tailscale = { enable = true; autoStart = true; };
     apps.network.rustdesk.autostart = false;
 
     services.raw.podman.enable = true;

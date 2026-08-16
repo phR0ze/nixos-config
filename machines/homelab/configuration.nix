@@ -27,13 +27,15 @@
     services.raw.minecraft.enable = true;
     services.raw.nix-cache.host.enable = true;
     services.raw.mullvad.enable = true;
-    #apps.network.tailscale.enable = true;
     services.raw.synology-drive-client.enable = true;
     services.raw.vaultwarden.enable = true;
+
     services.raw.caddy = {
       enable = true;
+      domain = "";
+      secrets = ./secrets.enc.yaml;
       proxies = [
-        { name = "vaultwarden"; port = 8222; }
+        { subdomain = "vault"; port = 8222; }
       ];
     };
     services.oci.homarr = { enable = true; port = 80; };
