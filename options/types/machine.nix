@@ -88,6 +88,12 @@ in
             default = args.id or "";
           };
 
+          domain = lib.mkOption {
+            description = lib.mdDoc "Domain name owned by this machine, e.g. for use with Caddy/Cloudflare DNS-01";
+            type = types.str;
+            default = args.domain or "";
+          };
+
           target = lib.mkOption {
             description = lib.mdDoc "Machine or Profile used during installation";
             type = types.str;

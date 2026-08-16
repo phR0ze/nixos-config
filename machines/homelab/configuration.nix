@@ -3,7 +3,7 @@
 # ### Features
 # - Homelab server deployment
 # --------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -34,7 +34,7 @@
     };
     services.raw.caddy = {
       enable = true;
-      domain = "";
+      domain = config.machine.domain;
       secrets = ./secrets.enc.yaml;
     };
     services.oci.homarr = { enable = true; port = 80; };

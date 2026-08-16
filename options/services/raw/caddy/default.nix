@@ -14,10 +14,11 @@
 #    be reachable at `https://vault.<domain>:9222` (defaults to `port + 1000`; override with
 #    `httpsPort`). Site blocks bind to `<subdomain>.<domain>` rather than a bare port — Caddy needs a
 #    concrete host to match the incoming SNI against, or the TLS handshake fails outright.
-# 2. Set `domain` to the zone Cloudflare manages, e.g. `domain = "example.com";`. DNS-01 only proves
-#    control of the zone — it doesn't create routing, so each `<subdomain>.<domain>` still needs an
-#    actual DNS record in Cloudflare (can be a greyed-out/non-proxied A/CNAME pointing anywhere, since
-#    clients reach this host directly on the LAN).
+# 2. Set `domain = config.machine.domain;` in the machine's `configuration.nix` (machine.domain comes
+#    from the `domain` key in `args.enc.json`/`args.nix`, keeping the literal zone name out of tracked
+#    files). DNS-01 only proves control of the zone — it doesn't create routing, so each
+#    `<subdomain>.<domain>` still needs an actual DNS record in Cloudflare (can be a greyed-out/
+#    non-proxied A/CNAME pointing anywhere, since clients reach this host directly on the LAN).
 # 3. Add a scoped Cloudflare API token (Zone:DNS:Edit + Zone:Zone:Read for the zone(s) in question —
 #    not the Global API Key) to a `secrets.enc.yaml` under the `caddy.cloudflareApiToken` key, then
 #    point `secrets` at it from the machine's `configuration.nix`:
@@ -54,7 +55,8 @@ in
         example = "example.com";
         description = lib.mdDoc ''
           Cloudflare-managed zone used for certificate issuance. Each proxy is reachable at
-          `<subdomain>.<domain>`.
+          `<subdomain>.<domain>`. Set to `config.machine.domain` in the machine's `configuration.nix`
+          rather than a literal string, to avoid committing the domain in plaintext.
         '';
       };
 
