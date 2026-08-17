@@ -52,6 +52,9 @@ in
 
       # Install the docs skill as a link to the nix store
       files.user.".claude/skills/docs".link = ./include/skills/docs;
+
+      # Install the markdown skill as a link to the nix store
+      files.user.".claude/skills/markdown".link = ./include/skills/markdown;
     })
   ];
 }
