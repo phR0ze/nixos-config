@@ -55,6 +55,9 @@ in
 
       # Install the markdown skill as a link to the nix store
       files.user.".claude/skills/markdown".link = ./include/skills/markdown;
+
+      # Install the define skill as a link to the nix store
+      files.user.".claude/skills/define".link = ./include/skills/define;
     })
   ];
 }
