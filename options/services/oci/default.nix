@@ -12,6 +12,7 @@
   imports = [
     ./homarr.nix
     ./immich.nix
+    ./newt.nix
     ./oneup
     ./portainer
     ./stirling-pdf.nix

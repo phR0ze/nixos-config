@@ -59,6 +59,22 @@
 		]
 	},
 	"services": {
+		"oci": {
+			"homarr": {
+				"encKey": "ENC[AES256_GCM,data:ooiQGSL/0UxKo0n0Lqkunr7lQL5/4iDQQErajsxeGFiq3ltKap4jPSYlQ9T7Kb1XC3xQuExJiRLSioRpRMFY/w==,iv:niBfwigO6dh1PchAwius7JToBPf06YlXXe3oR/XNrI8=,tag:PsnbvhBOjEmaspYZLM7GQQ==,type:str]"
+			},
+			"immich": {
+				"user": {
+					"pass": "ENC[AES256_GCM,data:Mrwe9ry1qypVpoLz6ZFY,iv:yCvsoSDZQPdKxVenxpeJevIw1DSH14ONO7dZI+YonO4=,tag:mxL656uKmVpQvUVWHWwtoQ==,type:str]",
+					"group": "ENC[AES256_GCM,data:g0I457LJ,iv:f+8x4ceITsw8/SYoldg2fh8Q0FnAXZ4KJ7xOzu3P9Fs=,tag:r56mZqJTx54nyYi0Eh2zVA==,type:str]",
+					"gid": "ENC[AES256_GCM,data:0LwIow==,iv:/flwHH+SCcQ1+l1+icLH2P/RUhlfRSp/DL7RDv4ezgg=,tag:55GCIxuYQlIO+5/5wFZuLw==,type:float]"
+				}
+			},
+			"newt": {
+				"id": "ENC[AES256_GCM,data:sogLsGAZkvEVYqVHUkTW,iv:oXiw4ThmLY55LvlZ1Bik4iB+E8gAu0lbvadNBFEuivs=,tag:yOetxPMCEMM3yANXvZGx/Q==,type:str]",
+				"endpoint": "ENC[AES256_GCM,data:42nQ2B75DV/wUq/ONtjPY3xRXuDXwlM5wwzMqw==,iv:EbTOyIDcvwCcHqoD6DmsehCZNtgNB9JOFWPZzUCchT0=,tag:rcA/+OOX9Lpv+3F9Pe3srw==,type:str]"
+			}
+		},
 		"raw": {
 			"adguard": {
 				"host": "ENC[AES256_GCM,data:h/SEMtA6Uy9knhQ=,iv:zVTS0xl0+p6Mazd4LVQ8oR3MiPhrBWtDkwvp94kx8Yk=,tag:RVDrL14QSHmYe3gCl9zaTw==,type:str]"
@@ -75,8 +91,8 @@
 				"recipient": "age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w"
 			}
 		],
-		"lastmodified": "2026-08-16T02:34:08Z",
-		"mac": "ENC[AES256_GCM,data:bZqfEed0IrwBih7GqX5PhjdOTxBxE39o4lEZevlVODKtthaQpQuMKrq1bYI+qRp42vo1RH2/hLlGTxqxSBKTbA8Kum7Rtd5k3/bjRaaghkMjztD8KlUNaDd3hXMouh4i489sn8XHnijvsVByaHYn6gUaLleJdhTsl0VhxtEAj6I=,iv:eEpPrhnI7ZS1PR1Vb9DJnseN/HYWa8uRM1UoWYCrEd4=,tag:UfB/HrzrEKverOfpB55cCA==,type:str]",
+		"lastmodified": "2026-08-20T02:42:59Z",
+		"mac": "ENC[AES256_GCM,data:bg8ynQp20Zzzq8rJ2/X5wibo84SyIh29KwQMM2p/oUbbYVDnuj8Jt8u16np8QnD6m9Nb0S7aIvArNO4z+8GKq21SjBbeebUj6tvFkrs1/r/PAbx7ALEM1dVRJRZ4lY/frHdrxnllKHYet+drTc11rbpAoeZjfgUJ6FzLU8L+zrM=,iv:BATMoIcnP9R//xCbkreqww1wfSdWIpmNeJKUelfHYJ4=,tag:Au8IozE7C3k+hsv/afkREg==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.13.1"
 	}
