@@ -19,7 +19,7 @@
     machine.autologin = true;
 
     apps.dev.claude.enable = true;
-    services.oci.portainer.enable = true;
+    #services.oci.portainer.enable = true;
 
     # Beefed up VM specs with DHCP full LAN presence
     # --------------------------------------------
@@ -27,7 +27,7 @@
       cores = 4;
       memorySize = 8;
       rootDrive.size = 40;
-      display.enable = false;
+      display.enable = true;
       interfaces = [{
         type = "user";
         id = "vm-test";
