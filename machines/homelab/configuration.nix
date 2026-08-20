@@ -41,10 +41,30 @@
         { subdomain = "synology"; host = config.machine.services.raw.synology.host; port = 5000; }
       ];
     };
-    services.oci.homarr = { enable = true; port = 80; };
-    services.oci.oneup = { enable = true; port = 8002; };
-    services.oci.stirling-pdf = { enable = true; port = 8001; };
-    services.oci.newt = { enable = true; secrets = ./secrets.enc.yaml; };
+    services.oci.homarr = {
+      enable = true;
+      port = 80;
+      tag = "v1.37.0";
+      user.uid = 2000;
+    };
+    services.oci.stirling-pdf = {
+      enable = true;
+      port = 8001;
+      tag = "1.3.2";
+      user.uid = 2001;
+    };
+    services.oci.oneup = {
+      enable = true;
+      port = 8002;
+      tag = "latest";
+      user.uid = 2002;
+    };
+    services.oci.newt = {
+      enable = true;
+      tag = "1.16.0";
+      user.uid = 2005;
+      secrets = ./secrets.enc.yaml;
+    };
     #services.oci.immich = { enable = true; port = 2283; tag = "v2.0.1"; };
 
     # Additional apps

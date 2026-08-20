@@ -41,7 +41,7 @@
     # Services
     services.raw.podman.enable = true;
     virtualisation.qemu.host.enable = true;
-    services.oci.oneup = { enable = true; port = 8002; };
+    services.oci.oneup = { enable = true; port = 8002; user.uid = 2002; };
 
     # Misc
     environment.systemPackages = with pkgs; [

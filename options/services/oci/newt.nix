@@ -34,12 +34,7 @@
 let
   cfg = config.services.oci.newt;
 
-  # Pin to the latest known release (github.com/fosrl/newt/releases)
-  # Bump this by hand when a newer Newt version ships; still overridable per-machine via
-  # `args.services.oci.newt.tag` or `services.oci.newt.tag`.
-  defaults = (f.getService args "newt" 2005 2005) // {
-    tag = args.services.oci.newt.tag or "1.16.0";
-  };
+  defaults = f.getService args "newt";
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];

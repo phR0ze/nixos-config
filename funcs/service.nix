@@ -5,10 +5,12 @@
   # Extract the target service and process defaults
   # - args: is the json input used by the machine and related types
   # - name: the target service's name used for user name and group
-  # - uid: is the specific target service's user id
-  # - gid: is the specific target service's group id
+  #
+  # There's no built-in uid default here — the machine's configuration.nix is the single place
+  # `services.oci.<name>.user.uid` gets set (service_base.nix asserts it's present). The group id
+  # always mirrors the user id (see options/types/user.nix), so there's no separate gid to set.
   #-------------------------------------------------------------------------------------------------
-  getService = args: name: uid: gid: let
+  getService = args: name: let
     target = args.services.oci."${name}" or {};
     service = {
       enable = target.enable or false;
@@ -20,8 +22,7 @@
         pass = target.user.pass;
         fullname = target.user.fullname or name;
         email = target.user.email or "${name}@local";
-        uid = target.user.uid or uid;
-        gid = target.user.gid or gid;
+        uid = target.user.uid or null;
       };
       port = target.port or 80;
     };
