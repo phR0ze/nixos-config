@@ -16,7 +16,7 @@
     tag = lib.mkOption {
       description = lib.mdDoc "Service image 'tag' to use";
       type = types.str;
-      default = "latest";
+      default = defaults.tag or "latest";
     };
 
     user = lib.mkOption {
