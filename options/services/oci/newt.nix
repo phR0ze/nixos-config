@@ -126,6 +126,11 @@ in
       hostname = "${cfg.name}";
       user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
       networks = [ cfg.name ];                  # Isolated app specific network
+      environment = {
+        # CONFIG_FILE is Newt's documented override (see resolveConfigFilePath in fosrl/newt) —
+        # point it at the writable /tmp tmpfs mounted below instead.
+        CONFIG_FILE = "/tmp/newt-client/config.json";
+      };
       environmentFiles = [ config.sops.templates."newt.env".path ];
       volumes = [
         "/etc/localtime:/etc/localtime:ro"
