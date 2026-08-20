@@ -3,24 +3,24 @@
 # - https://caddyserver.com/docs/modules/dns.providers
 #
 # ### Description
-# Fronts one or more homelab services with Caddy-managed TLS. Each proxied service
-# gets its own HTTPS port and a real, publicly-trusted Let's Encrypt certificate obtained via a
-# Cloudflare DNS-01 challenge (see `options/services/raw/caddy/package.nix` for the
+# Fronts one or more homelab services with Caddy-managed TLS. All proxies share a single wildcard
+# `*.<domain>` site block on port 443, routed by hostname, and a single wildcard certificate obtained
+# via a Cloudflare DNS-01 challenge (see `options/services/raw/caddy/package.nix` for the
 # caddy-dns/cloudflare build). The original HTTP port each service already listens on is left
 # untouched, so this is purely additive.
 #
 # ### Deployment notes
 # 1. Add an entry to `proxies` per backend service: `{ subdomain = "vault"; port = 8222; }`. It'll be
-#    reachable at `https://vault.<domain>` (defaults to port 443; set `httpsPort` to put this proxy on
-#    a non-standard port instead). Multiple proxies can share port 443 — Caddy multiplexes by SNI, so
-#    site blocks bind to `<subdomain>.<domain>` rather than a bare port. `host` defaults to `127.0.0.1`
-#    for a backend running on this same machine; set it to another host's LAN IP to front a service
-#    running elsewhere on the network (e.g. `{ subdomain = "adguard"; host = "192.168.1.5"; port = 3000; }`).
+#    reachable at `https://vault.<domain>` via the shared wildcard block on port 443. `host` defaults to
+#    `127.0.0.1` for a backend running on this same machine; set it to another host's LAN IP to front a
+#    service running elsewhere on the network (e.g. `{ subdomain = "adguard"; host = "192.168.1.5"; port
+#    = 3000; }`).
 # 2. Set `domain = config.machine.domain;` in the machine's `configuration.nix` (machine.domain comes
 #    from the `domain` key in `args.enc.json`/`args.nix`, keeping the literal zone name out of tracked
-#    files). DNS-01 only proves control of the zone — it doesn't create routing, so each
-#    `<subdomain>.<domain>` still needs an actual DNS record in Cloudflare (can be a greyed-out/
-#    non-proxied A/CNAME pointing anywhere, since clients reach this host directly on the LAN).
+#    files). DNS-01 only proves control of the zone — it doesn't create routing, so Cloudflare needs a
+#    single wildcard `*.<domain>` DNS record (can be a greyed-out/non-proxied A/CNAME pointing anywhere,
+#    since clients reach this host directly on the LAN) — any new subdomain added to `proxies` then just
+#    works without touching Cloudflare again.
 # 3. Add a scoped Cloudflare API token (Zone:DNS:Edit + Zone:Zone:Read for the zone(s) in question —
 #    not the Global API Key) to a `secrets.enc.yaml` under the `caddy.cloudflareApiToken` key, then
 #    point `secrets` at it from the machine's `configuration.nix`:
@@ -35,6 +35,19 @@ let
   cfg = config.services.raw.caddy;
 
   hostOf = p: "${p.subdomain}.${cfg.domain}";
+
+  wildcardSite = lib.nameValuePair "*.${cfg.domain}:443" {
+    extraConfig = ''
+      tls {
+        dns cloudflare {env.CF_API_TOKEN}
+      }
+    '' + lib.concatMapStringsSep "\n" (p: ''
+      @${p.subdomain} host ${hostOf p}
+      handle @${p.subdomain} {
+        reverse_proxy ${p.host}:${toString p.port}
+      }
+    '') cfg.proxies;
+  };
 in
 {
   options = {
@@ -104,22 +117,15 @@ in
       # the sops-nix-rendered template above rather than embedding the secret in the Caddyfile.
       environmentFile = config.sops.templates."caddy-cloudflare.env".path;
 
-      virtualHosts = lib.listToAttrs (map
-        (p: lib.nameValuePair "${hostOf p}:${toString (p.httpsPort)}" {
-          extraConfig = ''
-            tls {
-              dns cloudflare {env.CF_API_TOKEN}
-            }
-            reverse_proxy ${p.host}:${toString p.port}
-          '';
-        })
-        cfg.proxies);
+      virtualHosts = lib.optionalAttrs (cfg.proxies != [ ]) {
+        ${wildcardSite.name} = wildcardSite.value;
+      };
     };
 
-    networking.firewall.allowedTCPPorts = map (p: p.httpsPort) cfg.proxies;
+    networking.firewall.allowedTCPPorts = lib.optional (cfg.proxies != [ ]) 443;
 
     # The NixOS caddy module runs the service as an unprivileged user with no capabilities, so
-    # binding any proxy's httpsPort below 1024 (443 by default) needs this granted explicitly.
+    # binding port 443 needs this granted explicitly.
     systemd.services.caddy.serviceConfig = {
       AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
       CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];

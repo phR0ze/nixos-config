@@ -25,14 +25,5 @@
       type = types.port;
       description = lib.mdDoc "Backend HTTP port on `host` this proxy forwards to.";
     };
-
-    httpsPort = lib.mkOption {
-      type = types.port;
-      default = 443;
-      description = lib.mdDoc ''
-        HTTPS port Caddy listens on for this proxy. Defaults to 443; override to put this proxy on a
-        non-standard port instead.
-      '';
-    };
   };
 }

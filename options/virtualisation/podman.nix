@@ -13,19 +13,17 @@
 #
 # ### Notes
 # - See README.md for usage details
+# - `enable` here is NixOS's own `virtualisation.podman.enable` — setting it (directly or via
+#   `dockerCompat`/`dockerSocket` below) also pulls in this module's extra opinionated config: the
+#   primary user's `podman` group membership, podman-compose, container-name DNS on custom networks,
+#   and weekly autoPrune.
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
-  cfg = config.services.raw.podman;
+  cfg = config.virtualisation.podman;
 in
 {
-  options = {
-    services.raw.podman = {
-      enable = lib.mkEnableOption "Install and configure Podman container runtime";
-    };
-  };
-
   config = lib.mkIf cfg.enable {
 
     # Configure primary user permissions
@@ -46,7 +44,6 @@ in
 
     # Enable and configure podman
     virtualisation.podman = {
-      enable = true;
       dockerCompat = true;            # provide docker alias
       dockerSocket.enable = true;     # link podman socket as /var/run/docker.sock requires restart
 

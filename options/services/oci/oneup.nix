@@ -9,7 +9,6 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
-  machine = config.machine;
   cfg = config.services.oci.oneup;
   defaults = (f.getService args "oneup");
 in
@@ -19,40 +18,50 @@ in
   options = {
     services.oci.oneup = lib.mkOption {
       description = lib.mdDoc "OneUp service options";
-      type = types.submodule { imports = [ (import ../../types/service.nix { inherit lib defaults; }) ]; };
+      type = types.submodule {
+        imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
+      };
       default = defaults;
     };
   };
- 
-  config = lib.mkIf cfg.enable {
-    virtualisation.podman.enable = true;
-    users.users.${cfg.user.name} = f.createUser cfg.user;
-    users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
-    # Create persistent directories for application
-    # - Args: type, path, mode, user, group, expiration
-    # - No group specified, i.e `-` defaults to root
-    # - No age specified, i.e `-` defaults to infinite
-    systemd.tmpfiles.rules = [
-      "d /var/lib/${cfg.name}/data 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
-    ];
+  config = lib.mkMerge [
+    (lib.mkIf cfg.enable {
+      virtualisation.podman.enable = true;
+      users.users.${cfg.user.name} = f.createUser cfg.user;
+      users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
-    # Generate the "podman-${cfg.name}" service unit for the container
-    virtualisation.oci-containers.containers."${cfg.name}" = {
-      hostname = "${cfg.name}";
-      user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
-      image = "ghcr.io/phr0ze/${cfg.name}:${cfg.tag}";
-      autoStart = true;
-      networks = [ cfg.name ];                  # Isolated app specific network
-      ports = [ "${(f.toIP config.net.primary.ip).address}:${toString cfg.port}:8080" ];
-      volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];
-      environment = { "PORT" = "8080"; };
-    };
+      # Create persistent directories for application
+      # - Args: type, path, mode, user, group, expiration
+      # - No group specified, i.e `-` defaults to root
+      # - No age specified, i.e `-` defaults to infinite
+      systemd.tmpfiles.rules = [
+        "d /var/lib/${cfg.name}/data 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
+      ];
 
-    networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
+      # Generate the "podman-${cfg.name}" service unit for the container
+      virtualisation.oci-containers.containers."${cfg.name}" = {
+        hostname = "${cfg.name}";
+        user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
+        image = "ghcr.io/phr0ze/${cfg.name}:${cfg.tag}";
+        autoStart = true;
+        networks = [ cfg.name ];                  # Isolated app specific network
+        ports = [ "127.0.0.1:${toString cfg.port}:8080" ];  # Not exposed on LAN; front with services.raw.caddy
+        volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];
+        environment = { "PORT" = "8080"; };
+      };
 
-    # Create podmane network and extend service to use it
-    systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
-    systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
-  };
+      # Create podmane network and extend service to use it
+      systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+      systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
+    })
+
+    # Contribute a proxy entry to services.raw.caddy.proxies rather than requiring it be listed
+    # separately in the machine's configuration.nix
+    (lib.mkIf (cfg.enable && cfg.subdomain != null) {
+      services.raw.caddy.proxies = [
+        { inherit (cfg) subdomain port; }
+      ];
+    })
+  ];
 }

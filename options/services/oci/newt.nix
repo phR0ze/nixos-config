@@ -29,6 +29,21 @@
 #   (Recommended)`, then use the `Endpoint`/`ID`/`Secret` values shown under `Install Site > Docker`
 #   rather than the generated `docker run` string.
 # - Get status with: sudo systemctl status podman-newt
+#
+# ### Reaching services behind Caddy (no LAN hop)
+# Newt sits on its own isolated podman network like every other services.oci.* app, with no route to
+# any other container's network — including Caddy, which runs as a native host service (not a
+# container) fronting homarr/oneup/stirling-pdf/vaultwarden with TLS. Rather than pointing Pangolin
+# Resources at this host's LAN IP (which would make anything exposed to Pangolin equally reachable by
+# every other device on the LAN), the container is given `host.containers.internal` as an alias for
+# its network's gateway address via `--add-host=host.containers.internal:host-gateway`. That gateway
+# is only reachable from inside newt's own network namespace, never from the LAN, and Caddy already
+# listens on all interfaces (it has to, to also serve LAN clients directly), so it's reachable there.
+# When defining a Resource in the Pangolin dashboard for an app fronted by Caddy, set the target to
+# `host.containers.internal:443` with TLS passthrough enabled, so the TLS ClientHello's SNI reaches
+# Caddy intact and it can route to the right vhost — the same single target/port works for every
+# Caddy-fronted app since Caddy multiplexes by SNI. Apps not fronted by Caddy still have to be
+# targeted by LAN IP:port, same as before.
 # --------------------------------------------------------------------------------------------------
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
@@ -138,6 +153,7 @@ in
       extraOptions = [
         "--cap-drop=ALL"                        # Fully user-space WireGuard — no NET_ADMIN/tun needed
         "--security-opt=no-new-privileges"
+        "--add-host=host.containers.internal:host-gateway"  # Reach Caddy without a LAN hop — see notes above
       ] ++ lib.optionals cfg.readOnlyRootfs [
         "--read-only"
         "--tmpfs=/tmp"

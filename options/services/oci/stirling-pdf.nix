@@ -24,7 +24,6 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
-  machine = config.machine;
   cfg = config.services.oci.stirling-pdf;
   defaults = f.getService args "stirling-pdf";
 in
@@ -35,66 +34,71 @@ in
     services.oci.stirling-pdf = lib.mkOption {
       description = lib.mdDoc "Stirling PDF service options";
       type = types.submodule {
-        options = {
-          #other = lib.mkEnableOption "Service specific option";
-        };
         imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
       };
       default = defaults;
     };
   };
- 
-  config = lib.mkIf cfg.enable {
-    virtualisation.podman.enable = true;
-    users.users.${cfg.user.name} = f.createUser cfg.user;
-    users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
-    # Create persistent directories for application
-    # - Args: type, path, mode, user, group, expiration
-    # - No group specified, i.e `-` defaults to root
-    # - No age specified, i.e `-` defaults to infinite
-    systemd.tmpfiles.rules = [
-      "d /var/lib/${cfg.name}/trainingData 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
-      "d /var/lib/${cfg.name}/extraConfigs 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
-      "d /var/lib/${cfg.name}/customFiles 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
-      "d /var/lib/${cfg.name}/logs 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
-      "d /var/lib/${cfg.name}/pipeline 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
-    ];
+  config = lib.mkMerge [
+    (lib.mkIf cfg.enable {
+      virtualisation.podman.enable = true;
+      users.users.${cfg.user.name} = f.createUser cfg.user;
+      users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
-    # Generate the "podman-${cfg.name}" service unit for the container
-    # https://docs.stirlingpdf.com/Getting%20started/Installation/Docker/Docker%20Install
-    virtualisation.oci-containers.containers."${cfg.name}" = {
-      # [Non-root isn't supported](https://github.com/Stirling-Tools/Stirling-PDF/issues/508)
-      # user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
-      image = "docker.stirlingpdf.com/stirlingtools/stirling-pdf:${cfg.tag}";
-      autoStart = true;
-      hostname = "${cfg.name}";
-      networks = [ cfg.name ];                          # Isolated app specific network
-      ports = [ "${(f.toIP config.net.primary.ip).address}:${toString cfg.port}:8080" ];
-      volumes = [
-        "/var/lib/${cfg.name}/trainingData:/usr/share/tessdata:rw"
-        "/var/lib/${cfg.name}/extraConfigs:/configs:rw"
-        "/var/lib/${cfg.name}/customFiles:/customFiles:rw"
-        "/var/lib/${cfg.name}/logs:/logs:rw"
-        "/var/lib/${cfg.name}/pipeline:/pipeline:rw"
+      # Create persistent directories for application
+      # - Args: type, path, mode, user, group, expiration
+      # - No group specified, i.e `-` defaults to root
+      # - No age specified, i.e `-` defaults to infinite
+      systemd.tmpfiles.rules = [
+        "d /var/lib/${cfg.name}/trainingData 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
+        "d /var/lib/${cfg.name}/extraConfigs 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
+        "d /var/lib/${cfg.name}/customFiles 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
+        "d /var/lib/${cfg.name}/logs 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
+        "d /var/lib/${cfg.name}/pipeline 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
       ];
 
-      # Configure app via overrides
-      environment = {
-        "PUID" = "${toString cfg.user.uid}";            # set the user to run as
-        "PGID" = "${toString cfg.user.gid}";            # set the group to run as
-        "METRICS_ENABLED" = "false";                    # no need to track with homelab
-        "SYSTEM_ENABLEANALYTICS" = "false";             # not a fan of being tracked
-        "DOCKER_ENABLE_SECURITY" = "false";             # don't need to login with homelab
-        "DISABLE_ADDITIONAL_FEATURES" = "false";        # don't lock off other features
-        "INSTALL_BOOK_AND_ADVANCED_HTML_OPS" = "false"; # ??
+      # Generate the "podman-${cfg.name}" service unit for the container
+      # https://docs.stirlingpdf.com/Getting%20started/Installation/Docker/Docker%20Install
+      virtualisation.oci-containers.containers."${cfg.name}" = {
+        # [Non-root isn't supported](https://github.com/Stirling-Tools/Stirling-PDF/issues/508)
+        # user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
+        image = "docker.stirlingpdf.com/stirlingtools/stirling-pdf:${cfg.tag}";
+        autoStart = true;
+        hostname = "${cfg.name}";
+        networks = [ cfg.name ];                          # Isolated app specific network
+        ports = [ "127.0.0.1:${toString cfg.port}:8080" ];  # Not exposed on LAN; front with services.raw.caddy
+        volumes = [
+          "/var/lib/${cfg.name}/trainingData:/usr/share/tessdata:rw"
+          "/var/lib/${cfg.name}/extraConfigs:/configs:rw"
+          "/var/lib/${cfg.name}/customFiles:/customFiles:rw"
+          "/var/lib/${cfg.name}/logs:/logs:rw"
+          "/var/lib/${cfg.name}/pipeline:/pipeline:rw"
+        ];
+
+        # Configure app via overrides
+        environment = {
+          "PUID" = "${toString cfg.user.uid}";            # set the user to run as
+          "PGID" = "${toString cfg.user.gid}";            # set the group to run as
+          "METRICS_ENABLED" = "false";                    # no need to track with homelab
+          "SYSTEM_ENABLEANALYTICS" = "false";             # not a fan of being tracked
+          "DOCKER_ENABLE_SECURITY" = "false";             # don't need to login with homelab
+          "DISABLE_ADDITIONAL_FEATURES" = "false";        # don't lock off other features
+          "INSTALL_BOOK_AND_ADVANCED_HTML_OPS" = "false"; # ??
+        };
       };
-    };
 
-    networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
+      # Create podmane network and extend service to use it
+      systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+      systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
+    })
 
-    # Create podmane network and extend service to use it
-    systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
-    systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
-  };
+    # Contribute a proxy entry to services.raw.caddy.proxies rather than requiring it be listed
+    # separately in the machine's configuration.nix
+    (lib.mkIf (cfg.enable && cfg.subdomain != null) {
+      services.raw.caddy.proxies = [
+        { inherit (cfg) subdomain port; }
+      ];
+    })
+  ];
 }

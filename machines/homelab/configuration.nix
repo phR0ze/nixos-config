@@ -20,9 +20,11 @@
     # Apps
     apps.dev.claude.enable = true;
 
-    # Homelab services
-    services.raw.podman.enable = true;
+    # System services
+    virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
+
+    # Homelab services
     services.raw.jellyfin.enable = true;
     services.raw.minecraft.enable = true;
     services.raw.nix-cache.host.enable = true;
@@ -30,8 +32,26 @@
     services.raw.synology-drive-client.enable = true;
     services.raw.vaultwarden = {
       enable = true;
-      caddy = { enable = true; subdomain = "vault"; };
+      port = 8222;
+      subdomain = "vault";
     };
+    services.oci.homarr = {
+      enable = true; port = 8080; user.uid = 2000; subdomain = "home"; tag = "v1.37.0";
+    };
+    services.oci.stirling-pdf = {
+      enable = true; port = 8081; user.uid = 2001; subdomain = "pdf"; tag = "1.3.2";
+    };
+    services.oci.oneup = {
+      enable = true; port = 8082; user.uid = 2002; subdomain = "oneup"; tag = "latest";
+    };
+    services.oci.newt = {
+      enable = true;
+      user.uid = 2005;
+      tag = "1.16.0";
+      secrets = ./secrets.enc.yaml;
+    };
+
+    # HTTPS Proxy service
     services.raw.caddy = {
       enable = true;
       domain = config.machine.domain;
@@ -41,31 +61,6 @@
         { subdomain = "synology"; host = config.machine.services.raw.synology.host; port = 5000; }
       ];
     };
-    services.oci.homarr = {
-      enable = true;
-      port = 80;
-      tag = "v1.37.0";
-      user.uid = 2000;
-    };
-    services.oci.stirling-pdf = {
-      enable = true;
-      port = 8001;
-      tag = "1.3.2";
-      user.uid = 2001;
-    };
-    services.oci.oneup = {
-      enable = true;
-      port = 8002;
-      tag = "latest";
-      user.uid = 2002;
-    };
-    services.oci.newt = {
-      enable = true;
-      tag = "1.16.0";
-      user.uid = 2005;
-      secrets = ./secrets.enc.yaml;
-    };
-    #services.oci.immich = { enable = true; port = 2283; tag = "v2.0.1"; };
 
     # Additional apps
     environment.systemPackages = [
