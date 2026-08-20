@@ -318,6 +318,15 @@ in
               domain = "adguard.local";
               answer = ipAddress;
             }
+            {
+              # Split-horizon: LAN clients (using this AdGuard instance as DNS) resolve
+              # *.<domain> straight to Caddy on the LAN instead of the public Pangolin IP the
+              # Cloudflare wildcard record points at — see services.raw.caddy's deployment notes.
+              # Keeps every Caddy-fronted service reachable from the LAN regardless of whether
+              # it also has a Pangolin Resource exposing it publicly yet.
+              domain = "*.${machine.domain}";
+              answer = ipAddress;
+            }
           ];
           filtering_enabled = true;
           parental_enabled = true;
