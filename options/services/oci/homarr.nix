@@ -19,7 +19,6 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
-  machine = config.machine;
   cfg = config.services.oci.homarr;
 
   defaults = f.getService args "homarr";
@@ -45,44 +44,53 @@ in
     };
   };
  
-  config = lib.mkIf cfg.enable {
-    virtualisation.podman.enable = true;
-    users.users.${cfg.user.name} = f.createUser cfg.user;
-    users.groups.${cfg.user.group} = f.createGroup cfg.user;
+  config = lib.mkMerge [
+    (lib.mkIf cfg.enable {
+      virtualisation.podman.enable = true;
+      users.users.${cfg.user.name} = f.createUser cfg.user;
+      users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
-    networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
-
-    # Create persistent directories for application
-    # - Args: type, path, mode, user, group, expiration
-    # - No group specified, i.e `-` defaults to root
-    # - No age specified, i.e `-` defaults to infinite
-    systemd.tmpfiles.rules = [
-      "d /var/lib/${cfg.name}/appdata 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
-    ];
-
-    # Generate the "podman-${cfg.name}" service unit for the container
-    virtualisation.oci-containers.containers."${cfg.name}" = {
-      # Direct non-root is not supported
-      #user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
-      image = "ghcr.io/homarr-labs/homarr:${cfg.tag}";
-      autoStart = true;
-      hostname = "${cfg.name}";
-      networks = [ cfg.name ];                  # Isolated app specific network
-      ports = [ "${(f.toIP config.net.primary.ip).address}:${toString cfg.port}:7575" ];
-      volumes = [
-        "/var/lib/${cfg.name}/appdata:/appdata:rw"
+      # Create persistent directories for application
+      # - Args: type, path, mode, user, group, expiration
+      # - No group specified, i.e `-` defaults to root
+      # - No age specified, i.e `-` defaults to infinite
+      systemd.tmpfiles.rules = [
+        "d /var/lib/${cfg.name}/appdata 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
       ];
 
-      # Configure app via overrides
-      environment = {
-        "PUID" = "${toString cfg.user.uid}";    # Change to non-root
-        "PGID" = "${toString cfg.user.gid}";    # Change to non-root
-        "SECRET_ENCRYPTION_KEY" = cfg.encKey;
-      };
-    };
+      # Generate the "podman-${cfg.name}" service unit for the container
+      virtualisation.oci-containers.containers."${cfg.name}" = {
+        # Direct non-root is not supported
+        #user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
+        image = "ghcr.io/homarr-labs/homarr:${cfg.tag}";
+        autoStart = true;
+        hostname = "${cfg.name}";
+        networks = [ cfg.name ];                  # Isolated app specific network
+        ports = [ "127.0.0.1:${toString cfg.port}:7575" ];  # Not exposed on LAN; front with services.raw.caddy
+        volumes = [
+          "/var/lib/${cfg.name}/appdata:/appdata:rw"
+        ];
 
-    # Create podmane network and extend service to use it
-    systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
-    systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
-  };
+        # Configure app via overrides
+        environment = {
+          "PUID" = "${toString cfg.user.uid}";    # Change to non-root
+          "PGID" = "${toString cfg.user.gid}";    # Change to non-root
+          "SECRET_ENCRYPTION_KEY" = cfg.encKey;
+        };
+      };
+
+      # Create podmane network and extend service to use it
+      systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+      systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
+    })
+
+    # Contribute a proxy entry to services.raw.caddy.proxies rather than requiring it be listed
+    # separately in the machine's configuration.nix
+    (lib.mkIf (cfg.enable && cfg.subdomain != null) {
+      services.raw.caddy.proxies = [
+        { inherit (cfg) subdomain port; }
+      ];
+    })
+  ];
 }
+

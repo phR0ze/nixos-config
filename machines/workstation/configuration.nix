@@ -28,7 +28,7 @@
 
     apps.network.rustdesk.autostart = false;
 
-    services.raw.podman.enable = true;
+    virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 
     apps.dev.claude.enable = true;

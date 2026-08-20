@@ -14,7 +14,6 @@
     ./mullvad
     ./nfs
     ./nix-cache
-    ./podman
     ./private-internet-access
     ./selkies
     ./smb

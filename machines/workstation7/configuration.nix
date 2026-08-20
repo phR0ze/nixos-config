@@ -39,7 +39,7 @@
     apps.media.freecad.enable = true;
 
     # Services
-    services.raw.podman.enable = true;
+    virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
     services.oci.oneup = { enable = true; port = 8002; user.uid = 2002; };
 

@@ -30,5 +30,14 @@
       type = types.int;
       default = defaults.port or 80;
     };
+
+    subdomain = lib.mkOption {
+      description = lib.mdDoc ''
+        Front this service with `services.raw.caddy` at `<subdomain>.<domain>`. Leave `null` to not
+        expose it via Caddy.
+      '';
+      type = types.nullOr types.str;
+      default = defaults.subdomain or null;
+    };
   };
 }
