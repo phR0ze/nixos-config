@@ -110,17 +110,8 @@ in
       #   using TLS, even though every virtualHost below only declares its own https port. Disable it so
       #   Caddy never touches port 80, matching this module's "no port 80 exposure" design. DNS-01
       #   doesn't need inbound HTTP challenge traffic either, so nothing is lost.
-      #
-      # - default_sni: Caddy picks which site/cert to present at the TLS layer using the ClientHello's
-      #   SNI, but Pangolin's Newt "HTTPS Resource" proxying doesn't forward SNI on its backend
-      #   connection (github.com/fosrl/pangolin#207), so those connections arrive with no SNI at all
-      #   and the handshake fails outright ("bad gateway" downstream) before the request's Host header
-      #   is ever seen. This tells Caddy which hostname to assume when SNI is missing so it can still
-      #   pick the wildcard cert/site — actual routing to a backend still happens afterward via the
-      #   request's Host header, same as any normal request.
       globalConfig = ''
         auto_https disable_redirects
-        default_sni fallback.${cfg.domain}
       '';
 
       # Cloudflare API token handed to the caddy-dns/cloudflare module via an env var, sourced from
