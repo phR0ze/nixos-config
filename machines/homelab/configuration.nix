@@ -17,9 +17,6 @@
     machine.autologin = true;
     system.x11.autolock.enable = true;
 
-    # Pangolin test
-    networking.firewall.interfaces.${config.machine.net.bridge.name}.allowedUDPPorts = [ 21820 ];
-
     # Apps
     apps.dev.claude.enable = true;
 
