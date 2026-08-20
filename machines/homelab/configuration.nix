@@ -44,6 +44,7 @@
     services.oci.homarr = { enable = true; port = 80; };
     services.oci.oneup = { enable = true; port = 8002; };
     services.oci.stirling-pdf = { enable = true; port = 8001; };
+    services.oci.newt = { enable = true; secrets = ./secrets.enc.yaml; };
     #services.oci.immich = { enable = true; port = 2283; tag = "v2.0.1"; };
 
     # Additional apps

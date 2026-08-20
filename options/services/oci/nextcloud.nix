@@ -9,7 +9,7 @@
 let
   machine = config.machine;
   cfg = config.services.oci.nextcloud;
-  defaults = (f.getService args "nextcloud" 2002 2002);
+  defaults = (f.getService args "nextcloud" 2003 2003);
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
