@@ -18,10 +18,6 @@
 		"minVer": "ENC[AES256_GCM,data:vxRDMrk=,iv:yK5Q9DqpwYKUuo5x7YO6g7Y1ipsbvvegkAtPBbbTsFw=,tag:goZTxmT6+c5Ojot6Ety5xQ==,type:str]"
 	},
 	"net": {
-		"dns": {
-			"primary": "ENC[AES256_GCM,data:09ipmfTaPA==,iv:Giu3RBufe1AVYmjK0ktT6Z3CPiaFOZgMYRRkkUyMpxo=,tag:7+ICwJskRCg51IuZz8OsYg==,type:str]",
-			"fallback": "ENC[AES256_GCM,data:OCWaG7Z//A==,iv:78jqKRsVU+kTHRrR0tUg2ZvWv/90Ip5Jkk20w5otP9Y=,tag:olZ13AfUrcD074CJ/2XH+w==,type:str]"
-		},
 		"nic0": {
 			"name": "ENC[AES256_GCM,data:TrHbfiaw,iv:imRrnu7IyTpI/jL5wsMdDZQZIVIbhVEH394iZRC2W0k=,tag:GA4jQUKPNro2+fGmdGi5QA==,type:str]",
 			"ip": "ENC[AES256_GCM,data:ZS+d8dhwZOGpy0+YJ/c=,iv:T2jVyPxtzT33FGQnDIpLtJZvzyz9mb8WzHeglj3lwsw=,tag:G1r8ZdIJjdTwCK8esNYXow==,type:str]"
@@ -83,8 +79,8 @@
 				"recipient": "age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w"
 			}
 		],
-		"lastmodified": "2026-08-16T00:28:22Z",
-		"mac": "ENC[AES256_GCM,data:V+bmwRwRgT+6bChGYpmP6fHXMPM663iNeVPmR5Ow8EczbAAQDJDxQOgzTXyYoKSuEPPefKjzgIiCGw47jH5mXk81HEjqurL3TupX96GgchjkJTL/15L3oxGfjLBBkl4PmwTHo+cOu4pZMC+omETT+1qp4VyZVEPQpcc8whny+20=,iv:sWFbgwOovbUQT/SOT/f9yLRedtV+qbuY/+pgPcAVXDg=,tag:SvfXQIvxT5+gT5xRu5lohQ==,type:str]",
+		"lastmodified": "2026-08-20T23:17:04Z",
+		"mac": "ENC[AES256_GCM,data:5TIOu6XlISAp/1nr59F25VMCOQWIYaCSuVFyr5Il1UH6T82gIPJxujKVw+D6R4x+mNw+FCVmMdpOslE3FjwtlMuKj55x71yrr729/kLUqYnsO8UoGVarudEqEnL6lucPbJ7hjIf3Ce1waTuMM8JpFCjNTDh66zMLP79I2loMs0k=,iv:IGi6jno3+bvgDZzYGS6gstjgM0gCdzyMwOo9uzFrnp4=,tag:twTYfOsU6VcVUULtg5/AFQ==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.13.1"
 	}
