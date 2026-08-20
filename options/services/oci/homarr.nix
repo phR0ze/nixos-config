@@ -22,7 +22,7 @@ let
   machine = config.machine;
   cfg = config.services.oci.homarr;
 
-  defaults = f.getService args "homarr" 2000 2000;
+  defaults = f.getService args "homarr";
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];

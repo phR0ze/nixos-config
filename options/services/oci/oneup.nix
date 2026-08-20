@@ -11,7 +11,7 @@
 let
   machine = config.machine;
   cfg = config.services.oci.oneup;
-  defaults = (f.getService args "oneup" 2002 2002);
+  defaults = (f.getService args "oneup");
 in
 {
   imports = [ (import ../../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];

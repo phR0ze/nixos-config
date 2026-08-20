@@ -2,7 +2,7 @@
 #
 # https://nixos.org/manual/nixos/stable/#ex-submodule-direct
 #---------------------------------------------------------------------------------------------------
-{ lib, defaults, ... }: with lib.types;
+{ lib, defaults }: { config, ... }: with lib.types;
 {
   options = {
     name = lib.mkOption {
@@ -44,7 +44,12 @@
     gid = lib.mkOption {
       description = lib.mdDoc "User group id";
       type = types.nullOr types.int;
-      default = defaults.gid or null;
     };
+  };
+
+  # Group id is always the same as the user id unless explicitly overridden, so setting `uid` alone
+  # (e.g. per-machine) is enough to move both consistently
+  config = {
+    gid = lib.mkDefault config.uid;
   };
 }

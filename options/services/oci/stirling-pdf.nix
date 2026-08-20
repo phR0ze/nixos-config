@@ -26,7 +26,7 @@
 let
   machine = config.machine;
   cfg = config.services.oci.stirling-pdf;
-  defaults = f.getService args "stirling-pdf" 2001 2001;
+  defaults = f.getService args "stirling-pdf";
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];

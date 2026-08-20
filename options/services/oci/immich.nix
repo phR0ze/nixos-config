@@ -17,7 +17,7 @@ let
   machine = config.machine;
   cfg = config.services.oci.immich;
   gpu = config.devices.gpu;
-  defaults = (f.getService args "immich" 2004 2004);
+  defaults = (f.getService args "immich");
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
