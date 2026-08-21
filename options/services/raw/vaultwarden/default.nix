@@ -21,12 +21,10 @@
 # 4. Point the Bitwarden client(s) at this server's `domain` and log in as normal — the first
 #    account created is a regular user, not an admin.
 # 5. To reach this service through a Pangolin *private* (ZTNA) resource instead of the public
-#    `subdomain`, set `dedicatedPort`. Private resources can't set a custom Host header/SNI the
-#    way a Public resource can (fosrl/pangolin#207, #452, #2720), so they can't be routed through
-#    `services.raw.caddy`'s shared hostname-based wildcard block above — this option instead gives
-#    Vaultwarden its own single-purpose Caddy listener (`services.raw.caddy.proxies[].dedicatedPort`)
-#    with no Host-header routing to disambiguate. Point the Pangolin private resource's HTTP Settings
-#    at `host.containers.internal:<dedicatedPort>`, scheme `https`.
+#    `subdomain`, use a `Host`-mode (raw L4 tunnel) resource pointed straight at this machine's LAN
+#    `IP:443` — the same shared wildcard block `subdomain` above already uses. Pangolin never
+#    terminates or re-originates TLS for that resource type, so the client's real SNI/Host header
+#    reaches Caddy intact, same as any LAN client; no dedicated listener or port is needed.
 #
 # ### Directories
 # - /var/lib/bitwarden_rs
@@ -81,16 +79,6 @@ in
         example = "vault";
       };
 
-      dedicatedPort = lib.mkOption {
-        description = lib.mdDoc ''
-          Give this service a dedicated `services.raw.caddy` listener on this port
-          (`services.raw.caddy.proxies[].dedicatedPort`), for reaching it through a Pangolin *private*
-          resource — see deployment note 5 above. Leave `null` to not create one.
-        '';
-        type = types.nullOr types.port;
-        default = null;
-      };
-
     };
   };
 
@@ -118,7 +106,7 @@ in
     # separately in the machine's configuration.nix
     (lib.mkIf cfg.enable {
       services.raw.caddy.proxies = [
-        { inherit (cfg) subdomain port dedicatedPort; }
+        { inherit (cfg) subdomain port; }
       ];
     })
 
