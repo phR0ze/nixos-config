@@ -107,6 +107,12 @@ in
     #   even when `primary` is unset.
     (lib.mkIf (machine.net.dns.primary or "" != "") {
       networking.nameservers = [ "${machine.net.dns.primary}" ];
+
+      # Setting a global nameserver alone doesn't stop resolved from also querying whatever DNS
+      # dhcpcd hands it per-link (e.g. QEMU's slirp DNS forwarder), since resolved consults both
+      # the global and per-link servers for a domain unless the link is told to stop advertising
+      # DNS. `nohook resolv.conf` stops dhcpcd from pushing DHCP-provided DNS to resolved at all.
+      networking.dhcpcd.extraConfig = "nohook resolv.conf";
     })
     (lib.mkIf (machine.net.dns.fallback or "" != "") {
       services.resolved.settings.Resolve.FallbackDNS = [ "${machine.net.dns.fallback}" ];
