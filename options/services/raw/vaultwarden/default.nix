@@ -6,12 +6,11 @@
 # official Bitwarden clients: browser extension, desktop app, mobile app and CLI.
 #
 # ### Deployment notes
-# 1. Vaultwarden listens on `127.0.0.1:<port>` only (not exposed on the LAN). Set `subdomain` to
-#    front this service with `services.raw.caddy`'s Let's Encrypt-backed TLS termination — browsers
-#    refuse to run the vault's crypto over plain HTTP unless the origin is `localhost`, so a
+# 1. Vaultwarden listens on `127.0.0.1:<port>` only (not exposed on the LAN). `subdomain` is required
+#    and fronts this service with `services.raw.caddy`'s Let's Encrypt-backed TLS termination —
+#    browsers refuse to run the vault's crypto over plain HTTP unless the origin is `localhost`, so a
 #    Caddy-terminated HTTPS subdomain is the supported way to reach this service.
-# 2. `domain` defaults to `https://<subdomain>.<machine.domain>` when `subdomain` is set, otherwise
-#    `https://<machine.net.nic0.ip>:<port + 1000>`. Set explicitly to override.
+# 2. `domain` defaults to `https://<subdomain>.<machine.domain>`. Set explicitly to override.
 # 3. To enable the `/admin` diagnostics page, set `enableAdminPanel = true` and add an admin token to
 #    a `secrets.enc.yaml` under the `vaultwarden.adminToken` key, then declare it in the machine's
 #    `configuration.nix` (this module only consumes the secret, it doesn't declare it, since
@@ -21,6 +20,13 @@
 #      };
 # 4. Point the Bitwarden client(s) at this server's `domain` and log in as normal — the first
 #    account created is a regular user, not an admin.
+# 5. To reach this service through a Pangolin *private* (ZTNA) resource instead of the public
+#    `subdomain`, set `dedicatedPort`. Private resources can't set a custom Host header/SNI the
+#    way a Public resource can (fosrl/pangolin#207, #452, #2720), so they can't be routed through
+#    `services.raw.caddy`'s shared hostname-based wildcard block above — this option instead gives
+#    Vaultwarden its own single-purpose Caddy listener (`services.raw.caddy.proxies[].dedicatedPort`)
+#    with no Host-header routing to disambiguate. Point the Pangolin private resource's HTTP Settings
+#    at `host.containers.internal:<dedicatedPort>`, scheme `https`.
 #
 # ### Directories
 # - /var/lib/bitwarden_rs
@@ -42,20 +48,13 @@ in
 
       domain = lib.mkOption {
         type = types.nullOr types.str;
-        default =
-          if cfg.subdomain != null
-          then "https://${cfg.subdomain}.${config.machine.domain}"
-          else "https://${lib.head (lib.splitString "/" config.machine.net.nic0.ip)}:${toString (cfg.port + 1000)}";
-        defaultText = lib.literalExpression ''
-          if subdomain != null then "https://''${subdomain}.''${machine.domain}"
-          else "https://''${machine.net.nic0.ip}:''${port + 1000}"
-        '';
+        default = "https://${cfg.subdomain}.${config.machine.domain}";
+        defaultText = lib.literalExpression ''"https://''${subdomain}.''${machine.domain}"'';
         example = "https://vault.example.com";
         description = lib.mdDoc ''
           Externally reachable URL clients will use to reach this server. Required for WebAuthn/U2F
-          and for icons/links to render correctly. Defaults to `https://<subdomain>.<machine.domain>`
-          when `subdomain` is set, otherwise falls back to this host's LAN IP on `port + 1000`. Set
-          explicitly to override.
+          and for icons/links to render correctly. Defaults to `https://<subdomain>.<machine.domain>`.
+          Set explicitly to override.
         '';
       };
 
@@ -76,10 +75,19 @@ in
 
       subdomain = lib.mkOption {
         description = lib.mdDoc ''
-          Front this service with `services.raw.caddy` at `<subdomain>.<domain>`. Leave `null` to not
-          expose it via Caddy.
+          Front this service with `services.raw.caddy` at `<subdomain>.<domain>`.
         '';
-        type = types.nullOr types.str;
+        type = types.str;
+        example = "vault";
+      };
+
+      dedicatedPort = lib.mkOption {
+        description = lib.mdDoc ''
+          Give this service a dedicated `services.raw.caddy` listener on this port
+          (`services.raw.caddy.proxies[].dedicatedPort`), for reaching it through a Pangolin *private*
+          resource — see deployment note 5 above. Leave `null` to not create one.
+        '';
+        type = types.nullOr types.port;
         default = null;
       };
 
@@ -108,9 +116,9 @@ in
 
     # Contribute a proxy entry to services.raw.caddy.proxies rather than requiring it be listed
     # separately in the machine's configuration.nix
-    (lib.mkIf (cfg.enable && cfg.subdomain != null) {
+    (lib.mkIf cfg.enable {
       services.raw.caddy.proxies = [
-        { inherit (cfg) subdomain port; }
+        { inherit (cfg) subdomain port dedicatedPort; }
       ];
     })
 

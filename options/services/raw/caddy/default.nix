@@ -15,6 +15,12 @@
 #    `127.0.0.1` for a backend running on this same machine; set it to another host's LAN IP to front a
 #    service running elsewhere on the network (e.g. `{ subdomain = "adguard"; host = "192.168.1.5"; port
 #    = 3000; }`).
+# 1b. For a backend that also (or instead) needs a single-purpose listener — no Host-header routing at
+#    all, e.g. a Pangolin *private* resource, which can't set a custom Host header/SNI to disambiguate a
+#    hostname-routed backend the way a Public resource can — set `dedicatedPort` on that same entry:
+#    `{ subdomain = "vault"; port = 8222; dedicatedPort = 8443; }`. It gets its own listener on
+#    `dedicatedPort`; every connection there is forwarded to `host:port` regardless of Host/SNI. Omit
+#    `subdomain` on an entry that only ever needs the dedicated listener.
 # 2. Set `domain = config.machine.domain;` in the machine's `configuration.nix` (machine.domain comes
 #    from the `domain` key in `args.enc.json`/`args.nix`, keeping the literal zone name out of tracked
 #    files). DNS-01 only proves control of the zone — it doesn't create routing, so Cloudflare needs a
@@ -36,6 +42,9 @@ let
 
   hostOf = p: "${p.subdomain}.${cfg.domain}";
 
+  wildcardProxies = lib.filter (p: p.subdomain != null) cfg.proxies;
+  dedicatedProxies = lib.filter (p: p.dedicatedPort != null) cfg.proxies;
+
   wildcardSite = lib.nameValuePair "*.${cfg.domain}:443" {
     extraConfig = ''
       tls {
@@ -46,7 +55,16 @@ let
       handle @${p.subdomain} {
         reverse_proxy ${p.host}:${toString p.port}
       }
-    '') cfg.proxies;
+    '') wildcardProxies;
+  };
+
+  dedicatedSite = p: lib.nameValuePair ":${toString p.dedicatedPort}" {
+    extraConfig = ''
+      tls {
+        dns cloudflare {env.CF_API_TOKEN}
+      }
+      reverse_proxy ${p.host}:${toString p.port}
+    '';
   };
 in
 {
@@ -81,7 +99,9 @@ in
         description = lib.mdDoc ''
           Backend services to front with Caddy-managed local TLS. Populated automatically from any
           enabled app's own `caddy` option (e.g. `services.raw.vaultwarden.caddy`) — only add entries
-          here directly for apps that don't expose one.
+          here directly for apps that don't expose one. Each entry is hostname-routed on the shared
+          wildcard block when `subdomain` is set, and/or given its own single-purpose listener when
+          `dedicatedPort` is set — see `../../../types/caddy_proxy.nix`.
         '';
       };
     };
@@ -127,12 +147,13 @@ in
       # the sops-nix-rendered template above rather than embedding the secret in the Caddyfile.
       environmentFile = config.sops.templates."caddy-cloudflare.env".path;
 
-      virtualHosts = lib.optionalAttrs (cfg.proxies != [ ]) {
+      virtualHosts = lib.optionalAttrs (wildcardProxies != [ ]) {
         ${wildcardSite.name} = wildcardSite.value;
-      };
+      } // lib.listToAttrs (map dedicatedSite dedicatedProxies);
     };
 
-    networking.firewall.allowedTCPPorts = lib.optional (cfg.proxies != [ ]) 443;
+    networking.firewall.allowedTCPPorts =
+      lib.optional (wildcardProxies != [ ]) 443 ++ map (p: p.dedicatedPort) dedicatedProxies;
 
     # The NixOS caddy module runs the service as an unprivileged user with no capabilities, so
     # binding port 443 needs this granted explicitly.
