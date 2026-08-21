@@ -108,13 +108,19 @@ in
     (lib.mkIf (machine.net.dns.primary or "" != "") {
       networking.nameservers = [ "${machine.net.dns.primary}" ];
 
-      # Setting a global nameserver alone doesn't stop resolved from also querying whatever DNS
-      # dhcpcd hands it per-link (e.g. QEMU's slirp DNS forwarder), since resolved consults both
-      # the global and per-link servers for a domain unless the link has none configured. The
-      # NixOS dhcpcd module always requests `domain_name_servers` from the DHCP server by default,
-      # and `nohook resolv.conf` alone doesn't stop dhcpcd's dbus-based push to resolved, so we
-      # override the requested option list (later `option` lines replace, not append) to drop
-      # `domain_name_servers` entirely - dhcpcd then never learns of a per-link DNS server to push.
+      # Setting a global nameserver alone doesn't stop resolved from also querying whatever DNS a
+      # link is handed, since resolved consults both the global and per-link servers for a domain
+      # unless the link has none configured. Machines with `net.network-manager.enable = true`
+      # (most desktop profiles) use NetworkManager's own internal DHCP client, not dhcpcd, so it's
+      # NetworkManager - not dhcpcd - that pushes per-link DNS (e.g. QEMU's slirp DNS forwarder) to
+      # resolved. `ignore-auto-dns` tells NetworkManager to drop DHCP/RA-provided DNS entirely.
+      networking.networkmanager.connectionConfig = {
+        "ipv4.ignore-auto-dns" = true;
+        "ipv6.ignore-auto-dns" = true;
+      };
+
+      # Belt-and-suspenders for machines using scripted networking (dhcpcd) instead of
+      # NetworkManager: stop dhcpcd from requesting/pushing DNS at all.
       networking.dhcpcd.extraConfig = ''
         nohook resolv.conf
         option domain_name, domain_search
