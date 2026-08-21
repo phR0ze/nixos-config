@@ -69,7 +69,7 @@ LEFT+=" ${TN_COMMENT}|${RESET} ${TN_ORANGE}${COST_FMT}${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_CYAN}${DUR_FMT}${RESET}"
 
 # Right side: hostname:project, lines changed, style
-RIGHT="${TN_COMMENT}${HOST}:${RESET}${TN_BLUE}${PROJECT}${RESET} ${TN_COMMENT}|${RESET} ${TN_GREEN}+${LINES_ADD}${RESET} ${TN_RED}-${LINES_REM}${RESET}"
+RIGHT="${TN_ORANGE}${HOST}:${RESET}${TN_BLUE}${PROJECT}${RESET} ${TN_COMMENT}|${RESET} ${TN_GREEN}+${LINES_ADD}${RESET} ${TN_RED}-${LINES_REM}${RESET}"
 if [ -n "$STYLE" ]; then
   STYLE_UPPER=$(echo "$STYLE" | tr '[:lower:]' '[:upper:]')
   RIGHT+=" ${TN_COMMENT}|${RESET} ${TN_PURPLE}${STYLE_UPPER}${RESET}"
