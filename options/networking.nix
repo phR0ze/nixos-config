@@ -110,9 +110,15 @@ in
 
       # Setting a global nameserver alone doesn't stop resolved from also querying whatever DNS
       # dhcpcd hands it per-link (e.g. QEMU's slirp DNS forwarder), since resolved consults both
-      # the global and per-link servers for a domain unless the link is told to stop advertising
-      # DNS. `nohook resolv.conf` stops dhcpcd from pushing DHCP-provided DNS to resolved at all.
-      networking.dhcpcd.extraConfig = "nohook resolv.conf";
+      # the global and per-link servers for a domain unless the link has none configured. The
+      # NixOS dhcpcd module always requests `domain_name_servers` from the DHCP server by default,
+      # and `nohook resolv.conf` alone doesn't stop dhcpcd's dbus-based push to resolved, so we
+      # override the requested option list (later `option` lines replace, not append) to drop
+      # `domain_name_servers` entirely - dhcpcd then never learns of a per-link DNS server to push.
+      networking.dhcpcd.extraConfig = ''
+        nohook resolv.conf
+        option domain_name, domain_search
+      '';
     })
     (lib.mkIf (machine.net.dns.fallback or "" != "") {
       services.resolved.settings.Resolve.FallbackDNS = [ "${machine.net.dns.fallback}" ];
