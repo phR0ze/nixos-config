@@ -13,6 +13,7 @@ DURATION_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0' | cut -d. -f1
 LINES_ADD=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
 LINES_REM=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
 PROJECT=$(echo "$input" | jq -r '.workspace.project_dir // ""' | xargs basename 2>/dev/null)
+HOST=$(hostname -s 2>/dev/null)
 STYLE=$(echo "$input" | jq -r '.output_style.name // ""')
 
 # Format values
@@ -67,8 +68,8 @@ LEFT+=" ${TN_COMMENT}|${RESET} ${TN_BLUE}↑${IN_K} ↓${OUT_K}${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_ORANGE}${COST_FMT}${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_CYAN}${DUR_FMT}${RESET}"
 
-# Right side: project, lines changed, style
-RIGHT="${TN_BLUE}${PROJECT}${RESET} ${TN_COMMENT}|${RESET} ${TN_GREEN}+${LINES_ADD}${RESET} ${TN_RED}-${LINES_REM}${RESET}"
+# Right side: hostname:project, lines changed, style
+RIGHT="${TN_COMMENT}${HOST}:${RESET}${TN_BLUE}${PROJECT}${RESET} ${TN_COMMENT}|${RESET} ${TN_GREEN}+${LINES_ADD}${RESET} ${TN_RED}-${LINES_REM}${RESET}"
 if [ -n "$STYLE" ]; then
   STYLE_UPPER=$(echo "$STYLE" | tr '[:lower:]' '[:upper:]')
   RIGHT+=" ${TN_COMMENT}|${RESET} ${TN_PURPLE}${STYLE_UPPER}${RESET}"
@@ -78,8 +79,8 @@ fi
 # Left: MODEL + " " + bar(BAR_WIDTH) + " " + PCT + "% | ↑" + IN_K + " ↓" + OUT_K + " | " + COST_FMT + " | " + DUR_FMT
 LEFT_LEN=$(( ${#MODEL} + 3 + BAR_WIDTH + 1 + ${#PCT} + 1 + 3 + 1 + ${#IN_K} + 2 + ${#OUT_K} + 3 + ${#COST_FMT} + 3 + ${#DUR_FMT} ))
 
-# Right: PROJECT + " | +" + LINES_ADD + " -" + LINES_REM [+ " | " + STYLE]
-RIGHT_LEN=$(( ${#PROJECT} + 3 + 1 + ${#LINES_ADD} + 2 + ${#LINES_REM} ))
+# Right: HOST + ":" + PROJECT + " | +" + LINES_ADD + " -" + LINES_REM [+ " | " + STYLE]
+RIGHT_LEN=$(( ${#HOST} + 1 + ${#PROJECT} + 3 + 1 + ${#LINES_ADD} + 2 + ${#LINES_REM} ))
 [ -n "$STYLE" ] && RIGHT_LEN=$(( RIGHT_LEN + 3 + ${#STYLE_UPPER} ))
 
 # Get terminal width — prioritize stty as it reflects actual current size
