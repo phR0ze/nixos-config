@@ -6,11 +6,9 @@
 # official Bitwarden clients: browser extension, desktop app, mobile app and CLI.
 #
 # ### Deployment notes
-# 1. Vaultwarden listens on `127.0.0.1:<port>` only (not exposed on the LAN). `subdomain` is required
-#    and fronts this service with `services.raw.caddy`'s Let's Encrypt-backed TLS termination —
-#    browsers refuse to run the vault's crypto over plain HTTP unless the origin is `localhost`, so a
-#    Caddy-terminated HTTPS subdomain is the supported way to reach this service.
-# 2. `domain` defaults to `https://<subdomain>.<machine.domain>`. Set explicitly to override.
+# 1. Vaultwarden listens on `127.0.0.1:<port>` only (not exposed on the LAN).
+# 2. `domain` defaults to `https://<first subdomains entry>.<machine.domain>`. Set explicitly to
+#    override.
 # 3. To enable the `/admin` diagnostics page, set `enableAdminPanel = true` and add an admin token to
 #    a `secrets.enc.yaml` under the `vaultwarden.adminToken` key, then declare it in the machine's
 #    `configuration.nix` (this module only consumes the secret, it doesn't declare it, since
@@ -20,11 +18,13 @@
 #      };
 # 4. Point the Bitwarden client(s) at this server's `domain` and log in as normal — the first
 #    account created is a regular user, not an admin.
-# 5. To reach this service through a Pangolin *private* (ZTNA) resource instead of the public
-#    `subdomain`, use a `Host`-mode (raw L4 tunnel) resource pointed straight at this machine's LAN
-#    `IP:443` — the same shared wildcard block `subdomain` above already uses. Pangolin never
+# 5. To reach this service through a Pangolin *private* (ZTNA) resource instead of a public
+#    subdomain, use a `Host`-mode (raw L4 tunnel) resource pointed straight at this machine's LAN
+#    `IP:443` — the same shared wildcard block `subdomains` above already uses. Pangolin never
 #    terminates or re-originates TLS for that resource type, so the client's real SNI/Host header
-#    reaches Caddy intact, same as any LAN client; no dedicated listener or port is needed.
+#    reaches Caddy intact, same as any LAN client; no dedicated listener or port is needed. Add a
+#    second entry to `subdomains` if you want the private resource to have its own distinct name
+#    rather than reusing the first one — Caddy routes every entry identically.
 #
 # ### Directories
 # - /var/lib/bitwarden_rs
@@ -46,13 +46,13 @@ in
 
       domain = lib.mkOption {
         type = types.nullOr types.str;
-        default = "https://${cfg.subdomain}.${config.machine.domain}";
-        defaultText = lib.literalExpression ''"https://''${subdomain}.''${machine.domain}"'';
+        default = "https://${builtins.head cfg.subdomains}.${config.machine.domain}";
+        defaultText = lib.literalExpression ''"https://''${builtins.head subdomains}.''${machine.domain}"'';
         example = "https://vault.example.com";
         description = lib.mdDoc ''
           Externally reachable URL clients will use to reach this server. Required for WebAuthn/U2F
-          and for icons/links to render correctly. Defaults to `https://<subdomain>.<machine.domain>`.
-          Set explicitly to override.
+          and for icons/links to render correctly. Defaults to `https://<first subdomains
+          entry>.<machine.domain>`. Set explicitly to override.
         '';
       };
 
@@ -71,12 +71,16 @@ in
         '';
       };
 
-      subdomain = lib.mkOption {
+      subdomains = lib.mkOption {
         description = lib.mdDoc ''
-          Front this service with `services.raw.caddy` at `<subdomain>.<domain>`.
+          Front this service with `services.raw.caddy` at `<subdomain>.<domain>` for each entry
+          listed — every one gets its own hostname matcher on Caddy's shared wildcard block, all
+          routed to the same backend. The first entry is also what `domain` defaults to. List more
+          than one to give this service multiple names (e.g. a distinct name for a Pangolin private
+          resource — see deployment note 5 above); Caddy treats every entry identically.
         '';
-        type = types.str;
-        example = "vault";
+        type = listOf types.str;
+        example = [ "vault" "vault-vpn" ];
       };
 
     };
@@ -102,12 +106,10 @@ in
       ];
     })
 
-    # Contribute a proxy entry to services.raw.caddy.proxies rather than requiring it be listed
-    # separately in the machine's configuration.nix
+    # Contribute a proxy entry per subdomain to services.raw.caddy.proxies rather than requiring
+    # them be listed separately in the machine's configuration.nix
     (lib.mkIf cfg.enable {
-      services.raw.caddy.proxies = [
-        { inherit (cfg) subdomain port; }
-      ];
+      services.raw.caddy.proxies = map (s: { subdomain = s; inherit (cfg) port; }) cfg.subdomains;
     })
 
     # Conditionally enable the admin panel, pulling the token from the sops-nix secret rather than
