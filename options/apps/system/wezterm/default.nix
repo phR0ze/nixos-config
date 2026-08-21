@@ -102,7 +102,7 @@ in
     files.all.".config/wezterm/wezterm.lua".copy = confFile;
 
     # Deploy the tab title emoji helper as an executable link to the nix store
-    files.user.".local/bin/tt" = {
+    files.all.".local/bin/tt" = {
       link = ./include/tt;
       filemode = "0755";
     };
