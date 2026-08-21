@@ -51,6 +51,12 @@ in
     # Configure network manager
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf (net.network-manager.enable) {
+      # NetworkManager runs its own internal DHCP client. Leaving the legacy scripted-networking
+      # dhcpcd client enabled at the same time means both independently DHCP the same interface and
+      # can race to register their own (possibly differing) DNS servers with resolved - dhcpcd was
+      # found doing exactly this even after NetworkManager's DNS integration was disabled.
+      networking.useDHCP = false;
+
       networking.networkmanager = {
         enable = true;                      # Enable networkmanager and nm-applet
         dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
@@ -108,23 +114,8 @@ in
     (lib.mkIf (machine.net.dns.primary or "" != "") {
       networking.nameservers = [ "${machine.net.dns.primary}" ];
 
-      # Setting a global nameserver alone doesn't stop resolved from also querying whatever DNS a
-      # link is handed, since resolved consults both the global and per-link servers for a domain
-      # unless the link has none configured. Machines with `net.network-manager.enable = true`
-      # (most desktop profiles) use NetworkManager's own internal DHCP client, not dhcpcd, so it's
-      # NetworkManager - not dhcpcd - that pushes per-link DNS (e.g. QEMU's slirp DNS forwarder) to
-      # resolved. `ignore-auto-dns` tells NetworkManager to drop DHCP/RA-provided DNS entirely.
-      networking.networkmanager.connectionConfig = {
-        "ipv4.ignore-auto-dns" = true;
-        "ipv6.ignore-auto-dns" = true;
-      };
-
-      # Belt-and-suspenders for machines using scripted networking (dhcpcd) instead of
-      # NetworkManager: stop dhcpcd from requesting/pushing DNS at all.
-      networking.dhcpcd.extraConfig = ''
-        nohook resolv.conf
-        option domain_name, domain_search
-      '';
+      # Force the global dns nameservers to be used
+      #services.resolved.settings.Resolve.Domains = [ "~." ];
     })
     (lib.mkIf (machine.net.dns.fallback or "" != "") {
       services.resolved.settings.Resolve.FallbackDNS = [ "${machine.net.dns.fallback}" ];
