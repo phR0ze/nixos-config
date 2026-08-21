@@ -58,11 +58,13 @@ let
     '') wildcardProxies;
   };
 
+  # No hostname is present in this site's address (`:<port>`, listening for any Host/SNI), so a
+  # Cloudflare DNS-01 challenge has no domain to request a cert for. Use Caddy's own internal CA
+  # instead — the resulting cert's trust doesn't matter here since Traefik's `serversTransport`
+  # already sets `insecureSkipVerify: true` for this backend hop; TLS just needs something to present.
   dedicatedSite = p: lib.nameValuePair ":${toString p.dedicatedPort}" {
     extraConfig = ''
-      tls {
-        dns cloudflare {env.CF_API_TOKEN}
-      }
+      tls internal
       reverse_proxy ${p.host}:${toString p.port}
     '';
   };
