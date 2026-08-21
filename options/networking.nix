@@ -114,8 +114,10 @@ in
     (lib.mkIf (machine.net.dns.primary or "" != "") {
       networking.nameservers = [ "${machine.net.dns.primary}" ];
 
-      # Force the global dns nameservers to be used
-      #services.resolved.settings.Resolve.Domains = [ "~." ];
+      # Force the global dns nameservers to be used, ignoring whatever DNS any link is separately
+      # handed. Off by default (see options/types/dns.nix) since this breaks NetworkManager's
+      # captive portal detection/login, which relies on DHCP-provided per-link DNS.
+      services.resolved.settings.Resolve.Domains = lib.mkIf machine.net.dns.force [ "~." ];
     })
     (lib.mkIf (machine.net.dns.fallback or "" != "") {
       services.resolved.settings.Resolve.FallbackDNS = [ "${machine.net.dns.fallback}" ];
