@@ -10,6 +10,12 @@
 		"user": "ENC[AES256_GCM,data:MlivOss=,iv:UCyP2bmXVOzen/y39WIrpwpR6ZuJ7LU5x3avgZnUtJ8=,tag:rQ6RPAmamh77g9VOm6m2FA==,type:str]",
 		"email": "ENC[AES256_GCM,data:mimnOzM=,iv:rPfxDpUKjhPbRGY/iiAuo5nROEWL3cJAfyobAIbO6gc=,tag:VHgDY0iUiEsmNSsYz115Rg==,type:str]"
 	},
+	"net": {
+		"dns": {
+			"primary": "ENC[AES256_GCM,data:5Lsev0GSUw==,iv:jhE7CxvnlCllCDjljSLTkYLLRXhualmdLQCZt7FcYys=,tag:G2otFv0OflTmzs9+8Me+sg==,type:str]",
+			"fallback": "ENC[AES256_GCM,data:2d/KcvDVhQ==,iv:e2/1P8TsjE+PkQM/wR4OXqQei+4utc4VYhfRZf84dkI=,tag:8yKT+S/3UrV41FFB6QnkIg==,type:str]"
+		}
+	},
 	"sops": {
 		"age": [
 			{
@@ -17,9 +23,9 @@
 				"recipient": "age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w"
 			}
 		],
-		"lastmodified": "2026-08-16T01:31:18Z",
-		"mac": "ENC[AES256_GCM,data:y1oGr22sWy4azFC/5q03T9Hsquddm/Nr9Y3+mH49THlucCi1pflZAieNShz5e2c4rz7h4MVGqVNanAde6FivpqIEtTinAPLycViE7zmk2WEDjrh4khNvZiKRSb+nHnwWVAfWqJbGtL21fS5PKKuIN/6G+r+M8hvb02q9kw4G0Vs=,iv:hc8rt22dST5wBH0lsAqt5y9cR/Pk2PiioXw3UBhIIFg=,tag:uUL+io9yBQ0vg87C2qXprQ==,type:str]",
+		"lastmodified": "2026-08-21T00:18:47Z",
+		"mac": "ENC[AES256_GCM,data:e5Jp/9uc8MDe75rhPb3OQT+AWOluUu0su8v8AER5mzTh847KBxURb1bPkwQ4DV+Ybra+ycINkVi+qNGNdDh+gKanxmErGcT/apsbahmamZaXdO/EG3bZJBc8U3lxq/yxw72r8o6kYmAI0HyTs4bN1vVUn6TAEGW9LBo9vXTYgtw=,iv:WZEuBBRXa/a+9TwGx4cp7IHh9pGNe40XGC8CCErB8Mo=,tag:+bhzOiPPP6ix+2xmYvZTbA==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
-		"version": "3.10.2"
+		"version": "3.13.1"
 	}
 }
