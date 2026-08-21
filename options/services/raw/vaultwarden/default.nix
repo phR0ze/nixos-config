@@ -6,10 +6,10 @@
 # official Bitwarden clients: browser extension, desktop app, mobile app and CLI.
 #
 # ### Deployment notes
-# 1. Browsers refuse to run the vault's crypto over plain HTTP unless the origin is `localhost` —
-#    accessing over `http://<lan-ip>:<port>` fails with a "not a secure context" error. Set
-#    `subdomain` to front this service with `services.raw.caddy`'s Let's Encrypt-backed TLS
-#    termination.
+# 1. Vaultwarden listens on `127.0.0.1:<port>` only (not exposed on the LAN). Set `subdomain` to
+#    front this service with `services.raw.caddy`'s Let's Encrypt-backed TLS termination — browsers
+#    refuse to run the vault's crypto over plain HTTP unless the origin is `localhost`, so a
+#    Caddy-terminated HTTPS subdomain is the supported way to reach this service.
 # 2. `domain` defaults to `https://<subdomain>.<machine.domain>` when `subdomain` is set, otherwise
 #    `https://<machine.net.nic0.ip>:<port + 1000>`. Set explicitly to override.
 # 3. To enable the `/admin` diagnostics page, set `enableAdminPanel = true` and add an admin token to
@@ -19,8 +19,8 @@
 #      sops.secrets."vaultwarden/adminToken" = {
 #        sopsFile = ./secrets.enc.yaml;
 #      };
-# 4. Point the Bitwarden client(s) at this server's `domain` (or `http://<host>:<port>` on the LAN)
-#    and log in as normal — the first account created is a regular user, not an admin.
+# 4. Point the Bitwarden client(s) at this server's `domain` and log in as normal — the first
+#    account created is a regular user, not an admin.
 #
 # ### Directories
 # - /var/lib/bitwarden_rs
@@ -93,16 +93,13 @@ in
       services.vaultwarden = {
         enable = true;
         config = {
-          ROCKET_ADDRESS = "0.0.0.0";
+          ROCKET_ADDRESS = "127.0.0.1";
           ROCKET_PORT = cfg.port;
           SIGNUPS_ALLOWED = cfg.signupsAllowed;
         } // lib.optionalAttrs (cfg.domain != null) {
           DOMAIN = cfg.domain;
         };
       };
-
-      # TCP: <port>
-      networking.firewall.allowedTCPPorts = [ cfg.port ];
 
       environment.systemPackages = [
         pkgs.vaultwarden      # Vaultwarden server (for the `vaultwarden` CLI tools)

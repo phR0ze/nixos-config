@@ -31,9 +31,7 @@
     services.raw.mullvad.enable = true;
     services.raw.synology-drive-client.enable = true;
     services.raw.vaultwarden = {
-      enable = true;
-      port = 8222;
-      subdomain = "vault";
+      enable = true; port = 8222; subdomain = "vault";
     };
     services.oci.homarr = {
       enable = true; port = 8080; user.uid = 2000; subdomain = "home"; tag = "v1.37.0";
