@@ -51,6 +51,9 @@ let
         -- Move current tab left/right
         { key = "LeftArrow", mods = "CTRL", action = wezterm.action.MoveTabRelative(-1) },
         { key = "RightArrow", mods = "CTRL", action = wezterm.action.MoveTabRelative(1) },
+
+        -- Toggle back and forth between the last two active tabs instead of cycling
+        { key = "Tab", mods = "CTRL", action = wezterm.action.ActivateLastTab },
       }
 
       return config
@@ -96,7 +99,7 @@ in
   config = lib.mkIf (cfg.enable) {
     environment.systemPackages = with pkgs; [ wezterm ];
 
-    files.all.".config/wezterm/wezterm.lua".weakCopy = confFile;
+    files.all.".config/wezterm/wezterm.lua".copy = confFile;
 
     # Deploy the tab title emoji helper as an executable link to the nix store
     files.user.".local/bin/tt" = {
