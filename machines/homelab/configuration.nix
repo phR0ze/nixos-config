@@ -25,11 +25,13 @@
     virtualisation.qemu.host.enable = true;
 
     # Homelab services
-    services.raw.jellyfin.enable = true;
     services.raw.minecraft.enable = true;
     services.raw.nix-cache.host.enable = true;
     services.raw.mullvad.enable = true;
     services.raw.synology-drive-client.enable = true;
+    services.raw.jellyfin = {
+      enable = true; port = 8096; subdomain = "jellyfin";
+    };
     services.raw.vaultwarden = {
       enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
     };
@@ -43,10 +45,7 @@
       enable = true; port = 8082; user.uid = 2002; subdomain = "oneup"; tag = "latest";
     };
     services.oci.newt = {
-      enable = true;
-      user.uid = 2005;
-      tag = "1.16.0";
-      secrets = ./secrets.enc.yaml;
+      enable = true; /*        */ user.uid = 2005; secrets = ./secrets.enc.yaml; tag = "1.16.0"; 
     };
 
     # HTTPS Proxy service
