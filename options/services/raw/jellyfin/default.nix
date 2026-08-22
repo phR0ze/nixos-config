@@ -20,12 +20,30 @@ in
   options = {
     services.raw.jellyfin = {
       enable = lib.mkEnableOption "Install and configure Jellyfin server";
+
+      port = lib.mkOption {
+        type = lib.types.port;
+        default = 8096;
+        description = lib.mdDoc "Port the Jellyfin web/API server listens on.";
+      };
+
+      subdomain = lib.mkOption {
+        description = lib.mdDoc ''
+          Front this service with `services.raw.caddy` at `<subdomain>.<domain>` — gets a hostname
+          matcher on Caddy's shared wildcard block, routed to this service's backend. Leave `null`
+          to not front this service with Caddy (e.g. if only LAN access via `openFirewall` is
+          desired).
+        '';
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "jellyfin";
+      };
     };
   };
- 
+
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-   
+
       # Enable Jellyfin media server
       services.jellyfin = {
         enable = true;
@@ -36,12 +54,18 @@ in
         pkgs.jellyfin               # Jellyfin core
         pkgs.jellyfin-web           # Jellyfin web client support
         pkgs.jellyfin-ffmpeg        # Jellyfin codecs bundle
-      ];    
+      ];
 
       # Add access to hardware acceleration for transcoding
       # - https://wiki.nixos.org/wiki/Immich#Enabling_Hardware_Accelerated_Video_Transcoding
       # - https://jellyfin.org/docs/general/administration/hardware-acceleration/intel#linux-setups
       users.users.jellyfin.extraGroups = [ "video" "render" "users" ];
+    })
+
+    # Contribute a proxy entry to services.raw.caddy.proxies rather than requiring it be listed
+    # separately in the machine's configuration.nix
+    (lib.mkIf (cfg.enable && cfg.subdomain != null) {
+      services.raw.caddy.proxies = [ { inherit (cfg) subdomain port; } ];
     })
   ];
 }
