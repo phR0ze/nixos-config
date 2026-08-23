@@ -95,7 +95,11 @@
       # `services/oci/*.nix` lives under `/var/lib/<name>` (already covered by `WorkingDirectory`
       # above) or is a read-only `/etc/localtime` bind — neither is affected by the restrictions
       # below, so this is safe to apply uniformly rather than per-service.
-      NoNewPrivileges = true;
+      # NOT NoNewPrivileges — rootful podman runs crun as root, then setresuid()s down to each
+      # container's configured non-root user (newt/immich/oneup all set `user = "<uid>:<gid>"`).
+      # That drop needs crun to retain CAP_SETUID/CAP_SETGID through the transition, which
+      # NoNewPrivileges on the wrapping systemd unit blocks — `crun: setresuid to \`2002\`:
+      # Operation not permitted` on every container that runs as non-root until this was reverted.
       # NOT ProtectHostname — it blocks the sethostname syscall for the whole unit, including
       # `crun` setting the container's own hostname inside its own private UTS namespace (every
       # services.oci.* container sets `hostname = ...`). That's not a host-hostname change being
