@@ -89,6 +89,27 @@
     serviceConfig = {
       Restart = lib.mkForce "always";
       WorkingDirectory = "/var/lib/${name}";
+
+      # Defense-in-depth systemd sandboxing for the `podman run` wrapper process itself (on top of
+      # whatever isolation the container already has). Every host-side volume mount across
+      # `services/oci/*.nix` lives under `/var/lib/<name>` (already covered by `WorkingDirectory`
+      # above) or is a read-only `/etc/localtime` bind — neither is affected by the restrictions
+      # below, so this is safe to apply uniformly rather than per-service.
+      NoNewPrivileges = true;
+      ProtectHostname = true;
+      ProtectClock = true;
+      ProtectKernelLogs = true;
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+      RestrictRealtime = true;
+      ProtectHome = true;
+      PrivateTmp = true;
+      # "full" (not "strict") — read-only /usr, /boot, /etc, but leaves /var and /run writable.
+      # "strict" would also lock down /var, breaking podman's own state dir
+      # (/var/lib/containers) and every service's /var/lib/<name> data dir.
+      ProtectSystem = "full";
     };
   };
 }
