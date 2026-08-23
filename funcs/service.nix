@@ -99,7 +99,13 @@
       ProtectHostname = true;
       ProtectClock = true;
       ProtectKernelLogs = true;
-      ProtectKernelTunables = true;
+      # NOT ProtectKernelTunables — podman's netavark backend writes per-interface sysctls
+      # (net.ipv4.conf.<iface>.route_localnet, arp_notify, etc.) under /proc/sys every time it
+      # creates a container's network namespace. Blocking that isn't hardening against a threat
+      # the container poses to the host, it's blocking podman's own normal container-network
+      # setup — every services.oci.* container failed to start with this enabled (learned the
+      # hard way: oneup.farspire.io went down with `IO error: Read-only file system` from
+      # netavark until this was reverted).
       ProtectKernelModules = true;
       RestrictSUIDSGID = true;
       LockPersonality = true;
