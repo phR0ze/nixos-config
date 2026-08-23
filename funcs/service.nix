@@ -111,7 +111,12 @@
       # hard way: oneup.farspire.io went down with `IO error: Read-only file system` from
       # netavark until this was reverted).
       ProtectKernelModules = true;
-      RestrictSUIDSGID = true;
+      # NOT RestrictSUIDSGID — unconfirmed, but a real suspect: podman extracts image layers as
+      # root and preserves each file's mode bits from the tar, including the setuid/setgid bit on
+      # binaries some base images ship (e.g. Debian/Ubuntu-derived images' /usr/bin/sudo, /bin/su).
+      # Blocking the chmod that sets those bits risks failing layer extraction the same way
+      # ProtectKernelTunables/ProtectHostname just broke sysctls/sethostname above — pulled out
+      # before hitting that as a third live outage rather than after.
       LockPersonality = true;
       RestrictRealtime = true;
       ProtectHome = true;
