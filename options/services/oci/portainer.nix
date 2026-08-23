@@ -50,9 +50,14 @@ in
           };
 
           openFirewall = lib.mkOption {
-            description = lib.mdDoc "Whether to open the firewall for the Portainer UI port";
+            description = lib.mdDoc ''
+              Whether to open the firewall for the Portainer UI port. Defaults to closed — the
+              container already mounts the Docker/podman socket (root-equivalent host access via
+              spawning a privileged container through it), so reaching the UI at all should be a
+              deliberate per-machine choice, not an inherited default.
+            '';
             type = types.bool;
-            default = true;
+            default = false;
           };
         };
       };
@@ -76,7 +81,13 @@ in
     networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.port ];
 
     # Generate the "podman-${cfg.name}" service unit for the container
-    # Portainer runs as root (--privileged) to manage the container runtime
+    # - The Docker/podman socket mount below is the actual privilege boundary — anyone who can reach
+    #   it can spawn a privileged container and mount the host filesystem through it, so treat the UI
+    #   itself as root-equivalent access regardless of anything set here.
+    # - `--privileged` was previously set on top of that and is dropped: it grants the *container
+    #   process* full capabilities/device access and disables seccomp/AppArmor confinement, none of
+    #   which Portainer's socket-based container management actually needs — it only widened what a
+    #   compromised Portainer process (before ever touching the socket) could do for free.
     virtualisation.oci-containers.containers."${cfg.name}" = {
       image = "portainer/portainer-ce:${cfg.tag}";
       autoStart = true;
@@ -87,7 +98,7 @@ in
         "/var/run/docker.sock:/var/run/docker.sock"
         "/var/lib/${cfg.name}/data:/data"
       ];
-      extraOptions = [ "--privileged" ];
+      extraOptions = [ "--security-opt=no-new-privileges" ];
     };
 
     # Create podman network and extend service to use it

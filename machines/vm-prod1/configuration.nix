@@ -26,6 +26,7 @@
     # Portainer service
     # --------------------------------------------
     services.oci.portainer.enable = true;
+    services.oci.portainer.openFirewall = true; # LAN-reachable via macvtap bridge — deliberate opt-in
 
     # Immich
     # --------------------------------------------
