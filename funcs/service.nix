@@ -96,7 +96,11 @@
       # above) or is a read-only `/etc/localtime` bind — neither is affected by the restrictions
       # below, so this is safe to apply uniformly rather than per-service.
       NoNewPrivileges = true;
-      ProtectHostname = true;
+      # NOT ProtectHostname — it blocks the sethostname syscall for the whole unit, including
+      # `crun` setting the container's own hostname inside its own private UTS namespace (every
+      # services.oci.* container sets `hostname = ...`). That's not a host-hostname change being
+      # blocked, it's normal container setup: `crun: sethostname: Operation not permitted` on every
+      # single container until this was reverted.
       ProtectClock = true;
       ProtectKernelLogs = true;
       # NOT ProtectKernelTunables — podman's netavark backend writes per-interface sysctls
