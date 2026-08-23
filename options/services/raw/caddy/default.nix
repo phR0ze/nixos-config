@@ -51,6 +51,19 @@ let
       tls {
         dns cloudflare {env.CF_API_TOKEN}
       }
+
+      # Security headers applied to every proxied response, mirroring Pangolin's Traefik-side
+      # security-headers@file middleware. LAN-facing/TLS-passthrough traffic through Pangolin's
+      # Host-mode private resources never touches this (it's a raw L4 tunnel straight to :443, see
+      # module header comment above), but every other path — direct LAN access and Pangolin's Public
+      # HTTP resources — terminates TLS here and gets these on every response.
+      header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+      }
     '' + lib.concatMapStringsSep "\n" (p: ''
       @${p.subdomain} host ${hostOf p}
       handle @${p.subdomain} {
