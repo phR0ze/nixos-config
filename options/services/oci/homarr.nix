@@ -70,6 +70,7 @@ in
         volumes = [
           "/var/lib/${cfg.name}/appdata:/appdata:rw"
         ];
+        extraOptions = [ "--ip=${cfg.ip}" ];
 
         # Configure app via overrides
         environment = {
@@ -80,7 +81,7 @@ in
       };
 
       # Create podmane network and extend service to use it
-      systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+      systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
       systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
     })
 

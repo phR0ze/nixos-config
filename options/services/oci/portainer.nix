@@ -59,6 +59,21 @@ in
             type = types.bool;
             default = false;
           };
+
+          # Fixed subnet/IP rather than netavark's auto-IPAM — see cfg.subnet/cfg.ip's
+          # description in options/types/service.nix for why (netavark's stale-DNAT-rule cleanup
+          # bug, containers/podman#27516).
+          subnet = lib.mkOption {
+            description = lib.mdDoc "Fixed CIDR for Portainer's isolated podman network";
+            type = types.str;
+            default = "10.89.105.0/24";
+          };
+
+          ip = lib.mkOption {
+            description = lib.mdDoc "Fixed IP address (within `subnet`) for the Portainer container";
+            type = types.str;
+            default = "10.89.105.2";
+          };
         };
       };
       default = {};
@@ -98,11 +113,11 @@ in
         "/var/run/docker.sock:/var/run/docker.sock"
         "/var/lib/${cfg.name}/data:/data"
       ];
-      extraOptions = [ "--security-opt=no-new-privileges" ];
+      extraOptions = [ "--security-opt=no-new-privileges" "--ip=${cfg.ip}" ];
     };
 
     # Create podman network and extend service to use it
-    systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+    systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
     systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
   };
 }
