@@ -17,7 +17,7 @@ let
   machine = config.machine;
   cfg = config.services.oci.immich;
   gpu = config.devices.gpu;
-  defaults = (f.getService args "immich");
+  defaults = f.getService args "immich";
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
@@ -55,7 +55,7 @@ in
       ];
 
       # Create a podman network for the service
-      systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+      systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
 
       # Create the "podman-${cfg.name}-server" service
       virtualisation.oci-containers.containers."${cfg.name}-server" = {
@@ -74,7 +74,8 @@ in
           "DB_PASSWORD" = "${cfg.user.pass}";     # Postgres secret e.g. random string only containing `A-Za-z0-9`
           "DB_DATA_LOCATION" = "./postgres";      # Database files storage location
           "DB_DATABASE_NAME" = "immich";          # Database, "immich" is the suggested value
-        }; 
+        };
+        extraOptions = [ "--ip=${cfg.ip}" ];
       };
 
       # Create the "podman-${cfg.name}-machine-learning" service
@@ -94,7 +95,8 @@ in
           "NVIDIA_VISIBLE_DEVICES" = "all";       # 
           "NVIDIA_DRIVER_CAPABILITIES" = "all";   # 
         };
-        extraOptions = [ ]
+        # Static IP — see cfg.ip's description in options/types/service.nix for why
+        extraOptions = [ "--ip=${f.hostInSubnet cfg.subnet 3}" ]
           ++ lib.optionals (gpu.nvidia.enable) [
             # Docker allows you to simply pass `--gpus=all`. Podman requires all this
             "--device=/dev/nvidia0"
@@ -119,6 +121,8 @@ in
         image = "docker.io/valkey/valkey:8-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571";
         autoStart = true;
         networks = [ cfg.name ];                  # Isolated app specific network
+        # Static IP — see cfg.ip's description in options/types/service.nix for why
+        extraOptions = [ "--ip=${f.hostInSubnet cfg.subnet 4}" ];
       };
 
       # Create the "podman-${cfg.name}-redis" service
@@ -139,6 +143,8 @@ in
         };
         extraOptions = [
           "--shm-size=128mb"                      # Increase the shared memory size, default is 64mb
+          # Static IP — see cfg.ip's description in options/types/service.nix for why
+          "--ip=${f.hostInSubnet cfg.subnet 5}"
         ];
       };
 

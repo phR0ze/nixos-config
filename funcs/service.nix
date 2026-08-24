@@ -2,6 +2,13 @@
 #---------------------------------------------------------------------------------------------------
 { lib, pkgs, ... }: {
 
+  # Compute the Nth host address within a service's `/24` subnet e.g.
+  # `hostInSubnet "10.89.107.0/24" 3` -> "10.89.107.3". Used for a multi-container service (like
+  # Immich) where every container shares one `cfg.subnet` but needs its own fixed `cfg.ip`-style
+  # address — see `cfg.ip`'s description in `options/types/service.nix` for why it's fixed at all.
+  #-------------------------------------------------------------------------------------------------
+  hostInSubnet = subnet: host: "${lib.removeSuffix "0/24" subnet}${toString host}";
+
   # Extract the target service and process defaults
   # - args: is the json input used by the machine and related types
   # - name: the target service's name used for user name and group
@@ -25,6 +32,8 @@
         uid = target.user.uid or null;
       };
       port = target.port or 80;
+      subnet = target.subnet or null;
+      ip = target.ip or null;
     };
   in service;
 
@@ -52,8 +61,21 @@
 
   # Create systemd service for podman network creation
   # - name: name of the network to create e.g. `immich`
+  # - subnet: fixed CIDR for this network e.g. `10.89.101.0/24` (gateway defaults to the .1 address)
+  #
+  # Pinned rather than left to netavark's auto-IPAM. Podman/netavark have a long-standing bug
+  # (containers/podman#27516, containers/netavark#302) where the hostport DNAT rule for a stopped
+  # container is never removed — a new rule is just appended on every restart, and the stale one
+  # (pointing at a dead container IP) wins because nftables evaluates in insertion order. Auto-IPAM
+  # compounds this: if the network itself ever gets recreated (not just the container), it can land
+  # on a *different* subnet than before, leaving the host bridge interface holding a stale address
+  # for a subnet nothing routes to anymore (this is what took oneup.farspire.io down). Pinning the
+  # subnet keeps the network's addressing stable across recreation; pinning each container's own IP
+  # (see the `--ip=` extraOptions in each services.oci.* module) makes the leftover stale rule
+  # harmless even when netavark fails to clean it up, since it ends up identical to the live one
+  # instead of pointing at a dead address.
   #-------------------------------------------------------------------------------------------------
-  createContNetwork = name: {
+  createContNetwork = { name, subnet }: {
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -63,7 +85,7 @@
     };
     script = ''
       if ! ${pkgs.podman}/bin/podman network exists ${name}; then
-        ${pkgs.podman}/bin/podman network create --interface-name ${name} ${name}
+        ${pkgs.podman}/bin/podman network create --interface-name ${name} --subnet ${subnet} ${name}
       fi
     '';
   };

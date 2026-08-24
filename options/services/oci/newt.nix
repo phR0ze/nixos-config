@@ -149,6 +149,7 @@ in
       ];
       extraOptions = [
         "--add-host=host.containers.internal:host-gateway"  # Reach Caddy without a LAN hop — see notes above
+        "--ip=${cfg.ip}"
       ] ++ lib.optionals cfg.capDropAll [ "--cap-drop=ALL" ]
         ++ lib.optionals cfg.noNewPrivileges [ "--security-opt=no-new-privileges" ]
         ++ lib.optionals cfg.readOnlyRootfs [ "--read-only" "--tmpfs=/tmp" ];
@@ -158,7 +159,7 @@ in
     # networking.firewall rule is added for it, unlike the other services.oci.* modules
 
     # Create podman network and extend service to use it
-    systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+    systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
     systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
   };
 }
