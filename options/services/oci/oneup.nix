@@ -10,7 +10,17 @@
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.oci.oneup;
-  defaults = (f.getService args "oneup");
+
+  # OneUp already runs as a fixed non-root user (see `user = ...` below) with no root-then-drop
+  # startup dance of its own, and persists everything under the one `/app/data` volume already
+  # declared below — so unlike Homarr/Stirling-PDF (PUID/PGID entrypoints, root-owned startup
+  # writes) it's a safe candidate for Newt's hardening baseline. Turn any of these off if a future
+  # OneUp release needs a capability or writes somewhere outside /app/data and fails to start.
+  defaults = (f.getService args "oneup") // {
+    capDropAll = true;
+    noNewPrivileges = true;
+    readOnlyRootfs = true;
+  };
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
@@ -49,6 +59,9 @@ in
         ports = [ "127.0.0.1:${toString cfg.port}:8080" ];  # Not exposed on LAN; front with services.raw.caddy
         volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];
         environment = { "PORT" = "8080"; };
+        extraOptions = lib.optionals cfg.capDropAll [ "--cap-drop=ALL" ]
+          ++ lib.optionals cfg.noNewPrivileges [ "--security-opt=no-new-privileges" ]
+          ++ lib.optionals cfg.readOnlyRootfs [ "--read-only" "--tmpfs=/tmp" ];
       };
 
       # Create podmane network and extend service to use it
