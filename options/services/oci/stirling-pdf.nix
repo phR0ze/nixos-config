@@ -86,10 +86,12 @@ in
           "DISABLE_ADDITIONAL_FEATURES" = "false";        # don't lock off other features
           "INSTALL_BOOK_AND_ADVANCED_HTML_OPS" = "false"; # ??
         };
+
+        extraOptions = [ "--ip=${cfg.ip}" ];
       };
 
       # Create podmane network and extend service to use it
-      systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+      systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
       systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
     })
 

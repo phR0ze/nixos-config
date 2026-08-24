@@ -18,6 +18,10 @@ in
         message = "Requires 'machine.net.nic0.ip' => '${builtins.toJSON machine.net.nic0.ip}' be set to a static IP address"; }
       { assertion = (cfg ? "port" && cfg.port > 0);
         message = "Requires 'service.oci.${cfg.name}.port' => '${builtins.toJSON cfg.port}' be set"; }
+      { assertion = (cfg ? "subnet" && cfg.subnet != null && cfg.subnet != "");
+        message = "Requires 'service.oci.${cfg.name}.subnet' => '${builtins.toJSON cfg.subnet}' be set"; }
+      { assertion = (cfg ? "ip" && cfg.ip != null && cfg.ip != "");
+        message = "Requires 'service.oci.${cfg.name}.ip' => '${builtins.toJSON cfg.ip}' be set"; }
       { assertion = (cfg ? "user" && cfg.user ? "name" && cfg.user.name != null && cfg.user.name != "");
         message = "Requires 'service.oci.${cfg.name}.user.name' => '${builtins.toJSON cfg.user.name}' be set"; }
       { assertion = (cfg ? "user" && cfg.user ? "group" && cfg.user.group != null && cfg.user.group != "");

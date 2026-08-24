@@ -59,13 +59,14 @@ in
         ports = [ "127.0.0.1:${toString cfg.port}:8080" ];  # Not exposed on LAN; front with services.raw.caddy
         volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];
         environment = { "PORT" = "8080"; };
-        extraOptions = lib.optionals cfg.capDropAll [ "--cap-drop=ALL" ]
+        extraOptions = [ "--ip=${cfg.ip}" ]
+          ++ lib.optionals cfg.capDropAll [ "--cap-drop=ALL" ]
           ++ lib.optionals cfg.noNewPrivileges [ "--security-opt=no-new-privileges" ]
           ++ lib.optionals cfg.readOnlyRootfs [ "--read-only" "--tmpfs=/tmp" ];
       };
 
       # Create podmane network and extend service to use it
-      systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+      systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
       systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
     })
 

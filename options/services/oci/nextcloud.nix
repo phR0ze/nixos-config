@@ -9,7 +9,7 @@
 let
   machine = config.machine;
   cfg = config.services.oci.nextcloud;
-  defaults = (f.getService args "nextcloud");
+  defaults = f.getService args "nextcloud";
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
@@ -44,12 +44,13 @@ in
       networks = [ cfg.name ];                  # Isolated app specific network
       ports = [ "${(f.toIP config.net.primary.ip).address}:${toString cfg.port}:80" ];
       volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];
+      extraOptions = [ "--ip=${cfg.ip}" ];
     };
 
     networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
 
     # Create podmane network and extend service to use it
-    systemd.services."podman-network-${cfg.name}" = f.createContNetwork cfg.name;
+    systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
     systemd.services."podman-${cfg.name}" = f.extendContService cfg.name;
   };
 }
