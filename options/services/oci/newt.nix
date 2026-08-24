@@ -49,7 +49,14 @@
 let
   cfg = config.services.oci.newt;
 
-  defaults = f.getService args "newt";
+  # Fully user-space WireGuard — no NET_ADMIN/tun needed, and Newt is stateless with nothing
+  # written outside its writable /tmp tmpfs — so it's a safe candidate for the full hardening
+  # baseline by default.
+  defaults = (f.getService args "newt") // {
+    capDropAll = true;
+    noNewPrivileges = true;
+    readOnlyRootfs = true;
+  };
 in
 {
   imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
@@ -87,16 +94,6 @@ in
             type = types.enum [ "DEBUG" "INFO" "WARN" "ERROR" ];
             default = "INFO";
             description = lib.mdDoc "Newt log verbosity.";
-          };
-
-          readOnlyRootfs = lib.mkOption {
-            type = types.bool;
-            default = true;
-            description = lib.mdDoc ''
-              Run the container with a read-only root filesystem plus a small writable `/tmp` tmpfs.
-              Newt is stateless and persists nothing, so this stays on by default — turn off only if
-              a future Newt release starts writing somewhere else at runtime and fails to start.
-            '';
           };
         };
         imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
@@ -151,13 +148,10 @@ in
         "/etc/localtime:/etc/localtime:ro"
       ];
       extraOptions = [
-        "--cap-drop=ALL"                        # Fully user-space WireGuard — no NET_ADMIN/tun needed
-        "--security-opt=no-new-privileges"
         "--add-host=host.containers.internal:host-gateway"  # Reach Caddy without a LAN hop — see notes above
-      ] ++ lib.optionals cfg.readOnlyRootfs [
-        "--read-only"
-        "--tmpfs=/tmp"
-      ];
+      ] ++ lib.optionals cfg.capDropAll [ "--cap-drop=ALL" ]
+        ++ lib.optionals cfg.noNewPrivileges [ "--security-opt=no-new-privileges" ]
+        ++ lib.optionals cfg.readOnlyRootfs [ "--read-only" "--tmpfs=/tmp" ];
     };
 
     # Newt is outbound-only (dials out to Pangolin/Gerbil) — nothing to publish, so no
