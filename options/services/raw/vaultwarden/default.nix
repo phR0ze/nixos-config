@@ -27,7 +27,7 @@
 #    rather than reusing the first one — Caddy routes every entry identically.
 #
 # ### Directories
-# - /var/lib/bitwarden_rs
+# - /var/lib/vaultwarden
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
