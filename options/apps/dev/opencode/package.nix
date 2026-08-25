@@ -27,24 +27,24 @@
 }:
 
 let
-  version = "1.17.15";
+  version = "1.18.22";
 
   srcMap = {
     "x86_64-linux" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-x64.tar.gz";
-      hash = "sha256-DhNTdxGSx9LcDGENYf9wZou4pEINxNnjXP0z1yRfPmc=";
+      hash = "sha256-I+ymqJLGtTwPm6IzO2kGvcMZAmNGMdVM8XUA5+jL+iA=";
     };
     "aarch64-linux" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-arm64.tar.gz";
-      hash = "sha256-lmconBQ9H73UQAVa9AQbtDL0Swfd8K7wSKjH8vfGXi0=";
+      hash = "sha256-ckPnpBfRkO+ht7CYHb8NbIqni6L7AYHqIzNv27UcUXg=";
     };
     "x86_64-darwin" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-darwin-x64.zip";
-      hash = "sha256-S8QMEkobQZz6kiyts9aMLWeyCCJ2Ngs8o2ADqjUNmtQ=";
+      hash = "sha256-0a+F4eY6BCH2fT5wxhx7Vjk8fDL/XvTknwLzsfKcN3A=";
     };
     "aarch64-darwin" = {
       url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-darwin-arm64.zip";
-      hash = "sha256-I6rTWKhInNqenEbN586HsvxIRyA9200heb40IVrW7q4=";
+      hash = "sha256-ec44ETagmBlTzMMpQXZ4SYsluNMsKhp7Ve5e0lWQ+Uw=";
     };
   };
 
