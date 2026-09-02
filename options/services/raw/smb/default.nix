@@ -7,22 +7,40 @@
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   machine = config.machine;
+  hasSecrets = machine.smb.secrets != null;
 
-  # Generate credential files for each mount as directed in /etc/smb/secrets/$SHARE
+  shareName = x: builtins.baseNameOf x.mountPoint;
+
+  # Legacy plaintext credential files (baked into the Nix store via environment.etc) — used only
+  # as a fallback until this machine has a `machine.smb.secrets` file holding a `smb/<share>/pass`
+  # key per entry.
   smbSecrets = builtins.listToAttrs (map (x: {
-    name = "smb/secrets/${builtins.baseNameOf x.mountPoint}";
+    name = "smb/secrets/${shareName x}";
     value.text = ''
       username=${x.user}
       password=${x.pass}
       domain=${x.domain}
     '';
   }) machine.smb.entries);
-
-
 in
 {
   config = lib.mkIf (machine.smb.enable) {
-    environment.etc = smbSecrets;
+    environment.etc = lib.mkIf (!hasSecrets) smbSecrets;
+
+    # Decrypted to /etc/smb/secrets/<share> at activation, never touching the Nix store
+    files.templates = lib.mkIf hasSecrets (builtins.listToAttrs (map (x: {
+      name = "smb-secrets-${shareName x}";
+      value = {
+        path = "/etc/smb/secrets/${shareName x}";
+        filemode = "0400";
+        content = ''
+          username=${x.user}
+          password=${config.sops.placeholder."smb/${shareName x}/pass"}
+          domain=${x.domain}
+        '';
+        secrets."smb/${shareName x}/pass".sopsFile = machine.smb.secrets;
+      };
+    }) machine.smb.entries));
 
     fileSystems = (builtins.foldl' (a: x: {
       "${x.mountPoint}" = {

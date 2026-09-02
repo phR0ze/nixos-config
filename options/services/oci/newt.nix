@@ -84,9 +84,8 @@ in
             example = "./secrets.enc.yaml";
             description = lib.mdDoc ''
               Path to the sops-encrypted file holding the `newt.clientSecret` secret — the Newt
-              Site's Secret from the Pangolin dashboard. Declared here so
-              `sops.secrets."newt/clientSecret"` doesn't need to be repeated in every machine's
-              `configuration.nix`.
+              Site's Secret from the Pangolin dashboard. Declared here so the `sops.secrets` entry
+              doesn't need to be repeated in every machine's `configuration.nix`.
             '';
           };
 
@@ -114,20 +113,21 @@ in
     users.users.${cfg.user.name} = f.createUser cfg.user;
     users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
-    # Decrypted to /run/secrets/newt/clientSecret at activation — never touches the Nix store
-    sops.secrets."newt/clientSecret" = {
-      sopsFile = cfg.secrets;
-    };
-
     # Combine the sensitive secret with the non-secret endpoint/id into one env file for the
-    # container, so NEWT_SECRET never lands in `podman inspect`/process listing the way a plain
+    # container (decrypted to /run/newt-<name>.env at activation, never touching the Nix store),
+    # so NEWT_SECRET never lands in `podman inspect`/process listing the way a plain
     # `environment` entry would
-    sops.templates."newt.env".content = ''
-      PANGOLIN_ENDPOINT=${cfg.endpoint}
-      NEWT_ID=${cfg.id}
-      NEWT_SECRET=${config.sops.placeholder."newt/clientSecret"}
-      LOG_LEVEL=${cfg.logLevel}
-    '';
+    files.templates."newt-${cfg.name}" = {
+      path = "/run/files/newt-${cfg.name}.env";
+      filemode = "0400";
+      content = ''
+        PANGOLIN_ENDPOINT=${cfg.endpoint}
+        NEWT_ID=${cfg.id}
+        NEWT_SECRET=${config.sops.placeholder."newt/clientSecret"}
+        LOG_LEVEL=${cfg.logLevel}
+      '';
+      secrets."newt/clientSecret".sopsFile = cfg.secrets;
+    };
 
     # Generate the "podman-newt" service unit for the container
     # - cfg.port is unused here (Newt publishes no ports) — kept only because it's part of the
@@ -143,7 +143,7 @@ in
         # point it at the writable /tmp tmpfs mounted below instead.
         CONFIG_FILE = "/tmp/newt-client/config.json";
       };
-      environmentFiles = [ config.sops.templates."newt.env".path ];
+      environmentFiles = [ "/run/files/newt-${cfg.name}.env" ];
       volumes = [
         "/etc/localtime:/etc/localtime:ro"
       ];

@@ -8,6 +8,10 @@
 
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixos-files.url = "github:phR0ze/nixos-files";
+    nixos-files.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-files.inputs.sops-nix.follows = "sops-nix";
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: let
@@ -83,7 +87,7 @@
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.target = lib.nixosSystem {
       inherit pkgs system; specialArgs = { inherit args f inputs; };
-      modules = [ inputs.sops-nix.nixosModules.sops ./options ./configuration.nix ];
+      modules = [ inputs.nixos-files.nixosModules.default ./options ./configuration.nix ];
     };
 
     # Generic install host configuration based on a generic profile
@@ -102,7 +106,7 @@
         inherit f inputs;
         args = lib.recursiveUpdate _args (import ./profiles/iso_args.nix);
       };
-      modules = [ ./options ./profiles/iso.nix ];
+      modules = [ inputs.nixos-files.nixosModules.default ./options ./profiles/iso.nix ];
     };
   };
 }

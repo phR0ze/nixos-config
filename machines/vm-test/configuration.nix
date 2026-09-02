@@ -17,6 +17,8 @@
     machine.vm.type.local = true;
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
+    machine.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to machine.id)
 
     # vm-test is a static VM behind QEMU's NAT, not a roaming machine, so there's no captive
     # portal to support - force every query through the upstream DNS set in args.enc.json instead

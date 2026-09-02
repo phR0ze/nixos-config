@@ -72,9 +72,9 @@ in
     };
 
     # Configure the kvantum theme to use for Qt
-    files.all.".config/Kvantum/kvantum.kvconfig".text = "[General]\ntheme=${xft.qtTheme}";
+    files.all.".config/Kvantum/kvantum.kvconfig".copy = "[General]\ntheme=${xft.qtTheme}";
     files.all.".config/Kvantum/ArcDark".link = ../../../include/home/.config/Kvantum/ArcDark;
-    files.all.".config/qt5ct/qt5ct.conf".text = ''
+    files.all.".config/qt5ct/qt5ct.conf".copy = ''
       [Fonts]
       fixed="${xft.monospace},${toString xft.monospaceSize},-1,5,50,0,0,0,0,0,${xft.monospaceStyle}"
       general="${xft.sans},${toString xft.sansSize},-1,5,50,0,0,0,0,0,${xft.sansStyle}"

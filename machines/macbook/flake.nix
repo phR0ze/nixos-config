@@ -12,6 +12,10 @@
 
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixos-files.url = "github:phR0ze/nixos-files";
+    nixos-files.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-files.inputs.sops-nix.follows = "sops-nix";
   };
 
   nixConfig = {
@@ -93,7 +97,7 @@
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations.target = lib.nixosSystem {
       inherit pkgs system; specialArgs = { inherit args f inputs; };
-      modules = [ inputs.sops-nix.nixosModules.sops ./options ./configuration.nix ];
+      modules = [ inputs.nixos-files.nixosModules.default ./options ./configuration.nix ];
     };
   };
 }

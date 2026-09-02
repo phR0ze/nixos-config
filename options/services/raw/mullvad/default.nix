@@ -103,7 +103,7 @@ in
     # Note this only covers non-secret defaults; WireGuard credentials still require a one-time
     # manual `vopono sync --protocol wireguard mullvad` per the module documentation above.
     (lib.mkIf cfg.enable {
-      files.user.".config/vopono/config.toml".text = ''
+      files.user.".config/vopono/config.toml".copy = ''
         provider = "Mullvad"
         protocol = "Wireguard"
         server = "${cfg.server}"
