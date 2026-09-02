@@ -647,7 +647,7 @@ in
 
       # Install and configure higher performance display driver QXL for SPICE
       services.xserver.videoDrivers = [ "qxl" ];
-      environment.systemPackages = [ pkgs.xorg.xf86videoqxl ];
+      environment.systemPackages = [ pkgs.xf86-video-qxl ];
       #services.xserver.videoDrivers = [ "virtio" ];
       #environment.systemPackages = [ pkgs.virglrenderer ];
 

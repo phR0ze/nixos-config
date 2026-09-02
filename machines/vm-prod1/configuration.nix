@@ -16,6 +16,8 @@
     machine.resolution = { x = 1920; y = 1080; };
     machine.autologin = true;
     machine.nix.cache.enable = true;
+    machine.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to machine.id)
 
     # Test
     # --------------------------------------------

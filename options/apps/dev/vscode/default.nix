@@ -192,10 +192,7 @@ in
     })
 
     (lib.mkIf (cfg.enable && cfg.extensions != [ ]) {
-      files.all."${extensionsFilePath}" = {
-        own = "unowned";
-        text = pkgs.vscode-utils.toExtensionJson cfg.extensions;
-      };
+      files.all."${extensionsFilePath}".weakCopy = pkgs.vscode-utils.toExtensionJson cfg.extensions;
     })
 
 #      (lib.mkIf (cfg.userTasks != { }) {

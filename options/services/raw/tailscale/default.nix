@@ -34,9 +34,9 @@ in
         type = types.path;
         example = "./secrets.enc.yaml";
         description = lib.mdDoc ''
-          Path to the sops-encrypted file holding the `tailscale.authKey` secret. Declared here so
-          `sops.secrets."tailscale/authKey"` doesn't need to be repeated in every machine's
-          `configuration.nix`.
+          Path to the sops-encrypted file holding the `tailscale.authKey` secret (key `tailscale/authKey`
+          within it). Declared here so the `sops.secrets` entry doesn't need to be repeated in every
+          machine's `configuration.nix`.
         '';
       };
 
@@ -73,8 +73,10 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      sops.secrets."tailscale/authKey" = {
+      # Decrypted to /run/files/tailscale-authkey at activation, never touching the Nix store
+      files.any."/run/files/tailscale-authkey".encrypted = {
         sopsFile = cfg.secrets;
+        key = "tailscale/authKey";
       };
 
       # Configure the tailscale service
@@ -95,8 +97,7 @@ in
 
         #extraDaemonFlags = [ "TS_DEBUG_DISABLE_IPV6=1" ];
 
-        # Decrypted to /run/secrets/tailscale/authKey at activation
-        authKeyFile = config.sops.secrets."tailscale/authKey".path;
+        authKeyFile = "/run/files/tailscale-authkey";
       };
     })
 

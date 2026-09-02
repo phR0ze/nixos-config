@@ -119,11 +119,15 @@ in
         { assertion = config.sops.secrets ? "vaultwarden/adminToken"; message = "services.raw.vaultwarden with enableAdminPanel requires sops.secrets.\"vaultwarden/adminToken\" to be declared"; }
       ];
 
-      sops.templates."vaultwarden-admin.env".content = ''
-        ADMIN_TOKEN=${config.sops.placeholder."vaultwarden/adminToken"}
-      '';
+      files.templates."vaultwarden-admin" = {
+        path = "/run/files/vaultwarden-admin.env";
+        filemode = "0400";
+        content = ''
+          ADMIN_TOKEN=${config.sops.placeholder."vaultwarden/adminToken"}
+        '';
+      };
 
-      services.vaultwarden.environmentFile = config.sops.templates."vaultwarden-admin.env".path;
+      services.vaultwarden.environmentFile = "/run/files/vaultwarden-admin.env";
     })
   ];
 }

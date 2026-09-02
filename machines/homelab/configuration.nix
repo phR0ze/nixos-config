@@ -15,6 +15,9 @@
     machine.net.bridge.enable = true;
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
     machine.autologin = true;
+    machine.secrets = ./secrets.enc.yaml;
+    machine.smb.secrets = ./secrets.enc.yaml;
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;
     system.x11.autolock.enable = true;
 
     # Apps
@@ -37,6 +40,7 @@
     };
     services.oci.homarr = {
       enable = true; port = 8080; user.uid = 2000; subdomain = "home"; tag = "v1.37.0";
+      secrets = ./secrets.enc.yaml;
     };
     services.oci.stirling-pdf = {
       enable = true; port = 8081; user.uid = 2001; subdomain = "pdf"; tag = "1.3.2";

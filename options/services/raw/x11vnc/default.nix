@@ -19,9 +19,22 @@
 let
   cfg = config.services.raw.x11vnc;
   machine = config.machine;
+  hasSecrets = machine.secrets != null;
+
+  # Legacy eval-time bake (the plaintext password ends up in the Nix store via this derivation's
+  # builder script) -- fallback until this machine has a `machine.secrets` file.
   vncpass = pkgs.runCommandLocal "x11vnc-passwd" {} ''
     mkdir $out
     ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${machine.user.pass}" "$out/pass"
+  '';
+
+  # Runs at service start instead: reads the plaintext password from /run/files/user-password (populated by
+  # modules/users.nix, decrypted only at activation) and hashes it there, so the plaintext value
+  # never appears in a Nix derivation.
+  storePasswd = pkgs.writeShellScript "x11vnc-storepasswd" ''
+    set -euo pipefail
+    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "$(cat /run/files/user-password)" /run/x11vnc/pass
+    chmod 600 /run/x11vnc/pass
   '';
 in
 {
@@ -30,7 +43,7 @@ in
       enable = lib.mkEnableOption "Install and configure x11vnc";
     };
   };
- 
+
   config = lib.mkIf (cfg.enable) {
     environment.systemPackages = with pkgs; [
         x11vnc              # VNC Server
@@ -42,7 +55,12 @@ in
       requires = [ "display-manager.service" ];
       after = [ "display-manager.service" ];
       serviceConfig = {
-        ExecStart = "${pkgs.x11vnc}/bin/x11vnc -rfbauth ${vncpass}/pass -noxdamage -nap -many -repeat -clear_keys -capslock -xkb -forever -loop100 -no6 -auth /var/run/lightdm/root/:0 -display :0";
+        RuntimeDirectory = lib.mkIf hasSecrets "x11vnc";
+        ExecStartPre = lib.mkIf hasSecrets [ "${storePasswd}" ];
+        ExecStart =
+          if hasSecrets
+          then "${pkgs.x11vnc}/bin/x11vnc -rfbauth /run/x11vnc/pass -noxdamage -nap -many -repeat -clear_keys -capslock -xkb -forever -loop100 -no6 -auth /var/run/lightdm/root/:0 -display :0"
+          else "${pkgs.x11vnc}/bin/x11vnc -rfbauth ${vncpass}/pass -noxdamage -nap -many -repeat -clear_keys -capslock -xkb -forever -loop100 -no6 -auth /var/run/lightdm/root/:0 -display :0";
         ExecStop = "${pkgs.x11vnc}/bin/x11vnc -R stop";
       };
       wantedBy = [ "multi-user.target" ];

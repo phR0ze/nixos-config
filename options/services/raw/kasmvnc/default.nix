@@ -11,11 +11,19 @@
 let
   machine = config.machine;
   cfg = config.services.raw.kasmvnc;
+  hasSecrets = machine.secrets != null;
 
   kasmvnc = pkgs.callPackage ../../../../packages/kasmvnc {};
-  vncpass = pkgs.runCommandLocal "kasmvnc-passwd" {} ''
-    mkdir $out
-    echo "${machine.user.pass}" | ${kasmvnc}/bin/vncpasswd -u "${machine.user.name}" -o
+
+  # NOTE: this module has no actual VNC service/systemd unit wired up yet (WIP) -- neither
+  # `vncPasswd` below nor a `services.raw.kasmvnc.enable` consumer of it exists downstream, so
+  # nothing currently builds or runs this. Kept only as the runtime-safe pattern to wire up
+  # (mirroring options/services/raw/x11vnc) once the service itself is implemented: run
+  # `vncpasswd` at service start against the plaintext secret decrypted to /run/files/user-password
+  # (declared once in modules/users.nix) rather than baking the password into a Nix derivation.
+  vncPasswd = pkgs.writeShellScript "kasmvnc-passwd" ''
+    set -euo pipefail
+    cat /run/files/user-password | ${kasmvnc}/bin/vncpasswd -u "${machine.user.name}" -o
   '';
 in
 {

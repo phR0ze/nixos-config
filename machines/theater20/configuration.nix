@@ -15,6 +15,9 @@
     devices.gpu.intel.enable = true;
     machine.autologin = true;
     machine.nix.cache.enable = true;
+    machine.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
+    machine.smb.secrets = ./secrets.enc.yaml;   # real per-share passwords (ashley/lydia)
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to machine.id)
 
     services.raw.keyd.enable = true;
     apps.games.hedgewars.enable = true;

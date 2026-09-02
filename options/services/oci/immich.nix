@@ -25,7 +25,21 @@ in
   options = {
     services.oci.immich = lib.mkOption {
       description = lib.mdDoc "Immich service options";
-      type = types.submodule { imports = [ (import ../../types/service.nix { inherit lib defaults; }) ]; };
+      type = types.submodule {
+        options = {
+          secrets = lib.mkOption {
+            description = lib.mdDoc ''
+              Path to the sops-encrypted file holding the `immich/dbPassword` secret (the Postgres
+              password). When set, takes precedence over the plaintext `user.pass` fallback (baked
+              into the Nix store via args.enc.json).
+            '';
+            type = types.nullOr types.path;
+            default = null;
+            example = "./secrets.enc.yaml";
+          };
+        };
+        imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
+      };
       default = defaults;
     };
   };
@@ -34,10 +48,25 @@ in
     (lib.mkIf cfg.enable {
       assertions = [
         #{ assertion = (cfg ? "debug"); message = "echo '${builtins.toJSON cfg}' | jq"; }
-        { assertion = (cfg.user.pass != null && cfg.user.pass != "");
-          message = "Postgres pass not set, please set 'service.oci.${cfg.name}.user.pass'"; }
+        { assertion = cfg.secrets != null || (cfg.user.pass != null && cfg.user.pass != "");
+          message = "Postgres pass not set, please set 'services.oci.${cfg.name}.secrets' (recommended) or 'services.oci.${cfg.name}.user.pass'"; }
       ];
       virtualisation.podman.enable = true;
+
+      # Decrypted to /run/immich-<name>-db.env at activation, never touching the Nix store.
+      # Both DB_PASSWORD (immich-server) and POSTGRES_PASSWORD (postgres) are the same secret
+      # value, so one file covers both containers -- unused keys are harmless env vars.
+      files.templates = lib.mkIf (cfg.secrets != null) {
+        "immich-${cfg.name}-db" = {
+          path = "/run/files/immich-${cfg.name}-db.env";
+          filemode = "0400";
+          content = ''
+            DB_PASSWORD=${config.sops.placeholder."immich/dbPassword"}
+            POSTGRES_PASSWORD=${config.sops.placeholder."immich/dbPassword"}
+          '';
+          secrets."immich/dbPassword".sopsFile = cfg.secrets;
+        };
+      };
 
       # Add access to hardware acceleration for transcoding
       # - https://wiki.nixos.org/wiki/Immich
@@ -71,10 +100,12 @@ in
         ];
         environment = {
           "DB_USERNAME" = "postgres";             # Username, "postgres" is the suggested value
-          "DB_PASSWORD" = "${cfg.user.pass}";     # Postgres secret e.g. random string only containing `A-Za-z0-9`
           "DB_DATA_LOCATION" = "./postgres";      # Database files storage location
           "DB_DATABASE_NAME" = "immich";          # Database, "immich" is the suggested value
+        } // lib.optionalAttrs (cfg.secrets == null) {
+          "DB_PASSWORD" = "${cfg.user.pass}";     # Postgres secret e.g. random string only containing `A-Za-z0-9`
         };
+        environmentFiles = lib.optionals (cfg.secrets != null) [ "/run/files/immich-${cfg.name}-db.env" ];
         extraOptions = [ "--ip=${cfg.ip}" ];
       };
 
@@ -138,9 +169,11 @@ in
           "POSTGRES_DB" = "immich";               # Database, "immich" is the suggested value
           "POSTGRES_USER" = "postgres";           # Username, "postgres" is the suggested value
           "DB_STORAGE_TYPE" = "HDD";              # Specify that we are not using SSDs
-          "POSTGRES_PASSWORD" = "${cfg.user.pass}"; # Postgres secret e.g. random string only containing `A-Za-z0-9`
           "POSTGRES_INITDB_ARGS" = "--data-checksums";
+        } // lib.optionalAttrs (cfg.secrets == null) {
+          "POSTGRES_PASSWORD" = "${cfg.user.pass}"; # Postgres secret e.g. random string only containing `A-Za-z0-9`
         };
+        environmentFiles = lib.optionals (cfg.secrets != null) [ "/run/files/immich-${cfg.name}-db.env" ];
         extraOptions = [
           "--shm-size=128mb"                      # Increase the shared memory size, default is 64mb
           # Static IP — see cfg.ip's description in options/types/service.nix for why

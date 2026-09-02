@@ -18,6 +18,8 @@
   config = {
     machine.type.bootable = true;
     machine.nix.cache.enable = true;
+    machine.secrets = ./secrets.enc.yaml;   # real per-machine password (differs from shared default)
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;
     apps.games.warcraft2.enable = true;
     devices.gpu.nvidia = { enable = true; legacy470 = true; };
 

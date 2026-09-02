@@ -14,6 +14,9 @@
     machine.type.bootable = true;
     devices.gpu.intel.enable = true;
     system.x11.xft.dpi = 115;
+    machine.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
+    machine.smb.secrets = ./secrets.enc.yaml;   # per-share passwords (all default "admin")
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to machine.id)
 
     devices.printers.brother-hll2405w = true;
 

@@ -82,8 +82,7 @@ in
         example = "./secrets.enc.yaml";
         description = lib.mdDoc ''
           Path to the sops-encrypted file holding the `caddy.cloudflareApiToken` secret. Declared here
-          so `sops.secrets."caddy/cloudflareApiToken"` doesn't need to be repeated in every machine's
-          `configuration.nix`.
+          so the `sops.secrets` entry doesn't need to be repeated in every machine's `configuration.nix`.
         '';
       };
 
@@ -112,15 +111,16 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    sops.secrets."caddy/cloudflareApiToken" = {
-      sopsFile = cfg.secrets;
+    # Wraps the bare-token secret in a KEY=VALUE line rendered at activation time (mode 0400),
+    # suitable for systemd's EnvironmentFile=.
+    files.templates."caddy-cloudflare" = {
+      path = "/run/files/caddy-cloudflare.env";
+      filemode = "0400";
+      content = ''
+        CF_API_TOKEN=${config.sops.placeholder."caddy/cloudflareApiToken"}
+      '';
+      secrets."caddy/cloudflareApiToken".sopsFile = cfg.secrets;
     };
-
-    # Wraps the bare-token secret in a KEY=VALUE line sops-nix assembles at activation time (into
-    # /run/secrets-for-users or /run/secrets, mode 0400), suitable for systemd's EnvironmentFile=.
-    sops.templates."caddy-cloudflare.env".content = ''
-      CF_API_TOKEN=${config.sops.placeholder."caddy/cloudflareApiToken"}
-    '';
 
     services.caddy = {
       enable = true;
@@ -149,7 +149,7 @@ in
 
       # Cloudflare API token handed to the caddy-dns/cloudflare module via an env var, sourced from
       # the sops-nix-rendered template above rather than embedding the secret in the Caddyfile.
-      environmentFile = config.sops.templates."caddy-cloudflare.env".path;
+      environmentFile = "/run/files/caddy-cloudflare.env";
 
       virtualHosts = lib.optionalAttrs (wildcardProxies != [ ]) {
         ${wildcardSite.name} = wildcardSite.value;

@@ -1,5 +1,28 @@
 {
   "nodes": {
+    "nixos-files": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "sops-nix": [
+          "sops-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1788361187,
+        "narHash": "sha256-ZqOjvAlUYhBopDeQkcBlcl+Qy0UD8TdHn98E2kl/diA=",
+        "owner": "phR0ze",
+        "repo": "nixos-files",
+        "rev": "8544f21cbaa4979afdc69302b18d8c6f7fe44e06",
+        "type": "github"
+      },
+      "original": {
+        "owner": "phR0ze",
+        "repo": "nixos-files",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1783224372,
@@ -34,6 +57,7 @@
     },
     "root": {
       "inputs": {
+        "nixos-files": "nixos-files",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "sops-nix": "sops-nix"

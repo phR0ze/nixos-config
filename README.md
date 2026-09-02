@@ -341,6 +341,8 @@ the state of this repo, which takes one additional step to include changes.
 6. Build the iso `./clu build iso`
 
 ## Backlog
+
+### Refactor
 * [ ] Persist host bridge generated MAC addresses
 * [ ] NVIM dev configuration
 * [ ] NVIM writer configuration

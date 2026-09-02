@@ -15,6 +15,17 @@
       description = lib.mdDoc "Defalt access pass if not overriden";
       type = types.str;
     };
+    secrets = lib.mkOption {
+      description = lib.mdDoc ''
+        Path to the sops-encrypted file holding this machine's real `smb/<share>/pass` secrets
+        (keyed by each entry's mountPoint basename). Independent of `machine.secrets` because SMB
+        share passwords are inherently machine-specific and can't be satisfied by a shared/default
+        secrets file. Leave unset to fall back to the legacy build-time-baked `pass` fields above.
+      '';
+      type = types.nullOr types.path;
+      default = null;
+      example = "./secrets.enc.yaml";
+    };
     domain = lib.mkOption {
       description = lib.mdDoc "Default domain or workgroup to use";
       type = types.str;

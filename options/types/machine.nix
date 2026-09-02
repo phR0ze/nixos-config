@@ -397,6 +397,20 @@ in
             default = defaults.user;
           };
 
+          secrets = lib.mkOption {
+            description = lib.mdDoc ''
+              Path to this machine's sops-encrypted `secrets.enc.yaml`, holding real secrets that must
+              never be baked into the Nix store (the admin user's password/password hash, Samba
+              passwords, service encryption keys, etc). Declared once here so every module that needs
+              one of this machine's secrets (`modules/users.nix`, `options/services/raw/smb`, ...) can
+              reference `config.machine.secrets` instead of repeating a `secrets = ./secrets.enc.yaml;`
+              option per module the way the independent per-service secrets (newt/caddy/tailscale) do.
+            '';
+            type = types.nullOr types.path;
+            example = "./secrets.enc.yaml";
+            default = null;
+          };
+
           services = lib.mkOption {
             description = lib.mdDoc ''
               Per-service values sourced from args, keyed by service name, for details (like a remote

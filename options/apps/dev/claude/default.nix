@@ -41,11 +41,11 @@ in
       };
 
       # Deploy settings.json, substituting the home directory for the target machine's user
-      files.user.".claude/settings.json".text =
+      files.user.".claude/settings.json".copy =
         builtins.replaceStrings [ "@HOME@" ] [ homeDir ] (lib.fileContents ./include/settings.json);
 
       # Deploy the global CLAUDE.md instructions, appending any machine-specific instructions
-      files.user.".claude/CLAUDE.md".text =
+      files.user.".claude/CLAUDE.md".copy =
         let base = lib.fileContents ./include/CLAUDE.md;
         in if (cfg.extraInstructions == "") then base
            else "${cfg.extraInstructions}\n${base}";

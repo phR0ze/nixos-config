@@ -32,10 +32,24 @@ in
       type = types.submodule {
         options = {
           encKey = lib.mkOption {
-            description = lib.mdDoc "Encryption key used to encrypt secrets in database";
+            description = lib.mdDoc ''
+              Encryption key used to encrypt secrets in database. Only used as a fallback when
+              `secrets` is unset -- prefer `secrets` (sops-encrypted, decrypted only at
+              activation) over this (baked into the Nix store via args.enc.json).
+            '';
             type = types.str;
             example = "Create with `open ssl rand -hex 32`";
             default = args.services.oci.homarr.encKey or "";
+          };
+
+          secrets = lib.mkOption {
+            description = lib.mdDoc ''
+              Path to the sops-encrypted file holding the `homarr/encKey` secret. When set, takes
+              precedence over the plaintext `encKey` fallback above.
+            '';
+            type = types.nullOr types.path;
+            default = null;
+            example = "./secrets.enc.yaml";
           };
         };
         imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
@@ -58,6 +72,18 @@ in
         "d /var/lib/${cfg.name}/appdata 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
       ];
 
+      # Decrypted to /run/homarr-<name>.env at activation, never touching the Nix store
+      files.templates = lib.mkIf (cfg.secrets != null) {
+        "homarr-${cfg.name}" = {
+          path = "/run/files/homarr-${cfg.name}.env";
+          filemode = "0400";
+          content = ''
+            SECRET_ENCRYPTION_KEY=${config.sops.placeholder."homarr/encKey"}
+          '';
+          secrets."homarr/encKey".sopsFile = cfg.secrets;
+        };
+      };
+
       # Generate the "podman-${cfg.name}" service unit for the container
       virtualisation.oci-containers.containers."${cfg.name}" = {
         # Direct non-root is not supported
@@ -76,8 +102,8 @@ in
         environment = {
           "PUID" = "${toString cfg.user.uid}";    # Change to non-root
           "PGID" = "${toString cfg.user.gid}";    # Change to non-root
-          "SECRET_ENCRYPTION_KEY" = cfg.encKey;
-        };
+        } // lib.optionalAttrs (cfg.secrets == null) { "SECRET_ENCRYPTION_KEY" = cfg.encKey; };
+        environmentFiles = lib.optionals (cfg.secrets != null) [ "/run/files/homarr-${cfg.name}.env" ];
       };
 
       # Create podmane network and extend service to use it

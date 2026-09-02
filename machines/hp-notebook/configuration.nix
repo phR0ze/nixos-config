@@ -16,6 +16,9 @@
   config = {
     machine.type.bootable = true;
     machine.nix.cache.enable = true;
+    machine.secrets = ./secrets.enc.yaml;   # real per-machine password (differs from shared default)
+    machine.smb.secrets = ./secrets.enc.yaml;
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;
 
     boot.kernelModules = [ "wl"];
     boot.extraModulePackages = [

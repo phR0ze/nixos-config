@@ -15,14 +15,21 @@ let
   filtered = builtins.filter (x: x.name == "portainer") machine.services;
   defaults = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
 
-  modules_users = { lib, machine, ...}: {
-    users.users.root.initialPassword = lib.mkForce machine.user.pass;
+  # NOTE: for hashedPasswordFile to resolve here, the container's own module list (below) needs
+  # inputs.nixos-files.nixosModules.default imported too, so config.sops.secrets exists inside
+  # the container's separate module tree -- not done yet, since this module is currently unused
+  # (see caller note below).
+  modules_users = { lib, config, machine, ...}: {
+    users.users.root = if machine.secrets != null
+      then { hashedPasswordFile = lib.mkForce "/run/files/user-passwordhash"; }
+      else { initialPassword = lib.mkForce machine.user.pass; };
     users.users.${machine.user.name} = {
       uid = 1000;
       isNormalUser = true;
       extraGroups = [ "wheel" ];
-      initialPassword = lib.mkForce machine.user.pass;
-    };
+    } // (if machine.secrets != null
+      then { hashedPasswordFile = lib.mkForce "/run/files/user-passwordhash"; }
+      else { initialPassword = lib.mkForce machine.user.pass; });
     users.groups."${machine.user.group}".gid = 100;
   };
 in
