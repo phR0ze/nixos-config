@@ -5,7 +5,7 @@
 # ### Description
 # Fronts one or more homelab services with Caddy-managed TLS. All proxies share a single wildcard
 # `*.<domain>` site block on port 443, routed by hostname, and a single wildcard certificate obtained
-# via a Cloudflare DNS-01 challenge (see `options/services/raw/caddy/package.nix` for the
+# via a Cloudflare DNS-01 challenge (see `modules/services/raw/caddy/package.nix` for the
 # caddy-dns/cloudflare build). The original HTTP port each service already listens on is left
 # untouched, so this is purely additive.
 #

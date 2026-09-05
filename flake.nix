@@ -48,7 +48,7 @@
           # Include custom packages in global pkgs variable to make them available throughout my
           # codebase rather than having to call them with a full path. Note I'm using package.nix
           # rather than default.nix as default.nix will be used for options.
-          clu = pkgs.callPackage options/apps/system/clu/package.nix { src = self; };
+          clu = pkgs.callPackage modules/apps/system/clu/package.nix { src = self; };
           arcologout = pkgs.callPackage packages/arcologout {};
           desktop-assets = pkgs.callPackage packages/desktop-assets {};
           rdutil = pkgs.callPackage packages/rdutil {};
@@ -103,7 +103,7 @@
     mkHost = hostname: lib.nixosSystem {
       inherit pkgs system;
       specialArgs = { inherit inputs f; args = mergeArgs hostname; };
-      modules = [ inputs.nixos-files.nixosModules.default ./options (./hosts + "/${hostname}/configuration.nix") ]
+      modules = [ inputs.nixos-files.nixosModules.default ./modules (./hosts + "/${hostname}/configuration.nix") ]
         ++ lib.optionals (hostname == "macbook") [ inputs.nixos-hardware.nixosModules.apple-t2 ];
     };
   in
@@ -132,7 +132,7 @@
           inherit f inputs;
           args = lib.recursiveUpdate _bootstrapArgs (import ./layers/iso_args.nix);
         };
-        modules = [ inputs.nixos-files.nixosModules.default ./options ./layers/iso.nix ];
+        modules = [ inputs.nixos-files.nixosModules.default ./modules ./layers/iso.nix ];
       };
     };
   };

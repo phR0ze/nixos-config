@@ -5,7 +5,7 @@
   # Compute the Nth host address within a service's `/24` subnet e.g.
   # `hostInSubnet "10.89.107.0/24" 3` -> "10.89.107.3". Used for a multi-container service (like
   # Immich) where every container shares one `cfg.subnet` but needs its own fixed `cfg.ip`-style
-  # address — see `cfg.ip`'s description in `options/types/service.nix` for why it's fixed at all.
+  # address — see `cfg.ip`'s description in `modules/types/service.nix` for why it's fixed at all.
   #-------------------------------------------------------------------------------------------------
   hostInSubnet = subnet: host: "${lib.removeSuffix "0/24" subnet}${toString host}";
 
@@ -15,7 +15,7 @@
   #
   # There's no built-in uid default here — the machine's configuration.nix is the single place
   # `services.oci.<name>.user.uid` gets set (service_base.nix asserts it's present). The group id
-  # always mirrors the user id (see options/types/user.nix), so there's no separate gid to set.
+  # always mirrors the user id (see modules/types/user.nix), so there's no separate gid to set.
   #-------------------------------------------------------------------------------------------------
   getService = args: name: let
     target = args.services.oci."${name}" or {};

@@ -6,7 +6,7 @@
 { pkgs, lib, ... }:
 let
   bashrc = (pkgs.writeText ".bashrc" ''
-    # See options/system/terminal/env.nix for PATH changes
+    # See modules/system/terminal/env.nix for PATH changes
   '');
 in
 {

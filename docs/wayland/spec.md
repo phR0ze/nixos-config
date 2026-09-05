@@ -21,7 +21,7 @@ line.
 Two new option modules mirror the existing `system.x11.*` / `system.xfce.*` hierarchy:
 
 ```
-options/system/
+modules/system/
 ├── x11/          (exists — unchanged)
 │   ├── default.nix
 │   └── xft.nix
@@ -110,9 +110,9 @@ from `xsettings.nix` is XFCE-specific and must not be set on Plasma machines.
 
 ## 3. Step-by-Step Implementation Plan
 
-### Step 1 — Create `options/system/wayland/default.nix`
+### Step 1 — Create `modules/system/wayland/default.nix`
 
-**New file.** Analogous to `options/system/x11/default.nix`. Sets up SDDM, XWayland, libinput, and
+**New file.** Analogous to `modules/system/x11/default.nix`. Sets up SDDM, XWayland, libinput, and
 the critical Wayland environment variables.
 
 ```nix
@@ -173,13 +173,13 @@ in {
 }
 ```
 
-**Also update**: `options/system/default.nix` — add `./wayland` to the imports list.
+**Also update**: `modules/system/default.nix` — add `./wayland` to the imports list.
 
 ---
 
-### Step 2 — Create `options/system/plasma/default.nix`
+### Step 2 — Create `modules/system/plasma/default.nix`
 
-**New file.** Analogous to `options/system/xfce/default.nix`. Enables Plasma 6, SDDM, and
+**New file.** Analogous to `modules/system/xfce/default.nix`. Enables Plasma 6, SDDM, and
 Plasma-specific theming. Enabling this option implies `system.wayland.enable = true`.
 
 ```nix
@@ -231,7 +231,7 @@ in {
 }
 ```
 
-**Also update**: `options/system/default.nix` — add `./plasma` to the imports list.
+**Also update**: `modules/system/default.nix` — add `./plasma` to the imports list.
 
 ---
 
@@ -258,7 +258,7 @@ Keep `kdePackages.xwaylandvideobridge` (already present).
 
 ---
 
-### Step 4 — Patch `options/apps/media/obs/default.nix`
+### Step 4 — Patch `modules/apps/media/obs/default.nix`
 
 Add `obs-xdg-portal` when Wayland is active, enabling PipeWire-based screen capture:
 
@@ -273,7 +273,7 @@ plugins = with pkgs.obs-studio-plugins; [
 
 ---
 
-### Step 5 — Patch `options/services/raw/rustdesk.nix`
+### Step 5 — Patch `modules/services/raw/rustdesk.nix`
 
 Guard the X11-only `xf86videodummy` package (used for headless Linux mode) behind a session check:
 
@@ -288,7 +288,7 @@ environment.systemPackages = [
 
 ---
 
-### Step 6 — Patch `options/apps/games/steam/default.nix`
+### Step 6 — Patch `modules/apps/games/steam/default.nix`
 
 The `system.xdg.menu.itemOverrides` call is XFCE-specific. On Plasma, Kickoff handles Steam natively.
 Guard it so it only applies on XFCE machines:
@@ -301,7 +301,7 @@ system.xdg.menu.itemOverrides = lib.mkIf config.system.xfce.enable [
 
 ---
 
-### Step 7 — Patch `options/services/raw/x11vnc.nix`
+### Step 7 — Patch `modules/services/raw/x11vnc.nix`
 
 Add a build-time assertion preventing `x11vnc` from being enabled on Wayland machines:
 
@@ -523,13 +523,13 @@ Machine-level options that may need updating when migrating:
 
 | Step | Task | Files | Depends On |
 |------|------|-------|-----------|
-| 1 | Create `options/system/wayland/default.nix` | New file + `options/system/default.nix` | — |
-| 2 | Create `options/system/plasma/default.nix` | New file + `options/system/default.nix` | Step 1 |
+| 1 | Create `modules/system/wayland/default.nix` | New file + `modules/system/default.nix` | — |
+| 2 | Create `modules/system/plasma/default.nix` | New file + `modules/system/default.nix` | Step 1 |
 | 3 | Rewrite `layers/plasma/base.nix` | Existing file | Steps 1–2 |
-| 4 | Add `obs-xdg-portal` to OBS option | `options/apps/media/obs/default.nix` | Step 1 |
-| 5 | Guard `xf86videodummy` in RustDesk option | `options/services/raw/rustdesk.nix` | Step 1 |
-| 6 | Guard Steam `xdg.menu` in games option | `options/apps/games/steam/default.nix` | — |
-| 7 | Add Wayland assertion to `x11vnc` option | `options/services/raw/x11vnc.nix` | Step 1 |
+| 4 | Add `obs-xdg-portal` to OBS option | `modules/apps/media/obs/default.nix` | Step 1 |
+| 5 | Guard `xf86videodummy` in RustDesk option | `modules/services/raw/rustdesk.nix` | Step 1 |
+| 6 | Guard Steam `xdg.menu` in games option | `modules/apps/games/steam/default.nix` | — |
+| 7 | Add Wayland assertion to `x11vnc` option | `modules/services/raw/x11vnc.nix` | Step 1 |
 | 8 | Add KWin D-Bus backend to `wmctl` package | `packages/wmctl/` | — |
 | 9 | Create `layers/plasma/desktop.nix` | New file | Step 3 |
 | 10 | Create `layers/plasma/develop.nix` | New file | Step 9 |
@@ -546,7 +546,7 @@ Steps 1–3 are the critical path. Steps 4–7 and Step 8 can proceed in paralle
 
 1. **`plasma-manager`**: The `plasma-manager` NixOS module enables declarative KDE panel layout,
    global shortcuts, and system settings configuration. Evaluate before implementing
-   `options/system/plasma/` deeply — it may provide a better foundation than writing KDE config
+   `modules/system/plasma/` deeply — it may provide a better foundation than writing KDE config
    files directly.
 
 2. **SDDM theme**: XFCE uses LightDM Slick greeter with Adwaita-dark. SDDM should be configured

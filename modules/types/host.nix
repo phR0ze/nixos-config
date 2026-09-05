@@ -402,7 +402,7 @@ in
               Path to this host's sops-encrypted `secrets.enc.yaml`, holding real secrets that must
               never be baked into the Nix store (the admin user's password/password hash, Samba
               passwords, service encryption keys, etc). Declared once here so every module that needs
-              one of this host's secrets (`modules/users.nix`, `options/services/raw/smb`, ...) can
+              one of this host's secrets (`modules/users.nix`, `modules/services/raw/smb`, ...) can
               reference `config.host.secrets` instead of repeating a `secrets = ./secrets.enc.yaml;`
               option per module the way the independent per-service secrets (newt/caddy/tailscale) do.
             '';

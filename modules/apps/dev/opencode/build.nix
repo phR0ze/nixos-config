@@ -1,7 +1,7 @@
 # Used for building directly for local tests
 # 
 # ### Build locally
-# cd ~/Projects/nixos-config/options/apps/dev/opencode
+# cd ~/Projects/nixos-config/modules/apps/dev/opencode
 # nix build -f ./build.nix
 #---------------------------------------------------------------------------------------------------
 let

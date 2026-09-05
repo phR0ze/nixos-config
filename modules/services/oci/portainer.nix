@@ -61,7 +61,7 @@ in
           };
 
           # Fixed subnet/IP rather than netavark's auto-IPAM — see cfg.subnet/cfg.ip's
-          # description in options/types/service.nix for why (netavark's stale-DNAT-rule cleanup
+          # description in modules/types/service.nix for why (netavark's stale-DNAT-rule cleanup
           # bug, containers/podman#27516).
           subnet = lib.mkOption {
             description = lib.mdDoc "Fixed CIDR for Portainer's isolated podman network";

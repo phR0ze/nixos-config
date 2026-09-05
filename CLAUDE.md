@@ -124,7 +124,7 @@ is being built, it's declared unconditionally and only referenced by `mkHost` wh
 
 ### Outputs
 - **`nixosConfigurations.<hostname>`**: One real entry per `hosts/<hostname>/` directory, built by
-  `mkHost hostname`. Imports `./options` + `hosts/<hostname>/configuration.nix` directly.
+  `mkHost hostname`. Imports `./modules` + `hosts/<hostname>/configuration.nix` directly.
 - **`install`**: Bootstrap host used before a host has its own `hosts/<hostname>` directory yet.
   Imports `./hardware-configuration.nix` + the layer/bundle path from `args.target`.
 - **`iso`**: ISO image build. Uses `layers/iso_args.nix` to exclude secrets.
@@ -160,16 +160,16 @@ Custom packages injected into the global `pkgs` namespace:
 ├── args.nix                     # Default arguments (static, committed - never mutated by clu)
 ├── args.enc.json                # Encrypted base secrets
 ├── hardware-configuration.nix   # Gitignored placeholder, only present during clu install
-├── options/                     # Custom NixOS option modules
+├── modules/                     # All NixOS modules - opt-in feature namespaces AND always-on baseline
 │   ├── default.nix              # Imports all subdirectories
 │   ├── apps/                    # Application options (dev/, games/, media/, network/, office/, system/)
 │   │   ├── dev/                 # Dev tool options (android/, claude/, flutter/, gemini/, gh/, rust/, vscode/, zed/)
 │   │   └── system/              # System utilities (clu/, flatpak/, ghostty/, neovide/, neovim/, veracrypt/, wezterm/)
-│   ├── devices/                 # Hardware options (audio, bluetooth, boot, firmware, gpu, kernel, printers)
-│   ├── files/                   # File management options
+│   ├── devices/                 # Hardware options (audio, bluetooth, boot, firmware, gpu, kernel, printers, scanners)
 │   ├── networking.nix           # Global networking
-│   ├── services/                # Service options (nspawn/, oci/, raw/)
-│   ├── system/                  # System options (dconf, fonts, x11/, xfce/, xdg/)
+│   ├── services/                # Service options (nspawn/, oci/, raw/), plus systemd.nix (baseline)
+│   ├── system/                  # System options (dconf, fonts, x11/, xfce/, xdg/), plus locale.nix,
+│   │                            # nix.nix, users.nix, terminal/ (baseline, no enable flag - see §5)
 │   ├── types/                   # Type definitions (host.nix is the central hub)
 │   └── virtualisation/          # VM options (podman, qemu/, virt-manager, winetricks)
 ├── layers/                      # Composable configuration layers
@@ -237,6 +237,17 @@ in {
 }
 ```
 
+Most modules under `modules/` follow this opt-in pattern, but two other recognized categories exist
+in the same tree - both intentional, not inconsistencies:
+- **Always-on baseline modules** (`modules/system/{locale,nix,users}.nix`, `modules/system/terminal/`,
+  `modules/services/systemd.nix`) - no self `enable` option at all. These aren't auto-imported through
+  the `modules/default.nix` chain; they're directly imported by `layers/core.nix`/`layers/base.nix`,
+  which every host's bundle includes, so every host gets them unconditionally by design.
+- **Host-type-gated modules** (e.g. `modules/devices/boot.nix`) - also no self `enable` option, but
+  gated on `host.type.*` capability flags (`lib.mkIf (!host.type.vm && !host.type.iso) {...}`) rather
+  than a discretionary feature toggle. These *are* auto-imported through the `modules/default.nix`
+  chain like opt-in modules, they just key off hardware/role flags instead of their own enable.
+
 ### Option Namespaces
 - `apps.dev.<name>.enable` - Development tools (claude, gemini, gh, rust, flutter, vscode, android, zed)
 - `apps.games.<name>.enable` - Games
@@ -251,7 +262,7 @@ in {
 - `system.xfce.enable`, `system.x11.enable`, etc. - System components
 - `virtualisation.<name>.enable` - Virtualization
 
-### The `host` Type (`options/types/host.nix`)
+### The `host` Type (`modules/types/host.nix`)
 
 Central hub defining all host-level configuration. Every field defaults from the composed `args` attribute set. This is what lets layers/hosts stay DRY across 22+ hosts: shared layer modules read `config.host.*` (populated per-host from `args.nix`/`args.enc.json`) to parameterize real NixOS options (`users.users.*`, `networking.*`, `fileSystems.*`, ...) instead of every host repeating that config directly:
 
@@ -323,7 +334,7 @@ at *evaluation* time - drive UUIDs, network interface config, EFI/MBR selection)
 passwords, SMB share creds): decrypted by **sops-nix at systemd activation time**, straight to
 `/run/secrets`/`/run/files` on the target host - never touches the Nix store, git, or this repo's
 working tree at all. `host.secrets` (user password hash, via `modules/users.nix`) and
-`host.smb.secrets` (SMB share creds, via `options/services/raw/smb`, using `sops.templates`) both
+`host.smb.secrets` (SMB share creds, via `modules/services/raw/smb`, using `sops.templates`) both
 follow this pattern. Prefer this over the build-time-args mechanism whenever a value is only consumed
 by a running service reading a file, not by a NixOS module option at evaluation time.
 
@@ -343,9 +354,9 @@ by a running service reading a file, not by a NixOS module option at evaluation 
    `flake.nix` and reference it conditionally in `mkHost` (see how `macbook`/`nixos-hardware` do it)
 
 ### Adding a New Option
-1. Create `options/<category>/<name>.nix` (or `options/<category>/<name>/default.nix` for complex options)
+1. Create `modules/<category>/<name>.nix` (or `modules/<category>/<name>/default.nix` for complex options)
 2. Follow the `enable = lib.mkEnableOption` + `config = lib.mkIf` pattern
-3. The option is auto-imported through the `options/default.nix` -> `options/<category>/default.nix` chain
+3. The option is auto-imported through the `modules/default.nix` -> `modules/<category>/default.nix` chain
 4. Enable it in the appropriate layer or host config
 
 ### Adding a New Package Overlay
@@ -405,7 +416,7 @@ User runs: clu update workstation
    a. flake.nix's mkHost "workstation" computes mergeArgs "workstation": args.nix -> args.dec.json ->
       hosts/workstation/args.nix -> hosts/workstation/args.dec.json, then overrides
       hostname="workstation" and git.comment=self.rev authoritatively
-   b. Evaluates nixosConfigurations.workstation with ./options + hosts/workstation/configuration.nix
+   b. Evaluates nixosConfigurations.workstation with ./modules + hosts/workstation/configuration.nix
    c. configuration.nix imports hardware config + a layer bundle
    d. The bundle's layers enable options, options produce NixOS config
 5. lib/flake   -> flake::unstage_files -> flake::restore (unstage + rm the two args.dec.json files),

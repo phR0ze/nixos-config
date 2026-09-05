@@ -7,7 +7,7 @@
 {
   imports = [
     ../../layers/bundles/xfce-desktop.nix
-    ../../options/virtualisation/qemu/guest.nix
+    ../../modules/virtualisation/qemu/guest.nix
   ];
 
   config = {

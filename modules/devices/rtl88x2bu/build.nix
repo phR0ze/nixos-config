@@ -1,7 +1,7 @@
 # Used for building directly for local tests
 #
 # ### Build locally
-# cd ~/Projects/nixos-config/options/devices/rtw88
+# cd ~/Projects/nixos-config/modules/devices/rtw88
 # nix build -f ./build.nix
 #---------------------------------------------------------------------------------------------------
 let

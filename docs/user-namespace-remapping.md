@@ -20,7 +20,7 @@ translated to an unrelated, unprivileged UID range on the host. Concretely:
    users.users.root.subUidRanges = [ { startUid = 100000; count = 65536; } ];
    users.users.root.subGidRanges = [ { startGid = 100000; count = 65536; } ];
    ```
-2. Add `"--userns=auto"` to a service's `extraOptions` (e.g. in `options/services/oci/newt.nix`).
+2. Add `"--userns=auto"` to a service's `extraOptions` (e.g. in `modules/services/oci/newt.nix`).
    Podman then allocates a private slice of the subuid/subgid range per container and maps the
    container's UID into it, instead of passing the UID through 1:1.
 

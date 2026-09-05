@@ -6,7 +6,7 @@
 { ... }:
 {
   imports = [
-    ../../options/virtualisation/qemu/guest.nix
+    ../../modules/virtualisation/qemu/guest.nix
     ../../layers/bundles/xfce-desktop.nix
     #../../layers/bundles/budgie-desktop.nix
   ];
