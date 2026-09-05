@@ -13,12 +13,12 @@ Options:
 
 Commands:
   boot              List orphaned /boot/kernels files
-  profiles          List out available profiles
+  layers            List out available layers
   versions, ver     List out the versions i.e. system versions
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "List out profiles: ${green}./${SCRIPT} ll profiles${none}"
+    log::subln "List out layers: ${green}./${SCRIPT} ll layers${none}"
     log::subln "List out versions: ${green}./${SCRIPT} ll ver${none}"
     echo
     exit
@@ -35,7 +35,7 @@ list::run()
     local command=$1; shift
     case "$command" in
         boot) list::boot ;;
-        profiles) list::profiles;;
+        layers) list::layers;;
         versions) list::versions;;
         ver) list::versions ;;
         *) log::error "Invalid list command: ${cyan}${command}${none}"; list::usage ;;
@@ -61,15 +61,15 @@ list::boot()
     [[ $found -eq 0 ]] && log::ls "No orphaned boot kernel files found"
 }
 
-# List all profiles in the current configuration repo
+# List all layers in the current configuration repo
 #
-list::profiles()
+list::layers()
 {
-    log::header1 "List configuration profiles"
+    log::header1 "List configuration layers"
 
-    local profiles_dir="${CONFIG_DIR}/profiles/"
-    for x in $(find "$profiles_dir" -name '*.nix' | sort); do
-        echo "${x#${profiles_dir}}"
+    local layers_dir="${CONFIG_DIR}/layers/"
+    for x in $(find "$layers_dir" -name '*.nix' | sort); do
+        echo "${x#${layers_dir}}"
     done
 }
 

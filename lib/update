@@ -44,7 +44,6 @@ update::run()
     local command=$1; shift
     case "$command" in
         flake) update::flake "$@" ;;
-        profile) update::profile "$@" ;;
         system) update::system "$@" ;;
         *) log::error "Invalid update command: ${cyan}${command}${none}"; update::usage ;;
     esac
@@ -90,7 +89,7 @@ update::system()
         log::ls "Using given machine name ${cyan}${MACHINE}${none}"
     fi
 
-    TARGET="machines/$MACHINE"
+    TARGET="hosts/$MACHINE"
     flake::stage_files "${TARGET}"
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict

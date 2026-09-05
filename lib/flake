@@ -23,16 +23,16 @@ flake::ensure_config_path()
 }
 
 # Ensure target was given and exists
-# - $1 - machine or profile with preceding path prefix 'profiles/' or 'machines/'
+# - $1 - host or layer with preceding path prefix 'layers/' or 'hosts/'
 #
-# Example: flake::ensure_target machines/homelab
-# Example: flake::ensure_target profiles/xfce/base
+# Example: flake::ensure_target hosts/homelab
+# Example: flake::ensure_target layers/xfce/base
 flake::ensure_target()
 {
     local target="$1"
 
-    # Check if the machine name is missing
-    if [[ "$target" == "" || "$target" == "machines/" || "$target" == "profiles/" ]]; then
+    # Check if the host name is missing
+    if [[ "$target" == "" || "$target" == "hosts/" || "$target" == "layers/" ]]; then
         log::ls -n "Validating target ${cyan}${target}${none} was given..."
         log::status 1
     fi
@@ -47,13 +47,13 @@ flake::ensure_target()
 }
 
 # Switch flake target
-# - Nix flakes only see git-tracked (or staged) files, so a machine's encrypted args have to be
+# - Nix flakes only see git-tracked (or staged) files, so a host's encrypted args have to be
 #   decrypted and staged before evaluation and cleaned up after (see flake::restore). This is now
-#   the *only* staging clu does - machine selection itself is a real `nixosConfigurations.<hostname>`
+#   the *only* staging clu does - host selection itself is a real `nixosConfigurations.<hostname>`
 #   flake output, so nothing else needs to be staged or reverted.
-# - $1 - machine or profile with preceding path prefix 'profiles/' or 'machines/'
+# - $1 - host or layer with preceding path prefix 'layers/' or 'hosts/'
 #
-# Example: flake::switch machines/homelab
+# Example: flake::switch hosts/homelab
 flake::switch()
 {
     local target="$1"
@@ -61,7 +61,7 @@ flake::switch()
 
     # macbook's configuration.nix reads /lib/firmware/brcm directly off the host for its firmware
     # derivation, an absolute path outside the flake's source tree that pure evaluation can't see
-    if [[ "$target" == "machines/macbook" && -z "$IMPURE" ]]; then
+    if [[ "$target" == "hosts/macbook" && -z "$IMPURE" ]]; then
         log::ls "${yellow}Warning: macbook requires the --impure flag to build, but it wasn't given${none}"
         utils::confirm_continue
     fi
@@ -69,13 +69,13 @@ flake::switch()
     log::ls "Switching to target ${cyan}${target}${none}"
     utils::run pushd "${CONFIG_DIR}"
 
-    # Only machines have build-time args; profile-only targets (e.g. ISO builds) don't need this
+    # Only hosts have build-time args; layer-only targets (e.g. ISO builds) don't need this
     # and deliberately exclude secrets entirely. During install, args.dec.json is written directly
     # by install::install_config (not sops-decrypted), but still needs to be cleaned up by
     # flake::restore afterward, so track the host regardless of $INSTALL - just skip the actual
     # decrypt call in that case since there's nothing encrypted to decrypt yet.
-    if [[ "$target" == machines/* ]]; then
-        _FLAKE_ARGS_HOST="${target#machines/}"
+    if [[ "$target" == hosts/* ]]; then
+        _FLAKE_ARGS_HOST="${target#hosts/}"
         [ $INSTALL -eq 0 ] && flake::decrypt_args "$_FLAKE_ARGS_HOST"
     fi
 
@@ -95,16 +95,16 @@ flake::restore()
     utils::run popd
 }
 
-# Decrypt this host's build-time args (root args.enc.json + machines/<hostname>/args.enc.json) and
+# Decrypt this host's build-time args (root args.enc.json + hosts/<hostname>/args.enc.json) and
 # stage them so pure flake evaluation can see them.
 # - assumes the caller has used pushd to switch directories for git to work correctly
-# - $1 - hostname (machines/<hostname> directory name)
+# - $1 - hostname (hosts/<hostname> directory name)
 flake::decrypt_args()
 {
     local hostname="$1"
     local enc dec
 
-    for enc in "args.enc.json" "machines/${hostname}/args.enc.json"; do
+    for enc in "args.enc.json" "hosts/${hostname}/args.enc.json"; do
         [ -e "$enc" ] || continue
         dec="${enc%.enc.json}.dec.json"
         log::d "Decrypting ${cyan}${enc}${none}"
@@ -115,13 +115,13 @@ flake::decrypt_args()
 
 # Remove this host's decrypted args from git and disk
 # - assumes the caller has used pushd to switch directories for git to work correctly
-# - $1 - hostname (machines/<hostname> directory name)
+# - $1 - hostname (hosts/<hostname> directory name)
 flake::restore_args()
 {
     local hostname="$1"
     local dec
 
-    for dec in "args.dec.json" "machines/${hostname}/args.dec.json"; do
+    for dec in "args.dec.json" "hosts/${hostname}/args.dec.json"; do
         [ -e "$dec" ] || continue
         $SUDO git restore --staged -- "$dec" &>/dev/null || true
         $SUDO rm -f -- "$dec"
@@ -138,9 +138,9 @@ flake::trap()
 
 # Stage flake files for install or updates
 # - files that the flake depends on must be git staged to be used.
-# - $1 - machine or profile to use for switching to the given target
+# - $1 - host or layer to use for switching to the given target
 #
-# Example: flake::switch machines/homelab
+# Example: flake::switch hosts/homelab
 flake::stage_files()
 {
     # Don't need to shutdown anything on a fresh install

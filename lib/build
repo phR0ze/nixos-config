@@ -26,7 +26,7 @@ Options:
   --impure              Pass impure into the system update
 
 Commands:
-  iso [PROFILE]         Build the installable ISO with an optional profile override
+  iso [LAYER]           Build the installable ISO with an optional layer override
   vm [MACHINE]          Build the given VM machine or the default test vm 'vm-test'
 USAGE
 
@@ -69,7 +69,7 @@ build::machine()
     [[ "$1" == "" ]] && MACHINE="$(hostname)"
 
     # Target includes the prefix path
-    TARGET="machines/$MACHINE"
+    TARGET="hosts/$MACHINE"
 
     log::header1 "Building ${cyan}${TARGET}${none}"
     flake::switch "$TARGET"
@@ -83,7 +83,7 @@ build::machine()
 # --------------------------------------------------------------------------------------------------
 # https://releases.nixos.org/
 # https://discourse.nixos.org/t/nixos-reproducible-builds-minimal-installation-iso-successfully-independently-rebuilt/34756
-# - $1 - profile target to use e.g. 'base.nix'
+# - $1 - layer target to use e.g. 'base.nix'
 # --------------------------------------------------------------------------------------------------
 build::iso()
 {
@@ -94,7 +94,7 @@ build::iso()
     [[ "$1" == "" ]] && PROFILE="base.nix"
 
     # Target includes the prefix path
-    TARGET="profiles/$PROFILE"
+    TARGET="layers/$PROFILE"
 
     log::header1 "Building installable ISO for ${cyan}${TARGET}${none}"
     flake::switch "$TARGET"
@@ -111,8 +111,8 @@ build::vm()
 {
     [[ $NO_PREAMBLE -eq 0 ]] && core::preamble
 
-    if [[ "$1" == "machines/"* ]]; then
-        MACHINE="${1#machines/}"
+    if [[ "$1" == "hosts/"* ]]; then
+        MACHINE="${1#hosts/}"
     else
         local machine="${1#vm-}"  # trim vm- prefix
         [[ "$machine" == "" ]] && machine="test"
@@ -120,7 +120,7 @@ build::vm()
     fi
 
     # Target includes the prefix path
-    TARGET="machines/$MACHINE"
+    TARGET="hosts/$MACHINE"
 
     log::header1 "Building ${cyan}${TARGET}${none}"
     flake::switch "$TARGET"

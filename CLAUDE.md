@@ -1,10 +1,10 @@
 # NixOS Configuration Repository
 
-A multi-machine NixOS configuration managing 22+ physical and virtual machines through a custom bash
-automation layer (`clu`) that orchestrates Nix flake evaluation. Machine selection is a real, standard
-per-host `nixosConfigurations.<hostname>` flake entry, generated from each `machines/<hostname>/`
+A multi-host NixOS configuration managing 22+ physical and virtual hosts through a custom bash
+automation layer (`clu`) that orchestrates Nix flake evaluation. Host selection is a real, standard
+per-host `nixosConfigurations.<hostname>` flake entry, generated from each `hosts/<hostname>/`
 directory. The one thing `clu` still has to stage before evaluation is each host's *build-time args*
-(`machines/<hostname>/args.enc.json`, decrypted to `args.dec.json`) - Nix flakes only see git-tracked
+(`hosts/<hostname>/args.enc.json`, decrypted to `args.dec.json`) - Nix flakes only see git-tracked
 or staged files, and some of that data (drive UUIDs, network interface config, EFI/MBR selection) is
 genuinely needed by NixOS module options at evaluation time, so it can't be deferred to sops-nix's
 normal activation-time secret decryption. This staging is scoped to exactly one host per build and
@@ -28,14 +28,14 @@ dispatches to `<command>::run()`.
 | `upgrade` | `lib/upgrade` | Update flake inputs + rebuild |
 | `install` | `lib/install` | Interactive wizard: partition disk, generate hardware config, install NixOS |
 | `switch` | `lib/switch` | Switch to a different NixOS generation (profile symlink manipulation) |
-| `deploy` | `lib/deploy` | Copy repo to `/var/lib/vms/<machine>` and build VM |
+| `deploy` | `lib/deploy` | Copy repo to `/var/lib/vms/<host>` and build VM |
 | `run` | `lib/run` | Launch VMs with QEMU |
 | `clean` | `lib/clean` | GC nix store, remove decrypted files, clean VMs |
-| `list` | `lib/list` | List profiles, system generations |
+| `list` | `lib/list` | List layers, system generations |
 | `init` | `lib/init` | Set up sops keys, git hooks, remotes |
 | `dev` | `lib/dev` | Launch dev shells (e.g. gtk4) |
 | `shell` | `lib/shell` | Wrapper around `nix-shell` |
-| `repl` | `lib/repl` | Launch `nix repl` with machine's flake |
+| `repl` | `lib/repl` | Launch `nix repl` with host's flake |
 | `pkgs` | `lib/pkgs` | Package lookup via nix-index-database |
 | `decrypt` | `lib/decrypt` | Decrypt all `*.enc.*` files |
 | `logs` | `lib/logs` | Print derivation build logs for packages |
@@ -60,35 +60,35 @@ headers and indented sub-logging.
 
 ---
 
-## 2. Machine Selection & Build-Time Args (`lib/flake`)
+## 2. Host Selection & Build-Time Args (`lib/flake`)
 
-The flake generates one real entry per machine directory:
+The flake generates one real entry per host directory:
 
 ```nix
-machineNames = builtins.attrNames (lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./machines));
-nixosConfigurations = lib.genAttrs machineNames mkHost // { install = ...; iso = ...; };
+hostNames = builtins.attrNames (lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./hosts));
+nixosConfigurations = lib.genAttrs hostNames mkHost // { install = ...; iso = ...; };
 ```
 
-`mkHost hostname` builds `lib.nixosSystem { modules = [ ... (./machines + "/${hostname}/configuration.nix") ]; }`
-directly - there's no symlink or per-invocation file copying involved in selecting a machine.
+`mkHost hostname` builds `lib.nixosSystem { modules = [ ... (./hosts + "/${hostname}/configuration.nix") ]; }`
+directly - there's no symlink or per-invocation file copying involved in selecting a host.
 `nixosConfigurations` is a lazy attrset, so `nix build .#<hostname>...` only forces evaluation of that
 one host; every other (still-encrypted) host's args are never touched.
 
-**What still needs staging**: `machines/<hostname>/args.dec.json` and root `args.dec.json` - the
+**What still needs staging**: `hosts/<hostname>/args.dec.json` and root `args.dec.json` - the
 decrypted forms of `args.enc.json`. Some of that data (drive UUIDs, network config, EFI/MBR) is
 consumed by NixOS module options at evaluation time, and Nix flakes only see git-tracked/staged files,
 so there's no way around staging without `--impure` (deliberately avoided - see §7).
 
-**The `flake::switch(target)` function** (called before every build/update), for a `machines/*`
+**The `flake::switch(target)` function** (called before every build/update), for a `hosts/*`
 target:
 1. Runs `flake::decrypt_args(hostname)`: `sops --decrypt` on root `args.enc.json` and
-   `machines/<hostname>/args.enc.json` (whichever exist) to `args.dec.json` siblings, then
+   `hosts/<hostname>/args.enc.json` (whichever exist) to `args.dec.json` siblings, then
    `git add -f`s them.
 2. Remembers the hostname in `_FLAKE_ARGS_HOST` so `flake::restore` knows what to clean up, without
    depending on the format of whatever the caller's `$MACHINE`/`$TARGET` variables happen to be.
 
-Profile-only targets (`profiles/*`, e.g. ISO builds) skip this entirely - there's no per-host args to
-decrypt, and ISO builds deliberately exclude secrets (`profiles/iso_args.nix`).
+Layer-only targets (`layers/*`, e.g. ISO builds) skip this entirely - there's no per-host args to
+decrypt, and ISO builds deliberately exclude secrets (`layers/iso_args.nix`).
 
 **`flake::restore()`** unstages and deletes the one host's `args.dec.json` files. A `trap ...  EXIT`
 in every caller ensures this runs even on failure, so a crash leaves at most one host's plaintext
@@ -103,9 +103,9 @@ behind (`clu clean dec` sweeps up any leftovers via the broader `utils::remove_d
   (the real hostname), not a generic `#target` name.
 - `args.nix` at root is a normal, permanently committed file now - nothing mutates it per build.
   `hostname` and `git.comment` in the final merged `args` are always set authoritatively by
-  `flake.nix` itself (from the `machines/` directory name and `self.rev`, respectively), never read
+  `flake.nix` itself (from the `hosts/` directory name and `self.rev`, respectively), never read
   from a file, so they can't drift.
-- Adding a new machine means creating a `machines/<name>/` directory - nothing else to touch.
+- Adding a new host means creating a `hosts/<name>/` directory - nothing else to touch.
 
 ---
 
@@ -123,18 +123,18 @@ is being built, it's declared unconditionally and only referenced by `mkHost` wh
 - `nixos-hardware`: Only used by macbook (`apple-t2` module)
 
 ### Outputs
-- **`nixosConfigurations.<hostname>`**: One real entry per `machines/<hostname>/` directory, built by
-  `mkHost hostname`. Imports `./options` + `machines/<hostname>/configuration.nix` directly.
-- **`install`**: Bootstrap host used before a machine has its own `machines/<hostname>` directory yet.
-  Imports `./hardware-configuration.nix` + the profile path from `args.target`.
-- **`iso`**: ISO image build. Uses `profiles/iso_args.nix` to exclude secrets.
+- **`nixosConfigurations.<hostname>`**: One real entry per `hosts/<hostname>/` directory, built by
+  `mkHost hostname`. Imports `./options` + `hosts/<hostname>/configuration.nix` directly.
+- **`install`**: Bootstrap host used before a host has its own `hosts/<hostname>` directory yet.
+  Imports `./hardware-configuration.nix` + the layer/bundle path from `args.target`.
+- **`iso`**: ISO image build. Uses `layers/iso_args.nix` to exclude secrets.
 
 ### Argument Composition (Priority Low -> High)
 `mergeArgs hostname` in `flake.nix`:
 1. `args.nix` - Base defaults (committed)
 2. `args.dec.json` - Base secrets (decrypted at build time)
-3. `machines/<hostname>/args.nix` - Machine-specific overrides
-4. `machines/<hostname>/args.dec.json` - Machine-specific secrets
+3. `hosts/<hostname>/args.nix` - Host-specific overrides
+4. `hosts/<hostname>/args.dec.json` - Host-specific secrets
 5. `hostname` and `git.comment` are then always set authoritatively (directory name / `self.rev`),
    overriding anything the above files might otherwise supply
 
@@ -170,30 +170,35 @@ Custom packages injected into the global `pkgs` namespace:
 │   ├── networking.nix           # Global networking
 │   ├── services/                # Service options (nspawn/, oci/, raw/)
 │   ├── system/                  # System options (dconf, fonts, x11/, xfce/, xdg/)
-│   ├── types/                   # Type definitions (machine.nix is the central hub)
+│   ├── types/                   # Type definitions (host.nix is the central hub)
 │   └── virtualisation/          # VM options (podman, qemu/, virt-manager, winetricks)
-├── profiles/                    # Composable configuration profiles
-│   ├── core.nix                 # Minimal (bash, git, nix essentials)
-│   ├── base.nix                 # CLI environment (core + locale, nix config, terminal, utils)
-│   ├── iso.nix / iso_args.nix   # ISO build profile
-│   ├── budgie/                  # Budgie desktop profiles
-│   │   └── base.nix             # Budgie with LightDM
-│   ├── plasma/                  # KDE Plasma desktop profiles
-│   │   └── base.nix             # Plasma 6 with SDDM and Wayland
-│   └── xfce/                    # XFCE desktop profiles
-│       ├── base.nix             # XFCE minimal (X11, fonts, firefox, audio)
-│       ├── desktop.nix          # Full desktop (base + media, games, office)
-│       ├── develop.nix          # Development (desktop + rust, flutter, claude, vscode)
-│       ├── laptop.nix           # Laptop-specific
-│       └── theater.nix          # Media center
-├── machines/                    # Per-machine configurations (22+ machines)
+├── layers/                      # Composable configuration layers
+│   ├── core.nix                 # ATOMIC: minimal (bash, git, nix essentials)
+│   ├── base.nix                 # ATOMIC: CLI environment (locale, nix config, terminal, utils)
+│   ├── iso.nix / iso_args.nix   # ISO build layer
+│   ├── budgie/base.nix          # ATOMIC: Budgie with LightDM
+│   ├── plasma/base.nix          # ATOMIC: Plasma 6 with SDDM and Wayland
+│   ├── xfce/
+│   │   ├── base.nix             # ATOMIC: XFCE minimal (X11, fonts, firefox, audio)
+│   │   ├── desktop.nix          # ATOMIC: full desktop (media, games, office)
+│   │   ├── develop.nix          # ATOMIC: development (rust, flutter, claude, vscode)
+│   │   ├── laptop.nix           # ATOMIC: laptop-specific
+│   │   └── theater.nix          # ATOMIC: media center
+│   └── bundles/                 # Thin aggregators: imports-only lists of atomic layers
+│       ├── xfce-desktop.nix     # core + base + xfce/base + xfce/desktop
+│       ├── xfce-develop.nix     # + xfce/develop
+│       ├── xfce-laptop.nix      # + xfce/laptop
+│       ├── xfce-theater.nix     # + xfce/theater
+│       ├── budgie-desktop.nix   # core + base + budgie/base
+│       └── plasma-desktop.nix   # core + base + plasma/base
+├── hosts/                       # Per-host configurations (22+ hosts)
 │   └── <name>/
-│       ├── configuration.nix    # Machine config (imports hardware + profile)
+│       ├── configuration.nix    # Host config (imports hardware + a layer bundle)
 │       ├── hardware-configuration.nix
-│       ├── args.enc.json        # Machine secrets (encrypted)
-│       ├── args.nix             # Machine arg overrides (optional)
+│       ├── args.enc.json        # Host secrets (encrypted)
+│       ├── args.nix             # Host arg overrides (optional)
 │       ├── secrets.enc.yaml     # Runtime secrets, decrypted by sops-nix at activation (optional)
-│       └── README.md            # Machine documentation (optional)
+│       └── README.md            # Host documentation (optional)
 ├── modules/                     # Reusable NixOS modules
 │   ├── development/vscode/      # VSCode settings, keybindings, extensions
 │   ├── hardware/                # Apple hardware, scanners
@@ -246,43 +251,55 @@ in {
 - `system.xfce.enable`, `system.x11.enable`, etc. - System components
 - `virtualisation.<name>.enable` - Virtualization
 
-### The `machine` Type (`options/types/machine.nix`)
+### The `host` Type (`options/types/host.nix`)
 
-Central hub defining all machine-level configuration. Every field defaults from the composed `args` attribute set:
+Central hub defining all host-level configuration. Every field defaults from the composed `args` attribute set. This is what lets layers/hosts stay DRY across 22+ hosts: shared layer modules read `config.host.*` (populated per-host from `args.nix`/`args.enc.json`) to parameterize real NixOS options (`users.users.*`, `networking.*`, `fileSystems.*`, ...) instead of every host repeating that config directly:
 
-- `machine.type.*` - Capability flags: `bootable`, `vm`, `iso`, `develop`, `theater`
-- `machine.vm.type.*` - VM variants: `micro`, `local`, `spice`
-- `machine.hostname`, `machine.id`, `machine.target`, `machine.efi`, `machine.mbr`, `machine.arch`
-- `machine.locale`, `machine.timezone`, `machine.autologin`, `machine.bluetooth`, `machine.resolution`
-- `machine.nix.*` - Nix config: `minVer`, `cache.enable/ip/port`
-- `machine.git.*` - Git metadata: `user`, `email`, `comment`
-- `machine.secrets` - List of `{name, value}` decrypted secrets
-- `machine.net.*` - Full networking: `gateway`, `subnet`, `dns`, `bridge`, `macvlan`, `nic0`, `nic1`
-- `machine.nfs.*` - NFS mounts: `enable`, `entries`
-- `machine.smb.*` - Samba shares: `enable`, `user`, `pass`, `domain`, `entries`
-- `machine.user.*` - User config: `name`, `pass`, `fullname`, `email`, `uid`, `gid`
+- `host.type.*` - Capability flags: `bootable`, `vm`, `iso`, `develop`, `theater`
+- `host.vm.type.*` - VM variants: `micro`, `local`, `spice`
+- `host.hostname`, `host.id`, `host.target`, `host.efi`, `host.mbr`, `host.arch`
+- `host.locale`, `host.timezone`, `host.autologin`, `host.bluetooth`, `host.resolution`
+- `host.nix.*` - Nix config: `minVer`, `cache.enable/ip/port`
+- `host.git.*` - Git metadata: `user`, `email`, `comment`
+- `host.secrets` - List of `{name, value}` decrypted secrets
+- `host.net.*` - Full networking: `gateway`, `subnet`, `dns`, `bridge`, `macvlan`, `nic0`, `nic1`
+- `host.nfs.*` - NFS mounts: `enable`, `entries`
+- `host.smb.*` - Samba shares: `enable`, `user`, `pass`, `domain`, `entries`
+- `host.user.*` - User config: `name`, `pass`, `fullname`, `email`, `uid`, `gid`
 
 ---
 
-## 6. Profile Composition
+## 6. Layer Composition
 
-Profiles form inheritance chains:
+Layers are atomic, standalone NixOS modules - no layer imports another layer (order-independent,
+mixable, the way the module system is meant to be used). To avoid every one of 22+ hosts repeating
+the same 4-5 item `imports` list for a common host class, thin **bundle** modules under
+`layers/bundles/` aggregate the atomic layers a class needs:
 
 ```
-core.nix -> base.nix -> xfce/base.nix -> xfce/desktop.nix -> xfce/develop.nix
-                     |                 -> xfce/laptop.nix
-                     |                 -> xfce/theater.nix
-                     -> budgie/base.nix
-                     -> plasma/base.nix
+Atomic layers (never import each other):
+  core.nix, base.nix, budgie/base.nix, plasma/base.nix,
+  xfce/{base,desktop,develop,laptop,theater}.nix
+
+Bundles (imports-only aggregators, one per host class):
+  bundles/xfce-desktop.nix  = core + base + xfce/base + xfce/desktop
+  bundles/xfce-develop.nix  = xfce-desktop + xfce/develop
+  bundles/xfce-laptop.nix   = xfce-desktop + xfce/laptop
+  bundles/xfce-theater.nix  = xfce-desktop + xfce/theater
+  bundles/budgie-desktop.nix = core + base + budgie/base
+  bundles/plasma-desktop.nix = core + base + plasma/base
 ```
 
-Each profile layer adds:
+Each layer adds:
 - Package lists via `environment.systemPackages`
 - Option enables (e.g. `apps.games.steam.enable = true`)
-- Module imports (e.g. `../../modules/development/vscode`)
-- Machine type flags (e.g. `machine.type.develop = true`)
+- Module imports of genuine `modules/*` dependencies (e.g. `../../modules/development/vscode`)
+- Host type flags (e.g. `host.type.develop = true`)
 
-Machine configs import exactly one profile and add machine-specific overrides.
+A host's `configuration.nix` typically imports one bundle. For a one-off combination not covered by
+an existing bundle, a host may instead hand-pick a flat list of atomic layers directly - Nix's module
+system dedups imports by absolute file path, so mixing a bundle with an extra atomic layer is safe
+and won't double-import anything.
 
 ---
 
@@ -300,13 +317,13 @@ at *evaluation* time - drive UUIDs, network interface config, EFI/MBR selection)
 - **Git integration**: `git add -f`'d temporarily so pure flake evaluation can see them, then unstaged
   - this is unavoidable without `--impure` (deliberately not used - it would require reading
   decrypted content from outside the flake's evaluated source tree, which isn't self-contained)
-- **ISO exclusion**: ISO builds use `profiles/iso_args.nix` instead of secrets
+- **ISO exclusion**: ISO builds use `layers/iso_args.nix` instead of secrets
 
 **Runtime secrets** (`secrets.enc.yaml`, used for credentials only a running service needs -
 passwords, SMB share creds): decrypted by **sops-nix at systemd activation time**, straight to
-`/run/secrets`/`/run/files` on the target machine - never touches the Nix store, git, or this repo's
-working tree at all. `machine.secrets` (user password hash, via `modules/users.nix`) and
-`machine.smb.secrets` (SMB share creds, via `options/services/raw/smb`, using `sops.templates`) both
+`/run/secrets`/`/run/files` on the target host - never touches the Nix store, git, or this repo's
+working tree at all. `host.secrets` (user password hash, via `modules/users.nix`) and
+`host.smb.secrets` (SMB share creds, via `options/services/raw/smb`, using `sops.templates`) both
 follow this pattern. Prefer this over the build-time-args mechanism whenever a value is only consumed
 by a running service reading a file, not by a NixOS module option at evaluation time.
 
@@ -314,22 +331,22 @@ by a running service reading a file, not by a NixOS module option at evaluation 
 
 ## 8. Conventions for Adding Features
 
-### Adding a New Machine
-1. Create `machines/<name>/` with `configuration.nix` and `hardware-configuration.nix` - `<name>`
+### Adding a New Host
+1. Create `hosts/<name>/` with `configuration.nix` and `hardware-configuration.nix` - `<name>`
    becomes the real `nixosConfigurations.<name>` flake attribute automatically, nothing else to
    register
-2. The `configuration.nix` imports a profile and `./hardware-configuration.nix`
-3. Add `args.enc.json` with machine-specific build-time args that a module option needs at
+2. The `configuration.nix` imports a bundle (or hand-picked atomic layers) and `./hardware-configuration.nix`
+3. Add `args.enc.json` with host-specific build-time args that a module option needs at
    evaluation time (encrypt with sops); add `secrets.enc.yaml` for runtime-only credentials instead
 4. Optionally add `args.nix` for non-secret overrides
-5. If the machine needs a flake input no other host uses, add it unconditionally to the root
+5. If the host needs a flake input no other host uses, add it unconditionally to the root
    `flake.nix` and reference it conditionally in `mkHost` (see how `macbook`/`nixos-hardware` do it)
 
 ### Adding a New Option
 1. Create `options/<category>/<name>.nix` (or `options/<category>/<name>/default.nix` for complex options)
 2. Follow the `enable = lib.mkEnableOption` + `config = lib.mkIf` pattern
 3. The option is auto-imported through the `options/default.nix` -> `options/<category>/default.nix` chain
-4. Enable it in the appropriate profile or machine config
+4. Enable it in the appropriate layer or host config
 
 ### Adding a New Package Overlay
 1. Add to the `overlays` list in `flake.nix`
@@ -337,10 +354,19 @@ by a running service reading a file, not by a NixOS module option at evaluation 
 3. For options with custom builds, use `package.nix` in the option directory (not `default.nix`,
    which is reserved for the option definition)
 
-### Adding a New Profile
-1. Create `profiles/<name>.nix` or `profiles/<category>/<name>.nix`
-2. Import a parent profile and add option enables / packages
-3. Reference from machine configs via relative import
+### Adding a New Layer
+1. Create `layers/<name>.nix` or `layers/<category>/<name>.nix` as a standalone module - don't import
+   other layers from it; only genuine `modules/*` dependencies
+2. Add option enables / packages
+3. If it joins an existing host class, add it to (or create) a `layers/bundles/<class>.nix`
+   aggregator; otherwise reference it directly from a host's `configuration.nix`
+
+### Adding a New Bundle
+1. Create `layers/bundles/<desktop-env>-<class>.nix` whose body is only an `imports` list of the
+   atomic layers that class needs (see existing bundles for the pattern)
+2. Add the `# - Directly installable: <description>` marker comment so `clu install`'s interactive
+   picker (`lib/install`) surfaces it
+3. Reference it from any host's `configuration.nix` that belongs to that class
 
 ### Adding a New `clu` Command
 1. Create `lib/<command>` with `<command>::run()` and `<command>::usage()` functions
@@ -355,8 +381,8 @@ by a running service reading a file, not by a NixOS module option at evaluation 
   make system-level changes (or trigger long Nix evaluations) that must be run explicitly by the
   user. Make config changes and explain what command the user should run to apply them.
 - **Always use `rg` (ripgrep) instead of `grep`** for searching file contents.
-- **When the user doesn't specify a machine name** (e.g. "my config", "this machine"), run `hostname`
-  and match it to the corresponding `machines/<hostname>/` directory. That machine's directory name
+- **When the user doesn't specify a host name** (e.g. "my config", "this machine"), run `hostname`
+  and match it to the corresponding `hosts/<hostname>/` directory. That host's directory name
   matches the actual hostname of the box you're running on.
 
 ---
@@ -367,21 +393,21 @@ by a running service reading a file, not by a NixOS module option at evaluation 
 User runs: clu update workstation
 
 1. lib/utils   -> parse args, detect root/config paths
-2. lib/flake   -> flake::stage_files "machines/workstation"
+2. lib/flake   -> flake::stage_files "hosts/workstation"
    a. Remove /nix/files.lock to permit a files/secrets update
-   b. flake::switch "machines/workstation":
-      - Decrypt root args.enc.json -> args.dec.json and machines/workstation/args.enc.json ->
-        machines/workstation/args.dec.json, git add -f both
+   b. flake::switch "hosts/workstation":
+      - Decrypt root args.enc.json -> args.dec.json and hosts/workstation/args.enc.json ->
+        hosts/workstation/args.dec.json, git add -f both
       - Remember "workstation" in _FLAKE_ARGS_HOST for cleanup
    c. trap flake::unstage_files EXIT
 3. lib/update  -> sudo nixos-rebuild switch --flake "${CONFIG_DIR}#workstation"
 4. Nix evaluates:
    a. flake.nix's mkHost "workstation" computes mergeArgs "workstation": args.nix -> args.dec.json ->
-      machines/workstation/args.nix -> machines/workstation/args.dec.json, then overrides
+      hosts/workstation/args.nix -> hosts/workstation/args.dec.json, then overrides
       hostname="workstation" and git.comment=self.rev authoritatively
-   b. Evaluates nixosConfigurations.workstation with ./options + machines/workstation/configuration.nix
-   c. configuration.nix imports hardware config + profile
-   d. Profile enables options, options produce NixOS config
+   b. Evaluates nixosConfigurations.workstation with ./options + hosts/workstation/configuration.nix
+   c. configuration.nix imports hardware config + a layer bundle
+   d. The bundle's layers enable options, options produce NixOS config
 5. lib/flake   -> flake::unstage_files -> flake::restore (unstage + rm the two args.dec.json files),
    touch /nix/files.lock
 ```
