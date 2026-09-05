@@ -17,7 +17,6 @@
     host.type.bootable = true;
     host.nix.cache.enable = true;
     host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
-    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to host.id)
     devices.gpu.nvidia = { enable = true; open = true; };
 
     apps.games.roblox.enable = true;

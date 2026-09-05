@@ -79,14 +79,20 @@ in
 
       secrets = lib.mkOption {
         type = types.nullOr types.path;
-        default = null;
+        default =
+          let path = ../../../../hosts + "/${host.hostname}/secrets.enc.yaml";
+          in if builtins.pathExists path then path else null;
         example = "./secrets.enc.yaml";
         description = lib.mdDoc ''
           Path to the sops-encrypted file holding this host's `rustdesk/encodedPass` secret
           (`rdutil encrypt <plaintext-pass> --key <host.id>`'s output). Independent of
           `host.secrets` because encodedPass is tied to this specific host's id and can't be
-          satisfied by a shared/default secrets file. Leave unset to fall back to the legacy
-          eval-time `rdutil` bake (leaks the plaintext password into the Nix store).
+          satisfied by a shared/default secrets file. Defaults to
+          `hosts/<hostname>/secrets.enc.yaml` if that file exists (relying on `host.hostname`
+          always matching the `hosts/` directory name, set authoritatively by `flake.nix`);
+          falls back to `null` (the legacy eval-time `rdutil` bake, which leaks the plaintext
+          password into the Nix store) otherwise. Override only if a host's rustdesk secret
+          genuinely lives elsewhere.
         '';
       };
 

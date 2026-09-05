@@ -17,7 +17,6 @@
     host.autologin = true;
     host.nix.cache.enable = true;
     host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
-    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to host.id)
 
     # Test
     # --------------------------------------------

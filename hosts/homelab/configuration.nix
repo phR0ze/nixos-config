@@ -17,7 +17,6 @@
     host.autologin = true;
     host.secrets = ./secrets.enc.yaml;
     host.smb.secrets = ./secrets.enc.yaml;
-    apps.network.rustdesk.secrets = ./secrets.enc.yaml;
     system.x11.autolock.enable = true;
 
     # Apps
