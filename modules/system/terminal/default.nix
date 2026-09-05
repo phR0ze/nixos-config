@@ -5,5 +5,5 @@
     ./bash.nix
   ];
 
-  files.all.".dircolors".copy = ../../../include/home/.dircolors;
+  files.all.".dircolors".copy = ./include/dircolors;
 }
