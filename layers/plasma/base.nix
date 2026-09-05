@@ -1,14 +1,10 @@
 # KDE Plasma 6 minimal desktop configuration
 #
 # ### Features
-# - Directly installable: minimal general purpose desktop environment
+# - Minimal general purpose desktop environment
 # --------------------------------------------------------------------------------------------------
 { pkgs, lib, ... }:
 {
-  imports = [
-    ../base.nix
-  ];
-
   # Enable Plasma 6 with SDDM
   system.x11.enable = true;                   # Fonts, XFT, XDG, themes, libinput
   services.xserver.displayManager.lightdm.enable = lib.mkForce false;

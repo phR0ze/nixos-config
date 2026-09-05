@@ -1,14 +1,10 @@
 # XFCE full desktop configuration
 #
 # ### Features
-# - Directly installable: full general purpose desktop environment
+# - Full general purpose desktop environment
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
-  imports = [
-    ./base.nix
-  ];
-
   # Enable apps
   apps.office.evince.enable = true;         # Document viewer for PDF, djvu, tiff, dvi, XPS, cbr, cbz, cb7, cbt
   apps.media.handbrake.enable = true;       # Video encoding tool for mp4/mkv

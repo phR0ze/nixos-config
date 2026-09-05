@@ -1,16 +1,15 @@
 # XFCE development configuration
 #
 # ### Features
-# - Directly installable: desktop with additional development tools/configs
+# - Desktop with additional development tools/configs
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
   imports = [
-    ./desktop.nix
     ../../modules/development/vscode
   ];
 
-  machine.type.develop = true;
+  host.type.develop = true;
 
   apps.dev.gh.enable = true;
   apps.dev.rust.enable = true;

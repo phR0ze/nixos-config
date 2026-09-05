@@ -1,15 +1,11 @@
 # XFCE theater configuration
 #
 # ### Features
-# - Directly installable: desktop with additional media apps/configs
+# - Desktop with additional media apps/configs
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
-  imports = [
-    ./desktop.nix
-  ];
-
-  machine.type.theater = true;
+  host.type.theater = true;
 
   # High dpi settings
   system.x11.xft.dpi = 120; # 25% higher recommended by Arch Linux
@@ -18,7 +14,7 @@
   system.xfce.panel.launcher.size = 52;
 
   # Display configuration
-  machine.resolution = { x = 1920; y = 1080; };
+  host.resolution = { x = 1920; y = 1080; };
   system.xfce.displays.connectingDisplay = 0;
 
   # Configure theater system background

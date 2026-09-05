@@ -1,14 +1,10 @@
 # Budgie minimal desktop configuration
 #
 # ### Features
-# - Directly installable: minimal general purpose desktop environment
+# - Minimal general purpose desktop environment
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
-  imports = [
-    ../base.nix
-  ];
-
   # Enable Budgie with LightDM
   services.xserver.desktopManager.budgie.enable = true;
 
