@@ -51,12 +51,12 @@ in
       publicKeyFile = lib.mkOption {
         description = lib.mdDoc "Nix binary cache public key used for client configuration";
         type = types.path;
-        default = ../../../../include/var/lib/nix-cache/public.pem;
+        default = ./include/public.pem;
       };
       secretKeyFile = lib.mkOption {
         description = lib.mdDoc "Nix binary cache secret key local value";
         type = types.path;
-        default = ../../../../include/var/lib/nix-cache/private.dec.pem;
+        default = ./include/private.dec.pem;
       };
     };
   };
