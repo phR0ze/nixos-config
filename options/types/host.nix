@@ -1,12 +1,12 @@
-# Declares a machine type for reusability
+# Declares a host type for reusability
 #
 # ### Features
-# - args is the composed/overridden set of user arguments for this machine
+# - args is the composed/overridden set of user arguments for this host
 #
 # ### Defaults
 # Defaults are handled differently at different levels in Nix
-# - When no properties are set for 'machine.user' then the defaults for that option are used.
-# - When properties are set e.g. 'machine.user.email' then the machine.user defaults are not used 
+# - When no properties are set for 'host.user' then the defaults for that option are used.
+# - When properties are set e.g. 'host.user.email' then the host.user defaults are not used 
 #   and instead the 'user.nix' sub module defaults are used.
 # because of this odd behavior we must pass in the 'args' to each sub module as well so that all 
 # defaults are set at every level to cover all the use cases.
@@ -35,27 +35,27 @@ let
 in
 {
   imports = [
-    ./validate_machine.nix
+    ./validate_host.nix
   ];
 
   options = {
-    machine = lib.mkOption {
-      description = lib.mdDoc "Machine configuration definition";
+    host = lib.mkOption {
+      description = lib.mdDoc "Host configuration definition";
       type = types.submodule {
         options = {
           type = lib.mkOption {
             description = lib.mdDoc ''
-              Machine types are descriptive capabilities of a machine. These types are not mutually 
-              exclusive. For instance a machine might be both an ISO and also a development machine. At 
+              Host types are descriptive capabilities of a host. These types are not mutually 
+              exclusive. For instance a host might be both an ISO and also a development host. At 
               least one type must be specified though.
             '';
             type = types.submodule {
               options = {
-                bootable = lib.mkEnableOption "Machine requires a bootloader to boot up";
-                vm = lib.mkEnableOption "Machine is a virtual and does not need a bootloader";
-                iso = lib.mkEnableOption "Machine is intended to be used as an ISO image";
-                develop = lib.mkEnableOption "Machine is intended to be used as a Development system";
-                theater = lib.mkEnableOption "Machine is intended to be used as a Theater system";
+                bootable = lib.mkEnableOption "Host requires a bootloader to boot up";
+                vm = lib.mkEnableOption "Host is a virtual and does not need a bootloader";
+                iso = lib.mkEnableOption "Host is intended to be used as an ISO image";
+                develop = lib.mkEnableOption "Host is intended to be used as a Development system";
+                theater = lib.mkEnableOption "Host is intended to be used as a Theater system";
               };
             };
             default = {
@@ -65,7 +65,7 @@ in
           };
 
           vm.type = lib.mkOption {
-            description = lib.mdDoc "Virtual machine type for this machine";
+            description = lib.mdDoc "Virtual machine type for this host";
             type = types.submodule {
               options = {
                 micro = lib.mkEnableOption "Minimal headless system";
@@ -89,13 +89,13 @@ in
           };
 
           domain = lib.mkOption {
-            description = lib.mdDoc "Domain name owned by this machine, e.g. for use with Caddy/Cloudflare DNS-01";
+            description = lib.mdDoc "Domain name owned by this host, e.g. for use with Caddy/Cloudflare DNS-01";
             type = types.str;
             default = args.domain or "";
           };
 
           target = lib.mkOption {
-            description = lib.mdDoc "Machine or Profile used during installation";
+            description = lib.mdDoc "Host or layer used during installation";
             type = types.str;
             default = args.target or "";
           };
@@ -239,26 +239,26 @@ in
             };
           };
 
-          # Networking options for the whole machine
+          # Networking options for the whole host
           # ----------------------------------------------------------------------------------------------
           net = lib.mkOption {
-            description = lib.mdDoc "Networking options for the machine";
+            description = lib.mdDoc "Networking options for the host";
             type = types.submodule {
               options = {
                 gateway = lib.mkOption {
-                  description = lib.mdDoc "Default gateway to use for machine";
+                  description = lib.mdDoc "Default gateway to use for host";
                   type = types.str;
                   example = "192.168.1.1";
                   default = args.net.gateway or "";
                 };
                 subnet = lib.mkOption {
-                  description = lib.mdDoc "Default subnet to use for machine";
+                  description = lib.mdDoc "Default subnet to use for host";
                   type = types.str;
                   example = "192.168.1.0/24";
                   default = args.net.subnet or "";
                 };
                 dns = lib.mkOption {
-                  description = lib.mdDoc "Default dns to use for machine";
+                  description = lib.mdDoc "Default dns to use for host";
                   type = types.submodule (import ./dns.nix { inherit lib; defaults = args.net.dns or 
                       { primary = ""; fallback = ""; }; });
                   default = args.net.dns or { primary = ""; fallback = ""; };
@@ -274,7 +274,7 @@ in
                     This can be done via the "args.enc.json" or directly in the "configuration.nix" file.
 
                     1. configuration.nix example
-                    machine.net.nic0.name = "eth0";
+                    host.net.nic0.name = "eth0";
 
                     2. args.enc.json example
                     {
@@ -399,11 +399,11 @@ in
 
           secrets = lib.mkOption {
             description = lib.mdDoc ''
-              Path to this machine's sops-encrypted `secrets.enc.yaml`, holding real secrets that must
+              Path to this host's sops-encrypted `secrets.enc.yaml`, holding real secrets that must
               never be baked into the Nix store (the admin user's password/password hash, Samba
               passwords, service encryption keys, etc). Declared once here so every module that needs
-              one of this machine's secrets (`modules/users.nix`, `options/services/raw/smb`, ...) can
-              reference `config.machine.secrets` instead of repeating a `secrets = ./secrets.enc.yaml;`
+              one of this host's secrets (`modules/users.nix`, `options/services/raw/smb`, ...) can
+              reference `config.host.secrets` instead of repeating a `secrets = ./secrets.enc.yaml;`
               option per module the way the independent per-service secrets (newt/caddy/tailscale) do.
             '';
             type = types.nullOr types.path;
@@ -415,13 +415,13 @@ in
             description = lib.mdDoc ''
               Per-service values sourced from args, keyed by service name, for details (like a remote
               server's LAN IP) that should stay out of tracked files rather than being hardcoded in a
-              machine's configuration.nix.
+              host's configuration.nix.
             '';
             type = types.submodule {
               options = {
                 raw = lib.mkOption {
                   description = lib.mdDoc ''
-                    Values for `services.raw.*` modules, e.g. `machine.services.raw.adguard.host` for a
+                    Values for `services.raw.*` modules, e.g. `host.services.raw.adguard.host` for a
                     remote AdGuard instance's LAN IP fronted by `services.raw.caddy`. Populated from
                     `args.services.raw.<name>.host` in `args.enc.json`/`args.nix`.
                   '';
