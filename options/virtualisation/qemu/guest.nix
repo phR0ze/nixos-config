@@ -16,8 +16,8 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  vm = config.machine.vm;
-  machine = config.machine;
+  vm = config.host.vm;
+  host = config.host;
   cfg = config.virtualisation.qemu.guest;
 
   # The msize (maximum packet size) passed to 9p file systems, in bytes. Increasing this
@@ -79,7 +79,7 @@ in
             image = lib.mkOption {
               description = "Root image name";
               type = types.str;
-              default = "./${machine.hostname}.qcow2";
+              default = "./${host.hostname}.qcow2";
             };
             label = lib.mkOption {
               description = "Root drive label";
@@ -95,7 +95,7 @@ in
         };
         default = {
           size = 1;
-          image = "./${machine.hostname}.qcow2";
+          image = "./${host.hostname}.qcow2";
           label = "nixos";
           pathVar = "ROOT_IMAGE";
         };
@@ -245,7 +245,7 @@ in
         # Default the networking to use a user mode NAT device
         default = [{
           type = "user";
-          id = machine.hostname;
+          id = host.hostname;
         }];
       };
       registeredPaths = lib.mkOption {
@@ -320,7 +320,7 @@ in
       # QEMU VM kernel configuration
       # --------------------------------------------
       boot.loader.grub.device = lib.mkForce "/dev/disk/by-id/virtio-${cfg.rootDrive.label}";
-      boot.loader.grub.gfxmodeBios = with machine.resolution; "${toString x}x${toString y}";
+      boot.loader.grub.gfxmodeBios = with host.resolution; "${toString x}x${toString y}";
       boot.loader.supportsInitrdSecrets = lib.mkForce false;
       boot.initrd.availableKernelModules = [
         "virtio_net" "virtio_pci" "virtio_mmio" "virtio_blk" "virtio_scsi"
@@ -354,7 +354,7 @@ in
       ];
       boot.initrd.postMountCommands = lib.mkIf (!config.boot.initrd.systemd.enable)
         ''
-          # Mark this as a NixOS machine.
+          # Mark this as a NixOS host.
           mkdir -p $targetRoot/etc
           echo -n > $targetRoot/etc/NIXOS
 
@@ -456,8 +456,8 @@ in
       # --------------------------------------------------------------------------------------------
       virtualisation.qemu.guest.options =
         [
-          "-name ${machine.hostname}"         # Name to use for GUI windows and process names
-          "-pidfile ${machine.hostname}.pid"  # Store the QEMU process PID in this file
+          "-name ${host.hostname}"         # Name to use for GUI windows and process names
+          "-pidfile ${host.hostname}.pid"  # Store the QEMU process PID in this file
           "-nodefaults -no-user-config"       # Disable any defaults or pass throughs for a clean env
         ]
 
@@ -538,7 +538,7 @@ in
         # tap devices as root and clean them up as root but run the VM as a regular user.
         ++ lib.optionals (macvtapInterfaces != [])
           (builtins.concatMap (x: [
-            "-netdev tap,id=nic0,br=${machine.net.bridge.name},helper=$(type -p qemu-bridge-helper)"
+            "-netdev tap,id=nic0,br=${host.net.bridge.name},helper=$(type -p qemu-bridge-helper)"
             "-device virtio-net-pci,netdev=nic0,mac=${x.mac}"
           ]) macvtapInterfaces)
         ++ lib.optionals (userInterfaces != [])
@@ -603,8 +603,8 @@ in
           "-vga qxl"
           "-device virtio-serial-pci"
           "-spice port=${toString cfg.spice.port},disable-ticketing=on"
-          "-chardev spicevmc,id=${machine.hostname},debug=0,name=vdagent"
-          "-device virtserialport,chardev=${machine.hostname},name=com.redhat.spice.0"
+          "-chardev spicevmc,id=${host.hostname},debug=0,name=vdagent"
+          "-device virtserialport,chardev=${host.hostname},name=com.redhat.spice.0"
         ]
 
         # Kernel configuration
@@ -632,10 +632,10 @@ in
 
       # Build the VM and create the startup/shutdown scripts
       # --------------------------------------------------------------------------------------------
-      system.build.vm = lib.mkForce (pkgs.runCommand "${machine.hostname}" { preferLocalBuild = true; } ''
+      system.build.vm = lib.mkForce (pkgs.runCommand "${host.hostname}" { preferLocalBuild = true; } ''
         mkdir -p $out/bin
         ln -s ${config.system.build.toplevel} $out/system
-        ln -s ${pkgs.writeScript "run-${machine.hostname}" cfg.scripts.run} $out/bin/run
+        ln -s ${pkgs.writeScript "run-${host.hostname}" cfg.scripts.run} $out/bin/run
       '');
     }
 
@@ -651,7 +651,7 @@ in
       #services.xserver.videoDrivers = [ "virtio" ];
       #environment.systemPackages = [ pkgs.virglrenderer ];
 
-      # Open up the firewall for machine.vm.spicePort
+      # Open up the firewall for host.vm.spicePort
       networking.firewall.allowedTCPPorts = [ cfg.spice.port ];
     })
   ];

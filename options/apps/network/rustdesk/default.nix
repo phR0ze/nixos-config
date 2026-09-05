@@ -23,7 +23,7 @@
 #   - https://github.com/v0tti/rustdesk-configstring
 #
 # ### Secrets
-# The permanent password below is `rdutil encrypt <plaintext-pass> --key <machine.id>`'s output --
+# The permanent password below is `rdutil encrypt <plaintext-pass> --key <host.id>`'s output --
 # a deterministic, already-encoded value, not the plaintext password itself -- so once
 # `apps.network.rustdesk.secrets` is set, there's no need to run `rdutil` at activation/runtime the
 # way the plaintext-password consumers (x11vnc/kasmvnc/adguardhome) do: just run `rdutil encrypt`
@@ -39,17 +39,17 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  machine = config.machine;
+  host = config.host;
   cfg = config.apps.network.rustdesk;
-  # Deliberately its own option rather than reading `machine.secrets` directly: encodedPass is
-  # `rdutil encrypt <pass> --key <machine.id>`'s output, so it's cryptographically tied to this
-  # specific machine's id and can never be satisfied by a shared/default secrets file the way
-  # `machine.secrets` can for `user.password`/`passwordHash` in modules/users.nix.
+  # Deliberately its own option rather than reading `host.secrets` directly: encodedPass is
+  # `rdutil encrypt <pass> --key <host.id>`'s output, so it's cryptographically tied to this
+  # specific host's id and can never be satisfied by a shared/default secrets file the way
+  # `host.secrets` can for `user.password`/`passwordHash` in modules/users.nix.
   hasSecrets = cfg.secrets != null;
 
-  # Legacy eval-time bake -- fallback until this machine has an `apps.network.rustdesk.secrets` file
+  # Legacy eval-time bake -- fallback until this host has an `apps.network.rustdesk.secrets` file
   encoded-pass = builtins.readFile (pkgs.runCommandLocal "encoded-rustdesk-pass" {} ''
-    ${pkgs.rdutil}/bin/rdutil encrypt "${machine.user.pass}" --key "${machine.id}" > $out
+    ${pkgs.rdutil}/bin/rdutil encrypt "${host.user.pass}" --key "${host.id}" > $out
   '');
 
   rustDeskTomlContent = (lib.concatStringsSep "\n"
@@ -82,9 +82,9 @@ in
         default = null;
         example = "./secrets.enc.yaml";
         description = lib.mdDoc ''
-          Path to the sops-encrypted file holding this machine's `rustdesk/encodedPass` secret
-          (`rdutil encrypt <plaintext-pass> --key <machine.id>`'s output). Independent of
-          `machine.secrets` because encodedPass is tied to this specific machine's id and can't be
+          Path to the sops-encrypted file holding this host's `rustdesk/encodedPass` secret
+          (`rdutil encrypt <plaintext-pass> --key <host.id>`'s output). Independent of
+          `host.secrets` because encodedPass is tied to this specific host's id and can't be
           satisfied by a shared/default secrets file. Leave unset to fall back to the legacy
           eval-time `rdutil` bake (leaks the plaintext password into the Nix store).
         '';
@@ -173,7 +173,7 @@ in
 #        description = lib.mdDoc "IP/DNS name to use for the relay host";
 #        type = types.str;
 #        example = "192.168.1.2";
-#        default = machine.net.nic0.ip;
+#        default = host.net.nic0.ip;
 #      };
 #    };
   };

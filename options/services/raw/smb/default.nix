@@ -6,13 +6,13 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  machine = config.machine;
-  hasSecrets = machine.smb.secrets != null;
+  host = config.host;
+  hasSecrets = host.smb.secrets != null;
 
   shareName = x: builtins.baseNameOf x.mountPoint;
 
   # Legacy plaintext credential files (baked into the Nix store via environment.etc) — used only
-  # as a fallback until this machine has a `machine.smb.secrets` file holding a `smb/<share>/pass`
+  # as a fallback until this host has a `host.smb.secrets` file holding a `smb/<share>/pass`
   # key per entry.
   smbSecrets = builtins.listToAttrs (map (x: {
     name = "smb/secrets/${shareName x}";
@@ -21,10 +21,10 @@ let
       password=${x.pass}
       domain=${x.domain}
     '';
-  }) machine.smb.entries);
+  }) host.smb.entries);
 in
 {
-  config = lib.mkIf (machine.smb.enable) {
+  config = lib.mkIf (host.smb.enable) {
     environment.etc = lib.mkIf (!hasSecrets) smbSecrets;
 
     # Decrypted to /etc/smb/secrets/<share> at activation, never touching the Nix store
@@ -38,9 +38,9 @@ in
           password=${config.sops.placeholder."smb/${shareName x}/pass"}
           domain=${x.domain}
         '';
-        secrets."smb/${shareName x}/pass".sopsFile = machine.smb.secrets;
+        secrets."smb/${shareName x}/pass".sopsFile = host.smb.secrets;
       };
-    }) machine.smb.entries));
+    }) host.smb.entries));
 
     fileSystems = (builtins.foldl' (a: x: {
       "${x.mountPoint}" = {
@@ -54,7 +54,7 @@ in
           "vers=3.0,iocharset=utf8"
 
           # Use specific uid and gid for file ownership
-          "uid=${toString config.users.users.${machine.user.name}.uid},gid=${toString config.users.groups.${machine.user.group}.gid}"
+          "uid=${toString config.users.users.${host.user.name}.uid},gid=${toString config.users.groups.${host.user.group}.gid}"
 
           # Ignore the server ids and always use client uid,gid for file ownership
           "forceuid,forcegid"
@@ -81,7 +81,7 @@ in
           (if x.writable then "rw" else "ro")
         ];
       };
-    } // a) {} machine.smb.entries);
+    } // a) {} host.smb.entries);
 
     # Install Samba utilities
     environment.systemPackages = with pkgs; [ cifs-utils ];

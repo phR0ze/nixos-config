@@ -7,7 +7,7 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
-  machine = config.machine;
+  host = config.host;
   cfg = config.services.oci.nextcloud;
   defaults = f.getService args "nextcloud";
 in
@@ -47,7 +47,7 @@ in
       extraOptions = [ "--ip=${cfg.ip}" ];
     };
 
-    networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
+    networking.firewall.interfaces.${host.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
 
     # Create podmane network and extend service to use it
     systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };

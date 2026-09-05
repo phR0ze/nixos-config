@@ -3,7 +3,7 @@
 { config, lib, pkgs, ... }:
 let
   xfce = config.system.xfce;
-  machine = config.machine;
+  host = config.host;
 in 
 {
   imports = [
@@ -70,7 +70,7 @@ in
       { name = "LibreOffice Calc"; exec = "libreoffice --calc"; icon = "libreoffice-calc"; }
       { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; }
     ]
-    ++ lib.optional machine.type.develop
+    ++ lib.optional host.type.develop
       { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
 
     # 1. Determine the desktop directory filename

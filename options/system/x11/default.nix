@@ -27,7 +27,7 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   x11 = config.system.x11;
-  machine = config.machine;
+  host = config.host;
 in
 {
   imports = [
@@ -74,8 +74,8 @@ in
           };
         };
         displayManager = {
-          autoLogin.enable = machine.autologin;
-          autoLogin.user = machine.user.name;
+          autoLogin.enable = host.autologin;
+          autoLogin.user = host.user.name;
         };
 
         # Arch Linux recommends libinput and Xfce uses it in its settings manager

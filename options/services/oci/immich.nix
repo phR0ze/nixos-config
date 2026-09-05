@@ -14,7 +14,7 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, args, pkgs, f, ... }: with lib.types;
 let
-  machine = config.machine;
+  host = config.host;
   cfg = config.services.oci.immich;
   gpu = config.devices.gpu;
   defaults = f.getService args "immich";
@@ -182,7 +182,7 @@ in
       };
 
       # Allow LAN ingress to containers
-      networking.firewall.interfaces.${machine.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
+      networking.firewall.interfaces.${host.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
 
       # Extend the services to depend on the podman network
       systemd.services."podman-${cfg.name}-server" = f.extendContService {

@@ -16,14 +16,14 @@
 #    service running elsewhere on the network (e.g. `{ subdomain = "adguard"; host = "192.168.1.5"; port
 #    = 3000; }`).
 # 1b. A Pangolin *private* resource reaches a backend fronted here via a `Host`-mode (raw L4 tunnel)
-#    resource pointed straight at this machine's LAN `IP:443` — Pangolin never terminates or re-originates
+#    resource pointed straight at this host's LAN `IP:443` — Pangolin never terminates or re-originates
 #    TLS for that resource type, so the client's real SNI/Host header reaches this shared wildcard block
 #    intact, same as any LAN client. No separate listener or port is needed for this — an earlier design
 #    here provisioned a per-service `dedicatedPort` (a Host-header-free listener) to work around Newt not
 #    forwarding SNI on its *HTTP*-mode private-resource proxying (fosrl/pangolin#207); that workaround was
 #    dropped once the private resource was switched to `Host` mode instead, which sidesteps the gap
 #    entirely rather than routing around it.
-# 2. Set `domain = config.machine.domain;` in the machine's `configuration.nix` (machine.domain comes
+# 2. Set `domain = config.host.domain;` in the host's `configuration.nix` (host.domain comes
 #    from the `domain` key in `args.enc.json`/`args.nix`, keeping the literal zone name out of tracked
 #    files). DNS-01 only proves control of the zone — it doesn't create routing, so Cloudflare needs a
 #    single wildcard `*.<domain>` DNS record (can be a greyed-out/non-proxied A/CNAME pointing anywhere,
@@ -31,7 +31,7 @@
 #    works without touching Cloudflare again.
 # 3. Add a scoped Cloudflare API token (Zone:DNS:Edit + Zone:Zone:Read for the zone(s) in question —
 #    not the Global API Key) to a `secrets.enc.yaml` under the `caddy.cloudflareApiToken` key, then
-#    point `secrets` at it from the machine's `configuration.nix`:
+#    point `secrets` at it from the host's `configuration.nix`:
 #      services.raw.caddy = {
 #        enable = true;
 #        secrets = ./secrets.enc.yaml;
@@ -82,7 +82,7 @@ in
         example = "./secrets.enc.yaml";
         description = lib.mdDoc ''
           Path to the sops-encrypted file holding the `caddy.cloudflareApiToken` secret. Declared here
-          so the `sops.secrets` entry doesn't need to be repeated in every machine's `configuration.nix`.
+          so the `sops.secrets` entry doesn't need to be repeated in every host's `configuration.nix`.
         '';
       };
 
@@ -91,7 +91,7 @@ in
         example = "example.com";
         description = lib.mdDoc ''
           Cloudflare-managed zone used for certificate issuance. Each proxy is reachable at
-          `<subdomain>.<domain>`. Set to `config.machine.domain` in the machine's `configuration.nix`
+          `<subdomain>.<domain>`. Set to `config.host.domain` in the host's `configuration.nix`
           rather than a literal string, to avoid committing the domain in plaintext.
         '';
       };

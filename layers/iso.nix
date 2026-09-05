@@ -12,20 +12,20 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, args, modulesPath, ... }:
 let
-  machine = config.machine;
+  host = config.host;
 in
 {
-  machine.type.iso = true;
-  machine.autologin = true;
-  machine.hostname = "nixos";
-  machine.user.name = "nixos";
-  machine.user.group = "nixos";
-  machine.resolution = { x = 1920; y = 1080; };
+  host.type.iso = true;
+  host.autologin = true;
+  host.hostname = "nixos";
+  host.user.name = "nixos";
+  host.user.group = "nixos";
+  host.resolution = { x = 1920; y = 1080; };
 
   imports = [
-    # The ISO building automation I'm levaraging from Nix will automatically include all derevations 
-    # in the iso that were used during the build. Thus the 'machine.target' called out below will 
-    # pull in any derivations needed to build that profile.
+    # The ISO building automation I'm levaraging from Nix will automatically include all derevations
+    # in the iso that were used during the build. Thus the 'host.target' called out below will
+    # pull in any derivations needed to build that layer.
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
     (../${args.target})
   ];
@@ -53,7 +53,7 @@ in
 
   # Some more help text.
   services.getty.helpLine = lib.mkForce ''
-    The "nixos" and "root" account passwords are set to ${machine.user.pass}.
+    The "nixos" and "root" account passwords are set to ${host.user.pass}.
 
     If you need a wireless connection, type
     `sudo systemctl start wpa_supplicant` and configure a

@@ -5,7 +5,7 @@
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   xfce = config.system.xfce;
-  resolution = config.machine.resolution;
+  resolution = config.host.resolution;
   cfg = xfce.displays;
 
   xmlfile = lib.mkIf (xfce.enable)

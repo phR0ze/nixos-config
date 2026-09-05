@@ -22,10 +22,10 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  machine = config.machine;
+  host = config.host;
   cfg = config.services.nspawn.stirling-pdf;
 
-  filtered = builtins.filter (x: x.name == "stirling-pdf") machine.services;
+  filtered = builtins.filter (x: x.name == "stirling-pdf") host.services;
   defaults = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
 in
 {
@@ -43,9 +43,9 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       { assertion = (builtins.length filtered > 0);
-        message = "Requires 'machine.services' contain a config for this service"; }
-      { assertion = (machine.net.bridge.enable);
-        message = "Requires 'machine.net.bridge.enable = true;' to work correctly"; }
+        message = "Requires 'host.services' contain a config for this service"; }
+      { assertion = (host.net.bridge.enable);
+        message = "Requires 'host.net.bridge.enable = true;' to work correctly"; }
       { assertion = (cfg.opts.nic.link != "");
         message = "Requires 'opts.nic.link' be set to the bridge name"; }
       { assertion = (cfg.opts.nic.ip != "");
@@ -64,7 +64,7 @@ in
       localAddress = cfg.opts.nic.ip;       # Static IP for the virtual adapter on the bridge
 
       config = { config, pkgs, lib, ...}: {
-        system.stateVersion = machine.nix.minVer;
+        system.stateVersion = host.nix.minVer;
 
         services.stirling-pdf = {
           enable = true;

@@ -6,17 +6,17 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
-  machine = config.machine;
+  host = config.host;
 in
 {
-  # /etc/machine-id contains an unique identifier for the local system that is set during boot if it 
-  # doesn't exist. It is a single newline terminated, hexadecimal, 32-character, lowercase value. It 
-  # is usually generated from a random source and stays constant ever more. It may be set with the 
-  # `systemd.machine_id=` kernel command line param or by passing the `--machine-id=` option to 
+  # /etc/machine-id contains an unique identifier for the local system that is set during boot if it
+  # doesn't exist. It is a single newline terminated, hexadecimal, 32-character, lowercase value. It
+  # is usually generated from a random source and stays constant ever more. It may be set with the
+  # `systemd.machine_id=` kernel command line param or by passing the `--machine-id=` option to
   # systemd. You can use `dbus-uuidgen` to create one manually.
   # - https://www.freedesktop.org/software/systemd/man/latest/machine-id.html
-  environment.etc = lib.optionalAttrs (machine.id or "" != "") {
-    "machine-id".text = "${machine.id}\n";
+  environment.etc = lib.optionalAttrs (host.id or "" != "") {
+    "machine-id".text = "${host.id}\n";
   };
 
   # Logind configuration

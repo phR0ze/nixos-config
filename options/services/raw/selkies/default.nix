@@ -3,7 +3,7 @@
 
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  machine = config.machine;
+  host = config.host;
   cfg = config.services.raw.selkies;
 
   selkies = pkgs.python312Packages.callPackage ../../../../packages/selkies {};

@@ -11,7 +11,7 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.services.raw.sunshine;
-  machine = config.machine;
+  host = config.host;
 in
 {
   options = {

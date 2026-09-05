@@ -2,7 +2,7 @@
 # Distributed version control system.
 #
 # ### Details
-# - Configures user identity from machine args
+# - Configures user identity from host args
 # - Sets vim as the default editor
 # - Enables rebase on pull
 # - Adds 'git d' alias for 'git diff --word-diff=color'
@@ -10,7 +10,7 @@
 { config, lib, ... }:
 let
   cfg = config.apps.dev.git;
-  machine = config.machine;
+  host = config.host;
 in
 {
   options = {
@@ -24,8 +24,8 @@ in
       enable = true;
       config = {
         user = {
-          name = machine.git.user;
-          email = machine.git.email;
+          name = host.git.user;
+          email = host.git.email;
         };
         core = {
           editor = "vim";

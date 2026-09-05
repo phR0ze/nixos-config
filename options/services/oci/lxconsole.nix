@@ -33,14 +33,14 @@ in
         default = {
           name = "lxconsole";
           user = {
-            name = machine.user.name;
-            uid = config.users.users.${machine.user.name}.uid;
-            gid = config.users.groups."${machine.user.group}".gid;
+            name = host.user.name;
+            uid = config.users.users.${host.user.name}.uid;
+            gid = config.users.groups."${host.user.group}".gid;
           };
           nic = {
             name = config.networking.vnic0;
-            subnet = machine.nic0.subnet;
-            gateway = machine.nic0.gateway;
+            subnet = host.nic0.subnet;
+            gateway = host.nic0.gateway;
             ip = "192.168.1.40";
             port = 80;
           };
