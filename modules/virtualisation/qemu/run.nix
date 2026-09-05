@@ -2,7 +2,7 @@
 let
   host = config.host;
   guest = config.virtualisation.qemu.guest;
-  host = config.virtualisation.qemu.host;
+  qemuHost = config.virtualisation.qemu.host;
 in
 {
   config = {
@@ -27,9 +27,9 @@ in
         echo "Root disk image does not exist, creating ''$${guest.rootDrive.pathVar}..."
         temp=$(mktemp)
         size="${toString (guest.rootDrive.size * 1024)}M"
-        ${host.package}/bin/qemu-img create -f raw "$temp" "$size"
+        ${qemuHost.package}/bin/qemu-img create -f raw "$temp" "$size"
         ${pkgs.e2fsprogs}/bin/mkfs.ext4 -L ${guest.rootDrive.label} "$temp"
-        ${host.package}/bin/qemu-img convert -f raw -O qcow2 "$temp" "''$${guest.rootDrive.pathVar}"
+        ${qemuHost.package}/bin/qemu-img convert -f raw -O qcow2 "$temp" "''$${guest.rootDrive.pathVar}"
         rm "$temp"
         echo "Root disk image created."
       fi
@@ -51,7 +51,7 @@ in
 
       # Launch the virtual machine
       # ----------------------------------------------------------------------------------------
-      exec ${host.package}/bin/qemu-system-x86_64 \
+      exec ${qemuHost.package}/bin/qemu-system-x86_64 \
         ${lib.concatStringsSep " \\\n  " guest.options}
     '';
   };

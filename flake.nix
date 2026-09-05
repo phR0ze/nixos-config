@@ -18,60 +18,15 @@
     nixos-files.inputs.sops-nix.follows = "sops-nix";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, ... }@inputs: let
+  outputs = { self, nixpkgs, ... }@inputs: let
     _args = import ./args.nix;
     lib = nixpkgs.lib;
 
-    # Allow for package patches, overrides and additions
-    # ----------------------------------------------------------------------------------------------
     system = _args.arch;
-    pkgs-unstable = import nixpkgs-unstable {
-      inherit system;
-      config.allowUnfreePredicate = pkg: true;
-      config.android_sdk.accept_license = true;
-      config.nvidia.acceptLicense = true;
-    };
-    pkgs = import nixpkgs {
-      inherit system;
-      config.allowUnfreePredicate = pkg: true;
-      config.android_sdk.accept_license = true;
-      config.nvidia.acceptLicense = true;
-      config.permittedInsecurePackages = [
-        "broadcom-sta-6.30.223.271-57-6.12.41"      # Required for HP Notebook 15-AF123CL
-        #"freeimage-3.18.0-unstable-2024-04-18"     # Allowing this for wii tools
-      ];
 
-      # Modify package defaults with overlays
-      # --------------------------------------------------------------------------------------------
-      overlays = [
-        (before: after: {
-          # Include custom packages in global pkgs variable to make them available throughout my
-          # codebase rather than having to call them with a full path. Note I'm using package.nix
-          # rather than default.nix as default.nix will be used for options.
-          clu = pkgs.callPackage modules/apps/system/clu/package.nix { src = self; };
-          arcologout = pkgs.callPackage packages/arcologout {};
-          desktop-assets = pkgs.callPackage packages/desktop-assets {};
-          rdutil = pkgs.callPackage packages/rdutil {};
-          tinymediamanager = pkgs.callPackage packages/tinymediamanager{};
-          wmctl = pkgs.callPackage packages/wmctl {};
-
-          # Override packages with other versions:
-          immich = pkgs-unstable.immich;
-          vscode = pkgs-unstable.vscode;
-          zed-editor = pkgs-unstable.zed-editor;
-          zoom-us = pkgs-unstable.zoom-us;
-          rust-analyzer = pkgs-unstable.rust-analyzer;
-          rust-lang.rust-analyzer = pkgs-unstable.vscode-extensions.rust-lang.rust-analyzer;
-          synology-drive-client = pkgs-unstable.synology-drive-client;
-          tailscale = pkgs-unstable.tailscale;
-          vadimcn.vscode-lldb = pkgs-unstable.vscode-extensions.vadimcn.vscode-lldb;
-          vaultwarden = pkgs-unstable.vaultwarden;
-          yt-dlp = pkgs-unstable.yt-dlp;
-        })
-      ];
-    };
-
-    f = pkgs.callPackage ./funcs {};
+    # Minimal, overlay-free pkgs used only for eval-time JSON/YAML helpers in mergeArgs below -
+    # the shared nixpkgs.config/overlays (see ./modules/nixpkgs.nix) don't need to be built for this.
+    f = (import nixpkgs { inherit system; }).callPackage ./funcs {};
 
     # Compose the argument overrides for the given hostname
     # ----------------------------------------------------------------------------------------------
@@ -101,10 +56,9 @@
     hostNames = builtins.attrNames (lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./hosts));
 
     mkHost = hostname: lib.nixosSystem {
-      inherit pkgs system;
+      inherit system;
       specialArgs = { inherit inputs f; args = mergeArgs hostname; };
-      modules = [ inputs.nixos-files.nixosModules.default ./modules (./hosts + "/${hostname}/configuration.nix") ]
-        ++ lib.optionals (hostname == "macbook") [ inputs.nixos-hardware.nixosModules.apple-t2 ];
+      modules = [ ./modules/nixpkgs.nix inputs.nixos-files.nixosModules.default ./modules (./hosts + "/${hostname}/configuration.nix") ];
     };
   in
   {
@@ -118,8 +72,8 @@
       # brand new host before it has its own hosts/<hostname> directory.
       # --------------------------------------------------------------------------------------------
       install = lib.nixosSystem {
-        inherit pkgs system; specialArgs = { inherit inputs f; args = _bootstrapArgs; };
-        modules = [ ./hardware-configuration.nix (./. + "/" + _args.target) ];
+        inherit system; specialArgs = { inherit inputs f; args = _bootstrapArgs; };
+        modules = [ ./modules/nixpkgs.nix ./hardware-configuration.nix (./. + "/" + _args.target) ];
       };
 
       # Defines configuration for building an ISO
@@ -127,12 +81,12 @@
       # - re-using layers/iso.nix to set defaults otherwise set in secrets
       # --------------------------------------------------------------------------------------------
       iso = lib.nixosSystem {
-        inherit pkgs system;
+        inherit system;
         specialArgs = {
           inherit f inputs;
           args = lib.recursiveUpdate _bootstrapArgs (import ./layers/iso_args.nix);
         };
-        modules = [ inputs.nixos-files.nixosModules.default ./modules ./layers/iso.nix ];
+        modules = [ ./modules/nixpkgs.nix inputs.nixos-files.nixosModules.default ./modules ./layers/iso.nix ];
       };
     };
   };

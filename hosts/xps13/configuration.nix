@@ -16,7 +16,6 @@
     system.x11.xft.dpi = 115;
     host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
     host.smb.secrets = ./secrets.enc.yaml;   # per-share passwords (all default "admin")
-    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to host.id)
 
     devices.printers.brother-hll2405w = true;
 

@@ -21,7 +21,6 @@ in
   config = {
     host.type.bootable = true;
     host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
-    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to host.id)
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 
