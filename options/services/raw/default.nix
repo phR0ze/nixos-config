@@ -16,6 +16,7 @@
     ./nix-cache
     ./private-internet-access
     ./selkies
+    ./smartd
     ./smb
     ./sshd
     ./sunshine

@@ -7,6 +7,7 @@
     ./firmware.nix
     ./gpu.nix
     ./printers.nix
+    ./scanners.nix
     ./kernel.nix
     ./rtl88x2bu
   ];

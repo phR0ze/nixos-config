@@ -12,10 +12,10 @@ let
 in
 {
   imports = [
-    ../modules/locale.nix
-    ../modules/nix.nix
-    ../modules/terminal
-    ../modules/services/systemd.nix
+    ../options/system/locale.nix
+    ../options/system/nix.nix
+    ../options/system/terminal
+    ../options/services/systemd.nix
   ];
 
   programs.tmux.enable = true;

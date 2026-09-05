@@ -16,6 +16,12 @@ let
 
 in
 {
+  imports = [
+    ./settings.nix
+    ./keybindings.nix
+    ./extensions.nix
+  ];
+
   options = {
     apps.dev.vscode = {
       enable = lib.mkEnableOption "Install and configure Visual Studio Code"; 
