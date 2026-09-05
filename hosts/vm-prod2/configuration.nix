@@ -15,7 +15,6 @@
     host.vm.type.local = true;
     host.resolution = { x = 1920; y = 1080; };
     host.autologin = true;
-    host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
 
     # Testing
     # ---------------------------------------------

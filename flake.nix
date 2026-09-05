@@ -25,19 +25,19 @@
 
     # Compose the argument overrides for the given hostname
     # ----------------------------------------------------------------------------------------------
-    # Layering (lowest to highest priority): root args.nix -> root args.dec.json ->
-    # hosts/<hostname>/args.nix -> hosts/<hostname>/args.dec.json. `hostname` and
+    # Layering (lowest to highest priority): root args.nix -> root args.dec.yaml ->
+    # hosts/<hostname>/args.nix -> hosts/<hostname>/args.dec.yaml. `hostname` and
     # `git.comment` are then always set authoritatively so no per-host file needs to declare
     # them: `hostname` is simply the hosts/ directory name being built, and `git.comment` comes
     # straight from flake introspection (self.rev), not a value written into a tracked file.
     mergeArgs = hostname: let
       isolated = builtins.pathExists (./hosts + "/${hostname}/.isolated");
       hostArgsFile = ./hosts/${hostname}/args.nix;
-      hostDecArgsFile = ./hosts/${hostname}/args.dec.json;
+      hostDecArgsFile = ./hosts/${hostname}/args.dec.yaml;
       hostArgs = if builtins.pathExists hostArgsFile then (import hostArgsFile) else {};
-      hostDecArgs = if builtins.pathExists hostDecArgsFile then f.fromJSON hostDecArgsFile else {};
-      baseArgsFile = ./args.dec.json;
-      baseArgs = if isolated then {} else (if builtins.pathExists baseArgsFile then f.fromJSON baseArgsFile else {});
+      hostDecArgs = if builtins.pathExists hostDecArgsFile then f.fromYAML hostDecArgsFile else {};
+      baseArgsFile = ./args.dec.yaml;
+      baseArgs = if isolated then {} else (if builtins.pathExists baseArgsFile then f.fromYAML baseArgsFile else {});
       rootArgs = if isolated then {} else _args;
     in lib.recursiveUpdate (lib.recursiveUpdate (lib.recursiveUpdate rootArgs baseArgs) (lib.recursiveUpdate hostArgs hostDecArgs)) {
       hostname = hostname;

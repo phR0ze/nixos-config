@@ -41,19 +41,19 @@ run::run()
 }
  
 # Run the test vm
-# - $1 - optional machine name to target
+# - $1 - optional host name to target
 # --------------------------------------------------------------------------------------------------
 run::vm()
 {
     core::preamble
 
-    # Determine the kind of VM being run i.e. either direct path to an isolated VM or a keyword to 
+    # Determine the kind of VM being run i.e. either direct path to an isolated VM or a keyword to
     # map into a host dependent VM.
-    local machine="$1"
+    local host="$1"
 
     # Local isolated VM
-    if [[ -d "${machine}" ]]; then
-        log::header1 "Running VM ${cyan}${machine}${none}"
+    if [[ -d "${host}" ]]; then
+        log::header1 "Running VM ${cyan}${host}${none}"
 
         # Launch QEMU with performance optimizations:
         # - machine q35: Modern PCIe-based machine type
@@ -69,34 +69,34 @@ run::vm()
             -device virtio-vga-gl \
             -display gtk,gl=on \
             -device virtio-tablet-pci \
-            -hda "${machine}/nixos.qcow2"
+            -hda "${host}/nixos.qcow2"
     else
         # Default to the test vm if not given
-        [[ "$machine" == "" ]] && machine="test"
-        MACHINE="vm-${machine}"
+        [[ "$host" == "" ]] && host="test"
+        HOST="vm-${host}"
 
         # Target includes the prefix path
-        TARGET="hosts/$MACHINE"
+        TARGET="hosts/$HOST"
 
         log::header1 "Running VM ${cyan}${TARGET}${none}"
 
         # Optionally clean first
         if [[ $CLEAN -eq 1 ]]; then
-            log::ls "Cleaning ${cyan}${MACHINE}${none}"
-            $SUDO rm -rf "${CONFIG_DIR}/${MACHINE}"
+            log::ls "Cleaning ${cyan}${HOST}${none}"
+            $SUDO rm -rf "${CONFIG_DIR}/${HOST}"
         fi
 
         local runner
-        runner="$(find "${CONFIG_DIR}/${MACHINE}/result/bin" -maxdepth 1 -type l -o -type f 2>/dev/null | head -n1)"
+        runner="$(find "${CONFIG_DIR}/${HOST}/result/bin" -maxdepth 1 -type l -o -type f 2>/dev/null | head -n1)"
 
         # Build and install if needed
         if [[ -z "$runner" || ! -f "$runner" ]]; then
 
             # Fallback: boot a disk image produced by 'clu run iso' + 'clu install' directly,
             # without a Nix VM rebuild.  This is the path used after 'clu conv <src> <name>'.
-            local disk="${CONFIG_DIR}/${MACHINE}/nixos.qcow2"
+            local disk="${CONFIG_DIR}/${HOST}/nixos.qcow2"
             if [[ -f "$disk" ]]; then
-                log::ls "Booting ${cyan}${MACHINE}${none} from disk image"
+                log::ls "Booting ${cyan}${HOST}${none} from disk image"
                 $SUDO qemu-system-x86_64 \
                     -name NixOS \
                     -machine q35 \
@@ -110,9 +110,9 @@ run::vm()
                 return
             fi
 
-            NO_PREAMBLE=1 && build::vm $MACHINE
+            NO_PREAMBLE=1 && build::vm $HOST
             flake::restore
-            runner="$(find "${CONFIG_DIR}/${MACHINE}/result/bin" -maxdepth 1 -type l -o -type f 2>/dev/null | head -n1)"
+            runner="$(find "${CONFIG_DIR}/${HOST}/result/bin" -maxdepth 1 -type l -o -type f 2>/dev/null | head -n1)"
         fi
 
         log::ls "Running ${cyan}${runner}${none}"
@@ -126,7 +126,7 @@ run::iso()
 {
     core::preamble
 
-    MACHINE="vm-iso"
+    HOST="vm-iso"
     log::header1 "Boot VM with ${cyan}result/iso/*.iso${none}"
 
     # Check that the ISO exists
@@ -142,17 +142,17 @@ run::iso()
 
     # Optionally clean first
     if [[ $CLEAN -eq 1 ]]; then
-        log::ls "Cleaning ${cyan}${MACHINE}${none}"
-        $SUDO rm -rf "${CONFIG_DIR}/${MACHINE}"
+        log::ls "Cleaning ${cyan}${HOST}${none}"
+        $SUDO rm -rf "${CONFIG_DIR}/${HOST}"
     fi
 
     # Create the vm directory and volume if needed
     log::ls "Launching VM with ISO"
-    $SUDO mkdir -p "${CONFIG_DIR}/${MACHINE}"
-    if [ ! -d "${CONFIG_DIR}/${MACHINE}" ]; then
+    $SUDO mkdir -p "${CONFIG_DIR}/${HOST}"
+    if [ ! -d "${CONFIG_DIR}/${HOST}" ]; then
         log::subln3 "${cyan}$iso${none}"
     fi
-    utils::run pushd "${CONFIG_DIR}/${MACHINE}"
+    utils::run pushd "${CONFIG_DIR}/${HOST}"
 
     # Create the volume if needed
     local vol="nixos.qcow2"

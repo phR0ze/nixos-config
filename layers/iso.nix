@@ -64,6 +64,7 @@ in
   environment.systemPackages = with pkgs; [
     git         # dependency for clu installer automation
     jq          # dependency for clu installer automation
+    yq          # dependency for clu installer automation
   ];
 
   # Add a marker to pass ISO state to install

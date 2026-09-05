@@ -1,9 +1,9 @@
-# Non-secret argument overrides for the macbook, layered on top of the root `args.nix`/`args.dec.json`
+# Non-secret argument overrides for the macbook, layered on top of the root `args.nix`/`args.dec.yaml`
 # --------------------------------------------------------------------------------------------------
 {
   net = {
     dns = {
-      # Don't force a global nameserver on this roaming laptop - the root args.dec.json sets
+      # Don't force a global nameserver on this roaming laptop - the root args.dec.yaml sets
       # net.dns.primary to the home DNS server, which breaks DNS resolution on any other network
       # (hotel wifi, airline captive portals, etc.) since it stomps on the DHCP-provided per-link DNS.
       # Leaving primary empty lets each link's own DHCP-assigned DNS win, which is what makes captive

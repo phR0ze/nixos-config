@@ -15,10 +15,10 @@
 #   No inbound ports are published on this host for this service, so no firewall rule is needed either.
 # - Fully user-space WireGuard — no Linux capabilities, no `/dev/net/tun`, so the container runs
 #   `--cap-drop=ALL`, non-root, and (by default) with a read-only rootfs.
-# - `endpoint`/`id` are pulled from `args.services.oci.newt` (`args.enc.json`) the same way Homarr's
+# - `endpoint`/`id` are pulled from `args.services.oci.newt` (`args.enc.yaml`) the same way Homarr's
 #   `encKey` is — identify *which* site connects, but grant nothing without the secret below.
 # - The Newt client secret is the actual site-connector credential, so it's kept out of the Nix store
-#   entirely via sops-nix rather than args.enc.json. Point `secrets` at a `secrets.enc.yaml` holding a
+#   entirely via sops-nix rather than args.enc.yaml. Point `secrets` at a `secrets.enc.yaml` holding a
 #   `newt.clientSecret` key from the machine's `configuration.nix`:
 #     services.oci.newt = {
 #       enable = true;

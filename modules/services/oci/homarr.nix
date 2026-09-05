@@ -35,7 +35,7 @@ in
             description = lib.mdDoc ''
               Encryption key used to encrypt secrets in database. Only used as a fallback when
               `secrets` is unset -- prefer `secrets` (sops-encrypted, decrypted only at
-              activation) over this (baked into the Nix store via args.enc.json).
+              activation) over this (baked into the Nix store via args.enc.yaml).
             '';
             type = types.str;
             example = "Create with `open ssl rand -hex 32`";

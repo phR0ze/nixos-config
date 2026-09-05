@@ -24,7 +24,7 @@
 #    dropped once the private resource was switched to `Host` mode instead, which sidesteps the gap
 #    entirely rather than routing around it.
 # 2. Set `domain = config.host.domain;` in the host's `configuration.nix` (host.domain comes
-#    from the `domain` key in `args.enc.json`/`args.nix`, keeping the literal zone name out of tracked
+#    from the `domain` key in `args.enc.yaml`/`args.nix`, keeping the literal zone name out of tracked
 #    files). DNS-01 only proves control of the zone — it doesn't create routing, so Cloudflare needs a
 #    single wildcard `*.<domain>` DNS record (can be a greyed-out/non-proxied A/CNAME pointing anywhere,
 #    since clients reach this host directly on the LAN) — any new subdomain added to `proxies` then just

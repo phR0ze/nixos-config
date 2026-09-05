@@ -12,12 +12,12 @@
 # For this to work correctly you'll need some manual setup as well:
 # 1. Generate a new key from https://login.tailscale.com/admin/machines/new-linux
 # 2. Add it to a `secrets.enc.yaml` under the `tailscale.authKey` key, then point `secrets` at it
-#    from the machine's `configuration.nix`:
+#    from the host's `configuration.nix`:
 #      services.raw.tailscale = {
 #        enable = true;
 #        secrets = ./secrets.enc.yaml;
 #      };
-# 3. Optional run: sudo tailscale cert ${MACHINE_NAME}.${TAILNET_NAME}
+# 3. Optional run: sudo tailscale cert ${HOST_NAME}.${TAILNET_NAME}
 # 4. Check service status: sudo systemctl status tailscaled
 # 5. Enable with: services.raw.tailscale = { enable = true; autoStart = true; };
 # --------------------------------------------------------------------------------------------------

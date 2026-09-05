@@ -34,6 +34,7 @@ stdenvNoCC.mkDerivation {
     psmisc                              # Ensure general purpose tooling available
     sops                                # sops is used to decrypt and encrypt secrets
     sudo                                # provides the ability to elevate privileges safely
+    yq                                  # yq is used to convert build-time args to/from yaml
   ];
 
   nativeBuildInputs = [

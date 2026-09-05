@@ -4,7 +4,7 @@ A multi-host NixOS configuration managing 22+ physical and virtual hosts through
 automation layer (`clu`) that orchestrates Nix flake evaluation. Host selection is a real, standard
 per-host `nixosConfigurations.<hostname>` flake entry, generated from each `hosts/<hostname>/`
 directory. The one thing `clu` still has to stage before evaluation is each host's *build-time args*
-(`hosts/<hostname>/args.enc.json`, decrypted to `args.dec.json`) - Nix flakes only see git-tracked
+(`hosts/<hostname>/args.enc.yaml`, decrypted to `args.dec.yaml`) - Nix flakes only see git-tracked
 or staged files, and some of that data (drive UUIDs, network interface config, EFI/MBR selection) is
 genuinely needed by NixOS module options at evaluation time, so it can't be deferred to sops-nix's
 normal activation-time secret decryption. This staging is scoped to exactly one host per build and
@@ -39,23 +39,23 @@ involved in selecting a host. `nixosConfigurations` is a lazy attrset, so `nix b
 .#<hostname>...` only forces evaluation of that one host; every other (still-encrypted) host's
 args are never touched.
 
-**What still needs staging**: `hosts/<hostname>/args.dec.json` and root `args.dec.json` - the
-decrypted forms of `args.enc.json`. Some of that data (drive UUIDs, network config, EFI/MBR) is
+**What still needs staging**: `hosts/<hostname>/args.dec.yaml` and root `args.dec.yaml` - the
+decrypted forms of `args.enc.yaml`. Some of that data (drive UUIDs, network config, EFI/MBR) is
 consumed by NixOS module options at evaluation time, and Nix flakes only see git-tracked/staged files,
 so there's no way around staging without `--impure` (deliberately avoided - see §7).
 
 **The `flake::switch(target)` function** (called before every build/update), for a `hosts/*`
 target:
-1. Runs `flake::decrypt_args(hostname)`: `sops --decrypt` on root `args.enc.json` and
-   `hosts/<hostname>/args.enc.json` (whichever exist) to `args.dec.json` siblings, then
+1. Runs `flake::decrypt_args(hostname)`: `sops --decrypt` on root `args.enc.yaml` and
+   `hosts/<hostname>/args.enc.yaml` (whichever exist) to `args.dec.yaml` siblings, then
    `git add -f`s them.
 2. Remembers the hostname in `_FLAKE_ARGS_HOST` so `flake::restore` knows what to clean up, without
-   depending on the format of whatever the caller's `$MACHINE`/`$TARGET` variables happen to be.
+   depending on the format of whatever the caller's `$HOST`/`$TARGET` variables happen to be.
 
 Layer-only targets (`layers/*`, e.g. ISO builds) skip this entirely - there's no per-host args to
 decrypt, and ISO builds deliberately exclude secrets (`layers/iso_args.nix`).
 
-**`flake::restore()`** unstages and deletes the one host's `args.dec.json` files. A `trap ...  EXIT`
+**`flake::restore()`** unstages and deletes the one host's `args.dec.yaml` files. A `trap ...  EXIT`
 in every caller ensures this runs even on failure, so a crash leaves at most one host's plaintext
 behind (`clu clean dec` sweeps up any leftovers via the broader `utils::remove_decrypted`).
 
@@ -63,16 +63,16 @@ behind (`clu clean dec` sweeps up any leftovers via the broader `utils::remove_d
 `flake::switch`, sets the restore trap.
 
 **Isolated hosts**: a host directory containing an empty `hosts/<hostname>/.isolated` marker file
-opts out of *both* root layers (root `args.nix` and root `args.dec.json`) in `mergeArgs` - it must
-be fully self-contained in its own `args.nix`/`args.dec.json`, and `lib/flake`'s decrypt step skips
-`args.enc.json` for it too. This is for hosts that need to be walled off from the fleet's shared
+opts out of *both* root layers (root `args.nix` and root `args.dec.yaml`) in `mergeArgs` - it must
+be fully self-contained in its own `args.nix`/`args.dec.yaml`, and `lib/flake`'s decrypt step skips
+`args.enc.yaml` for it too. This is for hosts that need to be walled off from the fleet's shared
 config/secrets (e.g. an internet-facing VPS): a compromise of this host shouldn't expose the
 fleet's shared args, and a fleet-key compromise shouldn't expose this host's args either (pair it
 with a dedicated sops age key in `.sops.yaml`). See `hosts/vps` for the live example.
 
 ### Why This Matters for Feature Work
 
-- All `nixos-rebuild`/`nix build`/`nixos-install` commands use `--flake "${CONFIG_DIR}#${MACHINE}"`
+- All `nixos-rebuild`/`nix build`/`nixos-install` commands use `--flake "${CONFIG_DIR}#${HOST}"`
   (the real hostname), not a generic `#target` name.
 - `args.nix` at root is a normal, permanently committed file now - nothing mutates it per build.
   `hostname` and `git.comment` in the final merged `args` are always set authoritatively by
@@ -94,9 +94,9 @@ when `hostname == "macbook"` - follow this pattern for any future host-specific 
 ### Argument Composition (Priority Low -> High)
 `mergeArgs hostname` in `flake.nix`:
 1. `args.nix` - Base defaults (committed)
-2. `args.dec.json` - Base secrets (decrypted at build time)
+2. `args.dec.yaml` - Base secrets (decrypted at build time)
 3. `hosts/<hostname>/args.nix` - Host-specific overrides
-4. `hosts/<hostname>/args.dec.json` - Host-specific secrets
+4. `hosts/<hostname>/args.dec.yaml` - Host-specific secrets
 5. `hostname` and `git.comment` are then always set authoritatively (directory name / `self.rev`),
    overriding anything the above files might otherwise supply
 
@@ -123,7 +123,7 @@ args.nix               # Default arguments (static, committed - never mutated by
 modules/               # All NixOS modules - opt-in feature namespaces AND always-on baseline (see §5)
 layers/                # Composable configuration layers + bundles/ aggregators (see §6)
 hosts/<name>/          # Per-host configurations (22+ hosts) - configuration.nix, hardware-configuration.nix,
-                       #   args.enc.json/args.nix, secrets.enc.yaml, optionally .isolated (see §2)
+                       #   args.enc.yaml/args.nix, secrets.enc.yaml, optionally .isolated (see §2)
 include/               # Static file templates (home dir configs, fonts, nix cache keys)
 packages/              # Custom package definitions, referenced by overlays in modules/nixpkgs.nix
 funcs/                 # Nix helper functions
@@ -171,7 +171,7 @@ rather than trusting an enumerated list here, it drifts.
 
 Central hub defining all host-level configuration. Every field defaults from the composed `args`
 attribute set (see §3). This is what lets layers/hosts stay DRY across 22+ hosts: shared layer
-modules read `config.host.*` (populated per-host from `args.nix`/`args.enc.json`) to parameterize
+modules read `config.host.*` (populated per-host from `args.nix`/`args.enc.yaml`) to parameterize
 real NixOS options (`users.users.*`, `networking.*`, `fileSystems.*`, ...) instead of every host
 repeating that config directly. Representative fields: `host.type.*` (capability flags like `vm`,
 `iso`, `develop`), `host.net.*` (networking), `host.secrets` (nullable path to that host's
@@ -208,7 +208,7 @@ and won't double-import anything.
 
 Two distinct mechanisms exist, used for two genuinely different needs - don't conflate them:
 
-**Build-time args** (`args.enc.json` -> `args.dec.json`, used for data a NixOS module option needs
+**Build-time args** (`args.enc.yaml` -> `args.dec.yaml`, used for data a NixOS module option needs
 at *evaluation* time - drive UUIDs, network interface config, EFI/MBR selection):
 - **Tool**: sops with age encryption, decrypted by the operator's local `sops` CLI/age key
 - **Config**: `.sops.yaml` at repo root with age public key
@@ -234,7 +234,7 @@ by a running service reading a file, not by a NixOS module option at evaluation 
 
 ### Adding a New Host
 `<name>` becomes the real `nixosConfigurations.<name>` flake attribute automatically just by
-creating `hosts/<name>/` - nothing else to register. Use `args.enc.json` only for values a module
+creating `hosts/<name>/` - nothing else to register. Use `args.enc.yaml` only for values a module
 option needs at *evaluation* time; use `secrets.enc.yaml` for everything else (see §7 - this
 distinction is easy to get backwards). If the host needs to be walled off from the fleet's shared
 config/secrets, add an empty `hosts/<name>/.isolated` marker and a dedicated sops age key (§2). If

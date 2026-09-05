@@ -27,12 +27,12 @@ Options:
 
 Commands:
   iso [LAYER]           Build the installable ISO with an optional layer override
-  vm [MACHINE]          Build the given VM machine or the default test vm 'vm-test'
+  vm [HOST]             Build the given VM host or the default test vm 'vm-test'
 USAGE
 
     log::ln "\nExamples:"
-    log::subln "Build host machine: ${green}./${SCRIPT} build${none}"
-    log::subln "Build given machine: ${green}./${SCRIPT} build macbook${none}"
+    log::subln "Build host: ${green}./${SCRIPT} build${none}"
+    log::subln "Build given host: ${green}./${SCRIPT} build macbook${none}"
     log::subln "Build the test VM: ${green}./${SCRIPT} build vm${none}"
     log::subln "Build the prod1 VM: ${green}./${SCRIPT} build vm prod1${none}"
     log::subln "Clean build of test VM: ${green}./${SCRIPT} build vm -c${none}"
@@ -53,29 +53,29 @@ build::run()
     case "$arg" in
         iso) build::iso "$@" ;;
         vm) build::vm "$@" ;;
-        *) build::machine "$arg" ;;
+        *) build::host "$arg" ;;
     esac
 }
- 
-# Build the target machine
-# - $1 - the machine name to target
+
+# Build the target host
+# - $1 - the host name to target
 # --------------------------------------------------------------------------------------------------
-build::machine()
+build::host()
 {
     core::preamble
 
-    # Use hostname as machine
-    MACHINE="$1"
-    [[ "$1" == "" ]] && MACHINE="$(hostname)"
+    # Use hostname as host
+    HOST="$1"
+    [[ "$1" == "" ]] && HOST="$(hostname)"
 
     # Target includes the prefix path
-    TARGET="hosts/$MACHINE"
+    TARGET="hosts/$HOST"
 
     log::header1 "Building ${cyan}${TARGET}${none}"
     flake::switch "$TARGET"
     trap flake::restore EXIT
 
-    $SUDO nixos-rebuild dry-activate $TRACE $IMPURE --flake "${CONFIG_DIR}#${MACHINE}"
+    $SUDO nixos-rebuild dry-activate $TRACE $IMPURE --flake "${CONFIG_DIR}#${HOST}"
 }
 
 
@@ -104,7 +104,7 @@ build::iso()
 }
 
 # Build the vm
-# - $1 - optional machine name to target
+# - $1 - optional host name to target
 # - $2 - optional no preamble flag
 # --------------------------------------------------------------------------------------------------
 build::vm()
@@ -112,15 +112,15 @@ build::vm()
     [[ $NO_PREAMBLE -eq 0 ]] && core::preamble
 
     if [[ "$1" == "hosts/"* ]]; then
-        MACHINE="${1#hosts/}"
+        HOST="${1#hosts/}"
     else
-        local machine="${1#vm-}"  # trim vm- prefix
-        [[ "$machine" == "" ]] && machine="test"
-        MACHINE="vm-${machine}"
+        local host="${1#vm-}"  # trim vm- prefix
+        [[ "$host" == "" ]] && host="test"
+        HOST="vm-${host}"
     fi
 
     # Target includes the prefix path
-    TARGET="hosts/$MACHINE"
+    TARGET="hosts/$HOST"
 
     log::header1 "Building ${cyan}${TARGET}${none}"
     flake::switch "$TARGET"
@@ -128,14 +128,14 @@ build::vm()
 
     # Optionally clean first
     if [[ $CLEAN -eq 1 ]]; then
-        log::ls "Cleaning ${cyan}${MACHINE}${none}"
-        $SUDO rm -rf "${CONFIG_DIR}/${MACHINE}"
+        log::ls "Cleaning ${cyan}${HOST}${none}"
+        $SUDO rm -rf "${CONFIG_DIR}/${HOST}"
     fi
 
-    $SUDO nix build "${CONFIG_DIR}#nixosConfigurations.${MACHINE}.config.system.build.vm"
+    $SUDO nix build "${CONFIG_DIR}#nixosConfigurations.${HOST}.config.system.build.vm"
 
     # Install the vm in its own directory
-    log::ls "Installing at ${cyan}./${MACHINE}${none}"
-    $SUDO mkdir -p "${CONFIG_DIR}/${MACHINE}"
-    [ -e result ] && mv -f result "${CONFIG_DIR}/${MACHINE}"
+    log::ls "Installing at ${cyan}./${HOST}${none}"
+    $SUDO mkdir -p "${CONFIG_DIR}/${HOST}"
+    [ -e result ] && mv -f result "${CONFIG_DIR}/${HOST}"
 }

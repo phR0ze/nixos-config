@@ -177,7 +177,7 @@ install::prepare_disk()
 install::install_system()
 {
     log::header1 "Installing NixOS based on the staged configuration"
-    flake::stage_files "${MACHINE}"
+    flake::stage_files "${HOST}"
 
     # Run the installer: $CONFIG_DIR will be /mnt/etc/nixos unless testing
     log::ls "Launching installation with ${cyan}nixos-install${none}..."
@@ -195,15 +195,15 @@ install::install_system()
 # Create the new system's persistent configuration or stage the existing system
 install::install_config()
 {
-    MACHINE="hosts/$HOSTNAME"
-    local machine_args="${MACHINE}/args.dec.json"
-    log::header1 "Stage system configuration at ${MACHINE}"
+    HOST="hosts/$HOSTNAME"
+    local host_args="${HOST}/args.dec.yaml"
+    log::header1 "Stage system configuration at ${HOST}"
 
     # Create the new host directory
     utils::run pushd "${CONFIG_DIR}"
-    sudo mkdir -p "${MACHINE}"
+    sudo mkdir -p "${HOST}"
 
-    # Construct hosts/$MACHINE/args.dec.json to be encrypted after install
+    # Construct ${HOST}/args.dec.yaml to be encrypted after install
     local args=$(jq -n '{}')
 
     # Convert general options to json
@@ -328,8 +328,8 @@ install::install_config()
     fi
 
     # Write out the file to hosts/$HOSTNAME/configuration.nix
-    log::ls -n "Generating ${MACHINE}/configuration.nix..."
-    sudo bash -c "cat > '${MACHINE}/configuration.nix' <<'EOF'
+    log::ls -n "Generating ${HOST}/configuration.nix..."
+    sudo bash -c "cat > '${HOST}/configuration.nix' <<'EOF'
 # ${HOSTNAME} configuration
 #
 # ### Host specs
@@ -354,16 +354,16 @@ EOF"
     log::status
 
     # Add the /mnt/etc/nixos/hosts/$HOSTNAME/args.nix
-    log::ls -n "Generating install time ${machine_args}..."
-    sudo bash -c "echo '$args' | jq -r > '${machine_args}'"
+    log::ls -n "Generating install time ${host_args}..."
+    sudo bash -c "echo '$args' | yq -y . > '${host_args}'"
     log::status
 
     # Files must be at least git added for the flake to recognize them
-    # Note: args.dec.json matches *.dec.* in .gitignore so it requires -f to stage it
-    log::ls -n "Re-locate hardware config to ${MACHINE}/hardware-configuration.nix..."
-    sudo mv hardware-configuration.nix "${MACHINE}"
-    sudo git add "${MACHINE}"
-    sudo git add -f "${MACHINE}/args.dec.json"
+    # Note: args.dec.yaml matches *.dec.* in .gitignore so it requires -f to stage it
+    log::ls -n "Re-locate hardware config to ${HOST}/hardware-configuration.nix..."
+    sudo mv hardware-configuration.nix "${HOST}"
+    sudo git add "${HOST}"
+    sudo git add -f "${HOST}/args.dec.yaml"
     log::status
 
     utils::run popd
@@ -552,8 +552,8 @@ install::select_install_disk_options()
 install::select_deployment_options()
 {
     log::header0 "Select a deployment option:"
-    utils::read NEW_MACHINE 'Are you deploying an existing host' 'n'
-    if [[ "x$NEW_MACHINE" == "xn" ]]; then
+    utils::read NEW_HOST 'Are you deploying an existing host' 'n'
+    if [[ "x$NEW_HOST" == "xn" ]]; then
         local layers_dir="${SCRIPT_DIR}/layers"
         local _profiles=($(echo $(find $layers_dir -name "*.nix" | sort)))
         log::header0 "Select a deployment layer:"
@@ -577,18 +577,18 @@ install::select_deployment_options()
         PROFILE="layers/${PROFILE}.nix"
     else
         local hosts_dir="${SCRIPT_DIR}/hosts"
-        local _machines=($(echo $(sudo find $hosts_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/hosts/vm*" | sort)))
+        local _hosts=($(echo $(sudo find $hosts_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/hosts/vm*" | sort)))
         log::header0 "Select a deployment host:"
         local i=0
-        for x in "${_machines[@]}"; do
-            local _machine="$(basename "$x")"
-            utils::pad_suffix _1 "$_machine" " " 20           # pad to 30 characters
-            MACHINES+=($_machine)                             # add to the final layers list
+        for x in "${_hosts[@]}"; do
+            local _host="$(basename "$x")"
+            utils::pad_suffix _1 "$_host" " " 20              # pad to 30 characters
+            HOSTS+=($_host)                                   # add to the final layers list
             echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
             i=$((i+1))                                        # increment i
         done
-        utils::select MACHINE "${MACHINES[@]}"
-        MACHINE="hosts/${MACHINE}"
+        utils::select HOST "${HOSTS[@]}"
+        HOST="hosts/${HOST}"
     fi
     log::d "Leaving install::select_deployment_options"
 }
@@ -623,12 +623,12 @@ install::run()
     AUTO_LOGIN='n'
 
     # Host layer and services settings
-    MACHINE=''
+    HOST=''
     PROFILE=''
-    NEW_MACHINE='y'
+    NEW_HOST='y'
     NFS_SHARES='n'
 
-    # Prompt install a brand new machine or reinstall an existing machine
+    # Prompt install a brand new host or reinstall an existing host
     install::select_deployment_options
 
     # Determine if this is a default deployment
@@ -655,7 +655,7 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
-    log::subln3 "host=${cyan}${MACHINE}${none}"
+    log::subln3 "host=${cyan}${HOST}${none}"
     log::subln3 "layer=${cyan}${PROFILE}${none}"
 
     # Networking settings

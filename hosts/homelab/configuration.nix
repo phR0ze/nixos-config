@@ -15,7 +15,6 @@
     host.net.bridge.enable = true;
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
     host.autologin = true;
-    host.secrets = ./secrets.enc.yaml;
     host.smb.secrets = ./secrets.enc.yaml;
     system.x11.autolock.enable = true;
 
