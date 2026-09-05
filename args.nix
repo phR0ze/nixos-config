@@ -6,8 +6,8 @@
 # --------------------------------------------------------------------------------------------------
 {
   id = "";                              # Machine id for the system
-  target = "profiles/xfce/desktop.nix"; # Pre-defined configurations './machines' or './profiles'
-  hostname = "nixos";                   # Hostname for the machine
+  target = "profiles/xfce/desktop.nix"; # Pre-defined configurations './machines' or './profiles', used only by nixosConfigurations.install
+  hostname = "nixos";                   # Fallback hostname, only used by nixosConfigurations.install/iso; real machines always use their machines/<hostname> directory name
   efi = false;                          # EFI system boot type set during installation
   mbr = "nodev";                        # MBR system boot device set during installation, e.g. /dev/sda
   arch = "x86_64-linux";                # System architecture to use
@@ -22,7 +22,7 @@
   drives = [];                          # List of drives to configure in hardware-configuration.nix
   git.user = "";                        # Git user name
   git.email = "";                       # Git user email
-  git.comment = "";
+  # git.comment is always set from flake introspection (self.rev), not overridable here
 
   # User configuration
   # ------------------------------------------------------------------------------------------------

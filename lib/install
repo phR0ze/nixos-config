@@ -181,11 +181,11 @@ install::install_system()
 
     # Run the installer: $CONFIG_DIR will be /mnt/etc/nixos unless testing
     log::ls "Launching installation with ${cyan}nixos-install${none}..."
-    sudo nixos-install --no-root-passwd --no-channel-copy --flake "${CONFIG_DIR}#target"
+    sudo nixos-install --no-root-passwd --no-channel-copy --flake "${CONFIG_DIR}#${HOSTNAME}"
     if [ $? -ne 0 ]; then
         echo -e ":: ${red}Failure building the install flake${none}"
         echo -e "   1. Fix the flake issue at ${cyan}${CONFIG_DIR}${none}"
-        echo -e "   2. Rerun: ${cyan}nixos-install --no-root-passwd --no-channel-copy --flake ${CONFIG_DIR}#target${none}"
+        echo -e "   2. Rerun: ${cyan}nixos-install --no-root-passwd --no-channel-copy --flake ${CONFIG_DIR}#${HOSTNAME}${none}"
     fi
 
     flake::unstage_files
