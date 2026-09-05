@@ -1,5 +1,5 @@
 # nixos-config
-A simpler approach to deploying pre-defined machines or profiles at install time using only a 
+A simpler approach to deploying pre-defined hosts or layers at install time using only a 
 bootable NixOS image and network connectivity.
 
 Due to the number of different machines I maintain and how often I change their intended purpose I 
@@ -205,7 +205,7 @@ and use a version that matches with a building soopy cached instance.
 Most linux users, especially those coming from Arch Linux, will immediately be interested in how they 
 can extend and make this their own. Following best practices across the NixOS community I'm breaking 
 down my configuration into modules. This allows for composability for higher level concepts like 
-machines and profiles. I'm organizing my modules to follow the nix options for the most part.
+hosts and layers. I'm organizing my modules to follow the nix options for the most part.
 
 ### Pull a specific app version
 Using the [fantastic Nix Package Tool Marcelo Lazaroni created](https://lazamar.co.uk/nix-versions) 
@@ -213,7 +213,7 @@ we can find the available package versions and how to pull them directly.
 
 ### Build and deploy production VMs
 1. Define the VM to be built
-   1. Create a new `machines/vm-NAME` directory
+   1. Create a new `hosts/vm-NAME` directory
    2. Create the essential files
       1. `configuration.nix`
       2. `args.enc.json`
@@ -228,7 +228,7 @@ we can find the available package versions and how to pull them directly.
 
 ### Build and run test VMs
 There are two ways to build and run test vms with `clu`. The first method is useful for simple 
-testing of the system configuration specified in `machines/vm-test`. This method mounts the hosts 
+testing of the system configuration specified in `hosts/vm-test`. This method mounts the hosts 
 /nix/store to quickly get up and runing. The second method involves building an ISO from the system 
 configuration then installing from that ISO to create a completely independent system for one off 
 testing.
@@ -265,9 +265,9 @@ from scratch and build your own automation if you want control. In the Nix world
    ```bash
    $ git clone https://github.com/phR0ze/nixos-config
    ```
-2. Modify the ISO profile as desired
+2. Modify the ISO layer as desired
    ```bash
-   $ vim profiles/iso.nix
+   $ vim layers/iso.nix
    ```
 3. Commit or at least stage your changes so Nix will see them
    ```bash
@@ -275,10 +275,10 @@ from scratch and build your own automation if you want control. In the Nix world
    ```
 4. Now build the iso
    ```bash
-   # Build with the profile specified in `args.nix`
+   # Build with the layer specified in `args.nix`
    $ ./clu build iso
 
-   # Build with a profile specifically called out
+   # Build with a layer specifically called out
    $ ./clu build iso xfce/desktop.nix
    ```
 5. The ISO will end up in `result/iso/`
@@ -346,7 +346,7 @@ the state of this repo, which takes one additional step to include changes.
 * [ ] Persist host bridge generated MAC addresses
 * [ ] NVIM dev configuration
 * [ ] NVIM writer configuration
-* [ ] Convert initial `machines/$MACHINE/args.nix` into a `machines/$MACHINE/args.dec.json`
+* [ ] Convert initial `hosts/$MACHINE/args.nix` into a `hosts/$MACHINE/args.dec.json`
 * [ ] Local DNS server seems to be unreachable ??
 
 ### Sometime
