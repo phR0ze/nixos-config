@@ -29,13 +29,13 @@
     ];
 
   fileSystems."/mnt/storage1" = {
-    device = "/dev/disk/by-uuid/${(builtins.elemAt config.machine.drives 1).uuid}";
+    device = "/dev/disk/by-uuid/${(builtins.elemAt config.host.drives 1).uuid}";
     fsType = "ext4";
     options = [ "nofail" ];
   };
 
   fileSystems."/mnt/storage2" = {
-    device = "/dev/disk/by-uuid/${(builtins.elemAt config.machine.drives 2).uuid}";
+    device = "/dev/disk/by-uuid/${(builtins.elemAt config.host.drives 2).uuid}";
     fsType = "ext4";
     options = [ "nofail" ];
   };

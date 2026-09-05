@@ -7,16 +7,16 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../profiles/xfce/develop.nix
+    ../../layers/bundles/xfce-develop.nix
   ];
 
   config = {
-    machine.type.bootable = true;
+    host.type.bootable = true;
     devices.gpu.intel.enable = true;
     system.x11.xft.dpi = 115;
-    machine.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
-    machine.smb.secrets = ./secrets.enc.yaml;   # per-share passwords (all default "admin")
-    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to machine.id)
+    host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
+    host.smb.secrets = ./secrets.enc.yaml;   # per-share passwords (all default "admin")
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to host.id)
 
     devices.printers.brother-hll2405w = true;
 

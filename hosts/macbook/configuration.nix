@@ -12,21 +12,21 @@ in
 {
   imports = [
     ./hardware-configuration.nix
-    ../../profiles/xfce/develop.nix
+    ../../layers/bundles/xfce-develop.nix
 
     # t2 modules from nixos hardware are pinned in the flake
     inputs.nixos-hardware.nixosModules.apple-t2
   ];
 
   config = {
-    machine.type.bootable = true;
-    machine.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
-    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to machine.id)
+    host.type.bootable = true;
+    host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to host.id)
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 
     # Increase the default DPI size
-    machine.resolution = { x = 1920; y = 1200; } ;
+    host.resolution = { x = 1920; y = 1200; } ;
     system.x11.xft.dpi = lib.mkForce 120;
 
     # Fix default power governor to run at a lower frequency and boost as needed
