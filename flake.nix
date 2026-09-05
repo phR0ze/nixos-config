@@ -6,16 +6,11 @@
     # nixos-unstable from 2026.08.09 (bumped for vaultwarden 1.37.1, fixes WASM client crashes)
     nixpkgs-unstable.url = "github:nixos/nixpkgs/f13ff45afd1bb73e640eaa08a7066dbed07e3238";
 
-    # Only macbook's configuration.nix uses this (apple-t2 module), declared unconditionally here
-    # since flake inputs can't be conditional on which host is being built.
+    # Flake inputs can't be conditional on which host so declared here, but only gets used by macbook
     nixos-hardware.url = "github:nixos/nixos-hardware/779c32a00155994c86cde8213a8dd4df139d4355";
-
-    sops-nix.url = "github:Mic92/sops-nix";
-    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
     nixos-files.url = "github:phR0ze/nixos-files";
     nixos-files.inputs.nixpkgs.follows = "nixpkgs";
-    nixos-files.inputs.sops-nix.follows = "sops-nix";
   };
 
   outputs = { self, nixpkgs, ... }@inputs: let
@@ -35,24 +30,23 @@
     # `git.comment` are then always set authoritatively so no per-host file needs to declare
     # them: `hostname` is simply the hosts/ directory name being built, and `git.comment` comes
     # straight from flake introspection (self.rev), not a value written into a tracked file.
-    mergeArgs = hostname: lib.recursiveUpdate (lib.recursiveUpdate _args (let
-      baseArgsFile = ./args.dec.json;
+    mergeArgs = hostname: let
+      isolated = builtins.pathExists (./hosts + "/${hostname}/.isolated");
       hostArgsFile = ./hosts/${hostname}/args.nix;
       hostDecArgsFile = ./hosts/${hostname}/args.dec.json;
-      baseArgs = if builtins.pathExists baseArgsFile then f.fromJSON baseArgsFile else {};
       hostArgs = if builtins.pathExists hostArgsFile then (import hostArgsFile) else {};
       hostDecArgs = if builtins.pathExists hostDecArgsFile then f.fromJSON hostDecArgsFile else {};
-      in lib.recursiveUpdate baseArgs (lib.recursiveUpdate hostArgs hostDecArgs)
-    )) {
+      baseArgsFile = ./args.dec.json;
+      baseArgs = if isolated then {} else (if builtins.pathExists baseArgsFile then f.fromJSON baseArgsFile else {});
+      rootArgs = if isolated then {} else _args;
+    in lib.recursiveUpdate (lib.recursiveUpdate (lib.recursiveUpdate rootArgs baseArgs) (lib.recursiveUpdate hostArgs hostDecArgs)) {
       hostname = hostname;
       git.comment = self.rev or "dirty";
     };
 
-    # Used by the install/iso outputs, which have no per-host directory to derive a hostname or
-    # comment from yet
+    # Used by the install/iso outputs, which have no per-host directory to derive from
     _bootstrapArgs = lib.recursiveUpdate _args { git.comment = self.rev or "dirty"; };
 
-    # Every directory under ./hosts is a real host
     hostNames = builtins.attrNames (lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./hosts));
 
     mkHost = hostname: lib.nixosSystem {
@@ -62,8 +56,7 @@
     };
   in
   {
-    # One real nixosConfigurations.<hostname> entry per hosts/<hostname> directory. Since this
-    # is a lazy attrset, evaluating `.#<hostname>` only forces that host's mkHost body - other
+    # Lazy attrset, evaluating `.#<hostname>` only forces that host's mkHost body - other
     # (still-encrypted) hosts' args are never touched.
     # ----------------------------------------------------------------------------------------------
     nixosConfigurations = lib.genAttrs hostNames mkHost // {

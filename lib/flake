@@ -97,14 +97,20 @@ flake::restore()
 
 # Decrypt this host's build-time args (root args.enc.json + hosts/<hostname>/args.enc.json) and
 # stage them so pure flake evaluation can see them.
+# - a host with an empty hosts/<hostname>/.isolated marker file opts out of the root
+#   args.enc.json entirely (see flake.nix's mergeArgs) - the root plaintext is never even
+#   decrypted to disk for that host's build, not just excluded from the merge
 # - assumes the caller has used pushd to switch directories for git to work correctly
 # - $1 - hostname (hosts/<hostname> directory name)
 flake::decrypt_args()
 {
     local hostname="$1"
     local enc dec
+    local files=("hosts/${hostname}/args.enc.json")
 
-    for enc in "args.enc.json" "hosts/${hostname}/args.enc.json"; do
+    [ -e "hosts/${hostname}/.isolated" ] || files=("args.enc.json" "${files[@]}")
+
+    for enc in "${files[@]}"; do
         [ -e "$enc" ] || continue
         dec="${enc%.enc.json}.dec.json"
         log::d "Decrypting ${cyan}${enc}${none}"
