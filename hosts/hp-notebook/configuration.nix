@@ -16,7 +16,6 @@
   config = {
     host.type.bootable = true;
     host.nix.cache.enable = true;
-    host.secrets = ./secrets.enc.yaml;   # real per-machine password (differs from shared default)
     host.smb.secrets = ./secrets.enc.yaml;
 
     # broadcom_sta is an insecure package (upstream, unmaintained driver) - allowed only here

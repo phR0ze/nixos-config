@@ -31,7 +31,7 @@ in
             description = lib.mdDoc ''
               Path to the sops-encrypted file holding the `immich/dbPassword` secret (the Postgres
               password). When set, takes precedence over the plaintext `user.pass` fallback (baked
-              into the Nix store via args.enc.json).
+              into the Nix store via args.enc.yaml).
             '';
             type = types.nullOr types.path;
             default = null;

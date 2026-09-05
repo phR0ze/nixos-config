@@ -6,12 +6,12 @@
 # ## Features
 # - Decrypt and stage the build-time args a given machine needs at eval time
 # --------------------------------------------------------------------------------------------------
-MACHINE=""
+HOST=""
 PROFILE=""
 TARGET=""
 
 # Hostname whose args flake::switch last decrypted/staged, so flake::restore knows what to clean
-# up without having to guess at the format of the caller's $MACHINE/$TARGET variables.
+# up without having to guess at the format of the caller's $HOST/$TARGET variables.
 _FLAKE_ARGS_HOST=""
 
 # Ensure the config path is accurate
@@ -70,13 +70,16 @@ flake::switch()
     utils::run pushd "${CONFIG_DIR}"
 
     # Only hosts have build-time args; layer-only targets (e.g. ISO builds) don't need this
-    # and deliberately exclude secrets entirely. During install, args.dec.json is written directly
+    # and deliberately exclude secrets entirely. During install, args.dec.yaml is written directly
     # by install::install_config (not sops-decrypted), but still needs to be cleaned up by
     # flake::restore afterward, so track the host regardless of $INSTALL - just skip the actual
     # decrypt call in that case since there's nothing encrypted to decrypt yet.
     if [[ "$target" == hosts/* ]]; then
         _FLAKE_ARGS_HOST="${target#hosts/}"
-        [ $INSTALL -eq 0 ] && flake::decrypt_args "$_FLAKE_ARGS_HOST"
+        if [ $INSTALL -eq 0 ]; then
+            flake::decrypt_args "$_FLAKE_ARGS_HOST"
+            flake::decrypt_secrets "$_FLAKE_ARGS_HOST"
+        fi
     fi
 
     utils::run popd
@@ -89,16 +92,17 @@ flake::restore()
 
     if [[ "$_FLAKE_ARGS_HOST" != "" ]]; then
         flake::restore_args "$_FLAKE_ARGS_HOST"
+        flake::restore_secrets "$_FLAKE_ARGS_HOST"
         _FLAKE_ARGS_HOST=""
     fi
 
     utils::run popd
 }
 
-# Decrypt this host's build-time args (root args.enc.json + hosts/<hostname>/args.enc.json) and
+# Decrypt this host's build-time args (root args.enc.yaml + hosts/<hostname>/args.enc.yaml) and
 # stage them so pure flake evaluation can see them.
 # - a host with an empty hosts/<hostname>/.isolated marker file opts out of the root
-#   args.enc.json entirely (see flake.nix's mergeArgs) - the root plaintext is never even
+#   args.enc.yaml entirely (see flake.nix's mergeArgs) - the root plaintext is never even
 #   decrypted to disk for that host's build, not just excluded from the merge
 # - assumes the caller has used pushd to switch directories for git to work correctly
 # - $1 - hostname (hosts/<hostname> directory name)
@@ -106,13 +110,13 @@ flake::decrypt_args()
 {
     local hostname="$1"
     local enc dec
-    local files=("hosts/${hostname}/args.enc.json")
+    local files=("hosts/${hostname}/args.enc.yaml")
 
-    [ -e "hosts/${hostname}/.isolated" ] || files=("args.enc.json" "${files[@]}")
+    [ -e "hosts/${hostname}/.isolated" ] || files=("args.enc.yaml" "${files[@]}")
 
     for enc in "${files[@]}"; do
         [ -e "$enc" ] || continue
-        dec="${enc%.enc.json}.dec.json"
+        dec="${enc%.enc.yaml}.dec.yaml"
         log::d "Decrypting ${cyan}${enc}${none}"
         $SUDO bash -c "sops --decrypt '$enc' > '$dec'"
         $SUDO git add -f -- "$dec"
@@ -127,11 +131,62 @@ flake::restore_args()
     local hostname="$1"
     local dec
 
-    for dec in "args.dec.json" "hosts/${hostname}/args.dec.json"; do
+    for dec in "args.dec.yaml" "hosts/${hostname}/args.dec.yaml"; do
         [ -e "$dec" ] || continue
         $SUDO git restore --staged -- "$dec" &>/dev/null || true
         $SUDO rm -f -- "$dec"
     done
+}
+
+# Merge this host's root + host-override secrets (see modules/types/host.nix's `host.secrets`) into
+# a transient re-encrypted `hosts/<hostname>/secrets.merged.enc.yaml` and stage it so pure flake
+# evaluation can see it.
+# - unlike args, secrets stay sops-encrypted at rest, so root and host-override can't be merged as
+#   plaintext attrsets at Nix eval time - this does the decrypt/merge/re-encrypt on the operator's
+#   machine instead, exactly once per build, and flake::restore_secrets drops the result afterward
+# - a no-op whenever the host has no override file (host.secrets then resolves straight to the
+#   shared root secrets.enc.yaml, nothing to merge) or is `.isolated` (must never touch the fleet's
+#   shared root secrets at all - see hosts/vps/.isolated)
+# - assumes the caller has used pushd to switch directories for git to work correctly
+# - $1 - hostname (hosts/<hostname> directory name)
+flake::decrypt_secrets()
+{
+    local hostname="$1"
+    local root="secrets.enc.yaml"
+    local override="hosts/${hostname}/secrets.enc.yaml"
+    local merged="hosts/${hostname}/secrets.merged.enc.yaml"
+    local tmp
+
+    [ -e "hosts/${hostname}/.isolated" ] && return 0
+    [ -e "$override" ] || return 0
+    [ -e "$root" ] || return 0
+
+    log::d "Merging ${cyan}${root}${none} + ${cyan}${override}${none} -> ${cyan}${merged}${none}"
+
+    tmp=$($SUDO mktemp)
+    $SUDO chmod 600 "$tmp"
+
+    # jq's `*` does the same recursive-merge-with-right-side-winning that lib.recursiveUpdate does
+    # for args - yq here is the kislyuk/jq-based python wrapper (yq -y emits YAML instead of JSON)
+    $SUDO bash -c "yq -s -y '.[0] * .[1]' <(sops --decrypt '$root') <(sops --decrypt '$override') > '$tmp'"
+
+    $SUDO cp "$tmp" "$merged"
+    $SUDO shred -u "$tmp"
+    $SUDO sops --encrypt --in-place "$merged"
+    $SUDO git add -f -- "$merged"
+}
+
+# Remove this host's transient merged secrets from git and disk
+# - assumes the caller has used pushd to switch directories for git to work correctly
+# - $1 - hostname (hosts/<hostname> directory name)
+flake::restore_secrets()
+{
+    local hostname="$1"
+    local merged="hosts/${hostname}/secrets.merged.enc.yaml"
+
+    [ -e "$merged" ] || return 0
+    $SUDO git restore --staged -- "$merged" &>/dev/null || true
+    $SUDO rm -f -- "$merged"
 }
 
 # Cleanup trap function. Typically not used as the local functions will have their own which will

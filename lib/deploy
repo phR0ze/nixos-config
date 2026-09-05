@@ -19,7 +19,7 @@ Options:
   -h, --help            Print out usage
 
 Commands:
-  vm MACHINE            Deploy the given VM machine
+  vm HOST               Deploy the given VM host
 USAGE
 
     log::ln "\nExamples:"
@@ -41,40 +41,40 @@ deploy::run()
     esac
 }
  
-# Deploy the vm to the host at /var/lib/vms/$MACHINE
-# - $1 - optional machine name to target
+# Deploy the vm to the host at /var/lib/vms/$HOST
+# - $1 - optional host name to target
 # --------------------------------------------------------------------------------------------------
 deploy::vm()
 {
     core::preamble
 
-    # Ensure machine is set
-    MACHINE="vm-${1#vm-}" # ensure 'vm-' prefix
-    log::header1 "Deploying ${cyan}${MACHINE}${none}"
+    # Ensure host is set
+    HOST="vm-${1#vm-}" # ensure 'vm-' prefix
+    log::header1 "Deploying ${cyan}${HOST}${none}"
 
     # Target includes the prefix path
-    TARGET="hosts/${MACHINE}"
-    flake::ensure_target "$MACHINE"
+    TARGET="hosts/${HOST}"
+    flake::ensure_target "$HOST"
 
-    local machine_dst="/var/lib/vms/$MACHINE"
+    local host_dst="/var/lib/vms/$HOST"
 
     # Remove any existing
-    log::ls -n "Cleaning target directory ${cyan}${machine_dst}${none}..."
+    log::ls -n "Cleaning target directory ${cyan}${host_dst}${none}..."
     utils::confirm_continue
-    rm -rf "${machine_dst}"
+    rm -rf "${host_dst}"
 
     # Copy over latest
-    log::ls -n "Creating destination directories ${cyan}${machine_dst}${none}..."
-    mkdir -p "${machine_dst}"
+    log::ls -n "Creating destination directories ${cyan}${host_dst}${none}..."
+    mkdir -p "${host_dst}"
     log::status
 
-    log::ls -n "Copying source to ${cyan}${machine_dst}${none}..."
-    cp -r ${CONFIG_DIR}/. "$machine_dst"
+    log::ls -n "Copying source to ${cyan}${host_dst}${none}..."
+    cp -r ${CONFIG_DIR}/. "$host_dst"
     log::status
 
     # Build the deployed vm
-    log::ls "Switching to ${cyan}${machine_dst}${none} to build VM"
-    pushd "$machine_dst"
-    ./clu build vm $machine
+    log::ls "Switching to ${cyan}${host_dst}${none} to build VM"
+    pushd "$host_dst"
+    ./clu build vm $HOST
     popd
 }

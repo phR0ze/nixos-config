@@ -7,11 +7,11 @@ creation_rules:
   # Isolated hosts get their own path-scoped rule (must precede the fleet-wide fallback below,
   # sops uses first-match) with a dedicated key from the `keys` list above. Copy this pattern for
   # any future isolated host.
-  - path_regex: hosts/vps/.*\.(dec|enc)\.(pem|yaml|json)$
+  - path_regex: hosts/vps/.*\.(dec|enc)\.(pem|yaml)$
     key_groups:
       - age:
         - *vps
-  - path_regex: \.(dec|enc)\.(pem|yaml|json)$
+  - path_regex: \.(dec|enc)\.(pem|yaml)$
     key_groups:
       - age:
         - *primary

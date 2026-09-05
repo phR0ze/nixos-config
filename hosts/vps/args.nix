@@ -1,12 +1,12 @@
 # Self-contained defaults for the isolated vps host (see ../.isolated).
 #
 # Unlike every other host, vps does NOT fall back to the root ./args.nix (flake.nix's mergeArgs
-# skips both root args.nix and root args.dec.json whenever hosts/<hostname>/.isolated exists), so
+# skips both root args.nix and root args.dec.yaml whenever hosts/<hostname>/.isolated exists), so
 # every key that root args.nix would otherwise supply must be restated here explicitly - nothing
 # should silently depend on the fleet's shared defaults.
 # --------------------------------------------------------------------------------------------------
 {
-  target = "layers/bundles/xfce-desktop.nix"; # Pre-defined configurations './hosts' or './layers', used only by nixosConfigurations.install
+  target = "hosts/vps/configuration.nix"; # Pre-defined configurations './hosts' or './layers', used only by nixosConfigurations.install
   efi = false;                          # EFI system boot type set during installation
   mbr = "nodev";                        # MBR system boot device set during installation, e.g. /dev/sda
   arch = "x86_64-linux";                # System architecture to use
@@ -26,7 +26,7 @@
   # User configuration
   # ------------------------------------------------------------------------------------------------
   user.name = "admin";                  # Default user name
-  user.pass = "admin";                  # Placeholder only - real password comes from args.enc.json
+  user.pass = "admin";                  # Placeholder only - real password comes from args.enc.yaml
   user.fullname = "admin";              # Default user full name
   user.email = "nixos@nixos.org";       # Default user email address
 

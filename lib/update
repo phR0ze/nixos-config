@@ -22,7 +22,7 @@ Options:
 
 Commands:
   flake             Update the shared flake.lock
-  system [MACHINE]  Update system with given machine's configuration or hostname's if not given
+  system [HOST]     Update system with given host's configuration or hostname's if not given
 USAGE
 
     log::ln "\nExamples:"
@@ -77,19 +77,19 @@ update::system()
         case "$arg" in
             --boot) boot_mode=1 ;;
             --reset-xfce*) reset_xfce=1 ;;
-            *) MACHINE="$arg" ;;
+            *) HOST="$arg" ;;
         esac
     done
 
-    # Set the target machine
-    if [[ "$MACHINE" == "" ]]; then
-        MACHINE=$(hostname)
-        log::ls "Using hostname ${cyan}${MACHINE}${none}"
+    # Set the target host
+    if [[ "$HOST" == "" ]]; then
+        HOST=$(hostname)
+        log::ls "Using hostname ${cyan}${HOST}${none}"
     else
-        log::ls "Using given machine name ${cyan}${MACHINE}${none}"
+        log::ls "Using given host name ${cyan}${HOST}${none}"
     fi
 
-    TARGET="hosts/$MACHINE"
+    TARGET="hosts/$HOST"
     flake::stage_files "${TARGET}"
 
     # Cleanup the .config/xfce4 directories to ensure new settings don't conflict
@@ -101,7 +101,7 @@ update::system()
     # Execute update
     local rebuild_action="switch"
     [ $boot_mode -eq 1 ] && rebuild_action="boot"
-    $SUDO nixos-rebuild $rebuild_action $TRACE $IMPURE --flake "${CONFIG_DIR}#${MACHINE}"
+    $SUDO nixos-rebuild $rebuild_action $TRACE $IMPURE --flake "${CONFIG_DIR}#${HOST}"
     if [ $boot_mode -eq 1 ]; then
         log::ln "Configuration staged for next boot. Run 'sudo reboot' to apply."
     fi

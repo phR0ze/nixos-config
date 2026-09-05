@@ -16,7 +16,6 @@
   config = {
     host.type.bootable = true;
     host.nix.cache.enable = true;
-    host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
     host.smb.secrets = ./secrets.enc.yaml;   # real per-share passwords (ashley/lydia)
     devices.gpu.nvidia = { enable = true; open = true; };
 

@@ -20,7 +20,6 @@ in
 
   config = {
     host.type.bootable = true;
-    host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 

@@ -216,7 +216,7 @@ we can find the available package versions and how to pull them directly.
    1. Create a new `hosts/vm-NAME` directory
    2. Create the essential files
       1. `configuration.nix`
-      2. `args.enc.json`
+      2. `args.enc.yaml`
       3. `args.nix`
 2. Update and test your VM locally by building it
    1. From the root of the project run: `./clu build vm $NAME`
@@ -346,7 +346,7 @@ the state of this repo, which takes one additional step to include changes.
 * [ ] Persist host bridge generated MAC addresses
 * [ ] NVIM dev configuration
 * [ ] NVIM writer configuration
-* [ ] Convert initial `hosts/$MACHINE/args.nix` into a `hosts/$MACHINE/args.dec.json`
+* [ ] Convert initial `hosts/$HOST/args.nix` into a `hosts/$HOST/args.dec.yaml`
 * [ ] Local DNS server seems to be unreachable ??
 
 ### Sometime

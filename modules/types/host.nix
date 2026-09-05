@@ -271,12 +271,12 @@ in
                     for the new bridge interface.
 
                     Note, for bridge mode to work the primary nic must be specified via "net.nic0.name".
-                    This can be done via the "args.enc.json" or directly in the "configuration.nix" file.
+                    This can be done via the "args.enc.yaml" or directly in the "configuration.nix" file.
 
                     1. configuration.nix example
                     host.net.nic0.name = "eth0";
 
-                    2. args.enc.json example
+                    2. args.enc.yaml example
                     {
                       "net": {
                         "nic0": {
@@ -399,16 +399,42 @@ in
 
           secrets = lib.mkOption {
             description = lib.mdDoc ''
-              Path to this host's sops-encrypted `secrets.enc.yaml`, holding real secrets that must
-              never be baked into the Nix store (the admin user's password/password hash, Samba
-              passwords, service encryption keys, etc). Declared once here so every module that needs
-              one of this host's secrets (`modules/users.nix`, `modules/services/raw/smb`, ...) can
+              Path to this host's sops-encrypted secrets, holding real secrets that must never be
+              baked into the Nix store (the admin user's password/password hash, Samba passwords,
+              service encryption keys, etc). Declared once here so every module that needs one of
+              this host's secrets (`modules/users.nix`, `modules/services/raw/smb`, ...) can
               reference `config.host.secrets` instead of repeating a `secrets = ./secrets.enc.yaml;`
               option per module the way the independent per-service secrets (newt/caddy/tailscale) do.
+
+              Layering (lowest to highest priority): `secrets.enc.yaml` -> `hosts/<hostname>/secrets.enc.yaml`.
+              Unlike args, secrets stay sops-encrypted until sops-nix decrypts them at activation
+              time on the target host, so the two layers can't be merged with `recursiveUpdate` at
+              Nix eval time the way args are - instead `clu` (`lib/flake`'s `flake::decrypt_secrets`,
+              run alongside `flake::decrypt_args`) decrypts both, merges them (host wins on
+              conflicting keys), and re-encrypts the result into a transient
+              `hosts/<hostname>/secrets.merged.enc.yaml`, which this default resolves to whenever a
+              host override exists. That file is staged just long enough to build and dropped
+              afterward (`flake::restore_secrets`), exactly like `args.dec.yaml`.
+
+              A `hosts/<hostname>/.isolated` marker (see `hosts/vps`) opts a host out of this
+              layering entirely, just like it does for args - it must be fully self-contained in its
+              own `secrets.enc.yaml`, never merged with the fleet's shared root secrets.
             '';
             type = types.nullOr types.path;
             example = "./secrets.enc.yaml";
-            default = null;
+            default =
+              let
+                hostname = args.hostname or "";
+                isolated = builtins.pathExists (../../hosts + "/${hostname}/.isolated");
+                ownFile = ../../hosts + "/${hostname}/secrets.enc.yaml";
+                mergedFile = ../../hosts + "/${hostname}/secrets.merged.enc.yaml";
+                rootFile = ../../secrets.enc.yaml;
+                hasOwn = builtins.pathExists ownFile;
+              in
+                if isolated then (if hasOwn then ownFile else null)
+                else if hasOwn then mergedFile
+                else if builtins.pathExists rootFile then rootFile
+                else null;
           };
 
           services = lib.mkOption {
@@ -423,7 +449,7 @@ in
                   description = lib.mdDoc ''
                     Values for `services.raw.*` modules, e.g. `host.services.raw.adguard.host` for a
                     remote AdGuard instance's LAN IP fronted by `services.raw.caddy`. Populated from
-                    `args.services.raw.<name>.host` in `args.enc.json`/`args.nix`.
+                    `args.services.raw.<name>.host` in `args.enc.yaml`/`args.nix`.
                   '';
                   type = types.attrsOf (types.submodule {
                     options = {
