@@ -7,16 +7,16 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../profiles/xfce/desktop.nix
+    ../../layers/bundles/xfce-desktop.nix
   ];
 
   config = {
-    machine.type.bootable = true;
-    machine.net.bridge.enable = true;
+    host.type.bootable = true;
+    host.net.bridge.enable = true;
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
-    machine.autologin = true;
-    machine.secrets = ./secrets.enc.yaml;
-    machine.smb.secrets = ./secrets.enc.yaml;
+    host.autologin = true;
+    host.secrets = ./secrets.enc.yaml;
+    host.smb.secrets = ./secrets.enc.yaml;
     apps.network.rustdesk.secrets = ./secrets.enc.yaml;
     system.x11.autolock.enable = true;
 
@@ -55,11 +55,11 @@
     # HTTPS Proxy service
     services.raw.caddy = {
       enable = true;
-      domain = config.machine.domain;
+      domain = config.host.domain;
       secrets = ./secrets.enc.yaml;
       proxies = [
-        { subdomain = "adguard"; host = config.machine.services.raw.adguard.host; port = 3000; }
-        { subdomain = "synology"; host = config.machine.services.raw.synology.host; port = 5000; }
+        { subdomain = "adguard"; host = config.host.services.raw.adguard.host; port = 3000; }
+        { subdomain = "synology"; host = config.host.services.raw.synology.host; port = 5000; }
       ];
     };
 

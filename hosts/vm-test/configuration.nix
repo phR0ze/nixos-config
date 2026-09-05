@@ -7,23 +7,23 @@
 {
   imports = [
     ../../options/virtualisation/qemu/guest.nix
-    ../../profiles/xfce/desktop.nix
-    #../../profiles/budgie/base.nix
+    ../../layers/bundles/xfce-desktop.nix
+    #../../layers/bundles/budgie-desktop.nix
   ];
 
   config = {
-    machine.hostname = "vm-test";
-    machine.type.vm = true;
-    machine.vm.type.local = true;
-    machine.resolution = { x = 1920; y = 1080; };
-    machine.autologin = true;
-    machine.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
-    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to machine.id)
+    host.hostname = "vm-test";
+    host.type.vm = true;
+    host.vm.type.local = true;
+    host.resolution = { x = 1920; y = 1080; };
+    host.autologin = true;
+    host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to host.id)
 
     # vm-test is a static VM behind QEMU's NAT, not a roaming machine, so there's no captive
     # portal to support - force every query through the upstream DNS set in args.enc.json instead
     # of letting NetworkManager's DHCP-provided per-link DNS (QEMU's slirp forwarder) win.
-    machine.net.dns.force = true;
+    host.net.dns.force = true;
 
     apps.dev.claude.enable = true;
     #services.oci.portainer.enable = true;
@@ -60,12 +60,12 @@
 #
 #    # Emulate homelab configuration for services development
 #    # --------------------------------------------
-#    machine.net.bridge.enable = true;
-#    machine.net.macvlan = {
+#    host.net.bridge.enable = true;
+#    host.net.macvlan = {
 #      name = "host";
 #      ip = "192.168.1.61/24";
 #    };
-#    machine.net.nic0 = {
+#    host.net.nic0 = {
 #      name = "eth0";
 #      ip = "192.168.1.60/24";
 #    };

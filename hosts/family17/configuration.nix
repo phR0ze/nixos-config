@@ -10,14 +10,14 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../profiles/xfce/desktop.nix
+    ../../layers/bundles/xfce-desktop.nix
   ];
 
   config = {
-    machine.type.bootable = true;
-    machine.nix.cache.enable = true;
-    machine.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
-    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to machine.id)
+    host.type.bootable = true;
+    host.nix.cache.enable = true;
+    host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to host.id)
     devices.gpu.nvidia = { enable = true; open = true; };
 
     apps.games.roblox.enable = true;

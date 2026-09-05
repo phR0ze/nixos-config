@@ -10,13 +10,13 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../profiles/xfce/desktop.nix
+    ../../layers/bundles/xfce-desktop.nix
   ];
 
   config = {
-    machine.type.bootable = true;
-    machine.nix.cache.enable = true;
-    machine.secrets = ./secrets.enc.yaml;   # real per-machine password (differs from shared default)
+    host.type.bootable = true;
+    host.nix.cache.enable = true;
+    host.secrets = ./secrets.enc.yaml;   # real per-machine password (differs from shared default)
     apps.network.rustdesk.secrets = ./secrets.enc.yaml;
 
     # Broken

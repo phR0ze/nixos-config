@@ -7,17 +7,17 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../profiles/xfce/theater.nix
+    ../../layers/bundles/xfce-theater.nix
   ];
 
   config = {
-    machine.type.bootable = true;
+    host.type.bootable = true;
     devices.gpu.intel.enable = true;
-    machine.autologin = true;
-    machine.nix.cache.enable = true;
-    machine.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
-    machine.smb.secrets = ./secrets.enc.yaml;   # real per-share passwords (ashley/lydia)
-    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to machine.id)
+    host.autologin = true;
+    host.nix.cache.enable = true;
+    host.secrets = ../../secrets.enc.yaml;   # shared default (user.password/passwordHash)
+    host.smb.secrets = ./secrets.enc.yaml;   # real per-share passwords (ashley/lydia)
+    apps.network.rustdesk.secrets = ./secrets.enc.yaml;   # machine-specific (tied to host.id)
 
     services.raw.keyd.enable = true;
     apps.games.hedgewars.enable = true;
