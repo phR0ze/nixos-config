@@ -199,18 +199,12 @@ Custom packages injected into the global `pkgs` namespace:
 │       ├── args.nix             # Host arg overrides (optional)
 │       ├── secrets.enc.yaml     # Runtime secrets, decrypted by sops-nix at activation (optional)
 │       └── README.md            # Host documentation (optional)
-├── modules/                     # Reusable NixOS modules
-│   ├── development/vscode/      # VSCode settings, keybindings, extensions
-│   ├── hardware/                # Apple hardware, scanners
-│   ├── services/                # i3lock, smartd, systemd
-│   ├── terminal/                # bash, env, git, starship
-│   ├── locale.nix, nix.nix, users.nix
 ├── include/                     # Static file templates
 │   ├── home/                    # User home directory templates (config, dircolors, face)
 │   ├── usr/share/fonts/TTF/     # Custom TTF fonts
 │   └── var/lib/nix-cache/       # Nix cache keys
 ├── packages/                    # Custom package definitions
-│   ├── arcologout/, desktop-assets/, kasmvnc/, rdutil/, selkies/, tinymediamanager/, wmctl/
+│   ├── apple/, arcologout/, desktop-assets/, kasmvnc/, rdutil/, selkies/, tinymediamanager/, wmctl/
 ├── funcs/                       # Nix helper functions (network.nix, service.nix)
 └── .sops.yaml                   # Secrets management config (age encryption)
 ```
@@ -304,7 +298,8 @@ Bundles (imports-only aggregators, one per host class):
 Each layer adds:
 - Package lists via `environment.systemPackages`
 - Option enables (e.g. `apps.games.steam.enable = true`)
-- Module imports of genuine `modules/*` dependencies (e.g. `../../modules/development/vscode`)
+- Module imports of genuine always-on `modules/*` dependencies (e.g. `layers/core.nix` importing
+  `../modules/system/users.nix` - see §5's "always-on baseline modules" category)
 - Host type flags (e.g. `host.type.develop = true`)
 
 A host's `configuration.nix` typically imports one bundle. For a one-off combination not covered by
