@@ -13,7 +13,7 @@
   ];
 
   # Set the original Nix base version we installed with to ignore the warnings
-  system.stateVersion = config.machine.nix.minVer;
+  system.stateVersion = config.host.nix.minVer;
 
   # sops-nix decrypts secrets at activation time to /run/secrets, avoiding plaintext in the Nix store
   sops = {

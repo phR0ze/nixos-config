@@ -1,14 +1,10 @@
 # XFCE minimal desktop configuration
 #
 # ### Features
-# - Directly installable: minimal general purpose desktop environment
+# - Minimal general purpose desktop environment
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
-  imports = [
-    ../base.nix
-  ];
-
   # Enable XFCE
   system.x11.enable = true;
   system.xfce.enable = true;

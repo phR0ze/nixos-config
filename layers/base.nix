@@ -1,7 +1,6 @@
 # base.nix provides a minimal shell environment on which to build
 #
 # ### Features
-# - Directly installable: fully functional cli environment
 # - Kernel custom configuration
 # - Grub EFI/MBR bootable
 # - Passwordless access for Sudo for default user
@@ -9,11 +8,10 @@
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, ... }:
 let
-  machine = config.machine;
+  host = config.host;
 in
 {
   imports = [
-    ./core.nix
     ../modules/locale.nix
     ../modules/nix.nix
     ../modules/terminal
@@ -63,7 +61,7 @@ in
     openvpn                       # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
     update-systemd-resolved       # OpenVPN systemd-resolved updater
   ]
-  ++ lib.optional (!machine.type.vm) efibootmgr
-  ++ lib.optional (!machine.type.vm) efivar
+  ++ lib.optional (!host.type.vm) efibootmgr
+  ++ lib.optional (!host.type.vm) efivar
   ;
 }

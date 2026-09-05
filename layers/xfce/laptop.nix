@@ -1,14 +1,10 @@
-# XFCE development configuration
+# XFCE laptop configuration
 #
 # ### Features
-# - Directly installable: desktop with additional laptop tooling/configs
+# - Desktop with additional laptop tooling/configs
 # --------------------------------------------------------------------------------------------------
 { ... }:
 {
-  imports = [
-    ./desktop.nix
-  ];
-
   apps.network.rustdesk.autostart = false;
 
   # Slick captive portal solutions for hotels etc...
