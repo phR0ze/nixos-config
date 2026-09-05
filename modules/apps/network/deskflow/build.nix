@@ -1,7 +1,7 @@
 # Used for building directly for local tests
 #
 # ### Build locally
-# cd ~/Projects/nixos-config/options/apps/network/deskflow
+# cd ~/Projects/nixos-config/modules/apps/network/deskflow
 # nix build -f ./build.nix
 #---------------------------------------------------------------------------------------------------
 let

@@ -6,7 +6,7 @@
 # with ease, without sacrificing your privacy.
 #
 # ### Inspired by
-# - [Suderman's work](https://github.com/suderman/nixos/blob/main/modules/nixos/default/options/immich.nix)
+# - [Suderman's work](https://github.com/suderman/nixos/blob/main/modules/nixos/default/modules/immich.nix)
 #
 # ### References
 # - There is no need for additional firewall rules if using a bridge network as it already has taken 
@@ -126,7 +126,7 @@ in
           "NVIDIA_VISIBLE_DEVICES" = "all";       # 
           "NVIDIA_DRIVER_CAPABILITIES" = "all";   # 
         };
-        # Static IP — see cfg.ip's description in options/types/service.nix for why
+        # Static IP — see cfg.ip's description in modules/types/service.nix for why
         extraOptions = [ "--ip=${f.hostInSubnet cfg.subnet 3}" ]
           ++ lib.optionals (gpu.nvidia.enable) [
             # Docker allows you to simply pass `--gpus=all`. Podman requires all this
@@ -152,7 +152,7 @@ in
         image = "docker.io/valkey/valkey:8-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571";
         autoStart = true;
         networks = [ cfg.name ];                  # Isolated app specific network
-        # Static IP — see cfg.ip's description in options/types/service.nix for why
+        # Static IP — see cfg.ip's description in modules/types/service.nix for why
         extraOptions = [ "--ip=${f.hostInSubnet cfg.subnet 4}" ];
       };
 
@@ -176,7 +176,7 @@ in
         environmentFiles = lib.optionals (cfg.secrets != null) [ "/run/files/immich-${cfg.name}-db.env" ];
         extraOptions = [
           "--shm-size=128mb"                      # Increase the shared memory size, default is 64mb
-          # Static IP — see cfg.ip's description in options/types/service.nix for why
+          # Static IP — see cfg.ip's description in modules/types/service.nix for why
           "--ip=${f.hostInSubnet cfg.subnet 5}"
         ];
       };

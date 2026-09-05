@@ -53,7 +53,7 @@ let
   # `host.secrets` is set, `settings.users` is left empty and the admin user is (re)written into
   # AdGuardHome's own persisted config at activation via `preStart`, hashing the plaintext password
   # (decrypted to /run/files/user-password by modules/users.nix) there instead of at eval time -- the same
-  # "patch the app's own config file at activation" approach options/services/raw/jellyfin already
+  # "patch the app's own config file at activation" approach modules/services/raw/jellyfin already
   # uses for network.xml.
   patchAdminUser = pkgs.writeShellScript "adguardhome-patch-admin-user" ''
     set -euo pipefail

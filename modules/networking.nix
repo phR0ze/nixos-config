@@ -115,7 +115,7 @@ in
       networking.nameservers = [ "${host.net.dns.primary}" ];
 
       # Force the global dns nameservers to be used, ignoring whatever DNS any link is separately
-      # handed. Off by default (see options/types/dns.nix) since this breaks NetworkManager's
+      # handed. Off by default (see modules/types/dns.nix) since this breaks NetworkManager's
       # captive portal detection/login, which relies on DHCP-provided per-link DNS.
       services.resolved.settings.Resolve.Domains = lib.mkIf host.net.dns.force [ "~." ];
     })

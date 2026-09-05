@@ -39,7 +39,7 @@ any leftovers.
 
 Values that are only ever consumed by a running service reading a file at runtime (not by a NixOS
 module option at evaluation time) don't need this treatment at all - see how `host.smb.secrets` /
-`options/services/raw/smb` already renders SMB credentials via `sops.templates`, decrypted straight to
+`modules/services/raw/smb` already renders SMB credentials via `sops.templates`, decrypted straight to
 `/etc/smb/secrets/<share>` at activation by sops-nix, the same as `host.secrets` does for the user
 password hash.
 

@@ -334,7 +334,7 @@ I've included my `clu` installer and nix automation tool as a package. However i
 the state of this repo, which takes one additional step to include changes.
 
 1. Make changes to this repo and command push
-2. Update the `rev` field of `options/apps/system/clu/default.nix` to the new commit sha
+2. Update the `rev` field of `modules/apps/system/clu/default.nix` to the new commit sha
 3. Zero out the sha in the file
 4. In the same directory run `nix build -f build.nix` to determine the new build SHA to use
 5. Add the new build sha and save and commit and push the new bits

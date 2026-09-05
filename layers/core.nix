@@ -9,7 +9,7 @@
 { config, pkgs, ... }:
 {
   imports = [
-    ../options/system/users.nix
+    ../modules/system/users.nix
   ];
 
   # Set the original Nix base version we installed with to ignore the warnings
