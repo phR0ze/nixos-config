@@ -17,7 +17,7 @@
     _args = import ./args.nix;
     lib = nixpkgs.lib;
 
-    system = _args.arch;
+    system = _args.host.arch;
 
     # Minimal, overlay-free pkgs used only for eval-time JSON/YAML helpers in mergeArgs below -
     # the shared nixpkgs.config/overlays (see ./modules/nixpkgs.nix) don't need to be built for this.
@@ -26,10 +26,10 @@
     # Compose the argument overrides for the given hostname
     # ----------------------------------------------------------------------------------------------
     # Layering (lowest to highest priority): root args.nix -> root args.dec.yaml ->
-    # hosts/<hostname>/args.nix -> hosts/<hostname>/args.dec.yaml. `hostname` and
-    # `git.comment` are then always set authoritatively so no per-host file needs to declare
-    # them: `hostname` is simply the hosts/ directory name being built, and `git.comment` comes
-    # straight from flake introspection (self.rev), not a value written into a tracked file.
+    # hosts/<hostname>/args.nix -> hosts/<hostname>/args.dec.yaml. `host.hostname` and
+    # `host.git.comment` are then always set authoritatively so no per-host file needs to declare
+    # them: `host.hostname` is simply the hosts/ directory name being built, and `host.git.comment`
+    # comes straight from flake introspection (self.rev), not a value written into a tracked file.
     mergeArgs = hostname: let
       isolated = builtins.pathExists (./hosts + "/${hostname}/.isolated");
       hostArgsFile = ./hosts/${hostname}/args.nix;
@@ -40,12 +40,12 @@
       baseArgs = if isolated then {} else (if builtins.pathExists baseArgsFile then f.fromYAML baseArgsFile else {});
       rootArgs = if isolated then {} else _args;
     in lib.recursiveUpdate (lib.recursiveUpdate (lib.recursiveUpdate rootArgs baseArgs) (lib.recursiveUpdate hostArgs hostDecArgs)) {
-      hostname = hostname;
-      git.comment = self.rev or "dirty";
+      host.hostname = hostname;
+      host.git.comment = self.rev or "dirty";
     };
 
     # Used by the install/iso outputs, which have no per-host directory to derive from
-    _bootstrapArgs = lib.recursiveUpdate _args { git.comment = self.rev or "dirty"; };
+    _bootstrapArgs = lib.recursiveUpdate _args { host.git.comment = self.rev or "dirty"; };
 
     hostNames = builtins.attrNames (lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./hosts));
 
@@ -66,7 +66,7 @@
       # --------------------------------------------------------------------------------------------
       install = lib.nixosSystem {
         inherit system; specialArgs = { inherit inputs f; args = _bootstrapArgs; };
-        modules = [ ./modules/nixpkgs.nix ./hardware-configuration.nix (./. + "/" + _args.target) ];
+        modules = [ ./modules/nixpkgs.nix ./hardware-configuration.nix (./. + "/" + _args.host.target) ];
       };
 
       # Defines configuration for building an ISO

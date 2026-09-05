@@ -5,9 +5,8 @@
   user.fullname = "nixos";              # Default user full name
 	user.email = "nixos";                 # Default user email address
 	user.pass = "nixos";                  # Default user password
-	git.user = "nixos";                   # Default github account user name
-	git.group = "nixos";                  # Default github account user name
-  git.email = "nixos";                  # Default github account user email
+	host.git.user = "nixos";              # Default github account user name
+  host.git.email = "nixos";             # Default github account user email
 
   net.subnet = "";
   net.gateway = "";

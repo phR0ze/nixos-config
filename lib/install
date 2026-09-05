@@ -207,33 +207,33 @@ install::install_config()
     local args=$(jq -n '{}')
 
     # Convert general options to json
-    log::ls -n "Staging ${cyan}hostname=${HOSTNAME}${none}..."
-    args=$(echo "$args" | jq --arg k "hostname" --arg v "${HOSTNAME}" '. + {$k: $v}')
+    log::ls -n "Staging ${cyan}host.hostname=${HOSTNAME}${none}..."
+    args=$(echo "$args" | jq --arg k "host.hostname" --arg v "${HOSTNAME}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
-    log::ls -n "Staging ${cyan}timezone=${TIMEZONE}${none}..."
-    args=$(echo "$args" | jq --arg k "timezone" --arg v "${TIMEZONE}" '. + {$k: $v}')
+    log::ls -n "Staging ${cyan}host.timezone=${TIMEZONE}${none}..."
+    args=$(echo "$args" | jq --arg k "host.timezone" --arg v "${TIMEZONE}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
     local uuid="$(dbus-uuidgen)"
-    log::ls -n "Staging ${cyan}id=${uuid}${none}..."
-    args=$(echo "$args" | jq --arg k "id" --arg v "${uuid}" '. + {$k: $v}')
+    log::ls -n "Staging ${cyan}host.id=${uuid}${none}..."
+    args=$(echo "$args" | jq --arg k "host.id" --arg v "${uuid}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
     if [[ $EFI -eq 1 ]]; then
-        log::ls -n "Staging ${cyan}efi=true${none}..."
-        args=$(echo "$args" | jq --arg k "efi" --argjson v true '. + {$k: $v}')
+        log::ls -n "Staging ${cyan}host.efi=true${none}..."
+        args=$(echo "$args" | jq --arg k "host.efi" --argjson v true '($k | split(".")) as $p | setpath($p; $v)')
         log::status
     else
-        log::ls -n "Staging ${cyan}mbr=${DESTDEV}${none}..."
-        args=$(echo "$args" | jq --arg k "mbr" --arg v "${DESTDEV}" '. + {$k: $v}')
+        log::ls -n "Staging ${cyan}host.mbr=${DESTDEV}${none}..."
+        args=$(echo "$args" | jq --arg k "host.mbr" --arg v "${DESTDEV}" '($k | split(".")) as $p | setpath($p; $v)')
         log::status
     fi
 
     local root_uuid=$(sudo blkid -s UUID -o value ${PART_ROOT})
     log::ls -n "Injecting root partition UUID ${cyan}${root_uuid}${none}..."
-    args=$(echo "$args" | jq --argjson existing "{\"drives\":[{\"uuid\":\"$root_uuid\"}]}" '. + $existing')
+    args=$(echo "$args" | jq --argjson existing "{\"host\":{\"drives\":[{\"uuid\":\"$root_uuid\"}]}}" '. * $existing')
     log::status
 
-    log::ls -n "Staging ${cyan}nix.minVer=${NIXOS_VER}${none}..."
-    args=$(echo "$args" | jq --arg k "nix.minVer" --arg v "${NIXOS_VER}" '($k | split(".")) as $p | setpath($p; $v)')
+    log::ls -n "Staging ${cyan}host.nix.minVer=${NIXOS_VER}${none}..."
+    args=$(echo "$args" | jq --arg k "host.nix.minVer" --arg v "${NIXOS_VER}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
 
     # Convert user options to json
@@ -254,11 +254,11 @@ install::install_config()
     log::ls -n "Staging ${cyan}user.group=${USER_NAME}${none}..."
     args=$(echo "$args" | jq --arg k "user.group" --arg v "${USER_NAME}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
-    log::ls -n "Staging ${cyan}git.user=${GIT_USER}${none}..."
-    args=$(echo "$args" | jq --arg k "git.user" --arg v "${GIT_USER}" '($k | split(".")) as $p | setpath($p; $v)')
+    log::ls -n "Staging ${cyan}host.git.user=${GIT_USER}${none}..."
+    args=$(echo "$args" | jq --arg k "host.git.user" --arg v "${GIT_USER}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
-    log::ls -n "Staging ${cyan}git.email=${GIT_EMAIL}${none}..."
-    args=$(echo "$args" | jq --arg k "git.email" --arg v "${GIT_EMAIL}" '($k | split(".")) as $p | setpath($p; $v)')
+    log::ls -n "Staging ${cyan}host.git.email=${GIT_EMAIL}${none}..."
+    args=$(echo "$args" | jq --arg k "host.git.email" --arg v "${GIT_EMAIL}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
 
     # Convert networking options to json
@@ -312,13 +312,13 @@ install::install_config()
         log::status
     fi
     if [[ "x$BLUETOOTH" == "xy" ]]; then
-        log::ls -n "Staging ${cyan}bluetooth=true${none}..."
-        args=$(echo "$args" | jq --arg k "bluetooth" --argjson v true '. + {$k: $v}')
+        log::ls -n "Staging ${cyan}host.bluetooth=true${none}..."
+        args=$(echo "$args" | jq --arg k "host.bluetooth" --argjson v true '($k | split(".")) as $p | setpath($p; $v)')
         log::status
     fi
     if [[ "x$AUTO_LOGIN" == "xy" ]]; then
-        log::ls -n "Staging ${cyan}autologin=true${none}..."
-        args=$(echo "$args" | jq --arg k "autologin" --argjson v true '. + {$k: $v}')
+        log::ls -n "Staging ${cyan}host.autologin=true${none}..."
+        args=$(echo "$args" | jq --arg k "host.autologin" --argjson v true '($k | split(".")) as $p | setpath($p; $v)')
         log::status
     fi
     if [[ "x$NFS_SHARES" == "xy" ]]; then
