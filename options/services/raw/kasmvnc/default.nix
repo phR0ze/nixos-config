@@ -9,9 +9,9 @@
 
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
-  machine = config.machine;
+  host = config.host;
   cfg = config.services.raw.kasmvnc;
-  hasSecrets = machine.secrets != null;
+  hasSecrets = host.secrets != null;
 
   kasmvnc = pkgs.callPackage ../../../../packages/kasmvnc {};
 
@@ -23,7 +23,7 @@ let
   # (declared once in modules/users.nix) rather than baking the password into a Nix derivation.
   vncPasswd = pkgs.writeShellScript "kasmvnc-passwd" ''
     set -euo pipefail
-    cat /run/files/user-password | ${kasmvnc}/bin/vncpasswd -u "${machine.user.name}" -o
+    cat /run/files/user-password | ${kasmvnc}/bin/vncpasswd -u "${host.user.name}" -o
   '';
 in
 {

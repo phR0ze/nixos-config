@@ -2,20 +2,20 @@
 #---------------------------------------------------------------------------------------------------
 { config, ... }:
 let
-  machine = config.machine;
+  host = config.host;
 in
 {
-  time.timeZone = machine.timezone;
-  i18n.defaultLocale = machine.locale;
+  time.timeZone = host.timezone;
+  i18n.defaultLocale = host.locale;
   i18n.extraLocaleSettings = {
-    LC_ADDRESS = machine.locale;
-    LC_IDENTIFICATION = machine.locale;
-    LC_MEASUREMENT = machine.locale;
-    LC_MONETARY = machine.locale;
-    LC_NAME = machine.locale;
-    LC_NUMERIC = machine.locale;
-    LC_PAPER = machine.locale;
-    LC_TELEPHONE = machine.locale;
-    LC_TIME = machine.locale;
+    LC_ADDRESS = host.locale;
+    LC_IDENTIFICATION = host.locale;
+    LC_MEASUREMENT = host.locale;
+    LC_MONETARY = host.locale;
+    LC_NAME = host.locale;
+    LC_NUMERIC = host.locale;
+    LC_PAPER = host.locale;
+    LC_TELEPHONE = host.locale;
+    LC_TIME = host.locale;
   };
 }

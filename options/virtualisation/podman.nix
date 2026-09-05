@@ -20,14 +20,14 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  machine = config.machine;
+  host = config.host;
   cfg = config.virtualisation.podman;
 in
 {
   config = lib.mkIf cfg.enable {
 
     # Configure primary user permissions
-    users.users.${machine.user.name}.extraGroups = [ "podman" ];
+    users.users.${host.user.name}.extraGroups = [ "podman" ];
 
     # Install dependencies
     environment.systemPackages = [

@@ -7,15 +7,15 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, inputs, ... }:
 let
-  machine = config.machine;
+  host = config.host;
 in
 {
   config = lib.mkMerge [
-    (lib.mkIf machine.nix.cache.enable {
+    (lib.mkIf host.nix.cache.enable {
       nix.settings = {
         # Add custom binary caches
         # - https://cache.nixos.org is added by default
-        substituters = lib.mkBefore [ "http://${machine.nix.cache.ip}:${toString machine.nix.cache.port}" ];
+        substituters = lib.mkBefore [ "http://${host.nix.cache.ip}:${toString host.nix.cache.port}" ];
 
         # Signing keys for custom substituters
         trusted-public-keys = [
@@ -31,7 +31,7 @@ in
     })
     {
       # Set the short git revision and comment to be used in the system version `clu list versions`
-      system.configurationRevision = lib.mkIf (machine.git.comment != "") machine.git.comment;
+      system.configurationRevision = lib.mkIf (host.git.comment != "") host.git.comment;
 
       nix = {
 

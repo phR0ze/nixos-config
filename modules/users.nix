@@ -5,12 +5,12 @@
 # - Configures users default passwords
 #
 # ### Secrets
-# When `machine.secrets` is set, the admin/root password is sourced from a pre-hashed
-# (`mkpasswd -m sha-512`) `user/passwordHash` entry in that machine's `secrets.enc.yaml`,
+# When `host.secrets` is set, the admin/root password is sourced from a pre-hashed
+# (`mkpasswd -m sha-512`) `user/passwordHash` entry in that host's `secrets.enc.yaml`,
 # decrypted only at activation to `/run/files/user-passwordhash` — never baked into the Nix store the
 # way `initialPassword` does. Machines that haven't been migrated to a `secrets.enc.yaml` yet
-# (`machine.secrets == null`) fall back to the old `initialPassword` behavior so this can land
-# ahead of the per-machine secrets rollout.
+# (`host.secrets == null`) fall back to the old `initialPassword` behavior so this can land
+# ahead of the per-host secrets rollout.
 #
 # Also declares the *plaintext* `user/password` secret (decrypted to /run/files/user-password)
 # here, once, for the handful of modules (rustdesk, x11vnc, kasmvnc, adguardhome) that need the
@@ -23,12 +23,12 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
-  machine = config.machine;
-  hasSecrets = machine.secrets != null;
+  host = config.host;
+  hasSecrets = host.secrets != null;
 
   passwordConfig = if hasSecrets
     then { hashedPasswordFile = lib.mkForce "/run/files/user-passwordhash"; }
-    else { initialPassword = lib.mkForce machine.user.pass; };
+    else { initialPassword = lib.mkForce host.user.pass; };
 in
 {
   config = lib.mkMerge [
@@ -37,14 +37,14 @@ in
         "/run/files/user-passwordhash" = {
           filemode = "0400";
           encrypted = {
-            sopsFile = machine.secrets;
+            sopsFile = host.secrets;
             key = "user/passwordHash";
           };
         };
         "/run/files/user-password" = {
           filemode = "0400";
           encrypted = {
-            sopsFile = machine.secrets;
+            sopsFile = host.secrets;
             key = "user/password";
           };
         };
@@ -57,10 +57,10 @@ in
       users.users.root = passwordConfig;
 
       # Configure the default system admin user
-      users.users.${machine.user.name} = {
+      users.users.${host.user.name} = {
         uid = 1000;                         # ensure NixOS doesn't choose a different id for my user
         isNormalUser = true;
-        group = "${machine.user.group}";     # create the users group for the system admin user
+        group = "${host.user.group}";     # create the users group for the system admin user
         extraGroups = [
           "photos"                          # provides a sharable group to work with photos
           "render"                          # enables transcoding hardware acceleration support
@@ -75,7 +75,7 @@ in
       users.groups."users".gid = 100;       # TODO: keep things runing as usual until I decomission this
 
       # Ensure private user group that always has the correct id
-      users.groups."${machine.user.group}".gid = 1000;
+      users.groups."${host.user.group}".gid = 1000;
 
       # Configure sudo access for system admin
       security.sudo = {

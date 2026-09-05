@@ -1,6 +1,6 @@
 { config, pkgs, lib, ... }: with lib.types;
 let
-  machine = config.machine;
+  host = config.host;
   guest = config.virtualisation.qemu.guest;
   host = config.virtualisation.qemu.host;
 in
@@ -14,8 +14,8 @@ in
 
       # Create dir storing VM running data and a sub-dir for exchanging data with the VM
       # ----------------------------------------------------------------------------------------------
-      [ ! -d "${machine.hostname}" ] && echo "Must be run from the flake directory" && exit 1
-      VMDIR="${machine.hostname}"
+      [ ! -d "${host.hostname}" ] && echo "Must be run from the flake directory" && exit 1
+      VMDIR="${host.hostname}"
       mkdir -p "$VMDIR/shared"
       cd "$VMDIR"
       VMDIR="$(pwd)"

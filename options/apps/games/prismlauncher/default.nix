@@ -50,7 +50,7 @@ in
         IconTheme=pe_colored
         JavaPath=${cfg.javaPath}
         Language=en_US
-        LastHostname=${config.machine.hostname}
+        LastHostname=${config.host.hostname}
         MaxMemAlloc=${toString cfg.maxMemAlloc}
         MinMemAlloc=${toString cfg.minMemAlloc}
       ''

@@ -21,7 +21,7 @@
 { config, lib, f, ... }: with lib.types;
 let
   net = config.net;
-  machine = config.machine;
+  host = config.host;
   networking = config.networking;
 in
 {
@@ -32,17 +32,17 @@ in
     net.primary.name = lib.mkOption {
       description = lib.mdDoc ''
         Primary interface to use for network access. This will typically just be the physical nic 
-        e.g. ens18, but when 'machine.net.bridge.enable = true' it will be set to 
-        'machine.net.bridge.name' e.g. br0 as the bridge will be the primary interface.
+        e.g. ens18, but when 'host.net.bridge.enable = true' it will be set to 
+        'host.net.bridge.name' e.g. br0 as the bridge will be the primary interface.
       '';
       type = types.str;
-      default = machine.net.nic0.name or "";
+      default = host.net.nic0.name or "";
     };
     net.primary.ip = lib.mkOption {
       description = lib.mdDoc "Primary interface IP in CIDR notation";
       type = types.str;
       example = "192.168.1.50/24";
-      default = machine.net.nic0.ip or "";
+      default = host.net.nic0.ip or "";
     };
   };
 
@@ -82,18 +82,18 @@ in
       '';
 
       # Enables ability for user to make network manager changes
-      users.users.${machine.user.name}.extraGroups = [ "networkmanager" ];
+      users.users.${host.user.name}.extraGroups = [ "networkmanager" ];
     })
 
     # Configure basic networking
     # ----------------------------------------------------------------------------------------------
     {
       networking.enableIPv6 = false;
-      networking.hostName = machine.hostname;
+      networking.hostName = host.hostname;
       networking.firewall.allowPing = true;
     }
-    (lib.mkIf (machine.net.bridge.enable) {
-      net.primary.name = machine.net.bridge.name;
+    (lib.mkIf (host.net.bridge.enable) {
+      net.primary.name = host.net.bridge.name;
     })
 
     # Configure global DNS. resolved works well with network manager
@@ -111,77 +111,77 @@ in
     #   captive portals (airline wifi, hotels, etc.) resolve their own login domains automatically.
     # - `fallback` is only used by resolved when a link provides no DNS at all, so it's safe to set
     #   even when `primary` is unset.
-    (lib.mkIf (machine.net.dns.primary or "" != "") {
-      networking.nameservers = [ "${machine.net.dns.primary}" ];
+    (lib.mkIf (host.net.dns.primary or "" != "") {
+      networking.nameservers = [ "${host.net.dns.primary}" ];
 
       # Force the global dns nameservers to be used, ignoring whatever DNS any link is separately
       # handed. Off by default (see options/types/dns.nix) since this breaks NetworkManager's
       # captive portal detection/login, which relies on DHCP-provided per-link DNS.
-      services.resolved.settings.Resolve.Domains = lib.mkIf machine.net.dns.force [ "~." ];
+      services.resolved.settings.Resolve.Domains = lib.mkIf host.net.dns.force [ "~." ];
     })
-    (lib.mkIf (machine.net.dns.fallback or "" != "") {
-      services.resolved.settings.Resolve.FallbackDNS = [ "${machine.net.dns.fallback}" ];
+    (lib.mkIf (host.net.dns.fallback or "" != "") {
+      services.resolved.settings.Resolve.FallbackDNS = [ "${host.net.dns.fallback}" ];
     })
 
     # Configure network bridge
     # ----------------------------------------------------------------------------------------------
-    (f.mkIfElse (machine.net.bridge.enable) (lib.mkMerge [
+    (f.mkIfElse (host.net.bridge.enable) (lib.mkMerge [
 
       # Create the bridge interface
       {
         assertions = [
-          { assertion = (machine.net.bridge.name != ""); message = "Bridge name must be specified for bridge mode"; }
-          { assertion = (machine.net.nic0.name != ""); message = "Primary nic must be specified e.g. 'eth0'"; } 
+          { assertion = (host.net.bridge.name != ""); message = "Bridge name must be specified for bridge mode"; }
+          { assertion = (host.net.nic0.name != ""); message = "Primary nic must be specified e.g. 'eth0'"; } 
         ];
         networking.useDHCP = false;
-        networking.bridges."${machine.net.bridge.name}".interfaces = ["${machine.net.nic0.name}" ];
+        networking.bridges."${host.net.bridge.name}".interfaces = ["${host.net.nic0.name}" ];
       }
 
       # Configure bridge for static IP or DHCP
-      (f.mkIfElse (machine.net.nic0.ip != "") {
-        networking.interfaces."${machine.net.bridge.name}".ipv4.addresses = [ (f.toIP machine.net.nic0.ip) ];
+      (f.mkIfElse (host.net.nic0.ip != "") {
+        networking.interfaces."${host.net.bridge.name}".ipv4.addresses = [ (f.toIP host.net.nic0.ip) ];
       } {
-        networking.interfaces."${machine.net.bridge.name}".useDHCP = true;
+        networking.interfaces."${host.net.bridge.name}".useDHCP = true;
       })
 
       # Create host macvlan to communicate with containers on bridge otherwise the containers can be 
       # interacted with by every device on the LAN except the host due to local virtual networking oddities
       {
         assertions = [
-          { assertion = (machine.net.macvlan.name != ""); message = "Macvlan name must be specified"; }
+          { assertion = (host.net.macvlan.name != ""); message = "Macvlan name must be specified"; }
         ];
-        networking.macvlans."${machine.net.macvlan.name}" = {
-          interface = "${machine.net.bridge.name}";
+        networking.macvlans."${host.net.macvlan.name}" = {
+          interface = "${host.net.bridge.name}";
           mode = "bridge";
         };
       }
-      (f.mkIfElse (machine.net.macvlan.ip != "") {
-        networking.interfaces."${machine.net.macvlan.name}".ipv4.addresses = [ (f.toIP machine.net.macvlan.ip) ];
+      (f.mkIfElse (host.net.macvlan.ip != "") {
+        networking.interfaces."${host.net.macvlan.name}".ipv4.addresses = [ (f.toIP host.net.macvlan.ip) ];
       } {
-        networking.interfaces."${machine.net.macvlan.name}".useDHCP = true;
+        networking.interfaces."${host.net.macvlan.name}".useDHCP = true;
       })
       # optionally set the MAC address of the macvlan, note the first octet must be '02'
       # - the MAC gets set on creation so might need to `ip link del host` and then rerun update
       # - doesn't seem to work but doesn't fail either???
-      (lib.mkIf (machine.net.macvlan.mac != "") {
-        networking.interfaces."${machine.net.macvlan.name}".macAddress = machine.net.macvlan.mac;
+      (lib.mkIf (host.net.macvlan.mac != "") {
+        networking.interfaces."${host.net.macvlan.name}".macAddress = host.net.macvlan.mac;
       })
 
     # Otherwise configure primary NIC with static IP
     # ----------------------------------------------------------------------------------------------
-    ]) (lib.mkIf (machine.net.nic0.ip != "") {
+    ]) (lib.mkIf (host.net.nic0.ip != "") {
       assertions = [
-        { assertion = (machine.net.nic0.name != ""); message = "Primary nic must be specified e.g. 'eth0'"; } 
+        { assertion = (host.net.nic0.name != ""); message = "Primary nic must be specified e.g. 'eth0'"; } 
       ];
-      networking.interfaces."${machine.net.nic0.name}".ipv4.addresses = [ (f.toIP machine.net.nic0.ip) ];
+      networking.interfaces."${host.net.nic0.name}".ipv4.addresses = [ (f.toIP host.net.nic0.ip) ];
     }))
 
     # Configure the default gateway if the primary nic is static
-    (lib.mkIf (machine.net.nic0.ip != "") {
+    (lib.mkIf (host.net.nic0.ip != "") {
       assertions = [
-        { assertion = (machine.net.gateway != ""); message = "Default gateway was not specified"; } 
+        { assertion = (host.net.gateway != ""); message = "Default gateway was not specified"; } 
       ];
-      networking.defaultGateway = "${machine.net.gateway}";
+      networking.defaultGateway = "${host.net.gateway}";
     })
   ];
 }

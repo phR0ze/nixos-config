@@ -33,32 +33,32 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }:
 let
-  machine = config.machine;
+  host = config.host;
   cfg = config.services.raw.adguardhome;
-  hasSecrets = machine.secrets != null;
+  hasSecrets = host.secrets != null;
 
   # Legacy eval-time bake (plaintext password ends up in the Nix store via this derivation's
-  # builder script) -- fallback until this machine has a `machine.secrets` file.
+  # builder script) -- fallback until this host has a `host.secrets` file.
   passFile = pkgs.runCommandLocal "adguard-passwd" {} ''
     mkdir $out
-    ${pkgs.apacheHttpd}/bin/htpasswd -cbB "$out/pass" "${machine.user.name}" "${machine.user.pass}"
+    ${pkgs.apacheHttpd}/bin/htpasswd -cbB "$out/pass" "${host.user.name}" "${host.user.pass}"
   '';
   passStr = builtins.readFile "${passFile}/pass";
-  pass = builtins.elemAt (builtins.match "${machine.user.name}:(.*)" passStr) 0;
+  pass = builtins.elemAt (builtins.match "${host.user.name}:(.*)" passStr) 0;
 
   # `services.adguardhome.settings` is compiled straight into a Nix-store YAML derivation at eval
   # time -- there's no environmentFile-style escape hatch for it -- so a real secret can't be
   # substituted into it at all (a sops placeholder would only render literally, not decrypt, since
   # that only happens through sops-nix's own template-rendering activation step). Instead, when
-  # `machine.secrets` is set, `settings.users` is left empty and the admin user is (re)written into
+  # `host.secrets` is set, `settings.users` is left empty and the admin user is (re)written into
   # AdGuardHome's own persisted config at activation via `preStart`, hashing the plaintext password
   # (decrypted to /run/files/user-password by modules/users.nix) there instead of at eval time -- the same
   # "patch the app's own config file at activation" approach options/services/raw/jellyfin already
   # uses for network.xml.
   patchAdminUser = pkgs.writeShellScript "adguardhome-patch-admin-user" ''
     set -euo pipefail
-    export HASH="$(${pkgs.apacheHttpd}/bin/htpasswd -nbB "${machine.user.name}" "$(cat /run/files/user-password)" | cut -d: -f2)"
-    ${pkgs.yq-go}/bin/yq -i '.users = [{"name": "${machine.user.name}", "password": strenv(HASH)}]' \
+    export HASH="$(${pkgs.apacheHttpd}/bin/htpasswd -nbB "${host.user.name}" "$(cat /run/files/user-password)" | cut -d: -f2)"
+    ${pkgs.yq-go}/bin/yq -i '.users = [{"name": "${host.user.name}", "password": strenv(HASH)}]' \
       /var/lib/AdGuardHome/AdGuardHome.yaml
   '';
 
@@ -79,7 +79,7 @@ in
       settings = {
         theme = "dark";
         users = lib.mkIf (!hasSecrets) [{
-          name = machine.user.name;
+          name = host.user.name;
           password = pass;
         }];
         dns = {
@@ -342,7 +342,7 @@ in
               # Cloudflare wildcard record points at — see services.raw.caddy's deployment notes.
               # Keeps every Caddy-fronted service reachable from the LAN regardless of whether
               # it also has a Pangolin Resource exposing it publicly yet.
-              domain = "*.${machine.domain}";
+              domain = "*.${host.domain}";
               answer = ipAddress;
             }
           ];

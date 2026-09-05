@@ -4,10 +4,10 @@
 #---------------------------------------------------------------------------------------------------
 { config, pkgs, lib, ... }:
 let
-  machine = config.machine;
+  host = config.host;
 in
 {
-  config = lib.mkIf (!machine.type.vm) {
+  config = lib.mkIf (!host.type.vm) {
     # - 'hardware.enableRedistributableFirmware = true;' is just a short cut for the below list
     hardware.firmware = with pkgs; [
       linux-firmware

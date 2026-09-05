@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, pkgs, ... }:
 let
-  machine = config.machine;
+  host = config.host;
 in
 {
   hardware.sane = {
@@ -21,5 +21,5 @@ in
     pkgs.utsushi
   ];
 
-  users.users.${machine.user.name}.extraGroups = [ "scanner" "lp" ];
+  users.users.${host.user.name}.extraGroups = [ "scanner" "lp" ];
 }

@@ -9,28 +9,28 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  machine = config.machine;
+  host = config.host;
   cfg = config.services.nspawn.portainer;
 
-  filtered = builtins.filter (x: x.name == "portainer") machine.services;
+  filtered = builtins.filter (x: x.name == "portainer") host.services;
   defaults = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
 
   # NOTE: for hashedPasswordFile to resolve here, the container's own module list (below) needs
   # inputs.nixos-files.nixosModules.default imported too, so config.sops.secrets exists inside
   # the container's separate module tree -- not done yet, since this module is currently unused
   # (see caller note below).
-  modules_users = { lib, config, machine, ...}: {
-    users.users.root = if machine.secrets != null
+  modules_users = { lib, config, host, ...}: {
+    users.users.root = if host.secrets != null
       then { hashedPasswordFile = lib.mkForce "/run/files/user-passwordhash"; }
-      else { initialPassword = lib.mkForce machine.user.pass; };
-    users.users.${machine.user.name} = {
+      else { initialPassword = lib.mkForce host.user.pass; };
+    users.users.${host.user.name} = {
       uid = 1000;
       isNormalUser = true;
       extraGroups = [ "wheel" ];
-    } // (if machine.secrets != null
+    } // (if host.secrets != null
       then { hashedPasswordFile = lib.mkForce "/run/files/user-passwordhash"; }
-      else { initialPassword = lib.mkForce machine.user.pass; });
-    users.groups."${machine.user.group}".gid = 100;
+      else { initialPassword = lib.mkForce host.user.pass; });
+    users.groups."${host.user.group}".gid = 100;
   };
 in
 {
@@ -48,9 +48,9 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       { assertion = (builtins.length filtered > 0);
-        message = "Requires 'machine.services' contain a config for this service"; }
-      { assertion = (machine.net.bridge.enable);
-        message = "Requires 'machine.net.bridge.enable = true;' to work correctly"; }
+        message = "Requires 'host.services' contain a config for this service"; }
+      { assertion = (host.net.bridge.enable);
+        message = "Requires 'host.net.bridge.enable = true;' to work correctly"; }
       { assertion = (cfg.opts.nic.link != "");
         message = "Requires 'opts.nic.link' be set to the bridge name"; }
       { assertion = (cfg.opts.nic.ip != "");
@@ -69,9 +69,9 @@ in
       localAddress = cfg.opts.nic.ip;       # Static IP for the virtual adapter on the bridge
 
       config = { options, config, pkgs, lib, ...}: {
-        imports = [ ../../../modules/new_users.nix { inherit lib machine; } ];
+        imports = [ ../../../modules/new_users.nix { inherit lib host; } ];
         config = {
-          system.stateVersion = machine.nix.minVer;
+          system.stateVersion = host.nix.minVer;
 
           # Allow the server port through the firewall
           networking.firewall.allowedTCPPorts = [ cfg.opts.port ];

@@ -5,7 +5,7 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.devices.printers;
-  machine = config.machine;
+  host = config.host;
 in
 {
   options = {
@@ -25,7 +25,7 @@ in
         cups-pdf.enable = true;       # Allow for printing to pdf
       };
 
-      users.users.${machine.user.name}.extraGroups = [ "lp" ];
+      users.users.${host.user.name}.extraGroups = [ "lp" ];
 
       # Enable autodiscovery of network printers e.g. IPP enabled printers
       services.avahi = {
@@ -60,7 +60,7 @@ in
         pkgs.utsushi
       ];
 
-      users.users.${machine.user.name}.extraGroups = [ "scanner" ];
+      users.users.${host.user.name}.extraGroups = [ "scanner" ];
     })
 
   ];

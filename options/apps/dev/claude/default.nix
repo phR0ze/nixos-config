@@ -6,8 +6,8 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.apps.dev.claude;
-  machine = config.machine;
-  homeDir = "/home/${machine.user.name}";
+  host = config.host;
+  homeDir = "/home/${host.user.name}";
 in
 {
   options = {
@@ -19,7 +19,7 @@ in
         default = "";
         description = ''
           Machine-specific instructions appended to the base CLAUDE.md deployed to
-          '${homeDir}/.claude/CLAUDE.md'. Set this per-machine (e.g. in a machine's
+          '${homeDir}/.claude/CLAUDE.md'. Set this per-host (e.g. in a host's
           configuration.nix) to layer on host-specific context without editing the shared base.
         '';
       };
@@ -40,11 +40,11 @@ in
         filemode = "0755";
       };
 
-      # Deploy settings.json, substituting the home directory for the target machine's user
+      # Deploy settings.json, substituting the home directory for the target host's user
       files.user.".claude/settings.json".copy =
         builtins.replaceStrings [ "@HOME@" ] [ homeDir ] (lib.fileContents ./include/settings.json);
 
-      # Deploy the global CLAUDE.md instructions, appending any machine-specific instructions
+      # Deploy the global CLAUDE.md instructions, appending any host-specific instructions
       files.user.".claude/CLAUDE.md".copy =
         let base = lib.fileContents ./include/CLAUDE.md;
         in if (cfg.extraInstructions == "") then base

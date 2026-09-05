@@ -36,9 +36,9 @@ in
         default = {
           name = "qbittorrent";
           user = {
-            name = machine.user.name;
-            uid = config.users.users.${machine.user.name}.uid;
-            gid = config.users.groups."${machine.user.group}".gid;
+            name = host.user.name;
+            uid = config.users.users.${host.user.name}.uid;
+            gid = config.users.groups."${host.user.group}".gid;
           };
           nic = {
             name = config.networking.vnic0;

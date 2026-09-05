@@ -7,10 +7,10 @@
 #
 # ### Deployment notes
 # 1. Vaultwarden listens on `127.0.0.1:<port>` only (not exposed on the LAN).
-# 2. `domain` defaults to `https://<first subdomains entry>.<machine.domain>`. Set explicitly to
+# 2. `domain` defaults to `https://<first subdomains entry>.<host.domain>`. Set explicitly to
 #    override.
 # 3. To enable the `/admin` diagnostics page, set `enableAdminPanel = true` and add an admin token to
-#    a `secrets.enc.yaml` under the `vaultwarden.adminToken` key, then declare it in the machine's
+#    a `secrets.enc.yaml` under the `vaultwarden.adminToken` key, then declare it in the host's
 #    `configuration.nix` (this module only consumes the secret, it doesn't declare it, since
 #    `sopsFile` is a path relative to wherever it's declared):
 #      sops.secrets."vaultwarden/adminToken" = {
@@ -19,7 +19,7 @@
 # 4. Point the Bitwarden client(s) at this server's `domain` and log in as normal — the first
 #    account created is a regular user, not an admin.
 # 5. To reach this service through a Pangolin *private* (ZTNA) resource instead of a public
-#    subdomain, use a `Host`-mode (raw L4 tunnel) resource pointed straight at this machine's LAN
+#    subdomain, use a `Host`-mode (raw L4 tunnel) resource pointed straight at this host's LAN
 #    `IP:443` — the same shared wildcard block `subdomains` above already uses. Pangolin never
 #    terminates or re-originates TLS for that resource type, so the client's real SNI/Host header
 #    reaches Caddy intact, same as any LAN client; no dedicated listener or port is needed. Add a
@@ -46,13 +46,13 @@ in
 
       domain = lib.mkOption {
         type = types.nullOr types.str;
-        default = "https://${builtins.head cfg.subdomains}.${config.machine.domain}";
-        defaultText = lib.literalExpression ''"https://''${builtins.head subdomains}.''${machine.domain}"'';
+        default = "https://${builtins.head cfg.subdomains}.${config.host.domain}";
+        defaultText = lib.literalExpression ''"https://''${builtins.head subdomains}.''${host.domain}"'';
         example = "https://vault.example.com";
         description = lib.mdDoc ''
           Externally reachable URL clients will use to reach this server. Required for WebAuthn/U2F
           and for icons/links to render correctly. Defaults to `https://<first subdomains
-          entry>.<machine.domain>`. Set explicitly to override.
+          entry>.<host.domain>`. Set explicitly to override.
         '';
       };
 
@@ -107,7 +107,7 @@ in
     })
 
     # Contribute a proxy entry per subdomain to services.raw.caddy.proxies rather than requiring
-    # them be listed separately in the machine's configuration.nix
+    # them be listed separately in the host's configuration.nix
     (lib.mkIf cfg.enable {
       services.raw.caddy.proxies = map (s: { subdomain = s; inherit (cfg) port; }) cfg.subdomains;
     })

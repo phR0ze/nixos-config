@@ -18,14 +18,14 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.services.raw.x11vnc;
-  machine = config.machine;
-  hasSecrets = machine.secrets != null;
+  host = config.host;
+  hasSecrets = host.secrets != null;
 
   # Legacy eval-time bake (the plaintext password ends up in the Nix store via this derivation's
-  # builder script) -- fallback until this machine has a `machine.secrets` file.
+  # builder script) -- fallback until this host has a `host.secrets` file.
   vncpass = pkgs.runCommandLocal "x11vnc-passwd" {} ''
     mkdir $out
-    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${machine.user.pass}" "$out/pass"
+    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${host.user.pass}" "$out/pass"
   '';
 
   # Runs at service start instead: reads the plaintext password from /run/files/user-password (populated by

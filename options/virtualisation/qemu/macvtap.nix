@@ -1,6 +1,6 @@
 { config, pkgs, lib, ... }: with lib.types;
 let
-  machine = config.machine;
+  host = config.host;
   host = config.virtualisation.qemu.host;
   guest = config.virtualisation.qemu.guest;
 
@@ -28,7 +28,7 @@ in
             echo 1 > "/proc/sys/net/ipv6/conf/${id}/disable_ipv6"
           fi
           ${lib.getExe' pkgs.iproute2 "ip"} link set '${id}' up
-          ${pkgs.coreutils-full}/bin/chown '${machine.user.name}:${host.group}' /dev/tap$(< "/sys/class/net/${id}/ifindex")
+          ${pkgs.coreutils-full}/bin/chown '${host.user.name}:${host.group}' /dev/tap$(< "/sys/class/net/${id}/ifindex")
         '') macvtapInterfaces;
 
       virtualisation.qemu.guest.scripts.macvtap-down = ''

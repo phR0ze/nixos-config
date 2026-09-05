@@ -1,13 +1,13 @@
 # This file is used to seed your configuration with defaults for your systems, rather than having
-# to dig into options/types/machine.nix and manually make changes there.
+# to dig into options/types/host.nix and manually make changes there.
 #
 # Note:
 # - this is the lowes priority configuration file and all other overrides take precedent
 # --------------------------------------------------------------------------------------------------
 {
   id = "";                              # Machine id for the system
-  target = "profiles/xfce/desktop.nix"; # Pre-defined configurations './machines' or './profiles', used only by nixosConfigurations.install
-  hostname = "nixos";                   # Fallback hostname, only used by nixosConfigurations.install/iso; real machines always use their machines/<hostname> directory name
+  target = "layers/bundles/xfce-desktop.nix"; # Pre-defined configurations './hosts' or './layers', used only by nixosConfigurations.install
+  hostname = "nixos";                   # Fallback hostname, only used by nixosConfigurations.install/iso; real hosts always use their hosts/<hostname> directory name
   efi = false;                          # EFI system boot type set during installation
   mbr = "nodev";                        # MBR system boot device set during installation, e.g. /dev/sda
   arch = "x86_64-linux";                # System architecture to use

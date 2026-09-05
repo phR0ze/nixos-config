@@ -1,23 +1,23 @@
 { config, lib, ... }:
 let
-  machine = config.machine;
+  host = config.host;
 in
 {
   # Grub configuration for non VM/ISO machines
-  config = lib.mkIf (!machine.type.vm && !machine.type.iso) {
+  config = lib.mkIf (!host.type.vm && !host.type.iso) {
     boot.loader = {
       grub.enable = true;
 
       # Defaults to '/boot' and only gets used if efiSupport is true
       efi.efiSysMountPoint = "/boot";
-      grub.efiSupport = lib.mkIf (machine.efi) true;
+      grub.efiSupport = lib.mkIf (host.efi) true;
 
       # i.e. EFI/BOOT/BOOTX64.efi
-      grub.efiInstallAsRemovable = lib.mkIf (machine.efi) true;
+      grub.efiInstallAsRemovable = lib.mkIf (host.efi) true;
 
       # Configure or disable BIOS MBR boot support 
       # Will be set with automation to, e.g. '/dev/sda' (MBR), or 'nodev' (EFI)
-      grub.device = machine.mbr;
+      grub.device = host.mbr;
     };
   };
 }

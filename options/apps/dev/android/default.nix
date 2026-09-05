@@ -11,7 +11,7 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.apps.dev.android;
-  machine = config.machine;
+  host = config.host;
 
   # Install Android SDK and NDK with custom versions and components
   # Android 10, API 29, 

@@ -12,7 +12,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  machine = config.machine;
+  host = config.host;
   cfg = config.virtualisation.qemu.host;
 
   macvtapInterfaces = builtins.filter (hostname:
@@ -36,7 +36,7 @@ in
       group = lib.mkOption {
         type = types.str;
         description = "Group to use for VMs when running as system services";
-        default = "${machine.user.group}";
+        default = "${host.user.group}";
       };
       vms = lib.mkOption {
         description = "Virtual machines";
@@ -80,18 +80,18 @@ in
       # Create an activation script to ensure that the VM state directory exists
       system.activationScripts.vm-host = ''
         mkdir -p ${cfg.stateDir}
-        chown ${machine.user.name}:${cfg.group} ${cfg.stateDir}
+        chown ${host.user.name}:${cfg.group} ${cfg.stateDir}
         chmod g+w ${cfg.stateDir}
       '';
 
       # Remove memory constraints for the vm user
       security.pam.loginLimits = [ {
-        domain = machine.user.name;
+        domain = host.user.name;
         item = "memlock";
         type = "hard";
         value = "infinity";
       } {
-        domain = machine.user.name;
+        domain = host.user.name;
         item = "memlock";
         type = "soft";
         value = "infinity";
@@ -110,7 +110,7 @@ in
 
       # Enables the use of qemu-bridge-helper for `type = "bridge"` interface.
       environment.etc."qemu/bridge.conf".text = lib.mkForce ''
-        allow ${machine.net.bridge.name}
+        allow ${host.net.bridge.name}
       '';
 
       # Allow qemu-bridge-helper to create tap interfaces and attach them to
@@ -141,7 +141,7 @@ in
         win-spice         # SPICE support for windows
       ];
 
-      users.users.${machine.user.name}.extraGroups = [ "kvm" ];
+      users.users.${host.user.name}.extraGroups = [ "kvm" ];
     })
 
     # Configure the VMs to be run on the host including systemd integration
@@ -177,7 +177,7 @@ in
             TimeoutStopSec = 150;
             Restart = "always";
             RestartSec = "5s";
-            User = machine.user.name;
+            User = host.user.name;
             Group = cfg.group;
             SyslogIdentifier = "qemu-${hostname}";
             LimitNOFILE = 1048576;

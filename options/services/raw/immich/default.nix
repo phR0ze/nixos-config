@@ -11,7 +11,7 @@
 { config, lib, pkgs, args, f, ... }: with lib.types;
 let
   cfg = config.services.raw.immich;
-  machine = config.machine;
+  host = config.host;
 in
 {
   options = {
