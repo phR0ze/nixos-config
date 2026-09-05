@@ -1,14 +1,16 @@
-# Profiles
-Profiles in this context are being defined as a suite of configurations that compose a desired 
-desktop environment that is abstracted from the physical or virtual machine it is deployed on. This 
-allows for the reuse of profiles to build out then more customized machines that are based on the 
-profile. Profiles can be built to provide any number of specialized desktop, windowing, application, 
-or service choices to build a system with a specific purpose e.g. a theater focused system, or a 
-server or your daily runner desktop. In combination with the final machine customization you can 
-build out a number of fully customizable declarative systems that can be completly rebuilt from on a 
-new blank system in a matter of minutes.
+# Layers
+Layers in this context are being defined as atomic, standalone NixOS modules that compose a desired
+desktop environment, abstracted from the physical or virtual host they're deployed on. Layers never
+import each other - they're mixed and matched by a host (or by a `bundles/` aggregator) via a flat
+`imports` list, the way the module system is meant to be used. Layers can be built to provide any
+number of specialized desktop, windowing, application, or service choices to build a system with a
+specific purpose e.g. a theater focused system, or a server or your daily runner desktop.
+`bundles/` holds thin aggregator modules - nothing but an `imports` list of atomic layers - so hosts
+in the same class (e.g. "xfce desktop") don't each have to repeat the same handful of layer imports.
+In combination with the final host customization you can build out a number of fully customizable
+declarative systems that can be completly rebuilt from on a new blank system in a matter of minutes.
 
-Each profile has its own purpose and features called out in the profile nix file.
+Each layer has its own purpose and features called out in the layer's nix file.
 
 ## Hardware considerations
 
