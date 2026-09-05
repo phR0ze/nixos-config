@@ -20,7 +20,7 @@ ERRFILE=/tmp/clu.err
 # Returns 0 on true or 1 on false; ugh not intuitive
 utils::cwd_is_nixos_config()
 {
-    [[ ! -e "${CONFIG_DIR}/base.nix" || ! -e "${CONFIG_DIR}/base.lock" ]]
+    [[ ! -e "${CONFIG_DIR}/flake.nix" || ! -e "${CONFIG_DIR}/args.nix" ]]
 }
 
 # Process global arguments

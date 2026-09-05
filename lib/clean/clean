@@ -60,11 +60,15 @@ clean::run()
     esac
 }
 
-# Clean the decrypted files from git and disk
+# Clean any decrypted files left behind anywhere in the repo from git and disk. Broader than
+# flake::restore (which only cleans up the single host from the last flake::switch) - this is the
+# manual safety net for leftovers from a crashed/killed build.
 # --------------------------------------------------------------------------------------------------
 clean::dec()
 {
-  flake::restore
+  utils::run pushd "${CONFIG_DIR}"
+  utils::remove_decrypted "$CONFIG_DIR"
+  utils::run popd
 }
 
 # Delete one or more specific system generations

@@ -2,13 +2,17 @@
 #set -x
 
 # Flake utility code
-# 
+#
 # ## Features
-# - Set target (machine or profile) as flake controller
+# - Decrypt and stage the build-time args a given machine needs at eval time
 # --------------------------------------------------------------------------------------------------
 MACHINE=""
 PROFILE=""
 TARGET=""
+
+# Hostname whose args flake::switch last decrypted/staged, so flake::restore knows what to clean
+# up without having to guess at the format of the caller's $MACHINE/$TARGET variables.
+_FLAKE_ARGS_HOST=""
 
 # Ensure the config path is accurate
 flake::ensure_config_path()
@@ -42,7 +46,11 @@ flake::ensure_target()
     fi
 }
 
-# Switch flake
+# Switch flake target
+# - Nix flakes only see git-tracked (or staged) files, so a machine's encrypted args have to be
+#   decrypted and staged before evaluation and cleaned up after (see flake::restore). This is now
+#   the *only* staging clu does - machine selection itself is a real `nixosConfigurations.<hostname>`
+#   flake output, so nothing else needs to be staged or reverted.
 # - $1 - machine or profile with preceding path prefix 'profiles/' or 'machines/'
 #
 # Example: flake::switch machines/homelab
@@ -58,86 +66,66 @@ flake::switch()
         utils::confirm_continue
     fi
 
-    local machine_flake="${CONFIG_DIR}/${target}/flake.nix"
-    local machine_flake_lock="${CONFIG_DIR}/${target}/flake.lock"
     log::ls "Switching to target ${cyan}${target}${none}"
-
-    # Stage the flake files
-    if [ -e "$machine_flake" ]; then
-        # Use the machine specific flake files if they exist
-        log::d "Staging the machine flake files from ${cyan}${CONFIG_DIR}/${target}${none}"
-        $SUDO cp "$machine_flake" "${CONFIG_DIR}/flake.nix"
-        $SUDO cp "$machine_flake_lock" "${CONFIG_DIR}/flake.lock"
-    else
-        # Use the shared flake base files if they exist
-        log::d "Staging the root flake files from ${cyan}${CONFIG_DIR}${none}"
-        $SUDO cp "${CONFIG_DIR}/base.nix" "${CONFIG_DIR}/flake.nix"
-        $SUDO cp "${CONFIG_DIR}/base.lock" "${CONFIG_DIR}/flake.lock"
-    fi
-
-    # Git requires being run from the correct directory
     utils::run pushd "${CONFIG_DIR}"
 
-    # Add flake file dependencies to be seen by the configuration system
-    log::d "Adding the flake files to the git repo at ${cyan}${CONFIG_DIR}${none}"
-    $SUDO git add flake.nix -f
-    $SUDO git add flake.lock -f
-
-    # Decrypt if not installing
-    if [ $INSTALL -eq 0 ]; then
-        utils::decrypt "$CONFIG_DIR"
-        utils::add_decrypted_to_git "$CONFIG_DIR"
+    # Only machines have build-time args; profile-only targets (e.g. ISO builds) don't need this
+    # and deliberately exclude secrets entirely. During install, args.dec.json is written directly
+    # by install::install_config (not sops-decrypted), but still needs to be cleaned up by
+    # flake::restore afterward, so track the host regardless of $INSTALL - just skip the actual
+    # decrypt call in that case since there's nothing encrypted to decrypt yet.
+    if [[ "$target" == machines/* ]]; then
+        _FLAKE_ARGS_HOST="${target#machines/}"
+        [ $INSTALL -eq 0 ] && flake::decrypt_args "$_FLAKE_ARGS_HOST"
     fi
 
-    # Optionally include machine's configuration
-    if [[ "$target" == "machines"* ]]; then
-        # - Using relative path here on purpose
-        log::d "Link ${cyan}${CONFIG_DIR}/${target}/configuration.nix${none}"
-        $SUDO ln -sf "$target/configuration.nix" configuration.nix
-        log::d "Add to git repo ${cyan}${CONFIG_DIR}/${target}/configuration.nix${none}"
-        $SUDO git add configuration.nix -f
-
-        # Update the target hostname
-        local hostname="${target#machines/}"
-        log::d "Update ${cyan}${hostname}${none} in ${cyan}${CONFIG_DIR}/args.nix${none}"
-        utils::update "$SUDO" "args.nix" str "hostname" "${hostname}"
-    fi
-
-    # Update the args.nix as a mechanism to tell the flake which machine/profile to build 
-    log::d "Update ${cyan}${target}${none} in ${cyan}${CONFIG_DIR}/args.nix${none}"
-    utils::update "$SUDO" "args.nix" str "target" "${target}"
-    log::d "Update ${cyan}git.comment${none} in ${cyan}${CONFIG_DIR}/args.nix${none}"
-    utils::update "$SUDO" "args.nix" str "git.comment" "$($SUDO git log -1 --oneline --no-decorate)"
-    log::d "Add to git repo ${cyan}${CONFIG_DIR}/args.nix${none}"
-    $SUDO git add "args.nix"
     utils::run popd
 }
 
-# Restore the flake files back to prestine in git
+# Restore the decrypted args back to pristine in git and on disk
 flake::restore()
 {
     utils::run pushd "${CONFIG_DIR}"
 
-    if [[ "$($SUDO git diff --staged --name-only -- flake.nix flake.lock)" != "" ]]; then
-        log::ls "Restoring flake files in ${cyan}${CONFIG_DIR}${none} back to prestine"
-        $SUDO git restore --staged flake.nix flake.lock
+    if [[ "$_FLAKE_ARGS_HOST" != "" ]]; then
+        flake::restore_args "$_FLAKE_ARGS_HOST"
+        _FLAKE_ARGS_HOST=""
     fi
-
-    if [[ "$($SUDO git diff --staged --name-only -- configuration.nix)" != "" ]]; then
-        log::ls "Restoring ${cyan}${CONFIG_DIR}/configuration.nix${none} back to prestine"
-        $SUDO git restore --staged configuration.nix
-    fi
-
-    if [[ "$($SUDO git diff --staged --name-only -- args.nix)" != "" ]]; then
-        log::ls "Restoring ${cyan}${CONFIG_DIR}/args.nix${none} to prestine"
-        $SUDO git restore --staged args.nix
-        $SUDO git checkout args.nix
-    fi
-
-    # Clean up decrypted files after were done
-    utils::remove_decrypted "$CONFIG_DIR"
 
     utils::run popd
+}
+
+# Decrypt this host's build-time args (root args.enc.json + machines/<hostname>/args.enc.json) and
+# stage them so pure flake evaluation can see them.
+# - assumes the caller has used pushd to switch directories for git to work correctly
+# - $1 - hostname (machines/<hostname> directory name)
+flake::decrypt_args()
+{
+    local hostname="$1"
+    local enc dec
+
+    for enc in "args.enc.json" "machines/${hostname}/args.enc.json"; do
+        [ -e "$enc" ] || continue
+        dec="${enc%.enc.json}.dec.json"
+        log::d "Decrypting ${cyan}${enc}${none}"
+        $SUDO bash -c "sops --decrypt '$enc' > '$dec'"
+        $SUDO git add -f -- "$dec"
+    done
+}
+
+# Remove this host's decrypted args from git and disk
+# - assumes the caller has used pushd to switch directories for git to work correctly
+# - $1 - hostname (machines/<hostname> directory name)
+flake::restore_args()
+{
+    local hostname="$1"
+    local dec
+
+    for dec in "args.dec.json" "machines/${hostname}/args.dec.json"; do
+        [ -e "$dec" ] || continue
+        $SUDO git restore --staged -- "$dec" &>/dev/null || true
+        $SUDO rm -f -- "$dec"
+    done
 }
 
 # Cleanup trap function. Typically not used as the local functions will have their own which will

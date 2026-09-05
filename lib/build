@@ -75,7 +75,7 @@ build::machine()
     flake::switch "$TARGET"
     trap flake::restore EXIT
 
-    $SUDO nixos-rebuild dry-activate $TRACE $IMPURE --flake "${CONFIG_DIR}#target"
+    $SUDO nixos-rebuild dry-activate $TRACE $IMPURE --flake "${CONFIG_DIR}#${MACHINE}"
 }
 
 
@@ -132,7 +132,7 @@ build::vm()
         $SUDO rm -rf "${CONFIG_DIR}/${MACHINE}"
     fi
 
-    $SUDO nix build "${CONFIG_DIR}#nixosConfigurations.target.config.system.build.vm"
+    $SUDO nix build "${CONFIG_DIR}#nixosConfigurations.${MACHINE}.config.system.build.vm"
 
     # Install the vm in its own directory
     log::ls "Installing at ${cyan}./${MACHINE}${none}"

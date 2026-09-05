@@ -58,8 +58,11 @@ in
 
     # Apple firmware configuration
     nix.settings = {
-      trusted-substituters = [ "https://t2linux.cachix.org" ];
-      trusted-public-keys = [ "t2linux.cachix.org-1:P733c5Gt1qTcxsm+Bae0renWnT8OLs0u9+yfaK2Bejw=" ];
+      trusted-substituters = [ "https://t2linux.cachix.org" "https://cache.soopy.moe" ];
+      trusted-public-keys = [
+        "t2linux.cachix.org-1:P733c5Gt1qTcxsm+Bae0renWnT8OLs0u9+yfaK2Bejw="
+        "cache.soopy.moe-1:0RZVsQeR+GOh0VQI9rvnHz55nVXkFardDqfm4+afjPo="
+      ];
     };
     hardware.firmware = [
       (pkgs.stdenvNoCC.mkDerivation (final: {

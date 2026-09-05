@@ -1,9 +1,14 @@
 # NixOS Configuration Repository
 
 A multi-machine NixOS configuration managing 22+ physical and virtual machines through a custom bash
-automation layer (`clu`) that orchestrates Nix flake evaluation. The key architectural distinction is
-that **machine selection happens at the bash layer** via symlinks and file staging before Nix ever
-evaluates, rather than through conventional per-host `nixosConfigurations.<hostname>` entries.
+automation layer (`clu`) that orchestrates Nix flake evaluation. Machine selection is a real, standard
+per-host `nixosConfigurations.<hostname>` flake entry, generated from each `machines/<hostname>/`
+directory. The one thing `clu` still has to stage before evaluation is each host's *build-time args*
+(`machines/<hostname>/args.enc.json`, decrypted to `args.dec.json`) - Nix flakes only see git-tracked
+or staged files, and some of that data (drive UUIDs, network interface config, EFI/MBR selection) is
+genuinely needed by NixOS module options at evaluation time, so it can't be deferred to sops-nix's
+normal activation-time secret decryption. This staging is scoped to exactly one host per build and
+reverted immediately after via a `trap ... EXIT`.
 
 ---
 
@@ -43,8 +48,8 @@ dispatches to `<command>::run()`.
 - **Argument parsing**: `utils::process_args` extracts global flags (`--debug`, `--test`, `--clean`, `--impure`, `-q`, `-v`)
 - **Root handling**: `utils::handle_root` sets `ROOT_DIR` ("" or "/mnt"), `CONFIG_DIR` (cwd,
 /etc/nixos, or /mnt/etc/nixos), detects sudo context and drops privileges when appropriate
-- **Config detection**: `utils::cwd_is_nixos_config` checks for `base.nix` + `base.lock`
-- **Encryption**: `utils::decrypt` (sops `*.enc.*` -> `*.dec.*`), `utils::add_decrypted_to_git`, `utils::remove_decrypted`
+- **Config detection**: `utils::cwd_is_nixos_config` checks for `flake.nix` + `args.nix`
+- **Encryption**: `utils::decrypt` (sops `*.enc.*` -> `*.dec.*`, recursive - used by `clu decrypt`/`clu clean dec` for manual/broad cleanup), `utils::add_decrypted_to_git`, `utils::remove_decrypted`
 - **Interactive I/O**: `utils::read`, `utils::select`, `utils::confirm_continue`
 - **File editing**: `utils::replace` / `utils::update` for sed-based value substitution in config files
 
@@ -55,67 +60,87 @@ headers and indented sub-logging.
 
 ---
 
-## 2. The Machine-Linking Mechanism (`lib/flake`)
+## 2. Machine Selection & Build-Time Args (`lib/flake`)
 
-Instead of defining `nixosConfigurations.<hostname>` for each machine, the flake defines a single
-generic entry:
+The flake generates one real entry per machine directory:
 
 ```nix
-nixosConfigurations.target = lib.nixosSystem {
-  modules = [ ./options ./configuration.nix ];
-};
+machineNames = builtins.attrNames (lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./machines));
+nixosConfigurations = lib.genAttrs machineNames mkHost // { install = ...; iso = ...; };
 ```
 
-**The `flake::switch(target)` function** (called before every build/update) makes the generic
-`target` resolve to a specific machine:
+`mkHost hostname` builds `lib.nixosSystem { modules = [ ... (./machines + "/${hostname}/configuration.nix") ]; }`
+directly - there's no symlink or per-invocation file copying involved in selecting a machine.
+`nixosConfigurations` is a lazy attrset, so `nix build .#<hostname>...` only forces evaluation of that
+one host; every other (still-encrypted) host's args are never touched.
 
-1. **Flake files**: If `machines/<name>/flake.nix` exists, copies it to root. Otherwise copies
-   `base.nix` -> `flake.nix` and `base.lock` -> `flake.lock`.
-2. **Configuration symlink**: Creates `configuration.nix` -> `machines/<name>/configuration.nix`
-   (relative symlink).
-3. **Args update**: Writes `hostname` and `target` into `args.nix` so the Nix evaluation knows which
-   machine it's building.
-4. **Git staging**: `git add -f` all modified files so the flake can see them (Nix flakes only see
-   tracked files).
-5. **Decryption**: Decrypts `*.enc.*` files and stages the results.
+**What still needs staging**: `machines/<hostname>/args.dec.json` and root `args.dec.json` - the
+decrypted forms of `args.enc.json`. Some of that data (drive UUIDs, network config, EFI/MBR) is
+consumed by NixOS module options at evaluation time, and Nix flakes only see git-tracked/staged files,
+so there's no way around staging without `--impure` (deliberately avoided - see §7).
 
-**`flake::restore()`** reverses all of this after the build, returning the repo to a clean state. A
-trap on EXIT ensures cleanup even on failure.
+**The `flake::switch(target)` function** (called before every build/update), for a `machines/*`
+target:
+1. Runs `flake::decrypt_args(hostname)`: `sops --decrypt` on root `args.enc.json` and
+   `machines/<hostname>/args.enc.json` (whichever exist) to `args.dec.json` siblings, then
+   `git add -f`s them.
+2. Remembers the hostname in `_FLAKE_ARGS_HOST` so `flake::restore` knows what to clean up, without
+   depending on the format of whatever the caller's `$MACHINE`/`$TARGET` variables happen to be.
+
+Profile-only targets (`profiles/*`, e.g. ISO builds) skip this entirely - there's no per-host args to
+decrypt, and ISO builds deliberately exclude secrets (`profiles/iso_args.nix`).
+
+**`flake::restore()`** unstages and deletes the one host's `args.dec.json` files. A `trap ...  EXIT`
+in every caller ensures this runs even on failure, so a crash leaves at most one host's plaintext
+behind (`clu clean dec` sweeps up any leftovers via the broader `utils::remove_decrypted`).
 
 **`flake::stage_files(target)`** is the full workflow wrapper: removes `/nix/files.lock`, calls
 `flake::switch`, sets the restore trap.
 
 ### Why This Matters for Feature Work
 
-- All `nixos-rebuild` and `nix build` commands use `--flake "${CONFIG_DIR}#target"` - never a
-  machine-specific configuration name.
-- The `args.nix` file at root is **ephemeral** - it gets modified during builds and restored after.
-  The real defaults live in the committed `args.nix`, with overrides in per-machine `args.nix` and
-  encrypted `args.dec.json` files.
-- Adding a new machine means creating a `machines/<name>/` directory, not touching `flake.nix`.
+- All `nixos-rebuild`/`nix build`/`nixos-install` commands use `--flake "${CONFIG_DIR}#${MACHINE}"`
+  (the real hostname), not a generic `#target` name.
+- `args.nix` at root is a normal, permanently committed file now - nothing mutates it per build.
+  `hostname` and `git.comment` in the final merged `args` are always set authoritatively by
+  `flake.nix` itself (from the `machines/` directory name and `self.rev`, respectively), never read
+  from a file, so they can't drift.
+- Adding a new machine means creating a `machines/<name>/` directory - nothing else to touch.
 
 ---
 
 ## 3. Flake Structure (`flake.nix`)
 
+There is exactly one `flake.nix` (and `flake.lock`), permanently committed at the repo root - no more
+`base.nix`/per-machine `flake.nix` copy-swapping. Only `macbook` needs an extra input
+(`nixos-hardware`, for the `apple-t2` module); since flake inputs can't be conditional on which host
+is being built, it's declared unconditionally and only referenced by `mkHost` when `hostname ==
+"macbook"`.
+
 ### Inputs
 - `nixpkgs`: Pinned to a specific commit (currently 2025.08.09 unstable)
 - `nixpkgs-unstable`: Follows `nixos-unstable` for bleeding-edge packages
-- `nixpkgs-rustdesk`: Pinned older version for RustDesk compatibility
+- `nixos-hardware`: Only used by macbook (`apple-t2` module)
 
 ### Outputs
-Three `nixosConfigurations`:
-- **`target`**: Standard machine build. Imports `./options` + `./configuration.nix` (the symlink).
-- **`install`**: Installation host. Imports `./hardware-configuration.nix` + the profile path from `args.target`.
+- **`nixosConfigurations.<hostname>`**: One real entry per `machines/<hostname>/` directory, built by
+  `mkHost hostname`. Imports `./options` + `machines/<hostname>/configuration.nix` directly.
+- **`install`**: Bootstrap host used before a machine has its own `machines/<hostname>` directory yet.
+  Imports `./hardware-configuration.nix` + the profile path from `args.target`.
 - **`iso`**: ISO image build. Uses `profiles/iso_args.nix` to exclude secrets.
 
 ### Argument Composition (Priority Low -> High)
+`mergeArgs hostname` in `flake.nix`:
 1. `args.nix` - Base defaults (committed)
 2. `args.dec.json` - Base secrets (decrypted at build time)
 3. `machines/<hostname>/args.nix` - Machine-specific overrides
 4. `machines/<hostname>/args.dec.json` - Machine-specific secrets
+5. `hostname` and `git.comment` are then always set authoritatively (directory name / `self.rev`),
+   overriding anything the above files might otherwise supply
 
-Merged via `lib.recursiveUpdate` and passed as `specialArgs = { inherit args f inputs; }`.
+Merged via `lib.recursiveUpdate` (careful: a plain `//` at the top level would silently clobber
+nested attrsets like `git.*` - always use `lib.recursiveUpdate` when overriding a leaf) and passed as
+`specialArgs = { inherit args f inputs; }`, computed once per host inside `mkHost`.
 
 ### Overlays
 Custom packages injected into the global `pkgs` namespace:
@@ -131,12 +156,10 @@ Custom packages injected into the global `pkgs` namespace:
 /
 ├── clu                          # Bash entry point
 ├── lib/                         # Bash library modules (one per command)
-├── flake.nix                    # Active flake (copied from base.nix or machine-specific)
-├── base.nix                     # Canonical flake definition
-├── base.lock / flake.lock       # Lock files
-├── args.nix                     # Default arguments (modified ephemerally during builds)
+├── flake.nix / flake.lock       # The single shared flake (permanently committed)
+├── args.nix                     # Default arguments (static, committed - never mutated by clu)
 ├── args.enc.json                # Encrypted base secrets
-├── configuration.nix            # SYMLINK to active machine's configuration.nix
+├── hardware-configuration.nix   # Gitignored placeholder, only present during clu install
 ├── options/                     # Custom NixOS option modules
 │   ├── default.nix              # Imports all subdirectories
 │   ├── apps/                    # Application options (dev/, games/, media/, network/, office/, system/)
@@ -169,7 +192,7 @@ Custom packages injected into the global `pkgs` namespace:
 │       ├── hardware-configuration.nix
 │       ├── args.enc.json        # Machine secrets (encrypted)
 │       ├── args.nix             # Machine arg overrides (optional)
-│       ├── flake.nix/lock       # Machine-specific flake (optional, overrides base.nix)
+│       ├── secrets.enc.yaml     # Runtime secrets, decrypted by sops-nix at activation (optional)
 │       └── README.md            # Machine documentation (optional)
 ├── modules/                     # Reusable NixOS modules
 │   ├── development/vscode/      # VSCode settings, keybindings, extensions
@@ -265,22 +288,42 @@ Machine configs import exactly one profile and add machine-specific overrides.
 
 ## 7. Secrets Management
 
-- **Tool**: sops with age encryption
+Two distinct mechanisms exist, used for two genuinely different needs - don't conflate them:
+
+**Build-time args** (`args.enc.json` -> `args.dec.json`, used for data a NixOS module option needs
+at *evaluation* time - drive UUIDs, network interface config, EFI/MBR selection):
+- **Tool**: sops with age encryption, decrypted by the operator's local `sops` CLI/age key
 - **Config**: `.sops.yaml` at repo root with age public key
-- **Pattern**: `*.enc.json` (committed, encrypted) -> `*.dec.json` (ephemeral, decrypted at build time)
-- **Lifecycle**: `utils::decrypt` decrypts before build, `utils::remove_decrypted` cleans up after
-- **Git integration**: Decrypted files are `git add -f`'d temporarily, then unstaged on restore
+- **Lifecycle**: `flake::decrypt_args(hostname)` decrypts just that host's files before build,
+  `flake::restore`/`flake::restore_args` clean up after (scoped to one host); `clu clean dec`
+  (`utils::remove_decrypted`, repo-wide) is the manual safety net for anything left behind by a crash
+- **Git integration**: `git add -f`'d temporarily so pure flake evaluation can see them, then unstaged
+  - this is unavoidable without `--impure` (deliberately not used - it would require reading
+  decrypted content from outside the flake's evaluated source tree, which isn't self-contained)
 - **ISO exclusion**: ISO builds use `profiles/iso_args.nix` instead of secrets
+
+**Runtime secrets** (`secrets.enc.yaml`, used for credentials only a running service needs -
+passwords, SMB share creds): decrypted by **sops-nix at systemd activation time**, straight to
+`/run/secrets`/`/run/files` on the target machine - never touches the Nix store, git, or this repo's
+working tree at all. `machine.secrets` (user password hash, via `modules/users.nix`) and
+`machine.smb.secrets` (SMB share creds, via `options/services/raw/smb`, using `sops.templates`) both
+follow this pattern. Prefer this over the build-time-args mechanism whenever a value is only consumed
+by a running service reading a file, not by a NixOS module option at evaluation time.
 
 ---
 
 ## 8. Conventions for Adding Features
 
 ### Adding a New Machine
-1. Create `machines/<name>/` with `configuration.nix` and `hardware-configuration.nix`
+1. Create `machines/<name>/` with `configuration.nix` and `hardware-configuration.nix` - `<name>`
+   becomes the real `nixosConfigurations.<name>` flake attribute automatically, nothing else to
+   register
 2. The `configuration.nix` imports a profile and `./hardware-configuration.nix`
-3. Add `args.enc.json` with machine-specific secrets (encrypt with sops)
-4. Optionally add `args.nix` for non-secret overrides or `flake.nix`/`flake.lock` for pinned inputs
+3. Add `args.enc.json` with machine-specific build-time args that a module option needs at
+   evaluation time (encrypt with sops); add `secrets.enc.yaml` for runtime-only credentials instead
+4. Optionally add `args.nix` for non-secret overrides
+5. If the machine needs a flake input no other host uses, add it unconditionally to the root
+   `flake.nix` and reference it conditionally in `mkHost` (see how `macbook`/`nixos-hardware` do it)
 
 ### Adding a New Option
 1. Create `options/<category>/<name>.nix` (or `options/<category>/<name>/default.nix` for complex options)
@@ -289,7 +332,7 @@ Machine configs import exactly one profile and add machine-specific overrides.
 4. Enable it in the appropriate profile or machine config
 
 ### Adding a New Package Overlay
-1. Add to the `overlays` list in `flake.nix` / `base.nix`
+1. Add to the `overlays` list in `flake.nix`
 2. For custom packages, create `packages/<name>/` with a `default.nix`
 3. For options with custom builds, use `package.nix` in the option directory (not `default.nix`,
    which is reserved for the option definition)
@@ -325,16 +368,20 @@ User runs: clu update workstation
 
 1. lib/utils   -> parse args, detect root/config paths
 2. lib/flake   -> flake::stage_files "machines/workstation"
-   a. Copy base.nix -> flake.nix, base.lock -> flake.lock
-   b. Symlink configuration.nix -> machines/workstation/configuration.nix
-   c. Update args.nix with hostname="workstation", target="machines/workstation"
-   d. Decrypt *.enc.* -> *.dec.*, git add all staged files
-3. lib/update  -> sudo nixos-rebuild switch --flake "${CONFIG_DIR}#target"
+   a. Remove /nix/files.lock to permit a files/secrets update
+   b. flake::switch "machines/workstation":
+      - Decrypt root args.enc.json -> args.dec.json and machines/workstation/args.enc.json ->
+        machines/workstation/args.dec.json, git add -f both
+      - Remember "workstation" in _FLAKE_ARGS_HOST for cleanup
+   c. trap flake::unstage_files EXIT
+3. lib/update  -> sudo nixos-rebuild switch --flake "${CONFIG_DIR}#workstation"
 4. Nix evaluates:
-   a. flake.nix reads args.nix (hostname=workstation)
-   b. Merges args: base -> base secrets -> machine args -> machine secrets
-   c. Evaluates nixosConfigurations.target with ./options + ./configuration.nix (symlink)
-   d. configuration.nix imports hardware config + profile
-   e. Profile enables options, options produce NixOS config
-5. lib/flake   -> flake::unstage_files (restore all files, touch files.lock)
+   a. flake.nix's mkHost "workstation" computes mergeArgs "workstation": args.nix -> args.dec.json ->
+      machines/workstation/args.nix -> machines/workstation/args.dec.json, then overrides
+      hostname="workstation" and git.comment=self.rev authoritatively
+   b. Evaluates nixosConfigurations.workstation with ./options + machines/workstation/configuration.nix
+   c. configuration.nix imports hardware config + profile
+   d. Profile enables options, options produce NixOS config
+5. lib/flake   -> flake::unstage_files -> flake::restore (unstage + rm the two args.dec.json files),
+   touch /nix/files.lock
 ```
