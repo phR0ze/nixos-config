@@ -1,6 +1,6 @@
 { config, lib, cfg, ... }:
 let
-  machine = config.machine;
+  host = config.host;
 in
 {
   config = lib.mkIf cfg.enable {
@@ -12,10 +12,10 @@ in
 
       { assertion = (cfg ? "name" && cfg.name != "");
         message = "Requires 'service.oci.${cfg.name}.name' => '${builtins.toJSON cfg.name}' be set to the service name"; }
-      { assertion = (machine.net.nic0.name != "");
-        message = "Requires 'machine.net.nic0.name' => '${builtins.toJSON machine.net.nic0.name}' be set to a NIC name"; }
-      { assertion = (machine.net.nic0.ip != "");
-        message = "Requires 'machine.net.nic0.ip' => '${builtins.toJSON machine.net.nic0.ip}' be set to a static IP address"; }
+      { assertion = (host.net.nic0.name != "");
+        message = "Requires 'host.net.nic0.name' => '${builtins.toJSON host.net.nic0.name}' be set to a NIC name"; }
+      { assertion = (host.net.nic0.ip != "");
+        message = "Requires 'host.net.nic0.ip' => '${builtins.toJSON host.net.nic0.ip}' be set to a static IP address"; }
       { assertion = (cfg ? "port" && cfg.port > 0);
         message = "Requires 'service.oci.${cfg.name}.port' => '${builtins.toJSON cfg.port}' be set"; }
       { assertion = (cfg ? "subnet" && cfg.subnet != null && cfg.subnet != "");

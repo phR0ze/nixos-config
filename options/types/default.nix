@@ -3,6 +3,6 @@
 { ... }:
 {
   imports = [
-    ./machine.nix
+    ./host.nix
   ];
 }

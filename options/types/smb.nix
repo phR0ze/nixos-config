@@ -17,9 +17,9 @@
     };
     secrets = lib.mkOption {
       description = lib.mdDoc ''
-        Path to the sops-encrypted file holding this machine's real `smb/<share>/pass` secrets
-        (keyed by each entry's mountPoint basename). Independent of `machine.secrets` because SMB
-        share passwords are inherently machine-specific and can't be satisfied by a shared/default
+        Path to the sops-encrypted file holding this host's real `smb/<share>/pass` secrets
+        (keyed by each entry's mountPoint basename). Independent of `host.secrets` because SMB
+        share passwords are inherently host-specific and can't be satisfied by a shared/default
         secrets file. Leave unset to fall back to the legacy build-time-baked `pass` fields above.
       '';
       type = types.nullOr types.path;
