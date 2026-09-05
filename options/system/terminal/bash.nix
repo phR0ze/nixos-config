@@ -6,7 +6,7 @@
 { pkgs, lib, ... }:
 let
   bashrc = (pkgs.writeText ".bashrc" ''
-    # See modules/terminal/env.nix for PATH changes
+    # See options/system/terminal/env.nix for PATH changes
   '');
 in
 {
@@ -55,7 +55,7 @@ in
     # Adds to /etc/bashrc lower down
     promptPluginInit = ''
       # Configure dircolors which is installed with 'coreutils-full'
-      eval "$(dircolors -b ${pkgs.writeText ".dircolors" (lib.fileContents ../../include/home/.dircolors)})"
+      eval "$(dircolors -b ${pkgs.writeText ".dircolors" (lib.fileContents ../../../include/home/.dircolors)})"
     '';
 
     # Adds this to the /etc/profile as well

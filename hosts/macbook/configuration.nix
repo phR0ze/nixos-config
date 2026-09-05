@@ -82,7 +82,7 @@ in
     environment.systemPackages = [
       pkgs.python3
       pkgs.dmg2img
-      (pkgs.callPackage ../../modules/hardware/apple.nix {})
+      (pkgs.callPackage ../../packages/apple {})
     ];
   };
 }

@@ -5,15 +5,12 @@
 # --------------------------------------------------------------------------------------------------
 { pkgs, ... }:
 {
-  imports = [
-    ../../modules/development/vscode
-  ];
-
   host.type.develop = true;
 
   apps.dev.gh.enable = true;
   apps.dev.rust.enable = true;
   apps.dev.flutter.enable = true;
+  apps.dev.vscode.enable = true;
 
   environment.systemPackages = with pkgs; [
     chromium                            # An open source web browser from Google
