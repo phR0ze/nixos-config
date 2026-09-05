@@ -53,7 +53,7 @@ deploy::vm()
     log::header1 "Deploying ${cyan}${MACHINE}${none}"
 
     # Target includes the prefix path
-    TARGET="machines/${MACHINE}"
+    TARGET="hosts/${MACHINE}"
     flake::ensure_target "$MACHINE"
 
     local machine_dst="/var/lib/vms/$MACHINE"

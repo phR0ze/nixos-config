@@ -195,15 +195,15 @@ install::install_system()
 # Create the new system's persistent configuration or stage the existing system
 install::install_config()
 {
-    MACHINE="machines/$HOSTNAME"
+    MACHINE="hosts/$HOSTNAME"
     local machine_args="${MACHINE}/args.dec.json"
     log::header1 "Stage system configuration at ${MACHINE}"
 
-    # Create the new machine directory
+    # Create the new host directory
     utils::run pushd "${CONFIG_DIR}"
     sudo mkdir -p "${MACHINE}"
 
-    # Construct machines/$MACHINE/args.dec.json to be encrypted after install
+    # Construct hosts/$MACHINE/args.dec.json to be encrypted after install
     local args=$(jq -n '{}')
 
     # Convert general options to json
@@ -327,12 +327,12 @@ install::install_config()
         log::status
     fi
 
-    # Write out the file to machines/$HOSTNAME/configuration.nix
+    # Write out the file to hosts/$HOSTNAME/configuration.nix
     log::ls -n "Generating ${MACHINE}/configuration.nix..."
     sudo bash -c "cat > '${MACHINE}/configuration.nix' <<'EOF'
 # ${HOSTNAME} configuration
 #
-# ### Machine specs
+# ### Host specs
 # - ?
 #
 # ### Features
@@ -346,14 +346,14 @@ install::install_config()
   ];
 
   config = {
-    machine.type.bootable = true;
-    #machine.nix.cache.enable = true;
+    host.type.bootable = true;
+    #host.nix.cache.enable = true;
   };
 }
 EOF"
     log::status
 
-    # Add the /mnt/etc/nixos/machines/$HOSTNAME/args.nix
+    # Add the /mnt/etc/nixos/hosts/$HOSTNAME/args.nix
     log::ls -n "Generating install time ${machine_args}..."
     sudo bash -c "echo '$args' | jq -r > '${machine_args}'"
     log::status
@@ -547,48 +547,48 @@ install::select_install_disk_options()
     log::d "Leaving install::select_install_disk_options"
 }
 
-# Prompt the user to choose whether to install a new system or reinstall an existing machine.
-# - profile selections beyond what the ISO was built with will incur network downloads
+# Prompt the user to choose whether to install a new system or reinstall an existing host.
+# - layer selections beyond what the ISO was built with will incur network downloads
 install::select_deployment_options()
 {
     log::header0 "Select a deployment option:"
-    utils::read NEW_MACHINE 'Are you deploying an existing machine' 'n'
+    utils::read NEW_MACHINE 'Are you deploying an existing host' 'n'
     if [[ "x$NEW_MACHINE" == "xn" ]]; then
-        local profiles_dir="${SCRIPT_DIR}/profiles"
-        local _profiles=($(echo $(find $profiles_dir -name "*.nix" | sort)))
-        log::header0 "Select a deployment profile:"
+        local layers_dir="${SCRIPT_DIR}/layers"
+        local _profiles=($(echo $(find $layers_dir -name "*.nix" | sort)))
+        log::header0 "Select a deployment layer:"
         local i=0
         for j in "${!_profiles[@]}"; do # ! means loop over indices instead of values
             local x=${_profiles[$j]}
 
-            # Check if the profile contains the "# - Directly installable" string
+            # Check if the layer contains the "# - Directly installable" string
             local desc=$(grep "# - Directly installable" ${x} 2>/dev/null)
             if [[ "x${desc}" != "x" ]]; then
                 desc="${desc#*: }"                # grab the suffixed description of the install option
-                x=${x//$profiles_dir\/}           # trim off the suffix dir
+                x=${x//$layers_dir\/}             # trim off the suffix dir
                 x=${x//.nix}                      # trim off the extension
                 utils::pad_suffix _1 "$x" " " 20  # pad to 30 characters
-                PROFILES+=($x)                    # add to the final profiles list
+                PROFILES+=($x)                    # add to the final layers list
                 echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
                 i=$((i+1))                  # increment i
             fi
         done
         utils::select PROFILE "${PROFILES[@]}"
-        PROFILE="profiles/${PROFILE}.nix"
+        PROFILE="layers/${PROFILE}.nix"
     else
-        local machines_dir="${SCRIPT_DIR}/machines"
-        local _machines=($(echo $(sudo find $machines_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/machines/vm*" | sort)))
-        log::header0 "Select a deployment machine:"
+        local hosts_dir="${SCRIPT_DIR}/hosts"
+        local _machines=($(echo $(sudo find $hosts_dir -mindepth 1 -maxdepth 1 -type d -not -path "*/hosts/vm*" | sort)))
+        log::header0 "Select a deployment host:"
         local i=0
         for x in "${_machines[@]}"; do
             local _machine="$(basename "$x")"
             utils::pad_suffix _1 "$_machine" " " 20           # pad to 30 characters
-            MACHINES+=($_machine)                             # add to the final profiles list
+            MACHINES+=($_machine)                             # add to the final layers list
             echo -e "   $((i+1))) ${cyan}${_1}${none}${desc}" # print out padded entry with description
             i=$((i+1))                                        # increment i
         done
         utils::select MACHINE "${MACHINES[@]}"
-        MACHINE="machines/${MACHINE}"
+        MACHINE="hosts/${MACHINE}"
     fi
     log::d "Leaving install::select_deployment_options"
 }
@@ -622,7 +622,7 @@ install::run()
     DEFAULT_PASS='admin'
     AUTO_LOGIN='n'
 
-    # Machine profile and services settings
+    # Host layer and services settings
     MACHINE=''
     PROFILE=''
     NEW_MACHINE='y'
@@ -655,8 +655,8 @@ install::run()
     # ----------------------------------------------------------------------------------------------
     log::header1 "Starting installation"
     log::header0 "Options being used for installation"
-    log::subln3 "machine=${cyan}${MACHINE}${none}"
-    log::subln3 "profile=${cyan}${PROFILE}${none}"
+    log::subln3 "host=${cyan}${MACHINE}${none}"
+    log::subln3 "layer=${cyan}${PROFILE}${none}"
 
     # Networking settings
     log::subln3 "hostname=${cyan}${HOSTNAME}${none}"
@@ -700,7 +700,7 @@ install::run()
         install::install_config_dir
 
         # Create the new system's persistent configuration or stage the existing system
-        if [[ "$PROFILE" == "profiles"* ]]; then
+        if [[ "$PROFILE" == "layers"* ]]; then
             install::install_config
         else
             log::header1 "Load existing system configuration"

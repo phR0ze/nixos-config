@@ -49,7 +49,7 @@ repl::machine()
     # Use hostname as machine
     MACHINE="$1"
     [[ "$1" == "" ]] && MACHINE="$(hostname)"
-    TARGET="machines/$MACHINE"
+    TARGET="hosts/$MACHINE"
 
     log::header1 "Loading ${cyan}${TARGET}${none} in REPL"
     flake::switch "$TARGET"

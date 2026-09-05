@@ -76,7 +76,7 @@ run::vm()
         MACHINE="vm-${machine}"
 
         # Target includes the prefix path
-        TARGET="machines/$MACHINE"
+        TARGET="hosts/$MACHINE"
 
         log::header1 "Running VM ${cyan}${TARGET}${none}"
 

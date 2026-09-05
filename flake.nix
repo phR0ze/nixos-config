@@ -76,18 +76,18 @@
     # Compose the argument overrides for the given hostname
     # ----------------------------------------------------------------------------------------------
     # Layering (lowest to highest priority): root args.nix -> root args.dec.json ->
-    # machines/<hostname>/args.nix -> machines/<hostname>/args.dec.json. `hostname` and
-    # `git.comment` are then always set authoritatively so no per-machine file needs to declare
-    # them: `hostname` is simply the machines/ directory name being built, and `git.comment` comes
+    # hosts/<hostname>/args.nix -> hosts/<hostname>/args.dec.json. `hostname` and
+    # `git.comment` are then always set authoritatively so no per-host file needs to declare
+    # them: `hostname` is simply the hosts/ directory name being built, and `git.comment` comes
     # straight from flake introspection (self.rev), not a value written into a tracked file.
     mergeArgs = hostname: lib.recursiveUpdate (lib.recursiveUpdate _args (let
       baseArgsFile = ./args.dec.json;
-      machineArgsFile = ./machines/${hostname}/args.nix;
-      machineDecArgsFile = ./machines/${hostname}/args.dec.json;
+      hostArgsFile = ./hosts/${hostname}/args.nix;
+      hostDecArgsFile = ./hosts/${hostname}/args.dec.json;
       baseArgs = if builtins.pathExists baseArgsFile then f.fromJSON baseArgsFile else {};
-      machineArgs = if builtins.pathExists machineArgsFile then (import machineArgsFile) else {};
-      machineDecArgs = if builtins.pathExists machineDecArgsFile then f.fromJSON machineDecArgsFile else {};
-      in lib.recursiveUpdate baseArgs (lib.recursiveUpdate machineArgs machineDecArgs)
+      hostArgs = if builtins.pathExists hostArgsFile then (import hostArgsFile) else {};
+      hostDecArgs = if builtins.pathExists hostDecArgsFile then f.fromJSON hostDecArgsFile else {};
+      in lib.recursiveUpdate baseArgs (lib.recursiveUpdate hostArgs hostDecArgs)
     )) {
       hostname = hostname;
       git.comment = self.rev or "dirty";
@@ -97,25 +97,25 @@
     # comment from yet
     _bootstrapArgs = lib.recursiveUpdate _args { git.comment = self.rev or "dirty"; };
 
-    # Every directory under ./machines is a real host
-    machineNames = builtins.attrNames (lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./machines));
+    # Every directory under ./hosts is a real host
+    hostNames = builtins.attrNames (lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./hosts));
 
     mkHost = hostname: lib.nixosSystem {
       inherit pkgs system;
       specialArgs = { inherit inputs f; args = mergeArgs hostname; };
-      modules = [ inputs.nixos-files.nixosModules.default ./options (./machines + "/${hostname}/configuration.nix") ]
+      modules = [ inputs.nixos-files.nixosModules.default ./options (./hosts + "/${hostname}/configuration.nix") ]
         ++ lib.optionals (hostname == "macbook") [ inputs.nixos-hardware.nixosModules.apple-t2 ];
     };
   in
   {
-    # One real nixosConfigurations.<hostname> entry per machines/<hostname> directory. Since this
+    # One real nixosConfigurations.<hostname> entry per hosts/<hostname> directory. Since this
     # is a lazy attrset, evaluating `.#<hostname>` only forces that host's mkHost body - other
     # (still-encrypted) hosts' args are never touched.
     # ----------------------------------------------------------------------------------------------
-    nixosConfigurations = lib.genAttrs machineNames mkHost // {
+    nixosConfigurations = lib.genAttrs hostNames mkHost // {
 
-      # Generic install host configuration based on a generic profile, used to bootstrap a brand
-      # new machine before it has its own machines/<hostname> directory.
+      # Generic install host configuration based on a generic layer bundle, used to bootstrap a
+      # brand new host before it has its own hosts/<hostname> directory.
       # --------------------------------------------------------------------------------------------
       install = lib.nixosSystem {
         inherit pkgs system; specialArgs = { inherit inputs f; args = _bootstrapArgs; };
@@ -124,15 +124,15 @@
 
       # Defines configuration for building an ISO
       # - specialArgs is being carefully constructed to exclude secrets
-      # - re-using the profiles/install.nix to set defaults otherwise set in secrets
+      # - re-using layers/iso.nix to set defaults otherwise set in secrets
       # --------------------------------------------------------------------------------------------
       iso = lib.nixosSystem {
         inherit pkgs system;
         specialArgs = {
           inherit f inputs;
-          args = lib.recursiveUpdate _bootstrapArgs (import ./profiles/iso_args.nix);
+          args = lib.recursiveUpdate _bootstrapArgs (import ./layers/iso_args.nix);
         };
-        modules = [ inputs.nixos-files.nixosModules.default ./options ./profiles/iso.nix ];
+        modules = [ inputs.nixos-files.nixosModules.default ./options ./layers/iso.nix ];
       };
     };
   };
