@@ -4,8 +4,8 @@
 
 This document specifies the work needed to make this NixOS configuration capable of deploying either
 an X11-based or Wayland-based desktop from a single codebase. The migration is **strictly additive**
-— all existing XFCE configurations remain unchanged. A full parallel `profiles/plasma/` chain will
-mirror the `profiles/xfce/` hierarchy. A machine switches display server by changing one `import`
+— all existing XFCE configurations remain unchanged. A full parallel `layers/plasma/` chain will
+mirror the `layers/xfce/` hierarchy. A machine switches display server by changing one `import`
 line.
 
 **X11 target**: XFCE + LightDM + Xfwm4 (current — unchanged)  
@@ -34,10 +34,10 @@ options/system/
 
 ### 2.2 Profile Structure
 
-Full parallel `profiles/plasma/` chain:
+Full parallel `layers/plasma/` chain:
 
 ```
-profiles/
+layers/
 ├── xfce/
 │   ├── base.nix      (unchanged)
 │   ├── desktop.nix   (unchanged)
@@ -235,7 +235,7 @@ in {
 
 ---
 
-### Step 3 — Rewrite `profiles/plasma/base.nix`
+### Step 3 — Rewrite `layers/plasma/base.nix`
 
 **Existing file — major changes.** Replace the `system.x11.enable = true` +
 `lib.mkForce false` LightDM workaround with clean `system.plasma.enable = true`. Remove `wmctl`
@@ -332,13 +332,13 @@ KWin's `org.kde.KWin` D-Bus interface.
   - Window manipulation: KWin scripting via `org.kde.kwin.Scripting`
 
 **Deliverable**: Updated `packages/wmctl/` with `--backend [x11|kwin|auto]` flag (defaulting to
-`auto`). After testing on a Plasma machine, re-add `wmctl` to `profiles/plasma/base.nix`.
+`auto`). After testing on a Plasma machine, re-add `wmctl` to `layers/plasma/base.nix`.
 
 ---
 
-### Step 9 — Create `profiles/plasma/desktop.nix`
+### Step 9 — Create `layers/plasma/desktop.nix`
 
-**New file.** Mirrors `profiles/xfce/desktop.nix`. Imports `profiles/plasma/base.nix`.
+**New file.** Mirrors `layers/xfce/desktop.nix`. Imports `layers/plasma/base.nix`.
 
 Differences from `xfce/desktop.nix`:
 
@@ -350,9 +350,9 @@ Differences from `xfce/desktop.nix`:
 
 ---
 
-### Step 10 — Create `profiles/plasma/develop.nix`
+### Step 10 — Create `layers/plasma/develop.nix`
 
-**New file.** Mirrors `profiles/xfce/develop.nix`. Imports `profiles/plasma/desktop.nix`.
+**New file.** Mirrors `layers/xfce/develop.nix`. Imports `layers/plasma/desktop.nix`.
 
 The package set is identical. VSCode Wayland mode is handled by `NIXOS_OZONE_WL=1` set globally in
 Step 1 — no changes to `apps.dev.vscode` needed.
@@ -384,9 +384,9 @@ Step 1 — no changes to `apps.dev.vscode` needed.
 
 ---
 
-### Step 11 — Create `profiles/plasma/theater.nix`
+### Step 11 — Create `layers/plasma/theater.nix`
 
-**New file.** Mirrors `profiles/xfce/theater.nix`. Imports `profiles/plasma/desktop.nix`.
+**New file.** Mirrors `layers/xfce/theater.nix`. Imports `layers/plasma/desktop.nix`.
 
 Differences from `xfce/theater.nix`:
 
@@ -399,9 +399,9 @@ Differences from `xfce/theater.nix`:
 
 ---
 
-### Step 12 — Create `profiles/plasma/laptop.nix`
+### Step 12 — Create `layers/plasma/laptop.nix`
 
-**New file.** Mirrors `profiles/xfce/laptop.nix`. Imports `profiles/plasma/desktop.nix`.
+**New file.** Mirrors `layers/xfce/laptop.nix`. Imports `layers/plasma/desktop.nix`.
 
 ```nix
 { ... }:
@@ -415,7 +415,7 @@ Differences from `xfce/theater.nix`:
 
 ### Step 13 — Validate on `vm-test`
 
-Update `machines/vm-test/configuration.nix` to import `profiles/plasma/desktop.nix`, build, and
+Update `hosts/vm-test/configuration.nix` to import `layers/plasma/desktop.nix`, build, and
 boot:
 
 ```bash
@@ -495,14 +495,14 @@ Validation checklist:
 ## 5. Machine Migration Guide
 
 To migrate an existing machine from XFCE to Plasma, change the `imports` in
-`machines/<name>/configuration.nix`:
+`hosts/<name>/configuration.nix`:
 
 ```nix
 # Before (XFCE)
-imports = [ ./hardware-configuration.nix ../../profiles/xfce/desktop.nix ];
+imports = [ ./hardware-configuration.nix ../../layers/xfce/desktop.nix ];
 
 # After (Plasma/Wayland)
-imports = [ ./hardware-configuration.nix ../../profiles/plasma/desktop.nix ];
+imports = [ ./hardware-configuration.nix ../../layers/plasma/desktop.nix ];
 ```
 
 Machine-level options that may need updating when migrating:
@@ -525,18 +525,18 @@ Machine-level options that may need updating when migrating:
 |------|------|-------|-----------|
 | 1 | Create `options/system/wayland/default.nix` | New file + `options/system/default.nix` | — |
 | 2 | Create `options/system/plasma/default.nix` | New file + `options/system/default.nix` | Step 1 |
-| 3 | Rewrite `profiles/plasma/base.nix` | Existing file | Steps 1–2 |
+| 3 | Rewrite `layers/plasma/base.nix` | Existing file | Steps 1–2 |
 | 4 | Add `obs-xdg-portal` to OBS option | `options/apps/media/obs/default.nix` | Step 1 |
 | 5 | Guard `xf86videodummy` in RustDesk option | `options/services/raw/rustdesk.nix` | Step 1 |
 | 6 | Guard Steam `xdg.menu` in games option | `options/apps/games/steam/default.nix` | — |
 | 7 | Add Wayland assertion to `x11vnc` option | `options/services/raw/x11vnc.nix` | Step 1 |
 | 8 | Add KWin D-Bus backend to `wmctl` package | `packages/wmctl/` | — |
-| 9 | Create `profiles/plasma/desktop.nix` | New file | Step 3 |
-| 10 | Create `profiles/plasma/develop.nix` | New file | Step 9 |
-| 11 | Create `profiles/plasma/theater.nix` | New file | Step 9 |
-| 12 | Create `profiles/plasma/laptop.nix` | New file | Step 9 |
-| 13 | Test build + boot on `vm-test` with Plasma profile | `machines/vm-test/configuration.nix` | Steps 9–12 |
-| 14 | Migrate first physical machine to Plasma | `machines/<name>/configuration.nix` | Step 13 |
+| 9 | Create `layers/plasma/desktop.nix` | New file | Step 3 |
+| 10 | Create `layers/plasma/develop.nix` | New file | Step 9 |
+| 11 | Create `layers/plasma/theater.nix` | New file | Step 9 |
+| 12 | Create `layers/plasma/laptop.nix` | New file | Step 9 |
+| 13 | Test build + boot on `vm-test` with Plasma profile | `hosts/vm-test/configuration.nix` | Steps 9–12 |
+| 14 | Migrate first physical machine to Plasma | `hosts/<name>/configuration.nix` | Step 13 |
 
 Steps 1–3 are the critical path. Steps 4–7 and Step 8 can proceed in parallel once Step 1 is done.
 
