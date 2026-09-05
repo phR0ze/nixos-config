@@ -60,7 +60,7 @@ in
             };
             default = {
               # Note: not defining the other defaults here as I don't expect to support them in args
-              iso = args.type.iso or false;
+              iso = args.host.type.iso or false;
             };
           };
 
@@ -79,13 +79,13 @@ in
           hostname = lib.mkOption {
             description = lib.mdDoc "Hostname";
             type = types.str;
-            default = if (args.hostname or "" == "") then "nixos" else args.hostname;
+            default = if (args.host.hostname or "" == "") then "nixos" else args.host.hostname;
           };
 
           id = lib.mkOption {
             description = lib.mdDoc "Machine id for /etc/machine-id";
             type = types.str;
-            default = args.id or "";
+            default = args.host.id or "";
           };
 
           domain = lib.mkOption {
@@ -97,19 +97,19 @@ in
           target = lib.mkOption {
             description = lib.mdDoc "Host or layer used during installation";
             type = types.str;
-            default = args.target or "";
+            default = args.host.target or "";
           };
 
           efi = lib.mkOption {
             description = lib.mdDoc "Enable EFI";
             type = types.bool;
-            default = args.efi or false;
+            default = args.host.efi or false;
           };
 
           mbr = lib.mkOption {
             description = lib.mdDoc "BIOS mbr is enabled when not 'nodev'";
             type = types.str;
-            default = args.mbr or "nodev";
+            default = args.host.mbr or "nodev";
           };
 
           drives = lib.mkOption {
@@ -123,45 +123,45 @@ in
                 };
               };
             });
-            default = args.drives or [];
+            default = args.host.drives or [];
           };
 
           arch = lib.mkOption {
             description = lib.mdDoc "System architecture";
             type = types.str;
-            default = if (args.arch or "" == "") then "x86_64-linux" else args.arch;
+            default = if (args.host.arch or "" == "") then "x86_64-linux" else args.host.arch;
           };
 
           locale = lib.mkOption {
             description = lib.mdDoc "System locale";
             type = types.str;
-            default = if (args.locale or "" == "") then "en_US.UTF-8" else args.locale;
+            default = if (args.host.locale or "" == "") then "en_US.UTF-8" else args.host.locale;
           };
 
           timezone = lib.mkOption {
             description = lib.mdDoc "System timezone";
             type = types.str;
-            default = if (args.timezone or "" == "") then "America/Boise" else args.timezone;
+            default = if (args.host.timezone or "" == "") then "America/Boise" else args.host.timezone;
           };
 
           autologin = lib.mkOption {
             description = lib.mdDoc "Enable autologin";
             type = types.bool;
-            default = args.autologin or false;
+            default = args.host.autologin or false;
           };
 
           bluetooth = lib.mkOption {
             description = lib.mdDoc "Enable bluetooth";
             type = types.bool;
-            default = args.bluetooth or false;
+            default = args.host.bluetooth or false;
           };
 
           resolution = lib.mkOption {
             description = lib.mdDoc "Display resolution";
             type = types.attrs;
             default = {
-              x = args.resolution.x or 0;
-              y = args.resolution.y or 0;
+              x = args.host.resolution.x or 0;
+              y = args.host.resolution.y or 0;
             };
           };
 
@@ -171,7 +171,7 @@ in
                 minVer = lib.mkOption {
                   description = lib.mdDoc "Minimal support Nixpkgs version";
                   type = types.str;
-                  default = if (args.nix.minVer or "" == "") then "25.05" else args.nix.minVer;
+                  default = if (args.host.nix.minVer or "" == "") then "25.05" else args.host.nix.minVer;
                 };
                 cache = lib.mkOption {
                   description = lib.mdDoc "Nix Binary cache configuration";
@@ -180,34 +180,34 @@ in
                       enable = lib.mkOption {
                         description = lib.mdDoc "Enable using a custom Nix binary cache";
                         type = types.bool;
-                        default = args.nix.cache.enable or false;
+                        default = args.host.nix.cache.enable or false;
                       };
                       ip = lib.mkOption {
                         description = lib.mdDoc "IP address of the custom Nix binary cache";
                         type = types.str;
-                        default = args.nix.cache.ip or "";
+                        default = args.host.nix.cache.ip or "";
                       };
                       port = lib.mkOption {
                         description = lib.mdDoc "Port of the custom Nix binary cache";
                         type = types.int;
-                        default = args.nix.cache.port or 5000;
+                        default = args.host.nix.cache.port or 5000;
                       };
                     };
                   };
                   default = {
-                    enable = args.nix.cache.enable or false;
-                    ip = args.nix.cache.ip or "";
-                    port = args.nix.cache.port or 5000;
+                    enable = args.host.nix.cache.enable or false;
+                    ip = args.host.nix.cache.ip or "";
+                    port = args.host.nix.cache.port or 5000;
                   };
                 };
               };
             };
             default = {
-              minVer = if (args.nix.minVer or "" == "") then "25.05" else args.nix.minVer;
+              minVer = if (args.host.nix.minVer or "" == "") then "25.05" else args.host.nix.minVer;
               cache = {
-                enable = args.nix.cache.enable or false;
-                ip = args.nix.cache.ip or "";
-                port = args.nix.cache.port or 5000;
+                enable = args.host.nix.cache.enable or false;
+                ip = args.host.nix.cache.ip or "";
+                port = args.host.nix.cache.port or 5000;
               };
             };
           };
@@ -218,24 +218,24 @@ in
                 user = lib.mkOption {
                   description = lib.mdDoc "Git user name";
                   type = types.str;
-                  default = args.git.user or "";
+                  default = args.host.git.user or "";
                 };
                 email = lib.mkOption {
                   description = lib.mdDoc "Git email address";
                   type = types.str;
-                  default = args.git.email or "";
+                  default = args.host.git.email or "";
                 };
                 comment = lib.mkOption {
                   description = lib.mdDoc "System build comment";
                   type = types.str;
-                  default = args.git.comment or "";
+                  default = args.host.git.comment or "";
                 };
               };
             };
             default = {
-              user = args.git.user or "";
-              email = args.git.email or "";
-              comment = args.git.comment or "";
+              user = args.host.git.user or "";
+              email = args.host.git.email or "";
+              comment = args.host.git.comment or "";
             };
           };
 
@@ -424,7 +424,7 @@ in
             example = "./secrets.enc.yaml";
             default =
               let
-                hostname = args.hostname or "";
+                hostname = args.host.hostname or "";
                 isolated = builtins.pathExists (../../hosts + "/${hostname}/.isolated");
                 ownFile = ../../hosts + "/${hostname}/secrets.enc.yaml";
                 mergedFile = ../../hosts + "/${hostname}/secrets.merged.enc.yaml";

@@ -5,24 +5,25 @@
 # - this is the lowes priority configuration file and all other overrides take precedent
 # --------------------------------------------------------------------------------------------------
 {
-  id = "";                              # Machine id for the system
-  target = "layers/bundles/xfce-desktop.nix"; # Pre-defined configurations './hosts' or './layers', used only by nixosConfigurations.install
-  hostname = "nixos";                   # Fallback hostname, only used by nixosConfigurations.install/iso; real hosts always use their hosts/<hostname> directory name
-  efi = false;                          # EFI system boot type set during installation
-  mbr = "nodev";                        # MBR system boot device set during installation, e.g. /dev/sda
-  arch = "x86_64-linux";                # System architecture to use
-  locale = "en_US.UTF-8";               # Locale selection
-  timezone = "America/Boise";           # Time-zone selection
-  bluetooth = false;                    # Enable or disable bluetooth by default
-  autologin = false;                    # Automatically log the user in or not after boot
-  type.iso = false;                     # Enable or disable ISO mode
-  resolution.x = 0;                     # Machine X resolution e.g. 1920
-  resolution.y = 0;                     # Machine Y resolution e.g. 1080
-  nix.minVer = "25.05";                 # Nixpkgs minimum version
-  drives = [];                          # List of drives to configure in hardware-configuration.nix
-  git.user = "";                        # Git user name
-  git.email = "";                       # Git user email
-  # git.comment is always set from flake introspection (self.rev), not overridable here
+  host.id = "";                         # Machine id for the system
+  host.target = "layers/bundles/xfce-desktop.nix"; # Pre-defined configurations './hosts' or './layers', used only by nixosConfigurations.install
+  host.hostname = "nixos";              # Fallback hostname, only used by nixosConfigurations.install/iso; real hosts always use their hosts/<hostname> directory name
+  host.efi = false;                     # EFI system boot type set during installation
+  host.mbr = "nodev";                   # MBR system boot device set during installation, e.g. /dev/sda
+  host.arch = "x86_64-linux";           # System architecture to use
+  host.locale = "en_US.UTF-8";          # Locale selection
+  host.timezone = "America/Boise";      # Time-zone selection
+  host.bluetooth = false;               # Enable or disable bluetooth by default
+  host.autologin = false;               # Automatically log the user in or not after boot
+  host.drives = [];                     # List of drives to configure in hardware-configuration.nix
+  host.type.iso = false;                # Enable or disable ISO mode
+  host.resolution.x = 0;                # Machine X resolution e.g. 1920
+  host.resolution.y = 0;                # Machine Y resolution e.g. 1080
+  host.nix.minVer = "25.05";            # Nixpkgs minimum version
+  host.nix.cache.enable = false;        # Enable using the local Nix binary cache
+  host.git.user = "";                   # Git user name
+  host.git.email = "";                  # Git user email
+  # host.git.comment is always set from flake introspection (self.rev), not overridable here
 
   # User configuration
   # ------------------------------------------------------------------------------------------------
@@ -35,5 +36,4 @@
   # ------------------------------------------------------------------------------------------------
   smb.enable = false;                   # Enable pre-configured samba shares for this system
   nfs.enable = false;                   # Enable pre-configured nfs shares for this system
-  nix.cache.enable = false;             # Enable using the local Nix binary cache
 }

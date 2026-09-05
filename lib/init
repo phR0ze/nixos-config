@@ -280,7 +280,7 @@ init::run()
     local install_dec="${machine}/args.dec.yaml"
     if [[ "$($SUDO git diff --staged --name-only -- ${install_dec})" != "" ]]; then
         local install_enc="${machine}/args.enc.yaml"
-        local root_uuid="$(yq -r '.drives[0].uuid' "$install_dec")"
+        local root_uuid="$(yq -r '.host.drives[0].uuid' "$install_dec")"
         local hardware="${machine}/hardware-configuration.nix"
         if [[ "$(grep ${root_uuid} ${hardware})" != "" ]]; then
             log::ls -n "Updating ${cyan}${hardware}${none} with drive uuid variable"

@@ -27,7 +27,7 @@ in
     # in the iso that were used during the build. Thus the 'host.target' called out below will
     # pull in any derivations needed to build that layer.
     "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
-    (../${args.target})
+    (../${args.host.target})
   ];
 
   # ISO image configuration
@@ -68,7 +68,7 @@ in
   ];
 
   # Add a marker to pass ISO state to install
-  environment.etc."iso-build-profile".text = args.target;
+  environment.etc."iso-build-profile".text = args.host.target;
 
   # Configure /etc/bashrc to launch our installer automation 'clu'
   programs.bash.promptPluginInit = ''
