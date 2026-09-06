@@ -16,6 +16,7 @@
   config = {
     host.type.vm = true;
     host.vm.type.micro = true;
+    host.user.secret = true;
 
     host.net.dns.force = true;
 

@@ -25,8 +25,6 @@ in
         cups-pdf.enable = true;       # Allow for printing to pdf
       };
 
-      users.users.${host.user.name}.extraGroups = [ "lp" ];
-
       # Enable autodiscovery of network printers e.g. IPP enabled printers
       services.avahi = {
         enable = true;
@@ -34,6 +32,10 @@ in
         openFirewall = true;
       };
     }
+
+    (lib.mkIf (!host.user.secret) {
+      users.users.${host.user.name}.extraGroups = [ "lp" ];
+    })
 
     # Brother HL-L2405W support
     # ----------------------------------------------------------------------------------------------

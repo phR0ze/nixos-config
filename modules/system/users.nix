@@ -20,6 +20,11 @@
 # themselves. (nixos-files' `files.any.<target>.encrypted` names the generated `sops.secrets`
 # entry after `<target>` itself, not `encrypted.key`, so the install path is always the same
 # literal string as the `files.any` key -- referencing it directly avoids the mismatch.)
+#
+# When `host.user.secret` is also set, the admin account itself is created via nixos-files'
+# `users.fromSecret` instead of the declarative `users.users.${host.user.name}` below -- see that
+# option's description in modules/types/user.nix for why (username can't be a Nix attribute name
+# and a runtime-only secret at the same time).
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
@@ -56,6 +61,18 @@ in
       # Overriding the ISO settings to avoid the duplicate values warning
       users.users.root = passwordConfig;
 
+      # Create user groups for sharing files using specific ids
+      users.groups."photos".gid = 1100;     # named group for specific files access
+      users.groups."users".gid = 100;       # TODO: keep things runing as usual until I decomission this
+
+      # Configure sudo access for system admin
+      security.sudo = {
+        enable = true;
+        wheelNeedsPassword = false;         # Configure passwordless sudo access for 'wheel' group
+      };
+    }
+
+    (lib.mkIf (!host.user.secret) {
       # Configure the default system admin user
       users.users.${host.user.name} = {
         uid = 1000;                         # ensure NixOS doesn't choose a different id for my user
@@ -70,18 +87,22 @@ in
         ];
       } // passwordConfig;
 
-      # Create user groups for sharing files using specific ids
-      users.groups."photos".gid = 1100;     # named group for specific files access
-      users.groups."users".gid = 100;       # TODO: keep things runing as usual until I decomission this
-
       # Ensure private user group that always has the correct id
       users.groups."${host.user.group}".gid = 1000;
+    })
 
-      # Configure sudo access for system admin
-      security.sudo = {
-        enable = true;
-        wheelNeedsPassword = false;         # Configure passwordless sudo access for 'wheel' group
+    # Same account as above, but the username/group/password are only known once sops-nix decrypts
+    # them at activation - see host.user.secret's description for why.
+    (lib.mkIf host.user.secret {
+      users.fromSecret."admin" = {
+        sopsFile = host.secrets;
+        userSecretRef = "user/name";
+        groupSecretRef = "user/group";
+        passwordSecretRef = "user/password";
+        isNormalUser = true;
+        uid = 1000;
+        extraGroups = [ "photos" "render" "users" "video" "wheel" ];
       };
-    }
+    })
   ];
 }

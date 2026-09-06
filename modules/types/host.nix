@@ -25,8 +25,12 @@ let
       pass     = u.pass     or "admin";
       fullname = u.fullname or name;
       email    = u.email    or "";
-      uid      = config.users.users.${name}.uid  or null;
-      gid      = config.users.groups.${name}.gid or null;
+      # Hardcoded to match modules/system/users.nix's own literal `uid = 1000;` for the admin
+      # account, rather than reading back from `config.users.users.${name}` - that lazily forces
+      # NixOS to materialize a `users.users.<name>` submodule instance merely by being referenced,
+      # which breaks when `host.user.secret` is set (no such declarative account exists to read).
+      uid      = 1000;
+      gid      = 1000;
     };
     macvlan = (f.getNic args "macvlan");
     nic0 = (f.getNic args "nic0");
