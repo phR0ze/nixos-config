@@ -12,34 +12,6 @@ in
     # { assertion = (args.user.name != null && args.user.name == "bob");
     #   message = "echo '${builtins.toJSON cfg}' | jq"; }
 
-    # Ensure the existance of input args
-    # ----------------------------------------------------------------------------------------------
-    # In the ISO case args.host.id is not set
-    #{ assertion = (args.host.id != null && args.host.id != ""); message = "assert args.host.id: ${args.host.id}"; }
-    { assertion = (args.host.hostname != null && args.host.hostname != ""); message = "assert args.host.hostname: ${args.host.hostname}"; }
-    { assertion = (args.host.target != null); message = "assert args.host.target: ${args.host.target}"; }
-    { assertion = (args.host.efi != null); message = "assert args.host.efi: ${f.boolToStr args.host.efi}"; }
-    { assertion = (args.host.mbr != null); message = "assert args.host.mbr: ${args.host.mbr}"; }
-    { assertion = (args.host.arch == "x86_64-linux"); message = "assert args.host.arch: ${args.host.arch}"; }
-    { assertion = (args.host.locale == "en_US.UTF-8"); message = "assert args.host.locale: ${args.host.locale}"; }
-    { assertion = (args.host.timezone == "America/Boise"); message = "assert args.host.timezone: ${args.host.timezone}"; }
-    { assertion = (args.host.bluetooth != null); message = "assert args.host.bluetooth: ${f.boolToStr args.host.bluetooth}"; }
-    { assertion = (args.host.autologin != null); message = "assert args.host.autologin: ${f.boolToStr args.host.autologin}"; }
-    { assertion = (args.host.resolution.x != null); message = "assert args.host.resolution.x: ${toString args.host.resolution.x}"; }
-    { assertion = (args.host.resolution.y != null); message = "assert args.host.resolution.y: ${toString args.host.resolution.y}"; }
-    { assertion = (args.host.nix.minVer != ""); message = "assert args.host.nix.minVer: ${args.host.nix.minVer}"; }
-
-    { assertion = (args.user.name != null && args.user.name != ""); message = "assert args.user.name exists"; }
-    { assertion = (args.user.pass != null); message = "assert args.user.pass: ${args.user.pass}"; }
-    { assertion = (args.user.fullname != null); message = "assert args.user.fullname: ${args.user.fullname}"; }
-    { assertion = (args.user.email != null); message = "assert args.user.email: ${args.user.email}"; }
-
-    { assertion = (args.host.git.user != null); message = "assert args.host.git.user: ${args.host.git.user}"; }
-    { assertion = (args.host.git.email != null); message = "assert args.host.git.email: ${args.host.git.email}"; }
-    { assertion = (args.host.git.comment != null); message = "assert args.host.git.comment: ${args.host.git.comment}"; }
-
-    { assertion = (args.host.nix.cache.enable != null); message = "assert args.host.nix.cache.enable: ${args.host.nix.cache.enable}"; }
-
     # Ensure the existance of final merged args
     # ----------------------------------------------------------------------------------------------
     { assertion = (cfg.hostname != null); message = "assert host.hostname: ${cfg.hostname}"; }
