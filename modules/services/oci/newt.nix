@@ -114,16 +114,16 @@ in
     users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
     # Combine the sensitive secret with the non-secret endpoint/id into one env file for the
-    # container (decrypted to /run/newt-<name>.env at activation, never touching the Nix store),
-    # so NEWT_SECRET never lands in `podman inspect`/process listing the way a plain
-    # `environment` entry would
-    files.templates."newt-${cfg.name}" = {
-      path = "/run/files/newt-${cfg.name}.env";
+    # container, decrypted at activation to sops-nix's default path
+    # (config.secret.templates."newt-<name>".path, normally /run/secrets/rendered/newt-<name>),
+    # never touching the Nix store, so NEWT_SECRET never lands in `podman inspect`/process
+    # listing the way a plain `environment` entry would
+    secret.templates."newt-${cfg.name}" = {
       filemode = "0400";
       content = ''
         PANGOLIN_ENDPOINT=${cfg.endpoint}
         NEWT_ID=${cfg.id}
-        NEWT_SECRET=${config.sops.placeholder."newt/clientSecret"}
+        NEWT_SECRET=${config.secret.ref."newt/clientSecret"}
         LOG_LEVEL=${cfg.logLevel}
       '';
       secrets."newt/clientSecret".sopsFile = cfg.secrets;
@@ -143,7 +143,7 @@ in
         # point it at the writable /tmp tmpfs mounted below instead.
         CONFIG_FILE = "/tmp/newt-client/config.json";
       };
-      environmentFiles = [ "/run/files/newt-${cfg.name}.env" ];
+      environmentFiles = [ config.secret.templates."newt-${cfg.name}".path ];
       volumes = [
         "/etc/localtime:/etc/localtime:ro"
       ];

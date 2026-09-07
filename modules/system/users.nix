@@ -7,22 +7,20 @@
 # ### Secrets
 # When `host.secrets` is set, the admin/root password is sourced from a pre-hashed
 # (`mkpasswd -m sha-512`) `user/passwordHash` entry in that host's `secrets.enc.yaml`,
-# decrypted only at activation to `/run/files/user-passwordhash` — never baked into the Nix store the
-# way `initialPassword` does. Machines that haven't been migrated to a `secrets.enc.yaml` yet
-# (`host.secrets == null`) fall back to the old `initialPassword` behavior so this can land
-# ahead of the per-host secrets rollout.
+# decrypted only at activation to sops-nix's default path (config.secret.files."user-passwordhash".path,
+# normally /run/secrets/user-passwordhash) — never baked into the Nix store the way `initialPassword`
 #
-# Also declares the *plaintext* `user/password` secret (decrypted to /run/files/user-password)
-# here, once, for the handful of modules (rustdesk, x11vnc, kasmvnc, adguardhome) that need the
-# plaintext value at runtime to run their own password-hashing tool (`rdutil encrypt`, `x11vnc -storepasswd`,
-# `vncpasswd`, `htpasswd`) rather than a pre-hashed value like `hashedPasswordFile` wants -- they
-# reference the literal /run/files/user-password path directly instead of redeclaring this secret
-# themselves. (nixos-files' `files.any.<target>.encrypted` names the generated `sops.secrets`
-# entry after `<target>` itself, not `encrypted.key`, so the install path is always the same
-# literal string as the `files.any` key -- referencing it directly avoids the mismatch.)
+# Also declares the *plaintext* `user/password` secret (as secret.files."user-password", decrypted
+# to config.secret.files."user-password".path) below, for the handful of modules (rustdesk, x11vnc,
+# kasmvnc, adguardhome) that need the plaintext value at runtime to run their own password-hashing
+# tool (`rdutil encrypt`, `x11vnc -storepasswd`, `vncpasswd`, `htpasswd`) rather than a pre-hashed
+# value like `hashedPasswordFile` wants -- they reference config.secret.files."user-password".path
+# directly instead of redeclaring this secret themselves. A bare (no leading "/") secret.files
+# identifier is used deliberately here so the decrypted path is left at sops-nix's own default
+# rather than hardcoded to an arbitrary location.
 #
-# When `host.user.secret` is also set, the admin account itself is created via nixos-files'
-# `users.fromSecret` instead of the declarative `users.users.${host.user.name}` below -- see that
+# When `host.user.secret` is also set, the admin account itself is created via nix-weave's
+# `secret.users` instead of the declarative `users.users.${host.user.name}` below -- see that
 # option's description in modules/types/user.nix for why (username can't be a Nix attribute name
 # and a runtime-only secret at the same time).
 #---------------------------------------------------------------------------------------------------
@@ -32,27 +30,28 @@ let
   hasSecrets = host.secrets != null;
 
   passwordConfig = if hasSecrets
-    then { hashedPasswordFile = lib.mkForce "/run/files/user-passwordhash"; }
+    then { hashedPasswordFile = lib.mkForce config.secret.files."user-passwordhash".path; }
     else { initialPassword = lib.mkForce host.user.pass; };
 in
 {
   config = lib.mkMerge [
     (lib.mkIf hasSecrets {
-      files.any = {
-        "/run/files/user-passwordhash" = {
-          filemode = "0400";
-          encrypted = {
-            sopsFile = host.secrets;
-            key = "user/passwordHash";
-          };
-        };
-        "/run/files/user-password" = {
-          filemode = "0400";
-          encrypted = {
-            sopsFile = host.secrets;
-            key = "user/password";
-          };
-        };
+      secret.files."user-passwordhash" = {
+        filemode = "0400";
+        sopsFile = host.secrets;
+        key = "user/passwordHash";
+      };
+    })
+
+    # The plaintext password is only needed at runtime by modules (rustdesk, x11vnc, kasmvnc,
+    # adguardhome) that hash it themselves with their own tool - host.user.secret hosts create
+    # their admin account via passwordHashSecretRef instead (see below), so they never need the
+    # plaintext decrypted to disk at all.
+    (lib.mkIf (hasSecrets && !host.user.secret) {
+      secret.files."user-password" = {
+        filemode = "0400";
+        sopsFile = host.secrets;
+        key = "user/password";
       };
     })
 
@@ -92,13 +91,16 @@ in
     })
 
     # Same account as above, but the username/group/password are only known once sops-nix decrypts
-    # them at activation - see host.user.secret's description for why.
+    # them at activation - see host.user.secret's description for why. Uses passwordHashSecretRef
+    # rather than passwordSecretRef so the plaintext password is never decrypted to disk at all,
+    # even transiently - only the pre-hashed user/passwordHash value (already needed for root
+    # above) is used.
     (lib.mkIf host.user.secret {
-      users.fromSecret."admin" = {
+      secret.users."admin" = {
         sopsFile = host.secrets;
         userSecretRef = "user/name";
         groupSecretRef = "user/group";
-        passwordSecretRef = "user/password";
+        passwordHashSecretRef = "user/passwordHash";
         isNormalUser = true;
         uid = 1000;
         extraGroups = [ "photos" "render" "users" "video" "wheel" ];

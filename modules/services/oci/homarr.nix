@@ -72,13 +72,13 @@ in
         "d /var/lib/${cfg.name}/appdata 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
       ];
 
-      # Decrypted to /run/homarr-<name>.env at activation, never touching the Nix store
-      files.templates = lib.mkIf (cfg.secrets != null) {
+      # Decrypted at activation to sops-nix's default path (config.secret.templates."homarr-<name>".path,
+      # normally /run/secrets/rendered/homarr-<name>), never touching the Nix store
+      secret.templates = lib.mkIf (cfg.secrets != null) {
         "homarr-${cfg.name}" = {
-          path = "/run/files/homarr-${cfg.name}.env";
           filemode = "0400";
           content = ''
-            SECRET_ENCRYPTION_KEY=${config.sops.placeholder."homarr/encKey"}
+            SECRET_ENCRYPTION_KEY=${config.secret.ref."homarr/encKey"}
           '';
           secrets."homarr/encKey".sopsFile = cfg.secrets;
         };
@@ -103,7 +103,7 @@ in
           "PUID" = "${toString cfg.user.uid}";    # Change to non-root
           "PGID" = "${toString cfg.user.gid}";    # Change to non-root
         } // lib.optionalAttrs (cfg.secrets == null) { "SECRET_ENCRYPTION_KEY" = cfg.encKey; };
-        environmentFiles = lib.optionals (cfg.secrets != null) [ "/run/files/homarr-${cfg.name}.env" ];
+        environmentFiles = lib.optionals (cfg.secrets != null) [ config.secret.templates."homarr-${cfg.name}".path ];
       };
 
       # Create podmane network and extend service to use it

@@ -32,9 +32,9 @@
 # `apps.network.rustdesk.secrets` fall back to the old eval-time bake (`rdutil encrypt` run as a Nix
 # derivation, leaking the plaintext password into the Nix store's builder script).
 #
-# `files.templates` has no per-user home-directory expansion the way `files.all` does (it only
-# knows absolute paths), so RustDesk.toml's per-real-user `files.templates` entries are built by
-# hand below, mirroring nixos-files' own `files.all` expansion (every `isNormalUser` account, plus
+# `secret.templates` has no per-user home-directory expansion the way `files.all` does (it only
+# knows absolute paths), so RustDesk.toml's per-real-user `secret.templates` entries are built by
+# hand below, mirroring nix-weave's own `files.all` expansion (every `isNormalUser` account, plus
 # a root copy at /root/.config/...).
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
@@ -54,7 +54,7 @@ let
 
   rustDeskTomlContent = (lib.concatStringsSep "\n"
     ([] ++ lib.optionals (cfg.allowDirectIPAccess)
-      [ "password = '${if hasSecrets then config.sops.placeholder."rustdesk/encodedPass" else encoded-pass}'" ]
+      [ "password = '${if hasSecrets then config.secret.ref."rustdesk/encodedPass" else encoded-pass}'" ]
     )) + "\n";
 
   # root plus every real (isNormalUser) account, named -> { user; group; home; }
@@ -205,9 +205,9 @@ in
         )) + "\n";
 
       # Configure rustdesk permanent password encoded using the unique machine-id for this system.
-      # `files.templates` has no per-user expansion, so this is built by hand above (rustDeskTomlTemplates).
+      # `secret.templates` has no per-user expansion, so this is built by hand above (rustDeskTomlTemplates).
       files.all.".config/rustdesk/RustDesk.toml" = lib.mkIf (!hasSecrets) { copy = rustDeskTomlContent; };
-      files.templates = lib.mkIf hasSecrets rustDeskTomlTemplates;
+      secret.templates = lib.mkIf hasSecrets rustDeskTomlTemplates;
 
       # Configure RustDesk general options
       #   - the absence of an verification-method means both are accepted

@@ -7,7 +7,7 @@
 # - Service has a full NixOS stack minus the kernel
 # - Service is a full LAN participant with its own static IP
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, f, inputs, ... }: with lib.types;
 let
   host = config.host;
   cfg = config.services.nspawn.portainer;
@@ -15,22 +15,31 @@ let
   filtered = builtins.filter (x: x.name == "portainer") host.services;
   defaults = if (builtins.length filtered > 0) then builtins.elemAt filtered 0 else {};
 
-  # NOTE: for hashedPasswordFile to resolve here, the container's own module list (below) needs
-  # inputs.nixos-files.nixosModules.default imported too, so config.sops.secrets exists inside
-  # the container's separate module tree -- not done yet, since this module is currently unused
-  # (see caller note below).
-  modules_users = { lib, config, host, ...}: {
+  # Container-side user config: mirrors modules/system/users.nix's pattern, but parameterized
+  # by the *container's own* `config`/`lib` (its module tree is entirely separate from the
+  # host's) -- `inputs.nix-weave.nixosModules.default` must be imported into the container
+  # below for `config.secret.files` to exist there. `host` closes over the *host's*
+  # `config.host`, since the admin username/password/secrets file are the same as the host's.
+  containerUsers = { config, lib }: {
     users.users.root = if host.secrets != null
-      then { hashedPasswordFile = lib.mkForce "/run/files/user-passwordhash"; }
+      then { hashedPasswordFile = lib.mkForce config.secret.files."user-passwordhash".path; }
       else { initialPassword = lib.mkForce host.user.pass; };
     users.users.${host.user.name} = {
       uid = 1000;
       isNormalUser = true;
       extraGroups = [ "wheel" ];
     } // (if host.secrets != null
-      then { hashedPasswordFile = lib.mkForce "/run/files/user-passwordhash"; }
+      then { hashedPasswordFile = lib.mkForce config.secret.files."user-passwordhash".path; }
       else { initialPassword = lib.mkForce host.user.pass; });
     users.groups."${host.user.group}".gid = 100;
+  } // lib.optionalAttrs (host.secrets != null) {
+    # Decrypted at activation to sops-nix's default path
+    # (config.secret.files."user-passwordhash".path, normally /run/secrets/user-passwordhash),
+    # never touching the Nix store.
+    secret.files."user-passwordhash" = {
+      sopsFile = host.secrets;
+      key = "user/passwordHash";
+    };
   };
 in
 {
@@ -69,13 +78,16 @@ in
       localAddress = cfg.opts.nic.ip;       # Static IP for the virtual adapter on the bridge
 
       config = { options, config, pkgs, lib, ...}: {
-        imports = [ ../../../modules/new_users.nix { inherit lib host; } ];
-        config = {
-          system.stateVersion = host.nix.minVer;
+        imports = [ inputs.nix-weave.nixosModules.default ];
+        config = lib.mkMerge [
+          (containerUsers { inherit config lib; })
+          {
+            system.stateVersion = host.nix.minVer;
 
-          # Allow the server port through the firewall
-          networking.firewall.allowedTCPPorts = [ cfg.opts.port ];
-        };
+            # Allow the server port through the firewall
+            networking.firewall.allowedTCPPorts = [ cfg.opts.port ];
+          }
+        ];
       };
     };
   };

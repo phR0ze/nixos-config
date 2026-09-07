@@ -48,7 +48,7 @@
 
     secret = lib.mkEnableOption ''
       Source this account's username, primary group, and password entirely from host.secrets at
-      activation time via nixos-files' users.fromSecret, instead of from name/pass above. Keeps
+      activation time via nix-weave's secret.users, instead of from name/pass above. Keeps
       the account's real identity out of the Nix store and out of git entirely (not even
       encrypted-at-rest) - only an internal placeholder name is ever evaluated. See
       modules/system/users.nix

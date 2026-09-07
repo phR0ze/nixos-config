@@ -52,12 +52,12 @@ let
   # that only happens through sops-nix's own template-rendering activation step). Instead, when
   # `host.secrets` is set, `settings.users` is left empty and the admin user is (re)written into
   # AdGuardHome's own persisted config at activation via `preStart`, hashing the plaintext password
-  # (decrypted to /run/files/user-password by modules/users.nix) there instead of at eval time -- the same
-  # "patch the app's own config file at activation" approach modules/services/raw/jellyfin already
-  # uses for network.xml.
+  # (decrypted to config.secret.files."user-password".path by modules/users.nix) there instead of
+  # at eval time -- the same "patch the app's own config file at activation" approach
+  # modules/services/raw/jellyfin already uses for network.xml.
   patchAdminUser = pkgs.writeShellScript "adguardhome-patch-admin-user" ''
     set -euo pipefail
-    export HASH="$(${pkgs.apacheHttpd}/bin/htpasswd -nbB "${host.user.name}" "$(cat /run/files/user-password)" | cut -d: -f2)"
+    export HASH="$(${pkgs.apacheHttpd}/bin/htpasswd -nbB "${host.user.name}" "$(cat ${config.secret.files."user-password".path})" | cut -d: -f2)"
     ${pkgs.yq-go}/bin/yq -i '.users = [{"name": "${host.user.name}", "password": strenv(HASH)}]' \
       /var/lib/AdGuardHome/AdGuardHome.yaml
   '';

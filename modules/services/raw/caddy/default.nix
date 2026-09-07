@@ -113,11 +113,10 @@ in
   config = lib.mkIf cfg.enable {
     # Wraps the bare-token secret in a KEY=VALUE line rendered at activation time (mode 0400),
     # suitable for systemd's EnvironmentFile=.
-    files.templates."caddy-cloudflare" = {
-      path = "/run/files/caddy-cloudflare.env";
+    secret.templates."caddy-cloudflare" = {
       filemode = "0400";
       content = ''
-        CF_API_TOKEN=${config.sops.placeholder."caddy/cloudflareApiToken"}
+        CF_API_TOKEN=${config.secret.ref."caddy/cloudflareApiToken"}
       '';
       secrets."caddy/cloudflareApiToken".sopsFile = cfg.secrets;
     };
@@ -149,7 +148,7 @@ in
 
       # Cloudflare API token handed to the caddy-dns/cloudflare module via an env var, sourced from
       # the sops-nix-rendered template above rather than embedding the secret in the Caddyfile.
-      environmentFile = "/run/files/caddy-cloudflare.env";
+      environmentFile = config.secret.templates."caddy-cloudflare".path;
 
       virtualHosts = lib.optionalAttrs (wildcardProxies != [ ]) {
         ${wildcardSite.name} = wildcardSite.value;

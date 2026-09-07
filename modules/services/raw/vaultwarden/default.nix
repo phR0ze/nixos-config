@@ -13,9 +13,7 @@
 #    a `secrets.enc.yaml` under the `vaultwarden.adminToken` key, then declare it in the host's
 #    `configuration.nix` (this module only consumes the secret, it doesn't declare it, since
 #    `sopsFile` is a path relative to wherever it's declared):
-#      sops.secrets."vaultwarden/adminToken" = {
-#        sopsFile = ./secrets.enc.yaml;
-#      };
+#      secret.files."vaultwarden/adminToken".sopsFile = ./secrets.enc.yaml;
 # 4. Point the Bitwarden client(s) at this server's `domain` and log in as normal — the first
 #    account created is a regular user, not an admin.
 # 5. To reach this service through a Pangolin *private* (ZTNA) resource instead of a public
@@ -67,7 +65,7 @@ in
         default = false;
         description = lib.mdDoc ''
           Whether to enable the `/admin` diagnostics page, protected by an admin token pulled from
-          `sops.secrets."vaultwarden/adminToken"`.
+          `secret.files."vaultwarden/adminToken"`.
         '';
       };
 
@@ -116,18 +114,17 @@ in
     # baking it into the nix store
     (lib.mkIf (cfg.enable && cfg.enableAdminPanel) {
       assertions = [
-        { assertion = config.sops.secrets ? "vaultwarden/adminToken"; message = "services.raw.vaultwarden with enableAdminPanel requires sops.secrets.\"vaultwarden/adminToken\" to be declared"; }
+        { assertion = config.secret.files ? "vaultwarden/adminToken"; message = "services.raw.vaultwarden with enableAdminPanel requires secret.files.\"vaultwarden/adminToken\" to be declared"; }
       ];
 
-      files.templates."vaultwarden-admin" = {
-        path = "/run/files/vaultwarden-admin.env";
+      secret.templates."vaultwarden-admin" = {
         filemode = "0400";
         content = ''
-          ADMIN_TOKEN=${config.sops.placeholder."vaultwarden/adminToken"}
+          ADMIN_TOKEN=${config.secret.ref."vaultwarden/adminToken"}
         '';
       };
 
-      services.vaultwarden.environmentFile = "/run/files/vaultwarden-admin.env";
+      services.vaultwarden.environmentFile = config.secret.templates."vaultwarden-admin".path;
     })
   ];
 }
