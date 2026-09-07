@@ -53,16 +53,17 @@ in
       ];
       virtualisation.podman.enable = true;
 
-      # Decrypted to /run/immich-<name>-db.env at activation, never touching the Nix store.
-      # Both DB_PASSWORD (immich-server) and POSTGRES_PASSWORD (postgres) are the same secret
-      # value, so one file covers both containers -- unused keys are harmless env vars.
-      files.templates = lib.mkIf (cfg.secrets != null) {
+      # Decrypted at activation to sops-nix's default path
+      # (config.secret.templates."immich-<name>-db".path, normally
+      # /run/secrets/rendered/immich-<name>-db), never touching the Nix store. Both DB_PASSWORD
+      # (immich-server) and POSTGRES_PASSWORD (postgres) are the same secret value, so one file
+      # covers both containers -- unused keys are harmless env vars.
+      secret.templates = lib.mkIf (cfg.secrets != null) {
         "immich-${cfg.name}-db" = {
-          path = "/run/files/immich-${cfg.name}-db.env";
           filemode = "0400";
           content = ''
-            DB_PASSWORD=${config.sops.placeholder."immich/dbPassword"}
-            POSTGRES_PASSWORD=${config.sops.placeholder."immich/dbPassword"}
+            DB_PASSWORD=${config.secret.ref."immich/dbPassword"}
+            POSTGRES_PASSWORD=${config.secret.ref."immich/dbPassword"}
           '';
           secrets."immich/dbPassword".sopsFile = cfg.secrets;
         };
@@ -105,7 +106,7 @@ in
         } // lib.optionalAttrs (cfg.secrets == null) {
           "DB_PASSWORD" = "${cfg.user.pass}";     # Postgres secret e.g. random string only containing `A-Za-z0-9`
         };
-        environmentFiles = lib.optionals (cfg.secrets != null) [ "/run/files/immich-${cfg.name}-db.env" ];
+        environmentFiles = lib.optionals (cfg.secrets != null) [ config.secret.templates."immich-${cfg.name}-db".path ];
         extraOptions = [ "--ip=${cfg.ip}" ];
       };
 
@@ -173,7 +174,7 @@ in
         } // lib.optionalAttrs (cfg.secrets == null) {
           "POSTGRES_PASSWORD" = "${cfg.user.pass}"; # Postgres secret e.g. random string only containing `A-Za-z0-9`
         };
-        environmentFiles = lib.optionals (cfg.secrets != null) [ "/run/files/immich-${cfg.name}-db.env" ];
+        environmentFiles = lib.optionals (cfg.secrets != null) [ config.secret.templates."immich-${cfg.name}-db".path ];
         extraOptions = [
           "--shm-size=128mb"                      # Increase the shared memory size, default is 64mb
           # Static IP — see cfg.ip's description in modules/types/service.nix for why

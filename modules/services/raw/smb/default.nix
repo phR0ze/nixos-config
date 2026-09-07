@@ -28,14 +28,14 @@ in
     environment.etc = lib.mkIf (!hasSecrets) smbSecrets;
 
     # Decrypted to /etc/smb/secrets/<share> at activation, never touching the Nix store
-    files.templates = lib.mkIf hasSecrets (builtins.listToAttrs (map (x: {
+    secret.templates = lib.mkIf hasSecrets (builtins.listToAttrs (map (x: {
       name = "smb-secrets-${shareName x}";
       value = {
         path = "/etc/smb/secrets/${shareName x}";
         filemode = "0400";
         content = ''
           username=${x.user}
-          password=${config.sops.placeholder."smb/${shareName x}/pass"}
+          password=${config.secret.ref."smb/${shareName x}/pass"}
           domain=${x.domain}
         '';
         secrets."smb/${shareName x}/pass".sopsFile = host.smb.secrets;

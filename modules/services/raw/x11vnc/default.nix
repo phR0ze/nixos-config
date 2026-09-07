@@ -28,12 +28,12 @@ let
     ${pkgs.x11vnc}/bin/x11vnc -storepasswd "${host.user.pass}" "$out/pass"
   '';
 
-  # Runs at service start instead: reads the plaintext password from /run/files/user-password (populated by
-  # modules/users.nix, decrypted only at activation) and hashes it there, so the plaintext value
-  # never appears in a Nix derivation.
+  # Runs at service start instead: reads the plaintext password from
+  # config.secret.files."user-password".path (populated by modules/users.nix, decrypted only at
+  # activation) and hashes it there, so the plaintext value never appears in a Nix derivation.
   storePasswd = pkgs.writeShellScript "x11vnc-storepasswd" ''
     set -euo pipefail
-    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "$(cat /run/files/user-password)" /run/x11vnc/pass
+    ${pkgs.x11vnc}/bin/x11vnc -storepasswd "$(cat ${config.secret.files."user-password".path})" /run/x11vnc/pass
     chmod 600 /run/x11vnc/pass
   '';
 in

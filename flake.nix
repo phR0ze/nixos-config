@@ -9,8 +9,8 @@
     # Flake inputs can't be conditional on which host so declared here, but only gets used by macbook
     nixos-hardware.url = "github:nixos/nixos-hardware/779c32a00155994c86cde8213a8dd4df139d4355";
 
-    nixos-files.url = "github:phR0ze/nixos-files";
-    nixos-files.inputs.nixpkgs.follows = "nixpkgs";
+    nix-weave.url = "github:phR0ze/nix-weave";
+    nix-weave.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = { self, nixpkgs, ... }@inputs: let
@@ -52,7 +52,7 @@
     mkHost = hostname: lib.nixosSystem {
       inherit system;
       specialArgs = { inherit inputs f; args = mergeArgs hostname; };
-      modules = [ ./modules/nixpkgs.nix inputs.nixos-files.nixosModules.default ./modules (./hosts + "/${hostname}/configuration.nix") ];
+      modules = [ ./modules/nixpkgs.nix inputs.nix-weave.nixosModules.default ./modules (./hosts + "/${hostname}/configuration.nix") ];
     };
   in
   {
@@ -79,7 +79,7 @@
           inherit f inputs;
           args = lib.recursiveUpdate _bootstrapArgs (import ./layers/iso_args.nix);
         };
-        modules = [ ./modules/nixpkgs.nix inputs.nixos-files.nixosModules.default ./modules ./layers/iso.nix ];
+        modules = [ ./modules/nixpkgs.nix inputs.nix-weave.nixosModules.default ./modules ./layers/iso.nix ];
       };
     };
   };

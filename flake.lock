@@ -1,6 +1,6 @@
 {
   "nodes": {
-    "nixos-files": {
+    "nix-weave": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
@@ -8,16 +8,16 @@
         "sops-nix": "sops-nix"
       },
       "locked": {
-        "lastModified": 1788668722,
-        "narHash": "sha256-HWGBtWi08Z/I/zA02f2syaruJvpjFHiG2vJh+VW4tMg=",
+        "lastModified": 1788803144,
+        "narHash": "sha256-rIkFPKf466CbQtN3B6tVvpiAEhPJTj8ac/Nl0zVSqx4=",
         "owner": "phR0ze",
-        "repo": "nixos-files",
-        "rev": "c6a791a6fbf7545524fda0bc9c0dfd133ffa843a",
+        "repo": "nix-weave",
+        "rev": "2b375e33ac2314990450eea3a0abf4bbae1148c7",
         "type": "github"
       },
       "original": {
         "owner": "phR0ze",
-        "repo": "nixos-files",
+        "repo": "nix-weave",
         "type": "github"
       }
     },
@@ -87,7 +87,7 @@
     },
     "root": {
       "inputs": {
-        "nixos-files": "nixos-files",
+        "nix-weave": "nix-weave",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable"
@@ -96,7 +96,7 @@
     "sops-nix": {
       "inputs": {
         "nixpkgs": [
-          "nixos-files",
+          "nix-weave",
           "nixpkgs"
         ]
       },
