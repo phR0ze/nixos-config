@@ -6,8 +6,8 @@
 { ... }:
 {
   imports = [
-    ../core.nix
-    ../base.nix
+    ../console/core.nix
+    ../console/base.nix
     ../budgie/base.nix
   ];
 }

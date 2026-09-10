@@ -40,7 +40,7 @@ one of:
 ## Open questions to resolve before implementing
 - Confirm the podman version in nixpkgs pin (`d407951447dcd00442e97087bf374aad70c04cea`) supports
   `--mount ...,idmap` cleanly, if we want to extend this past newt.
-- Decide whether the subuid/subgid range for `root` belongs in `layers/base.nix` (so every
+- Decide whether the subuid/subgid range for `root` belongs in `layers/console/base.nix` (so every
   podman-using machine gets it) or is opt-in per machine.
 - Verify `f.extendContService` / `f.createContNetwork` don't need changes to keep working once a
   container's UID no longer corresponds to a real host user.

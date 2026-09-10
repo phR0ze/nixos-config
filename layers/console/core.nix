@@ -1,22 +1,16 @@
-# core.nix provides a minimal shell environment on which to build
+# core.nix provides a minimal container environment
 #
 # ### Features
-# - Bash shell environment only, no GUI
-# - Basic locale, timezone configuration
-# - Bash custom configuration
-# - Nix flake and commands configuration
+# - Bash custom shell configuration
+# - Basic Nix flake and commands configuration
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, ... }:
+let
+  host = config.host;
+in
 {
-  imports = [
-    ../modules/system/users.nix
-  ];
-
-  # Set the original Nix base version we installed with to ignore the warnings
-  system.stateVersion = config.host.nix.minVer;
-
-  apps.system.neovim.enable = true;     # Essential terminal based text editor
-  services.raw.openssh.enable = true;   # SSH tooling
+  # Original Nix base version we installed with
+  system.stateVersion = host.nix.minVer;
 
   environment.systemPackages = with pkgs; [
     git                                 # Fast distributed version control system
