@@ -156,7 +156,7 @@ Most modules under `modules/` follow this opt-in pattern, but two other recogniz
 in the same tree - both intentional, not inconsistencies:
 - **Always-on baseline modules** (`modules/system/{locale,nix,users}.nix`, `modules/system/terminal/`,
   `modules/services/systemd.nix`) - no self `enable` option at all. These aren't auto-imported through
-  the `modules/default.nix` chain; they're directly imported by `layers/core.nix`/`layers/base.nix`,
+  the `modules/default.nix` chain; they're directly imported by `layers/console/core.nix`/`layers/console/base.nix`,
   which every host's bundle includes, so every host gets them unconditionally by design.
 - **Host-type-gated modules** (e.g. `modules/devices/boot.nix`) - also no self `enable` option, but
   gated on `host.type.*` capability flags (`lib.mkIf (!host.type.vm && !host.type.iso) {...}`) rather
@@ -193,7 +193,7 @@ here.
 Each layer adds:
 - Package lists via `environment.systemPackages`
 - Option enables (e.g. `apps.games.steam.enable = true`)
-- Module imports of genuine always-on `modules/*` dependencies (e.g. `layers/core.nix` importing
+- Module imports of genuine always-on `modules/*` dependencies (e.g. `layers/console/core.nix` importing
   `../modules/system/users.nix` - see §5's "always-on baseline modules" category)
 - Host type flags (e.g. `host.type.develop = true`)
 

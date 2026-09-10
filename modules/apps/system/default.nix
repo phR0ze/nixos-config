@@ -10,5 +10,6 @@
     ./starship
     ./veracrypt
     ./wezterm
+    ./zellij
   ];
 }

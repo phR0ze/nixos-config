@@ -30,16 +30,15 @@ let
   hasSecrets = host.secrets != null;
 
   passwordConfig = if hasSecrets
-    then { hashedPasswordFile = lib.mkForce config.secret.files."user-passwordhash".path; }
+    then { hashedPasswordFile = lib.mkForce config.secret.files."user/passwordHash".path; }
     else { initialPassword = lib.mkForce host.user.pass; };
 in
 {
   config = lib.mkMerge [
     (lib.mkIf hasSecrets {
-      secret.files."user-passwordhash" = {
+      secret.files."user/passwordHash" = {
         filemode = "0400";
         sopsFile = host.secrets;
-        key = "user/passwordHash";
       };
     })
 
@@ -48,10 +47,9 @@ in
     # their admin account via passwordHashSecretRef instead (see below), so they never need the
     # plaintext decrypted to disk at all.
     (lib.mkIf (hasSecrets && !host.user.secret) {
-      secret.files."user-password" = {
+      secret.files."user/password" = {
         filemode = "0400";
         sopsFile = host.secrets;
-        key = "user/password";
       };
     })
 

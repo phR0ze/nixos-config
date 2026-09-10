@@ -9,15 +9,13 @@
 {
   imports = [
     ../../modules/virtualisation/qemu/guest.nix
-    ../../layers/core.nix
-    ../../layers/base.nix
+    ../../layers/console/vps.nix
   ];
 
   config = {
     host.type.vm = true;
     host.vm.type.micro = true;
     host.user.secret = true;
-
     host.net.dns.force = true;
 
     # Minimal headless VM specs - just enough to run a command line system
