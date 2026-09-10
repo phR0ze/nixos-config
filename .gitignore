@@ -2,11 +2,13 @@
 *.swp
 *.pid
 *.qcow2
+keys.txt
 /temp
 /files.log
 /files.tmp
 result
 /vm-*
+/vps
 
 # Ignore decrypted files to avoid security breaches
 *.dec.*

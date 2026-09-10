@@ -25,7 +25,7 @@
       wmctl = final.callPackage ../packages/wmctl {};
     } // (let
       pkgsUnstable = import inputs.nixpkgs-unstable {
-        system = prev.system;
+        system = prev.stdenv.hostPlatform.system;
         config.allowUnfreePredicate = pkg: true;
         config.android_sdk.accept_license = true;
         config.nvidia.acceptLicense = true;

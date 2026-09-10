@@ -69,6 +69,7 @@ Commands:
   list, ll          List out system information
   logs              Print out logging for various components
   manage            Manage the clu repo
+  mkpasswd          Generate a sha-512 password hash for use in secrets.enc.yaml
   pkgs              Package management commands
   registry          Interact with the nix registry
   repl              Launch the Nix repl
@@ -123,6 +124,7 @@ if [[ "x$CMD" != "x" ]]; then
         list) list::run "${ARGS[@]}" ;;
         ll) list::run "${ARGS[@]}" ;;   # list alias
         manage) manage::run "${ARGS[@]}" ;;
+        mkpasswd) mkpasswd::run "${ARGS[@]}" ;;
         pkgs) pkgs::run "${ARGS[@]}" ;;
         registry) registry::run "${ARGS[@]}" ;;
         repl) repl::run "${ARGS[@]}" ;;
