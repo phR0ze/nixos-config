@@ -152,21 +152,6 @@ in {
 }
 ```
 
-Most modules under `modules/` follow this opt-in pattern, but two other recognized categories exist
-in the same tree - both intentional, not inconsistencies:
-- **Always-on baseline modules** (`modules/system/{locale,nix,users}.nix`, `modules/system/terminal/`,
-  `modules/services/systemd.nix`) - no self `enable` option at all. These aren't auto-imported through
-  the `modules/default.nix` chain; they're directly imported by `layers/console/core.nix`/`layers/console/base.nix`,
-  which every host's bundle includes, so every host gets them unconditionally by design.
-- **Host-type-gated modules** (e.g. `modules/devices/boot.nix`) - also no self `enable` option, but
-  gated on `host.type.*` capability flags (`lib.mkIf (!host.type.vm && !host.type.iso) {...}`) rather
-  than a discretionary feature toggle. These *are* auto-imported through the `modules/default.nix`
-  chain like opt-in modules, they just key off hardware/role flags instead of their own enable.
-
-Option namespaces follow `<category>.<subcategory?>.<name>.enable` (e.g. `apps.dev.rust.enable`,
-`services.oci.<name>.enable`, `devices.<name>.enable`) - browse `modules/` for the current set
-rather than trusting an enumerated list here, it drifts.
-
 ### The `host` Type (`modules/types/host.nix`)
 
 Central hub defining all host-level configuration. Every field defaults from the composed `args`

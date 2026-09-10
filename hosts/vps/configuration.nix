@@ -18,6 +18,9 @@
     host.user.secret = true;
     host.net.dns.force = true;
 
+    # Temp testing location
+    sops.age.keyFile = "/tmp/shared/key.txt";
+
     # Minimal headless VM specs - just enough to run a command line system
     # --------------------------------------------
     virtualisation.qemu.guest = {
