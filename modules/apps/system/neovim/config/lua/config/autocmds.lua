@@ -18,6 +18,9 @@ vim.api.nvim_create_autocmd("QuickFixCmdPost", {
 vim.api.nvim_create_autocmd("CmdlineChanged", {
   pattern = "*",
   callback = function()
+    if vim.fn.getcmdtype() ~= ":" then
+      return
+    end
     local cmdline_cmd = vim.fn.split(vim.fn.getcmdline(), " ")[1]
     if cmdline_cmd == "find" or cmdline_cmd == "b" then
       vim.fn.wildtrigger()
