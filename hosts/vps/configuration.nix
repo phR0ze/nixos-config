@@ -10,6 +10,7 @@
   imports = [
     ../../modules/virtualisation/qemu/guest.nix
     ../../layers/console/vps.nix
+    ../../layers/console/low-mem.nix
   ];
 
   config = {
