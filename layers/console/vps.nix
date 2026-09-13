@@ -1,9 +1,9 @@
 # vps.nix provides a hardenend minimal server environment
 #
 # ### Background
-# The target system for this configuration is a public virtual private server. These types of systems
-# typically don't provide an option for installing directly from a NixOS iso and require using
-# nixos-infect to get started.
+# The target system for this configuration is a public virtual private server. VPS providers don't
+# typically provide an option for installing directly from a NixOS iso and require using nixos-infect
+# to get started.
 #
 # ### Features
 # - Bash custom shell configuration
