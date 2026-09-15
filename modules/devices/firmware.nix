@@ -4,10 +4,15 @@
 #---------------------------------------------------------------------------------------------------
 { config, pkgs, lib, ... }:
 let
+  cfg = config.devices.firmware;
   host = config.host;
 in
 {
-  config = lib.mkIf (!host.type.vm) {
+  options = {
+    devices.firmware.enable = lib.mkEnableOption "Configure additional firmware";
+  };
+
+  config = lib.mkIf (cfg.enable && !host.type.vm) {
     # - 'hardware.enableRedistributableFirmware = true;' is just a short cut for the below list
     hardware.firmware = with pkgs; [
       linux-firmware

@@ -2,7 +2,7 @@
 #
 # ### Details
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }: with lib.types;
+{ config, lib, pkgs, ... }:
 let
   cfg = config.devices.printers;
   host = config.host;
@@ -10,12 +10,13 @@ in
 {
   options = {
     devices.printers = {
+      enable = lib.mkEnableOption "Configure printer support";
       epson-wf7710 = lib.mkEnableOption "Configure Epson WF-7710 support";
       brother-hll2405w = lib.mkEnableOption "Configure Brother HL-L2405W support";
     };
   };
 
-  config = lib.mkMerge [
+  config = lib.mkIf (cfg.enable) (lib.mkMerge [
 
     # Common configuration
     # ----------------------------------------------------------------------------------------------
@@ -51,7 +52,7 @@ in
       # Enable SANE scanner support
       # https://wiki.nixos.org/wiki/Scanners
       hardware.sane = {
-        enable = true; 
+        enable = true;
         extraBackends = [
           pkgs.epkowa                         # Epson scanner support
           pkgs.utsushi                        # Generic scanner support
@@ -65,5 +66,5 @@ in
       users.users.${host.user.name}.extraGroups = [ "scanner" ];
     })
 
-  ];
+  ]);
 }
