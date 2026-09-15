@@ -21,6 +21,8 @@
 
   # Enable services
   apps.network.rustdesk.enable = true;      # Simple fast remote desktop solution
+  devices.printers.enable = true;           # Printer/scanner support (cups, avahi discovery)
+  devices.firmware.enable = true;           # Additional firmware (wifi, bluetooth, sound, dvb, etc.)
 
   # Additional apps
   environment.systemPackages = with pkgs; [
