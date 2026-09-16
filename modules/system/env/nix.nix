@@ -11,6 +11,8 @@ let
 in
 {
   options.system.env.nix = {
+    enable = lib.mkEnableOption "default nix environment settings";
+
     configurationRevision = lib.mkOption {
       type = lib.types.str;
       default = "";
