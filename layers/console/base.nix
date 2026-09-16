@@ -7,24 +7,25 @@
 # --------------------------------------------------------------------------------------------------
 { config, pkgs, lib, ... }:
 let
-  host = config.host;
+  cfg = config.layers.console.base;
 in
 {
-  imports = [
-    ./core.nix
-    ../../modules/system/env/nix.nix
-    ../../modules/services/systemd.nix
-  ];
+  options = {
+    layers.console.core = {
+      enable = lib.mkEnableOption "Enable the core layer";
+      harden = lib.mkEnableOption "Enable security hardening configuration";
+      lowMemory = lib.mkEnableOption "Enable the low memory configuration";
+    };
+  };
 
-  apps.dev.git.enable = true;                     # Git version control for flake management
-  apps.system.neovim.enable = true;               # Terminal text editor
-  apps.system.zellij.enable = true;               # Terminal multiplexing
+
+  layers.console.
 
   # Kernel/sysctl tuning for a machine with plenty of RAM
   devices.kernel.profile = [ "desktop" "high-mem" ];
 
   apps.system.clu.enable = true;
-  apps.system.starship.enable = true;
+  system.env.starship.enable = true;
   services.raw.openssh.enable = true;   # SSH tooling
 
   environment.systemPackages = with pkgs; [

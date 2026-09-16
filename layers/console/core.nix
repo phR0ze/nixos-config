@@ -28,6 +28,8 @@ in
       system.env.bash.enable = true;                # Enable custom bash configuration
       system.env.vars.enable = true;                # Enable standard env variables
       system.env.dircolors.enable = true;           # Enable custom dircolors
+      system.env.systemd.enable = true;             # Enable standard systemd configuration
+      system.env.starship.enable = true;            # Enable the starship shell prompt
 
       apps.dev.git.enable = true;                   # Git version control for flake management
       apps.system.neovim.enable = true;             # Terminal text editor
@@ -41,47 +43,26 @@ in
         jq                                   # Command line JSON processor, depof: kubectl
         psmisc                                # Proc filesystem utilities e.g. killall
         sops                                # Industry standard encryption at rest
-
-        # essential utilities
-        logrotate                           # Rotates and compresses system logs
       ];
     })
 
     # Low memory
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf (cfg.enable && cfg.lowMemory) {
-
-      # Sysctl tuning favoring aggressive reclaim over disk swap thrash 
-      devices.kernel.lowMemory = true;
-
-      # zram swap cheaply extends effective memory by taking a portion of the physical memory and
-      # turning it into a compressed swap. this will allow for over doubling the available size
-      zramSwap = {
-        enable = true;
-        algorithm = "zstd";                         # default compression algorithm
-        memoryPercent = 50;                         # zram size relative to RAM
-        priority = 100;                             # use this before disk swap
-      };
-
-      # systemd-oomd to kill runaway processes before the kernel OOM killer stalls the system
-      systemd.oomd = {
-        enable = true;
-        enableRootSlice = true;
-        enableUserSlices = true;
-      };
+      devices.boot.lowMemory = true;                # zram swap to cheaply extend effective memory
+      devices.kernel.lowMemory = true;              # aggressive reclaim as swap is in memory
+      system.env.systemd.lowMemory  = true;         # cap journld and ensure its persisted
     })
 
-    # Harden the core
+    # Harden
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf (cfg.enable && cfg.harden) {
-
-      # Network hardening
       networking.domain = "";                       # always required fuly-qualified names
       networking.firewall.allowPing = lib.mkForce false;
 
-      boot.tmp.cleanOnBoot = true;                  # clean /tmp on every boot
-      security.lockKernelModules = true;            # block loading new kernel modules once boot is complete
-      security.protectKernelImage = true;           # block reading /boot and loading unsigned kernel images at runtime
+      devices.boot.harden = true;                   # clean /tmp on every boot
+      devices.kernel.harden = true;                 # include kernel hardening configuration
+      system.env.systemd.harden = true;             # additional security and low memory options
     })
   ];
 }

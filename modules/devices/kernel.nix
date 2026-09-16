@@ -20,23 +20,24 @@ in
     # Harden the kernel security
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf (cfg.harden) {
-      boot.kernel.sysctl."vm.swappiness" = 1;     # Minimal amount of swapping without disabling entirely
+      security.lockKernelModules = true;            # block loading new kernel modules once boot is complete
+      security.protectKernelImage = true;           # block reading /boot and loading unsigned kernel images at runtime
     })
 
     # Reduce swapping as we have plenty of memory
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf (cfg.desktop || cfg.highMemory) {
-      boot.kernel.sysctl."vm.swappiness" = 1;     # Minimal amount of swapping without disabling entirely
+      boot.kernel.sysctl."vm.swappiness" = 1;       # Minimal amount of swapping without disabling entirely
     })
 
     # Aggressive reclaim tuning for hosts with limited RAM (e.g. small VMs, VPSs)
     (lib.mkIf (cfg.lowMemory) {
       boot.kernel.sysctl = {
-        "vm.swappiness" = 100;                    # high because zram makes swap cheap
+        "vm.swappiness" = 100;                      # high because zram makes swap cheap
         "vm.vfs_cache_pressure" = 50;
         "vm.min_free_kbytes" = 16384;
-        "vm.watermark_boost_factor" = 0;          # avoid excessive reclaim boosting on tiny systems
-        "vm.watermark_scale_factor" = 125;        # slightly more aggressive kswapd wakeup, helps low-mem
+        "vm.watermark_boost_factor" = 0;            # avoid excessive reclaim boosting on tiny systems
+        "vm.watermark_scale_factor" = 125;          # slightly more aggressive kswapd wakeup, helps low-mem
       };
     })
 

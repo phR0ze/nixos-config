@@ -155,7 +155,7 @@ in {
 **Every module requires an explicit `enable` option - no exceptions.** There is no "always-on
 baseline" category: a module must never apply config merely by being imported. This matters even
 for modules only ever imported by a single layer (e.g. `modules/system/users.nix`,
-`modules/system/locale.nix`, `modules/services/systemd.nix`) - the layer that imports such a
+`modules/system/locale.nix`, `modules/system/env/systemd.nix`) - the layer that imports such a
 module must also set `<namespace>.<name>.enable = true;` in the same file, so the module's own
 `lib.mkIf (cfg.enable)` gate is what actually turns its config on, not the accident of import
 order. This keeps every module independently testable/toggleable and keeps `configuration.nix`
