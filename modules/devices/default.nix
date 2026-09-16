@@ -6,6 +6,7 @@
     ./boot.nix
     ./firmware.nix
     ./gpu.nix
+    ./networking.nix
     ./printers.nix
     ./scanners.nix
     ./kernel.nix

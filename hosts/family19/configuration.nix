@@ -14,7 +14,7 @@
   ];
 
   config = {
-    host.type.bootable = true;
+    devices.boot.efi = true;
     host.nix.cache.enable = true;
     host.smb.secrets = ./secrets.enc.yaml;   # real per-share passwords (lydia)
     devices.gpu.nvidia = { enable = true; open = true; };

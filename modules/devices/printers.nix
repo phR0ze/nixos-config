@@ -32,11 +32,9 @@ in
         nssmdns4 = true;
         openFirewall = true;
       };
-    }
 
-    (lib.mkIf (!host.user.secret) {
       users.users.${host.user.name}.extraGroups = [ "lp" ];
-    })
+    }
 
     # Brother HL-L2405W support
     # ----------------------------------------------------------------------------------------------

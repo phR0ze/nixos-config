@@ -19,7 +19,7 @@ in
   ];
 
   config = {
-    host.type.bootable = true;
+    devices.boot.efi = true;
     virtualisation.podman.enable = true;
     virtualisation.qemu.host.enable = true;
 

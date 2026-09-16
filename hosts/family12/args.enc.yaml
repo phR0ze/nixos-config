@@ -6,7 +6,6 @@ host:
     hostname: ENC[AES256_GCM,data:gI2x/VBBvT4=,iv:Sw0QhUOfMjcAYLkObQF+KS1en32wYAsqptUxbwmJZzk=,tag:gKxcVrZHnNpkLl1FUcsXoQ==,type:str]
     timezone: ENC[AES256_GCM,data:xjoBpl3c4CYAPQYKUg==,iv:/UXJml/rzLPez7yM1m0Tx7qUY3CIKly5Bqzc5akhIks=,tag:Hmv8QbhOdGfVBre2mW5+PA==,type:str]
     id: ENC[AES256_GCM,data:7b1sLTWKZe2QfuFyiKmQ7uES6Gla84b9h9JE+moXjvk=,iv:cFO1Y0sC5L2oaLA+Opjt+dB/qUAKaQQxKj4JY1qbo3c=,tag:YFppf7iGza+YSOxym4+rBg==,type:str]
-    efi: ENC[AES256_GCM,data:z1LhJA==,iv:gE9qqjOI0QWFyXQChakCib2ctc761A0iqetca91vd/g=,tag:HjcQ0twiC4SlkWIXtgI8oQ==,type:bool]
     drives:
         - uuid: ENC[AES256_GCM,data:0PjIVCDscVu6FtbxbAMonfLoPy6AaQqpnXxTNpmWtjRAUNDg,iv:NGRgFVBZ+Ifc1EK+lnBP6A8DOPes4tFWRMjtdxgAKt8=,tag:jR6n02dDtdVKL+zcXt9LYQ==,type:str]
     nix:
@@ -22,7 +21,7 @@ sops:
             HvG9XVqXut/ebZkVUsTgqn9dWU3a3tvxJa5G/qhn108EhGJ2Laobbg==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-09-05T21:17:45Z"
-    mac: ENC[AES256_GCM,data:f5OyAfINvJlqZAMPLEwo9BMGZvJs45WO6h0xlElpWfjD7tZufhcy675PME38WvV0nXL0Qu/LwydT8KB3SAdSPYGWOtsCU9B9SYttMOf7V+MU2WjwCfNIBjtueMhfGGXJ91JB7yxoUI6HaJRgV9uZNv+i6J4xeAsXnpfim2RZD3Q=,iv:BjDIrA05hiLcKw1HSSNIQv1qYPczmyl7+J6gYnEt10U=,tag:ENXSsVDOK/842AUmKiCRNg==,type:str]
+    lastmodified: "2026-09-15T15:55:11Z"
+    mac: ENC[AES256_GCM,data:qkkacHSLK/OLVlorI+2aYLvQ8AZ4KUkKyeYcPXk2Kf2sL4+T/6oJTmR3KNAydXWl/5vtRBbL1xxxyV15ZcMnJHpYA1RIL40W8qx47P9SMbRqrErq3YXSQYNr/yf5fBzFGPsilr3WP35TpU3ZtaLQ7p5iDrXs3vluZMqfV/XUSOE=,iv:LeUrqzzf40y25IGfiAKn2fKr6Qb9o3sm5vvPN3FBnT0=,tag:ER5Mn/kKw6NLsGrr7quMGw==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1

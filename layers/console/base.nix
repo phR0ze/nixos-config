@@ -2,7 +2,6 @@
 #
 # ### Features
 # - Kernel custom configuration
-# - Grub EFI/MBR bootable
 # - Passwordless access for Sudo for default user
 # - SSHD custom configuration
 # --------------------------------------------------------------------------------------------------
@@ -12,33 +11,24 @@ let
 in
 {
   imports = [
-    ../../modules/system/users.nix
-    ../../modules/system/locale.nix
-    ../../modules/system/nix.nix
-    ../../modules/system/terminal
+    ./core.nix
+    ../../modules/system/env/nix.nix
     ../../modules/services/systemd.nix
   ];
-
-  # Original Nix base version we installed with
-  system.stateVersion = config.host.nix.minVer;
 
   apps.dev.git.enable = true;                     # Git version control for flake management
   apps.system.neovim.enable = true;               # Terminal text editor
   apps.system.zellij.enable = true;               # Terminal multiplexing
 
-  environment.systemPackages = with pkgs; [
-    git                                 # Fast distributed version control system
-    jq                                  # Command line JSON processor, depof: kubectl
-    logrotate                           # Rotates and compresses system logs
-    psmisc                              # Proc filesystem utilities e.g. killall
-    sops                                # Industry standard encryption at rest
-  ];
+  # Kernel/sysctl tuning for a machine with plenty of RAM
+  devices.kernel.profile = [ "desktop" "high-mem" ];
 
   apps.system.clu.enable = true;
   apps.system.starship.enable = true;
   services.raw.openssh.enable = true;   # SSH tooling
 
   environment.systemPackages = with pkgs; [
+
     nfs-utils                     # Support programs for Network File Systems
     wget                          # Retrieve files using HTTP, HTTPS, and FTP
 

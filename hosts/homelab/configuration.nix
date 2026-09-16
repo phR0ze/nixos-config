@@ -11,7 +11,7 @@
   ];
 
   config = {
-    host.type.bootable = true;
+    devices.boot.efi = true;
     host.net.bridge.enable = true;
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
     host.autologin = true;

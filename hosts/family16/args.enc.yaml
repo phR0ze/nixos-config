@@ -4,7 +4,6 @@ net:
         ip: ENC[AES256_GCM,data:rG3EKK1AScsVytVVyPRZ,iv:fJp32MLKg62SNqjaYTOkiVm58QTL+D9NPdnXdRffTFc=,tag:oms8E7VnA0vo5QUpR/C9iw==,type:str]
 host:
     hostname: ENC[AES256_GCM,data:0ekb3nyhvWg=,iv:lA8T5KN+vsNQC8QVxilSI7I5B/Cfx8y1fT8jpVZdeOE=,tag:2WJhwQVJJHnv50gAqpSVlA==,type:str]
-    efi: ENC[AES256_GCM,data:ypJrNg==,iv:kOPQZyG3iFF7D/csiuGeya7uyytbYAHc7qCyvGVW86Q=,tag:g/mMZ4DusitmxXimiBqVOA==,type:bool]
     id: ENC[AES256_GCM,data:YpOTYAAIPrH0rVHK7dpAGdm6vu1/JtUGkhuaSnmIA98=,iv:KSI257eUzg8wsmjFaPc9rk2+HrCkg+UIMPPp9NO9djU=,tag:TYQaUQ9k6kLgwPj1ev4LyA==,type:str]
     drives:
         - uuid: ENC[AES256_GCM,data:gSqGg+Qs2bQmKBXoo7t/Ayz0Xf4e0pjOQY/SzrDbOvFd/Ii/,iv:H/v8GiN9+tcq8s5RSTkXa8q33iwwOO8XsgI5PA4sZDs=,tag:09VR61wbDM6SPEnL2Pthtw==,type:str]
@@ -19,7 +18,7 @@ sops:
             vP4CR0Ld6ahUNvHwlsBYXpEkQbUKqlPwEFFsMb/ILZ/Vmc2OggrPAA==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-09-05T21:17:45Z"
-    mac: ENC[AES256_GCM,data:MoF7T+etQ6fuoTCkQeRrV1iJF3Q/C6INd/pf6K+++PqrSiTTbTzt4jpI2jVngte5O0Q7RPk8Yj8rxmS6OkHUwjZA+0AHxUU2pvovclLhlMPP3mWjk+I/61sUgvMlqJT3RvNFu4NK/htYBsyjlE+ZbIxktnBl70mgQ4fomJVETKM=,iv:4zeA4pbfJUrWVlqoHnMapaOyckLTIZVFP0Irywlc2oA=,tag:GmXAIyK56LaNKzwRhooCGg==,type:str]
+    lastmodified: "2026-09-15T15:55:12Z"
+    mac: ENC[AES256_GCM,data:9ZtIc1XKqFVlQsm8KSAXjEyKzlfAe/pGUPs9nxa2TKesnOkPCWjDusJIpD3z6cwYIUQQdB063A5NuFRIQN63+ZZpu52IrzZTt+5yfzaGWYlQAJaWn46QuCBJTWax8Mj91I46R5iV+Y3ns2lZ+5ALnZBPhIMWUTQRx3FyqRoR7wg=,iv:zm6kTngrDMbtMpIea7O3fUbkkXwjPiW037ZHfvVYw4M=,tag:1A7nAeivDuaiD/qJHmkA2w==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1

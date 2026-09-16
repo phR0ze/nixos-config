@@ -20,11 +20,11 @@ let
   # nothing currently builds or runs this. Kept only as the runtime-safe pattern to wire up
   # (mirroring modules/services/raw/x11vnc) once the service itself is implemented: run
   # `vncpasswd` at service start against the plaintext secret decrypted to
-  # config.secret.files."user-password".path (declared once in modules/users.nix) rather than
-  # baking the password into a Nix derivation.
+  # config.secret.files."users/admin/password".path (declared once in modules/users.nix) rather
+  # than baking the password into a Nix derivation.
   vncPasswd = pkgs.writeShellScript "kasmvnc-passwd" ''
     set -euo pipefail
-    cat ${config.secret.files."user-password".path} | ${kasmvnc}/bin/vncpasswd -u "${host.user.name}" -o
+    cat ${config.secret.files."users/admin/password".path} | ${kasmvnc}/bin/vncpasswd -u "${host.user.name}" -o
   '';
 in
 {

@@ -16,8 +16,6 @@ in
     # ----------------------------------------------------------------------------------------------
     { assertion = (cfg.hostname != null); message = "assert host.hostname: ${cfg.hostname}"; }
     { assertion = (cfg.target != null); message = "assert host.target: ${cfg.target}"; }
-    { assertion = (cfg.efi != null); message = "assert host.efi: ${f.boolToStr cfg.efi}"; }
-    { assertion = (cfg.mbr != null); message = "assert host.mbr: ${cfg.mbr}"; }
     { assertion = (cfg.arch == "x86_64-linux"); message = "assert host.arch: ${cfg.arch}"; }
     { assertion = (cfg.locale == "en_US.UTF-8"); message = "assert host.locale: ${cfg.locale}"; }
     { assertion = (cfg.timezone == "America/Boise"); message = "assert host.timezone: ${cfg.timezone}"; }
