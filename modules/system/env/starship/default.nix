@@ -9,11 +9,11 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.apps.system.starship;
+  cfg = config.system.env.starship;
 in
 {
   options = {
-    apps.system.starship = {
+    system.env.starship = {
       enable = lib.mkEnableOption "Install and configure Starship shell prompt";
     };
   };

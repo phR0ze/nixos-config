@@ -23,26 +23,49 @@ in
       default = "nodev";
       description = "BIOS MBR boot device e.g. '/dev/sda', or 'nodev' to disable BIOS MBR support";
     };
+
+    harden = lib.mkEnableOption "Enable hardening for boot";
+    lowMemory = lib.mkEnableOption "Enable low memory configuration for boot";
   };
 
-  config = lib.mkIf (cfg.efi || cfg.mbr != "nodev") {
-    assertions = [
-      { assertion = !(cfg.efi && cfg.mbr != "nodev");
-        message = "devices.boot.efi and devices.boot.mbr are mutually exclusive - set only one"; }
-    ];
+  config = lib.mkMerge [
+    (lib.mkIf (cfg.efi || cfg.mbr != "nodev") {
+      assertions = [
+        { assertion = !(cfg.efi && cfg.mbr != "nodev");
+          message = "devices.boot.efi and devices.boot.mbr are mutually exclusive - set only one"; }
+      ];
 
-    boot.loader = {
-      grub.enable = true;
+      boot.loader = {
+        grub.enable = true;
 
-      # Defaults to '/boot' and only gets used if efiSupport is true
-      efi.efiSysMountPoint = "/boot";
-      grub.efiSupport = cfg.efi;
+        # Defaults to '/boot' and only gets used if efiSupport is true
+        efi.efiSysMountPoint = "/boot";
+        grub.efiSupport = cfg.efi;
 
-      # i.e. EFI/BOOT/BOOTX64.efi
-      grub.efiInstallAsRemovable = cfg.efi;
+        # i.e. EFI/BOOT/BOOTX64.efi
+        grub.efiInstallAsRemovable = cfg.efi;
 
-      # Configure the BIOS MBR boot device, e.g. '/dev/sda'
-      grub.device = cfg.mbr;
-    };
-  };
+        # Configure the BIOS MBR boot device, e.g. '/dev/sda'
+        grub.device = cfg.mbr;
+      };
+    })
+
+    # Clean /tmp on every boot
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf (cfg.harden) {
+      boot.tmp.cleanOnBoot = true;
+    })
+
+    # zram swap cheaply extends effective memory by taking a portion of the physical memory and
+    # turning it into a compressed swap. this will allow for over doubling the available size
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf (cfg.lowMemory) {
+      zramSwap = {
+        enable = true;
+        algorithm = "zstd";                         # default compression algorithm
+        memoryPercent = 50;                         # zram size relative to RAM
+        priority = 100;                             # use this before disk swap
+      };
+    })
+  ];
 }
