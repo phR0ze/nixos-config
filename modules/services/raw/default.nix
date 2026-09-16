@@ -18,7 +18,6 @@
     ./selkies
     ./smartd
     ./smb
-    ./sshd
     ./sunshine
     ./synology-drive-client
     ./tailscale

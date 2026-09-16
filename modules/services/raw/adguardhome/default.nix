@@ -62,7 +62,7 @@ let
       /var/lib/AdGuardHome/AdGuardHome.yaml
   '';
 
-  ipAddress = (f.toIP config.net.primary.ip).address;
+  ipAddress = (f.toIP config.devices.network.primary.ip).address;
 in
 {
   options = {

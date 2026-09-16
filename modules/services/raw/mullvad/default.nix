@@ -30,7 +30,7 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  nic = config.net.primary.name;
+  nic = config.devices.network.primary.name;
   cfg = config.services.raw.mullvad;
 in
 {

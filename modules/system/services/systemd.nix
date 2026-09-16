@@ -6,11 +6,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
-  cfg = config.system.env.systemd;
+  cfg = config.system.services.systemd;
 in
 {
   options = {
-    system.env.systemd = {
+    system.services.systemd = {
       enable = lib.mkEnableOption "Enable standard systemd configuration";
 
       harden = lib.mkEnableOption ''

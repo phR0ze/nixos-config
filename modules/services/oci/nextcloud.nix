@@ -42,7 +42,7 @@ in
       autoStart = true;
       hostname = "${cfg.name}";
       networks = [ cfg.name ];                  # Isolated app specific network
-      ports = [ "${(f.toIP config.net.primary.ip).address}:${toString cfg.port}:80" ];
+      ports = [ "${(f.toIP config.devices.network.primary.ip).address}:${toString cfg.port}:80" ];
       volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];
       extraOptions = [ "--ip=${cfg.ip}" ];
     };
