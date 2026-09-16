@@ -7,6 +7,5 @@
     ./neovide
     ./veracrypt
     ./wezterm
-    ./zellij
   ];
 }
