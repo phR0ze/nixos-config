@@ -11,15 +11,24 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
-  host = config.host;
   cfg = config.system.users;
   passwordConfig = config.secret.files."users/admin/passwordHash".path;
 in
-{ 
+{
   options = {
     system.users = {
       admin.enable = lib.mkEnableOption "Create admin user with secret name/pass from secrets.enc.yaml";
       desktopExtras = lib.mkEnableOption "Configure additional settings for a desktop";
+
+      sopsFile = lib.mkOption {
+        description = lib.mdDoc ''
+          Path to the host's `secrets.enc.yaml`, decrypted at activation time by sops-nix to
+          source the admin user's name/group/password hash. Required when `system.users.admin`
+          or `system.users.desktopExtras` is enabled.
+        '';
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+      };
     };
   };
 
@@ -27,8 +36,15 @@ in
 
     # Admin user with secret username and password
     (lib.mkIf (cfg.admin.enable) {
+      assertions = [
+        {
+          assertion = cfg.sopsFile != null;
+          message = "system.users.admin is enabled but system.users.sopsFile is not set.";
+        }
+      ];
+
       secret.users."admin" = {
-        sopsFile = host.secrets;
+        sopsFile = cfg.sopsFile;
         userSecretRef = "users/admin/name";
         groupSecretRef = "users/admin/group";
         passwordHashSecretRef = "users/admin/passwordHash";
@@ -49,8 +65,8 @@ in
 
       # Configure runtime admin user secrets
       secret.files = {
-        "users/admin/password" = { filemode = "0400"; sopsFile = host.secrets; };
-        "users/admin/passwordHash" = { filemode = "0400"; sopsFile = host.secrets; };
+        "users/admin/password" = { filemode = "0400"; sopsFile = cfg.sopsFile; };
+        "users/admin/passwordHash" = { filemode = "0400"; sopsFile = cfg.sopsFile; };
       };
 
       # Set the root password to the same as the admin user
