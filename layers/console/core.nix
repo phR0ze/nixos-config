@@ -33,8 +33,8 @@ in
       system.env.systemd.enable = true;             # Enable standard systemd configuration
       system.env.neovim.enable = true;              # Best terminal text editor
       system.env.starship.enable = true;            # Enable the starship shell prompt
+      system.env.zellij.enable = true;              # Terminal multiplexing
 
-      apps.system.zellij.enable = true;             # Terminal multiplexing
     })
 
     # Low memory

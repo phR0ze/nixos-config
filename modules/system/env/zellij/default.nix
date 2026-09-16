@@ -6,11 +6,11 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.apps.system.zellij;
+  cfg = config.system.env.zellij;
 in
 {
   options = {
-    apps.system.zellij = {
+    system.env.zellij = {
       enable = lib.mkEnableOption "Install and configure Zellij terminal multiplexer";
     };
   };

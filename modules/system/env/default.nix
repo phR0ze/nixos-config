@@ -13,6 +13,7 @@ in
     ./starship
     ./systemd.nix
     ./vars.nix
+    ./zellij
   ];
 
   options = {
