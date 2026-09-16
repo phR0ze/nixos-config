@@ -3,7 +3,7 @@
   imports = [
     ./apps
     ./devices
-    ./networking.nix
+    ../layers
     ./services
     ./system
     ./types

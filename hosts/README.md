@@ -66,7 +66,6 @@ inclusion that I've named `args` throughout my configuration.
 | `autologin`               | bool  | `false`           | Automatically log the user in or not after boot
 | `resolution.x`            | int   | `0`               | Resolution x dimension, e.g. 1920
 | `resolution.y`            | int   | `0`               | Resolution y dimension, e.g. 1080
-| `type.bootable`           | bool  | `false`           | Host requires a bootloader
 | `type.vm`                 | bool  | `false`           | Host is a virtual machine
 | `type.iso`                | bool  | `false`           | Enable or disable ISO mode
 | `type.develop`            | bool  | `false`           | Host is intended to be used for development

@@ -120,7 +120,7 @@ clu                    # Bash entry point
 lib/                   # Bash library modules (one per command)
 flake.nix / flake.lock # The single shared flake (permanently committed)
 args.nix               # Default arguments (static, committed - never mutated by clu)
-modules/               # All NixOS modules - opt-in feature namespaces AND always-on baseline (see §5)
+modules/               # All NixOS modules - every one is an opt-in feature namespace (see §5)
 layers/                # Composable configuration layers + bundles/ aggregators (see §6)
 hosts/<name>/          # Per-host configurations (22+ hosts) - configuration.nix, hardware-configuration.nix,
                        #   args.enc.yaml/args.nix, secrets.enc.yaml, optionally .isolated (see §2)
@@ -152,6 +152,15 @@ in {
 }
 ```
 
+**Every module requires an explicit `enable` option - no exceptions.** There is no "always-on
+baseline" category: a module must never apply config merely by being imported. This matters even
+for modules only ever imported by a single layer (e.g. `modules/system/users.nix`,
+`modules/system/locale.nix`, `modules/services/systemd.nix`) - the layer that imports such a
+module must also set `<namespace>.<name>.enable = true;` in the same file, so the module's own
+`lib.mkIf (cfg.enable)` gate is what actually turns its config on, not the accident of import
+order. This keeps every module independently testable/toggleable and keeps `configuration.nix`
+diffs honest about what's actually turned on for a host.
+
 ### The `host` Type (`modules/types/host.nix`)
 
 Central hub defining all host-level configuration. Every field defaults from the composed `args`
@@ -177,9 +186,10 @@ here.
 
 Each layer adds:
 - Package lists via `environment.systemPackages`
-- Option enables (e.g. `apps.games.steam.enable = true`)
-- Module imports of genuine always-on `modules/*` dependencies (e.g. `layers/console/core.nix` importing
-  `../modules/system/users.nix` - see §5's "always-on baseline modules" category)
+- Option enables (e.g. `apps.games.steam.enable = true`) - including for `modules/*` dependencies
+  that only this layer imports (e.g. `layers/console/core.nix` importing
+  `../modules/system/users.nix` alongside setting `system.users.enable = true;` - see §5, every
+  module requires an explicit enable regardless of how narrowly it's imported)
 - Host type flags (e.g. `host.type.develop = true`)
 
 A host's `configuration.nix` typically imports one bundle. For a one-off combination not covered by

@@ -11,7 +11,7 @@
   ];
 
   config = {
-    host.type.bootable = true;
+    devices.boot.efi = true;
     devices.gpu.intel.enable = true;
     system.x11.xft.dpi = 115;
     host.smb.secrets = ./secrets.enc.yaml;   # per-share passwords (all default "admin")

@@ -7,7 +7,7 @@ smb:
     entries:
         - mountPoint: ENC[AES256_GCM,data:PhRPXpQUU1UR,iv:x1egVuepyrjIl8QSfFSFj06TGuR+c4TMrzmpxBjRlOU=,tag:rNYjD+QjNRXylGItOlJTGA==,type:str]
           remotePath: ENC[AES256_GCM,data:EVnOg3u+osSRzVDbgzRm9f0f,iv:oQBPm2IYTu3/HiLR0Ktq96uwHdXdlEgBity7zBDepIM=,tag:HrJrobfN5E0FVp8NOkjlGg==,type:str]
-          writable: ENC[AES256_GCM,data:saY8KQ==,iv:LUx3ugTzXCGdQ3OOF4yyJtVXjhZVFQUnlYy4SMXmjvU=,tag:JHrs8pEL0hpDxq3FAKKJ2Q==,type:bool]
+          writable: ENC[AES256_GCM,data:HgzRiQ==,iv:d95qslmQGOnKuWt1FXpnRt5r5Xt7UY1gcla89HcWxVE=,tag:dJK3Xd+hxvFom0ceZ1W6EQ==,type:bool]
         - mountPoint: ENC[AES256_GCM,data:dZnsI5r+R5bKOc+J1g==,iv:+BCs90oVmRLiVumEbB4cSnJMg49x/ATsHLnCb4h1xd0=,tag:cPhBYH68ITMG6IbddwAdwg==,type:str]
           remotePath: ENC[AES256_GCM,data:1ZgKY13uGpLA48o9A/7yH1G6+A==,iv:UqVlRIQhkMPqKNlCo8NPARRyiYv+t88wRETo4zFAXl8=,tag:VnmPS6oZ5FnmZm1HBWB5uA==,type:str]
           writable: ENC[AES256_GCM,data:26bWK2g=,iv:wmk1mm4SoRj2UTIcEZmP9Dyo++pZ8S0+8+2qOE83kZ8=,tag:SFgxFK5P/hKIuVk5FPkS0Q==,type:bool]
@@ -19,7 +19,6 @@ host:
     hostname: ENC[AES256_GCM,data:9H8HVRJYNW0=,iv:W8vm78v5+W26T4YD7V8caX1YsKVIitrVvPQLB80XPJw=,tag:J8pinRkBzstDdLtUbzebNg==,type:str]
     timezone: ENC[AES256_GCM,data:CajQr1NMB5Z6pdV1PA==,iv:GJ+8POL2+y6IdoouSCNZOiixLarL9SyR0DT3UyK6jtA=,tag:5ntRXqHkV9jWN63CJBjmSg==,type:str]
     id: ENC[AES256_GCM,data:RCJUqZBFTv1bJ98PBxTECQbWctcf5WMRmHPuP8X3TlQ=,iv:nccomSLmL/xhk+GuFPDeFf0aryx00XTS11Y6Hwv12/E=,tag:IjWaqwL5aumkXUMc2qcdnw==,type:str]
-    efi: ENC[AES256_GCM,data:NLFAPg==,iv:4pVbn9q5NdXQ7sfbIWiPX0ME4EjB1uyKYflAYcs0+u8=,tag:U7LQVsuorj66w136kuAdFA==,type:bool]
     drives:
         - uuid: ENC[AES256_GCM,data:jpxbJf6pIvhGlTTd5ggxQfSs8/p12dMiaGOJxZVB+jeH2iCv,iv:zmCPO+dytbO5PrRFHzT+6yvPg0UestsoFdfjBFPh58c=,tag:r1QQHQkP4UQlN58gynH0kw==,type:str]
     nix:
@@ -35,7 +34,7 @@ sops:
             X3+XC5+hs9W2pJR2/QihAK2tMRHp4/ptXYVquI9Uf7GI1nCop+JnVg==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-09-05T21:17:45Z"
-    mac: ENC[AES256_GCM,data:fqHxgQ82wxHklXd1U2H83dHNMPVvCMWA7qHDqTVIdA0GSlQ+vZJVm65ojdAGYyRS4heZtrn1UjiQ9vWpLzGPr96+GdrbjTGFvSSaBxkHJzm0RRj13xj70IoQ8Y/8hvpfS3rCiKIliIS5JxBA91eXxrm/HVbbYT0jHaxfeb4KIu8=,iv:aoOLEryqOhYV/cY0ckMVcEtGRE38T9/oPRF0tYnYN4Q=,tag:R2LXqKGOZMaYO0+rMs9KFQ==,type:str]
+    lastmodified: "2026-09-15T15:55:12Z"
+    mac: ENC[AES256_GCM,data:bRKPriUkwaWgdcTomX79BCpb44m3e7ShmCPbZDfdhb31Z7oz1+xYAZe9Hur30qKLBSf7vZrAKPyapRBUHv5EeN8wuEi4BAqqZa4OzX1HrxChoeMqU9p2nIWAs0NYcmWtFpnwNic+Za9hJm6tK9Zp4msDY707vw1w2oOqFGGJVvk=,iv:tWKCCaxUpYJwifkDmK+djBqgF3/SVppWWF6ZgQo0PTQ=,tag:qbeMj4VJCi3UcPhSgNpCJw==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1

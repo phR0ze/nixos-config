@@ -19,7 +19,6 @@ smb:
 host:
     hostname: ENC[AES256_GCM,data:H60Ncu3CAjSLgT4=,iv:FgOW48X9stRN03zsTRCFpuhn6N61RI87w4yShbs0P8o=,tag:E8p+yAM8UpK716uUo3BrOg==,type:str]
     id: ENC[AES256_GCM,data:X7RxUdTsnjn5t30BZC25QAqKhKUppTOqedDOmHFSgco=,iv:/VhiUH7rDyDx7DaS5M/Rts3+JWp1ysYMRPx+9PHHhj8=,tag:XI+hv6CL+H/wHo/bZ5g9lw==,type:str]
-    efi: ENC[AES256_GCM,data:c8UJvg==,iv:tf7k+297F+4sdUU2nYrIEPFOrmCWDaip8j7/GDgSOsg=,tag:SlXc4oW00YwQXdRCn8y73A==,type:bool]
     drives:
         - uuid: ENC[AES256_GCM,data:fAUOuvvnk/kVpMGnxGYLWIhaSnQuSxlfThIcQME2Nj2gyMM9,iv:s8VeP7k9Gk10kOrTA0iHrv+fU+uSAPhJxElEejEj4P0=,tag:0ptdmU6XnRqIzYJE3+VRow==,type:str]
     nix:
@@ -39,7 +38,7 @@ sops:
             rRmeDKVUqLm4Z7pKqjj/IoptYXtTp632NLCpzsaNn4peTBhW0IZLlg==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-09-05T21:17:45Z"
-    mac: ENC[AES256_GCM,data:eR+M7tIHHP8L4GV9KQlvtxEeOB0fFwfsMmnC9q69jB4ulLUjqeUL6s034r6VK/r11H3YEh1yVlKpc67b9EIdVqlKQLm3bmX72gu9nf5DLmDHvfMTRkNG/zOekj1BxLr49AOlWkpJGQlGG4T68h47ITf5b266HlsDWNHRQZFja0M=,iv:O6QN9dmGrNi/52D0QZ4HIRutTMGLO3XhY+nKU3Gp0jo=,tag:Y0W52eX3AAmByeX/SSHiSw==,type:str]
+    lastmodified: "2026-09-15T15:55:12Z"
+    mac: ENC[AES256_GCM,data:ATJayrZVROy14sJHXf9cIfjxNdk3/UfowKg5F/JO6scuADnANWEIAbCeLjqRu6u0ZdYFcSPFl/fWPuI7zMusfxv8mTtaGjwesuqxIVdiuSH91+ETi1RoXbmo+Hqej9aN44pCBaxxNAGEcuJ60SDS7ZkGkuwhs16wkDVtvKF3HwM=,iv:1I+WoCpXXCrXHfm8h8g/KmhcYlwSeXUZk15OeMkS61E=,tag:eLkeEXKHNewdKBJzEFpaMQ==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1

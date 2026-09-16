@@ -38,7 +38,7 @@ let
     # never touching the Nix store.
     secret.files."user-passwordhash" = {
       sopsFile = host.secrets;
-      key = "user/passwordHash";
+      key = "users/admin/passwordHash";
     };
   };
 in

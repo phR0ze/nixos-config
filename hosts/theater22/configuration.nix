@@ -11,7 +11,7 @@
   ];
 
   config = {
-    host.type.bootable = true;
+    devices.boot.efi = true;
     devices.gpu.intel.enable = true;
     host.autologin = true;
     host.nix.cache.enable = true;

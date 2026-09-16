@@ -16,7 +16,7 @@
   ];
 
   config = {
-    host.type.bootable = true;
+    devices.boot.mbr = "/dev/sdb";
     host.nix.cache.enable = true;
     apps.games.warcraft2.enable = true;
     devices.gpu.nvidia = { enable = true; legacy470 = true; };

@@ -8,8 +8,6 @@
   host.id = "";                         # Machine id for the system
   host.target = "layers/bundles/xfce-desktop.nix"; # Pre-defined configurations './hosts' or './layers', used only by nixosConfigurations.install
   host.hostname = "nixos";              # Fallback hostname, only used by nixosConfigurations.install/iso; real hosts always use their hosts/<hostname> directory name
-  host.efi = false;                     # EFI system boot type set during installation
-  host.mbr = "nodev";                   # MBR system boot device set during installation, e.g. /dev/sda
   host.arch = "x86_64-linux";           # System architecture to use
   host.locale = "en_US.UTF-8";          # Locale selection
   host.timezone = "America/Boise";      # Time-zone selection

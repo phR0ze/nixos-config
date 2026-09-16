@@ -28,7 +28,8 @@ let
       # Hardcoded to match modules/system/users.nix's own literal `uid = 1000;` for the admin
       # account, rather than reading back from `config.users.users.${name}` - that lazily forces
       # NixOS to materialize a `users.users.<name>` submodule instance merely by being referenced,
-      # which breaks when `host.user.secret` is set (no such declarative account exists to read).
+      # which breaks on non-ISO hosts (the account is created imperatively via secret.users, no
+      # such declarative instance exists to read).
       uid      = 1000;
       gid      = 1000;
     };
@@ -55,7 +56,6 @@ in
             '';
             type = types.submodule {
               options = {
-                bootable = lib.mkEnableOption "Host requires a bootloader to boot up";
                 vm = lib.mkEnableOption "Host is a virtual and does not need a bootloader";
                 iso = lib.mkEnableOption "Host is intended to be used as an ISO image";
                 develop = lib.mkEnableOption "Host is intended to be used as a Development system";
@@ -102,18 +102,6 @@ in
             description = lib.mdDoc "Host or layer used during installation";
             type = types.str;
             default = args.host.target or "";
-          };
-
-          efi = lib.mkOption {
-            description = lib.mdDoc "Enable EFI";
-            type = types.bool;
-            default = args.host.efi or false;
-          };
-
-          mbr = lib.mkOption {
-            description = lib.mdDoc "BIOS mbr is enabled when not 'nodev'";
-            type = types.str;
-            default = args.host.mbr or "nodev";
           };
 
           drives = lib.mkOption {

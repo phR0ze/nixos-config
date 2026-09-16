@@ -14,7 +14,7 @@
   ];
 
   config = {
-    host.type.bootable = true;
+    devices.boot.mbr = "/dev/sda";
     host.nix.cache.enable = true;
 
     # Broken

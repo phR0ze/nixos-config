@@ -217,14 +217,12 @@ install::install_config()
     log::ls -n "Staging ${cyan}host.id=${uuid}${none}..."
     args=$(echo "$args" | jq --arg k "host.id" --arg v "${uuid}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
+    # devices.boot.efi/mbr are plain (non-secret) config, so they're written directly into the
+    # generated configuration.nix below rather than staged here as an encrypted arg.
     if [[ $EFI -eq 1 ]]; then
-        log::ls -n "Staging ${cyan}host.efi=true${none}..."
-        args=$(echo "$args" | jq --arg k "host.efi" --argjson v true '($k | split(".")) as $p | setpath($p; $v)')
-        log::status
+        BOOT_CFG_LINE="devices.boot.efi = true;"
     else
-        log::ls -n "Staging ${cyan}host.mbr=${DESTDEV}${none}..."
-        args=$(echo "$args" | jq --arg k "host.mbr" --arg v "${DESTDEV}" '($k | split(".")) as $p | setpath($p; $v)')
-        log::status
+        BOOT_CFG_LINE="devices.boot.mbr = \"${DESTDEV}\";"
     fi
 
     local root_uuid=$(sudo blkid -s UUID -o value ${PART_ROOT})
@@ -346,7 +344,7 @@ install::install_config()
   ];
 
   config = {
-    host.type.bootable = true;
+    ${BOOT_CFG_LINE}
     #host.nix.cache.enable = true;
   };
 }
