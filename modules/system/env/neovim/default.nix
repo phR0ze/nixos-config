@@ -5,18 +5,18 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
-  cfg = config.apps.system.neovim;
-  x11 = config.system.x11;
+  cfg = config.system.env.neovim;
 in
 {
   options = {
-    apps.system.neovim = {
+    system.env.neovim = {
       enable = lib.mkEnableOption "Install and configure Neovim";
+      xdgLauncher = lib.mkEnableOption "Register a Neovim XDG desktop menu entry";
     };
   };
 
   config = lib.mkMerge [
-    (lib.mkIf (x11.enable && cfg.enable) {
+    (lib.mkIf (cfg.enable && cfg.xdgLauncher) {
 
       # Set the correct category for nvim
       system.xdg.menu.itemOverrides = [{

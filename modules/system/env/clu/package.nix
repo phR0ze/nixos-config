@@ -16,26 +16,12 @@
 # as `src` means the bundled clu always matches the version you built the ISO
 # from, with no manual maintenance required.
 #---------------------------------------------------------------------------------------------------
-{ pkgs, stdenvNoCC, src, makeWrapper }:
+{ stdenvNoCC, src, makeWrapper }:
 
 stdenvNoCC.mkDerivation {
   name = "clu";
   version = "1.0.0";
   inherit src;
-
-  propagatedBuildInputs = with pkgs; [
-    coreutils                           # stat provide file ownership
-    gawk                                # awk provides text extraction
-    git                                 # git is used to manage nixos-config
-    gnused                              # sed is used to search and replace
-    inxi                                # inxi is used to discover system details
-    jq                                  # jg is used to generate and work with json
-    openssh                             # scp is used to automated retrieving sops secrets
-    psmisc                              # Ensure general purpose tooling available
-    sops                                # sops is used to decrypt and encrypt secrets
-    sudo                                # provides the ability to elevate privileges safely
-    yq                                  # yq is used to convert build-time args to/from yaml
-  ];
 
   nativeBuildInputs = [
     makeWrapper
