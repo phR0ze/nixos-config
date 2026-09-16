@@ -17,7 +17,7 @@
       # Include custom packages in the global pkgs variable to make them available throughout the
       # codebase rather than having to call them with a full path. Note package.nix is used rather
       # than default.nix, as default.nix is reserved for option definitions.
-      clu = final.callPackage ./apps/system/clu/package.nix { src = inputs.self; };
+      clu = final.callPackage ./system/env/clu/package.nix { src = inputs.self; };
       arcologout = final.callPackage ../packages/arcologout {};
       desktop-assets = final.callPackage ../packages/desktop-assets {};
       rdutil = final.callPackage ../packages/rdutil {};

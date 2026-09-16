@@ -24,11 +24,10 @@ in
   # Kernel/sysctl tuning for a machine with plenty of RAM
   devices.kernel.profile = [ "desktop" "high-mem" ];
 
-  apps.system.clu.enable = true;
-  system.env.starship.enable = true;
   services.raw.openssh.enable = true;   # SSH tooling
 
   environment.systemPackages = with pkgs; [
+    inxi                        # used by clu for hardware evaluation
 
     nfs-utils                     # Support programs for Network File Systems
     wget                          # Retrieve files using HTTP, HTTPS, and FTP

@@ -24,26 +24,17 @@ in
     (lib.mkIf (cfg.enable) {
       system.users.admin.enable = true;             # Create the default admin user
 
+      system.env.clu.enable = true;                 # NixOS orchestration tool
       system.env.nix.enable = true;                 # Enable default nix environment settings
+      system.env.git.enable = true;                 # Git version control for flake management
       system.env.bash.enable = true;                # Enable custom bash configuration
       system.env.vars.enable = true;                # Enable standard env variables
       system.env.dircolors.enable = true;           # Enable custom dircolors
       system.env.systemd.enable = true;             # Enable standard systemd configuration
+      system.env.neovim.enable = true;              # Best terminal text editor
       system.env.starship.enable = true;            # Enable the starship shell prompt
 
-      apps.dev.git.enable = true;                   # Git version control for flake management
-      apps.system.neovim.enable = true;             # Terminal text editor
       apps.system.zellij.enable = true;             # Terminal multiplexing
-
-      # Fundamental packages all systems share
-      environment.systemPackages = with pkgs; [
-
-        # clu support
-        git                                 # Fast distributed version control system
-        jq                                   # Command line JSON processor, depof: kubectl
-        psmisc                                # Proc filesystem utilities e.g. killall
-        sops                                # Industry standard encryption at rest
-      ];
     })
 
     # Low memory

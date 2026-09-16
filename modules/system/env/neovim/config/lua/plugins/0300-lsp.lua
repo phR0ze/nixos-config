@@ -174,7 +174,10 @@ return {
               command = "clippy",
               extraArgs = { "--no-deps" },
             },
-            checkOnSave = true,
+            -- Don't auto-run cargo check/clippy on save; trigger manually with
+            -- `:RustLsp flycheckRun` (untrusted repos otherwise get their build.rs/proc
+            -- macros compiled and executed just by opening/saving a file).
+            checkOnSave = false,
             files = {
               excludeDirs = {
                 ".direnv",
