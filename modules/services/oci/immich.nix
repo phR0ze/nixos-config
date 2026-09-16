@@ -94,7 +94,7 @@ in
         image = "ghcr.io/immich-app/${cfg.name}-server:${cfg.tag}";
         autoStart = true;
         networks = [ cfg.name ];                  # Isolated app specific network
-        ports = [ "${(f.toIP config.net.primary.ip).address}:${toString cfg.port}:2283" ];
+        ports = [ "${(f.toIP config.devices.network.primary.ip).address}:${toString cfg.port}:2283" ];
         volumes = [
           "/var/lib/${cfg.name}/data:/data:rw"
           "/etc/localtime:/etc/localtime:ro"

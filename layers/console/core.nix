@@ -3,6 +3,7 @@
 # ### Features
 # - Basic Nix flake configuration
 # - Optional low memory optimizations
+# 
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
@@ -30,11 +31,25 @@ in
       system.env.bash.enable = true;                # Enable custom bash configuration
       system.env.vars.enable = true;                # Enable standard env variables
       system.env.dircolors.enable = true;           # Enable custom dircolors
-      system.env.systemd.enable = true;             # Enable standard systemd configuration
       system.env.neovim.enable = true;              # Best terminal text editor
       system.env.starship.enable = true;            # Enable the starship shell prompt
       system.env.zellij.enable = true;              # Terminal multiplexing
 
+      system.services.sshd.enable = true;           # Enable SSH configuration
+      system.services.systemd.enable = true;        # Enable standard systemd configuration
+
+      environment.systemPackages = with pkgs; [
+        # pulled in by clu:
+        # - coreutils gawk gnused jq psmisc sops sudo yq 
+
+        # pulled in by corePackages:
+        # - acl attr bashInteractive bzip2 coreutils-full cpio curl
+        # - diffutils findutils gawk getent getconf gnugrep gnupatch gnused gnutar gzip less
+        # - libcap ncurses netcat mkpasswd procps su time util-linux which xz zstd
+
+        just                                # A handy way to save and run project-specific commands
+        tree                                 # Simple dir listing app in tree form
+      ];
     })
 
     # Low memory
@@ -42,18 +57,18 @@ in
     (lib.mkIf (cfg.enable && cfg.lowMemory) {
       devices.boot.lowMemory = true;                # zram swap to cheaply extend effective memory
       devices.kernel.lowMemory = true;              # aggressive reclaim as swap is in memory
-      system.env.systemd.lowMemory  = true;         # cap journld and ensure its persisted
+      system.services.systemd.lowMemory  = true;    # cap journld and ensure its persisted
     })
 
     # Harden
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf (cfg.enable && cfg.harden) {
-      networking.domain = "";                       # always required fuly-qualified names
-      networking.firewall.allowPing = lib.mkForce false;
-
       devices.boot.harden = true;                   # clean /tmp on every boot
       devices.kernel.harden = true;                 # include kernel hardening configuration
-      system.env.systemd.harden = true;             # additional security and low memory options
+      devices.network.harden = true;                # networking hardening
+      system.services.sshd.harden = true;           # restrict sshd and enable CrowdSec brute-force protection
+      system.services.systemd.harden = true;        # additional security and low memory options
+      system.services.crowdsec.enable = true;       # enable broad CrowdSec protection
     })
   ];
 }

@@ -11,7 +11,6 @@ in
     ./neovim
     ./nix.nix
     ./starship
-    ./systemd.nix
     ./vars.nix
     ./zellij
   ];

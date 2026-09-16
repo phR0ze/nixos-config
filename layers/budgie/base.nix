@@ -11,7 +11,7 @@
   system.x11.enable = true;                   # Fonts, XFT, XDG, themes, libinput
   system.dmenu.enable = true;                 # Configure dmenu
   system.dconf.enable = true;                 # General configuration manager for GTK app settings
-  net.network-manager.enable = true;          # Enable network manager
+  devices.network.network-manager.enable = true;     # Enable network manager
   devices.audio.enable = true;                # Install necessary support for audio
   devices.bluetooth.enable = true;            # Install necessary support for bluetooth
 

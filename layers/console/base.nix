@@ -11,24 +11,17 @@ let
 in
 {
   options = {
-    layers.console.core = {
+    layers.console.base = {
       enable = lib.mkEnableOption "Enable the core layer";
       harden = lib.mkEnableOption "Enable security hardening configuration";
       lowMemory = lib.mkEnableOption "Enable the low memory configuration";
     };
   };
 
-
-  layers.console.
-
-  # Kernel/sysctl tuning for a machine with plenty of RAM
-  devices.kernel.profile = [ "desktop" "high-mem" ];
-
-  services.raw.openssh.enable = true;   # SSH tooling
+  devices.kernel.desktop = true;            # enable virtualization and other desktop norms
+  devices.kernel.highMemory = true;         # don't swap we have enough memory
 
   environment.systemPackages = with pkgs; [
-    inxi                        # used by clu for hardware evaluation
-
     nfs-utils                     # Support programs for Network File Systems
     wget                          # Retrieve files using HTTP, HTTPS, and FTP
 
@@ -40,7 +33,6 @@ in
     gptfdisk                      # Disk tools e.g. sgdisk, gdisk, cgdisk
     #'intel-ucode'               # required for Intel Microcode update files to boot
     inxi                          # CLI system information tool
-    just                          # A handy way to save and run project-specific commands
     libisoburn                    # xorriso ISO creation tools
     nix-prefetch                  # Utility to fetch git source to compute hashes
     nix-tree                      # Interactively browse Nix store path dependenices in the terminal
@@ -48,9 +40,7 @@ in
     smartmontools                 # Monitoring tools for hard drives
     squashfsTools                 # mksquashfs, unsquashfs
     testdisk                      # Checks and undeletes partitions + photorec
-    tree                          # Simple dir listing app in tree form
     usbutils                      # Tools for working with USB devices e.g. lsusb
-    yq                            # Command line YAML/XML/TOML processor
 
     # Compression utilities
     p7zip                         # Comman-line file archiver for 7zip format, depof: thunar
