@@ -22,6 +22,33 @@ in
     (lib.mkIf (cfg.harden) {
       security.lockKernelModules = true;            # block loading new kernel modules once boot is complete
       security.protectKernelImage = true;           # block reading /boot and loading unsigned kernel images at runtime
+
+      boot.kernel.sysctl = {
+        # Network stack: SYN flood / spoofing / redirect hardening
+        "net.ipv4.tcp_syncookies" = 1;
+        "net.ipv4.conf.all.rp_filter" = 1;
+        "net.ipv4.conf.default.rp_filter" = 1;
+        "net.ipv4.conf.all.accept_redirects" = 0;
+        "net.ipv4.conf.default.accept_redirects" = 0;
+        "net.ipv4.conf.all.secure_redirects" = 0;
+        "net.ipv4.conf.all.send_redirects" = 0;
+        "net.ipv4.conf.default.send_redirects" = 0;
+        "net.ipv4.conf.all.accept_source_route" = 0;
+        "net.ipv4.conf.default.accept_source_route" = 0;
+        "net.ipv4.icmp_echo_ignore_broadcasts" = 1;
+        "net.ipv4.icmp_ignore_bogus_error_responses" = 1;
+        "net.ipv4.conf.all.log_martians" = 1;
+
+        # BPF hardening
+        "net.core.bpf_jit_harden" = 2;
+        "kernel.unprivileged_bpf_disabled" = 1;
+
+        # Kernel info-leak / ptrace / misc hardening
+        "kernel.kptr_restrict" = 2;
+        "kernel.dmesg_restrict" = 1;
+        "kernel.yama.ptrace_scope" = 1;
+        "kernel.sysrq" = 0;
+      };
     })
 
     # Reduce swapping as we have plenty of memory
