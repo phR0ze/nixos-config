@@ -53,6 +53,25 @@ in
         LogLevel = "VERBOSE";                           # log the key fingerprint used on each auth attempt
       };
 
+      systemd.services.sshd.serviceConfig = {
+        ProtectSystem = "full";           # read-only /usr,/boot,/etc; /var,/run stay writable (sshd needs these)
+        ProtectHome = false;              # PAM modules (motd/lastlog) commonly touch home-adjacent paths
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectKernelLogs = true;
+        ProtectControlGroups = true;
+        ProtectClock = true;
+        ProtectHostname = true;
+        RestrictSUIDSGID = true;
+        LockPersonality = true;
+        RestrictRealtime = true;
+        MemoryDenyWriteExecute = true;
+        RestrictNamespaces = true;
+        RestrictAddressFamilies = [ "AF_INET" "AF_UNIX" ];   # IPv6 disabled fleet-wide already
+        # NoNewPrivileges intentionally NOT set: sshd forks per-connection children that setuid to
+        # the logging-in user, which NoNewPrivileges=true blocks and would break every login.
+      };
+
       # Turn on the shared CrowdSec engine (services.native.crowdsec) and feed it SSH-specific
       # detection - it already handles the generic engine/bouncer/profile/whitelist wiring.
       services.native.crowdsec.enable = true;

@@ -43,6 +43,11 @@ in
       settings.general.api.server.enable = true;   # local LAPI for the bouncer to query decisions from
       autoUpdateService = true;                    # daily `cscli hub update` to pick up new/CVE scenarios
 
+      # Local LAPI machine credentials, auto-provisioned by `cscli machine add --auto` on first
+      # activation (see the crowdsec module's ExecStartPre) whenever this file doesn't exist yet -
+      # required any time api.server.enable is set, regardless of the CAPI/hosted-console settings.
+      settings.lapi.credentialsFile = "/var/lib/crowdsec/local_api_credentials.yaml";
+
       # console.configuration.share_* are intentionally left at their false upstream defaults -
       # nothing is reported to CrowdSec's hosted console unless explicitly opted into.
       settings.capi.credentialsFile = cfg.capiCredentialsFile;
@@ -89,5 +94,45 @@ in
     };
 
     services.crowdsec-firewall-bouncer.enable = true;   # applies CrowdSec's ban decisions via iptables
+
+    systemd.services.crowdsec.serviceConfig = {
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      ReadWritePaths = [ "/var/lib/crowdsec" "/etc/crowdsec" ];
+      PrivateTmp = true;
+      NoNewPrivileges = true;
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectKernelLogs = true;
+      ProtectControlGroups = true;
+      ProtectClock = true;
+      ProtectHostname = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+      RestrictRealtime = true;
+      MemoryDenyWriteExecute = true;
+      RestrictNamespaces = true;
+      RestrictAddressFamilies = [ "AF_INET" "AF_UNIX" ];
+      CapabilityBoundingSet = [ "" ];   # the detection engine itself needs no special capabilities
+    };
+
+    systemd.services.crowdsec-firewall-bouncer.serviceConfig = {
+      # Needs CAP_NET_ADMIN/CAP_NET_RAW to manipulate iptables - cannot be capability-stripped like
+      # the engine above.
+      NoNewPrivileges = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
+      ProtectKernelTunables = true;
+      ProtectKernelLogs = true;
+      ProtectControlGroups = true;
+      ProtectClock = true;
+      ProtectHostname = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+      RestrictRealtime = true;
+      MemoryDenyWriteExecute = true;
+      CapabilityBoundingSet = [ "CAP_NET_ADMIN" "CAP_NET_RAW" ];
+    };
   };
 }
