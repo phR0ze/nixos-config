@@ -5,7 +5,7 @@
 #   acquisitions/scenarios/collections (e.g. services.native.sshd contributes SSH-specific detection
 #   on top of this when its own harden option is enabled)
 #---------------------------------------------------------------------------------------------------
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
   cfg = config.services.native.crowdsec;
 in
@@ -93,19 +93,87 @@ in
       };
     };
 
-    # Disabled for now: registerBouncer.enable hits an upstream nixpkgs bug (the register script
-    # invokes the raw cscli binary with no -c config flag, so it can't find its config file) -
-    # see https://github.com/NixOS/nixpkgs/issues/459224. Re-enable once wired up with a manually
-    # registered services.crowdsec-firewall-bouncer.secrets.apiKeyPath instead.
-    services.crowdsec-firewall-bouncer.enable = false;   # applies CrowdSec's ban decisions via iptables
+    services.crowdsec-firewall-bouncer = {
+      enable = true;   # applies CrowdSec's ban decisions via iptables
+
+      # registerBouncer.enable is broken upstream: crowdsec-firewall-bouncer-register.service
+      # shells out to config.services.crowdsec.package's *raw* cscli binary with no `-c` flag, but
+      # crowdsec.service itself only ever runs with `-c <store-path config.yaml>` - no config ever
+      # lands at cscli's compiled-in default path (/etc/crowdsec/config.yaml), so every
+      # registration attempt just errors "no configuration file found" (root cause is the same
+      # class of bug as https://github.com/NixOS/nixpkgs/issues/459224 - a hardcoded-path
+      # assumption in this module that doesn't match how crowdsec.service actually locates its
+      # config - though that issue itself covers the separate capi-credentials grep bug, not this).
+      # Register manually instead (below) using the fully wired-up `cscli` wrapper
+      # services.crowdsec already exposes on PATH via environment.systemPackages - it already
+      # carries the right `-c=<configFile>` and runs as the crowdsec user for us.
+      registerBouncer.enable = false;
+      secrets.apiKeyPath = "/var/lib/crowdsec-firewall-bouncer-register/api-key.cred";
+    };
+
+    # Replaces upstream's broken crowdsec-firewall-bouncer-register.service (see comment above) -
+    # same idempotent register-once-then-verify logic, just calling the working `cscli` wrapper
+    # instead of the raw, unconfigured package binary.
+    systemd.services.crowdsec-firewall-bouncer-register = {
+      description = "Register the CrowdSec Firewall Bouncer to the local CrowdSec service";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "crowdsec.service" ];
+      wants = [ "crowdsec.service" ];
+      # The `cscli` this script calls is upstream's own wrapper (services.crowdsec adds it to
+      # environment.systemPackages, not to any package we can reference directly) - that only
+      # lands on an interactive login shell's PATH, not a systemd unit's, so `path` needs
+      # config.system.path (the merged systemPackages profile) to actually find it (confirmed via
+      # a local quickemu VM test: failed "cscli: command not found" with only pkgs.jq here).
+      path = [ pkgs.jq config.system.path ];
+      script = ''
+        set -euo pipefail
+        apiKeyFile=/var/lib/crowdsec-firewall-bouncer-register/api-key.cred
+        if cscli bouncers list --output json | jq -e 'any(.[]; .name == "crowdsec-firewall-bouncer")' >/dev/null; then
+          if [ ! -f "$apiKeyFile" ]; then
+            echo "Bouncer registered but API key is not present"
+            exit 1
+          fi
+        else
+          rm -f "$apiKeyFile"
+          if ! cscli bouncers add --output raw -- crowdsec-firewall-bouncer >"$apiKeyFile"; then
+            rm -f "$apiKeyFile"
+            exit 1
+          fi
+        fi
+      '';
+      serviceConfig = {
+        Type = "oneshot";
+        User = config.services.crowdsec.user;
+        Group = config.services.crowdsec.group;
+        StateDirectory = "crowdsec-firewall-bouncer-register";
+        UMask = "0077";
+      };
+    };
+
+    systemd.services.crowdsec-firewall-bouncer.requires = [ "crowdsec-firewall-bouncer-register.service" ];
+    systemd.services.crowdsec-firewall-bouncer.after = [ "crowdsec-firewall-bouncer-register.service" ];
+
+    # Upstream's own crowdsec module creates every subdirectory it needs (state, hub, conf, ...)
+    # via systemd.tmpfiles.settings "d" rules owned by cfg.user/cfg.group, but never creates
+    # /var/lib/crowdsec itself that way - it relies on ReadWritePaths + DynamicUser's own
+    # StateDirectory-less chown-on-start behavior for the root dir. Declaring
+    # `StateDirectory = "crowdsec"` ourselves to plug that gap (a previous fix here) works on a
+    # clean first boot, but combined with upstream's `PrivateUsers = true` it silently regresses on
+    # the *next* boot: the two directory-ownership mechanisms disagree on which user-namespace view
+    # the persisted DynamicUser uid mapping applies to, so /var/lib/crowdsec ends up owned by the
+    # overflow uid (`nobody:nogroup`) instead of `crowdsec:crowdsec`, and crowdsec-setup's
+    # `mkdir -p /var/lib/crowdsec/state/hub/` then fails with "Permission denied" (confirmed via a
+    # local quickemu VM test: works on first activation, fails after a reboot). Matching upstream's
+    # own tmpfiles-based approach for this one directory instead of StateDirectory sidesteps the
+    # PrivateUsers/DynamicUser interaction entirely - the "state" subdirectory tmpfiles rule already
+    # gets this right every boot, so extending the same mechanism to the parent does too.
+    systemd.tmpfiles.settings."10-crowdsec-rootdir"."/var/lib/crowdsec".d = {
+      user = config.services.crowdsec.user;
+      group = config.services.crowdsec.group;
+      mode = "0750";
+    };
 
     systemd.services.crowdsec.serviceConfig = {
-      # Upstream's own crowdsec module uses DynamicUser without declaring StateDirectory, so
-      # systemd never reliably owns/persists /var/lib/crowdsec (a `-> private/crowdsec` symlink)
-      # across restarts - its ExecStartPre `mkdir /var/lib/crowdsec` then fails with "Permission
-      # denied", reproducibly even on a clean boot. Declaring it here makes systemd create/chown
-      # that directory and consistently reuse the same DynamicUser uid for it, as intended.
-      StateDirectory = "crowdsec";
       ProtectSystem = "strict";
       ProtectHome = true;
       ReadWritePaths = [ "/var/lib/crowdsec" "/etc/crowdsec" ];

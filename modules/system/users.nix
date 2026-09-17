@@ -48,6 +48,7 @@ in
         userSecretRef = "users/admin/name";
         groupSecretRef = "users/admin/group";
         passwordHashSecretRef = "users/admin/passwordHash";
+        authorizedKeysSecretRef = "users/admin/authorizedKeys";
         isNormalUser = true;
         uid = 1000;
         extraGroups = [ "wheel" ];
