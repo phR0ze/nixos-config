@@ -38,6 +38,23 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # crowdsec-firewall-bouncer creates an ipset (hash:net) to hold banned IPs the first time a
+    # decision actually needs enforcing - it doesn't ship its own explicit module dependency, it
+    # just relies on the kernel's normal on-demand autoload for ipset types. That autoload is a
+    # one-way door on a `devices.kernel.harden` host (services.native.sshd.harden turns this
+    # module on specifically for its bouncer): `security.lockKernelModules` sets
+    # `kernel.modules_disabled = 1` once boot completes, and after that NO further module can ever
+    # load, autoload included. If `ip_set_hash_net` hasn't already been loaded by then, the
+    # bouncer's first ban attempt fails silently with "Kernel error received: set type not
+    # supported" - the decision still shows up in `cscli decisions list` as a live ban, but no
+    # firewall rule/ipset entry ever gets created, so the "banned" IP is never actually blocked
+    # (confirmed via a local quickemu VM test: ran a real SSH brute-force against a hardened vps,
+    # watched crowdsec correctly detect and record the ban, then confirmed access was NOT actually
+    # blocked - the bouncer's own log showed the ipset creation error at the exact moment it tried
+    # to enforce it). Loading it explicitly at boot, before the lock engages, is what makes the
+    # rest of this module's hardening actually enforce anything.
+    boot.kernelModules = [ "ip_set" "ip_set_hash_net" ];
+
     services.crowdsec = {
       enable = true;
       settings.general.api.server.enable = true;   # local LAPI for the bouncer to query decisions from
