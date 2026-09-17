@@ -123,7 +123,16 @@ in
         LockPersonality = true;
         RestrictRealtime = true;
         MemoryDenyWriteExecute = true;
-        RestrictAddressFamilies = [ "AF_INET" "AF_UNIX" ];   # IPv6 disabled fleet-wide already
+        # AF_NETLINK included alongside AF_INET/AF_UNIX (IPv6 disabled fleet-wide already) - without
+        # it, this seccomp restriction is inherited by every login session's shell (same mechanism
+        # as RestrictNamespaces below) and silently breaks any netlink-based tool run over SSH -
+        # `ip`, `ss`, `iptables`/`ip6tables` (which crowdsec-firewall-bouncer itself needs to manage)
+        # all fail with "Cannot open netlink socket: Address family not supported by protocol"
+        # (confirmed via a local quickemu VM test). Basic network diagnostics/firewall admin is a
+        # normal part of managing a VPS remotely, so AF_NETLINK stays allowed rather than dropping
+        # the whole restriction - everything else (AF_PACKET, AF_NETLINK routing-only variants
+        # aside) stays blocked.
+        RestrictAddressFamilies = [ "AF_INET" "AF_UNIX" "AF_NETLINK" ];
         # NoNewPrivileges intentionally NOT set: sshd forks per-connection children that setuid to
         # the logging-in user, which NoNewPrivileges=true blocks and would break every login.
 
