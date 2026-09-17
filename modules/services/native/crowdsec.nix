@@ -173,6 +173,52 @@ in
       mode = "0750";
     };
 
+    # Upstream's own crowdsec-setup ExecStartPre guards `cscli machine add` with
+    # `[ ! -s local_api_credentials.yaml ]` (skip if the file is already non-empty), but `cscli`
+    # itself refuses to write to that path if it exists AT ALL, regardless of size - and separately,
+    # refuses to (re-)register a machine name that's already in CrowdSec's local database, even if
+    # its credentials file was lost. Either half of a registration can survive an interruption
+    # without the other (e.g. a power loss right after the DB insert but before `cscli` finishes
+    # writing the file, or right after the file is created but before it's populated - both
+    # confirmed via a local quickemu VM test simulating this), leaving `crowdsec.service` failing
+    # permanently on every subsequent start with either "file already exists" or "user already
+    # exist" until someone manually intervenes.
+    #
+    # This can't be plugged in via `serviceConfig.ExecStartPre` from our own module (tried
+    # `lib.mkBefore` first): upstream's own ExecStartPre list opens with a literal blank entry
+    # (`" " # This is needed to clear the ExecStartPre definitions from upstream`), which is
+    # systemd's own "wipe everything declared before this line in the unit file" directive. That
+    # blank entry always renders *after* anything a separate module contributes regardless of
+    # mkBefore/mkAfter priority, so it silently erased our step before it ever ran (confirmed via
+    # a local quickemu VM test: `systemctl cat` showed our ExecStartPre line present in the unit
+    # file, but it never actually executed). `mkAfter` doesn't work either - crowdsec-setup's own
+    # failure aborts the unit before a later ExecStartPre step would get a chance to run. A fully
+    # separate unit, ordered via normal `before`/`requiredBy`, sidesteps upstream's internal list
+    # entirely.
+    #
+    # Rather than just deleting a stale file and hoping upstream's own retry succeeds (it won't, if
+    # the DB-side registration also survived), proactively (re-)complete the registration ourselves
+    # with `--force` whenever the file isn't already valid - `--force` covers both "file exists" and
+    # "machine already exists" in one shot, per `cscli machines add --help`. Once this produces a
+    # valid, non-empty file, upstream's own `[ ! -s ... ]` guard just skips its attempt as normal.
+    systemd.services.crowdsec-clear-stale-lapi-creds = {
+      description = "Ensure a valid CrowdSec LAPI credentials file, recovering from an interrupted registration";
+      before = [ "crowdsec.service" ];
+      requiredBy = [ "crowdsec.service" ];
+      path = [ config.system.path ];
+      serviceConfig = {
+        Type = "oneshot";
+        User = config.services.crowdsec.user;
+        Group = config.services.crowdsec.group;
+        ExecStart = toString (pkgs.writeShellScript "crowdsec-clear-stale-lapi-creds" ''
+          f=/var/lib/crowdsec/state/local_api_credentials.yaml
+          if [ ! -s "$f" ]; then
+            cscli machine add "${config.services.crowdsec.name}" --auto --force -f "$f"
+          fi
+        '');
+      };
+    };
+
     systemd.services.crowdsec.serviceConfig = {
       ProtectSystem = "strict";
       ProtectHome = true;

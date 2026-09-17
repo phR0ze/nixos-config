@@ -40,6 +40,63 @@ in
                                                 |
 
       '';
+
+      # Dynamic system-info block, printed below the static ASCII motd above. /etc/motd itself is
+      # static (rendered once at build time), so live values (load, memory, IP, ...) can't live
+      # there - instead this sources on every interactive SSH login shell, right after sshd prints
+      # /etc/motd and before the user's prompt, giving the same "below my existing motd" placement.
+      # Guarded to SSH sessions only so local console/desktop shells don't get it too.
+      environment.etc."profile.d/motd-sysinfo.sh".text = ''
+        # shellcheck shell=bash
+        if [ -n "$SSH_CONNECTION" ] && [ -n "$PS1" ]; then
+          load="$(cut -d' ' -f1-3 /proc/loadavg)"
+          procs="$(ps ax --no-headers | wc -l)"
+          users="$(who | wc -l)"
+          user_label="users"
+          [ "$users" = "1" ] && user_label="user"
+
+          root_use="$(df -h --output=pcent,size / | tail -1 | awk '{print $1}')"
+          root_size="$(df -h --output=pcent,size / | tail -1 | awk '{print $2}')"
+
+          mem_pct="$(free | awk '/^Mem:/ {printf "%.0f%%", $3/$2*100}')"
+          swap_total="$(free | awk '/^Swap:/ {print $2}')"
+          swap_pct="0%"
+          [ "$swap_total" -gt 0 ] 2>/dev/null && swap_pct="$(free | awk '/^Swap:/ {printf "%.0f%%", $3/$2*100}')"
+
+          iface="$(ip -4 --color=never route show default 2>/dev/null | awk '{print $5; exit}')"
+          ipv4="$(ip -4 -o --color=never addr show dev "$iface" 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -1)"
+
+          os_pretty="$(. /etc/os-release; echo "$PRETTY_NAME")"
+          kernel="$(uname -r)"
+          host="$(hostname)"
+
+          cpu_model="$(lscpu | awk -F': +' '/^Model name:/ {print $2; exit}')"
+          virt="$(systemd-detect-virt 2>/dev/null)"
+          virt="''${virt:-none}"
+          sockets="$(lscpu | awk -F': +' '/^Socket\(s\):/ {print $2; exit}')"
+          cores="$(lscpu | awk -F': +' '/^Core\(s\) per socket:/ {print $2; exit}')"
+          threads="$(lscpu | awk -F': +' '/^Thread\(s\) per core:/ {print $2; exit}')"
+
+          ram="$(free -h | awk '/^Mem:/ {print $2}')"
+
+          if [ -d /sys/firmware/efi ]; then
+            boot="UEFI"
+          else
+            boot="BIOS"
+          fi
+
+          cpu_topology="''${sockets}S/''${cores}C/''${threads}T"
+          [ "$virt" != "none" ] && cpu_topology="$cpu_topology, $virt"
+
+          printf ' - Host:  %-24s %-20s %s\n' "$os_pretty" "Linux $kernel" "$host"
+          printf ' - CPU:   %-45s %s\n' "$cpu_model" "$cpu_topology"
+          printf ' - RAM:   %-24s %-20s %s swap\n' "$ram" "$mem_pct used" "$swap_pct"
+          printf ' - Disk:  %-24s %s\n' "$boot" "$root_use of $root_size used"
+          printf ' - Load:  %-24s %-20s %s %s\n' "$load" "$procs procs" "$users" "$user_label"
+          printf ' - IPv4:  %-24s %s\n' "''${ipv4:-unknown}" "''${iface:-eth0}"
+          printf '\n'
+        fi
+      '';
     })
 
     (lib.mkIf (cfg.enable && cfg.harden) {
