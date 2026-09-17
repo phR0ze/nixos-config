@@ -66,10 +66,18 @@ in
         LockPersonality = true;
         RestrictRealtime = true;
         MemoryDenyWriteExecute = true;
-        RestrictNamespaces = true;
         RestrictAddressFamilies = [ "AF_INET" "AF_UNIX" ];   # IPv6 disabled fleet-wide already
         # NoNewPrivileges intentionally NOT set: sshd forks per-connection children that setuid to
         # the logging-in user, which NoNewPrivileges=true blocks and would break every login.
+
+        # RestrictNamespaces intentionally NOT set: sandboxing directives on sshd.service apply
+        # (via seccomp) to every process descending from it, including each login session's shell -
+        # RestrictNamespaces=true silently breaks unshare()/`nix build`'s sandboxed builds for
+        # anyone administering the box over SSH (confirmed via a local quickemu VM test: `nix build`
+        # works fine locally at the console but fails "this system does not support the kernel
+        # namespaces that are required for sandboxing" the moment it's run over SSH). That defeats
+        # the primary admin workflow on a headless VPS - remote `nixos-rebuild`/`clu update` is how
+        # this host gets managed at all, so trade this one hardening knob for a working remote build.
       };
 
       # Turn on the shared CrowdSec engine (services.native.crowdsec) and feed it SSH-specific
