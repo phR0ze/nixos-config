@@ -12,6 +12,17 @@
 let
   cfg = config.machine;
   host = args.host or {};
+
+  nic0Defaults = {
+    name = host.network.nic0.name or "";
+    ip = host.network.nic0.ip or "";
+    mac = host.network.nic0.mac or "";
+    link = host.network.nic0.link or "";
+    subnet = host.network.nic0.subnet or "";
+    gateway = host.network.nic0.gateway or "";
+    dns.primary = host.network.nic0.dns.primary or "";
+    dns.fallback = host.network.nic0.dns.fallback or "";
+  };
 in
 {
   # Read in all modules in all directories to make all modules options available for opt in.
@@ -72,19 +83,16 @@ in
           };
 
           network = {
+            gateway = lib.mkOption {
+              description = lib.mdDoc "Default gateway, see `devices.network.gateway`";
+              type = types.str;
+              default = host.network.gateway or "";
+            };
 
-            nic0 = {
-              name = lib.mkOption {
-                description = lib.mdDoc "Primary NIC name, see `devices.network.nic0.name`";
-                type = types.str;
-                default = host.network.nic0.name or "";
-              };
-
-              ip = lib.mkOption {
-                description = lib.mdDoc "Primary NIC IP and CIDR combination, see `devices.network.nic0.ip`";
-                type = types.str;
-                default = host.network.nic0.ip or "";
-              };
+            subnet = lib.mkOption {
+              description = lib.mdDoc "Default subnet/CIDR, see `devices.network.subnet`";
+              type = types.str;
+              default = host.network.subnet or "";
             };
 
             dns = {
@@ -105,6 +113,12 @@ in
               description = lib.mdDoc "Use systemd-networkd, see `devices.network.networkd.enable`";
               type = types.bool;
               default = host.network.networkd.enable or false;
+            };
+
+            nic0 = lib.mkOption {
+              description = lib.mdDoc "Primary NIC options, see `devices.network.nic0`";
+              type = types.submodule (import ./types/nic.nix { inherit lib; defaults = nic0Defaults; });
+              default = nic0Defaults;
             };
           };
 
@@ -147,6 +161,8 @@ in
     system.env.git.user = cfg.git.user;
     system.env.git.email = cfg.git.email;
     system.users.sopsFile = cfg.sopsFile;
+    devices.network.gateway = cfg.network.gateway;
+    devices.network.subnet = cfg.network.subnet;
     devices.network.nic0.name = cfg.network.nic0.name;
     devices.network.nic0.ip = cfg.network.nic0.ip;
     devices.network.dns.primary = cfg.network.dns.primary;
