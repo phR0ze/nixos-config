@@ -93,6 +93,12 @@ in
                 default = host.network.dns.fallback or "";
               };
             };
+
+            networkd.enable = lib.mkOption {
+              description = lib.mdDoc "Use systemd-networkd, see `devices.network.networkd.enable`";
+              type = types.bool;
+              default = host.network.networkd.enable or false;
+            };
           };
 
           sopsFile = lib.mkOption {
@@ -137,6 +143,7 @@ in
     devices.network.nic0.ip = cfg.network.nic0.ip;
     devices.network.dns.primary = cfg.network.dns.primary;
     devices.network.dns.fallback = cfg.network.dns.fallback;
+    devices.network.networkd.enable = cfg.network.networkd.enable;
     users.users.root.openssh.authorizedKeys.keys = cfg.users.root.authorizedKeys;
   };
 }
