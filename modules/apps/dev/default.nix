@@ -8,7 +8,6 @@
     ./flutter
     ./gh
     ./gemini
-    ./git
     ./opencode
     ./rust
     ./vscode

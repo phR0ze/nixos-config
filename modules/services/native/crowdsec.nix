@@ -2,15 +2,15 @@
 #
 # ### Purpose
 # - Generic detection engine + firewall bouncer wiring, shared by any service that wants to feed it
-#   acquisitions/scenarios/collections (e.g. system.services.sshd contributes SSH-specific detection
+#   acquisitions/scenarios/collections (e.g. services.native.sshd contributes SSH-specific detection
 #   on top of this when its own harden option is enabled)
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
-  cfg = config.system.services.crowdsec;
+  cfg = config.services.native.crowdsec;
 in
 {
-  options.system.services.crowdsec = {
+  options.services.native.crowdsec = {
     enable = lib.mkEnableOption "Install and configure the CrowdSec detection engine and firewall bouncer";
 
     whitelist = lib.mkOption {

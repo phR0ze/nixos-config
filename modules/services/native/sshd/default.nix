@@ -2,11 +2,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
-  cfg = config.system.services.sshd;
+  cfg = config.services.native.sshd;
 in
 {
   options = {
-    system.services.sshd = {
+    services.native.sshd = {
       enable = lib.mkEnableOption "Install and configure openssh server";
       harden = lib.mkEnableOption "Apply recommended upstream security hardening to sshd";
     };
@@ -53,9 +53,9 @@ in
         LogLevel = "VERBOSE";                           # log the key fingerprint used on each auth attempt
       };
 
-      # Turn on the shared CrowdSec engine (system.services.crowdsec) and feed it SSH-specific
+      # Turn on the shared CrowdSec engine (services.native.crowdsec) and feed it SSH-specific
       # detection - it already handles the generic engine/bouncer/profile/whitelist wiring.
-      system.services.crowdsec.enable = true;
+      services.native.crowdsec.enable = true;
 
       services.crowdsec = {
         # linux transitively includes the sshd collection (sshd-logs/sshd-success-logs parsers plus

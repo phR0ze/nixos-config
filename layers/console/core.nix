@@ -35,8 +35,8 @@ in
       system.env.starship.enable = true;            # Enable the starship shell prompt
       system.env.zellij.enable = true;              # Terminal multiplexing
 
-      system.services.sshd.enable = true;           # Enable SSH configuration
-      system.services.systemd.enable = true;        # Enable standard systemd configuration
+      services.native.sshd.enable = true;           # Enable SSH configuration
+      services.native.systemd.enable = true;        # Enable standard systemd configuration
 
       environment.systemPackages = with pkgs; [
         # pulled in by clu:
@@ -57,7 +57,7 @@ in
     (lib.mkIf (cfg.enable && cfg.lowMemory) {
       devices.boot.lowMemory = true;                # zram swap to cheaply extend effective memory
       devices.kernel.lowMemory = true;              # aggressive reclaim as swap is in memory
-      system.services.systemd.lowMemory  = true;    # cap journld and ensure its persisted
+      services.native.systemd.lowMemory  = true;    # cap journld and ensure its persisted
     })
 
     # Harden
@@ -66,9 +66,9 @@ in
       devices.boot.harden = true;                   # clean /tmp on every boot
       devices.kernel.harden = true;                 # include kernel hardening configuration
       devices.network.harden = true;                # networking hardening
-      system.services.sshd.harden = true;           # restrict sshd and enable CrowdSec brute-force protection
-      system.services.systemd.harden = true;        # additional security and low memory options
-      system.services.crowdsec.enable = true;       # enable broad CrowdSec protection
+      services.native.sshd.harden = true;           # restrict sshd and enable CrowdSec brute-force protection
+      services.native.systemd.harden = true;        # additional security and low memory options
+      services.native.crowdsec.enable = true;       # enable broad CrowdSec protection
     })
   ];
 }
