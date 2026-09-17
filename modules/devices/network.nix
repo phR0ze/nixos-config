@@ -24,18 +24,11 @@ let
 in
 {
   options.devices.network = {
-    network-manager.enable = lib.mkEnableOption "Install and configure network manager";
-
     harden = lib.mkEnableOption "Apply recommended networking hardening";
+    networkManager.enable = lib.mkEnableOption "Install and configure network manager";
 
     hostname = lib.mkOption {
       description = lib.mdDoc "Hostname to assign to the system";
-      type = types.str;
-      default = "";
-    };
-
-    user = lib.mkOption {
-      description = lib.mdDoc "Primary user to grant NetworkManager permissions to";
       type = types.str;
       default = "";
     };
@@ -194,7 +187,7 @@ in
 
     # Configure network manager
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.network-manager.enable) {
+    (lib.mkIf (cfg.networkManager.enable) {
       # NetworkManager runs its own internal DHCP client. Leaving the legacy scripted-networking
       # dhcpcd client enabled at the same time means both independently DHCP the same interface and
       # can race to register their own (possibly differing) DNS servers with resolved - dhcpcd was
@@ -226,7 +219,7 @@ in
       '';
 
       # Enables ability for user to make network manager changes
-      users.users.${cfg.user}.extraGroups = [ "networkmanager" ];
+      secret.users."admin".extraGroups = [ "networkmanager" ];
     })
 
     (lib.mkIf (cfg.bridge.enable) {

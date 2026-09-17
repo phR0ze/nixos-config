@@ -46,7 +46,7 @@ in
       # Local LAPI machine credentials, auto-provisioned by `cscli machine add --auto` on first
       # activation (see the crowdsec module's ExecStartPre) whenever this file doesn't exist yet -
       # required any time api.server.enable is set, regardless of the CAPI/hosted-console settings.
-      settings.lapi.credentialsFile = "/var/lib/crowdsec/local_api_credentials.yaml";
+      settings.lapi.credentialsFile = "/var/lib/crowdsec/state/local_api_credentials.yaml";
 
       # console.configuration.share_* are intentionally left at their false upstream defaults -
       # nothing is reported to CrowdSec's hosted console unless explicitly opted into.
@@ -96,6 +96,12 @@ in
     services.crowdsec-firewall-bouncer.enable = true;   # applies CrowdSec's ban decisions via iptables
 
     systemd.services.crowdsec.serviceConfig = {
+      # Upstream's own crowdsec module uses DynamicUser without declaring StateDirectory, so
+      # systemd never reliably owns/persists /var/lib/crowdsec (a `-> private/crowdsec` symlink)
+      # across restarts - its ExecStartPre `mkdir /var/lib/crowdsec` then fails with "Permission
+      # denied", reproducibly even on a clean boot. Declaring it here makes systemd create/chown
+      # that directory and consistently reuse the same DynamicUser uid for it, as intended.
+      StateDirectory = "crowdsec";
       ProtectSystem = "strict";
       ProtectHome = true;
       ReadWritePaths = [ "/var/lib/crowdsec" "/etc/crowdsec" ];
@@ -110,7 +116,10 @@ in
       RestrictSUIDSGID = true;
       LockPersonality = true;
       RestrictRealtime = true;
-      MemoryDenyWriteExecute = true;
+      # NOT MemoryDenyWriteExecute: crowdsec's regex engine (go-re2, via the wazero WASM runtime)
+      # JIT-compiles to native code and needs W^X-violating executable+writable pages to do it -
+      # enabling this makes crowdsec.service panic with "mmapExecutable: permission denied" on
+      # every start.
       RestrictNamespaces = true;
       RestrictAddressFamilies = [ "AF_INET" "AF_UNIX" ];
       CapabilityBoundingSet = [ "" ];   # the detection engine itself needs no special capabilities
