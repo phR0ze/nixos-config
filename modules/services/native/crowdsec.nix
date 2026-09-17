@@ -38,27 +38,20 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # crowdsec-firewall-bouncer creates an ipset (hash:net) to hold banned IPs, then inserts an
-    # iptables/ip6tables rule matching packets against it (`-m set --match-set ... -j DROP`) - none
-    # of this ships as an explicit module dependency, it all relies on the kernel's normal
-    # on-demand autoload. That autoload is a one-way door on a `devices.kernel.harden` host
-    # (services.native.sshd.harden turns this module on specifically for its bouncer):
-    # `security.lockKernelModules` sets `kernel.modules_disabled = 1` once boot completes, and
-    # after that NO further module can ever load, autoload included. Two distinct failure points
-    # were found here via a local quickemu VM test (ran a real SSH brute-force against a hardened
-    # vps, watched crowdsec correctly detect and record the ban, then confirmed access was NOT
-    # actually blocked both times):
-    #   1. Without `ip_set`/`ip_set_hash_net` loaded first, creating the set itself fails
-    #      ("Kernel error received: set type not supported").
-    #   2. Even with the set created successfully, without `xt_set`/`xt_comment` loaded first, the
-    #      iptables rule referencing that set fails to insert ("Extension set revision 0 not
-    #      supported, missing kernel module?") - a separate module from the ones that manage the
-    #      set's own contents, since this one is the iptables *match* extension.
-    # Either failure leaves the decision showing up in `cscli decisions list` as a live ban with no
-    # firewall rule ever actually created, so the "banned" IP is never blocked. Loading all four
-    # explicitly at boot, before the lock engages, is what makes the rest of this module's
-    # hardening actually enforce anything.
-    boot.kernelModules = [ "ip_set" "ip_set_hash_net" "xt_set" "xt_comment" ];
+    # crowdsec-firewall-bouncer's NixOS module defaults its `mode` to nftables/iptables based on
+    # `networking.nftables.enable` (modules/devices/network.nix's harden block turns this on), so
+    # on an nftables host the bouncer manages its own table/chain/sets via netlink directly - no
+    # ipset/iptables binaries, and no `ip_set`/`xt_set` kernel modules to preload. The previous
+    # iptables-mode equivalent of this comment (and the VM test that motivated it - a real SSH
+    # brute-force against a hardened vps, confirming decisions were recorded but never actually
+    # enforced without those modules loaded before the lock) is preserved in git history.
+    #
+    # `layers/console/core.nix` enables `devices.kernel.harden` (-> `security.lockKernelModules`,
+    # a one-way door once boot completes) alongside `services.native.sshd.harden` (which turns this
+    # module on), so the same class of failure applies here to nftables' own kernel module -
+    # preload it explicitly before the lock engages, same reasoning as before. Re-verify via a real
+    # quickemu VM ban test before trusting this on a hardened host, same as the iptables path was.
+    boot.kernelModules = [ "nf_tables" ];
 
     services.crowdsec = {
       enable = true;
@@ -74,8 +67,12 @@ in
       # nothing is reported to CrowdSec's hosted console unless explicitly opted into.
       settings.capi.credentialsFile = cfg.capiCredentialsFile;
 
-      # iptables adds port-scan detection against the dropped-connection logs enabled above - this
-      # is what covers traffic that never touches any particular service's own logs at all.
+      # Port-scan detection against the dropped-connection logs enabled above - this is what covers
+      # traffic that never touches any particular service's own logs at all. Left as the
+      # `iptables` collection even under nftables mode: nftables' `log` statement reuses the same
+      # netfilter LOG line format (IN=/OUT=/SRC=/DST=/...) this collection's parser expects, so the
+      # kernel log source doesn't change - only re-point this at an nftables-specific collection if
+      # a VM test shows this one stops matching.
       hub.collections = [ "crowdsecurity/iptables" ];
 
       localConfig = {
@@ -266,8 +263,10 @@ in
     };
 
     systemd.services.crowdsec-firewall-bouncer.serviceConfig = {
-      # Needs CAP_NET_ADMIN/CAP_NET_RAW to manipulate iptables - cannot be capability-stripped like
-      # the engine above.
+      # CAP_NET_ADMIN manipulates the nftables ruleset via netlink - cannot be capability-stripped
+      # like the engine above. CAP_NET_RAW is NOT needed here: upstream's module only adds it for
+      # the legacy iptables/ipset mode (raw packet-filter socket access for the iptables binary),
+      # which this host no longer uses now that `networking.nftables.enable` is on.
       NoNewPrivileges = true;
       ProtectSystem = "strict";
       ProtectHome = true;
@@ -281,7 +280,7 @@ in
       LockPersonality = true;
       RestrictRealtime = true;
       MemoryDenyWriteExecute = true;
-      CapabilityBoundingSet = [ "CAP_NET_ADMIN" "CAP_NET_RAW" ];
+      CapabilityBoundingSet = [ "CAP_NET_ADMIN" ];
     };
   };
 }
