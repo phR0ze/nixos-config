@@ -15,7 +15,7 @@
   services.desktopManager.plasma6.enable = true;
 
   system.dconf.enable = true;                 # General configuration manager for GTK app settings
-  devices.network.network-manager.enable = true;     # Enable network manager
+  devices.network.networkManager.enable = true;     # Enable network manager
   devices.audio.enable = true;                # Install necessary support for audio
   devices.bluetooth.enable = true;            # Install necessary support for bluetooth
 

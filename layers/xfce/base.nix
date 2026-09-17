@@ -10,7 +10,7 @@
   system.xfce.enable = true;
   system.dmenu.enable = true;                 # Configure dmenu
   system.dconf.enable = true;                 # General configuration manager that replaces gconf
-  devices.network.network-manager.enable = true;     # Enable network manager
+  devices.network.networkManager.enable = true;     # Enable network manager
   devices.audio.enable = true;                # Install necessary support for audio
   devices.bluetooth.enable = true;            # Install necessary support for bluetooth
 
