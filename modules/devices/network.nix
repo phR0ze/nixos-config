@@ -36,12 +36,6 @@ in
       host.
     '';
 
-    hostname = lib.mkOption {
-      description = lib.mdDoc "Hostname to assign to the system";
-      type = types.str;
-      default = "";
-    };
-
     gateway = lib.mkOption {
       description = lib.mdDoc "Default gateway to use for the host, required when devices.network.nic0.ip is static";
       type = types.str;
@@ -174,7 +168,6 @@ in
       ];
 
       networking.enableIPv6 = false;
-      networking.hostName = cfg.hostname;
       networking.firewall.allowPing = true;
       networking.useNetworkd = cfg.networkd.enable;
     }

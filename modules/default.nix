@@ -48,6 +48,13 @@ in
               type = types.bool;
               default = host.boot.efi or false;
             };
+
+            mbr = lib.mkOption {
+              description = lib.mdDoc "BIOS MBR boot device, see `devices.boot.mbr`";
+              type = types.str;
+              default = host.boot.mbr or "nodev";
+              example = "/dev/sda";
+            };
           };
 
           git = {
@@ -134,6 +141,7 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkIf (cfg.id != "") {
     devices.boot.efi = cfg.boot.efi;
+    devices.boot.mbr = cfg.boot.mbr;
     networking.hostName = cfg.name;
     system.env.machineId = cfg.id;
     system.env.git.user = cfg.git.user;

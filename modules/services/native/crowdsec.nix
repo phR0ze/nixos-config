@@ -93,7 +93,11 @@ in
       };
     };
 
-    services.crowdsec-firewall-bouncer.enable = true;   # applies CrowdSec's ban decisions via iptables
+    # Disabled for now: registerBouncer.enable hits an upstream nixpkgs bug (the register script
+    # invokes the raw cscli binary with no -c config flag, so it can't find its config file) -
+    # see https://github.com/NixOS/nixpkgs/issues/459224. Re-enable once wired up with a manually
+    # registered services.crowdsec-firewall-bouncer.secrets.apiKeyPath instead.
+    services.crowdsec-firewall-bouncer.enable = false;   # applies CrowdSec's ban decisions via iptables
 
     systemd.services.crowdsec.serviceConfig = {
       # Upstream's own crowdsec module uses DynamicUser without declaring StateDirectory, so

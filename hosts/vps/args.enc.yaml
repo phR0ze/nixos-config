@@ -3,7 +3,7 @@ host:
     name: ENC[AES256_GCM,data:yF4S,iv:pvtu+3AMICroOvckmaQaCEjARTUVLmATAlL7ZhJsuug=,tag:2Bw3puP2Lk3WaylMPPIYlQ==,type:str]
     timeZone: ENC[AES256_GCM,data:kzbrYuQQKn8Zc3IXWg==,iv:OlSAVArPCw+H6f6xKcU4pdHW3NISJFLEeveIabAdjws=,tag:fppmNT7WilLZWrFFzzacHA==,type:str]
     boot:
-        efi: ENC[AES256_GCM,data:tKXL8w==,iv:BdWb1YFaV4Jw5uFAzmKgZ5t/2lQ7/5ji2HC+7ZsgSyw=,tag:W8Luwb9XOx0W4hX9PbeXGA==,type:bool]
+        mbr: ENC[AES256_GCM,data:+RGi0ZvAE64=,iv:KvqCquNBi/v8ANAv7vIRUmVmRqD66D7zUYBFmkIpFN0=,tag:JbbMMVmoqdDk8+mWE1xy/Q==,type:str]
     users:
         root:
             authorizedKeys:
@@ -26,7 +26,7 @@ sops:
             5X4sHfXje6KZSHd0gx55IYm+dyVaJvXrIryfHq5nImoyYqglq7eXsQ==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1ugsz6x2fq8tqdd39gnchvzrcgv2sg79mknrutw2tsgu82z73kpxsqaxf3g
-    lastmodified: "2026-09-17T02:10:33Z"
-    mac: ENC[AES256_GCM,data:GtJ9+dhg2sv6q3KsDJuhT8EV3V6SWPVuzM9OS0zHUddGv5fTU2yDhgAE17oLIjDdrZq8wohgE5CkWQlr8xCmWqFulkHH8WtbIboHXJpp1mzjFjuQ6X3CP0JXcCn6Igs1Fty4VS2R65OgWQuj8kgOxfgACJhE10H23bOgj2BBGz4=,iv:tSYjd9zHv44Zl9Ezfp06tuRqssiZCvKy8os5xjSJSzM=,tag:4Oa6RPLTq4zlCDic5z/SkA==,type:str]
+    lastmodified: "2026-09-17T16:15:39Z"
+    mac: ENC[AES256_GCM,data:02wADv9WY2dPmHhj/GR+UE87rHlg9Bh797RkSj8a5BZbUssu84w5CxLP/BFfsBD2KJB6tEWAvh7s/JDhA05hMURQV/BDJ7KzRkav0DadhCTATu9lbCnu8YYvFlkrXYl15V96gGr1vcImz31d+O5s94jpVBGJkLCHzmVMmSp/Xt8=,iv:1eO1I7YdMl2eaWw/VsrmTTOl98Khs1pF6lZes3xBosM=,tag:xE6MkWhQbjq3z2OO04orzw==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1

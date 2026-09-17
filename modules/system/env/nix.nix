@@ -50,9 +50,13 @@ in
 
       nix = {
 
-        # Used in conjunction with registry.nixpkgs.flake below this sets up the NIX_PATH environment 
+        # Used in conjunction with registry.nixpkgs.flake below this sets up the NIX_PATH environment
         # variable for older v2 binaries so they are using the correct nixpkgs and config versions.
         nixPath = [ "nixpkgs=${inputs.nixpkgs.outPath}" ];
+
+        # We're flake-only across the fleet - disable the legacy nix-channel mechanism so it can't
+        # drift out of sync with the flake-pinned nixpkgs above.
+        channel.enable = false;
 
         # Enable experimental features
         extraOptions = "experimental-features = nix-command flakes";
