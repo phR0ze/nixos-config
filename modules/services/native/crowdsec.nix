@@ -38,22 +38,27 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # crowdsec-firewall-bouncer creates an ipset (hash:net) to hold banned IPs the first time a
-    # decision actually needs enforcing - it doesn't ship its own explicit module dependency, it
-    # just relies on the kernel's normal on-demand autoload for ipset types. That autoload is a
-    # one-way door on a `devices.kernel.harden` host (services.native.sshd.harden turns this
-    # module on specifically for its bouncer): `security.lockKernelModules` sets
-    # `kernel.modules_disabled = 1` once boot completes, and after that NO further module can ever
-    # load, autoload included. If `ip_set_hash_net` hasn't already been loaded by then, the
-    # bouncer's first ban attempt fails silently with "Kernel error received: set type not
-    # supported" - the decision still shows up in `cscli decisions list` as a live ban, but no
-    # firewall rule/ipset entry ever gets created, so the "banned" IP is never actually blocked
-    # (confirmed via a local quickemu VM test: ran a real SSH brute-force against a hardened vps,
-    # watched crowdsec correctly detect and record the ban, then confirmed access was NOT actually
-    # blocked - the bouncer's own log showed the ipset creation error at the exact moment it tried
-    # to enforce it). Loading it explicitly at boot, before the lock engages, is what makes the
-    # rest of this module's hardening actually enforce anything.
-    boot.kernelModules = [ "ip_set" "ip_set_hash_net" ];
+    # crowdsec-firewall-bouncer creates an ipset (hash:net) to hold banned IPs, then inserts an
+    # iptables/ip6tables rule matching packets against it (`-m set --match-set ... -j DROP`) - none
+    # of this ships as an explicit module dependency, it all relies on the kernel's normal
+    # on-demand autoload. That autoload is a one-way door on a `devices.kernel.harden` host
+    # (services.native.sshd.harden turns this module on specifically for its bouncer):
+    # `security.lockKernelModules` sets `kernel.modules_disabled = 1` once boot completes, and
+    # after that NO further module can ever load, autoload included. Two distinct failure points
+    # were found here via a local quickemu VM test (ran a real SSH brute-force against a hardened
+    # vps, watched crowdsec correctly detect and record the ban, then confirmed access was NOT
+    # actually blocked both times):
+    #   1. Without `ip_set`/`ip_set_hash_net` loaded first, creating the set itself fails
+    #      ("Kernel error received: set type not supported").
+    #   2. Even with the set created successfully, without `xt_set`/`xt_comment` loaded first, the
+    #      iptables rule referencing that set fails to insert ("Extension set revision 0 not
+    #      supported, missing kernel module?") - a separate module from the ones that manage the
+    #      set's own contents, since this one is the iptables *match* extension.
+    # Either failure leaves the decision showing up in `cscli decisions list` as a live ban with no
+    # firewall rule ever actually created, so the "banned" IP is never blocked. Loading all four
+    # explicitly at boot, before the lock engages, is what makes the rest of this module's
+    # hardening actually enforce anything.
+    boot.kernelModules = [ "ip_set" "ip_set_hash_net" "xt_set" "xt_comment" ];
 
     services.crowdsec = {
       enable = true;

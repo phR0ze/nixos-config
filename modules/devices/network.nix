@@ -43,6 +43,13 @@ in
       default = "";
     };
 
+    subnet = lib.mkOption {
+      description = lib.mdDoc "Default subnet/CIDR to use for the host";
+      type = types.str;
+      example = "192.168.1.0/24";
+      default = "";
+    };
+
     dns = {
       primary = lib.mkOption {
         description = lib.mdDoc ''
