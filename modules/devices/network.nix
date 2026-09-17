@@ -215,9 +215,15 @@ in
       networking.firewall.allowPing = lib.mkForce false;   # don't respond to pings
 
       # Log refused/dropped TCP connection attempts (kernel LOG target) so a port-scan detector
-      # (e.g. CrowdSec's iptables collection) has something to work from - without this, anything
-      # that isn't caught by a service's own logs (e.g. sshd auth attempts) is invisible.
+      # (e.g. CrowdSec's iptables/nftables collection) has something to work from - without this,
+      # anything that isn't caught by a service's own logs (e.g. sshd auth attempts) is invisible.
       networking.firewall.logRefusedConnections = true;
+
+      # nftables replaces the legacy iptables/ipset backend for both `networking.firewall` itself
+      # and (via services.crowdsec-firewall-bouncer's own `mode` default, which derives from this
+      # same flag) the CrowdSec bouncer - see modules/services/native/crowdsec.nix, which sheds its
+      # ip_set/xt_set kernel modules and CAP_NET_RAW once this is on.
+      networking.nftables.enable = true;
     })
 
     # Configure network manager
