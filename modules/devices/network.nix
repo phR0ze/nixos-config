@@ -25,7 +25,16 @@ in
 {
   options.devices.network = {
     harden = lib.mkEnableOption "Apply recommended networking hardening";
+
     networkManager.enable = lib.mkEnableOption "Install and configure network manager";
+
+    networkd.enable = lib.mkEnableOption ''
+      systemd-networkd as the network backend instead of the legacy scripted networking module.
+      NixOS auto-translates the nic0/bridge/macvlan/gateway config below into networkd .network/
+      .netdev units - nothing else in this module needs to change to support it. Mutually
+      exclusive with NetworkManager (devices.network.networkManager.enable) - pick one backend per
+      host.
+    '';
 
     hostname = lib.mkOption {
       description = lib.mdDoc "Hostname to assign to the system";
@@ -157,10 +166,46 @@ in
     # Configure basic networking
     # ----------------------------------------------------------------------------------------------
     {
+      assertions = [
+        {
+          assertion = !(cfg.networkManager.enable && cfg.networkd.enable);
+          message = "devices.network.networkManager.enable and devices.network.networkd.enable are mutually exclusive - pick one network backend";
+        }
+      ];
+
       networking.enableIPv6 = false;
       networking.hostName = cfg.hostname;
       networking.firewall.allowPing = true;
+      networking.useNetworkd = cfg.networkd.enable;
     }
+
+    # Configure global DNS. resolved works well with network manager
+    # DNS can be temporarily changed per interface with: sudo resolvectl dns enp1s0 1.1.1.1
+    # ----------------------------------------------------------------------------------------------
+    {
+      services.resolved = {
+        enable = true;
+        settings.Resolve.DNSSEC = "allow-downgrade"; # using "true" will break DNS if VPN DNS servers don't support
+      };
+    }
+
+    # Primary and fallback DNS are configured independently:
+    # - `primary` forces a global nameserver, overriding whatever DHCP hands out on every link. Leave
+    #   it unset (e.g. on roaming laptops) so DHCP-provided per-link DNS always wins, which lets
+    #   captive portals (airline wifi, hotels, etc.) resolve their own login domains automatically.
+    # - `fallback` is only used by resolved when a link provides no DNS at all, so it's safe to set
+    #   even when `primary` is unset.
+    (lib.mkIf (cfg.dns.primary != "") {
+      networking.nameservers = [ "${cfg.dns.primary}" ];
+
+      # Force the global dns nameservers to be used, ignoring whatever DNS any link is separately
+      # handed. Off by default since this breaks NetworkManager's captive portal detection/login,
+      # which relies on DHCP-provided per-link DNS.
+      services.resolved.settings.Resolve.Domains = lib.mkIf cfg.dns.force [ "~." ];
+    })
+    (lib.mkIf (cfg.dns.fallback != "") {
+      services.resolved.settings.Resolve.FallbackDNS = [ "${cfg.dns.fallback}" ];
+    })
 
     # Harden
     # ----------------------------------------------------------------------------------------------
@@ -174,16 +219,6 @@ in
       # that isn't caught by a service's own logs (e.g. sshd auth attempts) is invisible.
       networking.firewall.logRefusedConnections = true;
     })
-
-    # Configure global DNS. resolved works well with network manager
-    # DNS can be temporarily changed per interface with: sudo resolvectl dns enp1s0 1.1.1.1
-    # ----------------------------------------------------------------------------------------------
-    {
-      services.resolved = {
-        enable = true;
-        settings.Resolve.DNSSEC = "allow-downgrade"; # using "true" will break DNS if VPN DNS servers don't support
-      };
-    }
 
     # Configure network manager
     # ----------------------------------------------------------------------------------------------
@@ -224,24 +259,6 @@ in
 
     (lib.mkIf (cfg.bridge.enable) {
       devices.network.primary.name = cfg.bridge.name;
-    })
-
-    # Primary and fallback DNS are configured independently:
-    # - `primary` forces a global nameserver, overriding whatever DHCP hands out on every link. Leave
-    #   it unset (e.g. on roaming laptops) so DHCP-provided per-link DNS always wins, which lets
-    #   captive portals (airline wifi, hotels, etc.) resolve their own login domains automatically.
-    # - `fallback` is only used by resolved when a link provides no DNS at all, so it's safe to set
-    #   even when `primary` is unset.
-    (lib.mkIf (cfg.dns.primary != "") {
-      networking.nameservers = [ "${cfg.dns.primary}" ];
-
-      # Force the global dns nameservers to be used, ignoring whatever DNS any link is separately
-      # handed. Off by default since this breaks NetworkManager's captive portal detection/login,
-      # which relies on DHCP-provided per-link DNS.
-      services.resolved.settings.Resolve.Domains = lib.mkIf cfg.dns.force [ "~." ];
-    })
-    (lib.mkIf (cfg.dns.fallback != "") {
-      services.resolved.settings.Resolve.FallbackDNS = [ "${cfg.dns.fallback}" ];
     })
 
     # Configure network bridge
@@ -298,11 +315,15 @@ in
     }))
 
     # Configure the default gateway if the primary nic is static
+    # Under systemd-networkd the interface must be explicit - a bare string coerces to
+    # `{ address = ...; interface = null; }`, which networkd's module asserts against.
     (lib.mkIf (cfg.nic0.ip != "") {
       assertions = [
         { assertion = (cfg.gateway != ""); message = "Default gateway was not specified"; }
       ];
-      networking.defaultGateway = "${cfg.gateway}";
+      networking.defaultGateway = if cfg.networkd.enable
+        then { address = cfg.gateway; interface = if cfg.bridge.enable then cfg.bridge.name else cfg.nic0.name; }
+        else cfg.gateway;
     })
   ];
 }
