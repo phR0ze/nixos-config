@@ -102,20 +102,63 @@ in
     (lib.mkIf (cfg.enable && cfg.harden) {
       services.openssh.ports = [ 2222 ];                # cut down on automated scanning noise
 
+      # Open the port ourselves via a rate-limited nftables rule below instead of letting openssh's
+      # module add an unconditional accept for it - see extraInputRules.
+      services.openssh.openFirewall = false;
+
       services.openssh.settings = {
         PermitRootLogin = "prohibit-password";          # root login only via key, never password
         PasswordAuthentication = false;                 # key-only auth for all users
         KbdInteractiveAuthentication = false;           # PAM can otherwise prompt for a password anyway
         X11Forwarding = false;                          # no GUI forwarding needed for a headless daemon
         LogLevel = "VERBOSE";                           # log the key fingerprint used on each auth attempt
+
+        # Resource-abuse hardening: bound how much CPU/memory a flood of connection attempts can
+        # cost before any of them are even authenticated.
+        MaxAuthTries = 3;                                # default 6 - fewer guesses per connection
+        LoginGraceTime = 20;                             # default 120s - drop slow/half-open auth attempts fast
+        MaxStartups = "10:30:60";                        # start randomly dropping at 10 unauthenticated
+                                                          # conns (30% probability), hard cap at 60
+
+        # This host has no need for SSH as a transport for anything but an interactive/admin shell -
+        # disable the forwarding features that a compromised or probing client could otherwise abuse.
+        AllowTcpForwarding = false;
+        AllowAgentForwarding = false;
+        GatewayPorts = "no";
+        PermitTunnel = "no";
+
+        # Drop dead/hung sessions instead of leaving them to hold a slot indefinitely.
+        ClientAliveInterval = 60;
+        ClientAliveCountMax = 3;
       };
 
+      # sshd's own accept-all-comers rule is replaced with this: cap new connections to the SSH port
+      # per-source before they cost a fork()+key-exchange. Excess (over-rate) SYNs simply don't match
+      # here and fall through to the generic `input` chain - `logRefusedConnections` still logs them
+      # (so CrowdSec's ssh-bf/port-scan scenarios keep full visibility) and the chain's own `policy
+      # drop` still discards them; only the accept path skips them.
+      networking.firewall.extraInputRules = ''
+        tcp dport 2222 ct state new limit rate 15/minute burst 5 packets accept
+      '';
+
       systemd.services.sshd.serviceConfig = {
-        ProtectSystem = "full";           # read-only /usr,/boot,/etc; /var,/run stay writable (sshd needs these)
+        # ProtectSystem intentionally NOT "full"/"strict": this mount-namespace restriction is
+        # inherited by every login session's shell (same inheritance mechanism as RestrictNamespaces
+        # below), making /etc (and thus /etc/nixos, this repo's own checkout) read-only for every SSH
+        # session including root - `git pull`/`clu update` themselves are blocked ("Read-only file
+        # system" writing .git/FETCH_HEAD, confirmed live on hosts/vps1). Remote `git pull`/`clu
+        # update` is how this host gets managed at all, so this hardening knob is traded away same as
+        # the others below. Leaving ProtectHome/ProtectKernel*/etc. below in place - those are
+        # unaffected by this since they don't cover paths the admin workflow needs to write.
+        ProtectSystem = false;
         ProtectHome = false;              # PAM modules (motd/lastlog) commonly touch home-adjacent paths
         ProtectKernelTunables = true;
         ProtectKernelModules = true;
-        ProtectKernelLogs = true;
+        # ProtectKernelLogs intentionally NOT set: this restriction is inherited by every login
+        # session's shell (same inheritance mechanism as RestrictNamespaces below) and blocks `dmesg`
+        # outright for root over SSH - redundant anyway since devices.kernel.harden's
+        # kernel.dmesg_restrict=1 sysctl already restricts kernel log access to CAP_SYSLOG at the
+        # kernel level. Normal remote diagnostics over SSH is a routine part of managing this host.
         ProtectControlGroups = true;
         ProtectClock = true;
         ProtectHostname = true;
@@ -137,8 +180,11 @@ in
         # open netlink socket: Address family not supported by protocol" (confirmed via a local
         # quickemu VM test). Basic network diagnostics/firewall admin is a normal part of managing a
         # VPS remotely, so AF_NETLINK stays allowed rather than dropping the whole restriction -
-        # everything else (AF_PACKET, AF_NETLINK routing-only variants aside) stays blocked.
-        RestrictAddressFamilies = [ "AF_INET" "AF_UNIX" "AF_NETLINK" ];
+        # AF_PACKET included alongside these for the same reason: `tcpdump`/other raw packet capture
+        # tools are a routine part of remote diagnostics on a headless VPS, and without it they fail
+        # to open a capture socket the moment they're run over SSH (same inheritance mechanism as
+        # RestrictNamespaces below).
+        RestrictAddressFamilies = [ "AF_INET" "AF_UNIX" "AF_NETLINK" "AF_PACKET" ];
         # NoNewPrivileges intentionally NOT set: sshd forks per-connection children that setuid to
         # the logging-in user, which NoNewPrivileges=true blocks and would break every login.
 

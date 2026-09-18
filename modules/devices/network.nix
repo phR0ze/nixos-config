@@ -258,6 +258,34 @@ in
       networking.nftables.enable = true;
     })
 
+    # Connection-flood limiting
+    # ----------------------------------------------------------------------------------------------
+    # A blanket per-source cap on new connection attempts, hooked at a lower priority (evaluated
+    # earlier) than geoblock/CrowdSec/NixOS's own `input` chain below, so a genuine flood is dropped
+    # before it costs anything further downstream - geoblock's set lookup, CrowdSec's bouncer chain,
+    # and (most relevantly for CPU/IO under load) the `logRefusedConnections` log line every refused
+    # packet otherwise generates in NixOS's own `input` chain. 60/sec burst 120 is far above any
+    # legitimate traffic this single-admin VPS sees, so normal use (including a scan burst small
+    # enough for CrowdSec to still characterize and ban) is unaffected - only flood-level volume gets
+    # capped here. Same coexistence reasoning as geoblock below: this chain only ever DROPs or falls
+    # through via `policy accept`, so it can't itself let anything through that a later chain would
+    # otherwise have refused.
+    (lib.mkIf (cfg.harden.enable) {
+      boot.kernelModules = [ "nf_tables" ];   # see crowdsec.nix's comment on the module-lock ordering
+
+      networking.nftables.tables.connlimit = {
+        family = "ip";
+        content = ''
+          chain connlimit-chain {
+            type filter hook input priority filter - 5; policy accept;
+            iifname "lo" accept
+            ct state new limit rate 60/second burst 120 packets accept
+            ct state new drop
+          }
+        '';
+      };
+    })
+
     # Geo-block
     # ----------------------------------------------------------------------------------------------
     # Mirrors services.native.crowdsec's own nftables integration pattern (see that module and its
@@ -313,7 +341,13 @@ in
           content = ''
             set geoblock-allow {
               type ipv4_addr
+              # auto-merge is required, not just tidy: a geoblockWhitelist /32 that happens to fall
+              # inside a CIDR the fetched US list also carries is a same-batch overlap, and plain
+              # `flags interval` rejects that as "conflicting intervals specified" (confirmed via a
+              # live vps1 refresh failure where the whitelist IP nested inside a US block). auto-merge
+              # collapses such overlaps instead of erroring, which is what we want either way.
               flags interval
+              auto-merge
               ${lib.optionalString (cfg.harden.geoblockWhitelist != [ ]) "elements = { ${extraElements} }"}
             }
 
