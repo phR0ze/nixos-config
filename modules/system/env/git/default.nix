@@ -6,8 +6,10 @@
 # - Sets vim as the default editor
 # - Enables rebase on pull
 # - Adds 'git d' alias for 'git diff --word-diff=color'
+# - Applies a global excludesFile so machine-local dirs (e.g. .claude/) never need a
+#   manual ~/.config/git/ignore on each new host
 #---------------------------------------------------------------------------------------------------
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
   cfg = config.system.env.git;
 in
@@ -24,6 +26,12 @@ in
       email = lib.mkOption {
         description = lib.mdDoc "Git email address";
         type = lib.types.str;
+      };
+
+      ignores = lib.mkOption {
+        description = lib.mdDoc "Global gitignore patterns applied to every repo";
+        type = lib.types.listOf lib.types.str;
+        default = [ "**/.claude/" ];
       };
     };
   };
@@ -48,6 +56,9 @@ in
         };
         core = {
           editor = "vim";
+          excludesFile = toString (pkgs.writeText "gitignore-global" (
+            lib.concatStringsSep "\n" cfg.ignores
+          ));
         };
         pull = {
           rebase = true;
