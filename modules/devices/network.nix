@@ -271,7 +271,12 @@ in
     # through via `policy accept`, so it can't itself let anything through that a later chain would
     # otherwise have refused.
     (lib.mkIf (cfg.harden.enable) {
-      boot.kernelModules = [ "nf_tables" ];   # see crowdsec.nix's comment on the module-lock ordering
+      # nft_limit alongside nf_tables: this chain's `limit rate` expression needs its own kernel
+      # module, distinct from nf_tables itself - without preloading it here, security.lockKernelModules
+      # blocks the kernel from autoloading it on first use, so `nft -f` fails with a misleading
+      # "Could not process rule: No such file or directory" the moment this table is (re)loaded
+      # (confirmed live on hosts/vps1). See crowdsec.nix's comment for the module-lock ordering.
+      boot.kernelModules = [ "nf_tables" "nft_limit" ];
 
       networking.nftables.tables.connlimit = {
         family = "ip";
