@@ -43,10 +43,17 @@ in
 
       # Dynamic system-info block, printed below the static ASCII motd above. /etc/motd itself is
       # static (rendered once at build time), so live values (load, memory, IP, ...) can't live
-      # there - instead this sources on every interactive SSH login shell, right after sshd prints
-      # /etc/motd and before the user's prompt, giving the same "below my existing motd" placement.
-      # Guarded to SSH sessions only so local console/desktop shells don't get it too.
-      environment.etc."profile.d/motd-sysinfo.sh".text = ''
+      # there - instead this runs on every interactive shell, right after sshd prints /etc/motd and
+      # before the user's prompt, giving the same "below my existing motd" placement. Guarded to SSH
+      # sessions only so local console/desktop shells don't get it too.
+      #
+      # Deliberately NOT environment.etc."profile.d/*.sh": plain NixOS's generated /etc/profile and
+      # /etc/bashrc never loop over /etc/profile.d/*.sh (that's a Fedora/Debian convention, not
+      # something NixOS wires up for arbitrary environment.etc files) - a script placed there is
+      # simply never sourced (confirmed live on hosts/vps1: the file existed verbatim but /etc/profile
+      # and /etc/bashrc had no reference to it). environment.interactiveShellInit genuinely is
+      # concatenated into /etc/bashrc's `if [ -n "$PS1" ]` block regardless of shell customization.
+      environment.interactiveShellInit = ''
         # shellcheck shell=bash
         if [ -n "$SSH_CONNECTION" ] && [ -n "$PS1" ]; then
           load="$(cut -d' ' -f1-3 /proc/loadavg)"
