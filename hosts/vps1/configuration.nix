@@ -18,9 +18,8 @@
       harden = true;
     };
 
-    devices.network.harden.bypassGeoBlockCidrs = [
-      # "203.0.113.1"
-      # "203.0.113.7/32"
-    ];
+    # Admin bypass CIDRs now come from args.enc.yaml's host.network.harden.geoblockWhitelist
+    # (staged into `machine.network.harden.geoblockWhitelist`, see modules/default.nix) so they
+    # stay sops-encrypted rather than living in plaintext here.
   };
 }
