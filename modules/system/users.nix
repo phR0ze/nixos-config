@@ -60,6 +60,13 @@ in
 
     # Optionally configure additional desktop settings
     (lib.mkIf (cfg.desktopExtras) {
+      assertions = [
+        {
+          assertion = cfg.sopsFile != null;
+          message = "system.users.desktopExtras is enabled but system.users.sopsFile is not set.";
+        }
+      ];
+
       secret.users."admin" = {
         extraGroups = [ "photos" "render" "users" "video" ];
       };

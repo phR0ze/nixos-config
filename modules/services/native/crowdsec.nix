@@ -24,20 +24,35 @@ in
       example = [ "203.0.113.7" "198.51.100.0/24" ];
     };
 
+    sopsFile = lib.mkOption {
+      description = ''
+        Path to the host's `secrets.enc.yaml`, decrypted at activation time by sops-nix to source
+        the CrowdSec Central API (CAPI) credentials. Defaults to `config.host.secrets`. Leave
+        null to skip CAPI enrollment entirely - `capiCredentialsFile` then also stays null, so
+        this host only bans IPs it has personally observed attacking it.
+      '';
+      type = lib.types.nullOr lib.types.path;
+    };
+
     capiCredentialsFile = lib.mkOption {
       description = ''
         Path to CrowdSec's Central API (CAPI) credentials file, enrolling this machine in
         CrowdSec's crowd-sourced blocklist (consuming other users' bans, not just your own local
         detections). Obtain it with a one-time `cscli capi register` run, then manage the
-        resulting file via runtime secrets (sops-nix), never the Nix store. Leave null to only
-        ban IPs this host has personally observed attacking it.
+        resulting file via runtime secrets (sops-nix), never the Nix store. Sourced from
+        `secret.files."crowdsec/capiCredentials"` (keyed off `sopsFile` above) whenever `sopsFile`
+        is set; stays null otherwise.
       '';
       type = lib.types.nullOr lib.types.path;
-      default = null;
+      default = if cfg.sopsFile != null then config.secret.files."crowdsec/capiCredentials".path else null;
     };
   };
 
   config = lib.mkIf cfg.enable {
+    secret.files."crowdsec/capiCredentials" = lib.mkIf (cfg.sopsFile != null) {
+      sopsFile = cfg.sopsFile;
+    };
+
     # crowdsec-firewall-bouncer's NixOS module defaults its `mode` to nftables/iptables based on
     # `networking.nftables.enable` (modules/devices/network.nix's harden block turns this on), so
     # on an nftables host the bouncer manages its own table/chain/sets via netlink directly - no

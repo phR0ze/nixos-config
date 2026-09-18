@@ -174,6 +174,7 @@ in
       devices.network.nic0.name = cfg.network.nic0.name;
       devices.network.nic0.ip = cfg.network.nic0.ip;
       devices.network.harden.geoblockWhitelist = cfg.network.hardenWhitelist;
+      services.native.crowdsec.sopsFile = cfg.sopsFile;
       services.native.crowdsec.whitelist = cfg.network.hardenWhitelist;
       users.users.root.openssh.authorizedKeys.keys = cfg.users.root.authorizedKeys;
     })
