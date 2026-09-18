@@ -143,20 +143,22 @@ in
       # reference directly - config.system.path (not just pkgs.jq) is needed for a systemd unit to
       # find it.
       path = [ pkgs.jq config.system.path ];
+      # Same stale-registration hazard as crowdsec-clear-stale-lapi-creds below, but for the
+      # bouncer's own DB entry: an interrupted run can leave the name registered with its api-key
+      # file lost. `cscli bouncers add` refuses a duplicate name and has no --force, so recovery is
+      # delete-then-recreate rather than a plain retry.
       script = ''
         set -euo pipefail
         apiKeyFile=/var/lib/crowdsec-firewall-bouncer-register/api-key.cred
-        if cscli bouncers list --output json | jq -e 'any(.[]; .name == "crowdsec-firewall-bouncer")' >/dev/null; then
-          if [ ! -f "$apiKeyFile" ]; then
-            echo "Bouncer registered but API key is not present"
-            exit 1
-          fi
-        else
+        if cscli bouncers list --output json | jq -e 'any(.[]; .name == "crowdsec-firewall-bouncer")' >/dev/null \
+            && [ -s "$apiKeyFile" ]; then
+          exit 0
+        fi
+        cscli bouncers delete --ignore-missing -- crowdsec-firewall-bouncer >/dev/null
+        rm -f "$apiKeyFile"
+        if ! cscli bouncers add --output raw -- crowdsec-firewall-bouncer >"$apiKeyFile"; then
           rm -f "$apiKeyFile"
-          if ! cscli bouncers add --output raw -- crowdsec-firewall-bouncer >"$apiKeyFile"; then
-            rm -f "$apiKeyFile"
-            exit 1
-          fi
+          exit 1
         fi
       '';
       serviceConfig = {
