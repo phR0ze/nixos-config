@@ -256,6 +256,13 @@ in
       # same flag) the CrowdSec bouncer - see modules/services/native/crowdsec.nix, which sheds its
       # ip_set/xt_set kernel modules and CAP_NET_RAW once this is on.
       networking.nftables.enable = true;
+
+      # LLMNR/mDNS are same-subnet discovery protocols (resolving other local devices' hostnames
+      # without a DNS server) - meaningless on a host with no local peers to discover, and the
+      # firewall already drops them from outside regardless, so this is just shedding unneeded
+      # listeners rather than closing an active exposure.
+      services.resolved.settings.Resolve.LLMNR = "no";
+      services.resolved.settings.Resolve.MulticastDNS = "no";
     })
 
     # Connection-flood limiting
