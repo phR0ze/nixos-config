@@ -1,13 +1,14 @@
 keys:
   - &primary age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-  # Dedicated key for hosts/vps - see hosts/vps/.isolated. Not shared with the fleet's *primary
-  # key: a compromise of the fleet key must not expose vps's secrets, and vice versa.
+  # Dedicated key for the isolated hosts/vps<N> hosts - see hosts/vps1/.isolated. Not shared with
+  # the fleet's *primary key: a compromise of the fleet key must not expose these hosts' secrets,
+  # and vice versa.
   - &vps age1ugsz6x2fq8tqdd39gnchvzrcgv2sg79mknrutw2tsgu82z73kpxsqaxf3g
 creation_rules:
   # Isolated hosts get their own path-scoped rule (must precede the fleet-wide fallback below,
   # sops uses first-match) with a dedicated key from the `keys` list above. Copy this pattern for
-  # any future isolated host.
-  - path_regex: hosts/vps/.*\.(dec|enc)\.(pem|yaml)$
+  # any future isolated host. Matches hosts/vps1, hosts/vps2, hosts/vps<N>, ...
+  - path_regex: hosts/vps[0-9]+/.*\.(dec|enc)\.(pem|yaml)$
     key_groups:
       - age:
         - *vps
