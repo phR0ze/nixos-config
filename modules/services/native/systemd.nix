@@ -81,14 +81,14 @@ in
       };
 
       # Logind configuration
-      # - NAutoVTs/ReserveVT=0: a headless VPS never uses a virtual terminal, so don't waste memory
-      #   spawning getty@ttyN services for one - undesirable on a desktop that relies on VT
-      #   switching (e.g. Ctrl+Alt+F2)
+      # - NAutoVTs/ReserveVT=0: disables the virtual terminals to conserve memory. However RackNerd
+      #   and other budget KVM VPS providers often use web console to connect to the guest's virtual
+      #   framebuffer console (tty) so we'll keep this despite the extra memory used as a fallback.
       # ------------------------------------------------------------------------------------------------
-      services.logind.settings.Login = {
-        NAutoVTs = 0;
-        ReserveVT = 0;
-      };
+      # services.logind.settings.Login = {
+      #   NAutoVTs = 0;
+      #   ReserveVT = 0;
+      # };
 
       # Coredump configuration
       # - Disabled: a large crashing process can spike memory just to capture a dump nobody reviews

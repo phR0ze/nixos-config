@@ -24,17 +24,16 @@ let
 in
 {
   options.devices.network = {
-    harden = lib.mkEnableOption "Apply recommended networking hardening";
-
-    geoblock = {
+    harden = {
       enable = lib.mkEnableOption ''
-        a host-wide inbound geo-block: drops every NEW, externally-initiated connection whose source
-        address isn't inside a US-registered IPv4 CIDR block (per the daily CI-published
-        `ipverse/country-ip-blocks` aggregate), regardless of destination port - any future opened
-        port is automatically covered without touching this module again. Only conntrack state NEW
-        packets are ever evaluated, so outbound-initiated traffic and its return path (nix
-        substituter fetches from cache.nixos.org, sops key fetches, CrowdSec's own hub/LAPI polling,
-        DNS, NTP - none of which are guaranteed to be US-hosted) are unaffected.
+        recommended networking hardening. This also turns on a host-wide inbound geo-block: drops
+        every NEW, externally-initiated connection whose source address isn't inside a
+        US-registered IPv4 CIDR block (per the daily CI-published `ipverse/country-ip-blocks`
+        aggregate), regardless of destination port - any future opened port is automatically
+        covered without touching this module again. Only conntrack state NEW packets are ever
+        evaluated, so outbound-initiated traffic and its return path (nix substituter fetches from
+        cache.nixos.org, sops key fetches, CrowdSec's own hub/LAPI polling, DNS, NTP - none of
+        which are guaranteed to be US-hosted) are unaffected.
 
         Implemented as its own nftables table, mirroring exactly how
         `services.crowdsec-firewall-bouncer` structures its own `crowdsec` table: a declarative,
@@ -44,7 +43,7 @@ in
         (see the module-level comment on the config block below for why coexistence is safe).
       '';
 
-      allowExtraCidrs = lib.mkOption {
+      bypassGeoBlockCidrs = lib.mkOption {
         description = lib.mdDoc ''
           CIDRs/IPs that always bypass the geo-filter regardless of country, mirroring
           `services.native.crowdsec.whitelist`'s purpose: a safety valve against a self-inflicted
@@ -242,7 +241,7 @@ in
 
     # Harden
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.harden) {
+    (lib.mkIf (cfg.harden.enable) {
       networking.domain = "";                             # always require fully-qualified names
 
       networking.firewall.allowPing = lib.mkForce false;   # don't respond to pings
@@ -280,16 +279,16 @@ in
     # for correctness. `hook input priority filter + 5` (rather than bare `filter`, which CrowdSec's
     # own table already uses) only exists for predictable/readable `nft list ruleset` output during
     # debugging - it has no effect on the actual drop-or-defer semantics above.
-    (lib.mkIf (cfg.geoblock.enable) (
+    (lib.mkIf (cfg.harden.enable) (
       let
         usCidrUrl = "https://raw.githubusercontent.com/ipverse/country-ip-blocks/master/country/us/ipv4-aggregated.txt";
-        extraElements = lib.concatStringsSep ", " cfg.geoblock.allowExtraCidrs;
+        extraElements = lib.concatStringsSep ", " cfg.harden.bypassGeoBlockCidrs;
       in
       {
         assertions = [
           {
             assertion = config.networking.nftables.enable;
-            message = "devices.network.geoblock.enable requires networking.nftables.enable - this feature is nftables-only.";
+            message = "devices.network.harden.enable requires networking.nftables.enable - the geo-block it applies is nftables-only.";
           }
         ];
 
@@ -304,18 +303,18 @@ in
         boot.kernelModules = [ "nf_tables" ];
 
         # Declarative skeleton: table/chain/set structure only, loaded once by nftables.service.
-        # allowExtraCidrs is baked in as the set's initial elements - loaded synchronously at boot
-        # with zero network dependency, unlike the fetched US list (which needs geoblock-refresh to
-        # have run at least once). This closes the "boot to first-refresh" safety-valve gap
-        # entirely, not just narrows it: an allowExtraCidrs-listed admin can always get in, even in
-        # the window before the first daily refresh completes.
+        # bypassGeoBlockCidrs is baked in as the set's initial elements - loaded synchronously at
+        # boot with zero network dependency, unlike the fetched US list (which needs
+        # geoblock-refresh to have run at least once). This closes the "boot to first-refresh"
+        # safety-valve gap entirely, not just narrows it: a bypassGeoBlockCidrs-listed admin can
+        # always get in, even in the window before the first daily refresh completes.
         networking.nftables.tables.geoblock = {
           family = "ip";
           content = ''
             set geoblock-allow {
               type ipv4_addr
               flags interval
-              ${lib.optionalString (cfg.geoblock.allowExtraCidrs != [ ]) "elements = { ${extraElements} }"}
+              ${lib.optionalString (cfg.harden.bypassGeoBlockCidrs != [ ]) "elements = { ${extraElements} }"}
             }
 
             chain geoblock-chain {
@@ -356,7 +355,7 @@ in
 
             {
               echo "flush set ip geoblock geoblock-allow"
-              echo "add element ip geoblock geoblock-allow { ${extraElements}${lib.optionalString (cfg.geoblock.allowExtraCidrs != [ ]) ","} $usCidrs }"
+              echo "add element ip geoblock geoblock-allow { ${extraElements}${lib.optionalString (cfg.harden.bypassGeoBlockCidrs != [ ]) ","} $usCidrs }"
             } | nft -f -
           '';
           serviceConfig = {
@@ -384,7 +383,7 @@ in
           description = "Daily refresh of the geoblock US IPv4 allow-set";
           wantedBy = [ "timers.target" ];
           timerConfig = {
-            OnBootSec = "2min";       # minimize the allowExtraCidrs-only window after boot
+            OnBootSec = "2min";       # minimize the bypassGeoBlockCidrs-only window after boot
             OnUnitActiveSec = "1d";   # matches ipverse/country-ip-blocks' own daily CI cadence
             RandomizedDelaySec = 300; # politeness jitter, matches crowdsec-update-hub.timer's own pattern in this repo
             Persistent = true;        # catch up if the host was off past a scheduled run

@@ -39,10 +39,10 @@ in
       services.native.systemd.enable = true;        # Enable standard systemd configuration
 
       environment.systemPackages = with pkgs; [
-        # pulled in by clu:
+        # already pulled in by clu:
         # - coreutils gawk gnused jq psmisc sops sudo yq 
 
-        # pulled in by corePackages:
+        # already pulled in by corePackages:
         # - acl attr bashInteractive bzip2 coreutils-full cpio curl
         # - diffutils findutils gawk getent getconf gnugrep gnupatch gnused gnutar gzip less
         # - libcap ncurses netcat mkpasswd procps su time util-linux which xz zstd
@@ -65,7 +65,7 @@ in
     (lib.mkIf (cfg.enable && cfg.harden) {
       devices.boot.harden = true;                   # clean /tmp on every boot
       devices.kernel.harden = true;                 # include kernel hardening configuration
-      devices.network.harden = true;                # networking hardening
+      devices.network.harden.enable = true;         # networking hardening, incl. geo-block
       services.native.sshd.harden = true;           # restrict sshd and enable CrowdSec brute-force protection
       services.native.systemd.harden = true;        # additional security and low memory options
       services.native.crowdsec.enable = true;       # enable broad CrowdSec protection

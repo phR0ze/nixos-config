@@ -5,7 +5,7 @@
 # - Isolated from shared fleet config/secrets
 # - Hardened for public internet consuption
 # --------------------------------------------------------------------------------------------------
-{ ... }:
+{ lib, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -18,12 +18,9 @@
       harden = true;
     };
 
-    devices.network.geoblock = {
-      enable = true;
-      allowExtraCidrs = [
-        # Add your own known-static management/VPN egress CIDR(s) here as a lockout safety net
-        # before relying on this in production, e.g. "203.0.113.7/32" - see the option's doc.
-      ];
-    };
+    devices.network.harden.bypassGeoBlockCidrs = [
+      # "203.0.113.1"
+      # "203.0.113.7/32"
+    ];
   };
 }
