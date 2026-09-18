@@ -5,6 +5,8 @@
 # - Isolated from shared fleet config/secrets
 # - Hardened for public internet consuption
 # --------------------------------------------------------------------------------------------------
+{ config, ... }:
+
 {
 
   imports = [
@@ -17,6 +19,15 @@
       lowMemory = true;
       harden = true;
     };
+
+    # CrowdSec Central API (CAPI) enrollment: lets this host's bouncer drop IPs already flagged by
+    # the wider CrowdSec community, not just ones this box has personally caught attacking it. The
+    # credentials file itself is produced by `cscli capi register` run once on the VPS (see the
+    # runbook) and stored as a single sops key in this host's own secrets.enc.yaml (isolated host,
+    # so this never touches the fleet's shared secrets) - decrypted at activation to
+    # /run/secrets/crowdsec/capiCredentials, never the Nix store.
+    secret.files."crowdsec/capiCredentials".sopsFile = config.host.secrets;
+    services.native.crowdsec.capiCredentialsFile = config.secret.files."crowdsec/capiCredentials".path;
 
     # RackNerd's KVM guest kernel (confirmed via strace: nix's own sandbox probe does
     # clone(CLONE_NEWNS|CLONE_NEWUSER|CLONE_NEWPID) then mount("none","/proc","proc",...), and that
