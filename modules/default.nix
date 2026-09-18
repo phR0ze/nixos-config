@@ -109,16 +109,20 @@ in
               };
             };
 
-            networkd.enable = lib.mkOption {
-              description = lib.mdDoc "Use systemd-networkd, see `devices.network.networkd.enable`";
-              type = types.bool;
-              default = host.network.networkd.enable or false;
-            };
-
             nic0 = lib.mkOption {
               description = lib.mdDoc "Primary NIC options, see `devices.network.nic0`";
               type = types.submodule (import ./types/nic.nix { inherit lib; defaults = nic0Defaults; });
               default = nic0Defaults;
+            };
+
+            hardenWhitelist = lib.mkOption {
+              description = lib.mdDoc ''
+                Trusted management IPs/CIDRs exempted from both hardening mechanisms: the geo-filter
+                (`devices.network.harden.geoblockWhitelist`) and CrowdSec's ban engine
+                (`services.native.crowdsec.whitelist`).
+              '';
+              type = types.listOf types.str;
+              default = host.network.hardenWhitelist or [ ];
             };
           };
 
@@ -163,11 +167,12 @@ in
     system.users.sopsFile = cfg.sopsFile;
     devices.network.gateway = cfg.network.gateway;
     devices.network.subnet = cfg.network.subnet;
-    devices.network.nic0.name = cfg.network.nic0.name;
-    devices.network.nic0.ip = cfg.network.nic0.ip;
     devices.network.dns.primary = cfg.network.dns.primary;
     devices.network.dns.fallback = cfg.network.dns.fallback;
-    devices.network.networkd.enable = cfg.network.networkd.enable;
+    devices.network.nic0.name = cfg.network.nic0.name;
+    devices.network.nic0.ip = cfg.network.nic0.ip;
+    devices.network.harden.geoblockWhitelist = cfg.network.hardenWhitelist;
+    services.native.crowdsec.whitelist = cfg.network.hardenWhitelist;
     users.users.root.openssh.authorizedKeys.keys = cfg.users.root.authorizedKeys;
   };
 }

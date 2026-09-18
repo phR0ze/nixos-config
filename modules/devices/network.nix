@@ -43,7 +43,7 @@ in
         (see the module-level comment on the config block below for why coexistence is safe).
       '';
 
-      bypassGeoBlockCidrs = lib.mkOption {
+      geoblockWhitelist = lib.mkOption {
         description = lib.mdDoc ''
           CIDRs/IPs that always bypass the geo-filter regardless of country, mirroring
           `services.native.crowdsec.whitelist`'s purpose: a safety valve against a self-inflicted
@@ -282,7 +282,7 @@ in
     (lib.mkIf (cfg.harden.enable) (
       let
         usCidrUrl = "https://raw.githubusercontent.com/ipverse/country-ip-blocks/master/country/us/ipv4-aggregated.txt";
-        extraElements = lib.concatStringsSep ", " cfg.harden.bypassGeoBlockCidrs;
+        extraElements = lib.concatStringsSep ", " cfg.harden.geoblockWhitelist;
       in
       {
         assertions = [
@@ -303,10 +303,10 @@ in
         boot.kernelModules = [ "nf_tables" ];
 
         # Declarative skeleton: table/chain/set structure only, loaded once by nftables.service.
-        # bypassGeoBlockCidrs is baked in as the set's initial elements - loaded synchronously at
+        # geoblockWhitelist is baked in as the set's initial elements - loaded synchronously at
         # boot with zero network dependency, unlike the fetched US list (which needs
         # geoblock-refresh to have run at least once). This closes the "boot to first-refresh"
-        # safety-valve gap entirely, not just narrows it: a bypassGeoBlockCidrs-listed admin can
+        # safety-valve gap entirely, not just narrows it: a geoblockWhitelist-listed admin can
         # always get in, even in the window before the first daily refresh completes.
         networking.nftables.tables.geoblock = {
           family = "ip";
@@ -314,7 +314,7 @@ in
             set geoblock-allow {
               type ipv4_addr
               flags interval
-              ${lib.optionalString (cfg.harden.bypassGeoBlockCidrs != [ ]) "elements = { ${extraElements} }"}
+              ${lib.optionalString (cfg.harden.geoblockWhitelist != [ ]) "elements = { ${extraElements} }"}
             }
 
             chain geoblock-chain {
@@ -355,7 +355,7 @@ in
 
             {
               echo "flush set ip geoblock geoblock-allow"
-              echo "add element ip geoblock geoblock-allow { ${extraElements}${lib.optionalString (cfg.harden.bypassGeoBlockCidrs != [ ]) ","} $usCidrs }"
+              echo "add element ip geoblock geoblock-allow { ${extraElements}${lib.optionalString (cfg.harden.geoblockWhitelist != [ ]) ","} $usCidrs }"
             } | nft -f -
           '';
           serviceConfig = {
@@ -383,7 +383,7 @@ in
           description = "Daily refresh of the geoblock US IPv4 allow-set";
           wantedBy = [ "timers.target" ];
           timerConfig = {
-            OnBootSec = "2min";       # minimize the bypassGeoBlockCidrs-only window after boot
+            OnBootSec = "2min";       # minimize the geoblockWhitelist-only window after boot
             OnUnitActiveSec = "1d";   # matches ipverse/country-ip-blocks' own daily CI cadence
             RandomizedDelaySec = 300; # politeness jitter, matches crowdsec-update-hub.timer's own pattern in this repo
             Persistent = true;        # catch up if the host was off past a scheduled run
