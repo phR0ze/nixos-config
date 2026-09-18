@@ -18,13 +18,46 @@
 # - Exposing apps directly on the host provides isolation but becomes unwieldy and difficult to
 #   juggle all the various port mappings.
 #---------------------------------------------------------------------------------------------------
-{ config, lib, f, ... }: with lib.types;
+{ config, lib, f, pkgs, ... }: with lib.types;
 let
   cfg = config.devices.network;
 in
 {
   options.devices.network = {
     harden = lib.mkEnableOption "Apply recommended networking hardening";
+
+    geoblock = {
+      enable = lib.mkEnableOption ''
+        a host-wide inbound geo-block: drops every NEW, externally-initiated connection whose source
+        address isn't inside a US-registered IPv4 CIDR block (per the daily CI-published
+        `ipverse/country-ip-blocks` aggregate), regardless of destination port - any future opened
+        port is automatically covered without touching this module again. Only conntrack state NEW
+        packets are ever evaluated, so outbound-initiated traffic and its return path (nix
+        substituter fetches from cache.nixos.org, sops key fetches, CrowdSec's own hub/LAPI polling,
+        DNS, NTP - none of which are guaranteed to be US-hosted) are unaffected.
+
+        Implemented as its own nftables table, mirroring exactly how
+        `services.crowdsec-firewall-bouncer` structures its own `crowdsec` table: a declarative,
+        NixOS-managed table+chain+empty-set skeleton (loaded once by nftables.service), with the
+        set's actual contents refreshed independently at runtime by a small systemd timer - not a
+        separate firewall backend, and not competing with CrowdSec's own table for the same hook
+        (see the module-level comment on the config block below for why coexistence is safe).
+      '';
+
+      allowExtraCidrs = lib.mkOption {
+        description = lib.mdDoc ''
+          CIDRs/IPs that always bypass the geo-filter regardless of country, mirroring
+          `services.native.crowdsec.whitelist`'s purpose: a safety valve against a self-inflicted
+          lockout if the upstream geoIP data is ever wrong, or the admin travels/tunnels through a
+          non-US VPN exit. Baked directly into the declarative table's initial set contents (loaded
+          synchronously by nftables.service at boot, zero network dependency, zero delay) and
+          re-applied on every subsequent daily refresh alongside the fetched US list.
+        '';
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        example = [ "203.0.113.7" "198.51.100.0/24" ];
+      };
+    };
 
     networkManager.enable = lib.mkEnableOption "Install and configure network manager";
 
@@ -225,6 +258,140 @@ in
       # ip_set/xt_set kernel modules and CAP_NET_RAW once this is on.
       networking.nftables.enable = true;
     })
+
+    # Geo-block
+    # ----------------------------------------------------------------------------------------------
+    # Mirrors services.native.crowdsec's own nftables integration pattern (see that module and its
+    # upstream nixos/modules/services/security/crowdsec-firewall-bouncer.nix for the precedent this
+    # follows): a declarative table+chain+set skeleton, loaded once by the stock nftables.service,
+    # with the set's actual membership refreshed independently at runtime - decoupled from the
+    # declarative ruleset's own reload cycle, so a daily CIDR-list refresh never needs a
+    # `nixos-rebuild switch` and never risks a full nftables.service ruleset reload interrupting
+    # traffic on an unrelated table (CrowdSec's, or NixOS's own generated firewall chain).
+    #
+    # Coexistence with CrowdSec's `crowdsec-chain` (same `input` hook, same `filter` priority
+    # neighborhood) is safe because neither chain ever independently ACCEPTs a packet - each can
+    # only DROP (final, immediate) or fall through via its own `policy accept` (provisional only:
+    # the packet still traverses every other base chain hooked to `input`, including NixOS's own
+    # generated firewall chain, before actually being allowed through). So a packet is let through
+    # only if NONE of the input-hooked chains drop it, regardless of which one nftables happens to
+    # evaluate first - this holds structurally, not by careful ordering, which is why this table
+    # doesn't need any systemd-level ordering dependency against crowdsec-firewall-bouncer.service
+    # for correctness. `hook input priority filter + 5` (rather than bare `filter`, which CrowdSec's
+    # own table already uses) only exists for predictable/readable `nft list ruleset` output during
+    # debugging - it has no effect on the actual drop-or-defer semantics above.
+    (lib.mkIf (cfg.geoblock.enable) (
+      let
+        usCidrUrl = "https://raw.githubusercontent.com/ipverse/country-ip-blocks/master/country/us/ipv4-aggregated.txt";
+        extraElements = lib.concatStringsSep ", " cfg.geoblock.allowExtraCidrs;
+      in
+      {
+        assertions = [
+          {
+            assertion = config.networking.nftables.enable;
+            message = "devices.network.geoblock.enable requires networking.nftables.enable - this feature is nftables-only.";
+          }
+        ];
+
+        # Same module services.native.crowdsec.nix already needs and explains at length - repeated
+        # here (NixOS list options dedupe) so this feature works standalone on a host without
+        # CrowdSec enabled. See crowdsec.nix's comment for the full kernel-module-lock interaction;
+        # short version: devices.kernel.harden's security.lockKernelModules sets
+        # kernel.modules_disabled=1 after boot (a one-way door, applied by systemd-sysctl.service,
+        # which orders after systemd-modules-load.service within sysinit.target - systemd's own
+        # default), so nf_tables must already be loaded via boot.kernelModules before that lock
+        # engages, or nftables.service itself would fail to load ANY table at all on this host.
+        boot.kernelModules = [ "nf_tables" ];
+
+        # Declarative skeleton: table/chain/set structure only, loaded once by nftables.service.
+        # allowExtraCidrs is baked in as the set's initial elements - loaded synchronously at boot
+        # with zero network dependency, unlike the fetched US list (which needs geoblock-refresh to
+        # have run at least once). This closes the "boot to first-refresh" safety-valve gap
+        # entirely, not just narrows it: an allowExtraCidrs-listed admin can always get in, even in
+        # the window before the first daily refresh completes.
+        networking.nftables.tables.geoblock = {
+          family = "ip";
+          content = ''
+            set geoblock-allow {
+              type ipv4_addr
+              flags interval
+              ${lib.optionalString (cfg.geoblock.allowExtraCidrs != [ ]) "elements = { ${extraElements} }"}
+            }
+
+            chain geoblock-chain {
+              type filter hook input priority filter + 5; policy accept;
+              # 127.0.0.0/8 is never inside the fetched US CIDR set, so without this exception
+              # every loopback-addressed connection on the host - including CrowdSec's own agent
+              # talking to its local API on 127.0.0.1:8080 - gets geo-filtered out (confirmed via
+              # a local quickemu VM test: crowdsec.service failed outright with "dial tcp
+              # 127.0.0.1:8080: i/o timeout" the moment this chain went live). The original
+              # iptables-era design had an explicit "-i lo -j RETURN" for the same reason - this is
+              # that same exception, just expressed as an nftables interface match.
+              iifname "lo" accept
+              ct state new ip saddr != @geoblock-allow drop
+            }
+          '';
+        };
+
+        # Recurring refresh of the SET'S CONTENTS only - never touches the declarative table/chain
+        # above. `nft -f` applies every statement in one invocation as a single atomic kernel
+        # transaction (nftables' own core guarantee, unlike iptables-legacy's line-by-line
+        # non-transactional model): if any element fails to parse, NONE of the statements take
+        # effect and the live set is left completely untouched. Combined with `set -e` +
+        # `curl --fail` aborting the whole script before ever invoking `nft -f` on a failed fetch,
+        # a failed refresh always fails safe - it falls back to yesterday's still-reasonably-fresh
+        # list rather than wiping the set to empty or loading a truncated/garbage one.
+        systemd.services.geoblock-refresh = {
+          description = "Fetch the current US IPv4 CIDR list and atomically refresh the geoblock nftables set";
+          after = [ "network-online.target" "nftables.service" ];
+          wants = [ "network-online.target" ];
+          requires = [ "nftables.service" ];
+          path = [ pkgs.nftables pkgs.curl pkgs.gnugrep ];
+          script = ''
+            set -euo pipefail
+
+            usCidrs=$(curl --fail --silent --show-error "${usCidrUrl}" \
+              | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$' \
+              | paste -sd, -)
+
+            {
+              echo "flush set ip geoblock geoblock-allow"
+              echo "add element ip geoblock geoblock-allow { ${extraElements}${lib.optionalString (cfg.geoblock.allowExtraCidrs != [ ]) ","} $usCidrs }"
+            } | nft -f -
+          '';
+          serviceConfig = {
+            Type = "oneshot";
+            NoNewPrivileges = true;
+            CapabilityBoundingSet = [ "CAP_NET_ADMIN" ];   # same as crowdsec-firewall-bouncer.service's nftables-mode capability
+            ProtectSystem = "strict";
+            ProtectHome = true;
+            PrivateTmp = true;
+            ProtectKernelTunables = true;
+            ProtectKernelLogs = true;
+            ProtectControlGroups = true;
+            ProtectClock = true;
+            ProtectHostname = true;
+            RestrictSUIDSGID = true;
+            LockPersonality = true;
+            RestrictRealtime = true;
+            # RestrictAddressFamilies intentionally left unset: nft talks to the kernel over
+            # AF_NETLINK (same reasoning as crowdsec-firewall-bouncer.service and sshd's own
+            # AF_NETLINK allowance this session), and curl needs AF_INET.
+          };
+        };
+
+        systemd.timers.geoblock-refresh = {
+          description = "Daily refresh of the geoblock US IPv4 allow-set";
+          wantedBy = [ "timers.target" ];
+          timerConfig = {
+            OnBootSec = "2min";       # minimize the allowExtraCidrs-only window after boot
+            OnUnitActiveSec = "1d";   # matches ipverse/country-ip-blocks' own daily CI cadence
+            RandomizedDelaySec = 300; # politeness jitter, matches crowdsec-update-hub.timer's own pattern in this repo
+            Persistent = true;        # catch up if the host was off past a scheduled run
+          };
+        };
+      }
+    ))
 
     # Configure network manager
     # ----------------------------------------------------------------------------------------------
