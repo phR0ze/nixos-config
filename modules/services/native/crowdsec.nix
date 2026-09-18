@@ -51,21 +51,14 @@ in
   config = lib.mkIf cfg.enable {
     secret.files."crowdsec/capiCredentials" = lib.mkIf (cfg.sopsFile != null) {
       sopsFile = cfg.sopsFile;
+      user = config.services.crowdsec.user;
+      group = config.services.crowdsec.group;
     };
 
-    # crowdsec-firewall-bouncer's NixOS module defaults its `mode` to nftables/iptables based on
-    # `networking.nftables.enable` (modules/devices/network.nix's harden block turns this on), so
-    # on an nftables host the bouncer manages its own table/chain/sets via netlink directly - no
-    # ipset/iptables binaries, and no `ip_set`/`xt_set` kernel modules to preload. The previous
-    # iptables-mode equivalent of this comment (and the VM test that motivated it - a real SSH
-    # brute-force against a hardened vps, confirming decisions were recorded but never actually
-    # enforced without those modules loaded before the lock) is preserved in git history.
-    #
-    # `layers/console/core.nix` enables `devices.kernel.harden` (-> `security.lockKernelModules`,
-    # a one-way door once boot completes) alongside `services.native.sshd.harden` (which turns this
-    # module on), so the same class of failure applies here to nftables' own kernel module -
-    # preload it explicitly before the lock engages, same reasoning as before. Re-verify via a real
-    # quickemu VM ban test before trusting this on a hardened host, same as the iptables path was.
+    # crowdsec-firewall-bouncer manages its ruleset via nftables/netlink on this host (mode follows
+    # `networking.nftables.enable`), which needs `nf_tables` loaded - and `devices.kernel.harden`'s
+    # `security.lockKernelModules` (enabled alongside this module by `services.native.sshd.harden`)
+    # blocks loading new modules after boot, so it must be preloaded here.
     boot.kernelModules = [ "nf_tables" ];
 
     services.crowdsec = {
@@ -130,17 +123,10 @@ in
     services.crowdsec-firewall-bouncer = {
       enable = true;   # applies CrowdSec's ban decisions via iptables
 
-      # registerBouncer.enable is broken upstream: crowdsec-firewall-bouncer-register.service
-      # shells out to config.services.crowdsec.package's *raw* cscli binary with no `-c` flag, but
-      # crowdsec.service itself only ever runs with `-c <store-path config.yaml>` - no config ever
-      # lands at cscli's compiled-in default path (/etc/crowdsec/config.yaml), so every
-      # registration attempt just errors "no configuration file found" (root cause is the same
-      # class of bug as https://github.com/NixOS/nixpkgs/issues/459224 - a hardcoded-path
-      # assumption in this module that doesn't match how crowdsec.service actually locates its
-      # config - though that issue itself covers the separate capi-credentials grep bug, not this).
-      # Register manually instead (below) using the fully wired-up `cscli` wrapper
-      # services.crowdsec already exposes on PATH via environment.systemPackages - it already
-      # carries the right `-c=<configFile>` and runs as the crowdsec user for us.
+      # registerBouncer.enable is broken upstream: it shells out to cscli's raw binary with no `-c`
+      # flag, so it never finds crowdsec's actual (store-path) config and always errors "no
+      # configuration file found" (same class of bug as nixpkgs#459224). Registered manually below
+      # instead, via the working `cscli` wrapper services.crowdsec puts on PATH.
       registerBouncer.enable = false;
       secrets.apiKeyPath = "/var/lib/crowdsec-firewall-bouncer-register/api-key.cred";
     };
@@ -153,11 +139,9 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "crowdsec.service" ];
       wants = [ "crowdsec.service" ];
-      # The `cscli` this script calls is upstream's own wrapper (services.crowdsec adds it to
-      # environment.systemPackages, not to any package we can reference directly) - that only
-      # lands on an interactive login shell's PATH, not a systemd unit's, so `path` needs
-      # config.system.path (the merged systemPackages profile) to actually find it (confirmed via
-      # a local quickemu VM test: failed "cscli: command not found" with only pkgs.jq here).
+      # The `cscli` wrapper only lands on environment.systemPackages, not any package we can
+      # reference directly - config.system.path (not just pkgs.jq) is needed for a systemd unit to
+      # find it.
       path = [ pkgs.jq config.system.path ];
       script = ''
         set -euo pipefail
@@ -187,54 +171,32 @@ in
     systemd.services.crowdsec-firewall-bouncer.requires = [ "crowdsec-firewall-bouncer-register.service" ];
     systemd.services.crowdsec-firewall-bouncer.after = [ "crowdsec-firewall-bouncer-register.service" ];
 
-    # Upstream's own crowdsec module creates every subdirectory it needs (state, hub, conf, ...)
-    # via systemd.tmpfiles.settings "d" rules owned by cfg.user/cfg.group, but never creates
-    # /var/lib/crowdsec itself that way - it relies on ReadWritePaths + DynamicUser's own
-    # StateDirectory-less chown-on-start behavior for the root dir. Declaring
-    # `StateDirectory = "crowdsec"` ourselves to plug that gap (a previous fix here) works on a
-    # clean first boot, but combined with upstream's `PrivateUsers = true` it silently regresses on
-    # the *next* boot: the two directory-ownership mechanisms disagree on which user-namespace view
-    # the persisted DynamicUser uid mapping applies to, so /var/lib/crowdsec ends up owned by the
-    # overflow uid (`nobody:nogroup`) instead of `crowdsec:crowdsec`, and crowdsec-setup's
-    # `mkdir -p /var/lib/crowdsec/state/hub/` then fails with "Permission denied" (confirmed via a
-    # local quickemu VM test: works on first activation, fails after a reboot). Matching upstream's
-    # own tmpfiles-based approach for this one directory instead of StateDirectory sidesteps the
-    # PrivateUsers/DynamicUser interaction entirely - the "state" subdirectory tmpfiles rule already
-    # gets this right every boot, so extending the same mechanism to the parent does too.
+    # Upstream creates every subdirectory under /var/lib/crowdsec via tmpfiles "d" rules except the
+    # root dir itself, relying on DynamicUser's chown-on-start instead. Declaring
+    # `StateDirectory = "crowdsec"` to plug that gap works on first boot but regresses on the next
+    # one: it disagrees with DynamicUser's persisted uid mapping (PrivateUsers = true) about
+    # ownership, leaving the dir owned by the overflow uid and crowdsec-setup failing with
+    # "Permission denied". Extending the same tmpfiles mechanism to the root dir avoids the clash.
     systemd.tmpfiles.settings."10-crowdsec-rootdir"."/var/lib/crowdsec".d = {
       user = config.services.crowdsec.user;
       group = config.services.crowdsec.group;
       mode = "0750";
     };
 
-    # Upstream's own crowdsec-setup ExecStartPre guards `cscli machine add` with
-    # `[ ! -s local_api_credentials.yaml ]` (skip if the file is already non-empty), but `cscli`
-    # itself refuses to write to that path if it exists AT ALL, regardless of size - and separately,
-    # refuses to (re-)register a machine name that's already in CrowdSec's local database, even if
-    # its credentials file was lost. Either half of a registration can survive an interruption
-    # without the other (e.g. a power loss right after the DB insert but before `cscli` finishes
-    # writing the file, or right after the file is created but before it's populated - both
-    # confirmed via a local quickemu VM test simulating this), leaving `crowdsec.service` failing
-    # permanently on every subsequent start with either "file already exists" or "user already
-    # exist" until someone manually intervenes.
+    # Upstream's crowdsec-setup only retries `cscli machine add` when local_api_credentials.yaml is
+    # missing/empty, but an interrupted registration can leave the DB-side entry registered without
+    # the file (or vice versa) - either half surviving alone leaves crowdsec.service permanently
+    # failing with "file already exists" or "user already exists".
     #
-    # This can't be plugged in via `serviceConfig.ExecStartPre` from our own module (tried
-    # `lib.mkBefore` first): upstream's own ExecStartPre list opens with a literal blank entry
-    # (`" " # This is needed to clear the ExecStartPre definitions from upstream`), which is
-    # systemd's own "wipe everything declared before this line in the unit file" directive. That
-    # blank entry always renders *after* anything a separate module contributes regardless of
-    # mkBefore/mkAfter priority, so it silently erased our step before it ever ran (confirmed via
-    # a local quickemu VM test: `systemctl cat` showed our ExecStartPre line present in the unit
-    # file, but it never actually executed). `mkAfter` doesn't work either - crowdsec-setup's own
-    # failure aborts the unit before a later ExecStartPre step would get a chance to run. A fully
-    # separate unit, ordered via normal `before`/`requiredBy`, sidesteps upstream's internal list
-    # entirely.
+    # Can't fix this via our own `serviceConfig.ExecStartPre` (tried `lib.mkBefore`): upstream's own
+    # ExecStartPre list opens with a blank entry that wipes everything declared before it, always
+    # rendered after ours regardless of mkBefore/mkAfter - and `mkAfter` doesn't help either, since
+    # crowdsec-setup's own failure aborts the unit first. A separate unit ordered via
+    # `before`/`requiredBy` sidesteps upstream's internal list entirely.
     #
-    # Rather than just deleting a stale file and hoping upstream's own retry succeeds (it won't, if
-    # the DB-side registration also survived), proactively (re-)complete the registration ourselves
-    # with `--force` whenever the file isn't already valid - `--force` covers both "file exists" and
-    # "machine already exists" in one shot, per `cscli machines add --help`. Once this produces a
-    # valid, non-empty file, upstream's own `[ ! -s ... ]` guard just skips its attempt as normal.
+    # So: proactively (re-)register with `--force` whenever the file isn't already valid - it covers
+    # both "file exists" and "machine already exists" in one shot. Once that produces a valid file,
+    # upstream's own guard just skips its own attempt as normal.
     systemd.services.crowdsec-clear-stale-lapi-creds = {
       description = "Ensure a valid CrowdSec LAPI credentials file, recovering from an interrupted registration";
       before = [ "crowdsec.service" ];
