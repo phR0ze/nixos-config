@@ -16,6 +16,9 @@ host:
             fallback: ENC[AES256_GCM,data:PonIaqQKzg==,iv:uC8r6Q2rHaS+h8wVSuf36bqa29BYxtyVQL1OzEfipjs=,tag:HMqMTynDILj1q8d+5UHUVg==,type:str]
         hardenWhitelist:
             - ENC[AES256_GCM,data:dqmcbPL8K1s9rPhifQ==,iv:/SdKSS2DsdJA0juVUiT8NY0qFKyBJbnHBIqndAWDHck=,tag:5e1UYAMrLU5DT5XTJ+7BGA==,type:str]
+    git:
+        user: ENC[AES256_GCM,data:L+YLatZL,iv:O4rVnIfuajMoVRFH4y06KFNAushN/gyzJOF412WBCiM=,tag:fRtopOaw4AXsmF4HB9WDKA==,type:str]
+        email: ENC[AES256_GCM,data:Sx87vFldzyjtRH94Bnqpi80cX6n5YemAeeGqtCI92DDLRooLFXJp/g==,iv:Za/8uS+mZKiH/2gRxqcAm5mV68k4VHxPqchuYlykLFQ=,tag:sGZe68vdB7uZvzW3PavBzw==,type:str]
     users:
         root:
             authorizedKeys:
@@ -31,7 +34,7 @@ sops:
             5X4sHfXje6KZSHd0gx55IYm+dyVaJvXrIryfHq5nImoyYqglq7eXsQ==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1ugsz6x2fq8tqdd39gnchvzrcgv2sg79mknrutw2tsgu82z73kpxsqaxf3g
-    lastmodified: "2026-09-18T20:14:24Z"
-    mac: ENC[AES256_GCM,data:hF3SuXleoKFrSpxmPpQYlLRV9hYTVMODIyNSn37t+h7474bhUvwFqw8GZ7gAa/iIRKi2PMc6IG0T2ufsf5jZl0fvZ43ZR3RxAaAVAnQOz3/UcYev6Mfkj9fcKQgnsPbN06EP+9IID7wClNejfjZtJDlcxy50yLD9caMKwP3dlP0=,iv:eVRb3vq6ErZGKIfKscfuGpoovzslUVNr62P7nxKGkIY=,tag:fQunVLj0Rko8fKSkzeMBEg==,type:str]
+    lastmodified: "2026-09-18T21:04:46Z"
+    mac: ENC[AES256_GCM,data:3YIiiFOGttkoaG5TqUZGTf927o0IVMQwnN9ZlEMu6YGlKWaIZ82qxx+qobHsB/oaPuDmuFpS4sbJep955yNdkHPfnLDYpTmPSNl/02EkFqEtvdL1I+PWhbh1JQgFnNJIySfVa7YZ/HpJhfTRQTM8FSlKkV8AFt0nEWgHwqZNSNE=,iv:Zlcdr4R+IIcN23JZQVqJlBEyr/ieEemeU5p0VbfeUqs=,tag:VZ8/wynkELVoC89UbqNvmQ==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1
