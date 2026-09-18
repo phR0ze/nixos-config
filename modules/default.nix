@@ -22,6 +22,7 @@ let
     gateway = host.network.nic0.gateway or "";
     dns.primary = host.network.nic0.dns.primary or "";
     dns.fallback = host.network.nic0.dns.fallback or "";
+    mapNameFromMAC = host.network.nic0.mapNameFromMAC or "";
   };
 in
 {
@@ -157,22 +158,33 @@ in
   #   implements - the goal is one place where
   # - the goals is that user install time or user configured overrides become the configuration
   # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf (cfg.id != "") {
-    devices.boot.efi = cfg.boot.efi;
-    devices.boot.mbr = cfg.boot.mbr;
-    networking.hostName = cfg.name;
-    system.env.machineId = cfg.id;
-    system.env.git.user = cfg.git.user;
-    system.env.git.email = cfg.git.email;
-    system.users.sopsFile = cfg.sopsFile;
-    devices.network.gateway = cfg.network.gateway;
-    devices.network.subnet = cfg.network.subnet;
-    devices.network.dns.primary = cfg.network.dns.primary;
-    devices.network.dns.fallback = cfg.network.dns.fallback;
-    devices.network.nic0.name = cfg.network.nic0.name;
-    devices.network.nic0.ip = cfg.network.nic0.ip;
-    devices.network.harden.geoblockWhitelist = cfg.network.hardenWhitelist;
-    services.native.crowdsec.whitelist = cfg.network.hardenWhitelist;
-    users.users.root.openssh.authorizedKeys.keys = cfg.users.root.authorizedKeys;
-  };
+  config = lib.mkMerge [
+    (lib.mkIf (cfg.id != "") {
+      devices.boot.efi = cfg.boot.efi;
+      devices.boot.mbr = cfg.boot.mbr;
+      networking.hostName = cfg.name;
+      system.env.machineId = cfg.id;
+      system.env.git.user = cfg.git.user;
+      system.env.git.email = cfg.git.email;
+      system.users.sopsFile = cfg.sopsFile;
+      devices.network.gateway = cfg.network.gateway;
+      devices.network.subnet = cfg.network.subnet;
+      devices.network.dns.primary = cfg.network.dns.primary;
+      devices.network.dns.fallback = cfg.network.dns.fallback;
+      devices.network.nic0.name = cfg.network.nic0.name;
+      devices.network.nic0.ip = cfg.network.nic0.ip;
+      devices.network.harden.geoblockWhitelist = cfg.network.hardenWhitelist;
+      services.native.crowdsec.whitelist = cfg.network.hardenWhitelist;
+      users.users.root.openssh.authorizedKeys.keys = cfg.users.root.authorizedKeys;
+    })
+
+    # Pin nic0's name by MAC and disable predictable interface naming, only when a host opts in
+    # via `host.network.nic0.mapNameFromMAC` (see modules/types/nic.nix for why this is needed).
+    (lib.mkIf (cfg.id != "" && cfg.network.nic0.mapNameFromMAC != "") {
+      networking.usePredictableInterfaceNames = lib.mkForce false;
+      services.udev.extraRules = ''
+        ATTR{address}=="${cfg.network.nic0.mapNameFromMAC}", NAME="${cfg.network.nic0.name}"
+      '';
+    })
+  ];
 }

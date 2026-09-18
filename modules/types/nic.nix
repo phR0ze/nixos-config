@@ -27,6 +27,21 @@
       default = "";
     };
 
+    mapNameFromMAC = lib.mkOption {
+      description = lib.mdDoc ''
+        MAC address to pin this NIC's `name` to via a udev rule, and disable
+        `networking.usePredictableInterfaceNames` for. Needed on hosts (e.g. some cloud/VPS
+        providers' virtio NICs) where the kernel's predictable name (`enp0s3`, `ens3`, ...) won't
+        match a hardcoded `name` like "eth0" used elsewhere in this host's static config -
+        pinning by MAC keeps the name deterministic without predictable naming's bus-topology
+        dependency. Leave unset (default) on hosts where predictable naming already matches, or
+        where the interface name isn't hardcoded anywhere.
+      '';
+      type = types.str;
+      example = "00:11:22:33:44:55";
+      default = defaults.mapNameFromMAC or "";
+    };
+
     link = lib.mkOption {
       description = lib.mdDoc ''
         NIC link name. Useful for containers and VMs when creating a macvlan on the host bridge 
