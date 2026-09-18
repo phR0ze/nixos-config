@@ -529,6 +529,11 @@ in
       assertions = [
         { assertion = (cfg.nic0.name != ""); message = "Primary nic must be specified e.g. 'eth0'"; }
       ];
+      # Same reasoning as the bridge/networkManager branches above: without this, NixOS's global
+      # default still runs dhcpcd against every interface lacking its own explicit DHCP setting,
+      # including this statically-addressed one - it just spins probing forever, doing nothing but
+      # burning a process and parsing untrusted DHCP responses off the wire.
+      networking.useDHCP = false;
       networking.interfaces."${cfg.nic0.name}".ipv4.addresses = [ (f.toIP cfg.nic0.ip) ];
     }))
 
