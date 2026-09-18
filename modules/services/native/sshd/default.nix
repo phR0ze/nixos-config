@@ -122,7 +122,13 @@ in
         RestrictSUIDSGID = true;
         LockPersonality = true;
         RestrictRealtime = true;
-        MemoryDenyWriteExecute = true;
+        # MemoryDenyWriteExecute intentionally NOT set: this seccomp restriction is inherited by
+        # every login session's shell (same inheritance mechanism as RestrictNamespaces below) and
+        # blocks any JIT compiler run over SSH from creating writable+executable pages - neovim's
+        # bundled LuaJIT panics with "runtime code generation failed, restricted kernel?" the moment
+        # it starts (confirmed live on hosts/vps1). Interactive admin tooling over SSH is a normal
+        # part of managing a headless VPS, so this hardening knob is traded away same as the two below.
+
         # AF_NETLINK included alongside AF_INET/AF_UNIX (IPv6 disabled fleet-wide already) - without
         # it, this seccomp restriction is inherited by every login session's shell (same mechanism
         # as RestrictNamespaces below) and silently breaks any netlink-based tool run over SSH -
