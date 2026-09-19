@@ -217,6 +217,17 @@ in
       };
     };
 
+    # Upstream's crowdsec-update-hub.service (autoUpdateService above) always fails its
+    # ExecStartPost, `systemctl reload crowdsec.service`, two ways at once: the sandboxed
+    # DynamicUser it runs as is never D-Bus-authorized to reload units, and crowdsec.service has no
+    # ExecReload= anyway (confirmed live - even plain root gets "Job type reload is not
+    # applicable"). The `+` prefix runs just this command with full privileges to fix the first
+    # issue; try-reload-or-restart (vs. reload) falls back to a full restart to fix the second.
+    # Confirmed live via a `systemd-run` unit replicating the sandbox - crowdsec.service's
+    # ActiveEnterTimestamp advanced when triggered this way.
+    systemd.services.crowdsec-update-hub.serviceConfig.ExecStartPost =
+      lib.mkForce "+systemctl try-reload-or-restart crowdsec.service";
+
     systemd.services.crowdsec.serviceConfig = {
       ProtectSystem = "strict";
       ProtectHome = true;
