@@ -110,6 +110,7 @@ in
             c_reset=""
           fi
 
+          printf '\n'
           printf "''${c_header}%s''${c_reset}\n" "$host"
           printf " - ''${c_label}Host:''${c_reset}  %-24s %s\n" "$os_pretty" "Linux $kernel"
           printf " - ''${c_label}CPU:''${c_reset}   %-45s %s\n" "$cpu_model" "$cpu_topology"
