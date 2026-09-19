@@ -23,6 +23,14 @@ in
       security.lockKernelModules = true;            # block loading new kernel modules once boot is complete
       security.protectKernelImage = true;           # block reading /boot and loading unsigned kernel images at runtime
 
+      # af_packet backs every AF_PACKET raw socket (libpcap-based capture: tcpdump, rustnet, etc) -
+      # without preloading it here, security.lockKernelModules's kernel.modules_disabled=1 (set at
+      # boot, a one-way door - see modules/devices/network.nix's nf_tables/nft_limit preload for the
+      # same pattern) blocks the kernel from autoloading it on first use for the rest of that boot,
+      # so any AF_PACKET socket() call fails with EAFNOSUPPORT ("PF_PACKET sockets not supported" in
+      # libpcap's own wording) even for root (confirmed live on hosts/vps1).
+      boot.kernelModules = [ "af_packet" ];
+
       boot.kernel.sysctl = {
         # Network stack: SYN flood / spoofing / redirect hardening
         "net.ipv4.tcp_syncookies" = 1;
