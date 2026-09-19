@@ -54,6 +54,16 @@ in
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf (cfg.harden) {
       boot.tmp.cleanOnBoot = true;
+
+      # Mounting /tmp as tmpfs gets nosuid+nodev for free (upstream's boot.tmp.useTmpfs default).
+      # Deliberately NOT noexec, unlike /dev/shm below: Nix's build sandbox uses $TMPDIR (/tmp by
+      # default) as scratch space, and noexec here breaks `nix build`/`clu update` outright - same
+      # class of trade-off as sshd's ProtectSystem=false (see services.native.sshd.harden).
+      boot.tmp.useTmpfs = true;
+
+      # /dev/shm has no such build dependency, so the full trio applies - options list-merges with
+      # upstream's own nosuid/nodev/strictatime/mode/size (modules/tasks/filesystems.nix).
+      boot.specialFileSystems."/dev/shm".options = [ "noexec" ];
     })
 
     # zram swap cheaply extends effective memory by taking a portion of the physical memory and

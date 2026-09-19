@@ -69,6 +69,7 @@ in
       services.native.sshd.harden = true;           # restrict sshd and enable CrowdSec brute-force protection
       services.native.systemd.harden = true;        # additional security and low memory options
       services.native.crowdsec.enable = true;       # enable broad CrowdSec protection
+      services.native.alerts.enable = true;         # push failed-unit alerts + a daily security digest
     })
   ];
 }
