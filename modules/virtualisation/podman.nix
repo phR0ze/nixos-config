@@ -31,7 +31,15 @@ in
 
     # Enable container name DNS for non-default Podman networks.
     # https://github.com/NixOS/nixpkgs/issues/226365
-    networking.firewall.interfaces."podman+".allowedUDPPorts = [ 53 ];
+    #
+    # `networking.firewall.interfaces."podman+"` (the iptables-era wildcard-suffix idiom from that
+    # issue) doesn't translate under the nftables backend (devices.network.harden.enable turns on
+    # networking.nftables.enable) - the generated ruleset interpolates the interface name
+    # unquoted, and a bare trailing "+" is a syntax error to nft, not a wildcard. nftables' own
+    # glob operator is "*", written here directly via extraInputRules instead.
+    networking.firewall.extraInputRules = ''
+      iifname "podman*" udp dport 53 accept
+    '';
 
     # Default backend is already podman and when this is uncommented a recursion bug occurs
     # so I'll just leave this here as a reminder but nothing is needed.
