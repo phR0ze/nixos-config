@@ -45,7 +45,10 @@ in
       # static (rendered once at build time), so live values (load, memory, IP, ...) can't live
       # there - instead this runs on every interactive shell, right after sshd prints /etc/motd and
       # before the user's prompt, giving the same "below my existing motd" placement. Guarded to SSH
-      # sessions only so local console/desktop shells don't get it too.
+      # sessions only so local console/desktop shells don't get it too, and to SHLVL == 1 so it
+      # only fires on the actual login shell - nix-shell, sudo -i, or a plain nested bash all
+      # inherit SSH_CONNECTION from the environment and would otherwise reprint it on every
+      # subshell spawned inside an already-logged-in session.
       #
       # Deliberately NOT environment.etc."profile.d/*.sh": plain NixOS's generated /etc/profile and
       # /etc/bashrc never loop over /etc/profile.d/*.sh (that's a Fedora/Debian convention, not
@@ -55,7 +58,7 @@ in
       # concatenated into /etc/bashrc's `if [ -n "$PS1" ]` block regardless of shell customization.
       environment.interactiveShellInit = ''
         # shellcheck shell=bash
-        if [ -n "$SSH_CONNECTION" ] && [ -n "$PS1" ]; then
+        if [ -n "$SSH_CONNECTION" ] && [ -n "$PS1" ] && [ "$SHLVL" -eq 1 ]; then
           load="$(cut -d' ' -f1-3 /proc/loadavg)"
           procs="$(ps ax --no-headers | wc -l)"
           users="$(who | wc -l)"
