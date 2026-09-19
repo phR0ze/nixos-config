@@ -98,12 +98,25 @@ in
           cpu_topology="''${sockets}S/''${cores}C/''${threads}T"
           [ "$virt" != "none" ] && cpu_topology="$cpu_topology, $virt"
 
-          printf ' - Host:  %-24s %-20s %s\n' "$os_pretty" "Linux $kernel" "$host"
-          printf ' - CPU:   %-45s %s\n' "$cpu_model" "$cpu_topology"
-          printf ' - RAM:   %-24s %-20s %s swap\n' "$ram" "$mem_pct used" "$swap_pct"
-          printf ' - Disk:  %-24s %s\n' "$boot" "$root_use of $root_size used"
-          printf ' - Load:  %-24s %-20s %s %s\n' "$load" "$procs procs" "$users" "$user_label"
-          printf ' - IPv4:  %-24s %s\n' "''${ipv4:-unknown}" "''${iface:-eth0}"
+          # Only emit color codes to an actual terminal - keeps piped/logged output (e.g. a
+          # session captured to a file) free of escape sequences.
+          if [ -t 1 ]; then
+            c_label="\033[1;36m"  # bold cyan
+            c_header="\033[1;33m" # bold yellow
+            c_reset="\033[0m"
+          else
+            c_label=""
+            c_header=""
+            c_reset=""
+          fi
+
+          printf "''${c_header}%s''${c_reset}\n" "$host"
+          printf " - ''${c_label}Host:''${c_reset}  %-24s %s\n" "$os_pretty" "Linux $kernel"
+          printf " - ''${c_label}CPU:''${c_reset}   %-45s %s\n" "$cpu_model" "$cpu_topology"
+          printf " - ''${c_label}RAM:''${c_reset}   %-24s %-20s %s swap\n" "$ram" "$mem_pct used" "$swap_pct"
+          printf " - ''${c_label}Disk:''${c_reset}  %-24s %s\n" "$boot" "$root_use of $root_size used"
+          printf " - ''${c_label}Load:''${c_reset}  %-24s %-20s %s %s\n" "$load" "$procs procs" "$users" "$user_label"
+          printf " - ''${c_label}IPv4:''${c_reset}  %-24s %s\n" "''${ipv4:-unknown}" "''${iface:-eth0}"
           printf '\n'
         fi
       '';
