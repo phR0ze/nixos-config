@@ -14,10 +14,13 @@
   ];
 
   config = {
-    layers.console.core = {
-      enable = true;
-      lowMemory = true;
-      harden = true;
+    layers.console = {
+      core = {
+        enable = true;
+        lowMemory = true;
+        harden = true;
+      };
+      server.enable = true;
     };
 
     # sshd.service's own systemd sandboxing (services.native.sshd's harden block) cascades to every

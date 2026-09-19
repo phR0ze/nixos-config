@@ -1,15 +1,9 @@
 # Podman configuration
 #
 # ### Prerequisites
-# The following kernel params already setup in nixos-config/modules/boot/kerel.nix are required
-# ```nix
-# boot.kernel.sysctl = {
-#   "net.ipv4.ip_forward" = 1;
-#   "net.bridge.bridge-nf-call-arptables" = 0;
-#   "net.bridge.bridge-nf-call-ip6tables" = 0;
-#   "net.bridge.bridge-nf-call-iptables" = 0;
-# };
-# ```
+# `devices.kernel.containers = true` (modules/devices/kernel.nix) sets the required
+# net.ipv4.ip_forward/net.bridge.bridge-nf-call-* sysctls - already implied for desktop hosts via
+# devices.kernel.desktop, and turned on for headless hosts by layers/console/server.nix.
 #
 # ### Notes
 # - See README.md for usage details
@@ -18,16 +12,17 @@
 #   primary user's `podman` group membership, podman-compose, container-name DNS on custom networks,
 #   and weekly autoPrune.
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }:
 let
-  host = config.host;
   cfg = config.virtualisation.podman;
 in
 {
   config = lib.mkIf cfg.enable {
 
-    # Configure primary user permissions
-    users.users.${host.user.name}.extraGroups = [ "podman" ];
+    # Configure primary user permissions - merges onto the same secret.users."admin" entry
+    # modules/system/users.nix declares (real username only known post-decrypt, see
+    # modules/devices/network.nix's networkmanager grant for the same pattern)
+    secret.users."admin".extraGroups = [ "podman" ];
 
     # Install dependencies
     environment.systemPackages = [

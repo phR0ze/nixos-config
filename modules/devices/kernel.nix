@@ -12,6 +12,7 @@ in
       harden = lib.mkEnableOption "Enable hardening for the kernel";
       lowMemory = lib.mkEnableOption "Enable low memory configuration";
       highMemory = lib.mkEnableOption "Enable high memory configuration";
+      containers = lib.mkEnableOption "Enable sysctl tuning required for running containers (podman/docker)";
     };
   };
 
@@ -23,13 +24,32 @@ in
       security.lockKernelModules = true;            # block loading new kernel modules once boot is complete
       security.protectKernelImage = true;           # block reading /boot and loading unsigned kernel images at runtime
 
-      # af_packet backs every AF_PACKET raw socket (libpcap-based capture: tcpdump, rustnet, etc) -
-      # without preloading it here, security.lockKernelModules's kernel.modules_disabled=1 (set at
-      # boot, a one-way door - see modules/devices/network.nix's nf_tables/nft_limit preload for the
-      # same pattern) blocks the kernel from autoloading it on first use for the rest of that boot,
-      # so any AF_PACKET socket() call fails with EAFNOSUPPORT ("PF_PACKET sockets not supported" in
-      # libpcap's own wording) even for root (confirmed live on hosts/vps1).
-      boot.kernelModules = [ "af_packet" ];
+      # Every kernel module any harden-adjacent feature needs, gathered here rather than scattered
+      # per-module - centralized because they all share one root cause: security.lockKernelModules
+      # below sets kernel.modules_disabled=1 once boot completes (a one-way door, applied by
+      # systemd-sysctl.service, which orders after systemd-modules-load.service within
+      # sysinit.target - systemd's own default), so anything that would otherwise autoload on first
+      # use must already be loaded before that point instead, for as long as this host is hardened.
+      # Assumes devices.kernel.harden is always paired with devices.network.harden.enable/
+      # services.native.crowdsec.enable, true today only via layers/console/core.nix's harden flag
+      # turning all three on together - a host enabling those features standalone without
+      # devices.kernel.harden doesn't need any of this, since on-demand autoload still works fine.
+      boot.kernelModules = [
+        "af_packet"     # AF_PACKET raw sockets (libpcap-based capture: tcpdump, rustnet, etc) -
+                        #   without this, any AF_PACKET socket() call fails with EAFNOSUPPORT ("PF_PACKET
+                        #   sockets not supported" in libpcap's own wording) even for root (confirmed
+                        #   live on hosts/vps1)
+        "nf_tables"     # nftables core - services.native.crowdsec, devices.network.harden's geoblock
+                        #   and connlimit tables all need this; without it nftables.service fails to
+                        #   load ANY table at all on this host
+        "nft_limit"     # nftables `limit rate` expression - devices.network.harden's connlimit
+                        #   chain; without this, `nft -f` fails with a misleading "Could not process
+                        #   rule: No such file or directory" the moment that table is (re)loaded
+                        #   (confirmed live on hosts/vps1)
+        "br_netfilter"  # bridge netfilter hooks - the net.bridge.bridge-nf-call-* sysctls below
+                        #   (devices.kernel.containers) don't exist under /proc/sys until this is
+                        #   loaded, and podman's first bridge-network creation needs it too
+      ];
 
       boot.kernel.sysctl = {
         # Network stack: SYN flood / spoofing / redirect hardening
@@ -76,17 +96,16 @@ in
       };
     })
 
-    # Desktop: everything non memory-related
+    # Container runtime: bridge/forwarding sysctls needed by podman/docker (and libvirt/qemu
+    # bridges) - split out from the desktop block below so headless server hosts (e.g. hosts/vps1)
+    # can opt in via layers/console/server.nix without pulling in desktop-only tuning.
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.desktop) {
+    (lib.mkIf (cfg.containers) {
+      # br_netfilter is preloaded above whenever devices.kernel.harden is also on (the case that
+      # actually requires it - see that block's comment); without harden, podman/the sysctls below
+      # just autoload it on demand like any other module, no action needed here.
       boot.kernel.sysctl = {
         "net.ipv4.ip_forward" = 1;                  # Enable ipv4 forwarding for running containers
-        "net.ipv6.conf.all.forwarding" = 0;         # Disable ipv6 forwarding
-
-        # These are set by default for x11 but resetting incase I switch to Wayland in the future
-        # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/x11/xserver.nix#L749-L750
-        "fs.inotify.max_user_watches" = 524288;     # Increase the number of user file watches to max
-        "fs.inotify.max_user_instances" = 524288;   # Increase the number of user instances to max
 
         # Support for bridge virtual switches
         # [netfilter is currently enabled on bridges by default](https://bugzilla.redhat.com/show_bug.cgi?id=512206#c0).
@@ -95,6 +114,19 @@ in
         "net.bridge.bridge-nf-call-arptables" = 0;
         "net.bridge.bridge-nf-call-ip6tables" = 0;
         "net.bridge.bridge-nf-call-iptables" = 0;
+      };
+    })
+
+    # Desktop: everything non memory-related
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf (cfg.desktop) {
+      devices.kernel.containers = true;             # desktop hosts run podman/libvirt too
+
+      boot.kernel.sysctl = {
+        # These are set by default for x11 but resetting incase I switch to Wayland in the future
+        # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/x11/xserver.nix#L749-L750
+        "fs.inotify.max_user_watches" = 524288;     # Increase the number of user file watches to max
+        "fs.inotify.max_user_instances" = 524288;   # Increase the number of user instances to max
       };
 
       # Blacklisted modules

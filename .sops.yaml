@@ -8,7 +8,10 @@ creation_rules:
   # Isolated hosts get their own path-scoped rule (must precede the fleet-wide fallback below,
   # sops uses first-match) with a dedicated key from the `keys` list above. Copy this pattern for
   # any future isolated host. Matches hosts/vps1, hosts/vps2, hosts/vps<N>, ...
-  - path_regex: hosts/vps[0-9]+/.*\.(dec|enc)\.(pem|yaml)$
+  #
+  # hosts/vm-vps<N> is the local-VM staging twin of hosts/vps<N> (see hosts/vm-vps1) - it shares
+  # the *vps key so it exercises the same isolated-host code path before changes reach production.
+  - path_regex: hosts/(vm-)?vps[0-9]+/.*\.(dec|enc)\.(pem|yaml)$
     key_groups:
       - age:
         - *vps

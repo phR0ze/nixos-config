@@ -206,7 +206,10 @@ in
         }
       ];
 
+      # Disable ipv6 and is related parts to be explicit
       networking.enableIPv6 = false;
+      boot.kernel.sysctl."net.ipv6.conf.all.forwarding" = 0;
+
       networking.firewall.allowPing = true;
       networking.useNetworkd = cfg.networkd.enable;
     }
@@ -278,13 +281,9 @@ in
     # through via `policy accept`, so it can't itself let anything through that a later chain would
     # otherwise have refused.
     (lib.mkIf (cfg.harden.enable) {
-      # nft_limit alongside nf_tables: this chain's `limit rate` expression needs its own kernel
-      # module, distinct from nf_tables itself - without preloading it here, security.lockKernelModules
-      # blocks the kernel from autoloading it on first use, so `nft -f` fails with a misleading
-      # "Could not process rule: No such file or directory" the moment this table is (re)loaded
-      # (confirmed live on hosts/vps1). See crowdsec.nix's comment for the module-lock ordering.
-      boot.kernelModules = [ "nf_tables" "nft_limit" ];
-
+      # This chain's `limit rate` expression needs its own kernel module (nft_limit), distinct
+      # from nf_tables itself - both preloaded centrally by modules/devices/kernel.nix's harden
+      # block (see its comment for the module-lock ordering and why it's gathered there).
       networking.nftables.tables.connlimit = {
         family = "ip";
         content = ''
@@ -332,15 +331,9 @@ in
           }
         ];
 
-        # Same module services.native.crowdsec.nix already needs and explains at length - repeated
-        # here (NixOS list options dedupe) so this feature works standalone on a host without
-        # CrowdSec enabled. See crowdsec.nix's comment for the full kernel-module-lock interaction;
-        # short version: devices.kernel.harden's security.lockKernelModules sets
-        # kernel.modules_disabled=1 after boot (a one-way door, applied by systemd-sysctl.service,
-        # which orders after systemd-modules-load.service within sysinit.target - systemd's own
-        # default), so nf_tables must already be loaded via boot.kernelModules before that lock
-        # engages, or nftables.service itself would fail to load ANY table at all on this host.
-        boot.kernelModules = [ "nf_tables" ];
+        # Same nf_tables module services.native.crowdsec.nix and the connlimit chain above also
+        # need - preloaded centrally by modules/devices/kernel.nix's harden block, see its comment
+        # for the module-lock interaction and why it's gathered there rather than duplicated here.
 
         # Declarative skeleton: table/chain/set structure only, loaded once by nftables.service.
         # geoblockWhitelist is baked in as the set's initial elements - loaded synchronously at

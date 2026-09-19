@@ -56,10 +56,9 @@ in
     };
 
     # crowdsec-firewall-bouncer manages its ruleset via nftables/netlink on this host (mode follows
-    # `networking.nftables.enable`), which needs `nf_tables` loaded - and `devices.kernel.harden`'s
-    # `security.lockKernelModules` (enabled alongside this module by `services.native.sshd.harden`)
-    # blocks loading new modules after boot, so it must be preloaded here.
-    boot.kernelModules = [ "nf_tables" ];
+    # `networking.nftables.enable`), which needs `nf_tables` loaded - preloaded centrally by
+    # modules/devices/kernel.nix's harden block (see its comment for why it's gathered there
+    # rather than duplicated per-module).
 
     services.crowdsec = {
       enable = true;
