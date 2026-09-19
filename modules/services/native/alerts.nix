@@ -44,7 +44,7 @@ in
           set -uo pipefail
           STATE_FILE=/var/lib/alerts/failed-units.state
           TOPIC=$(cat ${ntfyTopicFile})
-          HOST=$(hostname)
+          HOST=${config.networking.hostName}
           FAILED=$(systemctl --failed --no-legend --plain)
           PREV=$(cat "$STATE_FILE" 2>/dev/null || true)
           if [ "$FAILED" != "$PREV" ]; then
@@ -78,7 +78,7 @@ $FAILED" "https://ntfy.sh/$TOPIC"
         ExecStart = toString (pkgs.writeShellScript "security-digest" ''
           set -uo pipefail
           TOPIC=$(cat ${ntfyTopicFile})
-          HOST=$(hostname)
+          HOST=${config.networking.hostName}
           AUTH_FAILS=$(journalctl -u sshd --since "-1 day" | grep -c "Failed password" || true)
           CS_DECISIONS=$(cscli decisions list -o raw 2>/dev/null | tail -n +2 | wc -l || echo 0)
           ${pkgs.curl}/bin/curl -sf -H "Title: Daily security digest - $HOST" -d "$(cat <<MSG
