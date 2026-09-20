@@ -17,9 +17,8 @@
 # - DNS-01 (Cloudflare) + wildcard certs from the start, not upstream's HTTP-01 default - port 80 is
 #   never published at all, sidestepping the "ufw/nftables can't actually close it once Docker/podman
 #   already published it" gotcha entirely rather than closing it after the fact.
-# - CrowdSec `COLLECTIONS` includes `http-cve`/`base-http-scenarios` explicitly alongside
-#   `traefik`/`appsec-*` - broader HTTP-CVE/scan coverage than upstream's bare `--crowdsec` default,
-#   matching what was found already running on the validated reference deployment.
+# - CrowdSec `COLLECTIONS` matches `traefik`/`appsec-virtual-patching`/`appsec-generic-rules` -
+#   exactly what was found already running on the validated reference deployment.
 #
 # ### Secrets
 # `secrets` must point at a `secrets.enc.yaml` holding:
@@ -470,10 +469,8 @@ in
       type = types.listOf types.str;
       default = [
         "crowdsecurity/traefik"
-        "crowdsecurity/http-cve"
-        "crowdsecurity/base-http-scenarios"
-        "crowdsecurity/appsec-generic-rules"
         "crowdsecurity/appsec-virtual-patching"
+        "crowdsecurity/appsec-generic-rules"
       ];
     };
 
@@ -512,6 +509,24 @@ in
         Path to the sops-encrypted file holding `pangolin/serverSecret` and
         `pangolin/cloudflareApiToken` - see the module-level Secrets note.
       '';
+    };
+
+    disableUserCreateOrg = lib.mkOption {
+      description = lib.mdDoc "Whether to prevent non-admin users from creating their own organization";
+      type = types.bool;
+      default = true;
+    };
+
+    rateLimitWindowMinutes = lib.mkOption {
+      description = lib.mdDoc "Global rate-limit window, in minutes";
+      type = types.int;
+      default = 1;
+    };
+
+    rateLimitMaxRequests = lib.mkOption {
+      description = lib.mdDoc "Global rate-limit max requests per window";
+      type = types.int;
+      default = 100;
     };
   };
 
@@ -574,6 +589,8 @@ in
             log_level: "info"
             telemetry:
                 anonymous_usage: true
+            save_logs: true
+            log_failed_attempts: true
 
         domains:
             domain1:
@@ -590,11 +607,21 @@ in
                 methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
                 allowed_headers: ["X-CSRF-Token", "Content-Type"]
                 credentials: false
+            trust_proxy: 1
+
+        rate_limits:
+            global:
+                window_minutes: ${toString cfg.rateLimitWindowMinutes}
+                max_requests: ${toString cfg.rateLimitMaxRequests}
+
+        traefik:
+            additional_middlewares:
+                - "security-headers@file"
 
         flags:
             require_email_verification: false
             disable_signup_without_invite: true
-            disable_user_create_org: false
+            disable_user_create_org: ${lib.boolToString cfg.disableUserCreateOrg}
             allow_raw_resources: true
       '';
       secrets."${cfg.name}/serverSecret".sopsFile = cfg.sopsFile;
