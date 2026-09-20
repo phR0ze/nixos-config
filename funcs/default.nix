@@ -39,8 +39,8 @@
   # segment along the way is missing rather than throwing.
   #-------------------------------------------------------------------------------------------------
   # Usage:
-  #   f.getAttr "pangolin.baseDomain" cfg.services.oci
-  getAttr = path: attrs:
+  #   f.getServiceAttr "oci.pangolin.baseDomain" cfg.services
+  getServiceAttr = path: attrs:
     lib.attrByPath (lib.splitString "." path) null attrs;
 
   # Provide mkIf support for an else clause

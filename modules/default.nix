@@ -146,16 +146,18 @@ in
             default = host.users.root.authorizedKeys or [ ];
           };
 
-          services.oci = lib.mkOption {
+          services = lib.mkOption {
             description = lib.mdDoc ''
-              Raw per-service `services.oci.<name>.*` overrides sourced from `host.services.oci`
-              (i.e. `args`/`args.nix`/`args.enc.yaml`) - lets a host's build-time args populate a
-              real `services.oci.<name>` option without hardcoding the value directly in that
-              host's `configuration.nix`. Only fields this module's config section explicitly
-              looks for (see below) are actually applied - anything else here is inert.
+              Raw `services.<namespace>.<name>.*` overrides sourced from `host.services` (i.e.
+              `args`/`args.nix`/`args.enc.yaml`), keyed the same way as the real option path minus
+              the leading `services.` - e.g. `oci.pangolin.baseDomain`. Lets a host's build-time
+              args populate a real `services.<namespace>.<name>` option without hardcoding the
+              value directly in that host's `configuration.nix`. Only fields this module's config
+              section explicitly looks for (see below) are actually applied - anything else here
+              is inert.
             '';
             type = types.attrsOf types.anything;
-            default = host.services.oci or { };
+            default = host.services or { };
           };
         };
       };
@@ -195,8 +197,8 @@ in
     # Configure pangolin from shared defaults and secrets
     (lib.mkIf config.services.oci.pangolin.enable {
       services.oci.pangolin.sopsFile = cfg.sopsFile;
-      services.oci.pangolin.baseDomain = f.getAttr "pangolin.baseDomain" cfg.services.oci;
-      services.oci.pangolin.acmeEmail = f.getAttr "pangolin.acmeEmail" cfg.services.oci;
+      services.oci.pangolin.baseDomain = f.getServiceAttr "oci.pangolin.baseDomain" cfg.services;
+      services.oci.pangolin.acmeEmail = f.getServiceAttr "oci.pangolin.acmeEmail" cfg.services;
     })
 
     # Pin nic0's name by MAC and disable predictable interface naming, only when a host opts in
