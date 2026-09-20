@@ -701,6 +701,7 @@ in
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       environment.CONFIG_REV = configRev;
+      path = [ pkgs.podman ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;

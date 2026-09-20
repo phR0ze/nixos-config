@@ -1,6 +1,6 @@
 host:
     id: ENC[AES256_GCM,data:KhLNajUKuEdt+zeFhlgVFzbf6yJpz+IAukRS2vpEtdI=,iv:YWIgnSENVhze8m0VG5yaow+s0awXIG2j/kK9voWV+d8=,tag:L0RsSZR/rLxSKTgOXXLoiA==,type:str]
-    name: ENC[AES256_GCM,data:77H7/w==,iv:TYCY0SGG1H/JGx3JQ8h4lb3evMHmkGTEry2cTIUfmjg=,tag:ZWrGEzGjtTKKRZfGNGhXGQ==,type:str]
+    name: ENC[AES256_GCM,data:oytZulIFdQ==,iv:z3nXaGCFqn11Ve0BMr9/2VR/VkkpF+W46qp2Y6nz3QI=,tag:9T7herf+A5Of6AYNdV0/eg==,type:str]
     timeZone: ENC[AES256_GCM,data:GjgF9SNw+iVEhpiIiA==,iv:ssxydz5kT0wWjZ6u62T2lUkBk5sVSkJhnhZOCZUfvMg=,tag:dyDvZ84aL9hdKrUxh5R9CQ==,type:str]
     boot:
         mbr: ENC[AES256_GCM,data:D0VhCeIUL6Y=,iv:QabDeZLjJ2dAPp5vt8tnPhiq3xJYLAb37CAKBv5kUEk=,tag:LfiTn7n9Cp94yrt+YnJAUg==,type:str]
@@ -38,7 +38,7 @@ sops:
             WXnLJ++E80/nyjY8XWycqASlhdp/fcXUzJI2qF3shij88s5v6MBb7g==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1ugsz6x2fq8tqdd39gnchvzrcgv2sg79mknrutw2tsgu82z73kpxsqaxf3g
-    lastmodified: "2026-09-20T00:19:06Z"
-    mac: ENC[AES256_GCM,data:ugAMu5PprmJEZ0zKpaw6dYFhMRqKzGteiLiPxlFvw2IOkHCD/uJ/QmwUrOUyCc4n5GKiiC7Bse77VZz0YjMmIluqEAoEqctkqkENAQ6/ACDjtZXOwIMMVG1HPZNFOd0MzjTLVswsm51phtRjxFbC3jTa7YrYGqi7bHLFx7S2OHM=,iv:YCXlJcyuYeKeW+5xIok4Mh46ageD0kfiwYftKnRFv9Q=,tag:mVaSWxfI26GzgqzRH6ESUg==,type:str]
+    lastmodified: "2026-09-20T21:05:40Z"
+    mac: ENC[AES256_GCM,data:wCrpOsTGSWXut3HtAbzWUYv4atm34VVTfeG+jAQ0cJU05J2J6TauJmNfzfQF3uEl40iYd72o+Gi6knet6afLatuf18E3HLtOWqegkxdZaSbDbJnRRt6NYmDCTuNGY7SwjGDZmQrrUMuTGOboPd09p+ViYuwZ+p/zJFGST/rCZ0E=,iv:G+XpOS1de6S8FkSeZnl6G+34Lr2JzjMxc8Qz0+766mw=,tag:BRknfD/jQCVMOAawxmRRBA==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1
