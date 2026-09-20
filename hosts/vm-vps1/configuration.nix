@@ -22,7 +22,16 @@
       };
       server.enable = true;
     };
-
     nix.settings.sandbox = false;
+
+    services.oci.pangolin = {
+      enable = true;
+      pangolinTag = "ee-1.21.1";
+      gerbilTag = "1.5.1";
+      traefikTag = "v3.7";
+      crowdsecTag = "v1.7.8";
+      badgerPluginVersion = "v1.5.0";
+      crowdsecPluginVersion = "v1.4.4";
+    };
   };
 }

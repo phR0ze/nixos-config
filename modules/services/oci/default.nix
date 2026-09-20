@@ -14,6 +14,7 @@
     ./immich.nix
     ./newt.nix
     ./oneup.nix
+    ./pangolin.nix
     ./portainer.nix
     ./stirling-pdf.nix
   ];

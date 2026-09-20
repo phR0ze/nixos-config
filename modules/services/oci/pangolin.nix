@@ -17,8 +17,11 @@
 # - DNS-01 (Cloudflare) + wildcard certs from the start, not upstream's HTTP-01 default - port 80 is
 #   never published at all, sidestepping the "ufw/nftables can't actually close it once Docker/podman
 #   already published it" gotcha entirely rather than closing it after the fact.
-# - CrowdSec `COLLECTIONS` matches `traefik`/`appsec-virtual-patching`/`appsec-generic-rules` -
-#   exactly what was found already running on the validated reference deployment.
+# - CrowdSec `COLLECTIONS` matches upstream's own `--crowdsec` installer default
+#   (`traefik`/`appsec-virtual-patching`/`appsec-generic-rules`) plus `http-cve` - a maintained,
+#   HTTP-CVE-exploitation-detection collection recommended for any internet-facing deployment.
+#   `base-http-scenarios` is deliberately not listed separately - it's already a dependency of the
+#   `traefik` collection itself, so adding it again is a no-op.
 #
 # ### Secrets
 # `secrets` must point at a `secrets.enc.yaml` holding:
@@ -469,14 +472,21 @@ in
       type = types.listOf types.str;
       default = [
         "crowdsecurity/traefik"
+        "crowdsecurity/http-cve"
         "crowdsecurity/appsec-virtual-patching"
         "crowdsecurity/appsec-generic-rules"
       ];
     };
 
     baseDomain = lib.mkOption {
-      description = lib.mdDoc "Base domain resources/wildcard cert are issued under, e.g. example.com";
-      type = types.str;
+      description = lib.mdDoc ''
+        Base domain resources/wildcard cert are issued under, e.g. example.com. Nullable so
+        `modules/default.nix` can unconditionally forward `machine.services.oci.pangolin.baseDomain`
+        (host args) here without an existence check - see the `enable`-gated assertion below for
+        the actual requirement.
+      '';
+      type = types.nullOr types.str;
+      default = null;
     };
 
     dashboardDomain = lib.mkOption {
@@ -486,8 +496,13 @@ in
     };
 
     acmeEmail = lib.mkOption {
-      description = lib.mdDoc "Contact email for Let's Encrypt ACME registration";
-      type = types.str;
+      description = lib.mdDoc ''
+        Contact email for Let's Encrypt ACME registration. Nullable so `modules/default.nix` can
+        unconditionally forward `machine.services.oci.pangolin.acmeEmail` (host args) here without
+        an existence check - see the `enable`-gated assertion below for the actual requirement.
+      '';
+      type = types.nullOr types.str;
+      default = null;
     };
 
     memoryLimit = lib.mkOption {
@@ -532,8 +547,8 @@ in
 
   config = lib.mkIf cfg.enable {
     assertions = [
-      { assertion = cfg.baseDomain != ""; message = "services.oci.pangolin requires 'baseDomain'"; }
-      { assertion = cfg.acmeEmail != ""; message = "services.oci.pangolin requires 'acmeEmail'"; }
+      { assertion = cfg.baseDomain != null; message = "services.oci.pangolin requires 'baseDomain'"; }
+      { assertion = cfg.acmeEmail != null; message = "services.oci.pangolin requires 'acmeEmail'"; }
     ];
 
     virtualisation.podman.enable = true;

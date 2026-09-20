@@ -8,7 +8,7 @@
 #   a host sets `machine.id` - that's the opt-in signal (every real machine has one; an unset host
 #   just never defines `args.machine.id`).
 #---------------------------------------------------------------------------------------------------
-{ config, lib, args, ... }: with lib.types;
+{ config, lib, args, f, ... }: with lib.types;
 let
   cfg = config.machine;
   host = args.host or {};
@@ -145,6 +145,18 @@ in
             type = types.listOf types.str;
             default = host.users.root.authorizedKeys or [ ];
           };
+
+          services.oci = lib.mkOption {
+            description = lib.mdDoc ''
+              Raw per-service `services.oci.<name>.*` overrides sourced from `host.services.oci`
+              (i.e. `args`/`args.nix`/`args.enc.yaml`) - lets a host's build-time args populate a
+              real `services.oci.<name>` option without hardcoding the value directly in that
+              host's `configuration.nix`. Only fields this module's config section explicitly
+              looks for (see below) are actually applied - anything else here is inert.
+            '';
+            type = types.attrsOf types.anything;
+            default = host.services.oci or { };
+          };
         };
       };
       default = { };
@@ -178,6 +190,13 @@ in
       services.native.alerts.sopsFile = cfg.sopsFile;
       services.native.crowdsec.whitelist = cfg.network.hardenWhitelist;
       users.users.root.openssh.authorizedKeys.keys = cfg.users.root.authorizedKeys;
+    })
+
+    # Configure pangolin from shared defaults and secrets
+    (lib.mkIf config.services.oci.pangolin.enable {
+      services.oci.pangolin.sopsFile = cfg.sopsFile;
+      services.oci.pangolin.baseDomain = f.getAttr "pangolin.baseDomain" cfg.services.oci;
+      services.oci.pangolin.acmeEmail = f.getAttr "pangolin.acmeEmail" cfg.services.oci;
     })
 
     # Pin nic0's name by MAC and disable predictable interface naming, only when a host opts in

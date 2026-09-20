@@ -35,6 +35,14 @@
       '';
     in builtins.fromJSON (builtins.readFile json);
 
+  # Look up a dot-delimited attribute path within an attribute set, returning `null` if any
+  # segment along the way is missing rather than throwing.
+  #-------------------------------------------------------------------------------------------------
+  # Usage:
+  #   f.getAttr "pangolin.baseDomain" cfg.services.oci
+  getAttr = path: attrs:
+    lib.attrByPath (lib.splitString "." path) null attrs;
+
   # Provide mkIf support for an else clause
   #-------------------------------------------------------------------------------------------------
   # Usage: 
