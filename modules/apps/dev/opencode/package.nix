@@ -93,6 +93,7 @@ in stdenv.mkDerivation {
 
     makeWrapper $out/libexec/opencode/opencode $out/bin/opencode \
      --argv0 opencode \
+     --set OPENCODE_DISABLE_TERMINAL_TITLE 1 \
      --prefix PATH : ${
        lib.makeBinPath (
          [ ripgrep ]
