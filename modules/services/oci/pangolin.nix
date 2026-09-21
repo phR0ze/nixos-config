@@ -579,14 +579,19 @@ in
       "d ${dataDir}/state 0700 root root -"
 
       "L+ ${dataDir}/docker-compose.yml - - - - ${pkgs.writeText "${cfg.name}-compose.yml" composeText}"
-      "L+ ${dataDir}/config/traefik/traefik_config.yml - - - - ${pkgs.writeText "${cfg.name}-traefik-config.yml" traefikConfigText}"
-      "L+ ${dataDir}/config/traefik/dynamic_config.yml - - - - ${pkgs.writeText "${cfg.name}-dynamic-config.yml" dynamicConfigText}"
-      "L+ ${dataDir}/config/crowdsec/acquis.d/traefik.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-acquis-traefik.yaml" crowdsecAcquisTraefikText}"
-      "L+ ${dataDir}/config/crowdsec/acquis.d/appsec.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-acquis-appsec.yaml" crowdsecAcquisAppsecText}"
-      "L+ ${dataDir}/config/crowdsec/profiles.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-profiles.yaml" crowdsecProfilesText}"
+      # Configs below land under dataDir/config, which gets bind-mounted wholesale into one
+      # container or another (see the `volumes:` entries above) - a container's mount namespace
+      # can't resolve a symlink pointing at a host-only path like /nix/store or
+      # sops-nix's /run/secrets-rendered, so these must be real copies (C+), not symlinks (L+),
+      # unlike docker-compose.yml/.env above which podman-compose itself reads from the host.
+      "C+ ${dataDir}/config/traefik/traefik_config.yml - - - - ${pkgs.writeText "${cfg.name}-traefik-config.yml" traefikConfigText}"
+      "C+ ${dataDir}/config/traefik/dynamic_config.yml - - - - ${pkgs.writeText "${cfg.name}-dynamic-config.yml" dynamicConfigText}"
+      "C+ ${dataDir}/config/crowdsec/acquis.d/traefik.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-acquis-traefik.yaml" crowdsecAcquisTraefikText}"
+      "C+ ${dataDir}/config/crowdsec/acquis.d/appsec.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-acquis-appsec.yaml" crowdsecAcquisAppsecText}"
+      "C+ ${dataDir}/config/crowdsec/profiles.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-profiles.yaml" crowdsecProfilesText}"
 
-      # Secret-bearing config symlinks - targets rendered by the secret.templates entries below
-      "L+ ${dataDir}/config/config.yml - - - - ${config.secret.templates."${cfg.name}-config".path}"
+      # Secret-bearing config - targets rendered by the secret.templates entries below
+      "C+ ${dataDir}/config/config.yml - - - - ${config.secret.templates."${cfg.name}-config".path}"
       "L+ ${dataDir}/.env - - - - ${config.secret.templates."${cfg.name}-env".path}"
     ];
 

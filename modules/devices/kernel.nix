@@ -49,6 +49,22 @@ in
         "br_netfilter"  # bridge netfilter hooks - the net.bridge.bridge-nf-call-* sysctls below
                         #   (devices.kernel.containers) don't exist under /proc/sys until this is
                         #   loaded, and podman's first bridge-network creation needs it too
+        "veth"          # virtual ethernet pairs - netavark's per-container network setup needs this
+                        #   to create each container's veth pair; without it, container start fails
+                        #   with "netavark: create veth pair: Netlink error: Operation not supported"
+                        #   (confirmed live on hosts/vm-vps1)
+        "nft_masq"      # nftables masquerade expression - netavark's per-network NAT ruleset (outbound
+                        #   internet access for containers) uses this; without it `nft` fails applying
+                        #   netavark's ruleset with a misleading "Could not process rule: No such file
+                        #   or directory", same symptom class as nft_limit above (confirmed live on
+                        #   hosts/vm-vps1)
+        "nft_chain_nat" # nftables NAT chain type - part of the same netavark ruleset as nft_masq above;
+                        #   pulls in nf_nat as a dependency
+        "nft_ct"        # nftables conntrack match/set expressions - netavark's established/related
+                        #   rules in the same ruleset; pulls in nf_conntrack as a dependency
+        "nft_fib_inet"  # nftables fib lookup (inet family) - netavark's routing-decision rules in the
+                        #   same ruleset; pulls in nft_fib_ipv4/nft_fib_ipv6/nft_fib as dependencies
+        "nft_log"       # nftables log expression - netavark's ruleset includes log rules
       ];
 
       boot.kernel.sysctl = {

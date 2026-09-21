@@ -49,12 +49,11 @@ in
           PREV=$(cat "$STATE_FILE" 2>/dev/null || true)
           if [ "$FAILED" != "$PREV" ]; then
             if [ -n "$FAILED" ]; then
-              ${pkgs.curl}/bin/curl -sf -H "Title: systemd unit failure on $HOST" -H "Priority: high" \
-                -d "[$HOST]
-$FAILED" "https://ntfy.sh/$TOPIC"
+              ${pkgs.curl}/bin/curl -sf -H "Title: [ $HOST ] systemd unit failure" -H "Priority: high" \
+                -d "$FAILED" "https://ntfy.sh/$TOPIC"
             else
-              ${pkgs.curl}/bin/curl -sf -H "Title: systemd units recovered on $HOST" \
-                -d "[$HOST] All previously failed units are healthy again" "https://ntfy.sh/$TOPIC"
+              ${pkgs.curl}/bin/curl -sf -H "Title: [ $HOST ] systemd units recovered" \
+                -d "All previously failed units are healthy again" "https://ntfy.sh/$TOPIC"
             fi
           fi
           echo "$FAILED" > "$STATE_FILE"
@@ -81,8 +80,7 @@ $FAILED" "https://ntfy.sh/$TOPIC"
           HOST=${config.networking.hostName}
           AUTH_FAILS=$(journalctl -u sshd --since "-1 day" | grep -c "Failed password" || true)
           CS_DECISIONS=$(cscli decisions list -o raw 2>/dev/null | tail -n +2 | wc -l || echo 0)
-          ${pkgs.curl}/bin/curl -sf -H "Title: Daily security digest - $HOST" -d "$(cat <<MSG
-          [$HOST]
+          ${pkgs.curl}/bin/curl -sf -H "Title: [ $HOST ] Daily security digest" -d "$(cat <<MSG
           Failed SSH password attempts (last 24h): $AUTH_FAILS
           Active CrowdSec decisions: $CS_DECISIONS
           MSG
