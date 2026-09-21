@@ -25,9 +25,9 @@ in
     description = lib.mdDoc "Executable helper scripts to deploy to ~/.local/bin";
   };
 
-  config = lib.mkMerge (lib.mapAttrsToList
+  config.files.all = lib.mkMerge (lib.mapAttrsToList
     (name: script: lib.mkIf script.enable {
-      files.all.".local/bin/${name}" = {
+      ".local/bin/${name}" = {
         link = script.source;
         filemode = "0755";
       };
