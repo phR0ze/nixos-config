@@ -8,6 +8,7 @@ in
     ./clu
     ./dircolors.nix
     ./nix.nix
+    ./scripts.nix
     ./starship
     ./vars.nix
   ];

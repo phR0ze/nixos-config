@@ -101,10 +101,7 @@ in
 
     files.all.".config/wezterm/wezterm.lua".copy = confFile;
 
-    # Deploy the tab title emoji helper as an executable link to the nix store
-    files.all.".local/bin/tt" = {
-      link = ./include/tt;
-      filemode = "0755";
-    };
+    # tt sets our WezTerm tab title (emoji + cwd); see modules/system/env/scripts.nix
+    system.env.scripts.tt.enable = true;
   };
 }

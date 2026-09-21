@@ -3,7 +3,7 @@
 # Set the tab title with the given emoji and description
 #
 # ### Parameters
-app="$1"          # app trigger word to use for emoji lookup
+emoji="$1"          # app trigger word to use for emoji lookup
 desc="$2"         # directory path or string title
 
 # Description might be a path, if so use the basename
@@ -14,7 +14,7 @@ else
 fi
 
 # Determine the emoji based on the calling script's name
-case "$app" in
+case "$emoji" in
   claude) emoji="💥" ;;
   gemini) emoji="⚙️" ;;
   opencode) emoji="⚙️" ;;
