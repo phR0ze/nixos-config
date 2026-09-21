@@ -27,13 +27,14 @@ in
 
       system.env.clu.enable = true;                 # NixOS orchestration tool
       system.env.nix.enable = true;                 # Enable default nix environment settings
-      system.env.git.enable = true;                 # Git version control for flake management
       system.env.bash.enable = true;                # Enable custom bash configuration
       system.env.vars.enable = true;                # Enable standard env variables
       system.env.dircolors.enable = true;           # Enable custom dircolors
-      system.env.neovim.enable = true;              # Best terminal text editor
       system.env.starship.enable = true;            # Enable the starship shell prompt
-      system.env.zellij.enable = true;              # Terminal multiplexing
+
+      apps.system.git.enable = true;                # Git version control for flake management
+      apps.system.neovim.enable = true;             # Best terminal text editor
+      apps.system.zellij.enable = true;             # Terminal multiplexing
 
       services.native.sshd.enable = true;           # Enable SSH configuration
       services.native.systemd.enable = true;        # Enable standard systemd configuration
@@ -66,6 +67,7 @@ in
       devices.boot.harden = true;                   # clean /tmp on every boot
       devices.kernel.harden = true;                 # include kernel hardening configuration
       devices.network.harden.enable = true;         # networking hardening, incl. geo-block
+
       services.native.sshd.harden = true;           # restrict sshd and enable CrowdSec brute-force protection
       services.native.systemd.harden = true;        # additional security and low memory options
       services.native.crowdsec.enable = true;       # enable broad CrowdSec protection

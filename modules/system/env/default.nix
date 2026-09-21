@@ -7,12 +7,9 @@ in
     ./bash.nix
     ./clu
     ./dircolors.nix
-    ./git
-    ./neovim
     ./nix.nix
     ./starship
     ./vars.nix
-    ./zellij
   ];
 
   options = {

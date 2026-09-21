@@ -5,11 +5,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
-  cfg = config.system.env.neovim;
+  cfg = config.apps.system.neovim;
 in
 {
   options = {
-    system.env.neovim = {
+    apps.system.neovim = {
       enable = lib.mkEnableOption "Install and configure Neovim";
       xdgLauncher = lib.mkEnableOption "Register a Neovim XDG desktop menu entry";
     };

@@ -1,7 +1,7 @@
 # Used for building directly for local tests
 # 
 # ### Build locally
-# cd ~/Projects/nix-config/modules/system/env/neovim
+# cd ~/Projects/nix-config/modules/apps/system/neovim
 # nix build -f ./build.nix
 #
 # ### Build a specific variable from the package

@@ -178,8 +178,8 @@ in
       devices.boot.mbr = cfg.boot.mbr;
       networking.hostName = cfg.name;
       system.env.machineId = cfg.id;
-      system.env.git.user = cfg.git.user;
-      system.env.git.email = cfg.git.email;
+      apps.system.git.user = cfg.git.user;
+      apps.system.git.email = cfg.git.email;
       system.users.sopsFile = cfg.sopsFile;
       devices.network.gateway = cfg.network.gateway;
       devices.network.subnet = cfg.network.subnet;

@@ -11,11 +11,11 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
-  cfg = config.system.env.git;
+  cfg = config.apps.system.git;
 in
 {
   options = {
-    system.env.git = {
+    apps.system.git = {
       enable = lib.mkEnableOption "Configure git with sensible defaults";
 
       user = lib.mkOption {
@@ -41,7 +41,7 @@ in
       {
         assertion = cfg.user != "" && cfg.email != "";
         message = ''
-          system.env.git is enabled but `system.env.git.user`/`system.env.git.email` are not
+          apps.system.git is enabled but `apps.system.git.user`/`apps.system.git.email` are not
           set. Provide both, e.g. via `config.host.git.user`/`config.host.git.email`.
         '';
       }
