@@ -116,14 +116,14 @@ in
               default = nic0Defaults;
             };
 
-            hardenWhitelist = lib.mkOption {
+            allowList = lib.mkOption {
               description = lib.mdDoc ''
                 Trusted management IPs/CIDRs exempted from both hardening mechanisms: the geo-filter
-                (`devices.network.harden.geoblockWhitelist`) and CrowdSec's ban engine
-                (`services.native.crowdsec.whitelist`).
+                (`devices.network.harden.geoblockAllowList`) and CrowdSec's ban engine
+                (`services.native.crowdsec.allowlist`).
               '';
               type = types.listOf types.str;
-              default = host.network.hardenWhitelist or [ ];
+              default = host.network.allowList or [ ];
             };
           };
 
@@ -187,10 +187,10 @@ in
       devices.network.dns.fallback = cfg.network.dns.fallback;
       devices.network.nic0.name = cfg.network.nic0.name;
       devices.network.nic0.ip = cfg.network.nic0.ip;
-      devices.network.harden.geoblockWhitelist = cfg.network.hardenWhitelist;
+      devices.network.harden.geoblockAllowList = cfg.network.allowList;
       services.native.crowdsec.sopsFile = cfg.sopsFile;
       services.native.alerts.sopsFile = cfg.sopsFile;
-      services.native.crowdsec.whitelist = cfg.network.hardenWhitelist;
+      services.native.crowdsec.allowlist = cfg.network.allowList;
       users.users.root.openssh.authorizedKeys.keys = cfg.users.root.authorizedKeys;
     })
 

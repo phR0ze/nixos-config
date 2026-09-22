@@ -13,7 +13,7 @@ in
   options.services.native.crowdsec = {
     enable = lib.mkEnableOption "Install and configure the CrowdSec detection engine and firewall bouncer";
 
-    whitelist = lib.mkOption {
+    allowlist = lib.mkOption {
       description = ''
         Trusted management IPs/CIDRs that CrowdSec should never ban, regardless of what triggers a
         detection. Without this, a flaky VPN/jump-host reconnect loop (or any other false positive)
@@ -93,12 +93,12 @@ in
 
         # Never ban our own trusted management IPs, no matter what triggers detection (e.g. a flaky
         # VPN/jump-host reconnect loop tripping a brute-force scenario against ourselves).
-        postOverflows.s01Whitelist = lib.optional (cfg.whitelist != [ ]) {
+        postOverflows.s01Whitelist = lib.optional (cfg.allowlist != [ ]) {
           name = "local/whitelist-management-ips";
           description = "Whitelist trusted management IPs from bans";
           whitelist = {
             reason = "trusted management IP";
-            ip = cfg.whitelist;
+            ip = cfg.allowlist;
           };
         };
 

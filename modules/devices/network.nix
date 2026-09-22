@@ -43,10 +43,10 @@ in
         (see the module-level comment on the config block below for why coexistence is safe).
       '';
 
-      geoblockWhitelist = lib.mkOption {
+      geoblockAllowList = lib.mkOption {
         description = lib.mdDoc ''
           CIDRs/IPs that always bypass the geo-filter regardless of country, mirroring
-          `services.native.crowdsec.whitelist`'s purpose: a safety valve against a self-inflicted
+          `services.native.crowdsec.allowlist`'s purpose: a safety valve against a self-inflicted
           lockout if the upstream geoIP data is ever wrong, or the admin travels/tunnels through a
           non-US VPN exit. Baked directly into the declarative table's initial set contents (loaded
           synchronously by nftables.service at boot, zero network dependency, zero delay) and
@@ -335,7 +335,7 @@ in
     (lib.mkIf (cfg.harden.enable) (
       let
         usCidrUrl = "https://raw.githubusercontent.com/ipverse/country-ip-blocks/master/country/us/ipv4-aggregated.txt";
-        extraElements = lib.concatStringsSep ", " cfg.harden.geoblockWhitelist;
+        extraElements = lib.concatStringsSep ", " cfg.harden.geoblockAllowList;
       in
       {
         assertions = [
@@ -350,24 +350,24 @@ in
         # for the module-lock interaction and why it's gathered there rather than duplicated here.
 
         # Declarative skeleton: table/chain/set structure only, loaded once by nftables.service.
-        # geoblockWhitelist is baked in as the set's initial elements - loaded synchronously at
+        # geoblockAllowList is baked in as the set's initial elements - loaded synchronously at
         # boot with zero network dependency, unlike the fetched US list (which needs
         # geoblock-refresh to have run at least once). This closes the "boot to first-refresh"
-        # safety-valve gap entirely, not just narrows it: a geoblockWhitelist-listed admin can
+        # safety-valve gap entirely, not just narrows it: a geoblockAllowList-listed admin can
         # always get in, even in the window before the first daily refresh completes.
         networking.nftables.tables.geoblock = {
           family = "ip";
           content = ''
             set geoblock-allow {
               type ipv4_addr
-              # auto-merge is required, not just tidy: a geoblockWhitelist /32 that happens to fall
+              # auto-merge is required, not just tidy: a geoblockAllowList /32 that happens to fall
               # inside a CIDR the fetched US list also carries is a same-batch overlap, and plain
               # `flags interval` rejects that as "conflicting intervals specified" (confirmed via a
-              # live vps1 refresh failure where the whitelist IP nested inside a US block). auto-merge
+              # live vps1 refresh failure where the allowlist IP nested inside a US block). auto-merge
               # collapses such overlaps instead of erroring, which is what we want either way.
               flags interval
               auto-merge
-              ${lib.optionalString (cfg.harden.geoblockWhitelist != [ ]) "elements = { ${extraElements} }"}
+              ${lib.optionalString (cfg.harden.geoblockAllowList != [ ]) "elements = { ${extraElements} }"}
             }
 
             chain geoblock-chain {
@@ -420,7 +420,7 @@ in
 
             {
               echo "flush set ip geoblock geoblock-allow"
-              echo "add element ip geoblock geoblock-allow { ${extraElements}${lib.optionalString (cfg.harden.geoblockWhitelist != [ ]) ","} $usCidrs }"
+              echo "add element ip geoblock geoblock-allow { ${extraElements}${lib.optionalString (cfg.harden.geoblockAllowList != [ ]) ","} $usCidrs }"
             } | nft -f -
           '';
           serviceConfig = {
@@ -448,7 +448,7 @@ in
           description = "Daily refresh of the geoblock US IPv4 allow-set";
           wantedBy = [ "timers.target" ];
           timerConfig = {
-            OnBootSec = "2min";       # minimize the geoblockWhitelist-only window after boot
+            OnBootSec = "2min";       # minimize the geoblockAllowList-only window after boot
             OnUnitActiveSec = "1d";   # matches ipverse/country-ip-blocks' own daily CI cadence
             RandomizedDelaySec = 300; # politeness jitter, matches crowdsec-update-hub.timer's own pattern in this repo
             Persistent = true;        # catch up if the host was off past a scheduled run

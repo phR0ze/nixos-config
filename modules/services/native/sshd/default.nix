@@ -223,13 +223,13 @@ in
       };
 
       # Turn on the shared CrowdSec engine (services.native.crowdsec) and feed it SSH-specific
-      # detection - it already handles the generic engine/bouncer/profile/whitelist wiring.
+      # detection - it already handles the generic engine/bouncer/profile/allowlist wiring.
       services.native.crowdsec.enable = true;
 
       services.crowdsec = {
         # linux transitively includes the sshd collection (sshd-logs/sshd-success-logs parsers plus
         # ssh-bf, ssh-slow-bf, ssh-time-based-bf, ssh-cve-2024-6387, ssh-refused-conn, ssh-generic-test)
-        # and adds geoip/dateparse enrichment plus a good-actor whitelist (crawlers/CDNs/rDNS), so hub
+        # and adds geoip/dateparse enrichment plus a good-actor allowlist (crawlers/CDNs/rDNS), so hub
         # updates can't leave one piece behind by hand-picking just sshd.
         hub.collections = [ "crowdsecurity/linux" ];
 
