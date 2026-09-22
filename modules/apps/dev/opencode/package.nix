@@ -33,7 +33,7 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "opencode";
-  version = "1.18.32.p2";
+  version = "1.18.32.p3";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -48,6 +48,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   patches = [
     ./patches/0001-feat-tui-configurable-sidebar-width.patch
     ./patches/0002-feat-tui-configurable-sidebar-position.patch
+    ./patches/0003-feat-tui-home-path-completion.patch
   ];
 
   node_modules = stdenvNoCC.mkDerivation {

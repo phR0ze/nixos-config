@@ -1,0 +1,302 @@
+diff --git a/packages/tui/src/component/prompt/autocomplete.tsx b/packages/tui/src/component/prompt/autocomplete.tsx
+index 099fa9d83..2f3728ec2 100644
+--- a/packages/tui/src/component/prompt/autocomplete.tsx
++++ b/packages/tui/src/component/prompt/autocomplete.tsx
+@@ -22,7 +22,9 @@ import type { PromptInfo } from "../../prompt/history"
+ import { useFrecency } from "../../prompt/frecency"
+ import { useBindings, useCommandSlashes, useOpencodeModeStack } from "../../keymap"
+ import { displayCharAt, mentionTriggerIndex } from "../../prompt/display"
++import { abbreviateHome } from "../../runtime"
+ import type { FileSystemEntry } from "@opencode-ai/sdk/v2"
++import { absolutePathOptions, isLocalPathQuery, isLocalServerUrl, listDirectory } from "./path-completion"
+ 
+ function removeLineRange(input: string) {
+   const hashIndex = input.lastIndexOf("#")
+@@ -319,6 +321,32 @@ export function Autocomplete(props: {
+       if (!store.visible || store.visible === "/") return []
+       if (referenceMatch()) return []
+       const { lineRange, baseQuery } = extractLineRange(input.query ?? "")
++      const width = props.anchor().width - 4
++
++      // Local home/absolute path queries never match the location-scoped server
++      // search, so complete them directly against the local filesystem.
++      if (isLocalServerUrl(sdk.url) && isLocalPathQuery(baseQuery)) {
++        return absolutePathOptions(baseQuery, { home: paths.home, list: listDirectory }).map(
++          (entry): AutocompleteOption => {
++            const mention = normalizeMentionPath(entry.path)
++            const suffix = entry.isDirectory ? "/" : ""
++            const { filename, part } = createFilePart(
++              { path: mention + suffix, type: entry.isDirectory ? "directory" : "file" },
++              entry.path,
++              lineRange,
++            )
++            return {
++              display: Locale.truncateMiddle(abbreviateHome(entry.path, paths.home) + suffix, width),
++              value: mention,
++              isDirectory: entry.isDirectory,
++              path: mention,
++              onSelect: () => {
++                insertPart(filename, part)
++              },
++            }
++          },
++        )
++      }
+ 
+       // Get files from SDK
+       const result = await sdk.client.v2.fs.find({
+@@ -335,7 +363,6 @@ export function Autocomplete(props: {
+       // Add file options. Trust the order returned by fff (frecency, fuzzy
+       // score, filename bonus, etc. are already factored in).
+       if (!result.error && result.data) {
+-        const width = props.anchor().width - 4
+         options.push(
+           ...result.data.data.map((item): AutocompleteOption => {
+             const { filename, part } = createFilePart(
+diff --git a/packages/tui/src/component/prompt/path-completion.ts b/packages/tui/src/component/prompt/path-completion.ts
+new file mode 100644
+index 000000000..f262371ec
+--- /dev/null
++++ b/packages/tui/src/component/prompt/path-completion.ts
+@@ -0,0 +1,89 @@
++import { readdirSync, statSync } from "node:fs"
++import path from "path"
++
++export type DirectoryEntry = Readonly<{ name: string; isDirectory: boolean }>
++
++export type ListDirectory = (dir: string) => readonly DirectoryEntry[] | undefined
++
++export type PathCompletionDeps = Readonly<{
++  home: string
++  list: ListDirectory
++}>
++
++export type PathCompletionEntry = Readonly<{
++  path: string
++  name: string
++  isDirectory: boolean
++}>
++
++const MAX_OPTIONS = 20
++
++export function isLocalPathQuery(query: string) {
++  return query === "~" || query.startsWith("~/") || path.isAbsolute(query)
++}
++
++// The default TUI transport proxies through the worker under a virtual host;
++// only offer local-filesystem completion when the server shares this machine.
++export function isLocalServerUrl(url: string) {
++  try {
++    const hostname = new URL(url).hostname
++    return (
++      hostname === "opencode.internal" ||
++      hostname === "localhost" ||
++      hostname === "127.0.0.1" ||
++      hostname === "::1" ||
++      hostname === "[::1]"
++    )
++  } catch {
++    return false
++  }
++}
++
++export function absolutePathOptions(query: string, deps: PathCompletionDeps): PathCompletionEntry[] {
++  const { directory, partial } = splitQuery(query, deps.home)
++  const entries = deps.list(directory)
++  if (!entries) return []
++
++  const allowDot = partial.startsWith(".")
++  const candidates = entries.filter((entry) => allowDot || !entry.name.startsWith("."))
++  const needle = partial.toLowerCase()
++  const prefix = candidates.filter((entry) => entry.name.toLowerCase().startsWith(needle))
++  const matched =
++    needle && prefix.length === 0 ? candidates.filter((entry) => entry.name.toLowerCase().includes(needle)) : prefix
++
++  return matched
++    .sort((a, b) => (a.isDirectory === b.isDirectory ? a.name.localeCompare(b.name) : a.isDirectory ? -1 : 1))
++    .slice(0, MAX_OPTIONS)
++    .map((entry) => ({
++      path: path.join(directory, entry.name),
++      name: entry.name,
++      isDirectory: entry.isDirectory,
++    }))
++}
++
++function splitQuery(query: string, home: string) {
++  if (query === "~") return { directory: home, partial: "" }
++  // Split on the last slash of the raw query so trailing dots survive
++  // (path.resolve would consume a final "." segment).
++  const cut = query.lastIndexOf("/")
++  const prefix = query.slice(0, cut + 1)
++  const expanded = prefix.startsWith("~") ? path.resolve(path.join(home, prefix.slice(1))) : path.resolve(prefix)
++  return { directory: expanded, partial: query.slice(cut + 1) }
++}
++
++export const listDirectory: ListDirectory = (dir) => {
++  let dirents
++  try {
++    dirents = readdirSync(dir, { withFileTypes: true })
++  } catch {
++    return undefined
++  }
++  return dirents.map((entry) => {
++    if (!entry.isSymbolicLink()) return { name: entry.name, isDirectory: entry.isDirectory() }
++    try {
++      return { name: entry.name, isDirectory: statSync(path.join(dir, entry.name)).isDirectory() }
++    } catch {
++      return { name: entry.name, isDirectory: false }
++    }
++  })
++}
+diff --git a/packages/tui/test/path-completion.test.ts b/packages/tui/test/path-completion.test.ts
+new file mode 100644
+index 000000000..cb88f3e64
+--- /dev/null
++++ b/packages/tui/test/path-completion.test.ts
+@@ -0,0 +1,133 @@
++import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
++import { tmpdir } from "node:os"
++import path from "path"
++import { expect, test } from "bun:test"
++import {
++  absolutePathOptions,
++  isLocalPathQuery,
++  isLocalServerUrl,
++  listDirectory,
++  type DirectoryEntry,
++  type ListDirectory,
++} from "../src/component/prompt/path-completion"
++
++test("classifies local path queries", () => {
++  expect(isLocalPathQuery("~")).toBe(true)
++  expect(isLocalPathQuery("~/")).toBe(true)
++  expect(isLocalPathQuery("~/notes.md")).toBe(true)
++  expect(isLocalPathQuery("/Users/x/project")).toBe(true)
++  expect(isLocalPathQuery("/etc#10-20")).toBe(true)
++  expect(isLocalPathQuery("~root")).toBe(false)
++  expect(isLocalPathQuery("src")).toBe(false)
++  expect(isLocalPathQuery("src/index.ts")).toBe(false)
++  expect(isLocalPathQuery("")).toBe(false)
++})
++
++test("detects local server urls", () => {
++  expect(isLocalServerUrl("http://opencode.internal")).toBe(true)
++  expect(isLocalServerUrl("http://localhost:4096")).toBe(true)
++  expect(isLocalServerUrl("http://127.0.0.1:4096")).toBe(true)
++  expect(isLocalServerUrl("http://[::1]:4096")).toBe(true)
++  expect(isLocalServerUrl("https://api.example.com")).toBe(false)
++  expect(isLocalServerUrl("http://192.168.1.5:4096")).toBe(false)
++  expect(isLocalServerUrl("")).toBe(false)
++})
++
++const fakeList: ListDirectory = (dir) => {
++  const tree: Record<string, DirectoryEntry[]> = {
++    "/home/u": [
++      { name: "zeta.md", isDirectory: false },
++      { name: "projects", isDirectory: true },
++      { name: "notes.md", isDirectory: false },
++      { name: ".config", isDirectory: true },
++      { name: ".zshrc", isDirectory: false },
++    ],
++    "/home/u/projects": [
++      { name: "opencode", isDirectory: true },
++      { name: "scratch", isDirectory: true },
++    ],
++  }
++  return tree[dir]
++}
++
++const deps = { home: "/home/u", list: fakeList }
++
++test("lists home contents with directories first and dotfiles hidden", () => {
++  const options = absolutePathOptions("~", deps)
++  expect(options.map((entry) => entry.path)).toEqual(["/home/u/projects", "/home/u/notes.md", "/home/u/zeta.md"])
++  expect(options.map((entry) => entry.isDirectory)).toEqual([true, false, false])
++})
++
++test("lists directory contents for trailing slash queries", () => {
++  expect(absolutePathOptions("~/", deps).map((entry) => entry.path)).toEqual([
++    "/home/u/projects",
++    "/home/u/notes.md",
++    "/home/u/zeta.md",
++  ])
++  expect(absolutePathOptions("~/projects/", deps).map((entry) => entry.path)).toEqual([
++    "/home/u/projects/opencode",
++    "/home/u/projects/scratch",
++  ])
++})
++
++test("matches partial segments case-insensitively", () => {
++  expect(absolutePathOptions("~/pro", deps).map((entry) => entry.path)).toEqual(["/home/u/projects"])
++  expect(absolutePathOptions("~/NOTES", deps).map((entry) => entry.path)).toEqual(["/home/u/notes.md"])
++})
++
++test("falls back to substring matching when no prefix matches", () => {
++  expect(absolutePathOptions("~/ects", deps).map((entry) => entry.path)).toEqual(["/home/u/projects"])
++})
++
++test("shows dotfiles only for dot partials", () => {
++  expect(absolutePathOptions("~/.", deps).map((entry) => entry.path)).toEqual(["/home/u/.config", "/home/u/.zshrc"])
++  expect(absolutePathOptions("~/.z", deps).map((entry) => entry.path)).toEqual(["/home/u/.zshrc"])
++})
++
++test("returns no options for nonexistent paths", () => {
++  expect(absolutePathOptions("~/missing", deps)).toEqual([])
++  expect(absolutePathOptions("~/missing/", deps)).toEqual([])
++  expect(absolutePathOptions("/no/such/dir", deps)).toEqual([])
++})
++
++test("caps results at twenty entries", () => {
++  const many = Array.from({ length: 25 }, (_, index) => ({
++    name: `file-${String(index).padStart(2, "0")}.txt`,
++    isDirectory: false,
++  }))
++  const options = absolutePathOptions("~/cap/", {
++    home: "/home/u",
++    list: (dir) => (dir === "/home/u/cap" ? many : undefined),
++  })
++  expect(options).toHaveLength(20)
++  expect(options[0].path).toBe("/home/u/cap/file-00.txt")
++})
++
++test("completes against the real filesystem", () => {
++  const root = mkdtempSync(path.join(tmpdir(), "opencode-path-completion-"))
++  try {
++    mkdirSync(path.join(root, "sub"))
++    writeFileSync(path.join(root, "file.txt"), "")
++    writeFileSync(path.join(root, ".dotfile"), "")
++
++    const listed = listDirectory(root)
++    expect(listed?.find((entry) => entry.name === "sub")?.isDirectory).toBe(true)
++    expect(listed?.find((entry) => entry.name === "file.txt")?.isDirectory).toBe(false)
++    expect(listed?.find((entry) => entry.name === ".dotfile")?.isDirectory).toBe(false)
++
++    expect(absolutePathOptions("~", { home: root, list: listDirectory }).map((entry) => entry.path)).toEqual([
++      path.join(root, "sub"),
++      path.join(root, "file.txt"),
++    ])
++    expect(absolutePathOptions(root + "/fi", { home: root, list: listDirectory }).map((entry) => entry.path)).toEqual([
++      path.join(root, "file.txt"),
++    ])
++    expect(absolutePathOptions(root + "/.", { home: root, list: listDirectory }).map((entry) => entry.path)).toEqual([
++      path.join(root, ".dotfile"),
++    ])
++    expect(absolutePathOptions(path.join(root, "sub") + "/", { home: root, list: listDirectory })).toEqual([])
++    expect(listDirectory(path.join(root, "missing"))).toBeUndefined()
++  } finally {
++    rmSync(root, { recursive: true, force: true })
++  }
++})
+diff --git a/packages/web/src/content/docs/tui.mdx b/packages/web/src/content/docs/tui.mdx
+index 3122cf47d..5c8ca4de7 100644
+--- a/packages/web/src/content/docs/tui.mdx
++++ b/packages/web/src/content/docs/tui.mdx
+@@ -43,6 +43,8 @@ The content of the file is added to the conversation automatically.
+ 
+ Configured [references](/docs/references) also appear in `@` autocomplete. Type `@alias` to add the reference root as context, or type `@alias/` to autocomplete files inside that reference.
+ 
++You can also complete paths outside the project: type `@~/` to browse your home directory, or `@/` followed by an absolute path to browse anywhere on the local filesystem. This is available when the TUI is connected to a local server.
++
+ ```text "@docs/README.md"
+ Compare our setup with @docs/README.md
+ ```
