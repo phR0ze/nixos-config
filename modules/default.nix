@@ -199,6 +199,7 @@ in
       services.oci.pangolin.sopsFile = cfg.sopsFile;
       services.oci.pangolin.baseDomain = f.getServiceAttr "oci.pangolin.baseDomain" cfg.services;
       services.oci.pangolin.acmeEmail = f.getServiceAttr "oci.pangolin.acmeEmail" cfg.services;
+      services.oci.pangolin.geoblockAllowList = cfg.network.allowList;
     })
 
     # Pin nic0's name by MAC and disable predictable interface naming, only when a host opts in

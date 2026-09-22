@@ -136,7 +136,13 @@ let
         endpoint: "http://pangolin:3001/api/v1/traefik-config"
         pollInterval: "5s"
       file:
-        filename: "/etc/traefik/dynamic_config.yml"
+        # Directory (not filename) mode is required for the geo-allowlist below to hot-reload -
+        # Traefik's single-file mode never watches for changes, only directory mode does. This
+        # also means dynamic_config.yml itself now picks up edits live, though nothing here
+        # currently relies on that (the crowdsec-bouncer key patch below still explicitly restarts
+        # traefik rather than assuming the reload landed in time).
+        directory: "/etc/traefik/dynamic"
+        watch: true
 
     experimental:
       plugins:
@@ -218,6 +224,11 @@ let
           tls:
             certResolver: "letsencrypt"
           middlewares:
+            # us-allowlist runs first - a short-circuiting nftables-style set lookup that rejects
+            # non-US traffic before crowdsec@file ever makes its synchronous LAPI/AppSec round-trip
+            # (host-level geo-blocking never covered this path at all - see the "Traefik geoblock"
+            # comment on the geoblockAllowList option below for why).
+            - us-allowlist@file
             - crowdsec@file
           encodedCharacters:
             allowEncodedSlash: true
@@ -234,13 +245,24 @@ let
   # host (not just next-router) - see the tech-doc's "Enable Wildcard Certificates" section for why
   # all three need it independently, or Traefik keeps issuing/preferring a separate exact-match cert
   # for the dashboard domain alongside the wildcard.
-  wildcardTls = ''
-        tls:
-          certResolver: letsencrypt
-          domains:
-            - main: "${cfg.baseDomain}"
-              sans:
-                - "*.${cfg.baseDomain}"'';
+  # Built from explicitly-indented lines rather than a `''...''` literal: Nix's indented-string
+  # syntax strips the MINIMUM common leading whitespace across every line, independently of
+  # whatever column the `${wildcardTls}` placeholder sits at in dynamicConfigText - so the
+  # interpolated value previously always landed flush-left (column 0) regardless of context,
+  # breaking the YAML nesting under each router's `rule:`/`service:`/etc siblings. Confirmed live:
+  # Traefik's file provider failed to parse the ENTIRE dynamic_config.yml as a result, meaning
+  # next-router/api-router/ws-router (and therefore every middleware and backend route) never
+  # actually loaded - only surfaced now that the tmpfiles r+C+ fix above lets this file refresh at
+  # all (hosts/vm-vps1 testing, 2026-09-22). These lines carry their real absolute column position
+  # baked in, so string concatenation reproduces it exactly regardless of call-site indentation.
+  wildcardTls = lib.concatStringsSep "\n" [
+    "      tls:"
+    "        certResolver: letsencrypt"
+    "        domains:"
+    "          - main: \"${cfg.baseDomain}\""
+    "            sans:"
+    "              - \"*.${cfg.baseDomain}\""
+  ];
 
   dynamicConfigText = ''
     http:
@@ -407,12 +429,47 @@ let
     on_success: break
   '';
 
+  # Traefik geoblock - closes a gap host-level geo-blocking never covered: `devices.network.harden`'s
+  # geoblock-chain only hooks the host's own `input` chain, so it never sees traffic DNAT'd into a
+  # container (netfilter's routing decision runs after DNAT rewrites the destination to the
+  # container's private IP, sending it through `forward` instead) - meaning Traefik's published 443
+  # had zero country-based filtering regardless of the host-level geoblock. Same upstream CIDR
+  # source and same "bake the allowlist in, refresh the fetched list independently" shape as
+  # devices.network.harden's own geoblock, just expressed as a Traefik dynamic-config file instead
+  # of an nftables set, since nftables can't see into forwarded container traffic at all.
+  usCidrUrl = "https://raw.githubusercontent.com/ipverse/country-ip-blocks/master/country/us/ipv4-aggregated.txt";
+
+  # Static half of the geo-allowlist file: the header plus geoblockAllowList's entries, baked in so
+  # the file is well-formed and non-empty from the very first activation (zero network dependency -
+  # mirrors devices.network.harden.geoblockAllowList's own "closes the boot to first-refresh gap"
+  # reasoning). The refresh service below appends the fetched US CIDRs to this same header.
+  #
+  # The leading placeholder entry (RFC 5737 TEST-NET-1, never a real client address) is not
+  # optional even when geoblockAllowList is empty: Traefik's file provider rejects an ipAllowList
+  # middleware whose sourceRange resolves to an empty list as "cannot be a standalone element" -
+  # and rejects the ENTIRE dynamic-config directory when that happens, not just this middleware,
+  # taking down every router/service Pangolin/Traefik serve until the next successful reload
+  # (confirmed live: this exact empty-sourceRange state during the ~2min boot-to-first-refresh
+  # window blanked the whole stack - hosts/vm-vps1 testing, 2026-09-22).
+  # Built from explicit lines (not a `''...''` literal) so its indentation is unambiguous and
+  # matches the 12-space list-item convention the geoblock-refresh script's own `sed` output and
+  # the appended geoblockAllowList entries below both use - mixing an auto-dedented block with
+  # separately-concatenated literal-indent lines is exactly the mismatch that broke wildcardTls.
+  geoAllowlistHeaderText = lib.concatStringsSep "\n" ([
+    "http:"
+    "  middlewares:"
+    "    us-allowlist:"
+    "      ipAllowList:"
+    "        sourceRange:"
+    "            - 192.0.2.1"
+  ] ++ map (ip: "            - ${ip}") cfg.geoblockAllowList) + "\n";
+
   # Forces the systemd unit definition itself to change whenever any rendered config changes -
   # otherwise a `nixos-rebuild switch` that only updates a symlink target doesn't bump the unit's
   # own hash, so NixOS never restarts it and podman-compose never re-applies the new config.
   configRev = builtins.hashString "sha256" (
     composeText + traefikConfigText + dynamicConfigText + crowdsecAcquisTraefikText
-    + crowdsecAcquisAppsecText + crowdsecProfilesText
+    + crowdsecAcquisAppsecText + crowdsecProfilesText + geoAllowlistHeaderText
   );
 in
 {
@@ -517,6 +574,20 @@ in
       default = "512m";
     };
 
+    geoblockAllowList = lib.mkOption {
+      description = lib.mdDoc ''
+        CIDRs/IPs that always bypass Traefik's US geo-allowlist regardless of country, mirroring
+        `devices.network.harden.geoblockAllowList`'s purpose - a safety valve against a
+        self-inflicted lockout if the upstream geoIP data is ever wrong, or the admin travels/tunnels
+        through a non-US VPN exit. Baked directly into the allowlist file's initial contents (zero
+        network dependency at boot) and re-applied on every subsequent daily refresh alongside the
+        fetched US list.
+      '';
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      example = [ "203.0.113.7" "198.51.100.0/24" ];
+    };
+
     sopsFile = lib.mkOption {
       type = types.path;
       example = "./secrets.enc.yaml";
@@ -572,6 +643,7 @@ in
       "d ${dataDir}/config/logs 0750 root root -"
       "d ${dataDir}/config/letsencrypt 0700 root root -"
       "d ${dataDir}/config/traefik 0750 root root -"
+      "d ${dataDir}/config/traefik/dynamic 0750 root root -"
       "d ${dataDir}/config/traefik/logs 0750 root root -"
       "d ${dataDir}/config/crowdsec 0750 root root -"
       "d ${dataDir}/config/crowdsec/db 0750 root root -"
@@ -584,13 +656,39 @@ in
       # can't resolve a symlink pointing at a host-only path like /nix/store or
       # sops-nix's /run/secrets-rendered, so these must be real copies (C+), not symlinks (L+),
       # unlike docker-compose.yml/.env above which podman-compose itself reads from the host.
+      #
+      # Each C+ is preceded by an `r` (remove) of the same path. Despite the module's original
+      # claim that C+ "always reflects the current module source", systemd-tmpfiles.d(5) is
+      # explicit that C/C+ only copies "if the destination files or directories do not exist yet"
+      # - the `+` suffix only changes whether an *existing non-empty directory* gets descended
+      # into, it has no effect on an existing regular file at all. Confirmed live: every one of
+      # these files was silently frozen at its very first-ever rendered content, un-refreshed by
+      # any subsequent `nixos-rebuild switch` (found while verifying the Traefik geo-allowlist
+      # feature below never took effect despite a clean build - hosts/vm-vps1 testing,
+      # 2026-09-22). `r` doesn't error if the path is already missing, so this is safe on a
+      # first-ever activation too.
+      "r ${dataDir}/config/traefik/traefik_config.yml"
       "C+ ${dataDir}/config/traefik/traefik_config.yml - - - - ${pkgs.writeText "${cfg.name}-traefik-config.yml" traefikConfigText}"
-      "C+ ${dataDir}/config/traefik/dynamic_config.yml - - - - ${pkgs.writeText "${cfg.name}-dynamic-config.yml" dynamicConfigText}"
+      "r ${dataDir}/config/traefik/dynamic/dynamic_config.yml"
+      "C+ ${dataDir}/config/traefik/dynamic/dynamic_config.yml - - - - ${pkgs.writeText "${cfg.name}-dynamic-config.yml" dynamicConfigText}"
+      # Baseline only (geoblockAllowList entries, no fetched US CIDRs yet) - re-applied on every
+      # switch, same as devices.network.harden's nftables geoblock skeleton. The geoblock-refresh
+      # service below overwrites this same path with the full fetched list, independently of any
+      # nixos-rebuild switch, until the next switch resets it back to this baseline.
+      "r ${dataDir}/config/traefik/dynamic/geo-allowlist.yml"
+      "C+ ${dataDir}/config/traefik/dynamic/geo-allowlist.yml - - - - ${pkgs.writeText "${cfg.name}-geo-allowlist-initial.yml" geoAllowlistHeaderText}"
+      "r ${dataDir}/config/crowdsec/acquis.d/traefik.yaml"
       "C+ ${dataDir}/config/crowdsec/acquis.d/traefik.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-acquis-traefik.yaml" crowdsecAcquisTraefikText}"
+      "r ${dataDir}/config/crowdsec/acquis.d/appsec.yaml"
       "C+ ${dataDir}/config/crowdsec/acquis.d/appsec.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-acquis-appsec.yaml" crowdsecAcquisAppsecText}"
+      "r ${dataDir}/config/crowdsec/profiles.yaml"
       "C+ ${dataDir}/config/crowdsec/profiles.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-profiles.yaml" crowdsecProfilesText}"
 
-      # Secret-bearing config - targets rendered by the secret.templates entries below
+      # Secret-bearing config - targets rendered by the secret.templates entries below. Same
+      # never-refreshes bug applies here too - without the `r`, rotating
+      # pangolin/serverSecret or pangolin/cloudflareApiToken would silently never reach the
+      # container after the first-ever deploy.
+      "r ${dataDir}/config/config.yml"
       "C+ ${dataDir}/config/config.yml - - - - ${config.secret.templates."${cfg.name}-config".path}"
       "L+ ${dataDir}/.env - - - - ${config.secret.templates."${cfg.name}-env".path}"
     ];
@@ -682,6 +780,39 @@ in
       timerConfig = { OnCalendar = "weekly"; Persistent = true; RandomizedDelaySec = "1h"; };
     };
 
+    # Refresh of Traefik's us-allowlist middleware - same CIDR source and "fail safe to yesterday's
+    # list" reasoning as devices.network.harden's own geoblock-refresh (curl --fail + set -e aborts
+    # before install ever runs on a bad fetch, leaving the previous file untouched), just targeting
+    # a Traefik dynamic-config file instead of an nftables set. See geoAllowlistHeaderText's comment
+    # above for why this exists as a separate mechanism from the host-level geoblock.
+    systemd.services."${cfg.name}-geoblock-refresh" = {
+      description = "Refresh Traefik's US IPv4 allowlist middleware for the ${cfg.name} stack";
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+      path = [ pkgs.curl pkgs.gnugrep pkgs.gnused pkgs.coreutils ];
+      serviceConfig.Type = "oneshot";
+      script = ''
+        set -euo pipefail
+        tmp=$(mktemp)
+        trap 'rm -f "$tmp"' EXIT
+        cat ${pkgs.writeText "${cfg.name}-geo-allowlist-header.yml" geoAllowlistHeaderText} > "$tmp"
+        curl --fail --silent --show-error "${usCidrUrl}" \
+          | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$' \
+          | sed 's/^/            - /' >> "$tmp"
+        install -m 0644 "$tmp" ${dataDir}/config/traefik/dynamic/geo-allowlist.yml
+      '';
+    };
+    systemd.timers."${cfg.name}-geoblock-refresh" = {
+      description = "Daily refresh of the ${cfg.name} stack's Traefik US IPv4 allowlist";
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnBootSec = "2min";       # minimize the geoblockAllowList-only window after boot
+        OnUnitActiveSec = "1d";   # matches ipverse/country-ip-blocks' own daily CI cadence
+        RandomizedDelaySec = 300;
+        Persistent = true;
+      };
+    };
+
     # Traefik's own access log (config/traefik/logs/access.log) grows unbounded otherwise - nothing
     # in the compose stack rotates it, same as upstream's plain install.
     services.logrotate.settings."${cfg.name}-traefik" = {
@@ -747,7 +878,7 @@ in
       serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
       script = ''
         set -euo pipefail
-        dynCfg=${dataDir}/config/traefik/dynamic_config.yml
+        dynCfg=${dataDir}/config/traefik/dynamic/dynamic_config.yml
         keyFile=${dataDir}/state/crowdsec-bouncer-key
 
         for i in $(seq 1 30); do
