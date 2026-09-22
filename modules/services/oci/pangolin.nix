@@ -839,8 +839,30 @@ in
       # with ENOENT on ./config/GeoLite2-Country.mmdb - confirmed live as a 1700+ restart crash
       # loop whose constant veth teardown/recreate also broke crowdsec's DNS lookups on the same
       # bridge (hosts/vm-vps1 testing, 2026-09-21).
-      after = [ "network-online.target" "podman.service" "${cfg.name}-geolite-refresh.service" ];
-      wants = [ "network-online.target" "${cfg.name}-geolite-refresh.service" ];
+      #
+      # Same ordering applied to geoblock-refresh, for a different reason: every switch that
+      # changes any rendered config forces this unit to restart (see CONFIG_REV below), and the
+      # tmpfiles `r`+`C+` pair for geo-allowlist.yml (see its comment above) resets that file to
+      # its bare baseline - placeholder + geoblockAllowList only, no fetched US CIDRs - on every
+      # single switch, not just first boot. The geoblock-refresh timer's OnBootSec only fires
+      # after an actual reboot and OnUnitActiveSec=1d only re-fires a day after its last run, so
+      # without this ordering a plain `nixos-rebuild switch` (no reboot) would silently drop
+      # Traefik's us-allowlist middleware back to blocking all but the explicit allowlist entries
+      # for up to 24h - confirmed live: switch at 03:07 wiped the file the 02:43 boot-time refresh
+      # had already populated, with the timer not due again until the next day (hosts/vm-vps1
+      # testing, 2026-09-22). Ordering the refresh to run (and finish, success or failure) before
+      # the stack starts closes that gap on every switch, same as geolite-refresh above.
+      after = [
+        "network-online.target"
+        "podman.service"
+        "${cfg.name}-geolite-refresh.service"
+        "${cfg.name}-geoblock-refresh.service"
+      ];
+      wants = [
+        "network-online.target"
+        "${cfg.name}-geolite-refresh.service"
+        "${cfg.name}-geoblock-refresh.service"
+      ];
       wantedBy = [ "multi-user.target" ];
       environment.CONFIG_REV = configRev;
       path = [ pkgs.podman ];
