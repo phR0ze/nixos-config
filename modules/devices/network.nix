@@ -260,6 +260,20 @@ in
       # ip_set/xt_set kernel modules and CAP_NET_RAW once this is on.
       networking.nftables.enable = true;
 
+      # The nftables firewall backend's default strict reverse-path filter (an fib-based check in
+      # its own rpfilter chain, separate from and in addition to the net.ipv4.conf.*.rp_filter
+      # sysctl) silently drops ALL traffic - ICMP, UDP, TCP alike - from a container/bridge
+      # interface (podman, docker, libvirt) toward the host's own address on that bridge, even
+      # though the exact same traffic forwarded to an external destination works fine. This is a
+      # well-known nftables-firewall/container-bridge incompatibility, not a missing kernel module:
+      # confirmed live via `nsenter --net` into a container's namespace - `ping`/`dig @<gateway>`
+      # both time out 100%, while `curl` to an external IP over the NAT/forward path succeeds
+      # (hosts/vm-vps1 testing, 2026-09-21, surfaced as CrowdSec's containerized LAPI never
+      # reaching aardvark-dns to resolve anything, blocking its healthcheck forever). Loose mode
+      # (RFC 3704) still rejects spoofed source addresses with no route at all, just not strictly
+      # via the incoming interface - the standard fix for hosts running container/VPN bridges.
+      networking.firewall.checkReversePath = "loose";
+
       # LLMNR/mDNS are same-subnet discovery protocols (resolving other local devices' hostnames
       # without a DNS server) - meaningless on a host with no local peers to discover, and the
       # firewall already drops them from outside regardless, so this is just shedding unneeded
@@ -366,6 +380,18 @@ in
               # iptables-era design had an explicit "-i lo -j RETURN" for the same reason - this is
               # that same exception, just expressed as an nftables interface match.
               iifname "lo" accept
+              # Same reasoning as the `lo` exception above, for container bridge traffic instead of
+              # loopback: geo-blocking is meant to filter *internet-facing* new connections, not
+              # traffic a container sends to a host-local service over its own bridge (e.g. the
+              # containerized pangolin stack's crowdsec container resolving DNS via aardvark-dns on
+              # the podman1 bridge's own address). Without this, every such request is a "new"
+              # connection whose source (the container's bridge-subnet IP) is never inside the
+              # fetched US CIDR set, so it gets dropped exactly like the undocumented `lo` case above
+              # - confirmed live via nftables packet tracing: ICMP/UDP/TCP from a container's netns
+              # to its own gateway IP was silently dropped here, while forwarded traffic to external
+              # IPs passed fine (hosts/vm-vps1 testing, 2026-09-21). Matches nixos-fw's own
+              # `iifname "podman*" udp dport 53 accept` wildcard for the same interface family.
+              iifname "podman*" accept
               ct state new ip saddr != @geoblock-allow drop
             }
           '';

@@ -662,7 +662,7 @@ in
       description = "Refresh Pangolin's MaxMind GeoLite2 databases";
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
-      path = [ pkgs.curl pkgs.gnutar pkgs.coreutils ];
+      path = [ pkgs.curl pkgs.gnutar pkgs.gzip pkgs.coreutils ];
       serviceConfig.Type = "oneshot";
       script = ''
         set -euo pipefail
@@ -702,8 +702,14 @@ in
     # target in place - see configRev's comment above.
     systemd.services."${cfg.name}-stack" = {
       description = "Pangolin stack (pangolin/gerbil/traefik/crowdsec) via podman-compose";
-      after = [ "network-online.target" "podman.service" ];
-      wants = [ "network-online.target" ];
+      # Must wait on geolite-refresh finishing (not just being wanted) - without this ordering,
+      # a fresh VM starts the compose stack before the GeoLite2 mmdb files ever exist (the timer's
+      # OnCalendar=weekly won't fire again for up to a week), and pangolin crashes on every start
+      # with ENOENT on ./config/GeoLite2-Country.mmdb - confirmed live as a 1700+ restart crash
+      # loop whose constant veth teardown/recreate also broke crowdsec's DNS lookups on the same
+      # bridge (hosts/vm-vps1 testing, 2026-09-21).
+      after = [ "network-online.target" "podman.service" "${cfg.name}-geolite-refresh.service" ];
+      wants = [ "network-online.target" "${cfg.name}-geolite-refresh.service" ];
       wantedBy = [ "multi-user.target" ];
       environment.CONFIG_REV = configRev;
       path = [ pkgs.podman ];
@@ -713,6 +719,14 @@ in
         WorkingDirectory = dataDir;
         ExecStart = "${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} up -d";
         ExecStop = "${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} down";
+        # podman-compose blocks on `podman wait --condition=healthy` for every service with a
+        # healthcheck before returning - if a container never turns healthy (e.g. a crash loop),
+        # that wait never returns, which without a bound here hangs this unit's start job (and
+        # therefore the whole `nixos-rebuild switch` activation script, which starts units
+        # synchronously) forever instead of failing after a bounded time. Confirmed live: a
+        # missing-GeoLite2 crash loop hung activation for 18+ minutes with no timeout in place
+        # (hosts/vm-vps1 testing, 2026-09-21).
+        TimeoutStartSec = "5min";
       };
     };
 

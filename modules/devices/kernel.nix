@@ -53,6 +53,13 @@ in
                         #   to create each container's veth pair; without it, container start fails
                         #   with "netavark: create veth pair: Netlink error: Operation not supported"
                         #   (confirmed live on hosts/vm-vps1)
+        "nft_nat"       # nftables `type nat` chain expression - the base module every one of
+                        #   netavark's PREROUTING/POSTROUTING/OUTPUT nat-hook chains declares
+                        #   (hostport DNAT, masquerade); without it those chains fail to load with
+                        #   the same misleading "Could not process rule: No such file or directory"
+                        #   as nft_limit/nft_masq below (confirmed live on hosts/vm-vps1, found via
+                        #   lsmod reconciliation after a clean lockKernelModules=false boot - it was
+                        #   loading fine on-demand but had been missed off this explicit list)
         "nft_masq"      # nftables masquerade expression - netavark's per-network NAT ruleset (outbound
                         #   internet access for containers) uses this; without it `nft` fails applying
                         #   netavark's ruleset with a misleading "Could not process rule: No such file

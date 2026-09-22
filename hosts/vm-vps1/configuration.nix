@@ -5,9 +5,8 @@
 # - Isolated from shared fleet config/secrets
 # - Hardened, local-VM staging twin of hosts/vps1 - test changes here before they reach production
 # --------------------------------------------------------------------------------------------------
-{ ... }:
-
 {
+
 
   imports = [
     ./hardware-configuration.nix
