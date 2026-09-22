@@ -1,0 +1,131 @@
+diff --git a/packages/tui/src/config/index.tsx b/packages/tui/src/config/index.tsx
+index 4227bfc3b..665596642 100644
+--- a/packages/tui/src/config/index.tsx
++++ b/packages/tui/src/config/index.tsx
+@@ -59,10 +59,14 @@ export const Prompt = Schema.Struct({
+ }).annotate({ description: "Prompt size settings" })
+ 
+ export const SidebarWidthDefault = 42
++export const SidebarPositionDefault = "right"
+ export const Sidebar = Schema.Struct({
+   width: Schema.optional(Schema.Int.check(Schema.isGreaterThan(0))).annotate({
+     description: "Sidebar width in terminal columns (default: 42)",
+   }),
++  position: Schema.optional(Schema.Literals(["left", "right"])).annotate({
++    description: "Which side of the terminal the sidebar renders on (default: 'right')",
++  }),
+ }).annotate({ description: "Sidebar settings" })
+ 
+ export const Info = Schema.Struct({
+@@ -95,7 +99,7 @@ export type Resolved = Omit<Info, "attention" | "keybinds" | "leader_timeout" |
+   keybinds: TuiKeybind.BindingLookupView
+   leader_timeout: number
+   mouse: boolean
+-  sidebar: { width: number }
++  sidebar: { width: number; position: "left" | "right" }
+   cursor?: {
+     style: "block" | "underline" | "line" | "default"
+     blinking: boolean
+@@ -135,7 +139,10 @@ export function resolve(input: Info, options: ResolveOptions): Resolved {
+     }),
+     leader_timeout: input.leader_timeout ?? LeaderTimeoutDefault,
+     mouse: input.mouse ?? true,
+-    sidebar: { width: input.sidebar?.width ?? SidebarWidthDefault },
++    sidebar: {
++      width: input.sidebar?.width ?? SidebarWidthDefault,
++      position: input.sidebar?.position ?? SidebarPositionDefault,
++    },
+     cursor: input.cursor
+       ? {
+           style: input.cursor.style ?? "block",
+diff --git a/packages/tui/src/routes/session/index.tsx b/packages/tui/src/routes/session/index.tsx
+index 2b47941ab..5325bcf07 100644
+--- a/packages/tui/src/routes/session/index.tsx
++++ b/packages/tui/src/routes/session/index.tsx
+@@ -1174,7 +1174,7 @@ export function Session() {
+           tui: tuiConfig,
+         }}
+       >
+-        <box flexDirection="row" flexGrow={1} minHeight={0}>
++        <box flexDirection={tuiConfig.sidebar.position === "left" ? "row-reverse" : "row"} flexGrow={1} minHeight={0}>
+           <box flexGrow={1} minHeight={0} paddingBottom={1} paddingLeft={2} paddingRight={2} gap={1}>
+             <Show when={session()}>
+               <scrollbox
+@@ -1347,7 +1347,7 @@ export function Session() {
+                   left={0}
+                   right={0}
+                   bottom={0}
+-                  alignItems="flex-end"
++                  alignItems={tuiConfig.sidebar.position === "left" ? "flex-start" : "flex-end"}
+                   backgroundColor={RGBA.fromInts(0, 0, 0, 70)}
+                 >
+                   <Sidebar sessionID={route.sessionID} />
+diff --git a/packages/tui/test/config.test.tsx b/packages/tui/test/config.test.tsx
+index 84e29fd95..833912229 100644
+--- a/packages/tui/test/config.test.tsx
++++ b/packages/tui/test/config.test.tsx
+@@ -29,7 +29,7 @@ test("validates config constraints", () => {
+       leader_timeout: 250,
+       attention: { volume: 1, sounds: { done: "done.wav" } },
+       prompt: { max_height: 10, max_width: "auto" },
+-      sidebar: { width: 30 },
++      sidebar: { width: 30, position: "left" },
+       scroll_speed: 0.001,
+       diff_style: "stacked",
+       cursor: { blinking: false },
+@@ -39,7 +39,7 @@ test("validates config constraints", () => {
+     leader_timeout: 250,
+     attention: { volume: 1 },
+     prompt: { max_height: 10, max_width: "auto" },
+-    sidebar: { width: 30 },
++    sidebar: { width: 30, position: "left" },
+     diff_style: "stacked",
+     cursor: { blinking: false },
+   })
+@@ -48,6 +48,7 @@ test("validates config constraints", () => {
+   expect(() => decodeInfo({ prompt: { max_width: 0 } })).toThrow()
+   expect(() => decodeInfo({ sidebar: { width: 0 } })).toThrow()
+   expect(() => decodeInfo({ sidebar: { width: 1.5 } })).toThrow()
++  expect(() => decodeInfo({ sidebar: { position: "center" } })).toThrow()
+   expect(() => decodeInfo({ scroll_speed: 0 })).toThrow()
+   expect(() => decodeInfo({ cursor: { style: "beam" } })).toThrow()
+   expect(decodeInfo({ attention: { sounds: { unknown: "sound.wav" } } })).toEqual({ attention: { sounds: {} } })
+@@ -66,7 +67,7 @@ test("resolves host-neutral defaults", () => {
+   })
+   expect(config.leader_timeout).toBe(LeaderTimeoutDefault)
+   expect(config.mouse).toBe(true)
+-  expect(config.sidebar).toEqual({ width: 42 })
++  expect(config.sidebar).toEqual({ width: 42, position: "right" })
+   expect(config.keybinds.has("terminal.suspend")).toBe(true)
+   expect(config.keybinds.has("session.list")).toBe(true)
+   expect(config.cursor).toBeUndefined()
+@@ -77,7 +78,7 @@ test("resolves overrides without mutating input", () => {
+     theme: "custom",
+     mouse: false,
+     leader_timeout: 750,
+-    sidebar: { width: 30 },
++    sidebar: { width: 30, position: "left" },
+     attention: {
+       enabled: true,
+       notifications: false,
+@@ -95,7 +96,7 @@ test("resolves overrides without mutating input", () => {
+     theme: "custom",
+     mouse: false,
+     leader_timeout: 750,
+-    sidebar: { width: 30 },
++    sidebar: { width: 30, position: "left" },
+     attention: input.attention,
+     cursor: { style: "block", blinking: false },
+   })
+diff --git a/packages/web/src/content/docs/tui.mdx b/packages/web/src/content/docs/tui.mdx
+index 1d872b76c..3122cf47d 100644
+--- a/packages/web/src/content/docs/tui.mdx
++++ b/packages/web/src/content/docs/tui.mdx
+@@ -402,6 +402,7 @@ This is separate from `opencode.json`, which configures server/runtime behavior.
+ - `cursor` - Controls the terminal cursor in TUI input fields. `style` defaults to `"block"`, can be `"underline"`, `"line"`, or `"default"`; `blinking` defaults to `true`. When `style` is `"default"`, the terminal default cursor is restored, so `blinking` has no effect.
+ - `mouse` - Enable or disable mouse capture in the TUI (default: `true`). When disabled, the terminal's native mouse selection/scrolling behavior is preserved.
+ - `sidebar.width` - Controls the width of the session sidebar in terminal columns. Defaults to `42`.
++- `sidebar.position` - Controls which side of the terminal the session sidebar renders on. Can be `"left"` or `"right"`. Defaults to `"right"`.
+ - `attention` - Configures TUI desktop notifications and sounds. Disabled by default.
+ 
+ Use `OPENCODE_TUI_CONFIG` to load a custom TUI config path.
