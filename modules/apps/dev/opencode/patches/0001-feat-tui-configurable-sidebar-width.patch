@@ -1,0 +1,158 @@
+From 77a5b398dad4058f5ec0cd6bac6c456b8c4b8d1b Mon Sep 17 00:00:00 2001
+From: nixos-config <noreply@localhost>
+Date: Tue, 22 Sep 2026 12:17:02 -0600
+Subject: [PATCH] feat(tui): configurable sidebar width
+
+---
+ packages/tui/src/config/index.tsx           | 12 +++++++++++-
+ packages/tui/src/routes/session/index.tsx   |  2 +-
+ packages/tui/src/routes/session/sidebar.tsx |  2 +-
+ packages/tui/test/config.test.tsx           |  8 ++++++++
+ packages/web/src/content/docs/tui.mdx       |  1 +
+ 5 files changed, 22 insertions(+), 3 deletions(-)
+
+diff --git a/packages/tui/src/config/index.tsx b/packages/tui/src/config/index.tsx
+index bde0bfb07..4227bfc3b 100644
+--- a/packages/tui/src/config/index.tsx
++++ b/packages/tui/src/config/index.tsx
+@@ -58,6 +58,13 @@ export const Prompt = Schema.Struct({
+   }),
+ }).annotate({ description: "Prompt size settings" })
+ 
++export const SidebarWidthDefault = 42
++export const Sidebar = Schema.Struct({
++  width: Schema.optional(Schema.Int.check(Schema.isGreaterThan(0))).annotate({
++    description: "Sidebar width in terminal columns (default: 42)",
++  }),
++}).annotate({ description: "Sidebar settings" })
++
+ export const Info = Schema.Struct({
+   $schema: Schema.optional(Schema.String),
+   theme: Schema.optional(Schema.String),
+@@ -67,6 +74,7 @@ export const Info = Schema.Struct({
+   leader_timeout: Schema.optional(LeaderTimeout),
+   attention: Schema.optional(Attention),
+   prompt: Schema.optional(Prompt),
++  sidebar: Schema.optional(Sidebar),
+   scroll_speed: Schema.optional(ScrollSpeed).annotate({ description: "TUI scroll speed" }),
+   scroll_acceleration: Schema.optional(ScrollAcceleration),
+   diff_style: Schema.optional(DiffStyle),
+@@ -75,7 +83,7 @@ export const Info = Schema.Struct({
+ })
+ export type Info = Schema.Schema.Type<typeof Info>
+ 
+-export type Resolved = Omit<Info, "attention" | "keybinds" | "leader_timeout" | "mouse" | "cursor"> & {
++export type Resolved = Omit<Info, "attention" | "keybinds" | "leader_timeout" | "mouse" | "cursor" | "sidebar"> & {
+   attention: {
+     enabled: boolean
+     notifications: boolean
+@@ -87,6 +95,7 @@ export type Resolved = Omit<Info, "attention" | "keybinds" | "leader_timeout" |
+   keybinds: TuiKeybind.BindingLookupView
+   leader_timeout: number
+   mouse: boolean
++  sidebar: { width: number }
+   cursor?: {
+     style: "block" | "underline" | "line" | "default"
+     blinking: boolean
+@@ -126,6 +135,7 @@ export function resolve(input: Info, options: ResolveOptions): Resolved {
+     }),
+     leader_timeout: input.leader_timeout ?? LeaderTimeoutDefault,
+     mouse: input.mouse ?? true,
++    sidebar: { width: input.sidebar?.width ?? SidebarWidthDefault },
+     cursor: input.cursor
+       ? {
+           style: input.cursor.style ?? "block",
+diff --git a/packages/tui/src/routes/session/index.tsx b/packages/tui/src/routes/session/index.tsx
+index 2b54f2167..2b47941ab 100644
+--- a/packages/tui/src/routes/session/index.tsx
++++ b/packages/tui/src/routes/session/index.tsx
+@@ -275,7 +275,7 @@ export function Session() {
+     return false
+   })
+   const showTimestamps = createMemo(() => timestamps() === "show")
+-  const contentWidth = createMemo(() => dimensions().width - (sidebarVisible() ? 42 : 0) - 4)
++  const contentWidth = createMemo(() => dimensions().width - (sidebarVisible() ? tuiConfig.sidebar.width : 0) - 4)
+   const providers = createMemo(() => Model.index(sync.data.provider))
+ 
+   const scrollAcceleration = createMemo(() => getScrollAcceleration(tuiConfig))
+diff --git a/packages/tui/src/routes/session/sidebar.tsx b/packages/tui/src/routes/session/sidebar.tsx
+index 0c5d2b313..d8063ebe7 100644
+--- a/packages/tui/src/routes/session/sidebar.tsx
++++ b/packages/tui/src/routes/session/sidebar.tsx
+@@ -27,7 +27,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
+     <Show when={session()}>
+       <box
+         backgroundColor={theme.backgroundPanel}
+-        width={42}
++        width={tuiConfig.sidebar.width}
+         height="100%"
+         paddingTop={1}
+         paddingBottom={1}
+diff --git a/packages/tui/test/config.test.tsx b/packages/tui/test/config.test.tsx
+index 37fc0033e..84e29fd95 100644
+--- a/packages/tui/test/config.test.tsx
++++ b/packages/tui/test/config.test.tsx
+@@ -29,6 +29,7 @@ test("validates config constraints", () => {
+       leader_timeout: 250,
+       attention: { volume: 1, sounds: { done: "done.wav" } },
+       prompt: { max_height: 10, max_width: "auto" },
++      sidebar: { width: 30 },
+       scroll_speed: 0.001,
+       diff_style: "stacked",
+       cursor: { blinking: false },
+@@ -37,12 +38,16 @@ test("validates config constraints", () => {
+   ).toMatchObject({
+     leader_timeout: 250,
+     attention: { volume: 1 },
++    prompt: { max_height: 10, max_width: "auto" },
++    sidebar: { width: 30 },
+     diff_style: "stacked",
+     cursor: { blinking: false },
+   })
+   expect(() => decodeInfo({ leader_timeout: 0 })).toThrow()
+   expect(() => decodeInfo({ attention: { volume: 1.1 } })).toThrow()
+   expect(() => decodeInfo({ prompt: { max_width: 0 } })).toThrow()
++  expect(() => decodeInfo({ sidebar: { width: 0 } })).toThrow()
++  expect(() => decodeInfo({ sidebar: { width: 1.5 } })).toThrow()
+   expect(() => decodeInfo({ scroll_speed: 0 })).toThrow()
+   expect(() => decodeInfo({ cursor: { style: "beam" } })).toThrow()
+   expect(decodeInfo({ attention: { sounds: { unknown: "sound.wav" } } })).toEqual({ attention: { sounds: {} } })
+@@ -61,6 +66,7 @@ test("resolves host-neutral defaults", () => {
+   })
+   expect(config.leader_timeout).toBe(LeaderTimeoutDefault)
+   expect(config.mouse).toBe(true)
++  expect(config.sidebar).toEqual({ width: 42 })
+   expect(config.keybinds.has("terminal.suspend")).toBe(true)
+   expect(config.keybinds.has("session.list")).toBe(true)
+   expect(config.cursor).toBeUndefined()
+@@ -71,6 +77,7 @@ test("resolves overrides without mutating input", () => {
+     theme: "custom",
+     mouse: false,
+     leader_timeout: 750,
++    sidebar: { width: 30 },
+     attention: {
+       enabled: true,
+       notifications: false,
+@@ -88,6 +95,7 @@ test("resolves overrides without mutating input", () => {
+     theme: "custom",
+     mouse: false,
+     leader_timeout: 750,
++    sidebar: { width: 30 },
+     attention: input.attention,
+     cursor: { style: "block", blinking: false },
+   })
+diff --git a/packages/web/src/content/docs/tui.mdx b/packages/web/src/content/docs/tui.mdx
+index 856ef392c..1d872b76c 100644
+--- a/packages/web/src/content/docs/tui.mdx
++++ b/packages/web/src/content/docs/tui.mdx
+@@ -401,6 +401,7 @@ This is separate from `opencode.json`, which configures server/runtime behavior.
+ - `diff_style` - Controls diff rendering. `"auto"` adapts to terminal width, `"stacked"` always shows a single-column layout.
+ - `cursor` - Controls the terminal cursor in TUI input fields. `style` defaults to `"block"`, can be `"underline"`, `"line"`, or `"default"`; `blinking` defaults to `true`. When `style` is `"default"`, the terminal default cursor is restored, so `blinking` has no effect.
+ - `mouse` - Enable or disable mouse capture in the TUI (default: `true`). When disabled, the terminal's native mouse selection/scrolling behavior is preserved.
++- `sidebar.width` - Controls the width of the session sidebar in terminal columns. Defaults to `42`.
+ - `attention` - Configures TUI desktop notifications and sounds. Disabled by default.
+ 
+ Use `OPENCODE_TUI_CONFIG` to load a custom TUI config path.
+-- 
+2.54.0
+
