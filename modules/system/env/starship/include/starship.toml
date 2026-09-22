@@ -26,7 +26,7 @@ ${custom.root}\
 ${custom.normal}\
 $directory\
 [](fg:color_light_gray bg:color_dark_blue)\
-$git_branch\
+${custom.git_branch}\
 $git_status\
 [ ](fg:color_dark_blue)\
 """
@@ -76,9 +76,21 @@ truncation_length = 3
 truncation_symbol = "…/"
 truncate_to_repo = false
 
-[git_branch]
-symbol = ""
-format = '[ $symbol $branch ](fg:color_white bg:color_dark_blue)'
+# Same icon+name segment as git_branch, but suppresses the branch name when it
+# duplicates the worktree directory name (e.g. `git worktree add ../foo foo`),
+# which would otherwise echo the name back-to-back.
+[custom.git_branch]
+when = 'git rev-parse --is-inside-work-tree >/dev/null 2>&1'
+command = '''
+name=$(git branch --show-current 2>/dev/null)
+if [ -n "$name" ] && [ "$name" != "$(basename "$PWD")" ]; then
+  printf " \xef\x90\x98 %s" "$name"
+else
+  printf " \xef\x90\x98"
+fi
+'''
+shell = ["bash", "--noprofile", "--norc"]
+format = '[$output ](fg:color_white bg:color_dark_blue)'
 
 [git_status]
 ahead = '⇡ ${count}'
