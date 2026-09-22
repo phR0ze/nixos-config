@@ -175,7 +175,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
          ]
        )
      } \
-    --set OPENCODE_DISABLE_TERMINAL_TITLE 1 \
     --set OPENCODE_DISABLE_AUTOUPDATE true
 
     install -Dm644 config.json $out/share/opencode/config.json
