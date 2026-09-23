@@ -54,6 +54,18 @@ in
             default = host.name or "";
           };
 
+          locale = lib.mkOption {
+            description = lib.mdDoc "Locale to use for various identifiers";
+            type = types.str;
+            default = if (host.locale or "" == "") then "en_US.UTF-8" else host.locale;
+          };
+
+          timezone = lib.mkOption {
+            description = lib.mdDoc "Timezone to use for various identifiers";
+            type = types.str;
+            default = if (host.timezone or "" == "") then "Etc/GMT" else host.timezone;
+          };
+
           boot = {
             efi = lib.mkOption {
               description = lib.mdDoc "Whether this machine boots via EFI";
@@ -69,21 +81,14 @@ in
             };
           };
 
-          git = {
-            user = lib.mkOption {
-              description = lib.mdDoc "Git user name for flake management";
-              type = types.str;
-              default = host.git.user or "";
-            };
-
-            email = lib.mkOption {
-              description = lib.mdDoc "Git user email for flake management";
-              type = types.str;
-              default = host.git.email or "";
-            };
-          };
-
           network = {
+
+            nic0 = lib.mkOption {
+              description = lib.mdDoc "Primary NIC options, see `devices.network.nic0`";
+              type = types.submodule (import ./types/nic.nix { inherit lib; defaults = nic0Defaults; });
+              default = nic0Defaults;
+            };
+
             gateway = lib.mkOption {
               description = lib.mdDoc "Default gateway, see `devices.network.gateway`";
               type = types.str;
@@ -94,6 +99,12 @@ in
               description = lib.mdDoc "Default subnet/CIDR, see `devices.network.subnet`";
               type = types.str;
               default = host.network.subnet or "";
+            };
+
+            domain = lib.mkOption {
+              description = lib.mdDoc "Domain name owned by this host, e.g. for use with Caddy/Cloudflare DNS-01";
+              type = types.str;
+              default = host.network.domain or "";
             };
 
             dns = {
@@ -108,12 +119,6 @@ in
                 type = types.str;
                 default = host.network.dns.fallback or "";
               };
-            };
-
-            nic0 = lib.mkOption {
-              description = lib.mdDoc "Primary NIC options, see `devices.network.nic0`";
-              type = types.submodule (import ./types/nic.nix { inherit lib; defaults = nic0Defaults; });
-              default = nic0Defaults;
             };
 
             allowList = lib.mkOption {
@@ -138,6 +143,20 @@ in
             default =
               let file = ../hosts + "/${cfg.name}/secrets.enc.yaml";
               in if cfg.name != "" && builtins.pathExists file then file else null;
+          };
+
+          git = {
+            user = lib.mkOption {
+              description = lib.mdDoc "Git user name for flake management";
+              type = types.str;
+              default = host.git.user or "";
+            };
+
+            email = lib.mkOption {
+              description = lib.mdDoc "Git user email for flake management";
+              type = types.str;
+              default = host.git.email or "";
+            };
           };
 
           users.root.authorizedKeys = lib.mkOption {
@@ -178,6 +197,8 @@ in
       devices.boot.mbr = cfg.boot.mbr;
       networking.hostName = cfg.name;
       system.env.machineId = cfg.id;
+      system.env.locale = cfg.locale;
+      system.env.timezone = cfg.timezone;
       apps.system.git.user = cfg.git.user;
       apps.system.git.email = cfg.git.email;
       system.users.sopsFile = cfg.sopsFile;
@@ -187,6 +208,7 @@ in
       devices.network.dns.fallback = cfg.network.dns.fallback;
       devices.network.nic0.name = cfg.network.nic0.name;
       devices.network.nic0.ip = cfg.network.nic0.ip;
+      devices.network.nic0.mapNameFromMAC = cfg.network.nic0.mapNameFromMAC;
       devices.network.harden.geoblockAllowList = cfg.network.allowList;
       services.native.crowdsec.sopsFile = cfg.sopsFile;
       services.native.alerts.sopsFile = cfg.sopsFile;
@@ -197,18 +219,9 @@ in
     # Configure pangolin from shared defaults and secrets
     (lib.mkIf config.services.oci.pangolin.enable {
       services.oci.pangolin.sopsFile = cfg.sopsFile;
-      services.oci.pangolin.baseDomain = f.getServiceAttr "oci.pangolin.baseDomain" cfg.services;
+      services.oci.pangolin.baseDomain = cfg.network.domain;
       services.oci.pangolin.acmeEmail = f.getServiceAttr "oci.pangolin.acmeEmail" cfg.services;
       services.oci.pangolin.geoblockAllowList = cfg.network.allowList;
-    })
-
-    # Pin nic0's name by MAC and disable predictable interface naming, only when a host opts in
-    # via `host.network.nic0.mapNameFromMAC` (see modules/types/nic.nix for why this is needed).
-    (lib.mkIf (cfg.id != "" && cfg.network.nic0.mapNameFromMAC != "") {
-      networking.usePredictableInterfaceNames = lib.mkForce false;
-      services.udev.extraRules = ''
-        ATTR{address}=="${cfg.network.nic0.mapNameFromMAC}", NAME="${cfg.network.nic0.name}"
-      '';
     })
   ];
 }

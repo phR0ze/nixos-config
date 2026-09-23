@@ -80,24 +80,6 @@ in
             default = {};
           };
 
-          hostname = lib.mkOption {
-            description = lib.mdDoc "Hostname";
-            type = types.str;
-            default = if (args.host.hostname or "" == "") then "nixos" else args.host.hostname;
-          };
-
-          id = lib.mkOption {
-            description = lib.mdDoc "Machine id for /etc/machine-id";
-            type = types.str;
-            default = args.host.id or "";
-          };
-
-          domain = lib.mkOption {
-            description = lib.mdDoc "Domain name owned by this host, e.g. for use with Caddy/Cloudflare DNS-01";
-            type = types.str;
-            default = args.domain or "";
-          };
-
           target = lib.mkOption {
             description = lib.mdDoc "Host or layer used during installation";
             type = types.str;

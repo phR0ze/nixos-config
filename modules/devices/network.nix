@@ -24,40 +24,6 @@ let
 in
 {
   options.devices.network = {
-    harden = {
-      enable = lib.mkEnableOption ''
-        recommended networking hardening. This also turns on a host-wide inbound geo-block: drops
-        every NEW, externally-initiated connection whose source address isn't inside a
-        US-registered IPv4 CIDR block (per the daily CI-published `ipverse/country-ip-blocks`
-        aggregate), regardless of destination port - any future opened port is automatically
-        covered without touching this module again. Only conntrack state NEW packets are ever
-        evaluated, so outbound-initiated traffic and its return path (nix substituter fetches from
-        cache.nixos.org, sops key fetches, CrowdSec's own hub/LAPI polling, DNS, NTP - none of
-        which are guaranteed to be US-hosted) are unaffected.
-
-        Implemented as its own nftables table, mirroring exactly how
-        `services.crowdsec-firewall-bouncer` structures its own `crowdsec` table: a declarative,
-        NixOS-managed table+chain+empty-set skeleton (loaded once by nftables.service), with the
-        set's actual contents refreshed independently at runtime by a small systemd timer - not a
-        separate firewall backend, and not competing with CrowdSec's own table for the same hook
-        (see the module-level comment on the config block below for why coexistence is safe).
-      '';
-
-      geoblockAllowList = lib.mkOption {
-        description = lib.mdDoc ''
-          CIDRs/IPs that always bypass the geo-filter regardless of country, mirroring
-          `services.native.crowdsec.allowlist`'s purpose: a safety valve against a self-inflicted
-          lockout if the upstream geoIP data is ever wrong, or the admin travels/tunnels through a
-          non-US VPN exit. Baked directly into the declarative table's initial set contents (loaded
-          synchronously by nftables.service at boot, zero network dependency, zero delay) and
-          re-applied on every subsequent daily refresh alongside the fetched US list.
-        '';
-        type = lib.types.listOf lib.types.str;
-        default = [ ];
-        example = [ "203.0.113.7" "198.51.100.0/24" ];
-      };
-    };
-
     networkManager.enable = lib.mkEnableOption "Install and configure network manager";
 
     networkd.enable = lib.mkEnableOption ''
@@ -175,6 +141,21 @@ in
         example = "192.168.1.41/24";
         default = "";
       };
+
+      mapNameFromMAC = lib.mkOption {
+        description = lib.mdDoc ''
+          MAC address to pin this NIC's `name` to via a udev rule, and disable
+          `networking.usePredictableInterfaceNames` for. Needed on hosts (e.g. some cloud/VPS
+          providers' virtio NICs) where the kernel's predictable name (`enp0s3`, `ens3`, ...) won't
+          match a hardcoded `name` like "eth0" used elsewhere in this host's static config -
+          pinning by MAC keeps the name deterministic without predictable naming's bus-topology
+          dependency. Leave unset (default) on hosts where predictable naming already matches, or
+          where the interface name isn't hardcoded anywhere.
+        '';
+        type = types.str;
+        example = "00:11:22:33:44:55";
+        default = "";
+      };
     };
 
     primary.name = lib.mkOption {
@@ -186,11 +167,46 @@ in
       type = types.str;
       default = cfg.nic0.name;
     };
+
     primary.ip = lib.mkOption {
       description = lib.mdDoc "Primary interface IP in CIDR notation";
       type = types.str;
       example = "192.168.1.50/24";
       default = cfg.nic0.ip;
+    };
+
+    harden = {
+      enable = lib.mkEnableOption ''
+        recommended networking hardening. This also turns on a host-wide inbound geo-block: drops
+        every NEW, externally-initiated connection whose source address isn't inside a
+        US-registered IPv4 CIDR block (per the daily CI-published `ipverse/country-ip-blocks`
+        aggregate), regardless of destination port - any future opened port is automatically
+        covered without touching this module again. Only conntrack state NEW packets are ever
+        evaluated, so outbound-initiated traffic and its return path (nix substituter fetches from
+        cache.nixos.org, sops key fetches, CrowdSec's own hub/LAPI polling, DNS, NTP - none of
+        which are guaranteed to be US-hosted) are unaffected.
+
+        Implemented as its own nftables table, mirroring exactly how
+        `services.crowdsec-firewall-bouncer` structures its own `crowdsec` table: a declarative,
+        NixOS-managed table+chain+empty-set skeleton (loaded once by nftables.service), with the
+        set's actual contents refreshed independently at runtime by a small systemd timer - not a
+        separate firewall backend, and not competing with CrowdSec's own table for the same hook
+        (see the module-level comment on the config block below for why coexistence is safe).
+      '';
+
+      geoblockAllowList = lib.mkOption {
+        description = lib.mdDoc ''
+          CIDRs/IPs that always bypass the geo-filter regardless of country, mirroring
+          `services.native.crowdsec.allowlist`'s purpose: a safety valve against a self-inflicted
+          lockout if the upstream geoIP data is ever wrong, or the admin travels/tunnels through a
+          non-US VPN exit. Baked directly into the declarative table's initial set contents (loaded
+          synchronously by nftables.service at boot, zero network dependency, zero delay) and
+          re-applied on every subsequent daily refresh alongside the fetched US list.
+        '';
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        example = [ "203.0.113.7" "198.51.100.0/24" ];
+      };
     };
   };
 
@@ -555,6 +571,15 @@ in
       networking.useDHCP = false;
       networking.interfaces."${cfg.nic0.name}".ipv4.addresses = [ (f.toIP cfg.nic0.ip) ];
     }))
+
+    # Pin nic0's name by MAC and disable predictable interface naming, only when a host opts in
+    # via `devices.network.nic0.mapNameFromMAC` (see modules/types/nic.nix for why this is needed).
+    (lib.mkIf (cfg.nic0.mapNameFromMAC != "") {
+      networking.usePredictableInterfaceNames = lib.mkForce false;
+      services.udev.extraRules = ''
+        ATTR{address}=="${cfg.nic0.mapNameFromMAC}", NAME="${cfg.nic0.name}"
+      '';
+    })
 
     # Configure the default gateway if the primary nic is static
     # Under systemd-networkd the interface must be explicit - a bare string coerces to

@@ -29,12 +29,10 @@ in
       locale = lib.mkOption {
         description = lib.mdDoc "Locale to use for various identifiers";
         type = types.str;
-        default = "en_US.UTF-8";
       };
       timezone = lib.mkOption {
         description = lib.mdDoc "Timezone to use for various identifiers";
         type = types.str;
-        default = "Etc/GMT";
       };
     };
   };
@@ -48,6 +46,14 @@ in
             system.env.systemd.machineId must be a 32-character lowercase hexadecimal string, got:
             "${cfg.machineId}". Generate one with `dbus-uuidgen`.
           '';
+        }
+        {
+          assertion = cfg.locale != "";
+          message = "system.env.locale must not be empty";
+        }
+        {
+          assertion = cfg.timezone != "";
+          message = "system.env.timezone must not be empty";
         }
       ];
 
