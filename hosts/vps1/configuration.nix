@@ -18,9 +18,11 @@
       core = {
         enable = true;
         lowMemory = true;
+      };
+      server = {
+        enable = true;
         harden = true;
       };
-      server.enable = true;
     };
 
     # sshd.service's own systemd sandboxing (services.native.sshd's harden block) cascades to every

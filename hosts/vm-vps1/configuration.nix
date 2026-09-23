@@ -16,10 +16,12 @@
     layers.console = {
       core = {
         enable = true;
-        harden = true;
         lowMemory = true;
       };
-      server.enable = true;
+      server = {
+        enable = true;
+        harden = true;
+      };
     };
     nix.settings.sandbox = false;
 

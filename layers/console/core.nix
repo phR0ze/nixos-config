@@ -13,7 +13,6 @@ in
   options = {
     layers.console.core = {
       enable = lib.mkEnableOption "Enable the core layer";
-      harden = lib.mkEnableOption "Enable security hardening configuration";
       lowMemory = lib.mkEnableOption "Enable the low memory configuration";
     };
   };
@@ -59,19 +58,6 @@ in
       devices.boot.lowMemory = true;                # zram swap to cheaply extend effective memory
       devices.kernel.lowMemory = true;              # aggressive reclaim as swap is in memory
       services.native.systemd.lowMemory  = true;    # cap journld and ensure its persisted
-    })
-
-    # Harden
-    # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.enable && cfg.harden) {
-      devices.boot.harden = true;                   # clean /tmp on every boot
-      devices.kernel.harden = true;                 # include kernel hardening configuration
-      devices.network.harden.enable = true;         # networking hardening, incl. geo-block
-
-      services.native.sshd.harden = true;           # restrict sshd and enable CrowdSec brute-force protection
-      services.native.systemd.harden = true;        # additional security and low memory options
-      services.native.crowdsec.enable = true;       # enable broad CrowdSec protection
-      services.native.alerts.enable = true;         # push failed-unit alerts + a daily security digest
     })
   ];
 }

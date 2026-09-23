@@ -16,14 +16,7 @@
     host.vm.type.local = true;
     host.resolution = { x = 1920; y = 1080; };
     host.autologin = true;
-
-    # vm-test is a static VM behind QEMU's NAT, not a roaming machine, so there's no captive
-    # portal to support - force every query through the upstream DNS set in args.enc.yaml instead
-    # of letting NetworkManager's DHCP-provided per-link DNS (QEMU's slirp forwarder) win.
-    host.net.dns.force = true;
-
-    apps.dev.claude.enable = true;
-    #services.oci.portainer.enable = true;
+    #host.net.dns.force = true;
 
     # Beefed up VM specs with DHCP full LAN presence
     # --------------------------------------------
