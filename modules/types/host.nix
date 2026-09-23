@@ -68,18 +68,6 @@ in
             };
           };
 
-          vm.type = lib.mkOption {
-            description = lib.mdDoc "Virtual machine type for this host";
-            type = types.submodule {
-              options = {
-                micro = lib.mkEnableOption "Minimal headless system";
-                local = lib.mkEnableOption "Full desktop system with local graphical display";
-                spice = lib.mkEnableOption "Full desktop system with remote SPICE display";
-              };
-            };
-            default = {};
-          };
-
           target = lib.mkOption {
             description = lib.mdDoc "Host or layer used during installation";
             type = types.str;

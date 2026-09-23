@@ -11,7 +11,6 @@
 
   config = {
     host.type.vm = true;
-    host.vm.type.spice = true;
     host.resolution = { x = 1920; y = 1080; };
     host.autologin = true;
     host.nix.cache.enable = true;
@@ -42,6 +41,7 @@
     # --------------------------------------------
     virtualization.qemu.guest = {
       enable = true;
+      type.spice = true;
       cores = 4;
       #display = { enable = true; memory = 32; };
       rootDrive.size = 20;
