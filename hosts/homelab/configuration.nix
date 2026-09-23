@@ -23,7 +23,7 @@
 
     # System services
     virtualisation.podman.enable = true;
-    virtualisation.qemu.host.enable = true;
+    virtualization.qemu.host.enable = true;
 
     # Homelab services
     services.raw.minecraft.enable = true;

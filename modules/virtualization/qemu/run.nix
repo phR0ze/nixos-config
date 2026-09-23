@@ -1,12 +1,19 @@
 { config, pkgs, lib, ... }: with lib.types;
 let
   host = config.host;
-  guest = config.virtualisation.qemu.guest;
-  qemuHost = config.virtualisation.qemu.host;
+  guest = config.virtualization.qemu.guest;
+  qemuHost = config.virtualization.qemu.host;
 in
 {
+  options = {
+    virtualization.qemu.run.hostname = lib.mkOption {
+      type = str;
+      description = "Hostname of the host, used as the VM's run directory name";
+    };
+  };
+
   config = {
-    virtualisation.qemu.guest.scripts.run = ''
+    virtualization.qemu.guest.scripts.run = ''
       #! ${pkgs.runtimeShell}
 
       export PATH=${lib.makeBinPath [ pkgs.coreutils ]}''${PATH:+:}$PATH

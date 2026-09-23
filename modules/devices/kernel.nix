@@ -161,7 +161,7 @@ in
 #      boot.extraModprobeConfig = lib.mkIf (qemuHost.enable || obs.enable) (lib.concatStringsSep " " (
 #        [ "options" ]
 #
-#        # Allow nested virtualisation part of virtualisation.qemu.host
+#        # Allow nested virtualisation part of virtualization.qemu.host
 #        ++ lib.optionals (qemuHost.enable) [ "kvm_intel nested=1" ]
 #
 #        # Enable support for OBS virtual camera

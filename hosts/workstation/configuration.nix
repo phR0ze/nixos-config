@@ -30,7 +30,7 @@
     apps.network.rustdesk.autostart = false;
 
     virtualisation.podman.enable = true;
-    virtualisation.qemu.host.enable = true;
+    virtualization.qemu.host.enable = true;
 
     apps.dev.claude.enable = true;
     apps.dev.gemini.enable = true;

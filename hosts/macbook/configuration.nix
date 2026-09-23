@@ -21,7 +21,7 @@ in
   config = {
     devices.boot.efi = true;
     virtualisation.podman.enable = true;
-    virtualisation.qemu.host.enable = true;
+    virtualization.qemu.host.enable = true;
 
     # Increase the default DPI size
     host.resolution = { x = 1920; y = 1200; } ;

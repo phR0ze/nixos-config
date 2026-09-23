@@ -6,7 +6,6 @@
 { ... }:
 {
   imports = [
-    ../../modules/virtualisation/qemu/guest.nix
     ../../layers/bundles/xfce-desktop.nix
   ];
 
@@ -15,5 +14,6 @@
     host.vm.type.local = true;
     host.resolution = { x = 1920; y = 1080; };
     host.autologin = true;
+    virtualization.qemu.guest.enable = true;
   };
 }

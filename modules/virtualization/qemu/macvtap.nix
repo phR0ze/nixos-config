@@ -1,8 +1,8 @@
 { config, pkgs, lib, ... }: with lib.types;
 let
   host = config.host;
-  host = config.virtualisation.qemu.host;
-  guest = config.virtualisation.qemu.guest;
+  qemuHost = config.virtualization.qemu.host;
+  guest = config.virtualization.qemu.guest;
 
   # Filter down the interfaces to the given type
   interfacesByType = wantedType:
@@ -13,8 +13,8 @@ in
   config = lib.mkMerge [
 
     # Scripts to startup and shutdown the macvtap interfaces
-    (lib.mkIf (macvtapInterfaces != []) {
-      virtualisation.qemu.guest.scripts.macvtap-up = ''
+    (lib.mkIf (guest.enable && macvtapInterfaces != []) {
+      virtualization.qemu.guest.scripts.macvtap-up = ''
         #! ${pkgs.runtimeShell}
 
         set -eou pipefail
@@ -28,10 +28,10 @@ in
             echo 1 > "/proc/sys/net/ipv6/conf/${id}/disable_ipv6"
           fi
           ${lib.getExe' pkgs.iproute2 "ip"} link set '${id}' up
-          ${pkgs.coreutils-full}/bin/chown '${host.user.name}:${host.group}' /dev/tap$(< "/sys/class/net/${id}/ifindex")
+          ${pkgs.coreutils-full}/bin/chown '${host.user.name}:${qemuHost.group}' /dev/tap$(< "/sys/class/net/${id}/ifindex")
         '') macvtapInterfaces;
 
-      virtualisation.qemu.guest.scripts.macvtap-down = ''
+      virtualization.qemu.guest.scripts.macvtap-down = ''
         #! ${pkgs.runtimeShell}
 
         set -eou pipefail

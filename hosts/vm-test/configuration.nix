@@ -6,9 +6,7 @@
 { ... }:
 {
   imports = [
-    ../../modules/virtualisation/qemu/guest.nix
     ../../layers/bundles/xfce-desktop.nix
-    #../../layers/bundles/budgie-desktop.nix
   ];
 
   config = {
@@ -20,7 +18,8 @@
 
     # Beefed up VM specs with DHCP full LAN presence
     # --------------------------------------------
-    virtualisation.qemu.guest = {
+    virtualization.qemu.guest = {
+      enable = true;
       cores = 4;
       memorySize = 8;
       rootDrive.size = 40;

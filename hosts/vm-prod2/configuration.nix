@@ -7,7 +7,6 @@
 {
   imports = [
     ../../layers/bundles/xfce-desktop.nix
-    ../../modules/virtualisation/qemu/guest.nix
   ];
 
   config = {
@@ -23,7 +22,8 @@
 
     # VM configuration
     # ---------------------------------------------
-    virtualisation.qemu.guest = {
+    virtualization.qemu.guest = {
+      enable = true;
       cores = 8;
       memorySize = 16;
       display = {

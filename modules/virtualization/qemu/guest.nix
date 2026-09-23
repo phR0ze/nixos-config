@@ -18,7 +18,7 @@
 let
   vm = config.host.vm;
   host = config.host;
-  cfg = config.virtualisation.qemu.guest;
+  cfg = config.virtualization.qemu.guest;
 
   # The msize (maximum packet size) passed to 9p file systems, in bytes. Increasing this
   # should increase performance significantly, at the cost of higher RAM usage.
@@ -38,7 +38,8 @@ in
   ];
 
   options = {
-    virtualisation.qemu.guest = {
+    virtualization.qemu.guest = {
+      enable = lib.mkEnableOption "Build this host as a QEMU virtual machine guest";
       store = lib.mkOption {
         description = "Configure the nix store";
         type = types.submodule {
@@ -298,7 +299,7 @@ in
     };
   };
 
-  config = lib.mkMerge [
+  config = lib.mkIf cfg.enable (lib.mkMerge [
     {
       services.qemuGuest.enable = true;                   # Install and run the QEMU guest agent
       networking.wireless.enable = lib.mkForce false;     # Wireless networking won't work in VM
@@ -454,7 +455,7 @@ in
 
       # [QEMU launch options](https://qemu-project.gitlab.io/qemu/system/invocation.html)
       # --------------------------------------------------------------------------------------------
-      virtualisation.qemu.guest.options =
+      virtualization.qemu.guest.options =
         [
           "-name ${host.hostname}"         # Name to use for GUI windows and process names
           "-pidfile ${host.hostname}.pid"  # Store the QEMU process PID in this file
@@ -654,5 +655,5 @@ in
       # Open up the firewall for host.vm.spicePort
       networking.firewall.allowedTCPPorts = [ cfg.spice.port ];
     })
-  ];
+  ]);
 }

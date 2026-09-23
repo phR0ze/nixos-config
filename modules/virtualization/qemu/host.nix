@@ -13,7 +13,7 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   host = config.host;
-  cfg = config.virtualisation.qemu.host;
+  cfg = config.virtualization.qemu.host;
 
   macvtapInterfaces = builtins.filter (hostname:
     cfg.vms.${hostname}.interface == "macvtap"
@@ -21,7 +21,7 @@ let
 in
 {
   options = {
-    virtualisation.qemu.host = {
+    virtualization.qemu.host = {
       enable = lib.mkEnableOption "Install and configure QEMU on the host system";
       package = lib.mkOption {
         description = "Default QEMU package to use";

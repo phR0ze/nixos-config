@@ -34,7 +34,7 @@ in
     ./services
     ./system
     ./types
-    ./virtualisation
+    ./virtualization
   ];
 
   options = {
