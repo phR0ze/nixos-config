@@ -17,7 +17,7 @@ fi
 case "$emoji" in
   claude) emoji="💥" ;;
   gemini) emoji="⚙️" ;;
-  opencode) emoji="⚙️" ;;
+  oc) emoji="⚙️" ;;
   vim) emoji="✨" ;;
   mac) emoji="🖥️" ;;
   red) emoji="🔴" ;;
