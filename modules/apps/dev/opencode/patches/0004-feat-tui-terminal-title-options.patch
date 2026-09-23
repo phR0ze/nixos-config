@@ -1,16 +1,26 @@
 diff --git a/packages/tui/src/app.tsx b/packages/tui/src/app.tsx
-index 6852311f9..9a0c3567d 100644
+index 6852311f9..f6888ab44 100644
 --- a/packages/tui/src/app.tsx
 +++ b/packages/tui/src/app.tsx
-@@ -454,6 +454,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
+@@ -454,26 +454,27 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
    // Update terminal window title based on current route and session
    createEffect(() => {
      if (!terminalTitleEnabled() || Flag.OPENCODE_DISABLE_TERMINAL_TITLE) return
-+    const prefix = tuiConfig.terminal.title.prefix
++    const { prefix, default: defaultTitle } = tuiConfig.terminal.title
  
      if (route.data.type === "home") {
-       renderer.setTerminalTitle("OpenCode")
-@@ -468,12 +469,12 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
+-      renderer.setTerminalTitle("OpenCode")
++      renderer.setTerminalTitle(`${prefix}${defaultTitle}`)
+       return
+     }
+ 
+     if (route.data.type === "session") {
+       const session = sync.session.get(route.data.sessionID)
+-      if (!session || isDefaultTitle(session.title)) {
+-        renderer.setTerminalTitle("OpenCode")
++      if (!session || !session.title || isDefaultTitle(session.title)) {
++        renderer.setTerminalTitle(`${prefix}${defaultTitle}`)
+         return
        }
  
        const title = session.title.length > 40 ? session.title.slice(0, 37) + "…" : session.title
@@ -26,17 +36,21 @@ index 6852311f9..9a0c3567d 100644
    })
  
 diff --git a/packages/tui/src/config/index.tsx b/packages/tui/src/config/index.tsx
-index 665596642..7fbe56350 100644
+index 665596642..81e8a7dc2 100644
 --- a/packages/tui/src/config/index.tsx
 +++ b/packages/tui/src/config/index.tsx
-@@ -69,6 +69,16 @@ export const Sidebar = Schema.Struct({
+@@ -69,6 +69,20 @@ export const Sidebar = Schema.Struct({
    }),
  }).annotate({ description: "Sidebar settings" })
  
 +export const TerminalTitlePrefixDefault = "OC | "
++export const TerminalTitleDefault = "OpenCode"
 +export const Title = Schema.Struct({
 +  prefix: Schema.optional(Schema.String).annotate({
-+    description: `Prefix for the terminal window title in sessions (default: "${TerminalTitlePrefixDefault}")`,
++    description: `Prefix prepended to the terminal window title (default: "${TerminalTitlePrefixDefault}")`,
++  }),
++  default: Schema.optional(Schema.String).annotate({
++    description: `Title shown on the home screen and for sessions that have no title yet (default: "${TerminalTitleDefault}")`,
 +  }),
 +}).annotate({ description: "Terminal title settings" })
 +export const Terminal = Schema.Struct({
@@ -46,7 +60,7 @@ index 665596642..7fbe56350 100644
  export const Info = Schema.Struct({
    $schema: Schema.optional(Schema.String),
    theme: Schema.optional(Schema.String),
-@@ -84,10 +94,14 @@ export const Info = Schema.Struct({
+@@ -84,10 +98,14 @@ export const Info = Schema.Struct({
    diff_style: Schema.optional(DiffStyle),
    cursor: Schema.optional(Cursor),
    mouse: Schema.optional(Schema.Boolean).annotate({ description: "Enable or disable mouse capture (default: true)" }),
@@ -62,49 +76,51 @@ index 665596642..7fbe56350 100644
    attention: {
      enabled: boolean
      notifications: boolean
-@@ -104,6 +118,9 @@ export type Resolved = Omit<Info, "attention" | "keybinds" | "leader_timeout" |
+@@ -104,6 +122,9 @@ export type Resolved = Omit<Info, "attention" | "keybinds" | "leader_timeout" |
      style: "block" | "underline" | "line" | "default"
      blinking: boolean
    }
 +  terminal: {
-+    title: { prefix: string }
++    title: { prefix: string; default: string }
 +  }
  }
  
  export const ResolveOptions = Schema.Struct({
-@@ -149,6 +166,11 @@ export function resolve(input: Info, options: ResolveOptions): Resolved {
+@@ -149,6 +170,12 @@ export function resolve(input: Info, options: ResolveOptions): Resolved {
            blinking: input.cursor.blinking ?? true,
          }
        : undefined,
 +    terminal: {
 +      title: {
 +        prefix: input.terminal?.title?.prefix ?? TerminalTitlePrefixDefault,
++        default: input.terminal?.title?.default ?? TerminalTitleDefault,
 +      },
 +    },
    }
  }
  
 diff --git a/packages/tui/test/config.test.tsx b/packages/tui/test/config.test.tsx
-index 833912229..c8e989f10 100644
+index 833912229..86ce537e6 100644
 --- a/packages/tui/test/config.test.tsx
 +++ b/packages/tui/test/config.test.tsx
-@@ -8,6 +8,7 @@ import {
+@@ -8,6 +8,8 @@ import {
    LeaderTimeoutDefault,
    PluginSpec,
    resolve,
++  TerminalTitleDefault,
 +  TerminalTitlePrefixDefault,
    TuiConfigProvider,
    type Info as TuiConfigInfo,
    useTuiConfig,
-@@ -71,6 +72,7 @@ test("resolves host-neutral defaults", () => {
+@@ -71,6 +73,7 @@ test("resolves host-neutral defaults", () => {
    expect(config.keybinds.has("terminal.suspend")).toBe(true)
    expect(config.keybinds.has("session.list")).toBe(true)
    expect(config.cursor).toBeUndefined()
-+  expect(config.terminal).toEqual({ title: { prefix: TerminalTitlePrefixDefault } })
++  expect(config.terminal).toEqual({ title: { prefix: TerminalTitlePrefixDefault, default: TerminalTitleDefault } })
  })
  
  test("resolves overrides without mutating input", () => {
-@@ -89,6 +91,7 @@ test("resolves overrides without mutating input", () => {
+@@ -89,6 +92,7 @@ test("resolves overrides without mutating input", () => {
      },
      keybinds: { session_list: "ctrl+l" },
      cursor: { blinking: false },
@@ -112,11 +128,11 @@ index 833912229..c8e989f10 100644
    }
    const config = resolve(input, { terminalSuspend: true })
  
-@@ -99,11 +102,18 @@ test("resolves overrides without mutating input", () => {
+@@ -99,11 +103,24 @@ test("resolves overrides without mutating input", () => {
      sidebar: { width: 30, position: "left" },
      attention: input.attention,
      cursor: { style: "block", blinking: false },
-+    terminal: { title: { prefix: "" } },
++    terminal: { title: { prefix: "", default: TerminalTitleDefault } },
    })
    expect(config.keybinds.get("session.list")).toHaveLength(1)
    expect(input.keybinds).toEqual({ session_list: "ctrl+l" })
@@ -125,33 +141,41 @@ index 833912229..c8e989f10 100644
 +test("resolves a custom terminal title prefix", () => {
 +  const config = resolve({ terminal: { title: { prefix: "💥 " } } }, { terminalSuspend: true })
 +
-+  expect(config.terminal).toEqual({ title: { prefix: "💥 " } })
++  expect(config.terminal).toEqual({ title: { prefix: "💥 ", default: TerminalTitleDefault } })
++})
++
++test("resolves a custom terminal title prefix and default", () => {
++  const config = resolve({ terminal: { title: { prefix: "💥 ", default: "My OC" } } }, { terminalSuspend: true })
++
++  expect(config.terminal).toEqual({ title: { prefix: "💥 ", default: "My OC" } })
 +})
 +
  test("resolves a session move keybind", () => {
    const config = resolve({ keybinds: { session_move: "ctrl+o" } }, { terminalSuspend: true })
  
 diff --git a/packages/web/src/content/docs/tui.mdx b/packages/web/src/content/docs/tui.mdx
-index 5c8ca4de7..d8f9132e6 100644
+index 5c8ca4de7..826d5a99b 100644
 --- a/packages/web/src/content/docs/tui.mdx
 +++ b/packages/web/src/content/docs/tui.mdx
-@@ -375,6 +375,11 @@ You can customize TUI behavior through `tui.json` (or `tui.jsonc`).
+@@ -375,6 +375,12 @@ You can customize TUI behavior through `tui.json` (or `tui.jsonc`).
      "style": "block",
      "blinking": true
    },
 +  "terminal": {
 +    "title": {
-+      "prefix": "OC | "
++      "prefix": "OC | ",
++      "default": "OpenCode"
 +    }
 +  },
    "mouse": true,
    "attention": {
      "enabled": true,
-@@ -403,6 +408,7 @@ This is separate from `opencode.json`, which configures server/runtime behavior.
+@@ -403,6 +409,8 @@ This is separate from `opencode.json`, which configures server/runtime behavior.
  - `diff_style` - Controls diff rendering. `"auto"` adapts to terminal width, `"stacked"` always shows a single-column layout.
  - `cursor` - Controls the terminal cursor in TUI input fields. `style` defaults to `"block"`, can be `"underline"`, `"line"`, or `"default"`; `blinking` defaults to `true`. When `style` is `"default"`, the terminal default cursor is restored, so `blinking` has no effect.
  - `mouse` - Enable or disable mouse capture in the TUI (default: `true`). When disabled, the terminal's native mouse selection/scrolling behavior is preserved.
-+- `terminal.title.prefix` - Prefix shown before the session title in the terminal window/tab title. Defaults to `"OC | "`. Set to `""` to remove the prefix.
++- `terminal.title.prefix` - Prefix prepended to the terminal window/tab title on the home screen, in sessions, and for plugins. Defaults to `"OC | "`. Set to `""` to remove the prefix.
++- `terminal.title.default` - Title shown on the home screen and for sessions that have no title yet, rendered after the prefix. Defaults to `"OpenCode"`.
  - `sidebar.width` - Controls the width of the session sidebar in terminal columns. Defaults to `42`.
  - `sidebar.position` - Controls which side of the terminal the session sidebar renders on. Can be `"left"` or `"right"`. Defaults to `"right"`.
  - `attention` - Configures TUI desktop notifications and sounds. Disabled by default.

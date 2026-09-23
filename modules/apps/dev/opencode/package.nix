@@ -49,7 +49,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     ./patches/0001-feat-tui-configurable-sidebar-width.patch
     ./patches/0002-feat-tui-configurable-sidebar-position.patch
     ./patches/0003-feat-tui-home-path-completion.patch
-    ./patches/0004-feat-tui-terminal-title-prefix.patch
+    ./patches/0004-feat-tui-terminal-title-options.patch
   ];
 
   node_modules = stdenvNoCC.mkDerivation {
