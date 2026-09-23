@@ -19,6 +19,7 @@ let
   vm = config.host.vm;
   host = config.host;
   cfg = config.virtualization.qemu.guest;
+  qemuHost = config.virtualization.qemu.host;
 
   # The msize (maximum packet size) passed to 9p file systems, in bytes. Increasing this
   # should increase performance significantly, at the cost of higher RAM usage.
@@ -33,18 +34,14 @@ let
   regInfo = pkgs.closureInfo { rootPaths = cfg.registeredPaths; };
 in
 {
-  imports = [
-    ./run.nix
-  ];
-
   options = {
     virtualization.qemu.guest = {
       enable = lib.mkEnableOption "Build this host as a QEMU virtual machine guest";
-      store = lib.mkOption {
+      nixStore = lib.mkOption {
         description = "Configure the nix store";
         type = types.submodule {
           options = {
-            mountHost = lib.mkOption {
+            useHost = lib.mkOption {
               description = ''
                 Mount the host Nix store as a 9p mount. For performance reasons consider building and
                 using a disk image for the Nix store and use a binary cache to improve hits.
@@ -64,7 +61,7 @@ in
           };
         };
         default = {
-          mountHost = true;
+          useHost = true;
           useImage = false;
         };
       };
@@ -301,6 +298,13 @@ in
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
+      assertions = [
+        {
+          assertion = !(cfg.nixStore.useHost && cfg.nixStore.useImage);
+          message = "virtualization.qemu.guest.nixStore.useHost and .useImage are mutually exclusive";
+        }
+      ];
+
       services.qemuGuest.enable = true;                   # Install and run the QEMU guest agent
       networking.wireless.enable = lib.mkForce false;     # Wireless networking won't work in VM
       services.connman.enable = lib.mkForce false;        # Wireless networking won't work in VM
@@ -326,7 +330,7 @@ in
       boot.initrd.availableKernelModules = [
         "virtio_net" "virtio_pci" "virtio_mmio" "virtio_blk" "virtio_scsi"
         "9p" "9pnet_virtio"
-      ] ++ lib.optionals (cfg.store.mountHost) [ "overlay" ];
+      ] ++ lib.optionals (cfg.nixStore.useHost) [ "overlay" ];
 
       boot.initrd.kernelModules = [
         "virtio_balloon"
@@ -346,7 +350,7 @@ in
         (isYes "INET") (isYes "NETWORK_FILESYSTEMS")
       ] ++ optionals (!cfg.display.enable) [
         (isYes "SERIAL_8250_CONSOLE") (isYes "SERIAL_8250")
-      ] ++ optionals (cfg.store.mountHost) [
+      ] ++ optionals (cfg.nixStore.useHost) [
         (isEnabled "OVERLAY_FS")
       ];
       systemd.tmpfiles.rules = lib.mkIf config.boot.initrd.systemd.enable [
@@ -364,7 +368,7 @@ in
 
           mkdir -p $targetRoot/boot
 
-          ${lib.optionalString cfg.store.mountHost ''
+          ${lib.optionalString cfg.nixStore.useHost ''
             echo "mounting overlay filesystem on /nix/store..."
             mkdir -p -m 0755 $targetRoot/nix/.rw-store/store $targetRoot/nix/.rw-store/work $targetRoot/nix/store
             mount -t overlay overlay $targetRoot/nix/store \
@@ -384,7 +388,7 @@ in
           fi
         '';
 
-      boot.initrd.systemd = lib.mkIf (config.boot.initrd.systemd.enable && cfg.store.mountHost) {
+      boot.initrd.systemd = lib.mkIf (config.boot.initrd.systemd.enable && cfg.nixStore.useHost) {
         mounts = [{
           where = "/sysroot/nix/store";
           what = "overlay";
@@ -433,20 +437,20 @@ in
 
         # Mount the host store as read only and then create a writable non-persistent tmpfs
         # mount point that will then be layered over it during the boot.initrd.postMountCommands
-        "/nix/.ro-store" = lib.mkIf (cfg.store.mountHost) {
+        "/nix/.ro-store" = lib.mkIf (cfg.nixStore.useHost) {
           device = "nix-store";
           fsType = "9p";
           neededForBoot = true;
           options = [ "trans=virtio" "version=9p2000.L"  "msize=${toString msize9p}" "cache=loose" ];
         };
-        "/nix/.rw-store" = lib.mkIf (cfg.store.mountHost) {
+        "/nix/.rw-store" = lib.mkIf (cfg.nixStore.useHost) {
           fsType = "tmpfs";
           options = [ "mode=0755" ];
           neededForBoot = true;
         };
 
         # TODO: Build out a writable drive store
-#        "/nix/store" = lib.mkIf (cfg.store.useImage) {
+#        "/nix/store" = lib.mkIf (cfg.nixStore.useImage) {
 #          device = "/dev/disk/by-label/nix-store";
 #          neededForBoot = true;
 #          options = [ "ro" ];
@@ -514,7 +518,7 @@ in
           ''-drive cache=writeback,file="''$${cfg.rootDrive.pathVar}",id=drive1,if=none,index=1,werror=report''
           "-device virtio-blk-pci,bootindex=1,drive=drive1,serial=${cfg.rootDrive.label}"
         ]
-        #(mkIf guest.store.useImage [{ name = "nix-store"; file = ''"$TMPDIR"/store.img'';
+        #(mkIf guest.nixStore.useImage [{ name = "nix-store"; file = ''"$TMPDIR"/store.img'';
         #  deviceExtraOpts.bootindex = "2"; driveExtraOpts.format = "raw";
         #}])
 
@@ -526,7 +530,7 @@ in
         ++ [ ''-virtfs local,path="$VMDIR"/shared,security_model=none,mount_tag=shared'' ]
 
         # Mount the nix store as a share
-        ++ lib.optionals (cfg.store.mountHost) [
+        ++ lib.optionals (cfg.nixStore.useHost) [
           "-virtfs local,path=${builtins.storeDir},security_model=none,mount_tag=nix-store"
         ]
         # TODO: add support for optional shares if I have a need
@@ -633,6 +637,55 @@ in
 
       # Build the VM and create the startup/shutdown scripts
       # --------------------------------------------------------------------------------------------
+      virtualization.qemu.guest.scripts.run = ''
+        #! ${pkgs.runtimeShell}
+
+        export PATH=${lib.makeBinPath [ pkgs.coreutils ]}''${PATH:+:}$PATH
+        set -e
+
+        # Create dir storing VM running data and a sub-dir for exchanging data with the VM
+        # ----------------------------------------------------------------------------------------------
+        [ ! -d "${host.hostname}" ] && echo "Must be run from the flake directory" && exit 1
+        VMDIR="${host.hostname}"
+        mkdir -p "$VMDIR/shared"
+        cd "$VMDIR"
+        VMDIR="$(pwd)"
+
+        # Create an empty ext4 filesystem image to store VM state
+        # ----------------------------------------------------------------------------------------------
+        ${cfg.rootDrive.pathVar}=$(readlink -f "${cfg.rootDrive.image}")
+        if ! test -e "''$${cfg.rootDrive.pathVar}"; then
+          echo "Root disk image does not exist, creating ''$${cfg.rootDrive.pathVar}..."
+          temp=$(mktemp)
+          size="${toString (cfg.rootDrive.size * 1024)}M"
+          ${qemuHost.package}/bin/qemu-img create -f raw "$temp" "$size"
+          ${pkgs.e2fsprogs}/bin/mkfs.ext4 -L ${cfg.rootDrive.label} "$temp"
+          ${qemuHost.package}/bin/qemu-img convert -f raw -O qcow2 "$temp" "''$${cfg.rootDrive.pathVar}"
+          rm "$temp"
+          echo "Root disk image created."
+        fi
+
+        # Other options to investigate
+        # ----------------------------------------------------------------------------------------
+        # -nodefaults                           # Don't include any default devices to contend with
+        # -no-user-config                       # Don't include any system configuration to contend with
+        # -no-reboot                            # Exit instead of rebooting
+        #
+        # MicroVM mode allows for higher performance
+        # -M 'microvm,accel=kvm,acpi=on,mem-merge=on,pcie=on,pic=off,pit=off,usb=off'
+
+        # -device i8042                         # Add keyboard controller i8042 to handle CtrlAltDel
+        # -sandbox on                           # Disable system calls not needed by QEMU
+        # -qmp unix:my-vm.sock,server,nowait    # Control socket to use
+        # -object 'memory-backend-memfd,id=mem,size=4096M,share=on'
+        # -numa 'node,memdev=mem'               # Simulate a multi node NUMA system
+
+        # Launch the virtual machine
+        # ----------------------------------------------------------------------------------------
+        exec ${qemuHost.package}/bin/qemu-system-x86_64 \
+          ${lib.concatStringsSep " \\\n  " cfg.options}
+      '';
+
       system.build.vm = lib.mkForce (pkgs.runCommand "${host.hostname}" { preferLocalBuild = true; } ''
         mkdir -p $out/bin
         ln -s ${config.system.build.toplevel} $out/system
