@@ -54,6 +54,9 @@ in
         extraGroups = [ "wheel" ];
       };
 
+      # Make secret admin group runtime accessible by root
+      secret.files."users/admin/group" = { filemode = "0400"; sopsFile = cfg.sopsFile; };
+
       # Configure sudo access for system admin
       security.sudo.enable = true;
     })
@@ -71,7 +74,7 @@ in
         extraGroups = [ "photos" "render" "users" "video" ];
       };
 
-      # Configure runtime admin user secrets
+      # Make secret admin password runtime accessible by root
       secret.files = {
         "users/admin/password" = { filemode = "0400"; sopsFile = cfg.sopsFile; };
         "users/admin/passwordHash" = { filemode = "0400"; sopsFile = cfg.sopsFile; };

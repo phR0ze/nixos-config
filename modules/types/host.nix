@@ -94,18 +94,6 @@ in
             default = if (args.host.arch or "" == "") then "x86_64-linux" else args.host.arch;
           };
 
-          locale = lib.mkOption {
-            description = lib.mdDoc "System locale";
-            type = types.str;
-            default = if (args.host.locale or "" == "") then "en_US.UTF-8" else args.host.locale;
-          };
-
-          timezone = lib.mkOption {
-            description = lib.mdDoc "System timezone";
-            type = types.str;
-            default = if (args.host.timezone or "" == "") then "America/Boise" else args.host.timezone;
-          };
-
           autologin = lib.mkOption {
             description = lib.mdDoc "Enable autologin";
             type = types.bool;

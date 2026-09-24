@@ -1,8 +1,10 @@
 { config, pkgs, lib, ... }: with lib.types;
 let
   host = config.host;
-  qemuHost = config.virtualization.qemu.host;
   guest = config.virtualization.qemu.guest;
+
+  # See host.nix's groupSecretPath comment: the real primary group is only known at runtime.
+  groupSecretPath = config.secret.files."users/admin/group".path;
 
   # Filter down the interfaces to the given type
   interfacesByType = wantedType:
@@ -28,7 +30,7 @@ in
             echo 1 > "/proc/sys/net/ipv6/conf/${id}/disable_ipv6"
           fi
           ${lib.getExe' pkgs.iproute2 "ip"} link set '${id}' up
-          ${pkgs.coreutils-full}/bin/chown '${host.user.name}:${qemuHost.group}' /dev/tap$(< "/sys/class/net/${id}/ifindex")
+          ${pkgs.coreutils-full}/bin/chown "${host.user.name}:$(cat ${groupSecretPath})" /dev/tap$(< "/sys/class/net/${id}/ifindex")
         '') macvtapInterfaces;
 
       virtualization.qemu.guest.scripts.macvtap-down = ''

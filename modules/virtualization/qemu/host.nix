@@ -15,6 +15,20 @@ let
   host = config.host;
   cfg = config.virtualization.qemu.host;
 
+  # secret admin user's group can only be accessessed at runtime by root for security
+  groupSecretPath = config.secret.files."users/admin/group".path;
+
+  # Drop root to the real (uid, gid) pair at process-start time instead of via a static
+  # serviceConfig User=/Group=, since the real gid isn't known until this path is read.
+  # --init-groups re-derives supplementary groups (e.g. "kvm") from the real account.
+  dropPriv = label: cmd: pkgs.writeShellScript "qemu-${label}" ''
+    #!${pkgs.runtimeShell}
+    set -e
+    exec ${pkgs.util-linux}/bin/setpriv \
+      --reuid ${host.user.name} --regid "$(cat ${groupSecretPath})" \
+      --clear-groups --init-groups -- ${cmd}
+  '';
+
   macvtapInterfaces = builtins.filter (hostname:
     cfg.vms.${hostname}.interface == "macvtap"
   ) (builtins.attrNames cfg.vms);
@@ -32,11 +46,6 @@ in
         type = types.path;
         default = "/var/lib/vms";
         description = "Directory that contains the VMs";
-      };
-      group = lib.mkOption {
-        type = types.str;
-        description = "Group to use for VMs when running as system services";
-        default = "${host.user.group}";
       };
       vms = lib.mkOption {
         description = "Virtual machines";
@@ -77,10 +86,19 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      # Create an activation script to ensure that the VM state directory exists
-      system.activationScripts.vm-host = ''
+      assertions = [
+        {
+          assertion = config.system.users.admin.enable;
+          message = "virtualization.qemu.host requires system.users.admin.enable (needed to resolve the real admin group at runtime)";
+        }
+      ];
+
+      # Create an activation script to ensure that the VM state directory exists. Ordered after
+      # nix-weave's own account-creation script so the real group already exists on the system
+      # before we chown to it.
+      system.activationScripts.vm-host = lib.stringAfter [ "usersFromSecret" ] ''
         mkdir -p ${cfg.stateDir}
-        chown ${host.user.name}:${cfg.group} ${cfg.stateDir}
+        chown ${host.user.name}:"$(cat ${groupSecretPath})" ${cfg.stateDir}
         chmod g+w ${cfg.stateDir}
       '';
 
@@ -172,13 +190,14 @@ in
           serviceConfig = {
             Type = "simple";
             WorkingDirectory = "${cfg.stateDir}/${hostname}";
-            ExecStart = "${cfg.stateDir}/${hostname}/result/bin/run";
-            ExecStop = "${cfg.stateDir}/${hostname}/result/bin/shutdown";
+            # Starts as root; dropPriv resolves the real (uid, gid) at process-start time and
+            # drops to it before exec'ing the actual run/shutdown script (see the `group` comment
+            # in this file's `let` block for why User=/Group= can't be used directly here).
+            ExecStart = "${dropPriv "${hostname}-run" "${cfg.stateDir}/${hostname}/result/bin/run"}";
+            ExecStop = "${dropPriv "${hostname}-shutdown" "${cfg.stateDir}/${hostname}/result/bin/shutdown"}";
             TimeoutStopSec = 150;
             Restart = "always";
             RestartSec = "5s";
-            User = host.user.name;
-            Group = cfg.group;
             SyslogIdentifier = "qemu-${hostname}";
             LimitNOFILE = 1048576;
             NotifyAccess = "all";
