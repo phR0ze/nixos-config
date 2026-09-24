@@ -1,0 +1,174 @@
+diff --git a/packages/tui/src/config/index.tsx b/packages/tui/src/config/index.tsx
+index 81e8a7dc2..cd9c49230 100644
+--- a/packages/tui/src/config/index.tsx
++++ b/packages/tui/src/config/index.tsx
+@@ -83,6 +83,16 @@ export const Terminal = Schema.Struct({
+   title: Schema.optional(Title),
+ }).annotate({ description: "Terminal settings" })
+ 
++export const ToolDetailLinesDefault = 10
++export const ToolDetail = Schema.Struct({
++  lines: Schema.optional(Schema.Int.check(Schema.isGreaterThanOrEqualTo(0))).annotate({
++    description: `Maximum bash tool output lines shown while a command block is collapsed. 0 shows only the command. Values above ${ToolDetailLinesDefault} are clamped to ${ToolDetailLinesDefault} (default: ${ToolDetailLinesDefault})`,
++  }),
++}).annotate({ description: "Tool output display settings" })
++export const Tool = Schema.Struct({
++  detail: Schema.optional(ToolDetail),
++}).annotate({ description: "Tool display settings" })
++
+ export const Info = Schema.Struct({
+   $schema: Schema.optional(Schema.String),
+   theme: Schema.optional(Schema.String),
+@@ -99,12 +109,13 @@ export const Info = Schema.Struct({
+   cursor: Schema.optional(Cursor),
+   mouse: Schema.optional(Schema.Boolean).annotate({ description: "Enable or disable mouse capture (default: true)" }),
+   terminal: Schema.optional(Terminal),
++  tool: Schema.optional(Tool),
+ })
+ export type Info = Schema.Schema.Type<typeof Info>
+ 
+ export type Resolved = Omit<
+   Info,
+-  "attention" | "keybinds" | "leader_timeout" | "mouse" | "cursor" | "sidebar" | "terminal"
++  "attention" | "keybinds" | "leader_timeout" | "mouse" | "cursor" | "sidebar" | "terminal" | "tool"
+ > & {
+   attention: {
+     enabled: boolean
+@@ -125,6 +136,7 @@ export type Resolved = Omit<
+   terminal: {
+     title: { prefix: string; default: string }
+   }
++  tool: { detail: { lines: number } }
+ }
+ 
+ export const ResolveOptions = Schema.Struct({
+@@ -176,6 +188,11 @@ export function resolve(input: Info, options: ResolveOptions): Resolved {
+         default: input.terminal?.title?.default ?? TerminalTitleDefault,
+       },
+     },
++    tool: {
++      detail: {
++        lines: Math.min(input.tool?.detail?.lines ?? ToolDetailLinesDefault, ToolDetailLinesDefault),
++      },
++    },
+   }
+ }
+ 
+diff --git a/packages/tui/src/routes/session/index.tsx b/packages/tui/src/routes/session/index.tsx
+index 5325bcf07..e30a6fc86 100644
+--- a/packages/tui/src/routes/session/index.tsx
++++ b/packages/tui/src/routes/session/index.tsx
+@@ -2050,7 +2050,7 @@ function Shell(props: ToolProps) {
+   const isRunning = createMemo(() => props.part.state.status === "running")
+   const output = createMemo(() => stripAnsi(stringValue(props.metadata.output)?.trim() ?? ""))
+   const [expanded, setExpanded] = createSignal(false)
+-  const maxLines = 10
++  const maxLines = ctx.tui.tool.detail.lines
+   const maxChars = createMemo(() => maxLines * Math.max(20, ctx.width - 6))
+   const collapsed = createMemo(() => collapseToolOutput(output(), maxLines, maxChars()))
+   const limited = createMemo(() => {
+@@ -2078,16 +2078,17 @@ function Shell(props: ToolProps) {
+         <BlockTool
+           title={title()}
+           part={props.part}
+-          onClick={collapsed().overflow ? () => setExpanded((prev) => !prev) : undefined}
++          onClick={output() && collapsed().overflow ? () => setExpanded((prev) => !prev) : undefined}
+         >
+           <box gap={1}>
+             <Show when={isRunning()} fallback={<text fg={theme.text}>$ {stringValue(props.input.command)}</text>}>
+               <Spinner color={theme.text}>{stringValue(props.input.command)}</Spinner>
+             </Show>
+-            <Show when={output()}>
++            {/* At lines: 0 only the command renders until expanded */}
++            <Show when={output() && (expanded() || maxLines > 0)}>
+               <text fg={theme.text}>{limited()}</text>
+             </Show>
+-            <Show when={collapsed().overflow}>
++            <Show when={output() && collapsed().overflow}>
+               <text fg={theme.textMuted}>{expanded() ? "Click to collapse" : "Click to expand"}</text>
+             </Show>
+           </box>
+diff --git a/packages/tui/test/config.test.tsx b/packages/tui/test/config.test.tsx
+index 86ce537e6..0c9870907 100644
+--- a/packages/tui/test/config.test.tsx
++++ b/packages/tui/test/config.test.tsx
+@@ -10,6 +10,7 @@ import {
+   resolve,
+   TerminalTitleDefault,
+   TerminalTitlePrefixDefault,
++  ToolDetailLinesDefault,
+   TuiConfigProvider,
+   type Info as TuiConfigInfo,
+   useTuiConfig,
+@@ -53,6 +54,10 @@ test("validates config constraints", () => {
+   expect(() => decodeInfo({ sidebar: { position: "center" } })).toThrow()
+   expect(() => decodeInfo({ scroll_speed: 0 })).toThrow()
+   expect(() => decodeInfo({ cursor: { style: "beam" } })).toThrow()
++  expect(decodeInfo({ tool: { detail: { lines: 0 } } })).toEqual({ tool: { detail: { lines: 0 } } })
++  expect(decodeInfo({ tool: { detail: { lines: 25 } } })).toEqual({ tool: { detail: { lines: 25 } } })
++  expect(() => decodeInfo({ tool: { detail: { lines: -1 } } })).toThrow()
++  expect(() => decodeInfo({ tool: { detail: { lines: 1.5 } } })).toThrow()
+   expect(decodeInfo({ attention: { sounds: { unknown: "sound.wav" } } })).toEqual({ attention: { sounds: {} } })
+ })
+ 
+@@ -74,6 +79,7 @@ test("resolves host-neutral defaults", () => {
+   expect(config.keybinds.has("session.list")).toBe(true)
+   expect(config.cursor).toBeUndefined()
+   expect(config.terminal).toEqual({ title: { prefix: TerminalTitlePrefixDefault, default: TerminalTitleDefault } })
++  expect(config.tool).toEqual({ detail: { lines: ToolDetailLinesDefault } })
+ })
+ 
+ test("resolves overrides without mutating input", () => {
+@@ -93,6 +99,7 @@ test("resolves overrides without mutating input", () => {
+     keybinds: { session_list: "ctrl+l" },
+     cursor: { blinking: false },
+     terminal: { title: { prefix: "" } },
++    tool: { detail: { lines: 0 } },
+   }
+   const config = resolve(input, { terminalSuspend: true })
+ 
+@@ -104,6 +111,7 @@ test("resolves overrides without mutating input", () => {
+     attention: input.attention,
+     cursor: { style: "block", blinking: false },
+     terminal: { title: { prefix: "", default: TerminalTitleDefault } },
++    tool: { detail: { lines: 0 } },
+   })
+   expect(config.keybinds.get("session.list")).toHaveLength(1)
+   expect(input.keybinds).toEqual({ session_list: "ctrl+l" })
+@@ -121,6 +129,12 @@ test("resolves a custom terminal title prefix and default", () => {
+   expect(config.terminal).toEqual({ title: { prefix: "💥 ", default: "My OC" } })
+ })
+ 
++test("clamps tool detail lines above the maximum", () => {
++  const config = resolve({ tool: { detail: { lines: 25 } } }, { terminalSuspend: true })
++
++  expect(config.tool).toEqual({ detail: { lines: ToolDetailLinesDefault } })
++})
++
+ test("resolves a session move keybind", () => {
+   const config = resolve({ keybinds: { session_move: "ctrl+o" } }, { terminalSuspend: true })
+ 
+diff --git a/packages/web/src/content/docs/tui.mdx b/packages/web/src/content/docs/tui.mdx
+index 826d5a99b..a09bf7441 100644
+--- a/packages/web/src/content/docs/tui.mdx
++++ b/packages/web/src/content/docs/tui.mdx
+@@ -381,6 +381,11 @@ You can customize TUI behavior through `tui.json` (or `tui.jsonc`).
+       "default": "OpenCode"
+     }
+   },
++  "tool": {
++    "detail": {
++      "lines": 10
++    }
++  },
+   "mouse": true,
+   "attention": {
+     "enabled": true,
+@@ -413,6 +418,7 @@ This is separate from `opencode.json`, which configures server/runtime behavior.
+ - `terminal.title.default` - Title shown on the home screen and for sessions that have no title yet, rendered after the prefix. Defaults to `"OpenCode"`.
+ - `sidebar.width` - Controls the width of the session sidebar in terminal columns. Defaults to `42`.
+ - `sidebar.position` - Controls which side of the terminal the session sidebar renders on. Can be `"left"` or `"right"`. Defaults to `"right"`.
++- `tool.detail.lines` - Controls how many lines of bash tool output are shown while a command block is collapsed. `0` shows only the command. Values above `10` are clamped to `10`. Defaults to `10`. Expanding a block still shows the full output.
+ - `attention` - Configures TUI desktop notifications and sounds. Disabled by default.
+ 
+ Use `OPENCODE_TUI_CONFIG` to load a custom TUI config path.
