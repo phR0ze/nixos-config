@@ -400,6 +400,10 @@ in
       virtualization.qemu.guest.bridge = config.devices.network.bridge.name;
     })
 
+    (lib.mkIf config.virtualization.qemu.host.enable {
+      virtualization.qemu.host.bridge = config.devices.network.bridge.name;
+    })
+
     (lib.mkIf cfg.nix.cache.enable {
       services.native.nix-cache.client.enable = true;
     })

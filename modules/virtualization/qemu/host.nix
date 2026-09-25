@@ -12,7 +12,6 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  host = config.host;
   cfg = config.virtualization.qemu.host;
 
   # secret admin user's name and group can only be accessessed at runtime by root for security
@@ -47,6 +46,15 @@ in
         type = types.path;
         default = "/var/lib/vms";
         description = "Directory that contains the VMs";
+      };
+      bridge = lib.mkOption {
+        description = lib.mdDoc ''
+          Name of the bridge that qemu-bridge-helper is allowed to attach `type = "bridge"`
+          interfaces to, see `devices.network.bridge.name`. Forwarded by modules/default.nix,
+          mirroring `virtualization.qemu.guest.bridge`.
+        '';
+        type = types.str;
+        default = "br0";
       };
       vms = lib.mkOption {
         description = "Virtual machines";
@@ -142,7 +150,7 @@ in
 
       # Enables the use of qemu-bridge-helper for `type = "bridge"` interface.
       environment.etc."qemu/bridge.conf".text = lib.mkForce ''
-        allow ${host.net.bridge.name}
+        allow ${cfg.bridge}
       '';
 
       # Allow qemu-bridge-helper to create tap interfaces and attach them to
