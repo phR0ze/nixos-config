@@ -66,6 +66,7 @@ in
 
       apps.media.qview.enable = true;               # Simple image viewer with webp support
       apps.media.smplayer.enable = true;            # UI wrapper around mplayer with click to pause
+      apps.system.devilspie2.enable = true;         # Lua scripted window rules for X11
       apps.system.hardinfo.enable = true;           # A system information and benchmark tool
       apps.system.neovide.enable = true;            # Graphical interface for Neovim
       apps.system.wezterm.enable = true;            # GPU accelerated terminal

@@ -1,6 +1,7 @@
 { ... }:
 {
   imports = [
+    ./devilspie2
     ./flatpak
     ./ghostty
     ./git
