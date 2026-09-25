@@ -279,7 +279,7 @@ from scratch and build your own automation if you want control. In the Nix world
    $ ./clu build iso
 
    # Build with a layer specifically called out
-   $ ./clu build iso xfce/desktop.nix
+   $ ./clu build iso xfce/standard.nix
    ```
 5. The ISO will end up in `result/iso/`
 

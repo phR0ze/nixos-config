@@ -7,7 +7,7 @@
   config = {
     host.type.vm = true;
     host.autologin = true;
-    host.desktop.xfce = true;
+    host.desktop.xfce.theater = true;
     #host.net.dns.force = true;
 
     # Beefed up VM specs with DHCP full LAN presence

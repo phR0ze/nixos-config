@@ -1,7 +1,7 @@
 # theater.nix provides a full XFCE desktop tuned for a media/theater system
 #
 # ### Dependencies
-# - `xfce.desktop` gets enabled for the full desktop environment
+# - `xfce.standard` gets enabled for the full desktop environment
 #
 # ### Features
 # - Desktop with additional media apps/configs
@@ -20,13 +20,10 @@ in
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      # Desktop dependency with passed along configuration
-      layers.xfce.desktop = {
+      layers.xfce.standard = {
         enable = true;
         lowMemory = lib.mkIf cfg.lowMemory true;
       };
-
-      host.type.theater = true;
 
       # High dpi settings
       system.x11.xft.dpi = 120; # 25% higher recommended by Arch Linux

@@ -1,4 +1,4 @@
-# desktop.nix provides a full featured XFCE desktop environment
+# standard.nix provides a full featured XFCE desktop environment
 #
 # ### Dependencies
 # - `xfce.base` gets enabled for the minimal desktop environment
@@ -8,19 +8,18 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
-  cfg = config.layers.xfce.desktop;
+  cfg = config.layers.xfce.standard;
 in
 {
   options = {
-    layers.xfce.desktop = {
-      enable = lib.mkEnableOption "Enable the xfce desktop layer";
+    layers.xfce.standard = {
+      enable = lib.mkEnableOption "Enable the xfce standard layer";
       lowMemory = lib.mkEnableOption "Enable the low memory configuration";
     };
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      # Base dependency with passed along configuration
       layers.xfce.base = {
         enable = true;
         lowMemory = lib.mkIf cfg.lowMemory true;

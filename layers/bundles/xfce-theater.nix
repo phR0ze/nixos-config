@@ -1,4 +1,4 @@
-# XFCE theater bundle: enables xfce/theater, which chains xfce/desktop + xfce/base + console/desktop
+# XFCE theater bundle: enables xfce/theater, which chains xfce/standard + xfce/base + console/desktop
 #
 # ### Features
 # - Directly installable: desktop with additional media apps/configs

@@ -2,7 +2,7 @@
 {
   imports = [
     ./base.nix
-    ./desktop.nix
+    ./standard.nix
     ./develop.nix
     ./laptop.nix
     ./theater.nix

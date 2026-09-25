@@ -20,6 +20,9 @@ let
   cfg = config.host;
   host = args.host or {};
 
+  # Args-supplied xfce desktop variant selections, e.g. `host.desktop.xfce.standard = true`
+  xfce = host.desktop.xfce or {};
+
   nic0Defaults = {
     name = host.network.nic0.name or "";
     ip = host.network.nic0.ip or "";
@@ -75,12 +78,41 @@ in
 
           desktop.xfce = lib.mkOption {
             description = lib.mdDoc ''
-              Give this machine a full XFCE desktop, see `layers.xfce.desktop`. That layer chains
-              the rest in on its own (`xfce.base` -> `console.desktop` -> `server` -> `core`), so
-              this single flag is all a desktop host's args need.
+              Give this machine an XFCE desktop, see `layers.xfce.*`. Each variant chains the ones
+              beneath it in on its own (e.g. `xfce.develop` -> `xfce.standard` -> `xfce.base` ->
+              `console.desktop` -> `server` -> `core`), so the single variant a host wants is all
+              its args need. Setting more than one is harmless - layers only ever add.
             '';
-            type = types.bool;
-            default = host.desktop.xfce or false;
+            type = types.submodule {
+              options = {
+                base = lib.mkOption {
+                  description = lib.mdDoc "Minimal XFCE desktop, see `layers.xfce.base`";
+                  type = types.bool;
+                  default = xfce.base or false;
+                };
+                standard = lib.mkOption {
+                  description = lib.mdDoc "Full general purpose XFCE desktop, see `layers.xfce.standard`";
+                  type = types.bool;
+                  default = xfce.standard or false;
+                };
+                develop = lib.mkOption {
+                  description = lib.mdDoc "Desktop with development tooling, see `layers.xfce.develop`";
+                  type = types.bool;
+                  default = xfce.develop or false;
+                };
+                laptop = lib.mkOption {
+                  description = lib.mdDoc "Desktop with laptop tooling/configs, see `layers.xfce.laptop`";
+                  type = types.bool;
+                  default = xfce.laptop or false;
+                };
+                theater = lib.mkOption {
+                  description = lib.mdDoc "Desktop tuned for a media theater, see `layers.xfce.theater`";
+                  type = types.bool;
+                  default = xfce.theater or false;
+                };
+              };
+            };
+            default = { };
           };
 
           resolution = lib.mkOption {
@@ -308,13 +340,23 @@ in
       users.users.root.openssh.authorizedKeys.keys = cfg.users.root.authorizedKeys;
     }
 
-    (lib.mkIf cfg.desktop.xfce {
-      layers.xfce = {
-        desktop.enable = true;
-        base.autologin = cfg.autologin;
-        base.resolution = { inherit (cfg.resolution) x y; };
-      };
-    })
+    # Every xfce variant bottoms out in `layers.xfce.base`, so the shared host-level desktop
+    # settings are forwarded there once, for whichever variant is on. The resolution is only
+    # forwarded when actually set and as a `mkDefault` so a higher layer (e.g. `xfce.theater`) or
+    # the host itself can still override it.
+    (lib.mkIf (lib.any (x: x) (lib.attrValues cfg.desktop.xfce)) (lib.mkMerge [
+      { layers.xfce.base.autologin = lib.mkIf cfg.autologin true; }
+      (lib.mkIf (cfg.resolution.x != 0 && cfg.resolution.y != 0) {
+        layers.xfce.base.resolution.x = lib.mkDefault cfg.resolution.x;
+        layers.xfce.base.resolution.y = lib.mkDefault cfg.resolution.y;
+      })
+    ]))
+    (lib.mkIf cfg.desktop.xfce.base { layers.xfce.base.enable = true; })
+    (lib.mkIf cfg.desktop.xfce.standard { layers.xfce.standard.enable = true; })
+    (lib.mkIf cfg.desktop.xfce.develop { layers.xfce.develop.enable = true; })
+    (lib.mkIf cfg.desktop.xfce.laptop { layers.xfce.laptop.enable = true; })
+    (lib.mkIf cfg.desktop.xfce.theater { layers.xfce.theater.enable = true; })
+
     (lib.mkIf config.system.x11.enable {
       system.x11.sopsFile = cfg.sopsFile;
     })

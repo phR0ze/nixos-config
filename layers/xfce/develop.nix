@@ -1,7 +1,7 @@
 # develop.nix provides a full XFCE desktop with development tooling
 #
 # ### Dependencies
-# - `xfce.desktop` gets enabled for the full desktop environment
+# - `xfce.standard` gets enabled for the full desktop environment
 #
 # ### Features
 # - Desktop with additional development tools/configs
@@ -20,13 +20,10 @@ in
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      # Desktop dependency with passed along configuration
-      layers.xfce.desktop = {
+      layers.xfce.standard = {
         enable = true;
         lowMemory = lib.mkIf cfg.lowMemory true;
       };
-
-      host.type.develop = true;
 
       apps.dev.gh.enable = true;
       apps.dev.rust.enable = true;
