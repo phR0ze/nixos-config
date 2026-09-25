@@ -75,7 +75,11 @@ build::host()
     flake::switch "$TARGET"
     trap flake::restore EXIT
 
-    $SUDO nixos-rebuild dry-activate $TRACE $IMPURE --flake "${CONFIG_DIR}#${HOST}"
+    # Build the system closure only; activation is `clu update`'s job. Deliberately not
+    # `nixos-rebuild dry-activate`: that shells out to systemd-run for switch-to-configuration,
+    # which needs root ($SUDO is empty for a user owned CONFIG_DIR), and it diffs the target
+    # host's units against the *local* running system, which is meaningless for a remote host.
+    $SUDO nix build $TRACE $IMPURE "${CONFIG_DIR}#nixosConfigurations.${HOST}.config.system.build.toplevel"
 }
 
 

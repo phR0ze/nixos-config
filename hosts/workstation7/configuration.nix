@@ -13,10 +13,9 @@
   ];
 
   config = {
-    host.desktop.xfce.develop = true;
-
     host.boot.efi = true;
     host.nix.cache.enable = true;
+    host.desktop.xfce.develop = true;
 
     devices.gpu.nvidia = { enable = true; open = true; };
     devices.printers.epson-wf7710 = true;
