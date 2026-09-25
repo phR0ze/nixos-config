@@ -50,15 +50,6 @@ in
         default = null;
       };
 
-      sopsFile = lib.mkOption {
-        description = lib.mdDoc ''
-          Path to the host's `secrets.enc.yaml`, used to resolve the admin user's name for
-          autologin. Required when `autologin` is set and `autologinUser` is null.
-        '';
-        type = types.nullOr types.path;
-        default = null;
-      };
-
       autolock = {
         enable = lib.mkEnableOption "Enable automatically locking the screen after login";
         exec = lib.mkOption {
@@ -66,6 +57,15 @@ in
           type = types.path;
           default = "${pkgs.xfce4-session}/bin/xflock4";
         };
+      };
+
+      sopsFile = lib.mkOption {
+        description = lib.mdDoc ''
+          Path to the host's `secrets.enc.yaml`, used to resolve the admin user's name for
+          autologin. Required when `autologin` is set and `autologinUser` is null.
+        '';
+        type = types.nullOr types.path;
+        default = null;
       };
     };
   };

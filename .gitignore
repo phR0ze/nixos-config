@@ -13,6 +13,10 @@ result
 # Ignore decrypted files to avoid security breaches
 *.dec.*
 
+# Transient per-host root+override secrets merge, staged with `git add -f` for the duration of a
+# single build then dropped by flake::restore_secrets
+secrets.merged.enc.yaml
+
 # Ignore configuration files that are only staged at the root during install
 /install.nix
 /hardware-configuration.nix

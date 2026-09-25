@@ -40,19 +40,19 @@ in
       client = {
         enable = lib.mkEnableOption "Enable the custom binary cache substituter";
 
-        ip = lib.mkOption {
+        hostIP = lib.mkOption {
           type = lib.types.str;
           default = "";
           description = "IP address of the custom binary cache host.";
         };
 
-        port = lib.mkOption {
+        hostPort = lib.mkOption {
           type = lib.types.port;
           default = 5000;
           description = "Port of the custom binary cache host.";
         };
 
-        publicKeyFile = lib.mkOption {
+        hostPublicKeyFile = lib.mkOption {
           description = lib.mdDoc ''
             Nix binary cache public key used for client configuration. Public by definition, so
             this stays a plaintext file read at evaluation time (see modules/system/env/nix.nix).
@@ -96,10 +96,10 @@ in
       nix.settings = {
         # Add custom binary caches
         # - https://cache.nixos.org is added by default
-        substituters = lib.mkBefore [ "http://${cfg.client.ip}:${toString cfg.client.port}" ];
+        substituters = lib.mkBefore [ "http://${cfg.client.hostIP}:${toString cfg.client.hostPort}" ];
 
         # Signing keys for custom substituters
-        trusted-public-keys = [ "${(builtins.readFile cfg.client.publicKeyFile)}" ];
+        trusted-public-keys = [ "${(builtins.readFile cfg.client.hostPublicKeyFile)}" ];
 
         # The custom cache host runs a lot besides the binary cache server (Jellyfin, VMs, containers)
         # and can stall under load. Fail fast against it instead of the 300s default so we fall

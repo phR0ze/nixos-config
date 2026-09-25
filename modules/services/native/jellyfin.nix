@@ -77,7 +77,7 @@ in
     # leaving everything else (including fields added by newer Jellyfin versions) untouched. If a
     # future release renames/restructures those nodes, the edit fails loudly during activation
     # rather than silently dropping unrelated settings.
-    (lib.mkIf cfg.subdomain != null {
+    (lib.mkIf (cfg.subdomain != null) {
       environment.systemPackages = [ pkgs.xmlstarlet ];
 
       # Contribute a proxy entry to services.native.caddy.proxies rather than requiring it be listed

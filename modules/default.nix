@@ -196,12 +196,33 @@ in
             description = lib.mdDoc ''
               Path to this machine's sops-encrypted secrets file. Not sourced from `args` (secrets
               stay sops-encrypted on disk and can't flow through the `args` merge like plain data) -
-              resolved from `hosts/<hostname>/secrets.enc.yaml` if it exists.
+              instead `lib/flake`'s `flake::decrypt_secrets` merges the shared root
+              `secrets.enc.yaml` with this host's `hosts/<hostname>/secrets.enc.yaml` override into
+              a transient staged `hosts/<hostname>/secrets.merged.enc.yaml` before every build.
+
+              Resolution order (first that exists wins):
+              1. `hosts/<hostname>/secrets.merged.enc.yaml` - the staged root+override merge
+              2. `hosts/<hostname>/secrets.enc.yaml` - host override alone (no root to merge with)
+              3. root `secrets.enc.yaml` - the fleet-shared file, for a host with no override
+
+              An `.isolated` host (see `hosts/<hostname>/.isolated`) is limited to exactly its own
+              `hosts/<hostname>/secrets.enc.yaml`: `flake::decrypt_secrets` returns early for it, so
+              no merge is ever produced (candidate 1 could only ever match a stale leftover from
+              before the host was isolated), and the fleet-shared root file (candidate 3) must never
+              be read for it at all.
             '';
             type = types.nullOr types.path;
             default =
-              let file = ../hosts + "/${cfg.name}/secrets.enc.yaml";
-              in if cfg.name != "" && builtins.pathExists file then file else null;
+              let
+                hostDir = ../hosts + "/${cfg.name}";
+                isolated = builtins.pathExists (hostDir + "/.isolated");
+                candidates = if isolated then [ (hostDir + "/secrets.enc.yaml") ] else [
+                  (hostDir + "/secrets.merged.enc.yaml")
+                  (hostDir + "/secrets.enc.yaml")
+                  ../secrets.enc.yaml
+                ];
+                found = lib.filter builtins.pathExists candidates;
+              in if cfg.name != "" && found != [ ] then lib.head found else null;
           };
 
           nix.stateVersion = lib.mkOption {
@@ -294,6 +315,9 @@ in
         base.resolution = { inherit (cfg.resolution) x y; };
       };
     })
+    (lib.mkIf config.system.x11.enable {
+      system.x11.sopsFile = cfg.sopsFile;
+    })
 
     (lib.mkIf cfg.type.vm {
       virtualization.qemu.guest.enable = true;
@@ -304,10 +328,6 @@ in
 
     (lib.mkIf config.apps.network.rustdesk.enable {
       apps.network.rustdesk.sopsFile = cfg.sopsFile;
-    })
-
-    (lib.mkIf config.system.x11.enable {
-      system.x11.sopsFile = cfg.sopsFile;
     })
 
     (lib.mkIf config.apps.games.prismlauncher.enable {
