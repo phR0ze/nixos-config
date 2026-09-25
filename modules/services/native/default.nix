@@ -4,13 +4,17 @@
 { ... }:
 {
   imports = [
+    ./adguardhome
     ./alerts.nix
+    ./caddy
     ./crowdsec.nix
     ./jellyfin.nix
     ./nfs.nix
     ./nix-cache
     ./smb.nix
     ./sshd.nix
+    ./synology-drive-client
     ./systemd.nix
+    ./vaultwarden.nix
   ];
 }

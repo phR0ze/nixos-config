@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
-  xfce = config.system.xfce;
+  cfg = config.system.desktop.xfce;
 in 
 {
   imports = [
@@ -21,14 +21,14 @@ in
   ];
 
   options = {
-    system.xfce = {
+    system.desktop.xfce = {
       enable = lib.mkEnableOption "Enable the Xfce desktop environment";
       reboot = lib.mkEnableOption "Reboot gets custom configuration when enabled";
 
       resolution = lib.mkOption {
         description = lib.mdDoc ''
           Display resolution, set from `layers.xfce.base.resolution`. Consumed by
-          `system.xfce.displays` for both the xserver mode list and XFCE's own displays.xml -
+          `system.desktop.xfce.displays` for both the xserver mode list and XFCE's own displays.xml -
           leaving either axis at 0 skips both, letting the display autodetect.
         '';
         type = lib.types.submodule {
@@ -51,7 +51,7 @@ in
     };
   };
  
-  config = lib.mkIf xfce.enable {
+  config = lib.mkIf cfg.enable {
 
     # Nixpkgs provided options
     services = {
@@ -67,7 +67,7 @@ in
           #waylandSessionCompositor = "wayfire";    # Set the Wayland compositor
         };
         displayManager = {
-          lightdm.background = xfce.desktop.background;
+          lightdm.background = cfg.desktop.background;
         };
       };
     };
@@ -76,7 +76,7 @@ in
     # ----------------------------------------------------------------------------------------------
     system.x11.enable = true;
 
-    system.xfce.panel.launchers = [
+    system.desktop.xfce.panel.launchers = [
       { name = "WezTerm"; exec = "wezterm"; icon = "org.wezfurlong.wezterm"; }
       { name = "Thunar"; exec = "exo-open --launch FileManager"; icon = "org.xfce.thunar"; }
     ]
@@ -94,7 +94,7 @@ in
       { name = "LibreOffice Calc"; exec = "libreoffice --calc"; icon = "libreoffice-calc"; }
       { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; }
     ]
-    ++ lib.optional xfce.reboot
+    ++ lib.optional cfg.reboot
       { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
 
     # 1. Determine the desktop directory filename
@@ -122,13 +122,14 @@ in
       { source = "${pkgs.xfce4-settings}/share/applications/xfce4-terminal-emulator.desktop"; categories = "Utility"; }
     ];
 
-    environment.xfce.excludePackages = with pkgs.xfce // pkgs; [
+    environment.xfce.excludePackages = let dmenuEnabled = config.system.dmenu.enable;
+    in with pkgs.xfce // pkgs; [
       tango-icon-theme                  # Xfce default,
       mousepad                          # Xfce default, simple text editor
       parole                            # Xfce default, simple media player
       ristretto                         # Xfce default, i like qview better
     ]
     # Conditionally include xfce4-appfinder if using an alternate app finder
-    ++ lib.optional dmenu.enable xfce4-appfinder;
+    ++ lib.optional dmenuEnabled xfce4-appfinder;
   };
 }

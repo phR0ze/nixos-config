@@ -26,8 +26,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  x11 = config.system.x11;
-  host = config.host;
+  cfg = config.system.x11;
 in
 {
   imports = [
@@ -37,7 +36,29 @@ in
   options = {
     system.x11 = {
       enable = lib.mkEnableOption "Enable X11";
-      autologin = lib.mkEnableOption "Automatically log `host.user.name` in after boot, set from `machine.autologin`";
+
+      autologin = lib.mkEnableOption "Automatically log in after boot";
+
+      autologinUser = lib.mkOption {
+        description = lib.mdDoc ''
+          Plain (non-secret) user name to automatically log in when `autologin` is set. Leave this
+          null to log in the `secret.users."admin"` account instead: its name is only known once
+          sops-nix has decrypted it at activation time, so it can't go through nixpkgs'
+          eval-time `services.displayManager.autoLogin.user`.
+        '';
+        type = types.nullOr types.str;
+        default = null;
+      };
+
+      sopsFile = lib.mkOption {
+        description = lib.mdDoc ''
+          Path to the host's `secrets.enc.yaml`, used to resolve the admin user's name for
+          autologin. Required when `autologin` is set and `autologinUser` is null.
+        '';
+        type = types.nullOr types.path;
+        default = null;
+      };
+
       autolock = {
         enable = lib.mkEnableOption "Enable automatically locking the screen after login";
         exec = lib.mkOption {
@@ -49,8 +70,8 @@ in
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf x11.enable {
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       system.xdg.enable = true;
 
       services = {
@@ -73,10 +94,6 @@ in
               };
             };
           };
-        };
-        displayManager = {
-          autoLogin.enable = x11.autologin;
-          autoLogin.user = host.user.name;
         };
 
         # Arch Linux recommends libinput and Xfce uses it in its settings manager
@@ -119,16 +136,69 @@ in
         paper-icon-theme                    # Modern icon theme designed around bold colors
         numix-cursor-theme                  # Numix cursor theme
       ];
+    }
+
+    # Autologin a plain, non-secret user e.g. the ISO's `nixos` account. Straight through nixpkgs'
+    # own option since the name is known at evaluation time.
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf (cfg.autologin && cfg.autologinUser != null) {
+      services.displayManager.autoLogin = {
+        enable = true;
+        user = cfg.autologinUser;
+      };
+    })
+
+    # Autologin the `secret.users."admin"` account, whose name only exists after activation
+    # ----------------------------------------------------------------------------------------------
+    # nixpkgs bakes `services.displayManager.autoLogin.user` into the generated lightdm.conf at
+    # evaluation time, so it can't carry a name that's still an encrypted secret at that point.
+    # Instead render the same keys into a `/etc/lightdm/lightdm.conf.d` drop-in from a sops
+    # template: LightDM loads that directory before lightdm.conf, and with nixpkgs' `autoLogin`
+    # left disabled lightdm.conf emits no `autologin-*` keys at all, so the drop-in is uncontested.
+    # The `lightdm-autologin` PAM stack autologin needs is declared unconditionally by the nixpkgs
+    # lightdm module, so nothing else is missing.
+    #
+    # The template stays at its default `/run/secrets/rendered/...` path and is reached through
+    # `environment.etc` rather than being written straight into /etc - that's what reliably creates
+    # the `lightdm/lightdm.conf.d` directory, and /etc itself may be a NixOS-managed symlink farm.
+    # LightDM runs as root so the template's default root-only mode is fine.
+    (lib.mkIf (cfg.autologin && cfg.autologinUser == null) {
+      assertions = [
+        {
+          assertion = cfg.sopsFile != null;
+          message = "system.x11.autologin is enabled but neither system.x11.sopsFile nor system.x11.autologinUser is set.";
+        }
+        {
+          assertion = config.services.displayManager.defaultSession != null;
+          message = "system.x11.autologin requires services.displayManager.defaultSession to be set.";
+        }
+      ];
+
+      secret.templates."lightdm-autologin" = {
+        content = ''
+          [Seat:*]
+          autologin-user = ${config.secret.ref."users/admin/name"}
+          autologin-user-timeout = 0
+          autologin-session = ${config.services.displayManager.defaultSession}
+        '';
+        secrets."users/admin/name".sopsFile = cfg.sopsFile;
+
+        # Pick up a rotated admin name on the next activation
+        restartUnits = [ "display-manager.service" ];
+      };
+
+      environment.etc."lightdm/lightdm.conf.d/50-autologin.conf".source =
+        config.secret.templates."lightdm-autologin".path;
     })
 
     # Configure desktop to autolock after login
-    (lib.mkIf x11.autolock.enable {
+    (lib.mkIf cfg.autolock.enable {
       environment.etc."xdg/autostart/autolock.desktop".text = ''
         [Desktop Entry]
         Type=Application
         Terminal=false
-        Exec=bash -c "sleep 5 && ${x11.autolock.exec}"
+        Exec=bash -c "sleep 5 && ${cfg.autolock.exec}"
       '';
     })
-  ];
+  ]);
 }

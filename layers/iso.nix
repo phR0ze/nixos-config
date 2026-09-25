@@ -19,6 +19,7 @@ in
   machine.autologin = true;
   machine.name = "nixos";
   host.user.name = "nixos";
+  system.x11.autologinUser = "nixos";   # ISO has no secrets, so autologin a plain named account
   host.user.group = "nixos";
   machine.resolution = { x = 1920; y = 1080; };
 

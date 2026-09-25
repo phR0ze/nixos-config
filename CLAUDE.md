@@ -121,6 +121,8 @@ lib/                   # Bash library modules (one per command)
 flake.nix / flake.lock # The single shared flake (permanently committed)
 args.nix               # Default arguments (static, committed - never mutated by clu)
 modules/               # All NixOS modules - every one is an opt-in feature namespace (see §5)
+modules/default.nix    #   Imports every module + declares the `host` type and its forwarding (see §5)
+modules/types/         #   Reusable option submodule types (nic, dns, user, service, caddy_proxy)
 layers/                # Chainable `layers.<group>.<name>` option namespaces, auto-imported (see §6)
 hosts/<name>/          # Per-host configurations (22+ hosts) - configuration.nix, hardware-configuration.nix,
                        #   args.enc.yaml/args.nix, secrets.enc.yaml, optionally .isolated (see §2)
@@ -162,16 +164,36 @@ layer sets `<namespace>.<name>.enable = true;` and the module's own `lib.mkIf (c
 what applies it. This keeps every module independently testable/toggleable and keeps
 `configuration.nix` diffs honest about what's actually turned on for a host.
 
-### The `host` Type (`modules/types/host.nix`)
+### The `host` Type (`modules/default.nix`)
 
-Central hub defining all host-level configuration. Every field defaults from the composed `args`
-attribute set (see §3). This is what lets layers/hosts stay DRY across 22+ hosts: shared layer
-modules read `config.host.*` (populated per-host from `args.nix`/`args.enc.yaml`) to parameterize
-real NixOS options (`users.users.*`, `networking.*`, `fileSystems.*`, ...) instead of every host
-repeating that config directly. Representative fields: `host.type.*` (capability flags like `vm`,
-`iso`, `develop`), `host.net.*` (networking), `host.secrets` (nullable path to that host's
-`secrets.enc.yaml`) - see `modules/types/host.nix` for the full option set, it's the source of
-truth and this list will go stale otherwise.
+`modules/default.nix` does two things: it imports every module in the repo, and it declares the
+`host` option - the central hub defining all host-level configuration. Every field defaults from
+the composed `args` attribute set (see §3). This is what lets layers/hosts stay DRY across 22+
+hosts: `modules/default.nix`'s own `config` block translates `host.*` into the real NixOS/module
+options it implements (`networking.*`, `devices.*`, `services.*`, ...) instead of every host
+repeating that config directly. Representative fields: `host.type.*` (capability flags like `vm`),
+`host.network.*` (networking, including `host.network.domain`), `host.sopsFile` (nullable path to
+that host's `secrets.enc.yaml`), `host.services` (free-form `services.<ns>.<name>.*` values from
+args) - see `modules/default.nix` for the full option set, it's the source of truth and this list
+will go stale otherwise.
+
+**Forwarding a shared value into a service.** Rather than every host's `configuration.nix`
+repeating the same domain/secrets path, `modules/default.nix` ends with one small `enable`-gated
+block per service that needs fleet-shared data:
+
+```nix
+(lib.mkIf config.services.native.caddy.enable {
+  services.native.caddy.sopsFile = cfg.sopsFile;
+  services.native.caddy.baseDomain = cfg.network.domain;
+})
+```
+
+The receiving option must therefore be *nullable/empty by default* so the forward is unconditional,
+with the real requirement expressed as an `enable`-gated assertion inside the module itself (see
+`services.oci.pangolin`'s `baseDomain`/`acmeEmail` and `services.native.caddy`'s
+`sopsFile`/`baseDomain`). Host-specific values that aren't already a `host.*` field come from
+`host.services` via `f.getServiceAttr "<ns>.<name>.<field>"` - keyed the same as the real option
+path minus the leading `services.`.
 
 ---
 
@@ -271,9 +293,12 @@ at *evaluation* time - drive UUIDs, network interface config, EFI/MBR selection)
 **Runtime secrets** (`secrets.enc.yaml`, used for credentials only a running service needs -
 passwords, SMB share creds): decrypted by **sops-nix at systemd activation time**, straight to
 `/run/secrets`/`/run/files` on the target host - never touches the Nix store, git, or this repo's
-working tree at all. `host.secrets` (user password hash, via `modules/users.nix`) and
-`services.native.smb.sopsFile` (SMB share creds, via `modules/services/native/smb`, using `secret.templates`) both
-follow this pattern. Prefer this over the build-time-args mechanism whenever a value is only consumed
+working tree at all. `host.sopsFile` is the single per-host path to that file, forwarded by
+`modules/default.nix` into every module that needs it (`system.users.sopsFile` for the user
+password hash, `services.native.smb.sopsFile` for SMB share creds, `services.native.caddy.sopsFile`
+for the Cloudflare DNS-01 token, `services.native.adguardhome.sopsFile`,
+`services.native.vaultwarden.sopsFile`, `services.oci.pangolin.sopsFile`) - each of those then
+declares its own `secret.files`/`secret.templates` entries against it. Prefer this over the build-time-args mechanism whenever a value is only consumed
 by a running service reading a file, not by a NixOS module option at evaluation time.
 
 ---

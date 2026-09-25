@@ -29,7 +29,7 @@ in
 
       subdomain = lib.mkOption {
         description = lib.mdDoc ''
-          Front this service with `services.raw.caddy` at `<subdomain>.<domain>` — gets a hostname
+          Front this service with `services.native.caddy` at `<subdomain>.<domain>` — gets a hostname
           matcher on Caddy's shared wildcard block, routed to this service's backend. Leave `null`
           to not front this service with Caddy (e.g. if only LAN access via `openFirewall` is
           desired).
@@ -41,12 +41,11 @@ in
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
-
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       # Enable Jellyfin media server
       # - openFirewall opens TCP 8096,8920 and UDP 1900,7359 (discovery). Left closed when fronted
-      #   by services.raw.caddy on the same host — Caddy reaches it over loopback, and LAN clients
+      #   by services.native.caddy on the same host — Caddy reaches it over loopback, and LAN clients
       #   go through Caddy's TLS instead of hitting Jellyfin's HTTP port directly.
       services.jellyfin = {
         enable = true;
@@ -63,16 +62,10 @@ in
       # - https://wiki.nixos.org/wiki/Immich#Enabling_Hardware_Accelerated_Video_Transcoding
       # - https://jellyfin.org/docs/general/administration/hardware-acceleration/intel#linux-setups
       users.users.jellyfin.extraGroups = [ "video" "render" "users" ];
-    })
-
-    # Contribute a proxy entry to services.raw.caddy.proxies rather than requiring it be listed
-    # separately in the machine's configuration.nix
-    (lib.mkIf (cfg.enable && cfg.subdomain != null) {
-      services.raw.caddy.proxies = [ { inherit (cfg) subdomain port; } ];
-    })
+    }
 
     # Ensure network.xml has Caddy (127.0.0.1) as a known proxy (trusts its X-Forwarded-For header)
-    # and binds only to loopback, once fronted by services.raw.caddy, matching openFirewall being
+    # and binds only to loopback, once fronted by services.native.caddy, matching openFirewall being
     # closed above.
     #
     # Deliberately not a files.any copy/link here — those only know how to replace the whole file or
@@ -84,8 +77,12 @@ in
     # leaving everything else (including fields added by newer Jellyfin versions) untouched. If a
     # future release renames/restructures those nodes, the edit fails loudly during activation
     # rather than silently dropping unrelated settings.
-    (lib.mkIf (cfg.enable && cfg.subdomain != null) {
+    (lib.mkIf cfg.subdomain != null {
       environment.systemPackages = [ pkgs.xmlstarlet ];
+
+      # Contribute a proxy entry to services.native.caddy.proxies rather than requiring it be listed
+      # separately in the machine's configuration.nix
+      services.native.caddy.proxies = [ { inherit (cfg) subdomain port; } ];
 
       system.activationScripts.jellyfin-network-xml = lib.stringAfter [ "users" "groups" ] ''
         networkXml=/var/lib/jellyfin/config/network.xml
@@ -131,5 +128,5 @@ in
         fi
       '';
     })
-  ];
+  ]);
 }

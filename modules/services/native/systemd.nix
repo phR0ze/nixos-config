@@ -27,9 +27,8 @@ in
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable) {
-
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       # Logind configuration
       # - Defaults were changed here https://github.com/NixOS/nixpkgs/pull/16021
       # - Want shutdown to kill all users process immediately for fast shutdown - undesirable on a
@@ -57,9 +56,9 @@ in
       # Defaults are fine
       # ------------------------------------------------------------------------------------------------
       services.timesyncd.enable = lib.mkForce true;
-    })
+    }
 
-    (lib.mkIf (cfg.enable && cfg.harden) {
+    (lib.mkIf cfg.harden {
 
       # Journald configuration
       # - MaxLevelStore=info: drop debug-level noise, saving disk and reducing what's exposed to a
@@ -71,7 +70,7 @@ in
       '';
     })
 
-    (lib.mkIf (cfg.enable && cfg.lowMemory) {
+    (lib.mkIf cfg.lowMemory {
 
       # systemd-oomd to kill runaway processes before the kernel OOM killer stalls the system
       systemd.oomd = {
@@ -98,5 +97,5 @@ in
       systemd.coredump.enable = false;
       systemd.settings.Manager.DefaultLimitCORE = 0;
     })
-  ];
+  ]);
 }

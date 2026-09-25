@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
   cfg = xfce.session;
 
   xmlfile = lib.mkIf (xfce.enable)
@@ -19,7 +19,7 @@ let
 in
 {
   options = {
-    system.xfce.session = {
+    system.desktop.xfce.session = {
       saveOnExit = lib.mkOption {
         type = types.bool;
         default = false;

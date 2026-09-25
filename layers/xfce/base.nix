@@ -20,7 +20,7 @@ in
 
       resolution = lib.mkOption {
         description = lib.mdDoc ''
-          Display resolution, see `system.xfce.resolution`. Defaults to `machine.resolution`, which
+          Display resolution, see `system.desktop.xfce.resolution`. Defaults to `machine.resolution`, which
           a host or a higher xfce layer can override - leaving either axis at 0 lets the display
           autodetect.
         '';
@@ -44,9 +44,8 @@ in
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable) {
-
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       # Console desktop dependency with passed along configuration
       layers.console.desktop = {
         enable = true;
@@ -54,7 +53,7 @@ in
       };
 
       # Enable XFCE
-      system.xfce = {
+      system.desktop.xfce = {
         enable = true;
         resolution = { inherit (cfg.resolution) x y; };
       };
@@ -127,12 +126,12 @@ in
         brightnessctl                        # Control backlights for screen and keyboard
         system-config-printer               # GTK app for CUPS printing administration
       ];
-    })
+    }
 
     # Autologin
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.enable && cfg.autologin) {
-      system.x11.autologin = true;                  # log `host.user.name` straight into the session
+    (lib.mkIf cfg.autologin {
+      system.x11.autologin = true;                  # log the secret admin account straight into the session
     })
-  ];
+  ]);
 }

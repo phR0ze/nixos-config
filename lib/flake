@@ -138,7 +138,7 @@ flake::restore_args()
     done
 }
 
-# Merge this host's root + host-override secrets (see modules/types/host.nix's `host.secrets`) into
+# Merge this host's root + host-override secrets (see modules/default.nix's `host.sopsFile`) into
 # a transient re-encrypted `hosts/<hostname>/secrets.merged.enc.yaml` and stage it so pure flake
 # evaluation can see it.
 # - unlike args, secrets stay sops-encrypted at rest, so root and host-override can't be merged as

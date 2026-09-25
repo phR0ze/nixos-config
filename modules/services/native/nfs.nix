@@ -3,7 +3,7 @@
 # ### Purpose
 # - Mounts remote NFS exports as local filesystems via nfs-utils
 # - Share definitions come from this host's build-time args (`host.services.native.nfs.*`, wired
-#   into these options by `modules/types/host.nix`)
+#   into these options by `modules/default.nix`)
 #
 # ### Notes
 # - Entries are translated directly into `fileSystems` i.e. /etc/fstab
@@ -61,7 +61,7 @@ in
     };
   };
 
-  config = lib.mkIf (cfg.enable) {
+  config = lib.mkIf cfg.enable {
 
     # NFS entries in /etc/fstab
     fileSystems = (builtins.foldl' (a: x: {

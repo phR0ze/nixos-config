@@ -5,7 +5,7 @@
 { options, config, lib, pkgs, f, ... }: with lib.types;
 let
   xfce = config.services.xserver.desktopManager.xfce; # need nixpkgs version here
-  cfg = config.system.xfce.xfwm;
+  cfg = config.system.desktop.xfce.xfwm;
 
   xmlfile = lib.mkIf (xfce.enableXfwm)
     (pkgs.writeText "xfwm4.xml" ''
@@ -101,7 +101,7 @@ let
 in
 {
   options = {
-    system.xfce.xfwm = {
+    system.desktop.xfce.xfwm = {
       theme = lib.mkOption {
         type = types.str;
         default = "Arc-Dark";

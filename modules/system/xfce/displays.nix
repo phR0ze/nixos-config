@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
   cfg = xfce.displays;
 
   xmlfile = lib.mkIf (xfce.enable)
@@ -24,7 +24,7 @@ let
 in
 {
   options = {
-    system.xfce.displays = {
+    system.desktop.xfce.displays = {
       connectingDisplay = lib.mkOption {
         type = types.int;
         default = 1;

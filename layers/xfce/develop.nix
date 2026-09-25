@@ -18,10 +18,8 @@ in
     };
   };
 
-  config = lib.mkMerge [
-
-    (lib.mkIf (cfg.enable) {
-
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       # Desktop dependency with passed along configuration
       layers.xfce.desktop = {
         enable = true;
@@ -48,6 +46,6 @@ in
         # Python
         python3                             # Python 3 runtime
       ];
-    })
-  ];
+    }
+  ]);
 }

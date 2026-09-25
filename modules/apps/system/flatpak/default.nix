@@ -4,7 +4,7 @@
 #
 { config, lib, pkgs, ... }:
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
   cfg = config.apps.system.flatpak;
 in
 {

@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, f, ... }: with lib.types;
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
   cfg = xfce.powerManager;
 
   xmlfile = lib.mkIf xfce.enable
@@ -25,7 +25,7 @@ let
 in
 {
   options = {
-    system.xfce.powerManager = {
+    system.desktop.xfce.powerManager = {
       presentationMode = lib.mkOption {
         type = types.bool;
         default = true;

@@ -8,7 +8,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
 
   menu = lib.mkIf xfce.enable
     (pkgs.writeText "xfce-applications.menu" ''

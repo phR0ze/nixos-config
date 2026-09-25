@@ -618,7 +618,7 @@ in
 
   config = lib.mkIf cfg.enable {
     assertions = [
-      { assertion = cfg.baseDomain != null; message = "services.oci.pangolin requires 'baseDomain'"; }
+      { assertion = cfg.baseDomain != null && cfg.baseDomain != ""; message = "services.oci.pangolin requires 'baseDomain', normally forwarded from 'host.network.domain'"; }
       { assertion = cfg.acmeEmail != null; message = "services.oci.pangolin requires 'acmeEmail'"; }
     ];
 

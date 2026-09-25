@@ -20,10 +20,8 @@ in
     };
   };
 
-  config = lib.mkMerge [
-
-    (lib.mkIf (cfg.enable) {
-
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       # Core dependencies with passed along configuration
       layers.console.core = {
         enable = true;
@@ -32,11 +30,11 @@ in
 
       # OCI container runtime for services.oci.* modules
       virtualisation.podman.enable = true;
-    })
+    }
 
     # Harden
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.enable && cfg.harden) {
+    (lib.mkIf cfg.harden {
       devices.boot.harden = true;                   # clean /tmp on every boot
       devices.kernel.harden = true;                 # include kernel hardening configuration
       devices.network.harden.enable = true;         # networking hardening, incl. geo-block
@@ -46,5 +44,5 @@ in
       services.native.crowdsec.enable = true;       # enable broad CrowdSec protection
       services.native.alerts.enable = true;         # push failed-unit alerts + a daily security digest
     })
-  ];
+  ]);
 }

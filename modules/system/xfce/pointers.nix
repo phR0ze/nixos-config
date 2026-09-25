@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, f, ... }: with lib.types;
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
   cfg = xfce.pointers;
 
   xmlfile = lib.mkIf (xfce.enable)
@@ -21,7 +21,7 @@ let
 in
 {
   options = {
-    system.xfce.pointers = {
+    system.desktop.xfce.pointers = {
       rightHanded = lib.mkOption {
         type = types.bool;
         default = true;

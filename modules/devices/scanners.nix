@@ -15,7 +15,7 @@ in
     };
   };
 
-  config = lib.mkIf (cfg.enable) {
+  config = lib.mkIf cfg.enable {
     hardware.sane = {
       enable = true;
       extraBackends = [

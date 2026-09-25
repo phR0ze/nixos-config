@@ -17,11 +17,8 @@ in
     };
   };
 
-  config = lib.mkMerge [
-
-    # Standard core
-    # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.enable) {
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       system.users.admin.enable = true;             # Create the default admin user
 
       system.env.clu.enable = true;                 # NixOS orchestration tool
@@ -50,14 +47,14 @@ in
         just                                # A handy way to save and run project-specific commands
         tree                                 # Simple dir listing app in tree form
       ];
-    })
+    }
 
     # Low memory
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.enable && cfg.lowMemory) {
+    (lib.mkIf cfg.lowMemory {
       devices.boot.lowMemory = true;                # zram swap to cheaply extend effective memory
       devices.kernel.lowMemory = true;              # aggressive reclaim as swap is in memory
       services.native.systemd.lowMemory  = true;    # cap journld and ensure its persisted
     })
-  ];
+  ]);
 }

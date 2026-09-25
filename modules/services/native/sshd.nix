@@ -12,8 +12,8 @@ in
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable) {
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       services.openssh.enable = true;
 
       users.motd = ''
@@ -121,9 +121,9 @@ in
           printf '\n'
         fi
       '';
-    })
+    }
 
-    (lib.mkIf (cfg.enable && cfg.harden) {
+    (lib.mkIf cfg.harden {
       services.openssh.ports = [ 2222 ];                # cut down on automated scanning noise
 
       # Open the port ourselves via a rate-limited nftables rule below instead of letting openssh's
@@ -292,5 +292,5 @@ in
         };
       };
     })
-  ];
+  ]);
 }

@@ -1,5 +1,5 @@
 # This file is used to seed your configuration with defaults for your systems, rather than having
-# to dig into modules/types/host.nix and manually make changes there.
+# to dig into modules/default.nix and manually make changes there.
 #
 # Note:
 # - this is the lowes priority configuration file and all other overrides take precedent

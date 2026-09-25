@@ -5,11 +5,11 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.services.raw.synology-drive-client;
+  cfg = config.services.native.synology-drive-client;
 in
 {
   options = {
-    services.raw.synology-drive-client = {
+    services.native.synology-drive-client = {
       enable = lib.mkEnableOption "Configure Synology Drive client";
       autostart = lib.mkOption {
         description = lib.mdDoc "Autostart once logged in";
@@ -19,17 +19,15 @@ in
     };
   };
  
-  config = lib.mkMerge [
-
-    # Install
-    (lib.mkIf cfg.enable {
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       environment.systemPackages = [
         pkgs.synology-drive-client
       ];
-    })
+    }
 
     # Configure autostart after login
-    (lib.mkIf (cfg.enable && cfg.autostart) {
+    (lib.mkIf cfg.autostart {
       environment.etc."xdg/autostart/synology-drive-client.desktop".text = ''
         [Desktop Entry]
         Type=Application
@@ -37,5 +35,5 @@ in
         Exec=sudo ${pkgs.synology-drive-client}/bin/synology-drive
       '';
     })
-  ];
+  ]);
 }

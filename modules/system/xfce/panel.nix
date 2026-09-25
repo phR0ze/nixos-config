@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, f, ... }: with lib.types;
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
   cfg = xfce.panel;
 
   desktopType = (import ../xdg/desktop-type.nix {
@@ -172,7 +172,7 @@ let
 in
 {
   options = {
-    system.xfce.panel.clock = {
+    system.desktop.xfce.panel.clock = {
       military = lib.mkOption {
         type = types.bool;
         default = false;
@@ -199,7 +199,7 @@ in
         description = lib.mdDoc "Flash time separators";
       };
     };
-    system.xfce.panel.taskbar = {
+    system.desktop.xfce.panel.taskbar = {
       title = lib.mkOption {
         type = types.str;
         default = "Apps";
@@ -226,14 +226,14 @@ in
         description = lib.mdDoc "Taskbar item grouping";
       };
     };
-    system.xfce.panel.launcher = {
+    system.desktop.xfce.panel.launcher = {
       size = lib.mkOption {
         type = types.int;
         default = 36; # 52 for hidpi
         description = lib.mdDoc "Launcher size in pixels";
       };
     };
-    system.xfce.panel.launchers = lib.mkOption {
+    system.desktop.xfce.panel.launchers = lib.mkOption {
       type = types.listOf desktopType;
       default = [];
       example = [

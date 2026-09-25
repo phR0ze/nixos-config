@@ -5,7 +5,6 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.devices.printers;
-  host = config.host;
 in
 {
   options = {
@@ -17,9 +16,6 @@ in
   };
 
   config = lib.mkIf (cfg.enable) (lib.mkMerge [
-
-    # Common configuration
-    # ----------------------------------------------------------------------------------------------
     {
       services.printing = {
         enable = true;                # Installs the system-config-printer package
@@ -33,7 +29,7 @@ in
         openFirewall = true;
       };
 
-      users.users.${host.user.name}.extraGroups = [ "lp" ];
+      secret.users."admin".extraGroups = [ "lp" ];
     }
 
     # Brother HL-L2405W support
@@ -61,8 +57,7 @@ in
         pkgs.utsushi
       ];
 
-      users.users.${host.user.name}.extraGroups = [ "scanner" ];
+      secret.users."admin".extraGroups = [ "scanner" ];
     })
-
   ]);
 }

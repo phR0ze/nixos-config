@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
   cfg = xfce.desktop;
 
   monitors = [
@@ -96,7 +96,7 @@ let
 in
 {
   options = {
-    system.xfce.desktop = {
+    system.desktop.xfce.desktop = {
       background = lib.mkOption {
         description = "The background image to use for login and wallpaper";
         type = types.either types.path (types.strMatching "^#[0-9]{6}$");

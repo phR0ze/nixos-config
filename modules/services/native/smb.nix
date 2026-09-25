@@ -3,7 +3,7 @@
 # ### Purpose
 # - Mounts remote SMB/CIFS shares as local filesystems via cifs-utils
 # - Share definitions come from this host's build-time args (`host.services.native.smb.*`, wired
-#   into these options by `modules/types/host.nix`), passwords from its runtime secrets
+#   into these options by `modules/default.nix`), passwords from its runtime secrets
 #
 # ### Notes
 # - Samba is the Linux SMB implementation which used to be called cifs
@@ -15,7 +15,7 @@ let
   cfg = config.services.native.smb;
   hasSecrets = cfg.sopsFile != null;
 
-  shareName = x: builtins.baseNameOf x.mountPoint;
+  shareName = x: baseNameOf x.mountPoint;
 
   # Legacy plaintext credential files (baked into the Nix store via environment.etc) - used only
   # as a fallback until this host has a `sopsFile` holding a `smb/<share>/pass` key per entry.
@@ -154,7 +154,7 @@ in
     };
   };
 
-  config = lib.mkIf (cfg.enable) {
+  config = lib.mkIf cfg.enable {
     environment.etc = lib.mkIf (!hasSecrets) smbSecrets;
 
     # Decrypted to /etc/smb/secrets/<share> at activation, never touching the Nix store

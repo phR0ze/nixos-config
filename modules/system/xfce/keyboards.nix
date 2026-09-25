@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, ... }: with lib.types;
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
   cfg = xfce.keyboards;
 
   xmlfile = lib.mkIf (xfce.enable)
@@ -23,7 +23,7 @@ let
 in
 {
   options = {
-    system.xfce.keyboards.repeat = {
+    system.desktop.xfce.keyboards.repeat = {
       delay = lib.mkOption {
         type = types.int;
         default = 203;

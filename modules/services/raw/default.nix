@@ -4,8 +4,6 @@
 { ... }:
 {
   imports = [
-    ./adguardhome
-    ./caddy
     ./immich
     ./kasmvnc
     ./keyd
@@ -15,9 +13,7 @@
     ./selkies
     ./smartd
     ./sunshine
-    ./synology-drive-client
     ./tailscale
-    ./vaultwarden
     ./x11vnc
     ./x2go
   ];

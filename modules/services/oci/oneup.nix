@@ -56,7 +56,7 @@ in
         image = "ghcr.io/phr0ze/${cfg.name}:${cfg.tag}";
         autoStart = true;
         networks = [ cfg.name ];                  # Isolated app specific network
-        ports = [ "127.0.0.1:${toString cfg.port}:8080" ];  # Not exposed on LAN; front with services.raw.caddy
+        ports = [ "127.0.0.1:${toString cfg.port}:8080" ];  # Not exposed on LAN; front with services.native.caddy
         volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];
         environment = { "PORT" = "8080"; };
         extraOptions = [ "--ip=${cfg.ip}" ]
@@ -70,10 +70,10 @@ in
       systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
     })
 
-    # Contribute a proxy entry to services.raw.caddy.proxies rather than requiring it be listed
+    # Contribute a proxy entry to services.native.caddy.proxies rather than requiring it be listed
     # separately in the machine's configuration.nix
     (lib.mkIf (cfg.enable && cfg.subdomain != null) {
-      services.raw.caddy.proxies = [
+      services.native.caddy.proxies = [
         { inherit (cfg) subdomain port; }
       ];
     })

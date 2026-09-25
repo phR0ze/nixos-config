@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, f, ... }: with lib.types;
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
   cfg = xfce.thunar;
 
   thunarXmlfile = lib.mkIf xfce.enable
@@ -31,7 +31,7 @@ let
 in
 {
   options = {
-    system.xfce.thunar = {
+    system.desktop.xfce.thunar = {
       view = lib.mkOption {
         type = types.enum [ "ThunarDetailsView" ];
         default = "ThunarDetailsView";
@@ -43,7 +43,7 @@ in
         description = lib.mdDoc "Show hidden files and directories";
       };
     };
-    system.xfce.thunar.volman = {
+    system.desktop.xfce.thunar.volman = {
       automountMedia = lib.mkOption {
         type = types.bool;
         default = true;

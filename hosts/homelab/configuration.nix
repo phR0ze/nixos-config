@@ -12,9 +12,9 @@
 
   config = {
     devices.boot.efi = true;
-    host.net.bridge.enable = true;
+    devices.network.bridge.enable = true;
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
-    machine.autologin = true;
+    host.autologin = true;
     system.x11.autolock.enable = true;
 
     # Apps
@@ -28,11 +28,11 @@
     services.raw.minecraft.enable = true;
     services.native.nix-cache.host.enable = true;
     services.raw.mullvad.enable = true;
-    services.raw.synology-drive-client.enable = true;
+    services.native.synology-drive-client.enable = true;
     services.native.jellyfin = {
       enable = true; port = 8096; subdomain = "jellyfin";
     };
-    services.raw.vaultwarden = {
+    services.native.vaultwarden = {
       enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
     };
     services.oci.homarr = {
@@ -50,15 +50,10 @@
     };
 
     # HTTPS Proxy service
-    services.raw.caddy = {
-      enable = true;
-      domain = config.host.domain;
-      secrets = ./secrets.enc.yaml;
-      proxies = [
-        { subdomain = "adguard"; host = config.host.services.raw.adguard.host; port = 3000; }
-        { subdomain = "synology"; host = config.host.services.raw.synology.host; port = 5000; }
-      ];
-    };
+    # - `baseDomain`, `sopsFile` and the off-machine `proxies` entries (the remote AdGuard/Synology LAN
+    #   IPs) are all forwarded by modules/default.nix from this host's args/secrets, see
+    #   `host.services.native.caddy.proxies` in args.enc.yaml
+    services.native.caddy.enable = true;
 
     # Additional apps
     environment.systemPackages = [

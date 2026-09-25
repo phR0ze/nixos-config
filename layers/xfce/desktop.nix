@@ -18,10 +18,8 @@ in
     };
   };
 
-  config = lib.mkMerge [
-
-    (lib.mkIf (cfg.enable) {
-
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       # Base dependency with passed along configuration
       layers.xfce.base = {
         enable = true;
@@ -89,6 +87,6 @@ in
         # Utilities
         kdePackages.filelight     # View disk usage information
       ];
-    })
-  ];
+    }
+  ]);
 }

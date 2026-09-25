@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------------------------------------
 { options, config, lib, pkgs, f, ... }: with lib.types;
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
   cfg = xfce.terminal;
 
   xmlfile = lib.mkIf xfce.enable
@@ -26,7 +26,7 @@ let
 in
 {
   options = {
-    system.xfce.terminal = {
+    system.desktop.xfce.terminal = {
       scrollingLines = lib.mkOption {
         type = types.int;
         default = 10000;

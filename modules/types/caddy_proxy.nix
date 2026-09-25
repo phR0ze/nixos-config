@@ -1,7 +1,7 @@
 # Declares the caddy proxy options type for reusability
 #
-# Lets an app module declare its own Caddy reverse-proxy config (e.g. `services.raw.vaultwarden.caddy`)
-# instead of listing it separately under `services.raw.caddy.proxies` in the machine's configuration.nix.
+# Lets an app module declare its own Caddy reverse-proxy config (e.g. `services.native.vaultwarden.caddy`)
+# instead of listing it separately under `services.native.caddy.proxies` in the machine's configuration.nix.
 #---------------------------------------------------------------------------------------------------
 { lib, ... }: with lib.types;
 {

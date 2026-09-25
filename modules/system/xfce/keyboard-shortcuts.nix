@@ -6,7 +6,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  xfce = config.system.xfce;
+  xfce = config.system.desktop.xfce;
   cfg = xfce.shortcuts;
 
   xmlfile = lib.mkIf (xfce.enable)
@@ -195,7 +195,7 @@ let
 in
 {
   options = {
-    system.xfce.shortcuts = {
+    system.desktop.xfce.shortcuts = {
       dropDownTerminalKey = lib.mkOption {
         type = types.str;
         default = "F12";

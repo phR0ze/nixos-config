@@ -159,7 +159,7 @@ in
         win-spice         # SPICE support for windows
       ];
 
-      users.users.${host.user.name}.extraGroups = [ "kvm" ];
+      secret.users."admin".extraGroups = [ "kvm" ];
     })
 
     # Configure the VMs to be run on the host including systemd integration

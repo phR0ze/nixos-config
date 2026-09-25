@@ -18,10 +18,8 @@ in
     };
   };
 
-  config = lib.mkMerge [
-
-    (lib.mkIf (cfg.enable) {
-
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       # Desktop dependency with passed along configuration
       layers.xfce.desktop = {
         enable = true;
@@ -32,21 +30,21 @@ in
 
       # High dpi settings
       system.x11.xft.dpi = 120; # 25% higher recommended by Arch Linux
-      system.xfce.panel.taskbar.size = 36;
-      system.xfce.panel.taskbar.iconSize = 32;
-      system.xfce.panel.launcher.size = 52;
+      system.desktop.xfce.panel.taskbar.size = 36;
+      system.desktop.xfce.panel.taskbar.iconSize = 32;
+      system.desktop.xfce.panel.launcher.size = 52;
 
       # Display configuration
       layers.xfce.base.resolution = { x = 1920; y = 1080; };
-      system.xfce.displays.connectingDisplay = 0;
+      system.desktop.xfce.displays.connectingDisplay = 0;
 
       # Configure theater system background
-      system.xfce.desktop.background = "${pkgs.desktop-assets}/share/backgrounds/theater_curtains1.jpg";
+      system.desktop.xfce.desktop.background = "${pkgs.desktop-assets}/share/backgrounds/theater_curtains1.jpg";
 
       # Add additional theater package
       environment.systemPackages = [
         # pkgs.
       ];
-    })
-  ];
+    }
+  ]);
 }

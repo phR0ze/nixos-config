@@ -4,14 +4,14 @@
 #
 # ### Description
 # Fronts one or more homelab services with Caddy-managed TLS. All proxies share a single wildcard
-# `*.<domain>` site block on port 443, routed by hostname, and a single wildcard certificate obtained
-# via a Cloudflare DNS-01 challenge (see `modules/services/raw/caddy/package.nix` for the
+# `*.<baseDomain>` site block on port 443, routed by hostname, and a single wildcard certificate obtained
+# via a Cloudflare DNS-01 challenge (see `modules/services/native/caddy/package.nix` for the
 # caddy-dns/cloudflare build). The original HTTP port each service already listens on is left
 # untouched, so this is purely additive.
 #
 # ### Deployment notes
 # 1. Add an entry to `proxies` per backend service: `{ subdomain = "vault"; port = 8222; }`. It'll be
-#    reachable at `https://vault.<domain>` via the shared wildcard block on port 443. `host` defaults to
+#    reachable at `https://vault.<baseDomain>` via the shared wildcard block on port 443. `host` defaults to
 #    `127.0.0.1` for a backend running on this same machine; set it to another host's LAN IP to front a
 #    service running elsewhere on the network (e.g. `{ subdomain = "adguard"; host = "192.168.1.5"; port
 #    = 3000; }`).
@@ -23,30 +23,31 @@
 #    forwarding SNI on its *HTTP*-mode private-resource proxying (fosrl/pangolin#207); that workaround was
 #    dropped once the private resource was switched to `Host` mode instead, which sidesteps the gap
 #    entirely rather than routing around it.
-# 2. Set `domain = config.host.domain;` in the host's `configuration.nix` (host.domain comes
-#    from the `domain` key in `args.enc.yaml`/`args.nix`, keeping the literal zone name out of tracked
-#    files). DNS-01 only proves control of the zone — it doesn't create routing, so Cloudflare needs a
-#    single wildcard `*.<domain>` DNS record (can be a greyed-out/non-proxied A/CNAME pointing anywhere,
+# 2. `baseDomain` is forwarded automatically from `host.network.domain` by `modules/default.nix`
+#    (sourced from the `network.domain` key in `args.enc.yaml`/`args.nix`, keeping the literal zone
+#    name out of tracked files) - a host only sets it here to override. DNS-01 only proves control of the zone — it doesn't create routing, so Cloudflare needs a
+#    single wildcard `*.<baseDomain>` DNS record (can be a greyed-out/non-proxied A/CNAME pointing anywhere,
 #    since clients reach this host directly on the LAN) — any new subdomain added to `proxies` then just
 #    works without touching Cloudflare again.
 # 3. Add a scoped Cloudflare API token (Zone:DNS:Edit + Zone:Zone:Read for the zone(s) in question —
-#    not the Global API Key) to a `secrets.enc.yaml` under the `caddy.cloudflareApiToken` key, then
-#    point `secrets` at it from the host's `configuration.nix`:
-#      services.raw.caddy = {
-#        enable = true;
-#        secrets = ./secrets.enc.yaml;
-#        ...
-#      };
+#    not the Global API Key) to this host's `secrets.enc.yaml` under the `caddy/cloudflareApiToken`
+#    key. `sopsFile` is forwarded automatically from `host.sopsFile` by `modules/default.nix`, so
+#    the host's `configuration.nix` only needs:
+#      services.native.caddy.enable = true;
+# 4. Back a service running on *another* machine by adding its entry to
+#    `host.services.native.caddy.proxies` in `args.enc.yaml` rather than hardcoding that machine's
+#    LAN IP here - `modules/default.nix` merges those entries into `proxies` alongside the ones
+#    each Caddy-fronted module contributes for itself.
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.services.raw.caddy;
+  cfg = config.services.native.caddy;
 
-  hostOf = p: "${p.subdomain}.${cfg.domain}";
+  hostOf = p: "${p.subdomain}.${cfg.baseDomain}";
 
   wildcardProxies = lib.filter (p: p.subdomain != null) cfg.proxies;
 
-  wildcardSite = lib.nameValuePair "*.${cfg.domain}:443" {
+  wildcardSite = lib.nameValuePair "*.${cfg.baseDomain}:443" {
     extraConfig = ''
       tls {
         dns cloudflare {env.CF_API_TOKEN}
@@ -74,25 +75,18 @@ let
 in
 {
   options = {
-    services.raw.caddy = {
+    services.native.caddy = {
       enable = lib.mkEnableOption "Install and configure Caddy as a local TLS-terminating reverse proxy";
 
-      secrets = lib.mkOption {
-        type = types.path;
-        example = "./secrets.enc.yaml";
-        description = lib.mdDoc ''
-          Path to the sops-encrypted file holding the `caddy.cloudflareApiToken` secret. Declared here
-          so the `sops.secrets` entry doesn't need to be repeated in every host's `configuration.nix`.
-        '';
-      };
-
-      domain = lib.mkOption {
+      baseDomain = lib.mkOption {
         type = types.str;
+        default = "";
         example = "example.com";
         description = lib.mdDoc ''
           Cloudflare-managed zone used for certificate issuance. Each proxy is reachable at
-          `<subdomain>.<domain>`. Set to `config.host.domain` in the host's `configuration.nix`
-          rather than a literal string, to avoid committing the domain in plaintext.
+          `<subdomain>.<baseDomain>`. Forwarded from `host.network.domain` by `modules/default.nix` so
+          the literal zone never lands in a tracked file - only set here to override. Empty by
+          default so that forwarding can be unconditional - see the `enable`-gated assertion below.
         '';
       };
 
@@ -102,15 +96,34 @@ in
         example = [{ subdomain = "vault"; port = 8222; }];
         description = lib.mdDoc ''
           Backend services to front with Caddy-managed local TLS. Populated automatically from any
-          enabled app's own `caddy` option (e.g. `services.raw.vaultwarden.caddy`) — only add entries
-          here directly for apps that don't expose one. Each entry is hostname-routed on the shared
+          enabled app's own `subdomain`/`subdomains` option (e.g. `services.native.vaultwarden`) and
+          from `host.services.native.caddy.proxies` in this host's build-time args (that's where a
+          backend living on *another* machine belongs, so its LAN IP stays out of tracked files) —
+          only add entries here directly for apps that don't expose one. Each entry is hostname-routed on the shared
           wildcard block when `subdomain` is set — see `../../../types/caddy_proxy.nix`.
+        '';
+      };
+
+      sopsFile = lib.mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        example = "./secrets.enc.yaml";
+        description = lib.mdDoc ''
+          Path to the sops-encrypted file holding the `caddy/cloudflareApiToken` secret. Forwarded
+          from `host.sopsFile` by `modules/default.nix`, so the `sops.secrets` entry doesn't need to
+          be repeated in every host's `configuration.nix`. Nullable so that forwarding can be
+          unconditional - see the `enable`-gated assertion below for the actual requirement.
         '';
       };
     };
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      { assertion = cfg.sopsFile != null; message = "services.native.caddy requires 'sopsFile', normally forwarded from 'host.sopsFile'"; }
+      { assertion = cfg.baseDomain != ""; message = "services.native.caddy requires 'baseDomain', normally forwarded from 'host.network.domain'"; }
+    ];
+
     # Wraps the bare-token secret in a KEY=VALUE line rendered at activation time (mode 0400),
     # suitable for systemd's EnvironmentFile=.
     secret.templates."caddy-cloudflare" = {
@@ -118,7 +131,7 @@ in
       content = ''
         CF_API_TOKEN=${config.secret.ref."caddy/cloudflareApiToken"}
       '';
-      secrets."caddy/cloudflareApiToken".sopsFile = cfg.secrets;
+      secrets."caddy/cloudflareApiToken".sopsFile = cfg.sopsFile;
       # Restart rather than reload: the token reaches caddy as an environment variable via
       # EnvironmentFile, which systemd only re-reads on start - `caddy reload` re-parses the
       # Caddyfile but keeps the already-running process's stale CF_API_TOKEN
@@ -147,7 +160,7 @@ in
       #   request's Host header, same as any normal request.
       globalConfig = ''
         auto_https disable_redirects
-        default_sni fallback.${cfg.domain}
+        default_sni fallback.${cfg.baseDomain}
       '';
 
       # Cloudflare API token handed to the caddy-dns/cloudflare module via an env var, sourced from

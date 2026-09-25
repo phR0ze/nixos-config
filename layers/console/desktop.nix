@@ -22,10 +22,8 @@ in
     };
   };
 
-  config = lib.mkMerge [
-
-    (lib.mkIf (cfg.enable) {
-
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       # Server dependencies with passed along configuration
       layers.console.server = {
         enable = true;
@@ -70,6 +68,6 @@ in
         openvpn                       # An easy-to-use, robust and highly configurable VPN (Virtual Private Network)
         update-systemd-resolved        # OpenVPN systemd-resolved updater
       ];
-    })
-  ];
+    }
+  ]);
 }
