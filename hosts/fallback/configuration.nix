@@ -12,11 +12,11 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../layers/bundles/xfce-develop.nix
   ];
 
   config = {
     devices.boot.mbr = "/dev/sdb";
+    host.desktop.xfce.develop = true;
     host.nix.cache.enable = true;
     apps.games.warcraft2.enable = true;
     devices.gpu.nvidia = { enable = true; legacy470 = true; };

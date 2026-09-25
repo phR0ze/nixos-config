@@ -12,13 +12,13 @@ in
 {
   imports = [
     ./hardware-configuration.nix
-    ../../layers/bundles/xfce-develop.nix
 
     # t2 modules from nixos hardware are pinned in the flake
     inputs.nixos-hardware.nixosModules.apple-t2
   ];
 
   config = {
+    host.desktop.xfce.develop = true;
     devices.boot.efi = true;
     virtualisation.podman.enable = true;
     virtualization.qemu.host.enable = true;

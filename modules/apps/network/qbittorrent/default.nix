@@ -22,8 +22,8 @@ let
         and get_window_name() == "Open Torrent Files") then
       local x, y, width, height = get_window_geometry();
       local screenWidth, screenHeight = get_screen_geometry();
-      local newWidth = math.min(math.floor(width * ${toString cfg.fileDialogScale}), screenWidth);
-      local newHeight = math.min(math.floor(height * ${toString cfg.fileDialogScale}), screenHeight);
+      local newWidth = math.min(math.floor(width * ${toString cfg.fileDialogWidthScale}), screenWidth);
+      local newHeight = math.min(math.floor(height * ${toString cfg.fileDialogHeightScale}), screenHeight);
       local newX = math.max(0, math.min(x + math.floor((width - newWidth) / 2), screenWidth - newWidth));
       local newY = math.max(0, math.min(y + math.floor((height - newHeight) / 2), screenHeight - newHeight));
       set_adjust_for_decoration(true);
@@ -40,14 +40,19 @@ in
         default = true;
         description = lib.mdDoc "Accepts the legal notice";
       };
-      fileDialogScale = lib.mkOption {
+      fileDialogWidthScale = lib.mkOption {
         type = types.float;
-        default = 2.0;
+        default = 1.5;
         description = lib.mdDoc ''
-          Scale factor applied to the `File -> Open Torrent Files` chooser when it opens, keeping it
-          centred. Implemented as a `apps.system.devilspie2` rule, so it has no effect unless that
-          option is also enabled. Set to `1.0` to leave the dialog at Qt's default size.
+          Horizontal scale factor applied to the `File -> Open Torrent Files` chooser when it opens,
+          keeping it centred. Implemented as a `apps.system.devilspie2` rule, so it has no effect
+          unless that option is also enabled. Leave both scales at `1.0` to keep Qt's default size.
         '';
+      };
+      fileDialogHeightScale = lib.mkOption {
+        type = types.float;
+        default = 1.75;
+        description = lib.mdDoc "Vertical scale factor for the `File -> Open Torrent Files` chooser";
       };
     };
   };
@@ -57,6 +62,6 @@ in
 
     files.all.".config/qBittorrent/qBittorrent.conf".weakCopy = conf;
 
-    apps.system.devilspie2.scripts = lib.mkIf (cfg.fileDialogScale != 1.0) { qbittorrent = fileDialogScript; };
+    apps.system.devilspie2.scripts = lib.mkIf (cfg.fileDialogWidthScale != 1.0 || cfg.fileDialogHeightScale != 1.0) { qbittorrent = fileDialogScript; };
   };
 }

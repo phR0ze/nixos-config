@@ -7,10 +7,10 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../layers/bundles/xfce-develop.nix
   ];
 
   config = {
+    host.desktop.xfce.develop = true;
     devices.boot.efi = true;
     devices.gpu.intel.enable = true;
     system.x11.xft.dpi = 115;

@@ -7,12 +7,12 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../layers/bundles/xfce-theater.nix
   ];
 
   config = {
     devices.boot.efi = true;
     devices.gpu.intel.enable = true;
+    host.desktop.xfce.theater = true;
     host.autologin = true;
     host.nix.cache.enable = true;
 

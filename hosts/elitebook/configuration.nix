@@ -10,11 +10,11 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../layers/bundles/xfce-desktop.nix
   ];
 
   config = {
     devices.boot.mbr = "/dev/sda";
+    host.desktop.xfce.standard = true;
     host.nix.cache.enable = true;
 
     # Broken

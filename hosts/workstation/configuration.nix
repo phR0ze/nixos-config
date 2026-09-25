@@ -15,13 +15,13 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../layers/bundles/xfce-develop.nix
   ];
 
   config = {
     devices.boot.efi = true;
     devices.gpu.amd.enable = true;
-    host.net.bridge.enable = true;
+    devices.network.bridge.enable = true;
+    host.desktop.xfce.develop = true;
 
     devices.printers.epson-wf7710 = true;
     devices.printers.brother-hll2405w = true;

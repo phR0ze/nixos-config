@@ -10,11 +10,11 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../layers/bundles/xfce-laptop.nix
   ];
 
   config = {
     devices.boot.efi = true;
+    host.desktop.xfce.laptop = true;
     host.nix.cache.enable = true;
 
     # broadcom_sta is an insecure package (upstream, unmaintained driver) - allowed only here

@@ -7,13 +7,13 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../layers/bundles/xfce-desktop.nix
   ];
 
   config = {
     devices.boot.efi = true;
     devices.network.bridge.enable = true;
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
+    host.desktop.xfce.standard = true;
     host.autologin = true;
     system.x11.autolock.enable = true;
 
