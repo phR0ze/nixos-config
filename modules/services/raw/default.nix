@@ -6,7 +6,6 @@
   imports = [
     ./immich
     ./kasmvnc
-    ./keyd
     ./minecraft
     ./mullvad
     ./private-internet-access

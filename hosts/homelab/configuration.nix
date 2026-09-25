@@ -10,15 +10,13 @@
   ];
 
   config = {
-    devices.boot.efi = true;
+    host.desktop.xfce.standard = true;
+
+    host.boot.efi = true;
     devices.network.bridge.enable = true;
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
-    host.desktop.xfce.standard = true;
     host.autologin = true;
     system.x11.autolock.enable = true;
-
-    # Apps
-    apps.dev.claude.enable = true;
 
     # System services
     virtualisation.podman.enable = true;

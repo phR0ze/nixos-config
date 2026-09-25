@@ -11,15 +11,14 @@
 
   config = {
     host.desktop.xfce.develop = true;
-    devices.boot.efi = true;
+
+    host.boot.efi = true;
     devices.gpu.intel.enable = true;
     system.x11.xft.dpi = 115;
 
     devices.printers.brother-hll2405w = true;
 
-    apps.dev.claude.enable = true;
     apps.dev.gemini.enable = true;
-    apps.dev.opencode.enable = true;
     apps.media.obs.enable = true;
     apps.network.rustdesk.autostart = false;
 
@@ -28,7 +27,6 @@
 
     environment.systemPackages = [
       pkgs.freetube
-      pkgs.rust-analyzer
     ];
   };
 }

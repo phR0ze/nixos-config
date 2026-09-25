@@ -9,6 +9,7 @@
     ./caddy
     ./crowdsec.nix
     ./jellyfin.nix
+    ./keyd
     ./nfs.nix
     ./nix-cache
     ./smb.nix

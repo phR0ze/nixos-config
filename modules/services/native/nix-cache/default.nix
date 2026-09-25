@@ -93,6 +93,14 @@ in
  
   config = lib.mkMerge [
     (lib.mkIf cfg.client.enable {
+      # `hostIP` is empty by default so `modules/default.nix` can forward it unconditionally from
+      # args, which makes this the place the requirement actually gets enforced.
+      assertions = [{
+        assertion = cfg.client.hostIP != "";
+        message = "services.native.nix-cache.client.hostIP must be set, typically from"
+          + " host.services.native.nix-cache.client.hostIP in args";
+      }];
+
       nix.settings = {
         # Add custom binary caches
         # - https://cache.nixos.org is added by default

@@ -7,6 +7,7 @@
 {
   config = {
     host.desktop.xfce.standard = true;
+
     host.type.vm = true;
     host.autologin = true;
     virtualization.qemu.guest.enable = true;

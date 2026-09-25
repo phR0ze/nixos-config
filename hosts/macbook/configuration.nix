@@ -19,7 +19,8 @@ in
 
   config = {
     host.desktop.xfce.develop = true;
-    devices.boot.efi = true;
+
+    host.boot.efi = true;
     virtualisation.podman.enable = true;
     virtualization.qemu.host.enable = true;
 
@@ -73,7 +74,6 @@ in
       }))
     ];
 
-    apps.dev.claude.enable = true;
     apps.media.obs.enable = true;
     apps.network.rustdesk.autostart = false;
 

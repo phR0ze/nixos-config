@@ -13,9 +13,9 @@
   ];
 
   config = {
-    devices.boot.mbr = "/dev/sda";
-    host.desktop.xfce.standard = true;
+    host.boot.mbr = "/dev/sda";
     host.nix.cache.enable = true;
+    host.desktop.xfce.standard = true;
 
     # Broken
     #devices.gpu.nvidia = { enable = true; legacy340 = true; };

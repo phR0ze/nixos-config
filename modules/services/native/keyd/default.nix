@@ -8,11 +8,11 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, ... }:
 let
-  cfg = config.services.raw.keyd;
+  cfg = config.services.native.keyd;
 in
 {
   options = {
-    services.raw.keyd = {
+    services.native.keyd = {
       enable = lib.mkEnableOption "Install and configure keyd";
     };
   };

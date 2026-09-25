@@ -4,9 +4,10 @@
 # - For quick isolated testing where more than one node is needed
 # --------------------------------------------------------------------------------------------------
 {
+  host.desktop.xfce.standard = true;
+
   host.type.vm = true;
   host.autologin = true;
-  host.desktop.xfce.standard = true;
 
   virtualization.qemu.guest = {
     enable = true;

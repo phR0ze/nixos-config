@@ -115,6 +115,25 @@ in
             default = { };
           };
 
+          drives = lib.mkOption {
+            description = lib.mdDoc ''
+              Drives this host boots from, in the order its `hardware-configuration.nix` expects
+              them. Populated from `host.drives` in the host's `args.enc.yaml` - UUIDs are needed at
+              evaluation time, which is exactly why they live in build-time args (see CLAUDE.md §7).
+            '';
+            type = types.listOf (types.submodule {
+              options = {
+                uuid = lib.mkOption {
+                  description = lib.mdDoc "Drive identifier, as found under /dev/disk/by-uuid";
+                  type = types.str;
+                  default = "";
+                };
+              };
+            });
+            default = host.drives or [ ];
+            example = [{ uuid = "3912bf1f-7d08-4a97-a3ee-b89fab45cdf8"; }];
+          };
+
           resolution = lib.mkOption {
             description = lib.mdDoc "Display resolution, see `virtualization.qemu.guest.resolution`";
             type = types.submodule {
@@ -257,6 +276,16 @@ in
               in if cfg.name != "" && found != [ ] then lib.head found else null;
           };
 
+          nix.cache.enable = lib.mkOption {
+            description = lib.mdDoc ''
+              Consume the fleet's Nix binary cache, see `services.native.nix-cache.client`. The
+              cache host's address comes from `host.services.native.nix-cache.client.*` in args, so
+              this single flag is all a client host needs.
+            '';
+            type = types.bool;
+            default = host.nix.cache.enable or false;
+          };
+
           nix.stateVersion = lib.mkOption {
             description = lib.mdDoc ''
               NixOS release this host was *first installed* with, see `system.env.nix.stateVersion`
@@ -370,6 +399,18 @@ in
         { inherit (cfg.resolution) x y; };
       virtualization.qemu.guest.bridge = config.devices.network.bridge.name;
     })
+
+    (lib.mkIf cfg.nix.cache.enable {
+      services.native.nix-cache.client.enable = true;
+    })
+
+    (lib.mkIf config.services.native.nix-cache.client.enable (
+      let arg = f.getSvcFunc "native.nix-cache" cfg.services;
+      in {
+        services.native.nix-cache.client.hostIP = arg "client.hostIP";
+        services.native.nix-cache.client.hostPort = arg "client.hostPort";
+      }
+    ))
 
     (lib.mkIf config.apps.network.rustdesk.enable {
       apps.network.rustdesk.sopsFile = cfg.sopsFile;

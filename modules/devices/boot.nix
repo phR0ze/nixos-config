@@ -7,7 +7,7 @@
 # Both default to inert values ('efi = false', 'mbr = "nodev"'), so a host that sets neither (e.g. a
 # VM or ISO) leaves grub untouched entirely.
 # --------------------------------------------------------------------------------------------------
-{ config, lib, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.devices.boot;
 in

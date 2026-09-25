@@ -13,8 +13,9 @@
   ];
 
   config = {
-    devices.boot.efi = true;
     host.desktop.xfce.standard = true;
+
+    host.boot.efi = true;
     host.nix.cache.enable = true;
     devices.gpu.nvidia = { enable = true; open = true; };
 

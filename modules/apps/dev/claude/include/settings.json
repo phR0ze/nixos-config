@@ -8,7 +8,6 @@
       "Read(./**)",
       "Bash(ls -la ./ *)",
       "Bash(ls -la ~/.claude/*)",
-      "Bash(ls -la @HOME@/.claude/*)",
       "Bash(git log:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
@@ -18,8 +17,6 @@
       "Bash(find . *)",
       "Bash(mkdir ~/.claude/*)",
       "Bash(mkdir -p ~/.claude/*)",
-      "Bash(mkdir @HOME@/.claude/*)",
-      "Bash(mkdir -p @HOME@/.claude/*)",
       "Bash(mkdir ./*)",
       "Bash(nix develop:*)"
     ],

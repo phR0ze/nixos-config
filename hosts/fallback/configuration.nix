@@ -15,11 +15,12 @@
   ];
 
   config = {
-    devices.boot.mbr = "/dev/sdb";
-    host.desktop.xfce.develop = true;
+    host.boot.mbr = "/dev/sdb";
     host.nix.cache.enable = true;
-    apps.games.warcraft2.enable = true;
+    host.desktop.xfce.develop = true;
     devices.gpu.nvidia = { enable = true; legacy470 = true; };
+
+    apps.games.warcraft2.enable = true;
 
     environment.systemPackages = [
       #

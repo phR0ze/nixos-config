@@ -5,10 +5,11 @@
 # --------------------------------------------------------------------------------------------------
 {
   config = {
+    host.desktop.xfce.theater = true;
+
     host.type.vm = true;
     host.autologin = true;
-    host.desktop.xfce.theater = true;
-    #host.net.dns.force = true;
+    #devices.network.dns.force = true;
 
     # Beefed up VM specs with DHCP full LAN presence
     # --------------------------------------------
@@ -44,12 +45,12 @@
 #
 #    # Emulate homelab configuration for services development
 #    # --------------------------------------------
-#    host.net.bridge.enable = true;
-#    host.net.macvlan = {
+#    devices.network.bridge.enable = true;
+#    devices.network.macvlan = {
 #      name = "host";
 #      ip = "192.168.1.61/24";
 #    };
-#    host.net.nic0 = {
+#    devices.network.nic0 = {
 #      name = "eth0";
 #      ip = "192.168.1.60/24";
 #    };

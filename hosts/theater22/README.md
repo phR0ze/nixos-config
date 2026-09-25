@@ -32,7 +32,3 @@
    2. The shell will load the install wizard automatically
    3. TBD
    4. Power off the machine `sudo poweroff`, unplug the USB and then power back up
-
-<!-- 
-vim: ts=2:sw=2:sts=2
--->

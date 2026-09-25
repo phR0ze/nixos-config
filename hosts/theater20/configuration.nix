@@ -3,28 +3,25 @@
 # ### Features
 # - Theater focused desktop deployment
 # --------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+{ ... }:
 {
   imports = [
     ./hardware-configuration.nix
   ];
 
   config = {
-    devices.boot.efi = true;
-    devices.gpu.intel.enable = true;
-    host.desktop.xfce.theater = true;
+    host.boot.efi = true;
     host.autologin = true;
     host.nix.cache.enable = true;
+    host.desktop.xfce.theater = true;
 
-    services.raw.keyd.enable = true;
-    apps.games.hedgewars.enable = true;
-    apps.games.superTuxKart.enable = true;
+    devices.gpu.intel.enable = true;
 
     apps.dev.rust.enable = true;
     apps.dev.flutter.enable = true;
+    apps.games.hedgewars.enable = true;
+    apps.games.superTuxKart.enable = true;
 
-    environment.systemPackages = [
-      pkgs.rust-analyzer
-    ];
+    services.native.keyd.enable = true;
   };
 }

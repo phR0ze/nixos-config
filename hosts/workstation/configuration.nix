@@ -18,10 +18,11 @@
   ];
 
   config = {
-    devices.boot.efi = true;
+    host.desktop.xfce.develop = true;
+
+    host.boot.efi = true;
     devices.gpu.amd.enable = true;
     devices.network.bridge.enable = true;
-    host.desktop.xfce.develop = true;
 
     devices.printers.epson-wf7710 = true;
     devices.printers.brother-hll2405w = true;
@@ -31,9 +32,7 @@
     virtualisation.podman.enable = true;
     virtualization.qemu.host.enable = true;
 
-    apps.dev.claude.enable = true;
     apps.dev.gemini.enable = true;
-    apps.dev.opencode.enable = true;
 
     apps.games.roblox.enable = true;
     apps.games.hedgewars.enable = true;
@@ -50,7 +49,6 @@
       #pkgs.gamecube-tools          # Depends on freeimage which has bit rotted
       pkgs.quickemu
       pkgs.zed-editor
-      pkgs.rust-analyzer
       pkgs.neovide
     ];
   };

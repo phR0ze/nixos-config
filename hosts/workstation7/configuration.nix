@@ -13,20 +13,19 @@
   ];
 
   config = {
-    devices.boot.efi = true;
     host.desktop.xfce.develop = true;
-    host.nix.cache.enable = true;
-    devices.gpu.nvidia = { enable = true; open = true; };
 
+    host.boot.efi = true;
+    host.nix.cache.enable = true;
+
+    devices.gpu.nvidia = { enable = true; open = true; };
     devices.printers.epson-wf7710 = true;
     devices.printers.brother-hll2405w = true;
 
     apps.network.deskflow.server.enable = true;
     apps.network.rustdesk.autostart = false;
 
-    apps.dev.claude.enable = true;
     apps.dev.gemini.enable = true;
-    apps.dev.opencode.enable = true;
 
     apps.games.roblox.enable = true;
     apps.games.hedgewars.enable = true;
@@ -55,7 +54,6 @@
       #pkgs.gamecube-tools          # Depends on freeimage which has bit rotted
       pkgs.quickemu
       pkgs.zed-editor
-      pkgs.rust-analyzer
       pkgs.neovide
     ];
   };

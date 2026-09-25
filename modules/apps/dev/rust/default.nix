@@ -30,6 +30,9 @@ in
       # Rust dependencies
       cargo                               # Rust project dependency management tooling
       rustc                               # Ensure we have Rust 1.86 or newer available
+      rust-analyzer                       # Rust LSP
+      rustfmt                             # Rust code formatter
+      clippy                              # Rust linter
       glibc                               # System dependency for SQLx macros
       sqlx-cli                            # SQLx command line tool
 
