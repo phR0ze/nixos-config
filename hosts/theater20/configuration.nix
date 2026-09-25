@@ -13,9 +13,8 @@
   config = {
     devices.boot.efi = true;
     devices.gpu.intel.enable = true;
-    host.autologin = true;
+    machine.autologin = true;
     host.nix.cache.enable = true;
-    host.smb.secrets = ./secrets.enc.yaml;   # real per-share passwords (ashley/lydia)
 
     services.raw.keyd.enable = true;
     apps.games.hedgewars.enable = true;

@@ -122,6 +122,8 @@ in
         content = ''
           ADMIN_TOKEN=${config.secret.ref."vaultwarden/adminToken"}
         '';
+        # EnvironmentFile is only read at unit start, so a rotated admin token needs a restart
+        restartUnits = [ "vaultwarden.service" ];
       };
 
       services.vaultwarden.environmentFile = config.secret.templates."vaultwarden-admin".path;

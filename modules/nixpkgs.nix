@@ -39,7 +39,6 @@
         rust-analyzer = pkgsUnstable.rust-analyzer;
         rust-lang.rust-analyzer = pkgsUnstable.vscode-extensions.rust-lang.rust-analyzer;
         synology-drive-client = pkgsUnstable.synology-drive-client;
-        tailscale = pkgsUnstable.tailscale;
         vadimcn.vscode-lldb = pkgsUnstable.vscode-extensions.vadimcn.vscode-lldb;
         vaultwarden = pkgsUnstable.vaultwarden;
         yt-dlp = pkgsUnstable.yt-dlp;

@@ -54,7 +54,7 @@ let
   # AdGuardHome's own persisted config at activation via `preStart`, hashing the plaintext password
   # (decrypted to config.secret.files."users/admin/password".path by modules/users.nix) there
   # instead of at eval time -- the same "patch the app's own config file at activation" approach
-  # modules/services/raw/jellyfin already uses for network.xml.
+  # modules/services/native/jellyfin.nix already uses for network.xml.
   patchAdminUser = pkgs.writeShellScript "adguardhome-patch-admin-user" ''
     set -euo pipefail
     export HASH="$(${pkgs.apacheHttpd}/bin/htpasswd -nbB "${host.user.name}" "$(cat ${config.secret.files."users/admin/password".path})" | cut -d: -f2)"
@@ -359,5 +359,12 @@ in
     };
 
     systemd.services.adguardhome.preStart = lib.mkIf hasSecrets "${patchAdminUser}";
+
+    # The entry itself is declared in modules/system/users.nix - contribute only the restart
+    # wiring here, so rotating the admin password re-runs patchAdminUser (preStart) and the
+    # persisted AdGuardHome.yaml picks up the new hash
+    secret.files = lib.mkIf hasSecrets {
+      "users/admin/password".restartUnits = [ "adguardhome.service" ];
+    };
   };
 }

@@ -4,7 +4,7 @@
 # - Contains shortcuts for both the Window Manager settings and the general keyboard settings
 # - Generate the ~/.config/xfce/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml configuration file
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   xfce = config.system.xfce;
   cfg = xfce.shortcuts;

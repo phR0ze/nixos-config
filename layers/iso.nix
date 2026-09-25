@@ -16,11 +16,11 @@ let
 in
 {
   host.type.iso = true;
-  host.autologin = true;
-  host.hostname = "nixos";
+  machine.autologin = true;
+  machine.name = "nixos";
   host.user.name = "nixos";
   host.user.group = "nixos";
-  host.resolution = { x = 1920; y = 1080; };
+  machine.resolution = { x = 1920; y = 1080; };
 
   imports = [
     # The ISO building automation I'm levaraging from Nix will automatically include all derevations

@@ -121,7 +121,7 @@ lib/                   # Bash library modules (one per command)
 flake.nix / flake.lock # The single shared flake (permanently committed)
 args.nix               # Default arguments (static, committed - never mutated by clu)
 modules/               # All NixOS modules - every one is an opt-in feature namespace (see §5)
-layers/                # Composable configuration layers + bundles/ aggregators (see §6)
+layers/                # Chainable `layers.<group>.<name>` option namespaces, auto-imported (see §6)
 hosts/<name>/          # Per-host configurations (22+ hosts) - configuration.nix, hardware-configuration.nix,
                        #   args.enc.yaml/args.nix, secrets.enc.yaml, optionally .isolated (see §2)
 include/               # Static file templates (home dir configs, fonts, nix cache keys)
@@ -153,13 +153,14 @@ in {
 ```
 
 **Every module requires an explicit `enable` option - no exceptions.** There is no "always-on
-baseline" category: a module must never apply config merely by being imported. This matters even
-for modules only ever imported by a single layer (e.g. `modules/system/users.nix`,
-`modules/system/locale.nix`, `modules/system/env/systemd.nix`) - the layer that imports such a
-module must also set `<namespace>.<name>.enable = true;` in the same file, so the module's own
-`lib.mkIf (cfg.enable)` gate is what actually turns its config on, not the accident of import
-order. This keeps every module independently testable/toggleable and keeps `configuration.nix`
-diffs honest about what's actually turned on for a host.
+baseline" category: a module must never apply config merely by being imported. `modules/default.nix`
+imports *everything* - every `modules/*` subdirectory and all of `layers/` - so every option in the
+repo is defined on every host and imports carry no meaning beyond that. `enable` is the only thing
+that turns config on. This holds even for modules only one layer ever activates (e.g.
+`modules/system/users.nix`, `modules/system/locale.nix`, `modules/system/env/systemd.nix`) - that
+layer sets `<namespace>.<name>.enable = true;` and the module's own `lib.mkIf (cfg.enable)` gate is
+what applies it. This keeps every module independently testable/toggleable and keeps
+`configuration.nix` diffs honest about what's actually turned on for a host.
 
 ### The `host` Type (`modules/types/host.nix`)
 
@@ -174,28 +175,80 @@ truth and this list will go stale otherwise.
 
 ---
 
-## 6. Layer Composition
+## 6. Layers
 
-Layers are atomic, standalone NixOS modules - no layer imports another layer (order-independent,
-mixable, the way the module system is meant to be used). To avoid every one of 22+ hosts repeating
-the same 4-5 item `imports` list for a common host class, thin **bundle** modules under
-`layers/bundles/` aggregate the atomic layers a class needs - e.g. `bundles/xfce-desktop.nix` is
-just `imports = [ core.nix base.nix xfce/base.nix xfce/desktop.nix ]`. See `layers/bundles/` for
-the current set; each bundle file is short enough to read directly rather than needing a diagram
-here.
+**A layer is an option namespace, not an import unit.** `modules/default.nix` imports `../layers`,
+which fans out through `layers/default.nix` to every layer file, so every layer's *options* exist on
+every host for free. Importing a layer applies nothing - its config sits behind its own
+`layers.<group>.<name>.enable` gate, exactly like every other module (§5). A host activates what it
+wants from its own `config`:
 
-Each layer adds:
-- Package lists via `environment.systemPackages`
-- Option enables (e.g. `apps.games.steam.enable = true`) - including for `modules/*` dependencies
-  that only this layer imports (e.g. `layers/console/core.nix` importing
-  `../modules/system/users.nix` alongside setting `system.users.enable = true;` - see §5, every
-  module requires an explicit enable regardless of how narrowly it's imported)
-- Host type flags (e.g. `host.type.develop = true`)
+```nix
+config = {
+  layers.console.server = {
+    enable = true;
+    harden = true;
+    lowMemory = true;
+  };
+};
+```
 
-A host's `configuration.nix` typically imports one bundle. For a one-off combination not covered by
-an existing bundle, a host may instead hand-pick a flat list of atomic layers directly - Nix's module
-system dedups imports by absolute file path, so mixing a bundle with an extra atomic layer is safe
-and won't double-import anything.
+A layer is just a module whose job is to turn on a coherent set of `modules/*` features: feature
+enables (`apps.system.neovim.enable = true`), `environment.systemPackages` lists, and machine flags.
+
+### Chaining
+
+Layers compose by **setting each other's options**, never by importing each other. A layer that
+builds on a lower one enables it in its own `config` block and passes shared flags down, so one
+top-level toggle propagates through the chain:
+
+```nix
+config = lib.mkIf (cfg.enable) {
+  layers.console.core = {
+    enable = true;
+    lowMemory = lib.mkIf cfg.lowMemory true;
+  };
+};
+```
+
+`layers/console/desktop.nix` -> `server.nix` -> `core.nix` is the live example: a host enabling
+`desktop` with `harden = true` gets `server` and `core` enabled with hardening carried down.
+
+Pass flags along as `lib.mkIf cfg.flag true`, **not** `cfg.flag` - a bare `false` is a real value
+that fights with another activated layer that wanted the flag on. With `mkIf`, a chain only ever
+adds.
+
+### Shape of a layer
+
+Same as any module (§5), plus the `mkMerge` split for flags:
+
+```nix
+{ config, lib, pkgs, ... }:
+let cfg = config.layers.<group>.<name>;
+in {
+  options.layers.<group>.<name> = {
+    enable = lib.mkEnableOption "Enable the <name> layer";
+    harden = lib.mkEnableOption "Enable security hardening configuration";
+  };
+
+  config = lib.mkMerge [
+    (lib.mkIf (cfg.enable) { /* base config + chained layer enables */ })
+    (lib.mkIf (cfg.enable && cfg.harden) { /* variant config */ })
+  ];
+}
+```
+
+Flags are why the layer count stays small: a hardened server is `server` with `harden = true`, not a
+separate `server-hardened` layer. Reach for a new flag on an existing layer before a new layer.
+
+### Migration status
+
+`layers/console/*` follows this model. `layers/xfce/*`, `layers/plasma/*`, `layers/budgie/*` and
+`layers/bundles/*` are still the old style - bare `config` bodies with no `enable` gate, aggregated
+by a `bundles/` module that the host `imports` - and most hosts still import a bundle. Convert them
+to `layers.<group>.<name>` namespaces as you touch them; `layers/bundles/` disappears in the
+process, since a bundle is just a layer that enables other layers. `layers/iso.nix` is the one
+deliberate exception - `flake.nix` imports it directly as the ISO build's entry point.
 
 ---
 
@@ -219,7 +272,7 @@ at *evaluation* time - drive UUIDs, network interface config, EFI/MBR selection)
 passwords, SMB share creds): decrypted by **sops-nix at systemd activation time**, straight to
 `/run/secrets`/`/run/files` on the target host - never touches the Nix store, git, or this repo's
 working tree at all. `host.secrets` (user password hash, via `modules/users.nix`) and
-`host.smb.secrets` (SMB share creds, via `modules/services/raw/smb`, using `sops.templates`) both
+`services.native.smb.sopsFile` (SMB share creds, via `modules/services/native/smb`, using `secret.templates`) both
 follow this pattern. Prefer this over the build-time-args mechanism whenever a value is only consumed
 by a running service reading a file, not by a NixOS module option at evaluation time.
 
@@ -240,11 +293,20 @@ and reference it conditionally in `mkHost` (see `macbook`/`nixos-hardware`).
 Custom package builds go in `packages/<name>/`; option-specific custom builds use `package.nix`
 in the option's own directory (not `default.nix`, which is reserved for the option definition).
 
-### Adding a New Layer or Bundle
-Layers never import other layers - only genuine `modules/*` dependencies (§6). A new bundle needs
-the `# - Directly installable: <description>` marker comment so `clu install`'s interactive picker
-(`lib/install`) surfaces it. Mixing a bundle with an extra hand-picked atomic layer in a host's
-`configuration.nix` is safe - Nix dedups imports by absolute file path.
+### Adding a New Layer
+Create `layers/<group>/<name>.nix` declaring `options.layers.<group>.<name>` with an `enable` plus
+any flags, and add the file to `layers/<group>/default.nix`'s `imports` (for a new group, create
+that `default.nix` and add the directory to `layers/default.nix`). That's registration - it makes
+the options available everywhere, not the config (§6).
+
+- **Never `imports` another layer.** Depend on it by enabling it in your `config` block and passing
+  flags through with `lib.mkIf cfg.flag true`.
+- **Prefer a flag on an existing layer** over a new layer for a variant of one.
+- `clu install`'s interactive picker (`lib/install`) still discovers installable targets by grepping
+  layer files for the `# - Directly installable: <description>` marker and then *importing* the
+  matched file path. That path-import approach is tied to the old bundle style; as layers move to
+  `layers.<group>.<name>` namespaces the picker needs to switch to setting that option's `enable`
+  instead.
 
 ---
 

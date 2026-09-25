@@ -16,7 +16,6 @@
   config = {
     devices.boot.efi = true;
     host.nix.cache.enable = true;
-    host.smb.secrets = ./secrets.enc.yaml;
 
     # broadcom_sta is an insecure package (upstream, unmaintained driver) - allowed only here
     # since only this host's wifi card needs it

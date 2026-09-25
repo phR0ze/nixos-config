@@ -75,7 +75,15 @@ in
     (lib.mkIf cfg.enable {
       # Decrypted at activation to sops-nix's default path (config.secret.files."tailscale/authKey".path,
       # normally /run/secrets/tailscale/authKey), never touching the Nix store
-      secret.files."tailscale/authKey".sopsFile = cfg.secrets;
+      secret.files."tailscale/authKey" = {
+        sopsFile = cfg.secrets;
+        # tailscaled-autoconnect cats the key at start to run `tailscale up`, so a rotated key
+        # is only picked up on a restart. sops-nix uses `systemctl try-restart`, which acts only
+        # on already-running units, so this stays a no-op under `autoStart = false` below (where
+        # the unit is deliberately left out of multi-user.target for manual control) and when
+        # the node is already authenticated and the unit has exited.
+        restartUnits = [ "tailscaled-autoconnect.service" ];
+      };
 
       # Configure the tailscale service
       services.tailscale = {

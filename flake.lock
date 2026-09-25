@@ -8,11 +8,11 @@
         "sops-nix": "sops-nix"
       },
       "locked": {
-        "lastModified": 1789675192,
-        "narHash": "sha256-mIAAOS2xQ3yoi6FeDjRBGjw7YvJUf+fK2bAWQAENCB8=",
+        "lastModified": 1790352458,
+        "narHash": "sha256-luTDj7KkFOeGKqVlS3LUmw89FeGe0sq9cZ9DiCBtzV4=",
         "owner": "phR0ze",
         "repo": "nix-weave",
-        "rev": "450cfc689ebfa6a6376a70d87ddf8c77428a5e4e",
+        "rev": "d54c283dcf122b5e0018465015682196eaa01019",
         "type": "github"
       },
       "original": {

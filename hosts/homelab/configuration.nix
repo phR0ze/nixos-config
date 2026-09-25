@@ -14,8 +14,7 @@
     devices.boot.efi = true;
     host.net.bridge.enable = true;
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
-    host.autologin = true;
-    host.smb.secrets = ./secrets.enc.yaml;
+    machine.autologin = true;
     system.x11.autolock.enable = true;
 
     # Apps
@@ -27,10 +26,10 @@
 
     # Homelab services
     services.raw.minecraft.enable = true;
-    services.raw.nix-cache.host.enable = true;
+    services.native.nix-cache.host.enable = true;
     services.raw.mullvad.enable = true;
     services.raw.synology-drive-client.enable = true;
-    services.raw.jellyfin = {
+    services.native.jellyfin = {
       enable = true; port = 8096; subdomain = "jellyfin";
     };
     services.raw.vaultwarden = {

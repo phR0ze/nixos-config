@@ -3,16 +3,11 @@
 # ### Features
 # - Virtual Machine deployment
 # --------------------------------------------------------------------------------------------------
-{ ... }:
 {
-  imports = [
-    ../../layers/bundles/xfce-desktop.nix
-  ];
-
   config = {
     host.type.vm = true;
-    host.resolution = { x = 1920; y = 1080; };
     host.autologin = true;
+    host.desktop.xfce = true;
     #host.net.dns.force = true;
 
     # Beefed up VM specs with DHCP full LAN presence

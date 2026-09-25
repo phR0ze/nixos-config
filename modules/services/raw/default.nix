@@ -7,17 +7,13 @@
     ./adguardhome
     ./caddy
     ./immich
-    ./jellyfin
     ./kasmvnc
     ./keyd
     ./minecraft
     ./mullvad
-    ./nfs
-    ./nix-cache
     ./private-internet-access
     ./selkies
     ./smartd
-    ./smb
     ./sunshine
     ./synology-drive-client
     ./tailscale

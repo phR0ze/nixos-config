@@ -222,6 +222,9 @@ in
         }
       ];
 
+      # Use modern nftables for `networking.firewall` to be compatible with crowdsec
+      networking.nftables.enable = true;
+
       # Disable ipv6 and is related parts to be explicit
       networking.enableIPv6 = false;
       boot.kernel.sysctl."net.ipv6.conf.all.forwarding" = 0;
@@ -269,26 +272,6 @@ in
       # (e.g. CrowdSec's iptables/nftables collection) has something to work from - without this,
       # anything that isn't caught by a service's own logs (e.g. sshd auth attempts) is invisible.
       networking.firewall.logRefusedConnections = true;
-
-      # nftables replaces the legacy iptables/ipset backend for both `networking.firewall` itself
-      # and (via services.crowdsec-firewall-bouncer's own `mode` default, which derives from this
-      # same flag) the CrowdSec bouncer - see modules/services/native/crowdsec.nix, which sheds its
-      # ip_set/xt_set kernel modules and CAP_NET_RAW once this is on.
-      networking.nftables.enable = true;
-
-      # The nftables firewall backend's default strict reverse-path filter (an fib-based check in
-      # its own rpfilter chain, separate from and in addition to the net.ipv4.conf.*.rp_filter
-      # sysctl) silently drops ALL traffic - ICMP, UDP, TCP alike - from a container/bridge
-      # interface (podman, docker, libvirt) toward the host's own address on that bridge, even
-      # though the exact same traffic forwarded to an external destination works fine. This is a
-      # well-known nftables-firewall/container-bridge incompatibility, not a missing kernel module:
-      # confirmed live via `nsenter --net` into a container's namespace - `ping`/`dig @<gateway>`
-      # both time out 100%, while `curl` to an external IP over the NAT/forward path succeeds
-      # (hosts/vm-vps1 testing, 2026-09-21, surfaced as CrowdSec's containerized LAPI never
-      # reaching aardvark-dns to resolve anything, blocking its healthcheck forever). Loose mode
-      # (RFC 3704) still rejects spoofed source addresses with no route at all, just not strictly
-      # via the incoming interface - the standard fix for hosts running container/VPN bridges.
-      networking.firewall.checkReversePath = "loose";
 
       # LLMNR/mDNS are same-subnet discovery protocols (resolving other local devices' hostnames
       # without a DNS server) - meaningless on a host with no local peers to discover, and the

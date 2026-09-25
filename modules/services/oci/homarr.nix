@@ -81,6 +81,8 @@ in
             SECRET_ENCRYPTION_KEY=${config.secret.ref."homarr/encKey"}
           '';
           secrets."homarr/encKey".sopsFile = cfg.secrets;
+          # The container reads SECRET_ENCRYPTION_KEY from this env file at start only
+          restartUnits = [ "podman-${cfg.name}.service" ];
         };
       };
 

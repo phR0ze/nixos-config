@@ -11,8 +11,8 @@
 
   config = {
     host.type.vm = true;
-    host.resolution = { x = 1920; y = 1080; };
-    host.autologin = true;
+    machine.resolution = { x = 1920; y = 1080; };
+    machine.autologin = true;
 
     # Testing
     # ---------------------------------------------
@@ -35,7 +35,6 @@
 #      };
       interfaces = [{
         type = "macvtap";
-        id = config.hostname;
         fd = 3;
         macvtap.mode = "bridge";
         macvtap.link = "br0";

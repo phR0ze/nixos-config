@@ -37,6 +37,7 @@ in
   options = {
     system.x11 = {
       enable = lib.mkEnableOption "Enable X11";
+      autologin = lib.mkEnableOption "Automatically log `host.user.name` in after boot, set from `machine.autologin`";
       autolock = {
         enable = lib.mkEnableOption "Enable automatically locking the screen after login";
         exec = lib.mkOption {
@@ -74,7 +75,7 @@ in
           };
         };
         displayManager = {
-          autoLogin.enable = host.autologin;
+          autoLogin.enable = x11.autologin;
           autoLogin.user = host.user.name;
         };
 

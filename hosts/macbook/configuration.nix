@@ -24,7 +24,7 @@ in
     virtualization.qemu.host.enable = true;
 
     # Increase the default DPI size
-    host.resolution = { x = 1920; y = 1200; } ;
+    machine.resolution = { x = 1920; y = 1200; } ;
     system.x11.xft.dpi = lib.mkForce 120;
 
     # Fix default power governor to run at a lower frequency and boost as needed

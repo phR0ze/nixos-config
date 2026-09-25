@@ -1,4 +1,7 @@
 # server.nix provides the container runtime foundation for headless server-class hosts
+# 
+# ### Dependencies
+# - `core` gets configured with passed along options
 #
 # ### Features
 # - Podman (rootless-capable OCI container runtime, docker-compatible CLI/socket)
@@ -13,16 +16,22 @@ in
     layers.console.server = {
       enable = lib.mkEnableOption "Enable the server layer";
       harden = lib.mkEnableOption "Enable security hardening configuration";
+      lowMemory = lib.mkEnableOption "Enable the low memory configuration";
     };
   };
 
   config = lib.mkMerge [
 
-    # Standard server
-    # ----------------------------------------------------------------------------------------------
     (lib.mkIf (cfg.enable) {
-      devices.kernel.containers = true;      # ip_forward/bridge-nf-call sysctls podman needs
-      virtualisation.podman.enable = true;   # OCI container runtime for services.oci.* modules
+
+      # Core dependencies with passed along configuration
+      layers.console.core = {
+        enable = true;
+        lowMemory = lib.mkIf cfg.lowMemory true;
+      };
+
+      # OCI container runtime for services.oci.* modules
+      virtualisation.podman.enable = true;
     })
 
     # Harden

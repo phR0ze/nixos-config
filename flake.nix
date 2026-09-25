@@ -26,9 +26,9 @@
     # Compose the argument overrides for the given hostname
     # ----------------------------------------------------------------------------------------------
     # Layering (lowest to highest priority): root args.nix -> root args.dec.yaml ->
-    # hosts/<hostname>/args.nix -> hosts/<hostname>/args.dec.yaml. `host.hostname` and
+    # hosts/<hostname>/args.nix -> hosts/<hostname>/args.dec.yaml. `host.name` and
     # `host.git.comment` are then always set authoritatively so no per-host file needs to declare
-    # them: `host.hostname` is simply the hosts/ directory name being built, and `host.git.comment`
+    # them: `host.name` is simply the hosts/ directory name being built, and `host.git.comment`
     # comes straight from flake introspection (self.rev), not a value written into a tracked file.
     mergeArgs = hostname: let
       isolated = builtins.pathExists (./hosts + "/${hostname}/.isolated");
@@ -40,7 +40,7 @@
       baseArgs = if isolated then {} else (if builtins.pathExists baseArgsFile then f.fromYAML baseArgsFile else {});
       rootArgs = if isolated then {} else _args;
     in lib.recursiveUpdate (lib.recursiveUpdate (lib.recursiveUpdate rootArgs baseArgs) (lib.recursiveUpdate hostArgs hostDecArgs)) {
-      host.hostname = hostname;
+      host.name = hostname;
       host.git.comment = self.rev or "dirty";
     };
 

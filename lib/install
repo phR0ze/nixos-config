@@ -207,8 +207,8 @@ install::install_config()
     local args=$(jq -n '{}')
 
     # Convert general options to json
-    log::ls -n "Staging ${cyan}host.hostname=${HOSTNAME}${none}..."
-    args=$(echo "$args" | jq --arg k "host.hostname" --arg v "${HOSTNAME}" '($k | split(".")) as $p | setpath($p; $v)')
+    log::ls -n "Staging ${cyan}host.name=${HOSTNAME}${none}..."
+    args=$(echo "$args" | jq --arg k "host.name" --arg v "${HOSTNAME}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
     log::ls -n "Staging ${cyan}host.timezone=${TIMEZONE}${none}..."
     args=$(echo "$args" | jq --arg k "host.timezone" --arg v "${TIMEZONE}" '($k | split(".")) as $p | setpath($p; $v)')
@@ -230,8 +230,8 @@ install::install_config()
     args=$(echo "$args" | jq --argjson existing "{\"host\":{\"drives\":[{\"uuid\":\"$root_uuid\"}]}}" '. * $existing')
     log::status
 
-    log::ls -n "Staging ${cyan}host.nix.minVer=${NIXOS_VER}${none}..."
-    args=$(echo "$args" | jq --arg k "host.nix.minVer" --arg v "${NIXOS_VER}" '($k | split(".")) as $p | setpath($p; $v)')
+    log::ls -n "Staging ${cyan}host.nix.stateVersion=${NIXOS_VER}${none}..."
+    args=$(echo "$args" | jq --arg k "host.nix.stateVersion" --arg v "${NIXOS_VER}" '($k | split(".")) as $p | setpath($p; $v)')
     log::status
 
     # Convert user options to json
@@ -320,8 +320,8 @@ install::install_config()
         log::status
     fi
     if [[ "x$NFS_SHARES" == "xy" ]]; then
-        log::ls -n "Staging ${cyan}nfs.enable=true${none}..."
-        args=$(echo "$args" | jq --arg k "nfs.enable" --argjson v true '($k | split(".")) as $p | setpath($p; $v)')
+        log::ls -n "Staging ${cyan}host.services.native.nfs.enable=true${none}..."
+        args=$(echo "$args" | jq --arg k "host.services.native.nfs.enable" --argjson v true '($k | split(".")) as $p | setpath($p; $v)')
         log::status
     fi
 

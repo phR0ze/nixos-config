@@ -31,36 +31,15 @@
 # key, then it's rendered like any other sops-nix template placeholder. Machines without
 # `apps.network.rustdesk.secrets` fall back to the old eval-time bake (`rdutil encrypt` run as a Nix
 # derivation, leaking the plaintext password into the Nix store's builder script).
-#
-# `secret.templates` has no per-user home-directory expansion the way `files.all` does (it only
-# knows absolute paths), so RustDesk.toml's per-real-user `secret.templates` entries are built by
-# hand below, mirroring nix-weave's own `files.all` expansion (every `isNormalUser` account, plus
-# a root copy at /root/.config/...).
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  host = config.host;
   cfg = config.apps.network.rustdesk;
-  # Deliberately its own option rather than reading `host.secrets` directly: encodedPass is
-  # `rdutil encrypt <pass> --key <host.id>`'s output, so it's cryptographically tied to this
-  # specific host's id and can never be satisfied by a shared/default secrets file the way
-  # `host.secrets` can for `user.password`/`passwordHash` in modules/users.nix.
-  hasSecrets = cfg.secrets != null;
-
-  # Legacy eval-time bake -- fallback until this host has an `apps.network.rustdesk.secrets` file
-  encoded-pass = builtins.readFile (pkgs.runCommandLocal "encoded-rustdesk-pass" {} ''
-    ${pkgs.rdutil}/bin/rdutil encrypt "${host.user.pass}" --key "${host.id}" > $out
-  '');
 
   rustDeskTomlContent = (lib.concatStringsSep "\n"
     ([] ++ lib.optionals (cfg.allowDirectIPAccess)
       [ "password = '${if hasSecrets then config.secret.ref."rustdesk/encodedPass" else encoded-pass}'" ]
     )) + "\n";
-
-  # root plus every real (isNormalUser) account, named -> { user; group; home; }
-  rustDeskOwners = { root = { user = "root"; group = "root"; home = "/root"; }; } //
-    (lib.mapAttrs (uname: u: { user = uname; group = u.group; home = u.home; })
-      (lib.filterAttrs (_: u: u.isNormalUser) config.users.users));
 
   rustDeskTomlTemplates = lib.mapAttrs' (name: owner: {
     name = "rustdesk-permanent-pass-${name}";
@@ -76,6 +55,93 @@ in
   options = {
     apps.network.rustdesk = {
       enable = lib.mkEnableOption "Configure rustdesk Flutter based client";
+
+      autostart = lib.mkOption {
+        description = lib.mdDoc "Autostart RustDesk";
+        type = types.bool;
+        default = true;
+      };
+
+      allowLinuxHeadless = lib.mkOption {
+        description = lib.mdDoc "Allow linux headless mode";
+        type = types.bool;
+        default = true;
+      };
+
+      service = lib.mkOption {
+        description = lib.mdDoc ''
+          Install as systemd service and autostart
+          WIP, doesn't seem to currently work :(
+        '';
+        type = types.bool;
+        default = false;
+      };
+
+      accessMode = lib.mkOption {
+        description = lib.mdDoc "Provide full access for remote session";
+        type = types.enum [ "full" "view" ];
+        default = "full";
+      };
+
+      acceptSessionViaPassword = lib.mkOption {
+        description = lib.mdDoc ''
+          Accept RustDesk sessions after entering the password without prompting the remote user to 
+          click accept. Note this can be used with the click option to allow for both options.
+        '';
+        type = types.bool;
+        default = true;
+      };
+
+      acceptSessionViaClick = lib.mkOption {
+        description = lib.mdDoc ''
+          Prompt the remote user to click accept in order to connect to the session.
+          Note this can be used with the password option to allow for both options.
+        '';
+        type = types.bool;
+        default = false;
+      };
+
+      useTemporaryPassword = lib.mkOption {
+        description = lib.mdDoc ''
+          Automatically generate a temporary password that can be used for access.
+          Note this can be used with the permanent password such that either will work.
+        '';
+        type = types.bool;
+        default = false;
+      };
+
+      usePermanentPassword = lib.mkOption {
+        description = lib.mdDoc ''
+          Use a permanent password for access.
+          Note this can be used with the temporary password such that either will work.
+        '';
+        type = types.bool;
+        default = true;
+      };
+
+      allowRemoteConfigModification = lib.mkOption {
+        description = lib.mdDoc "Allow control side to change controlled settings";
+        type = types.bool;
+        default = true;
+      };
+
+      allowDirectIPAccess = lib.mkOption {
+        description = lib.mdDoc "Allow remote users to connect directly by IP address";
+        type = types.bool;
+        default = true;
+      };
+
+      allowOnlyDirectIPAccess = lib.mkOption {
+        description = lib.mdDoc "Only accept direct IP connections";
+        type = types.bool;
+        default = true;
+      };
+
+      enableDarkTheme = lib.mkOption {
+        description = lib.mdDoc "Enable dark theme mode";
+        type = types.bool;
+        default = true;
+      };
 
       secrets = lib.mkOption {
         type = types.nullOr types.path;
@@ -95,98 +161,10 @@ in
           genuinely lives elsewhere.
         '';
       };
-
-      autostart = lib.mkOption {
-        description = lib.mdDoc "Autostart RustDesk";
-        type = types.bool;
-        default = true;
-      };
-      allowLinuxHeadless = lib.mkOption {
-        description = lib.mdDoc "Allow linux headless mode";
-        type = types.bool;
-        default = true;
-      };
-      service = lib.mkOption {
-        description = lib.mdDoc ''
-          Install as systemd service and autostart
-          WIP, doesn't seem to currently work :(
-        '';
-        type = types.bool;
-        default = false;
-      };
-      accessMode = lib.mkOption {
-        description = lib.mdDoc "Provide full access for remote session";
-        type = types.enum [ "full" "view" ];
-        default = "full";
-      };
-      acceptSessionViaPassword = lib.mkOption {
-        description = lib.mdDoc ''
-          Accept RustDesk sessions after entering the password without prompting the remote user to 
-          click accept. Note this can be used with the click option to allow for both options.
-        '';
-        type = types.bool;
-        default = true;
-      };
-      acceptSessionViaClick = lib.mkOption {
-        description = lib.mdDoc ''
-          Prompt the remote user to click accept in order to connect to the session.
-          Note this can be used with the password option to allow for both options.
-        '';
-        type = types.bool;
-        default = false;
-      };
-      useTemporaryPassword = lib.mkOption {
-        description = lib.mdDoc ''
-          Automatically generate a temporary password that can be used for access.
-          Note this can be used with the permanent password such that either will work.
-        '';
-        type = types.bool;
-        default = false;
-      };
-      usePermanentPassword = lib.mkOption {
-        description = lib.mdDoc ''
-          Use a permanent password for access.
-          Note this can be used with the temporary password such that either will work.
-        '';
-        type = types.bool;
-        default = true;
-      };
-      allowRemoteConfigModification = lib.mkOption {
-        description = lib.mdDoc "Allow control side to change controlled settings";
-        type = types.bool;
-        default = true;
-      };
-      allowDirectIPAccess = lib.mkOption {
-        description = lib.mdDoc "Allow remote users to connect directly by IP address";
-        type = types.bool;
-        default = true;
-      };
-      allowOnlyDirectIPAccess = lib.mkOption {
-        description = lib.mdDoc "Only accept direct IP connections";
-        type = types.bool;
-        default = true;
-      };
-      enableDarkTheme = lib.mkOption {
-        description = lib.mdDoc "Enable dark theme mode";
-        type = types.bool;
-        default = true;
-      };
     };
-
-#    apps.network.rustdesk.server = {
-#      enable = lib.mkEnableOption "Install and configure rustdesk server";
-#      relayHost = lib.mkOption {
-#        description = lib.mdDoc "IP/DNS name to use for the relay host";
-#        type = types.str;
-#        example = "192.168.1.2";
-#        default = host.net.nic0.ip;
-#      };
-#    };
   };
  
   config = lib.mkMerge [
-
-    # Configure RustDesk Flutter client
     (lib.mkIf cfg.enable {
       environment.systemPackages = [
         pkgs.rdutil                   # custom tool for setting rustdesk password
@@ -204,10 +182,13 @@ in
           [ "[options]" "theme = 'dark'"]
         )) + "\n";
 
-      # Configure rustdesk permanent password encoded using the unique machine-id for this system.
-      # `secret.templates` has no per-user expansion, so this is built by hand above (rustDeskTomlTemplates).
-      files.all.".config/rustdesk/RustDesk.toml" = lib.mkIf (!hasSecrets) { copy = rustDeskTomlContent; };
-      secret.templates = lib.mkIf hasSecrets rustDeskTomlTemplates;
+      # Configure rustdesk permanent password encoded using the unique machine-id for this system
+      files.all.".config/rustdesk/RustDesk.toml".text = (lib.concatStringsSep "\n"
+        ([] ++ lib.optionals (cfg.allowDirectIPAccess)
+          [ "password = '${encoded-pass}'" ]
+        )) + "\n";
+      #files.all.".config/rustdesk/RustDesk.toml" =
+      #secret.templates = lib.mkIf hasSecrets rustDeskTomlTemplates;
 
       # Configure RustDesk general options
       #   - the absence of an verification-method means both are accepted
@@ -236,29 +217,6 @@ in
             "api-server = 'http://0.0.0.1'"
           ]
         )) + "\n";
-
-      # Configure RustDesk to start with the system
-      # WIP - wasn't able to get this to work correctly
-      #
-      # - https://github.com/rustdesk/rustdesk/blob/master/res/rustdesk.service
-      # - https://github.com/rustdesk/rustdesk/wiki/Headless-Linux-Support
-      # - sudo rustdesk --option allow-linux-headless Y
-#      systemd.services.rustdesk = lib.mkIf (cfg.service) {
-#        description = "RustDesk";
-#        enable = true;
-#        requires = [ "network.target" ];              # fails this service if no network
-#        after = [ "systemd-user-sessions.service" ];  # start after network.target and login ready
-#        wantedBy = [ "multi-user.target" ];           # ensure starts at boot
-#        serviceConfig = {
-#          Type = "simple";
-#          ExecStart = "${pkgs.rustdesk-flutter}/bin/rustdesk --service";
-#          ExecStop = ''${pkgs.procps}/bin/pkill -f "rustdesk --"'';
-#          PIDFile = "/run/rustdesk.pid";
-#          KillMode = "mixed";
-#          TimeoutStopSec = 5;
-#          LimitNOFILE = 100000;
-#        };
-#      };
     })
 
     # Configure RustDesk to autostart after login
@@ -270,27 +228,5 @@ in
         Exec=${pkgs.rustdesk-flutter}/bin/rustdesk --service
       '';
     })
-
-    # Configure server
-#    (lib.mkIf (cfg.server.enable) {
-#      assertions = [
-#        { assertion = (cfg.relayHost != ""); message = "Requires 'services.rustdesk.relayHost' be set"; }
-#      ];
-#
-#      services.rustdesk-server.enable = true;
-#      services.rustdesk-server.openFirewall = true;
-#      services.rustdesk-server.relay.enable = true;
-#      services.rustdesk-server.signal = {
-#        enable = true;
-#        relayHosts = [ 
-#          (if(builtins.length (lib.splitString "/" cfg.relayHost) > 1) then
-#             (f.toIP cfg.relayHost).address
-#           else
-#             cfg.relayHost
-#          )
-#          cfg.relayHost
-#        ];
-#      };
-#    })
   ];
 }

@@ -11,8 +11,8 @@
 
   config = {
     host.type.vm = true;
-    host.resolution = { x = 1920; y = 1080; };
-    host.autologin = true;
+    machine.resolution = { x = 1920; y = 1080; };
+    machine.autologin = true;
     virtualization.qemu.guest.enable = true;
   };
 }

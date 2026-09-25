@@ -13,40 +13,25 @@ in
   options.system.env.nix = {
     enable = lib.mkEnableOption "default nix environment settings";
 
-    configurationRevision = lib.mkOption {
-      type = lib.types.str;
-      default = "";
-      description = "Short git revision/comment to expose via `clu list versions`.";
-    };
-
     stateVersion = lib.mkOption {
       type = lib.types.str;
       default = lib.trivial.release;
       description = "NixOS state version, see `system.stateVersion` for details.";
     };
 
-    cache = {
-      enable = lib.mkEnableOption "custom binary cache substituter";
-
-      ip = lib.mkOption {
-        type = lib.types.str;
-        default = "";
-        description = "IP address of the custom binary cache host.";
-      };
-
-      port = lib.mkOption {
-        type = lib.types.port;
-        default = 5000;
-        description = "Port of the custom binary cache host.";
-      };
+    configurationRevision = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "Short git revision/comment to expose via `clu list versions`.";
     };
   };
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      system.stateVersion = cfg.stateVersion;
+
       # Set the short git revision and comment to be used in the system version `clu list versions`
       system.configurationRevision = lib.mkIf (cfg.configurationRevision != "") cfg.configurationRevision;
-      system.stateVersion = cfg.stateVersion;
 
       nix = {
 
@@ -111,31 +96,11 @@ in
       # ------------------------------------------------------------------------------------------------
       environment.etc."packages".text =
       let
-        packages = builtins.map (p: p.name) config.environment.systemPackages;
+        packages = map (p: p.name) config.environment.systemPackages;
         sortedUnique = builtins.sort builtins.lessThan (lib.unique packages);
         formatted = builtins.concatStringsSep "\n" sortedUnique;
       in
         formatted;
     })
-
-    (lib.mkIf cfg.cache.enable {
-      nix.settings = {
-        # Add custom binary caches
-        # - https://cache.nixos.org is added by default
-        substituters = lib.mkBefore [ "http://${cfg.cache.ip}:${toString cfg.cache.port}" ];
-
-        # Signing keys for custom substituters
-        trusted-public-keys = [
-          "${(builtins.readFile config.services.raw.nix-cache.host.publicKeyFile)}"
-        ];
-
-        # The custom cache host runs a lot besides the binary cache server (Jellyfin, VMs, containers)
-        # and can stall under load. Fail fast against it instead of the 300s default so we fall
-        # through to cache.nixos.org or a local build quickly rather than hanging for tens of minutes.
-        connect-timeout = lib.mkDefault 5;
-        stalled-download-timeout = lib.mkDefault 30;
-      };
-    })
-
   ];
 }

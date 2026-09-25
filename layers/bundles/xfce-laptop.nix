@@ -1,15 +1,9 @@
-# XFCE laptop bundle: core + base + xfce/base + xfce/desktop + xfce/laptop
+# XFCE laptop bundle: enables xfce/laptop, which chains xfce/desktop + xfce/base + console/desktop
 #
 # ### Features
 # - Directly installable: desktop with additional laptop tooling/configs
 # --------------------------------------------------------------------------------------------------
 { ... }:
 {
-  imports = [
-    ../console/core.nix
-    ../console/base.nix
-    ../xfce/base.nix
-    ../xfce/desktop.nix
-    ../xfce/laptop.nix
-  ];
+  layers.xfce.laptop.enable = true;
 }

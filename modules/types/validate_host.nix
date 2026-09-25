@@ -14,7 +14,6 @@ in
 
     # Ensure the existance of final merged args
     # ----------------------------------------------------------------------------------------------
-    { assertion = (cfg.hostname != null); message = "assert host.hostname: ${cfg.hostname}"; }
     { assertion = (cfg.target != null); message = "assert host.target: ${cfg.target}"; }
     { assertion = (cfg.arch == "x86_64-linux"); message = "assert host.arch: ${cfg.arch}"; }
     { assertion = (cfg.locale == "en_US.UTF-8"); message = "assert host.locale: ${cfg.locale}"; }
@@ -46,7 +45,5 @@ in
     { assertion = (cfg.nix.cache.ip != null); message = "assert host.nix.cache.ip: ${cfg.nix.cache.ip}"; }
 
     { assertion = (cfg.drives != null); message = "assert host.drives: ${toString (builtins.length cfg.drives)}"; }
-    { assertion = (cfg.smb.entries != null); message = "assert host.smb.entries: ${toString (builtins.length cfg.smb.entries)}"; }
-    { assertion = (cfg.nfs.entries != null); message = "assert host.nfs.entries: ${toString (builtins.length cfg.nfs.entries)}"; }
   ];
 }

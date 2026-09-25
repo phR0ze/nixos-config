@@ -49,6 +49,13 @@ in
         x11vnc              # VNC Server
     ];
 
+    # The entry itself is declared in modules/system/users.nix - contribute only the restart
+    # wiring here, so rotating the admin password re-runs storePasswd (ExecStartPre) against the
+    # new value instead of leaving /run/x11vnc/pass holding the old one
+    secret.files = lib.mkIf hasSecrets {
+      "users/admin/password".restartUnits = [ "x11vnc.service" ];
+    };
+
     systemd.services.x11vnc = {
       enable = true;
       description = "VNC Server for X11";

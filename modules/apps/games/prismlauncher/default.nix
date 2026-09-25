@@ -11,6 +11,11 @@ in
   options = {
     apps.games.prismlauncher = {
       enable = lib.mkEnableOption "Install and configure PrismLauncher";
+      hostname = lib.mkOption {
+        description = lib.mdDoc "Hostname to seed `LastHostname` with in the initial user config";
+        type = types.str;
+        default = "";
+      };
       maxMemAlloc = lib.mkOption {
         description = lib.mdDoc "Max memory to allocate for minecraft client";
         type = types.int;
@@ -50,7 +55,7 @@ in
         IconTheme=pe_colored
         JavaPath=${cfg.javaPath}
         Language=en_US
-        LastHostname=${config.host.hostname}
+        LastHostname=${cfg.hostname}
         MaxMemAlloc=${toString cfg.maxMemAlloc}
         MinMemAlloc=${toString cfg.minMemAlloc}
       ''

@@ -14,11 +14,11 @@
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
-  cfg = config.services.raw.jellyfin;
+  cfg = config.services.native.jellyfin;
 in
 {
   options = {
-    services.raw.jellyfin = {
+    services.native.jellyfin = {
       enable = lib.mkEnableOption "Install and configure Jellyfin server";
 
       port = lib.mkOption {
@@ -94,7 +94,7 @@ in
               -u "/NetworkConfiguration/KnownProxies" -v "127.0.0.1" \
               -u "/NetworkConfiguration/LocalNetworkAddresses" -v "127.0.0.1" \
               "$networkXml"; then
-            echo "WARNING: services.raw.jellyfin could not patch $networkXml (KnownProxies/LocalNetworkAddresses) — Jellyfin's network.xml schema may have changed; set these manually via Dashboard > Networking" >&2
+            echo "WARNING: services.native.jellyfin could not patch $networkXml (KnownProxies/LocalNetworkAddresses) — Jellyfin's network.xml schema may have changed; set these manually via Dashboard > Networking" >&2
           fi
           chown jellyfin:jellyfin "$networkXml"
         else

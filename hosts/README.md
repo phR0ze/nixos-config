@@ -38,8 +38,8 @@ and reverted (unstaged + deleted from disk) immediately after via a `trap ... EX
 any leftovers.
 
 Values that are only ever consumed by a running service reading a file at runtime (not by a NixOS
-module option at evaluation time) don't need this treatment at all - see how `host.smb.secrets` /
-`modules/services/raw/smb` already renders SMB credentials via `sops.templates`, decrypted straight to
+module option at evaluation time) don't need this treatment at all - see how `services.native.smb.sopsFile` /
+`modules/services/native/smb` already renders SMB credentials via `secret.templates`, decrypted straight to
 `/etc/smb/secrets/<share>` at activation by sops-nix, the same as `host.secrets` does for the user
 password hash.
 

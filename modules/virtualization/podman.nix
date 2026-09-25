@@ -19,6 +19,9 @@ in
 {
   config = lib.mkIf cfg.enable {
 
+    # ip_forward/bridge-nf-call sysctls podman needs
+    devices.kernel.containers = true;
+
     # Configure primary user permissions - merges onto the same secret.users."admin" entry
     # modules/system/users.nix declares (real username only known post-decrypt, see
     # modules/devices/network.nix's networkmanager grant for the same pattern)

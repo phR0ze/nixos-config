@@ -1,14 +1,9 @@
-# XFCE desktop bundle: core + base + xfce/base + xfce/desktop
+# XFCE desktop bundle: enables xfce/desktop, which chains xfce/base + console/desktop
 #
 # ### Features
 # - Directly installable: full general purpose desktop environment
 # --------------------------------------------------------------------------------------------------
 { ... }:
 {
-  imports = [
-    ../console/core.nix
-    ../console/base.nix
-    ../xfce/base.nix
-    ../xfce/desktop.nix
-  ];
+  layers.xfce.desktop.enable = true;
 }

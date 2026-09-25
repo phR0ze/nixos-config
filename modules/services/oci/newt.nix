@@ -127,6 +127,9 @@ in
         LOG_LEVEL=${cfg.logLevel}
       '';
       secrets."newt/clientSecret".sopsFile = cfg.secrets;
+      # The container gets these as environment variables at start, so a rotated NEWT_SECRET
+      # needs the container restarted to take effect
+      restartUnits = [ "podman-${cfg.name}.service" ];
     };
 
     # Generate the "podman-newt" service unit for the container

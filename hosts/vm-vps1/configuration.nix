@@ -6,25 +6,16 @@
 # - Hardened, local-VM staging twin of hosts/vps1 - test changes here before they reach production
 # --------------------------------------------------------------------------------------------------
 {
-
-
   imports = [
     ./hardware-configuration.nix
   ];
 
   config = {
-    layers.console = {
-      core = {
-        enable = true;
-        lowMemory = true;
-      };
-      server = {
-        enable = true;
-        harden = true;
-      };
+    layers.console.server = {
+      enable = true;
+      harden = true;
+      lowMemory = true;
     };
-    nix.settings.sandbox = false;
-
     services.oci.pangolin = {
       enable = true;
       pangolinTag = "ee-1.21.1";

@@ -222,6 +222,28 @@ in
         # this host gets managed at all, so trade this one hardening knob for a working remote build.
       };
 
+      # Nix's build sandbox has to go for any host taking this hardening - it's the one knob above
+      # that can't be traded away piecemeal. The sandboxing directives on sshd.service are inherited
+      # by every process descending from it, including each login session's shell (same inheritance
+      # mechanism as the individual exclusions above), and nix's own sandbox setup for locally-built
+      # derivations does exactly what they forbid: a nested user+pid+mount namespace doing
+      # `mount("none","/proc","proc",...)`. Confirmed by bisection with `systemd-run` (isolated
+      # transient units carrying sshd's exact serviceConfig, zero sshd ancestry):
+      # `ProtectKernelTunables=true` alone breaks that mount with EPERM, and separately
+      # `ProtectControlGroups=true` + `ProtectHostname=true` together do too (neither alone does) -
+      # so `nix build` over any SSH session forked after this hardening lands fails with "this
+      # system does not support the kernel namespaces that are required for sandboxing". Not a
+      # provider/kernel issue - reproduces identically via plain `unshare` outside of Nix entirely.
+      #
+      # Two independent directive combinations trigger it and there may be further untested ones, so
+      # unlike the knobs above there's no narrow exclusion to make: stripping enough of them off to
+      # preserve the build sandbox would trade away real hardening for a build-time-only concern.
+      # Disabling the sandbox only weakens hermeticity checks for locally-compiled derivations, not
+      # runtime hardening (nftables/CrowdSec/sshd/kernel sysctls all still apply), and these hosts
+      # pull nearly everything from cache.nixos.org anyway. mkDefault so a host that never builds
+      # over SSH can set it back to true.
+      nix.settings.sandbox = lib.mkDefault false;
+
       # Turn on the shared CrowdSec engine (services.native.crowdsec) and feed it SSH-specific
       # detection - it already handles the generic engine/bouncer/profile/allowlist wiring.
       services.native.crowdsec.enable = true;

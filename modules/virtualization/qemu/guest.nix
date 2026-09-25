@@ -16,9 +16,8 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  host = config.host;
   cfg = config.virtualization.qemu.guest;
-  qemuHost = config.virtualization.qemu.host;
+  host = config.virtualization.qemu.host;
 
   # The msize (maximum packet size) passed to 9p file systems, in bytes. Increasing this
   # should increase performance significantly, at the cost of higher RAM usage.
@@ -29,13 +28,62 @@ let
     builtins.filter ({ type, ... }: type == wantedType) cfg.interfaces;
   userInterfaces = interfacesByType "user";
   macvtapInterfaces = interfacesByType "macvtap";
-
   regInfo = pkgs.closureInfo { rootPaths = cfg.registeredPaths; };
+
+  # VM scripts
+  runScript = import ./scripts-run.nix { inherit lib pkgs host; guest = cfg; };
+  macvtapUpScript = import ./scripts-macvtap-up.nix {
+    inherit lib pkgs macvtapInterfaces;
+    userSecretPath = config.secret.files."users/admin/name".path;
+    groupSecretPath = config.secret.files."users/admin/group".path;
+  };
+  macvtapDownScript = import ./scripts-macvtap-down.nix {
+    inherit lib pkgs macvtapInterfaces;
+  };
 in
 {
   options = {
     virtualization.qemu.guest = {
       enable = lib.mkEnableOption "Build this host as a QEMU virtual machine guest";
+      hostname = lib.mkOption {
+        description = lib.mdDoc ''
+          Name of this guest. Used for the QEMU process/window name, the pidfile, the VM state
+          directory the run script expects to be launched from, the default root image name and the
+          default network interface id.
+        '';
+        type = types.str;
+        default = "";
+        example = "vm-prod1";
+      };
+      resolution = lib.mkOption {
+        description = lib.mdDoc ''
+          Display resolution for the guest. Only used to derive the GRUB BIOS graphics mode; leave
+          at the `0x0` default to let GRUB pick.
+        '';
+        type = types.submodule {
+          options = {
+            x = lib.mkOption {
+              description = lib.mdDoc "Horizontal resolution in pixels";
+              type = types.int;
+              default = 0;
+            };
+            y = lib.mkOption {
+              description = lib.mdDoc "Vertical resolution in pixels";
+              type = types.int;
+              default = 0;
+            };
+          };
+        };
+        default = { x = 1920; y = 1080; };
+      };
+      bridge = lib.mkOption {
+        description = lib.mdDoc ''
+          Name of the bridge on the QEMU host that `type = "macvtap"` interfaces attach their tap
+          device to, see `devices.network.bridge.name`.
+        '';
+        type = types.str;
+        default = "br0";
+      };
       type = lib.mkOption {
         description = lib.mdDoc ''
           Virtual machine type for this guest. Neither flag set (the default) means a full desktop
@@ -89,7 +137,7 @@ in
             image = lib.mkOption {
               description = "Root image name";
               type = types.str;
-              default = "./${host.hostname}.qcow2";
+              default = "./${cfg.hostname}.qcow2";
             };
             label = lib.mkOption {
               description = "Root drive label";
@@ -103,12 +151,9 @@ in
             };
           };
         };
-        default = {
-          size = 1;
-          image = "./${host.hostname}.qcow2";
-          label = "nixos";
-          pathVar = "ROOT_IMAGE";
-        };
+        # Defaults come from the sub-options above; `image` can't be repeated here since it's
+        # derived from `cfg.hostname`, which isn't resolved yet at this point.
+        default = { };
       };
       cores = lib.mkOption {
         description = lib.mdDoc "Number of virtual cores for VM";
@@ -199,6 +244,7 @@ in
             id = lib.mkOption {
               description = "Interface name on the host. e.g. `vm-prod1@enp1s0`";
               type = types.str;
+              default = cfg.hostname;
               example = "vm-prod1";
             };
             fd = lib.mkOption {
@@ -255,7 +301,7 @@ in
         # Default the networking to use a user mode NAT device
         default = [{
           type = "user";
-          id = host.hostname;
+          id = cfg.hostname;
         }];
       };
       registeredPaths = lib.mkOption {
@@ -268,29 +314,6 @@ in
         '';
         type = types.listOf types.path;
         default = [ config.system.build.toplevel ];
-      };
-
-      scripts = lib.mkOption {
-        description = "VM startup scripts";
-        type = types.submodule {
-          options = {
-            run = lib.mkOption {
-              type = types.str;
-              description = "QEMU startup script";
-              default = "";
-            };
-            macvtap-up = lib.mkOption {
-              type = types.str;
-              description = "Macvtap startup script";
-              default = "";
-            };
-            macvtap-down = lib.mkOption {
-              type = types.str;
-              description = "Macvtap shutdown script";
-              default = "";
-            };
-          };
-        };
       };
 
       options = lib.mkOption {
@@ -315,6 +338,10 @@ in
           assertion = !(cfg.nixStore.useHost && cfg.nixStore.useImage);
           message = "virtualization.qemu.guest.nixStore.useHost and .useImage are mutually exclusive";
         }
+        {
+          assertion = cfg.hostname != "";
+          message = "virtualization.qemu.guest.hostname must be set (e.g. via machine.type.vm)";
+        }
       ];
 
       services.qemuGuest.enable = true;                   # Install and run the QEMU guest agent
@@ -337,7 +364,8 @@ in
       # QEMU VM kernel configuration
       # --------------------------------------------
       boot.loader.grub.device = lib.mkForce "/dev/disk/by-id/virtio-${cfg.rootDrive.label}";
-      boot.loader.grub.gfxmodeBios = with host.resolution; "${toString x}x${toString y}";
+      boot.loader.grub.gfxmodeBios = lib.mkIf (cfg.resolution.x != 0 && cfg.resolution.y != 0)
+        (with cfg.resolution; "${toString x}x${toString y}");
       boot.loader.supportsInitrdSecrets = lib.mkForce false;
       boot.initrd.availableKernelModules = [
         "virtio_net" "virtio_pci" "virtio_mmio" "virtio_blk" "virtio_scsi"
@@ -360,9 +388,9 @@ in
         (isEnabled "EXT4_FS") (isEnabled "NET_9P_VIRTIO") (isEnabled "9P_FS")
         (isYes "BLK_DEV") (isYes "PCI") (isYes "NETDEVICES") (isYes "NET_CORE")
         (isYes "INET") (isYes "NETWORK_FILESYSTEMS")
-      ] ++ optionals (!cfg.display.enable) [
+      ] ++ lib.optionals (!cfg.display.enable) [
         (isYes "SERIAL_8250_CONSOLE") (isYes "SERIAL_8250")
-      ] ++ optionals (cfg.nixStore.useHost) [
+      ] ++ lib.optionals (cfg.nixStore.useHost) [
         (isEnabled "OVERLAY_FS")
       ];
       systemd.tmpfiles.rules = lib.mkIf config.boot.initrd.systemd.enable [
@@ -473,8 +501,8 @@ in
       # --------------------------------------------------------------------------------------------
       virtualization.qemu.guest.options =
         [
-          "-name ${host.hostname}"         # Name to use for GUI windows and process names
-          "-pidfile ${host.hostname}.pid"  # Store the QEMU process PID in this file
+          "-name ${cfg.hostname}"         # Name to use for GUI windows and process names
+          "-pidfile ${cfg.hostname}.pid"  # Store the QEMU process PID in this file
           "-nodefaults -no-user-config"       # Disable any defaults or pass throughs for a clean env
         ]
 
@@ -555,7 +583,7 @@ in
         # tap devices as root and clean them up as root but run the VM as a regular user.
         ++ lib.optionals (macvtapInterfaces != [])
           (builtins.concatMap (x: [
-            "-netdev tap,id=nic0,br=${host.net.bridge.name},helper=$(type -p qemu-bridge-helper)"
+            "-netdev tap,id=nic0,br=${cfg.bridge},helper=$(type -p qemu-bridge-helper)"
             "-device virtio-net-pci,netdev=nic0,mac=${x.mac}"
           ]) macvtapInterfaces)
         ++ lib.optionals (userInterfaces != [])
@@ -620,8 +648,8 @@ in
           "-vga qxl"
           "-device virtio-serial-pci"
           "-spice port=${toString cfg.spice.port},disable-ticketing=on"
-          "-chardev spicevmc,id=${host.hostname},debug=0,name=vdagent"
-          "-device virtserialport,chardev=${host.hostname},name=com.redhat.spice.0"
+          "-chardev spicevmc,id=${cfg.hostname},debug=0,name=vdagent"
+          "-device virtserialport,chardev=${cfg.hostname},name=com.redhat.spice.0"
         ]
 
         # Kernel configuration
@@ -647,62 +675,18 @@ in
           "-serial chardev:stdio"                         # Redirect all VM's serial output named chardev
         ];
 
-      # Build the VM and create the startup/shutdown scripts
+      # Build the VM and link the startup/shutdown scripts into `result/bin`
       # --------------------------------------------------------------------------------------------
-      virtualization.qemu.guest.scripts.run = ''
-        #! ${pkgs.runtimeShell}
-
-        export PATH=${lib.makeBinPath [ pkgs.coreutils ]}''${PATH:+:}$PATH
-        set -e
-
-        # Create dir storing VM running data and a sub-dir for exchanging data with the VM
-        # ----------------------------------------------------------------------------------------------
-        [ ! -d "${host.hostname}" ] && echo "Must be run from the flake directory" && exit 1
-        VMDIR="${host.hostname}"
-        mkdir -p "$VMDIR/shared"
-        cd "$VMDIR"
-        VMDIR="$(pwd)"
-
-        # Create an empty ext4 filesystem image to store VM state
-        # ----------------------------------------------------------------------------------------------
-        ${cfg.rootDrive.pathVar}=$(readlink -f "${cfg.rootDrive.image}")
-        if ! test -e "''$${cfg.rootDrive.pathVar}"; then
-          echo "Root disk image does not exist, creating ''$${cfg.rootDrive.pathVar}..."
-          temp=$(mktemp)
-          size="${toString (cfg.rootDrive.size * 1024)}M"
-          ${qemuHost.package}/bin/qemu-img create -f raw "$temp" "$size"
-          ${pkgs.e2fsprogs}/bin/mkfs.ext4 -L ${cfg.rootDrive.label} "$temp"
-          ${qemuHost.package}/bin/qemu-img convert -f raw -O qcow2 "$temp" "''$${cfg.rootDrive.pathVar}"
-          rm "$temp"
-          echo "Root disk image created."
-        fi
-
-        # Other options to investigate
-        # ----------------------------------------------------------------------------------------
-        # -nodefaults                           # Don't include any default devices to contend with
-        # -no-user-config                       # Don't include any system configuration to contend with
-        # -no-reboot                            # Exit instead of rebooting
-        #
-        # MicroVM mode allows for higher performance
-        # -M 'microvm,accel=kvm,acpi=on,mem-merge=on,pcie=on,pic=off,pit=off,usb=off'
-
-        # -device i8042                         # Add keyboard controller i8042 to handle CtrlAltDel
-        # -sandbox on                           # Disable system calls not needed by QEMU
-        # -qmp unix:my-vm.sock,server,nowait    # Control socket to use
-        # -object 'memory-backend-memfd,id=mem,size=4096M,share=on'
-        # -numa 'node,memdev=mem'               # Simulate a multi node NUMA system
-
-        # Launch the virtual machine
-        # ----------------------------------------------------------------------------------------
-        exec ${qemuHost.package}/bin/qemu-system-x86_64 \
-          ${lib.concatStringsSep " \\\n  " cfg.options}
-      '';
-
-      system.build.vm = lib.mkForce (pkgs.runCommand "${host.hostname}" { preferLocalBuild = true; } ''
+      system.build.vm = lib.mkForce (pkgs.runCommand "${cfg.hostname}" { preferLocalBuild = true; } (''
         mkdir -p $out/bin
         ln -s ${config.system.build.toplevel} $out/system
-        ln -s ${pkgs.writeScript "run-${host.hostname}" cfg.scripts.run} $out/bin/run
-      '');
+        ln -s ${pkgs.writeScript "run-${cfg.hostname}" runScript} $out/bin/run
+      ''
+      # Bring the macvtap interfaces up before `run` and tear them down after; both need root
+      + lib.optionalString (macvtapInterfaces != []) ''
+        ln -s ${pkgs.writeScript "macvtap-up-${cfg.hostname}" macvtapUpScript} $out/bin/macvtap-up
+        ln -s ${pkgs.writeScript "macvtap-down-${cfg.hostname}" macvtapDownScript} $out/bin/macvtap-down
+      ''));
     }
 
     # Configure SPICE services on the Guest OS

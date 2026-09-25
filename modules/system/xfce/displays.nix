@@ -2,21 +2,20 @@
 #
 # Gnerate the ~/.config/xfce4/xfconf/xfce-perchannel-xml/displays.xml configuration file
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   xfce = config.system.xfce;
-  resolution = config.host.resolution;
   cfg = xfce.displays;
 
   xmlfile = lib.mkIf (xfce.enable)
     (pkgs.writeText "displays.xml" ''
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="displays" version="1.0">
-        ${lib.optionalString (resolution.x != 0 && resolution.y != 0) ''
+        ${lib.optionalString (xfce.resolution.x != 0 && xfce.resolution.y != 0) ''
           <property name="ActiveProfile" type="string" value="Default"/>
           <property name="Default" type="empty">
             <property name="Default" type="string" value="Default">
-              <property name="Resolution" type="string" value="${toString resolution.x}x${toString resolution.y}"/>
+              <property name="Resolution" type="string" value="${toString xfce.resolution.x}x${toString xfce.resolution.y}"/>
             </property>
           </property>''}
         <property name="Notify" type="int" value="${toString cfg.connectingDisplay}"/>
@@ -43,8 +42,8 @@ in
   config = lib.mkMerge [
 
     # Set the xserver resolution if set
-    (lib.mkIf (resolution.x != 0 && resolution.y != 0) {
-      services.xserver.resolutions = [ resolution ];
+    (lib.mkIf (xfce.resolution.x != 0 && xfce.resolution.y != 0) {
+      services.xserver.resolutions = [ xfce.resolution ];
     })
 
     # Set the displays configuration file

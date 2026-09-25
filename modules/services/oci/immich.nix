@@ -66,6 +66,14 @@ in
             POSTGRES_PASSWORD=${config.secret.ref."immich/dbPassword"}
           '';
           secrets."immich/dbPassword".sopsFile = cfg.secrets;
+          # Both containers consuming this env file read it at start only. Note this restarts
+          # them to pick up a rotated value; it does NOT change the password already stored in
+          # the postgres data directory (POSTGRES_PASSWORD only applies at initdb), so an actual
+          # rotation still needs an ALTER USER inside the running database.
+          restartUnits = [
+            "podman-${cfg.name}-server.service"
+            "podman-${cfg.name}-postgres.service"
+          ];
         };
       };
 

@@ -53,6 +53,9 @@ in
       sopsFile = cfg.sopsFile;
       user = config.services.crowdsec.user;
       group = config.services.crowdsec.group;
+      # crowdsec authenticates to the CAPI at startup, so a re-registered credentials file only
+      # takes effect once the running daemon is restarted
+      restartUnits = [ "crowdsec.service" ];
     };
 
     # crowdsec-firewall-bouncer manages its ruleset via nftables/netlink on this host (mode follows

@@ -13,6 +13,9 @@ let
 in
 {
   options.devices.boot = {
+    harden = lib.mkEnableOption "Enable hardening for boot";
+    lowMemory = lib.mkEnableOption "Enable low memory configuration for boot";
+
     efi = lib.mkOption {
       type = bool;
       default = false;
@@ -23,17 +26,14 @@ in
       default = "nodev";
       description = "BIOS MBR boot device e.g. '/dev/sda', or 'nodev' to disable BIOS MBR support";
     };
-
-    harden = lib.mkEnableOption "Enable hardening for boot";
-    lowMemory = lib.mkEnableOption "Enable low memory configuration for boot";
   };
 
   config = lib.mkMerge [
     (lib.mkIf (cfg.efi || cfg.mbr != "nodev") {
-      assertions = [
-        { assertion = !(cfg.efi && cfg.mbr != "nodev");
-          message = "devices.boot.efi and devices.boot.mbr are mutually exclusive - set only one"; }
-      ];
+      assertions = [{ 
+        assertion = !(cfg.efi && cfg.mbr != "nodev");
+        message = "devices.boot.efi and devices.boot.mbr are mutually exclusive - set only one";
+      }];
 
       boot.loader = {
         grub.enable = true;
@@ -45,9 +45,15 @@ in
         # i.e. EFI/BOOT/BOOTX64.efi
         grub.efiInstallAsRemovable = cfg.efi;
 
+
         # Configure the BIOS MBR boot device, e.g. '/dev/sda'
         grub.device = cfg.mbr;
       };
+
+      environment.systemPackages = with pkgs; [
+        efivar                                  # install efi tools
+        efibootmgr                              # install efi tools
+      ];
     })
 
     # Clean /tmp on every boot

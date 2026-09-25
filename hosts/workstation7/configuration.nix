@@ -16,7 +16,6 @@
   config = {
     devices.boot.efi = true;
     host.nix.cache.enable = true;
-    host.smb.secrets = ./secrets.enc.yaml;   # real per-share passwords (ashley/lydia)
     devices.gpu.nvidia = { enable = true; open = true; };
 
     devices.printers.epson-wf7710 = true;
@@ -24,11 +23,6 @@
 
     apps.network.deskflow.server.enable = true;
     apps.network.rustdesk.autostart = false;
-    services.raw.tailscale = {
-      enable = true;
-      autoStart = true;
-      secrets = ./secrets.enc.yaml;
-    };
 
     apps.dev.claude.enable = true;
     apps.dev.gemini.enable = true;

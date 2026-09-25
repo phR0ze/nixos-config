@@ -1,15 +1,9 @@
-# XFCE development bundle: core + base + xfce/base + xfce/desktop + xfce/develop
+# XFCE development bundle: enables xfce/develop, which chains xfce/desktop + xfce/base + console/desktop
 #
 # ### Features
 # - Directly installable: desktop with additional development tools/configs
 # --------------------------------------------------------------------------------------------------
 { ... }:
 {
-  imports = [
-    ../console/core.nix
-    ../console/base.nix
-    ../xfce/base.nix
-    ../xfce/desktop.nix
-    ../xfce/develop.nix
-  ];
+  layers.xfce.develop.enable = true;
 }

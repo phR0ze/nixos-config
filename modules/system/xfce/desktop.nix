@@ -2,7 +2,7 @@
 #
 # Gnerate the ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml configuration file
 #---------------------------------------------------------------------------------------------------
-{ options, config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   xfce = config.system.xfce;
   cfg = xfce.desktop;

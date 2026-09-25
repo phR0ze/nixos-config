@@ -3,7 +3,6 @@
 { config, lib, pkgs, ... }:
 let
   xfce = config.system.xfce;
-  host = config.host;
 in 
 {
   imports = [
@@ -24,6 +23,31 @@ in
   options = {
     system.xfce = {
       enable = lib.mkEnableOption "Enable the Xfce desktop environment";
+      reboot = lib.mkEnableOption "Reboot gets custom configuration when enabled";
+
+      resolution = lib.mkOption {
+        description = lib.mdDoc ''
+          Display resolution, set from `layers.xfce.base.resolution`. Consumed by
+          `system.xfce.displays` for both the xserver mode list and XFCE's own displays.xml -
+          leaving either axis at 0 skips both, letting the display autodetect.
+        '';
+        type = lib.types.submodule {
+          options = {
+            x = lib.mkOption {
+              description = lib.mdDoc "Horizontal resolution in pixels";
+              type = lib.types.int;
+              default = 0;
+            };
+            y = lib.mkOption {
+              description = lib.mdDoc "Vertical resolution in pixels";
+              type = lib.types.int;
+              default = 0;
+            };
+          };
+        };
+        default = { };
+        example = { x = 1920; y = 1080; };
+      };
     };
   };
  
@@ -70,7 +94,7 @@ in
       { name = "LibreOffice Calc"; exec = "libreoffice --calc"; icon = "libreoffice-calc"; }
       { name = "LibreOffice Writer"; exec = "libreoffice --writer"; icon = "libreoffice-writer"; }
     ]
-    ++ lib.optional host.type.develop
+    ++ lib.optional xfce.reboot
       { name = "Reboot"; exec = "sudo reboot"; icon = "system-reboot"; };
 
     # 1. Determine the desktop directory filename
@@ -105,6 +129,6 @@ in
       ristretto                         # Xfce default, i like qview better
     ]
     # Conditionally include xfce4-appfinder if using an alternate app finder
-    ++ lib.optional config.system.dmenu.enable xfce4-appfinder;
+    ++ lib.optional dmenu.enable xfce4-appfinder;
   };
 }

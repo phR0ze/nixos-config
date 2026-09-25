@@ -119,6 +119,10 @@ in
         CF_API_TOKEN=${config.secret.ref."caddy/cloudflareApiToken"}
       '';
       secrets."caddy/cloudflareApiToken".sopsFile = cfg.secrets;
+      # Restart rather than reload: the token reaches caddy as an environment variable via
+      # EnvironmentFile, which systemd only re-reads on start - `caddy reload` re-parses the
+      # Caddyfile but keeps the already-running process's stale CF_API_TOKEN
+      restartUnits = [ "caddy.service" ];
     };
 
     services.caddy = {

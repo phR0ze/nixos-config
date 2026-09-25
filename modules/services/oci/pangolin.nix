@@ -743,6 +743,10 @@ in
             allow_raw_resources: true
       '';
       secrets."${cfg.name}/serverSecret".sopsFile = cfg.sopsFile;
+      # configRev below only hashes the *plaintext* configs, so a rotated serverSecret changes
+      # this rendered file without changing the stack unit's own definition - nothing would
+      # restart it and the containers would keep running against the old value
+      restartUnits = [ "${cfg.name}-stack.service" ];
     };
 
     secret.templates."${cfg.name}-env" = {
@@ -751,6 +755,9 @@ in
         CF_DNS_API_TOKEN=${config.secret.ref."${cfg.name}/cloudflareApiToken"}
       '';
       secrets."${cfg.name}/cloudflareApiToken".sopsFile = cfg.sopsFile;
+      # Same configRev gap as the config template above - traefik reads CF_DNS_API_TOKEN from
+      # .env at container start only
+      restartUnits = [ "${cfg.name}-stack.service" ];
     };
 
     # Periodic MaxMind GeoLite2 refresh - same GitHub mirror the upstream installer pulls from (no

@@ -13,7 +13,7 @@
   config = {
     devices.boot.efi = true;
     devices.gpu.intel.enable = true;
-    host.autologin = true;
+    machine.autologin = true;
     host.nix.cache.enable = true;
 
     apps.games.hedgewars.enable = true;
