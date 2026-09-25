@@ -15,7 +15,8 @@ let
   host = config.host;
   cfg = config.virtualization.qemu.host;
 
-  # secret admin user's group can only be accessessed at runtime by root for security
+  # secret admin user's name and group can only be accessessed at runtime by root for security
+  userSecretPath = config.secret.files."users/admin/name".path;
   groupSecretPath = config.secret.files."users/admin/group".path;
 
   # Drop root to the real (uid, gid) pair at process-start time instead of via a static
@@ -25,7 +26,7 @@ let
     #!${pkgs.runtimeShell}
     set -e
     exec ${pkgs.util-linux}/bin/setpriv \
-      --reuid ${host.user.name} --regid "$(cat ${groupSecretPath})" \
+      --reuid "$(cat ${userSecretPath})" --regid "$(cat ${groupSecretPath})" \
       --clear-groups --init-groups -- ${cmd}
   '';
 
@@ -93,23 +94,36 @@ in
         }
       ];
 
+      # Make the secret admin name runtime accessible by root. modules/system/users.nix already
+      # declares "users/admin/group" this way; the name isn't declared anywhere else (nix-weave
+      # keeps its own copy under the private _users-from-secret/ prefix), so declare it here.
+      # Same sopsFile as system.users, so any overlapping definition merges rather than conflicts.
+      secret.files."users/admin/name" = {
+        filemode = "0400";
+        sopsFile = config.system.users.sopsFile;
+      };
+
       # Create an activation script to ensure that the VM state directory exists. Ordered after
       # nix-weave's own account-creation script so the real group already exists on the system
       # before we chown to it.
       system.activationScripts.vm-host = lib.stringAfter [ "usersFromSecret" ] ''
         mkdir -p ${cfg.stateDir}
-        chown ${host.user.name}:"$(cat ${groupSecretPath})" ${cfg.stateDir}
+        chown "$(cat ${userSecretPath})":"$(cat ${groupSecretPath})" ${cfg.stateDir}
         chmod g+w ${cfg.stateDir}
       '';
 
-      # Remove memory constraints for the vm user
+      # Remove memory constraints for the vm user.
+      # Keyed on the '@wheel' group rather than the admin account name: pam_limits is handed a
+      # store baked limits.conf (nixpkgs passes `conf=` explicitly, so /etc/security/limits.d is
+      # never consulted), which means the domain has to be known at evaluation time - and the
+      # admin's name is a runtime only secret. modules/system/users.nix puts admin in 'wheel'.
       security.pam.loginLimits = [ {
-        domain = host.user.name;
+        domain = "@wheel";
         item = "memlock";
         type = "hard";
         value = "infinity";
       } {
-        domain = host.user.name;
+        domain = "@wheel";
         item = "memlock";
         type = "soft";
         value = "infinity";
