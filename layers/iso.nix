@@ -16,12 +16,12 @@ let
 in
 {
   host.type.iso = true;
-  machine.autologin = true;
-  machine.name = "nixos";
+  host.autologin = true;
+  host.name = "nixos";
   host.user.name = "nixos";
   system.x11.autologinUser = "nixos";   # ISO has no secrets, so autologin a plain named account
   host.user.group = "nixos";
-  machine.resolution = { x = 1920; y = 1080; };
+  host.resolution = { x = 1920; y = 1080; };
 
   imports = [
     # The ISO building automation I'm levaraging from Nix will automatically include all derevations

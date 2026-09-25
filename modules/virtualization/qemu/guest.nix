@@ -57,8 +57,9 @@ in
       };
       resolution = lib.mkOption {
         description = lib.mdDoc ''
-          Display resolution for the guest. Only used to derive the GRUB BIOS graphics mode; leave
-          at the `0x0` default to let GRUB pick.
+          Display resolution for the guest. Sets the virtio-gpu's preferred mode (so the console,
+          X and any desktop autodetect it) and derives the GRUB BIOS graphics mode; leave at
+          `0x0` to let QEMU/GRUB pick, which lands on virtio-gpu's own 1280x800 default.
         '';
         type = types.submodule {
           options = {
@@ -340,7 +341,7 @@ in
         }
         {
           assertion = cfg.hostname != "";
-          message = "virtualization.qemu.guest.hostname must be set (e.g. via machine.type.vm)";
+          message = "virtualization.qemu.guest.hostname must be set (e.g. via host.type.vm)";
         }
       ];
 
@@ -634,7 +635,10 @@ in
         # * -display spice-app,gl=on
         # * -display gtk,gl=on,grab-on-hover=on,window-close=on,zoom-to-fit=on
         ++ lib.optionals ((!cfg.type.micro && !cfg.type.spice) && cfg.display.enable) [
-          "-vga none -device virtio-vga-gl"
+          # xres/yres set the virtio-gpu's preferred mode, otherwise it advertises 1280x800 first
+          # and the guest's console/X/desktop all autodetect that.
+          ("-vga none -device virtio-vga-gl" + lib.optionalString (cfg.resolution.x != 0 && cfg.resolution.y != 0)
+            (with cfg.resolution; ",xres=${toString x},yres=${toString y}"))
           "-display sdl,gl=on"
         ]
 
@@ -653,7 +657,12 @@ in
         # - QXL defaults to 16 MB video memory, but needs 32MB min for high quality 
         # - -vga qxl vs -device qxl-vga
         ++ lib.optionals (cfg.type.spice || cfg.spice.enable) [
-          "-vga qxl"
+          # -device qxl-vga rather than -vga qxl so xres/yres can be set; without them QXL comes up
+          # at its own 1024x768 default. vgamem_mb has to cover the mode (1920x1080x32bpp is ~8MB)
+          # plus room for the QXL surfaces, hence the 32MB display.memory default.
+          ("-device qxl-vga,vgamem_mb=${toString cfg.display.memory}"
+            + lib.optionalString (cfg.resolution.x != 0 && cfg.resolution.y != 0)
+              (with cfg.resolution; ",xres=${toString x},yres=${toString y}"))
           "-device virtio-serial-pci"
           "-spice port=${toString cfg.spice.port},disable-ticketing=on"
           "-chardev spicevmc,id=${cfg.hostname},debug=0,name=vdagent"

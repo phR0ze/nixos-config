@@ -555,7 +555,7 @@ in
     acmeEmail = lib.mkOption {
       description = lib.mdDoc ''
         Contact email for Let's Encrypt ACME registration. Nullable so `modules/default.nix` can
-        unconditionally forward `machine.services.oci.pangolin.acmeEmail` (host args) here without
+        unconditionally forward `host.services.oci.pangolin.acmeEmail` (host args) here without
         an existence check - see the `enable`-gated assertion below for the actual requirement.
       '';
       type = types.nullOr types.str;

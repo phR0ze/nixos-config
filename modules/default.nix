@@ -322,7 +322,10 @@ in
     (lib.mkIf cfg.type.vm {
       virtualization.qemu.guest.enable = true;
       virtualization.qemu.guest.hostname = cfg.name;
-      virtualization.qemu.guest.resolution = { inherit (cfg.resolution) x y; };
+      # Only forward an explicitly set resolution; a 0x0 default would otherwise clobber
+      # virtualization.qemu.guest.resolution's own 1920x1080 default.
+      virtualization.qemu.guest.resolution = lib.mkIf (cfg.resolution.x != 0 && cfg.resolution.y != 0)
+        { inherit (cfg.resolution) x y; };
       virtualization.qemu.guest.bridge = config.devices.network.bridge.name;
     })
 

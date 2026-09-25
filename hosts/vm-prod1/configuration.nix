@@ -11,8 +11,7 @@
 
   config = {
     host.type.vm = true;
-    machine.resolution = { x = 1920; y = 1080; };
-    machine.autologin = true;
+    host.autologin = true;
     host.nix.cache.enable = true;
 
     # Test

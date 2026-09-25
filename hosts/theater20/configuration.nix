@@ -13,7 +13,7 @@
   config = {
     devices.boot.efi = true;
     devices.gpu.intel.enable = true;
-    machine.autologin = true;
+    host.autologin = true;
     host.nix.cache.enable = true;
 
     services.raw.keyd.enable = true;

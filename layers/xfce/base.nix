@@ -20,7 +20,7 @@ in
 
       resolution = lib.mkOption {
         description = lib.mdDoc ''
-          Display resolution, see `system.desktop.xfce.resolution`. Defaults to `machine.resolution`, which
+          Display resolution, see `system.desktop.xfce.resolution`. Defaults to `host.resolution`, which
           a host or a higher xfce layer can override - leaving either axis at 0 lets the display
           autodetect.
         '';
