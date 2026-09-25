@@ -138,4 +138,38 @@ build::vm()
     log::ls "Installing at ${cyan}./${HOST}${none}"
     $SUDO mkdir -p "${CONFIG_DIR}/${HOST}"
     [ -e result ] && mv -f result "${CONFIG_DIR}/${HOST}"
+
+    build::seed_vm_key "$HOST"
+}
+
+# Seed the VM's 9p shared directory with the operator's sops age key
+# - a freshly built VM root image has no /root/.config/sops/age/keys.txt and nothing runs
+#   `clu init` inside a throwaway test VM, so sops-nix would have no key at activation time:
+#   `setupSecrets` fails and nix-weave's `usersFromSecret` never creates the admin account,
+#   leaving a VM you can't log into. guest.nix points `sops.age.keyFile` at /tmp/shared/keys.txt.
+# - owned by the invoking user since the QEMU run script isn't run as root and the `shared`
+#   virtfs uses security_model=none, i.e. host file ownership/modes apply verbatim in the guest
+# - $VMDIR/shared and keys.txt are both gitignored, but note this does put the fleet's age
+#   private key in the working tree for as long as the VM directory exists
+# - $1 - hostname (hosts/<hostname> directory name)
+# --------------------------------------------------------------------------------------------------
+build::seed_vm_key()
+{
+    local hostname="$1"
+    local shared="${CONFIG_DIR}/${hostname}/shared"
+    local src
+
+    for src in /root/.config/sops/age/keys.txt "${HOME}/.config/sops/age/keys.txt"; do
+        $SUDO test -f "$src" && break
+        src=""
+    done
+
+    if [[ -z "$src" ]]; then
+        log::error "No sops age key found; ${cyan}${hostname}${none} won't be able to decrypt secrets"
+        return 0
+    fi
+
+    log::ls "Seeding ${cyan}${shared}/keys.txt${none} from ${cyan}${src}${none}"
+    $SUDO mkdir -p "$shared"
+    $SUDO install -m 600 -o "$USER" "$src" "${shared}/keys.txt"
 }

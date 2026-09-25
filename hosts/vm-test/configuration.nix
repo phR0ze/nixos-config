@@ -22,6 +22,7 @@
         type = "user";
         id = "vm-test";
         forwardPorts = [
+          { host = 2222; guest = 22; }
           { host = 8080; guest = 80; }
           { host = 8443; guest = 443; }
           { host = 9000; guest = 9000; }

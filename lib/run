@@ -115,6 +115,10 @@ run::vm()
             runner="$(find "${CONFIG_DIR}/${HOST}/result/bin" -maxdepth 1 -type l -o -type f 2>/dev/null | head -n1)"
         fi
 
+        # Re-seed on every run: the key is only ever written to the VM dir, never the qcow2, so a
+        # VM built before this existed (or one whose dir was hand-cleaned) still needs it.
+        build::seed_vm_key "$HOST"
+
         log::ls "Running ${cyan}${runner}${none}"
         $runner
     fi

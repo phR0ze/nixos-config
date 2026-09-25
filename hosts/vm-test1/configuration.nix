@@ -3,16 +3,23 @@
 # ### Features
 # - For quick isolated testing where more than one node is needed
 # --------------------------------------------------------------------------------------------------
-{ ... }:
 {
-  imports = [
-    ../../layers/bundles/xfce-desktop.nix
-  ];
+  host.type.vm = true;
+  host.autologin = true;
+  host.desktop.xfce = true;
 
-  config = {
-    host.type.vm = true;
-    machine.resolution = { x = 1920; y = 1080; };
-    machine.autologin = true;
-    virtualization.qemu.guest.enable = true;
+  virtualization.qemu.guest = {
+    enable = true;
+    cores = 4;
+    memorySize = 8;
+    rootDrive.size = 40;
+    display.enable = true;
+    interfaces = [{
+      type = "user";
+      id = "vm-test";
+      forwardPorts = [
+        { host = 2222; guest = 22; }
+      ];
+    }];
   };
 }

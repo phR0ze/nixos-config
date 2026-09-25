@@ -344,6 +344,14 @@ in
         }
       ];
 
+      # The operator's sops age key can't live in the VM's fresh root image and nothing ever runs
+      # `clu init` inside a throwaway test VM, so without this sops-nix has no key at activation:
+      # `setupSecrets` fails, the `usersFromSecret` script that follows it finds no decrypted
+      # `users/admin/name` and the admin account is silently never created (you can't log in).
+      # `lib/build`'s build::vm seeds $VMDIR/shared/keys.txt from the host, which the existing
+      # 9p `shared` mount below exposes at /tmp/shared - `neededForBoot` so it's there in time.
+      sops.age.keyFile = "/tmp/shared/keys.txt";
+
       services.qemuGuest.enable = true;                   # Install and run the QEMU guest agent
       networking.wireless.enable = lib.mkForce false;     # Wireless networking won't work in VM
       services.connman.enable = lib.mkForce false;        # Wireless networking won't work in VM
