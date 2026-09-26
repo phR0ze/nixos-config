@@ -9,6 +9,7 @@
     ./gh
     ./gemini
     ./opencode
+    ./rdutil
     ./rust
     ./vscode
     ./zed

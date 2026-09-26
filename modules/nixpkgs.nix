@@ -20,7 +20,8 @@
       clu = final.callPackage ./system/env/clu/package.nix { src = inputs.self; };
       arcologout = final.callPackage ../packages/arcologout {};
       desktop-assets = final.callPackage ../packages/desktop-assets {};
-      rdutil = final.callPackage ../packages/rdutil {};
+      opencode = final.callPackage ../modules/apps/dev/opencode/package.nix {};
+      rdutil = final.callPackage ../modules/apps/dev/rdutil/package.nix {};
       tinymediamanager = final.callPackage ../packages/tinymediamanager {};
       wmctl = final.callPackage ../packages/wmctl {};
     } // (let
