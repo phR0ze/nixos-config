@@ -33,7 +33,6 @@ in
       apps.network.qbittorrent.enable = true;   # Excellent bittorrent client
       apps.system.veracrypt.enable = true;      # Free Open-Source filesystem encryption
       apps.dev.claude.enable = true;            # Anthropic's agentic coding CLI
-      apps.dev.opencode.enable = true;          # Open source agentic coding CLI
 
       apps.games.steam.enable = true;           # Digital distribution platform from Valve
       apps.games.protontricks.enable = true;    # A simple wrapper for running Winetricks commands for Proton-enabled games

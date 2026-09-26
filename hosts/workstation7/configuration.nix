@@ -25,6 +25,7 @@
     apps.network.rustdesk.autostart = false;
 
     apps.dev.gemini.enable = true;
+    apps.dev.opencode.enable = true;
 
     apps.games.roblox.enable = true;
     apps.games.hedgewars.enable = true;
