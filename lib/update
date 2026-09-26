@@ -134,8 +134,12 @@ _update::removeUserXfceConfigs()
         $SUDO rm -rf "$target" 2>/dev/null && break
         sleep 1
       done
-      [ -e "$target" ] && log::error "Failed to fully remove ${target} - a live xfce session may still be writing to it"
+      if [ -e "$target" ]; then
+        log::error "Failed to fully remove ${target} - a live xfce session may still be writing to it"
+      fi
     done
+
+    return 0
 }
 
 # Remove xfce entries from the files tracking logs so the install script treats them as
