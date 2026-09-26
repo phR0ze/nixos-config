@@ -108,14 +108,27 @@ update::system()
 }
 
 # Remove user xfce configurations to get a clean point to start from
+# - killing xfconfd alone (see flake::stage_files) isn't enough when a live xfce session is
+#   still running at the console: xfwm4/xfdesktop/xfce4-panel/xfsettingsd/thunar all keep
+#   touching files under .config/xfce4 (session state, thumbnails, recently-used, etc), racing
+#   `rm -rf`'s directory walk and leaving it "Directory not empty". Kill the rest of the live
+#   session's daemons too, then retry the removal a few times in case something respawns once
+#   (e.g. under a session manager) before giving up.
 _update::removeUserXfceConfigs()
 {
+    pkill -x '^(xfwm4|xfdesktop|xfce4-panel|xfsettingsd|xfce4-session|thunar|xfce4-notifyd)$' 2>/dev/null || true
+
     local users=$(find /home -mindepth 1 -maxdepth 1)
     users+=('/root')
     for x in ${users[@]}; do
       local target="${x}/.config/xfce4"
       log::ls "Cleaning up: ${cyan}${target}${none}"
-      $SUDO rm -rf "$target"
+      local attempt
+      for attempt in 1 2 3; do
+        $SUDO rm -rf "$target" 2>/dev/null && break
+        sleep 1
+      done
+      [ -e "$target" ] && log::error "Failed to fully remove ${target} - a live xfce session may still be writing to it"
     done
 }
 
