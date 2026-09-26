@@ -448,7 +448,6 @@ in
         services.native.smb = {
           sopsFile = cfg.sopsFile;
           user = arg "user";
-          pass = arg "pass";
           domain = arg "domain";
           dirMode = arg "dirMode";
           fileMode = arg "fileMode";

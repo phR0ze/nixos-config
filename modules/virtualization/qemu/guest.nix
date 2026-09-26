@@ -585,8 +585,14 @@ in
 
       # Filesystem configuration
       # --------------------------------------------
-      fileSystems = lib.mkForce {
-        "/" = {
+      # Only "/" needs `mkForce` - it overrides the host's own hardware-configuration.nix root
+      # entry (meaningless inside a VM, since it references the physical host's disk UUID). Every
+      # other key here is added plain, so other modules' own `fileSystems` entries (e.g.
+      # services.native.smb's cifs mounts) still merge in normally - forcing the *whole* attrset
+      # would silently discard them instead (attrsOf merging drops all lower-priority definitions
+      # for an option wholesale when a higher-priority one exists, not just conflicting keys).
+      fileSystems = {
+        "/" = lib.mkForce {
           device = "/dev/disk/by-label/${cfg.rootDrive.label}";
           fsType = "ext4";
         };

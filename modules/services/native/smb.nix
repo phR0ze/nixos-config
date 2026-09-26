@@ -13,20 +13,8 @@
 { config, lib, pkgs, utils, ... }:
 let
   cfg = config.services.native.smb;
-  hasSecrets = cfg.sopsFile != null;
 
   shareName = x: baseNameOf x.mountPoint;
-
-  # Legacy plaintext credential files (baked into the Nix store via environment.etc) - used only
-  # as a fallback until this host has a `sopsFile` holding a `smb/<share>/pass` key per entry.
-  smbSecrets = builtins.listToAttrs (map (x: {
-    name = "smb/secrets/${shareName x}";
-    value.text = ''
-      username=${x.user}
-      password=${x.pass}
-      domain=${x.domain}
-    '';
-  }) cfg.entries);
 in
 {
   options.services.native.smb = {
@@ -34,10 +22,9 @@ in
 
     sopsFile = lib.mkOption {
       description = lib.mdDoc ''
-        Path to the sops-encrypted file holding this host's real `smb/<share>/pass` secrets
-        (keyed by each entry's mountPoint basename), decrypted at activation time by sops-nix.
-        Defaults to `host.sopsFile`. Leave null to fall back to the legacy build-time-baked
-        `pass` fields below, which land in the world-readable Nix store.
+        Path to the sops-encrypted file holding this host's real share passwords, decrypted at
+        activation time by sops-nix. Each entry's `secretRef` names a flat top-level key in this
+        file whose value is that share's password directly. Defaults to `host.sopsFile`.
       '';
       type = lib.types.nullOr lib.types.path;
       default = null;
@@ -66,15 +53,6 @@ in
 
     user = lib.mkOption {
       description = lib.mdDoc "Default access user, when not overridden per entry";
-      type = lib.types.str;
-      default = "";
-    };
-
-    pass = lib.mkOption {
-      description = lib.mdDoc ''
-        Default access password, when not overridden per entry. Only consulted when `sopsFile` is
-        null - see the warning there.
-      '';
       type = lib.types.str;
       default = "";
     };
@@ -113,15 +91,21 @@ in
             type = lib.types.str;
             example = "//<IP_OR_HOST>/path/to/share";
           };
+          secretRef = lib.mkOption {
+            description = lib.mdDoc ''
+              Full sops secret key (in `sopsFile`) whose *value* is this share's password
+              directly - a flat, opaque key independent of `mountPoint`/`remotePath` so the real
+              share name never appears as a plaintext key in the encrypted secrets file. Pick any
+              non-descriptive value (e.g. a short id); it must be unique among this host's entries
+              and match the corresponding top-level key in `secrets.enc.yaml`.
+            '';
+            type = lib.types.str;
+            example = "smb/secretA";
+          };
           user = lib.mkOption {
             description = lib.mdDoc "Access user, defaults to `services.native.smb.user`";
             type = lib.types.str;
             default = cfg.user;
-          };
-          pass = lib.mkOption {
-            description = lib.mdDoc "Access password, defaults to `services.native.smb.pass`";
-            type = lib.types.str;
-            default = cfg.pass;
           };
           domain = lib.mkOption {
             description = lib.mdDoc "Domain or workgroup, defaults to `services.native.smb.domain`";
@@ -155,27 +139,35 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    environment.etc = lib.mkIf (!hasSecrets) smbSecrets;
+    assertions = [
+      {
+        assertion = cfg.sopsFile != null;
+        message = "services.native.smb is enabled but services.native.smb.sopsFile is not set.";
+      }
+    ];
+
+    # Install Samba utilities
+    environment.systemPackages = with pkgs; [
+      cifs-utils 
+    ];
 
     # Decrypted to /etc/smb/secrets/<share> at activation, never touching the Nix store
-    secret.templates = lib.mkIf hasSecrets (builtins.listToAttrs (map (x: {
+    secret.templates = builtins.listToAttrs (map (x: {
       name = "smb-secrets-${shareName x}";
       value = {
         path = "/etc/smb/secrets/${shareName x}";
         filemode = "0400";
         content = ''
           username=${x.user}
-          password=${config.secret.ref."smb/${shareName x}/pass"}
+          password=${config.secret.ref."${x.secretRef}"}
           domain=${x.domain}
         '';
-        secrets."smb/${shareName x}/pass".sopsFile = cfg.sopsFile;
-        # cifs reads the credentials file at mount time, so a rotated password only takes effect
-        # on a remount. sops-nix uses `systemctl try-restart`, which acts only on already-running
-        # units - an idle automount (see x-systemd.automount below) is left alone rather than
-        # being eagerly mounted, and picks the new credentials up on its next access anyway.
+        secrets."${x.secretRef}".sopsFile = cfg.sopsFile;
+
+        # cifs reads the credentials file at mount time
         restartUnits = [ "${utils.escapeSystemdPath x.mountPoint}.mount" ];
       };
-    }) cfg.entries));
+    }) cfg.entries);
 
     fileSystems = (builtins.foldl' (a: x: {
       "${x.mountPoint}" = {
@@ -217,8 +209,5 @@ in
         ];
       };
     } // a) {} cfg.entries);
-
-    # Install Samba utilities
-    environment.systemPackages = with pkgs; [ cifs-utils ];
   };
 }

@@ -10,6 +10,7 @@ result
 /vms
 /vm-*
 /vps
+/.worktrees
 
 # Ignore decrypted files to avoid security breaches
 *.dec.*

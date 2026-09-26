@@ -41,7 +41,9 @@ Values that are only ever consumed by a running service reading a file at runtim
 module option at evaluation time) don't need this treatment at all - see how `services.native.smb.sopsFile` /
 `modules/services/native/smb` already renders SMB credentials via `secret.templates`, decrypted straight to
 `/etc/smb/secrets/<share>` at activation by sops-nix, the same as `host.secrets` does for the user
-password hash.
+password hash. Each share entry's `secretRef` names a flat, opaque top-level key in `sopsFile` whose
+value is that share's password directly - deliberately independent of the entry's `mountPoint`/
+`remotePath` so the real share name never appears as a plaintext key in the encrypted secrets file.
 
 ## Host Args
 The top level `args.nix` and sops encrypted`args.enc.yaml` along with the local sops encrypted 
