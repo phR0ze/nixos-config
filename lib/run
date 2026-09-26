@@ -83,18 +83,21 @@ run::vm()
         # Optionally clean first
         if [[ $CLEAN -eq 1 ]]; then
             log::ls "Cleaning ${cyan}${HOST}${none}"
-            $SUDO rm -rf "${CONFIG_DIR}/${HOST}"
+            $SUDO rm -rf "${CONFIG_DIR}/vms/${HOST}"
         fi
 
+        # Named explicitly rather than via `find .../result/bin | head -n1` - that glob also
+        # matches the macvtap-up/macvtap-down scripts linked alongside `run` for macvtap guests,
+        # and `find`'s ordering between them isn't guaranteed to put `run` first.
         local runner
-        runner="$(find "${CONFIG_DIR}/${HOST}/result/bin" -maxdepth 1 -type l -o -type f 2>/dev/null | head -n1)"
+        runner="${CONFIG_DIR}/vms/${HOST}/result/bin/run"
 
         # Build and install if needed
-        if [[ -z "$runner" || ! -f "$runner" ]]; then
+        if [[ ! -f "$runner" ]]; then
 
             # Fallback: boot a disk image produced by 'clu run iso' + 'clu install' directly,
             # without a Nix VM rebuild.  This is the path used after 'clu conv <src> <name>'.
-            local disk="${CONFIG_DIR}/${HOST}/nixos.qcow2"
+            local disk="${CONFIG_DIR}/vms/${HOST}/nixos.qcow2"
             if [[ -f "$disk" ]]; then
                 log::ls "Booting ${cyan}${HOST}${none} from disk image"
                 $SUDO qemu-system-x86_64 \
@@ -112,15 +115,30 @@ run::vm()
 
             NO_PREAMBLE=1 && build::vm $HOST
             flake::restore
-            runner="$(find "${CONFIG_DIR}/${HOST}/result/bin" -maxdepth 1 -type l -o -type f 2>/dev/null | head -n1)"
         fi
 
         # Re-seed on every run: the key is only ever written to the VM dir, never the qcow2, so a
         # VM built before this existed (or one whose dir was hand-cleaned) still needs it.
         build::seed_vm_key "$HOST"
 
+        # Macvtap guests link macvtap-up/-down alongside run (guest.nix, only when the guest has a
+        # `type = "macvtap"` interface). Creating/destroying that interface needs root, so bracket
+        # the (unprivileged) run with sudo'd up/down - down via a trap so it still fires on Ctrl-C
+        # or a qemu crash.
+        local macvtap_up="${CONFIG_DIR}/vms/${HOST}/result/bin/macvtap-up"
+        local macvtap_down="${CONFIG_DIR}/vms/${HOST}/result/bin/macvtap-down"
+        if [[ -f "$macvtap_up" ]]; then
+            $SUDO "$macvtap_up"
+            trap "$SUDO '$macvtap_down'" EXIT
+        fi
+
+        # The generated run script (scripts-run.nix) resolves its VM state dir as a plain
+        # relative "${guest.hostname}" (i.e. "$HOST") under the caller's cwd - cd into vms/ so
+        # that resolves to vms/$HOST rather than the flake root.
         log::ls "Running ${cyan}${runner}${none}"
+        utils::run pushd "${CONFIG_DIR}/vms"
         $runner
+        utils::run popd
     fi
 }
  
@@ -147,16 +165,16 @@ run::iso()
     # Optionally clean first
     if [[ $CLEAN -eq 1 ]]; then
         log::ls "Cleaning ${cyan}${HOST}${none}"
-        $SUDO rm -rf "${CONFIG_DIR}/${HOST}"
+        $SUDO rm -rf "${CONFIG_DIR}/vms/${HOST}"
     fi
 
     # Create the vm directory and volume if needed
     log::ls "Launching VM with ISO"
-    $SUDO mkdir -p "${CONFIG_DIR}/${HOST}"
-    if [ ! -d "${CONFIG_DIR}/${HOST}" ]; then
+    $SUDO mkdir -p "${CONFIG_DIR}/vms/${HOST}"
+    if [ ! -d "${CONFIG_DIR}/vms/${HOST}" ]; then
         log::subln3 "${cyan}$iso${none}"
     fi
-    utils::run pushd "${CONFIG_DIR}/${HOST}"
+    utils::run pushd "${CONFIG_DIR}/vms/${HOST}"
 
     # Create the volume if needed
     local vol="nixos.qcow2"

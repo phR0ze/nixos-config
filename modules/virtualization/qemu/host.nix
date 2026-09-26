@@ -73,8 +73,8 @@ in
             };
             interface = lib.mkOption {
               description = lib.mdDoc "Interface type to use";
-              type = types.enum [ "user" "macvtap" ];
-              default = "user";
+              type = types.enum [ "nat" "macvtap" "bridge" ];
+              default = "nat";
             };
             deploy = lib.mkOption {
               description = lib.mdDoc "Deploy the VM if it doesn't exist on the host yet";

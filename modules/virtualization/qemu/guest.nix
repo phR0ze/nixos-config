@@ -23,15 +23,53 @@ let
   # should increase performance significantly, at the cost of higher RAM usage.
   msize9p = 16384;
 
+  # Stable per-guest MAC derived from hostname, so `network.mac` doesn't need hand-assigning /
+  # incrementing per VM. Prefix 02 marks it as locally administered.
+  macFromHostname = name:
+    let h = builtins.hashString "md5" name;
+    in "02:00:00:${lib.substring 0 2 h}:${lib.substring 2 2 h}:${lib.substring 4 2 h}";
+
+  # `interfaces` (advanced, multi-NIC) and `network` (simple, single-NIC) are mutually exclusive
+  # alternative ways to configure guest networking - both render to the same natInterfaces/
+  # macvtapInterfaces/bridgeInterfaces lists below. Plain structural checks rather than
+  # `options.<path>.isDefined`: nixpkgs' module system records an option's own declared `default`
+  # as a low-priority definition, so `isDefined` is true even when no host ever sets the option.
+  interfacesIsDefined = cfg.interfaces != [];
+  # forwardPorts is deliberately excluded here - it now has a non-empty default of its own (see
+  # below), so it can't be used to detect "host explicitly configured `network`" the way
+  # bridge/macvtap can.
+  networkIsDefined = cfg.network.bridge || cfg.network.macvtap;
+
   # Filter down the interfaces to the given type
   interfacesByType = wantedType:
     builtins.filter ({ type, ... }: type == wantedType) cfg.interfaces;
-  userInterfaces = interfacesByType "user";
-  macvtapInterfaces = interfacesByType "macvtap";
+
+  natInterfaces =
+    if interfacesIsDefined then interfacesByType "nat"
+    else lib.optional (!cfg.network.bridge && !cfg.network.macvtap) {
+      id = cfg.hostname; forwardPorts = cfg.network.forwardPorts;
+    };
+
+  bridgeInterfaces =
+    if interfacesIsDefined then interfacesByType "bridge"
+    else lib.optional cfg.network.bridge { id = cfg.hostname; mac = cfg.network.mac; };
+
+  macvtapInterfacesRaw =
+    if interfacesIsDefined then interfacesByType "macvtap"
+    else lib.optional cfg.network.macvtap {
+      id = cfg.hostname; mac = cfg.network.mac;
+      macvtap = { link = ""; mode = "bridge"; }; # "" - resolved at runtime, see scripts-macvtap-up.nix
+    };
+
+  # Assign each macvtap interface its own fd, starting at 3 (0-2 are stdin/stdout/stderr). Purely
+  # an internal handshake number between scripts-run.nix and qemu's -netdev - only needs to be
+  # unique within this one guest's own process, never across VMs, so it's not surfaced as an option.
+  macvtapInterfaces = lib.imap0 (i: x: x // { fd = 3 + i; }) macvtapInterfacesRaw;
+
   regInfo = pkgs.closureInfo { rootPaths = cfg.registeredPaths; };
 
   # VM scripts
-  runScript = import ./scripts-run.nix { inherit lib pkgs host; guest = cfg; };
+  runScript = import ./scripts-run.nix { inherit lib pkgs host macvtapInterfaces; guest = cfg; };
   macvtapUpScript = import ./scripts-macvtap-up.nix {
     inherit lib pkgs macvtapInterfaces;
     userSecretPath = config.secret.files."users/admin/name".path;
@@ -79,8 +117,8 @@ in
       };
       bridge = lib.mkOption {
         description = lib.mdDoc ''
-          Name of the bridge on the QEMU host that `type = "macvtap"` interfaces attach their tap
-          device to, see `devices.network.bridge.name`.
+          Name of the bridge on the QEMU host that `type = "bridge"` interfaces attach to via
+          `qemu-bridge-helper`, see `devices.network.bridge.name`.
         '';
         type = types.str;
         default = "br0";
@@ -229,18 +267,25 @@ in
       # --------------------------------------------------------------------------------------------
       interfaces = lib.mkOption {
         description = ''
-          Network interface options. 
-          - Use `type = "user"` for a simple NAT experience. The VM can connect out to the internet 
+          Advanced multi-NIC/mixed-mode network interface list. Mutually exclusive with `network`
+          (the simpler single-NIC alternative below) - set one or the other, never both.
+          - Use `type = "nat"` for a simple NAT experience. The VM can connect out to the internet
             but not access or be accessed by devices on the LAN.
-          - Use `type = "macvtap"` for a full presence on the LAN such that the host or any other 
-            device can connect to this VM and this VM can connect to the host or any other device on the 
-            LAN.
+          - Use `type = "macvtap"` for a full presence on the LAN with the caveat that the guest and
+            host can't directly communicate without a forwardPorts option. However this requires no
+            host changes at all to support. In order to get true presence on the LAN with no
+            limitations use `type = "bridge"`, but that requires host networking changes to support.
+          - Use `type = "bridge"` for a true presence on the LAN via the host's `devices.network.bridge`
+            (`virtualization.qemu.host.bridge`/`virtualization.qemu.guest.bridge`, e.g. `br0`), attached
+            through `qemu-bridge-helper`. Requires `devices.network.bridge.enable` on the host; in
+            exchange the host can talk to the VM directly (via `devices.network.bridge.macvlan`) with no
+            extra per-VM interface needed.
         '';
         type = types.listOf (types.submodule {
           options = {
             type = lib.mkOption {
               description = "Interface type";
-              type = types.enum [ "user" "macvtap" ];
+              type = types.enum [ "nat" "macvtap" "bridge" ];
             };
             id = lib.mkOption {
               description = "Interface name on the host. e.g. `vm-prod1@enp1s0`";
@@ -248,14 +293,13 @@ in
               default = cfg.hostname;
               example = "vm-prod1";
             };
-            fd = lib.mkOption {
-              description = "File descriptor number";
-              type = types.int;
-              example = 3;
-            };
             macvtap.link = lib.mkOption {
               type = types.str;
-              description = "Host NIC to attach to";
+              description = ''
+                Host NIC to attach to. Leave unset (the default) to auto-detect the host's current
+                default-route interface at VM-start time instead of hardcoding one.
+              '';
+              default = "";
             };
             macvtap.mode = lib.mkOption {
               description = "The MACVTAP mode to use";
@@ -272,7 +316,7 @@ in
             };
             forwardPorts = lib.mkOption {
               description = ''
-                List of ports to forward from host to guest (user/NAT mode only).
+                List of ports to forward from host to guest (nat mode only).
                 A bare integer (e.g. 9000) is shorthand for `{ host = 9000; guest = 9000; }`.
               '';
               type = types.listOf (types.coercedTo types.port
@@ -299,12 +343,82 @@ in
           };
         });
 
-        # Default the networking to use a user mode NAT device
-        default = [{
-          type = "user";
-          id = cfg.hostname;
-        }];
+        # Opt-in advanced path - empty by default so `interfacesIsDefined` above only trips when a
+        # host actually sets this. No-config-at-all networking behavior (plain NAT) comes from the
+        # `network` option's own default instead.
+        default = [];
       };
+
+      network = lib.mkOption {
+        description = ''
+          Simplified single-NIC alternative to `interfaces`, for the common case of exactly one NIC.
+          Mutually exclusive with `interfaces` - set one or the other, never both.
+          - Neither flag set (the default): plain QEMU usermode NAT (SLIRP), no host changes
+            required. The guest can reach out to the LAN/internet by IP and `forwardPorts` can map
+            host ports into it, but it can't be reached from the LAN and has no LAN IP of its own.
+          - `bridge = true`: attaches via the host's Linux bridge through `qemu-bridge-helper` (see
+            `virtualization.qemu.guest.bridge`/`devices.network.bridge`). Requires
+            `devices.network.bridge.enable` on the host; in exchange the host can talk to the guest
+            directly.
+          - `macvtap = true`: a genuine kernel macvtap device attached directly to the host machine's
+            current default-route NIC, auto-detected at VM-start time - no Linux bridge required on
+            the host, full LAN membership with a DHCP-assigned IP, but (by kernel design) the host
+            itself can't talk directly to the guest this way.
+        '';
+        type = types.submodule {
+          options = {
+            bridge = lib.mkOption {
+              description = "Attach via the host's Linux bridge (qemu-bridge-helper) instead of NAT";
+              type = types.bool;
+              default = false;
+            };
+            macvtap = lib.mkOption {
+              description = "Attach via macvtap to the host's auto-detected physical NIC instead of NAT";
+              type = types.bool;
+              default = false;
+            };
+            mac = lib.mkOption {
+              description = ''
+                MAC address for the guest's NIC (`bridge`/`macvtap` only - plain NAT doesn't need
+                one). Defaults to a stable address derived from `hostname` so most hosts never need
+                to set this; override to pin a specific address (e.g. to preserve an existing DHCP
+                reservation).
+              '';
+              type = types.str;
+              default = macFromHostname cfg.hostname;
+            };
+            forwardPorts = lib.mkOption {
+              description = ''
+                List of ports to forward from host to guest (plain NAT only).
+                A bare integer (e.g. 9000) is shorthand for `{ host = 9000; guest = 9000; }`.
+              '';
+              type = types.listOf (types.coercedTo types.port
+                (p: { host = p; guest = p; })
+                (types.submodule {
+                  options = {
+                    host = lib.mkOption {
+                      type = types.port;
+                      description = "Host port to forward from";
+                    };
+                    guest = lib.mkOption {
+                      type = types.port;
+                      description = "Guest port to forward to";
+                    };
+                    proto = lib.mkOption {
+                      type = types.enum [ "tcp" "udp" ];
+                      description = "Protocol to forward";
+                      default = "tcp";
+                    };
+                  };
+                }));
+              # SSH by default, so plain NAT mode is reachable out of the box with no config.
+              default = [ { host = 2222; guest = 22; } ];
+            };
+          };
+        };
+        default = {};
+      };
+
       registeredPaths = lib.mkOption {
         description = lib.mdDoc ''
           A list of paths whose closure should be made available to the VM.
@@ -342,6 +456,14 @@ in
         {
           assertion = cfg.hostname != "";
           message = "virtualization.qemu.guest.hostname must be set (e.g. via host.type.vm)";
+        }
+        {
+          assertion = !(interfacesIsDefined && networkIsDefined);
+          message = "virtualization.qemu.guest.interfaces and virtualization.qemu.guest.network are mutually exclusive - set only one";
+        }
+        {
+          assertion = !(cfg.network.bridge && cfg.network.macvtap);
+          message = "virtualization.qemu.guest.network.bridge and .macvtap are mutually exclusive - set only one";
         }
       ];
 
@@ -588,14 +710,23 @@ in
         #) cfg.sharedDirectories)
 
         # Networking configuration
-        # qemu-bridge-helper is configured in host.nix for qemu to be able to automatically create
-        # tap devices as root and clean them up as root but run the VM as a regular user.
+        # The macvtap character device itself is created (and chowned to the invoking user) by
+        # macvtapUpScript/macvtap-up before the VM starts; scripts-run.nix opens it on this same
+        # fd and this just hands that already-open fd to qemu.
         ++ lib.optionals (macvtapInterfaces != [])
           (builtins.concatMap (x: [
-            "-netdev tap,id=nic0,br=${cfg.bridge},helper=$(type -p qemu-bridge-helper)"
+            "-netdev tap,id=nic0,fd=${toString x.fd}"
             "-device virtio-net-pci,netdev=nic0,mac=${x.mac}"
           ]) macvtapInterfaces)
-        ++ lib.optionals (userInterfaces != [])
+        # qemu-bridge-helper (setuid, see virtualization.qemu.host) creates the tap device and
+        # attaches it to `cfg.bridge` itself at launch - no fd-passing or up/down scripts needed,
+        # unlike macvtap above.
+        ++ lib.optionals (bridgeInterfaces != [])
+          (builtins.concatMap (x: [
+            "-netdev bridge,id=nic0,br=${cfg.bridge}"
+            "-device virtio-net-pci,netdev=nic0,mac=${x.mac}"
+          ]) bridgeInterfaces)
+        ++ lib.optionals (natInterfaces != [])
           (builtins.concatMap (x:
             let
               hostfwds = lib.concatMapStrings
@@ -604,7 +735,7 @@ in
             in [
               "-netdev user,id=nic0${hostfwds}"
               "-device virtio-net-pci,netdev=nic0"
-            ]) userInterfaces)
+            ]) natInterfaces)
 
         # Audio configuration
         # -----------------------------------------------

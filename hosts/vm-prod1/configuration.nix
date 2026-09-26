@@ -3,14 +3,11 @@
 # ### Features
 # - Virtual Machine deployment
 # --------------------------------------------------------------------------------------------------
-{ config, ... }:
+{ ... }:
 {
   config = {
-    host.desktop.xfce.standard = true;
-
-    host.type.vm = true;
-    host.autologin = true;
     host.nix.cache.enable = true;
+    host.desktop.xfce.standard = true;
 
     # Test
     # --------------------------------------------
@@ -36,23 +33,18 @@
 
     # VM specification
     # --------------------------------------------
+    host.type.vm = true;
+    host.autologin = true;
     virtualization.qemu.guest = {
       enable = true;
       type.spice = true;
       cores = 4;
-      #display = { enable = true; memory = 32; };
       rootDrive.size = 20;
       spice = {
         enable = false;
         port = 5971;
       };
-      interfaces = [{
-        type = "macvtap";
-        fd = 3;
-        macvtap.mode = "bridge";
-        macvtap.link = "br0";
-        mac = "02:00:00:00:00:01";
-      }];
+      network.bridge = true;
     };
   };
 }

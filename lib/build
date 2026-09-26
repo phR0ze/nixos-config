@@ -133,15 +133,16 @@ build::vm()
     # Optionally clean first
     if [[ $CLEAN -eq 1 ]]; then
         log::ls "Cleaning ${cyan}${HOST}${none}"
-        $SUDO rm -rf "${CONFIG_DIR}/${HOST}"
+        $SUDO rm -rf "${CONFIG_DIR}/vms/${HOST}"
     fi
 
     $SUDO nix build "${CONFIG_DIR}#nixosConfigurations.${HOST}.config.system.build.vm"
 
-    # Install the vm in its own directory
-    log::ls "Installing at ${cyan}./${HOST}${none}"
-    $SUDO mkdir -p "${CONFIG_DIR}/${HOST}"
-    [ -e result ] && mv -f result "${CONFIG_DIR}/${HOST}"
+    # Install the vm in its own directory under vms/ - kept out of the flake source tree so it's
+    # never at risk of getting `git add -f`'d alongside decrypted args (see utils::assert_forceable)
+    log::ls "Installing at ${cyan}vms/${HOST}${none}"
+    $SUDO mkdir -p "${CONFIG_DIR}/vms/${HOST}"
+    [ -e result ] && mv -f result "${CONFIG_DIR}/vms/${HOST}"
 
     build::seed_vm_key "$HOST"
 }
@@ -160,7 +161,7 @@ build::vm()
 build::seed_vm_key()
 {
     local hostname="$1"
-    local shared="${CONFIG_DIR}/${hostname}/shared"
+    local shared="${CONFIG_DIR}/vms/${hostname}/shared"
     local src
 
     for src in /root/.config/sops/age/keys.txt "${HOME}/.config/sops/age/keys.txt"; do

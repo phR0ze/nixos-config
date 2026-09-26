@@ -41,9 +41,9 @@ conv::run()
         conv::usage
     fi
 
-    local SRC_DIR="${CONFIG_DIR}/vm-${src}"
+    local SRC_DIR="${CONFIG_DIR}/vms/vm-${src}"
     local SRC_IMG="${SRC_DIR}/nixos.qcow2"
-    local DST_DIR="${CONFIG_DIR}/vm-${dst}"
+    local DST_DIR="${CONFIG_DIR}/vms/vm-${dst}"
     local DST_IMG="${DST_DIR}/nixos.qcow2"
 
     log::header1 "Converting ${cyan}vm-${src}${none} -> ${cyan}vm-${dst}${none}"

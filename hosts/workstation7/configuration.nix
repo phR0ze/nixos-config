@@ -46,15 +46,15 @@
         pactl set-sink-volume alsa_output.pci-0000_03_00.0.analog-surround-51 12% 12% 12% 12% 12% 12%
       '')
     ] ++ [
-      pkgs.xchm                     # App for reading Microsoft help files for technical manuals
-      pkgs.synology-drive-client
-      pkgs.freetube
-      #pkgs.wiiload                 # Depends on freeimage which has bit rotted
-      #pkgs.wiimms-iso-tools        # Depends on freeimage which has bit rotted
-      #pkgs.gamecube-tools          # Depends on freeimage which has bit rotted
-      pkgs.quickemu
-      pkgs.zed-editor
-      pkgs.neovide
+      xchm               # App for reading Microsoft help files for technical manuals
+      synology-drive-client
+      freetube
+      #wiiload                 # Depends on freeimage which has bit rotted
+      #wiimms-iso-tools        # Depends on freeimage which has bit rotted
+      #gamecube-tools          # Depends on freeimage which has bit rotted
+      quickemu
+      zed-editor
+      neovide
     ];
   };
 }

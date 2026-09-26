@@ -4,11 +4,12 @@
 # and links the resulting script into `result/bin/run`.
 #
 # ### Params:
-# - `lib`, `pkgs`:  the usual nixpkgs handles
-# - `guest`:        the resolved `config.virtualization.qemu.guest` option set
-# - `host`:         the resolved `config.virtualization.qemu.host` option set, for `qemu-img`
+# - `lib`, `pkgs`:          the usual nixpkgs handles
+# - `guest`:                the resolved `config.virtualization.qemu.guest` option set
+# - `host`:                 the resolved `config.virtualization.qemu.host` option set, for `qemu-img`
+# - `macvtapInterfaces`:    `guest.interfaces` filtered down to `type = "macvtap"` entries
 #---------------------------------------------------------------------------------------------------
-{ lib, pkgs, guest, host }:
+{ lib, pkgs, guest, host, macvtapInterfaces }:
 ''
   #! ${pkgs.runtimeShell}
 
@@ -51,6 +52,14 @@
   # -qmp unix:my-vm.sock,server,nowait    # Control socket to use
   # -object 'memory-backend-memfd,id=mem,size=4096M,share=on'
   # -numa 'node,memdev=mem'               # Simulate a multi node NUMA system
+
+  # Open each macvtap character device on the fd its interface config declares (already created
+  # and chowned to us by macvtap-up, run before this script). `exec N<>file` leaves fd N open
+  # (no close-on-exec) across the qemu exec below, which is how its `-netdev tap,fd=N` inherits it.
+  # ----------------------------------------------------------------------------------------------
+  ${lib.concatMapStrings ({ id, fd, ... }: ''
+    exec ${toString fd}<>/dev/tap$(${pkgs.coreutils}/bin/cat /sys/class/net/${id}/ifindex)
+  '') macvtapInterfaces}
 
   # Launch the virtual machine
   # ----------------------------------------------------------------------------------------

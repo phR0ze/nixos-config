@@ -159,11 +159,11 @@ utils::decrypt()
 # Reject paths that must never be force-staged
 # --------------------------------------------------------------------------------------------------
 # - `git add -f` deliberately overrides .gitignore, so the ignore rules covering the operator's sops
-#   age key (`keys.txt`) and the runtime VM directories (`/vm-*`) offer no protection at these call
+#   age key (`keys.txt`) and the runtime VM directories (`/vms/*`) offer no protection at these call
 #   sites - a stray force-add is exactly how the fleet key's blob reached .git/objects once already.
 #   Nothing that legitimately needs forcing lives in either path, so refuse outright.
-# - only *top-level* `vm-*` is rejected: `hosts/vm-test1/args.dec.yaml` and friends are real hosts
-#   whose decrypted args must still stage normally
+# - only *top-level* `vms/*` (and the legacy top-level `vm-*` layout) is rejected: `hosts/vm-test1/
+#   args.dec.yaml` and friends are real hosts whose decrypted args must still stage normally
 # - fails loudly rather than filtering silently - a dropped args.dec.yaml would otherwise resurface
 #   as a confusing "file not found" during flake evaluation
 #
@@ -180,7 +180,7 @@ utils::assert_forceable()
         rel="${path#./}"
         rel="${rel#${CONFIG_DIR}/}"
         case "$rel" in
-            vm-*|vm-*/*|keys.txt|*/keys.txt)
+            vms|vms/*|vm-*|vm-*/*|keys.txt|*/keys.txt)
                 log::error "Refusing to force-stage protected path ${cyan}${path}${none}"
                 return 1
                 ;;
@@ -202,7 +202,7 @@ utils::add_decrypted_to_git()
 {
   local target="$1"
   log::d "Adding decrypted files to git from ${cyan}${target}${none}"
-  mapfile -d '' -t decrypted_files < <(find "$target" -path "$target/vm-*" -prune -o -type f -name "*.dec.*" -print0)
+  mapfile -d '' -t decrypted_files < <(find "$target" \( -path "$target/vms" -o -path "$target/vm-*" \) -prune -o -type f -name "*.dec.*" -print0)
   [ ${#decrypted_files[@]} -eq 0 ] && return 0
   utils::assert_forceable "${decrypted_files[@]}" || return 1
   $SUDO git add -f -- "${decrypted_files[@]}"

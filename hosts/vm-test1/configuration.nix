@@ -14,13 +14,5 @@
     cores = 4;
     memorySize = 8;
     rootDrive.size = 40;
-    display.enable = true;
-    interfaces = [{
-      type = "user";
-      id = "vm-test";
-      forwardPorts = [
-        { host = 2222; guest = 22; }
-      ];
-    }];
   };
 }

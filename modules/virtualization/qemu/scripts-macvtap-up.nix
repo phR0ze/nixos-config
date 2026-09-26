@@ -19,7 +19,20 @@
   if [ -e /sys/class/net/${id} ]; then
     ${lib.getExe' pkgs.iproute2 "ip"} link delete '${id}'
   fi
-  ${lib.getExe' pkgs.iproute2 "ip"} link add link '${macvtap.link}' name '${id}' address '${mac}' type macvtap mode '${macvtap.mode}'
+'' + (if macvtap.link != "" then ''
+  link='${macvtap.link}'
+'' else ''
+  # No link given - auto-detect the host's current default-route interface at VM-start time, so
+  # the guest's own Nix config never has to hardcode a specific physical host's NIC name.
+  link=$(${lib.getExe' pkgs.iproute2 "ip"} -4 route show default)
+  link=''${link#*dev }
+  link=''${link%% *}
+  if [ -z "$link" ]; then
+    echo "Could not auto-detect a default-route interface to attach macvtap ${id} to; set macvtap.link explicitly" >&2
+    exit 1
+  fi
+'') + ''
+  ${lib.getExe' pkgs.iproute2 "ip"} link add link "$link" name '${id}' address '${mac}' type macvtap mode '${macvtap.mode}'
   ${lib.getExe' pkgs.iproute2 "ip"} link set '${id}' allmulticast on
   if [ -f "/proc/sys/net/ipv6/conf/${id}/disable_ipv6" ]; then
     echo 1 > "/proc/sys/net/ipv6/conf/${id}/disable_ipv6"

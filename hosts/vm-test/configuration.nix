@@ -6,39 +6,22 @@
 {
   config = {
     host.desktop.xfce.theater = true;
-
     host.type.vm = true;
     host.autologin = true;
-    #devices.network.dns.force = true;
 
-    # Beefed up VM specs with DHCP full LAN presence
-    # --------------------------------------------
     virtualization.qemu.guest = {
       enable = true;
       cores = 4;
       memorySize = 8;
       rootDrive.size = 40;
-      display.enable = true;
-      interfaces = [{
-        type = "user";
-        id = "vm-test";
-        forwardPorts = [
-          { host = 2222; guest = 22; }
-          { host = 8080; guest = 80; }
-          { host = 8443; guest = 443; }
-          { host = 9000; guest = 9000; }
-        ];
-      }];
-#      interfaces = [{
-#        type = "macvtap";
-#        id = cfg.hostname;
-#        fd = 3;
-#        macvtap.mode = "bridge";
-#        macvtap.link = "br0";
-#        mac = "02:00:00:00:00:01";
-#      }];
+      network.forwardPorts = [
+        { host = 2222; guest = 22; }
+        { host = 8080; guest = 80; }
+        { host = 8443; guest = 443; }
+        { host = 9000; guest = 9000; }
+      ];
     };
-#
+
 #    # Testing packages
 #    # --------------------------------------------
 #    #apps.games.prismlauncher.enable = true;
