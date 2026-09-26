@@ -119,6 +119,7 @@ flake::decrypt_args()
         dec="${enc%.enc.yaml}.dec.yaml"
         log::d "Decrypting ${cyan}${enc}${none}"
         $SUDO bash -c "sops --decrypt '$enc' > '$dec'"
+        utils::assert_forceable "$dec" || return 1
         $SUDO git add -f -- "$dec"
     done
 }
@@ -173,6 +174,7 @@ flake::decrypt_secrets()
     $SUDO cp "$tmp" "$merged"
     $SUDO shred -u "$tmp"
     $SUDO sops --encrypt --in-place "$merged"
+    utils::assert_forceable "$merged" || return 1
     $SUDO git add -f -- "$merged"
 }
 

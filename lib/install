@@ -361,6 +361,7 @@ EOF"
     log::ls -n "Re-locate hardware config to ${HOST}/hardware-configuration.nix..."
     sudo mv hardware-configuration.nix "${HOST}"
     sudo git add "${HOST}"
+    utils::assert_forceable "${HOST}/args.dec.yaml" || return 1
     sudo git add -f "${HOST}/args.dec.yaml"
     log::status
 
