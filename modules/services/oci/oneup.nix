@@ -7,36 +7,30 @@
 # ### Deployment Features
 # - Get status with: `systemctl status podman-oneup`
 # --------------------------------------------------------------------------------------------------
-{ config, lib, args, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.oci.oneup;
-
+in
+{
   # OneUp already runs as a fixed non-root user (see `user = ...` below) with no root-then-drop
   # startup dance of its own, and persists everything under the one `/app/data` volume already
   # declared below — so unlike Homarr/Stirling-PDF (PUID/PGID entrypoints, root-owned startup
   # writes) it's a safe candidate for Newt's hardening baseline. Turn any of these off if a future
   # OneUp release needs a capability or writes somewhere outside /app/data and fails to start.
-  defaults = (f.getService args "oneup") // {
-    capDropAll = true;
-    noNewPrivileges = true;
-    readOnlyRootfs = true;
-  };
-in
-{
-  imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
-
-  options = {
-    services.oci.oneup = lib.mkOption {
-      description = lib.mdDoc "OneUp service options";
-      type = types.submodule {
-        imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
-      };
-      default = defaults;
+  options.services.oci.oneup = import ../../types/service.nix {
+    inherit lib;
+    defaults = {
+      name = "oneup";
+      capDropAll = true;
+      noNewPrivileges = true;
+      readOnlyRootfs = true;
     };
   };
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      assertions = f.ociAsserts cfg;
+
       virtualisation.podman.enable = true;
       users.users.${cfg.user.name} = f.createUser cfg.user;
       users.groups.${cfg.user.group} = f.createGroup cfg.user;

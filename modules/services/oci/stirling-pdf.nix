@@ -22,26 +22,19 @@
 # - App is visiable on the LAN, with a dedicated host macvlan and static IP, for inbound connections
 # - App data is persisted at /var/lib/$APP
 # --------------------------------------------------------------------------------------------------
-{ config, lib, args, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.oci.stirling-pdf;
-  defaults = f.getService args "stirling-pdf";
 in
 {
-  imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
-
-  options = {
-    services.oci.stirling-pdf = lib.mkOption {
-      description = lib.mdDoc "Stirling PDF service options";
-      type = types.submodule {
-        imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
-      };
-      default = defaults;
-    };
+  options.services.oci.stirling-pdf = import ../../types/service.nix {
+    inherit lib; defaults = { name = "stirling-pdf"; };
   };
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      assertions = f.ociAsserts cfg;
+
       virtualisation.podman.enable = true;
       users.users.${cfg.user.name} = f.createUser cfg.user;
       users.groups.${cfg.user.group} = f.createGroup cfg.user;

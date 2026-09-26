@@ -1,7 +1,7 @@
 # Non-secret argument overrides for the macbook, layered on top of the root `args.nix`/`args.dec.yaml`
 # --------------------------------------------------------------------------------------------------
 {
-  net = {
+  network = {
     dns = {
       # Don't force a global nameserver on this roaming laptop - the root args.dec.yaml sets
       # net.dns.primary to the home DNS server, which breaks DNS resolution on any other network

@@ -3,20 +3,20 @@
 # ### Features
 # - Homelab server deployment
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
   ];
 
   config = {
+    host.boot.efi = true;
+    host.autologin = true;
     host.desktop.xfce.standard = true;
 
-    host.boot.efi = true;
+    system.x11.autolock.enable = true;
     devices.network.bridge.enable = true;
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
-    host.autologin = true;
-    system.x11.autolock.enable = true;
 
     # System services
     virtualisation.podman.enable = true;
@@ -35,7 +35,6 @@
     };
     services.oci.homarr = {
       enable = true; port = 8080; user.uid = 2000; subdomain = "home"; tag = "v1.37.0";
-      secrets = ./secrets.enc.yaml;
     };
     services.oci.stirling-pdf = {
       enable = true; port = 8081; user.uid = 2001; subdomain = "pdf"; tag = "1.3.2";
@@ -44,7 +43,7 @@
       enable = true; port = 8082; user.uid = 2002; subdomain = "oneup"; tag = "latest";
     };
     services.oci.newt = {
-      enable = true; /*        */ user.uid = 2005; secrets = ./secrets.enc.yaml; tag = "1.16.0"; 
+      enable = true; /*        */ user.uid = 2005; tag = "1.16.0"; 
     };
 
     # HTTPS Proxy service

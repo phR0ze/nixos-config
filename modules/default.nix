@@ -23,6 +23,24 @@ let
   # Args-supplied xfce desktop variant selections, e.g. `host.desktop.xfce.standard = true`
   xfce = host.desktop.xfce or {};
 
+  # Forwards the `services.oci.<name>.*` fields every OCI module shares (declared by
+  # modules/types/service.nix) from this host's args, exactly the way the native services below
+  # are forwarded one field at a time - the set is identical for all of them, so it's expressed
+  # once here rather than repeated per service. `f.getSvcFunc` yields a `mkIf`-guarded no-op for
+  # any field the args don't set, leaving the module's own default in place.
+  ociForward = name: let
+    arg = f.getSvcFunc "oci.${name}" cfg.services;
+  in {
+    sopsFile = cfg.sopsFile;
+    name = arg "name";
+    tag = arg "tag";
+    user = arg "user";
+    port = arg "port";
+    subdomain = arg "subdomain";
+    subnet = arg "subnet";
+    ip = arg "ip";
+  };
+
   nic0Defaults = {
     name = host.network.nic0.name or "";
     ip = host.network.nic0.ip or "";
@@ -477,6 +495,26 @@ in
       services.native.crowdsec.sopsFile = cfg.sopsFile;
       services.native.crowdsec.allowlist = cfg.network.allowList;
     })
+
+    # Shared OCI service forwarding, see `ociForward` above. Pangolin and Portainer are not in this
+    # list: neither is built on modules/types/service.nix, so they have no common field set to
+    # forward (Pangolin has its own block below).
+    (lib.mkIf config.services.oci.homarr.enable { services.oci.homarr = ociForward "homarr"; })
+    (lib.mkIf config.services.oci.immich.enable (lib.mkMerge [
+      { services.oci.immich = ociForward "immich"; }
+      { services.oci.immich.bridge = config.devices.network.bridge.name; }
+    ]))
+    (lib.mkIf config.services.oci.oneup.enable { services.oci.oneup = ociForward "oneup"; })
+    (lib.mkIf config.services.oci.stirling-pdf.enable { services.oci.stirling-pdf = ociForward "stirling-pdf"; })
+    (lib.mkIf config.services.oci.newt.enable (
+      let arg = f.getSvcFunc "oci.newt" cfg.services;
+      in {
+        services.oci.newt = (ociForward "newt") // {
+          endpoint = arg "endpoint";
+          id = arg "id";
+        };
+      }
+    ))
 
     (lib.mkIf config.services.oci.pangolin.enable (
       let arg = f.getSvcFunc "oci.pangolin" cfg.services;

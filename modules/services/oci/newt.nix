@@ -15,15 +15,14 @@
 #   No inbound ports are published on this host for this service, so no firewall rule is needed either.
 # - Fully user-space WireGuard — no Linux capabilities, no `/dev/net/tun`, so the container runs
 #   `--cap-drop=ALL`, non-root, and (by default) with a read-only rootfs.
-# - `endpoint`/`id` are pulled from `args.services.oci.newt` (`args.enc.yaml`) the same way Homarr's
-#   `encKey` is — identify *which* site connects, but grant nothing without the secret below.
+# - `endpoint`/`id` identify *which* site connects, but grant nothing without the secret below. They
+#   come from `host.services.oci.newt.*` in `args.enc.yaml`, forwarded by modules/default.nix.
 # - The Newt client secret is the actual site-connector credential, so it's kept out of the Nix store
-#   entirely via sops-nix rather than args.enc.yaml. Point `secrets` at a `secrets.enc.yaml` holding a
-#   `newt.clientSecret` key from the machine's `configuration.nix`:
+#   entirely via sops-nix rather than args.enc.yaml. `sopsFile` is forwarded from `host.sopsFile`, so
+#   the machine's `configuration.nix` only needs:
 #     services.oci.newt = {
 #       enable = true;
 #       tag = "<pin a version — see github.com/fosrl/newt/releases>";
-#       secrets = ./secrets.enc.yaml;
 #     };
 # - Get the Endpoint/ID/Secret from the Pangolin dashboard: `Network > Sites > + Add Site > Newt Site
 #   (Recommended)`, then use the `Endpoint`/`ID`/`Secret` values shown under `Install Site > Docker`
@@ -45,68 +44,58 @@
 # Caddy-fronted app since Caddy multiplexes by SNI. Apps not fronted by Caddy still have to be
 # targeted by LAN IP:port, same as before.
 # --------------------------------------------------------------------------------------------------
-{ config, lib, args, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.oci.newt;
 
+in
+{
   # Fully user-space WireGuard — no NET_ADMIN/tun needed, and Newt is stateless with nothing
   # written outside its writable /tmp tmpfs — so it's a safe candidate for the full hardening
   # baseline by default.
-  defaults = (f.getService args "newt") // {
-    capDropAll = true;
-    noNewPrivileges = true;
-    readOnlyRootfs = true;
-  };
-in
-{
-  imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
+  options.services.oci.newt = (import ../../types/service.nix {
+    inherit lib;
+    defaults = {
+      name = "newt";
+      capDropAll = true;
+      noNewPrivileges = true;
+      readOnlyRootfs = true;
+    };
+  }) // {
+    endpoint = lib.mkOption {
+      description = lib.mdDoc ''
+        Pangolin server base URL this site connects to. Forwarded by modules/default.nix from
+        `host.services.oci.newt.endpoint`.
+      '';
+      type = types.str;
+      default = "";
+      example = "https://pangolin.example.com";
+    };
 
-  options = {
-    services.oci.newt = lib.mkOption {
-      description = lib.mdDoc "Newt (Pangolin site connector) service options";
-      type = types.submodule {
-        options = {
-          endpoint = lib.mkOption {
-            description = lib.mdDoc "Pangolin server base URL this site connects to";
-            type = types.str;
-            default = args.services.oci.newt.endpoint or "";
-            example = "https://pangolin.example.com";
-          };
+    id = lib.mkOption {
+      description = lib.mdDoc ''
+        Newt Site ID issued by Pangolin when the Site is created. Forwarded by
+        modules/default.nix from `host.services.oci.newt.id`.
+      '';
+      type = types.str;
+      default = "";
+    };
 
-          id = lib.mkOption {
-            description = lib.mdDoc "Newt Site ID issued by Pangolin when the Site is created";
-            type = types.str;
-            default = args.services.oci.newt.id or "";
-          };
-
-          secrets = lib.mkOption {
-            type = types.path;
-            example = "./secrets.enc.yaml";
-            description = lib.mdDoc ''
-              Path to the sops-encrypted file holding the `newt.clientSecret` secret — the Newt
-              Site's Secret from the Pangolin dashboard. Declared here so the `sops.secrets` entry
-              doesn't need to be repeated in every machine's `configuration.nix`.
-            '';
-          };
-
-          logLevel = lib.mkOption {
-            type = types.enum [ "DEBUG" "INFO" "WARN" "ERROR" ];
-            default = "INFO";
-            description = lib.mdDoc "Newt log verbosity.";
-          };
-        };
-        imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
-      };
-      default = defaults;
+    logLevel = lib.mkOption {
+      type = types.enum [ "DEBUG" "INFO" "WARN" "ERROR" ];
+      default = "INFO";
+      description = lib.mdDoc "Newt log verbosity.";
     };
   };
 
   config = lib.mkIf cfg.enable {
-    assertions = [
+    assertions = f.ociAsserts cfg ++ [
       { assertion = cfg.endpoint != "";
-        message = "services.oci.newt requires 'endpoint' set (args.services.oci.newt.endpoint) — the Pangolin dashboard's base URL"; }
+        message = "services.oci.newt requires 'endpoint' set (host.services.oci.newt.endpoint) — the Pangolin dashboard's base URL"; }
       { assertion = cfg.id != "";
-        message = "services.oci.newt requires 'id' set (args.services.oci.newt.id) — from the Pangolin Site's Newt credentials"; }
+        message = "services.oci.newt requires 'id' set (host.services.oci.newt.id) — from the Pangolin Site's Newt credentials"; }
+      { assertion = cfg.sopsFile != null;
+        message = "services.oci.newt requires 'sopsFile' — normally forwarded from 'host.sopsFile'"; }
     ];
 
     virtualisation.podman.enable = true;
@@ -126,7 +115,7 @@ in
         NEWT_SECRET=${config.secret.ref."newt/clientSecret"}
         LOG_LEVEL=${cfg.logLevel}
       '';
-      secrets."newt/clientSecret".sopsFile = cfg.secrets;
+      secrets."newt/clientSecret".sopsFile = cfg.sopsFile;
       # The container gets these as environment variables at start, so a rotated NEWT_SECRET
       # needs the container restarted to take effect
       restartUnits = [ "podman-${cfg.name}.service" ];

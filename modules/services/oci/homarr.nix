@@ -17,49 +17,30 @@
 # - Get status with: sudo systemctl status podman-homarr
 # - Browse to: http://<IP>:8080
 # --------------------------------------------------------------------------------------------------
-{ config, lib, args, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.oci.homarr;
-
-  defaults = f.getService args "homarr";
 in
 {
-  imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
-
-  options = {
-    services.oci.homarr = lib.mkOption {
-      description = lib.mdDoc "Homarr service options";
-      type = types.submodule {
-        options = {
-          encKey = lib.mkOption {
-            description = lib.mdDoc ''
-              Encryption key used to encrypt secrets in database. Only used as a fallback when
-              `secrets` is unset -- prefer `secrets` (sops-encrypted, decrypted only at
-              activation) over this (baked into the Nix store via args.enc.yaml).
-            '';
-            type = types.str;
-            example = "Create with `open ssl rand -hex 32`";
-            default = args.services.oci.homarr.encKey or "";
-          };
-
-          secrets = lib.mkOption {
-            description = lib.mdDoc ''
-              Path to the sops-encrypted file holding the `homarr/encKey` secret. When set, takes
-              precedence over the plaintext `encKey` fallback above.
-            '';
-            type = types.nullOr types.path;
-            default = null;
-            example = "./secrets.enc.yaml";
-          };
-        };
-        imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
-      };
-      default = defaults;
+  options.services.oci.homarr = (import ../../types/service.nix {
+    inherit lib; defaults = { name = "homarr"; };
+  }) // {
+    encKey = lib.mkOption {
+      description = lib.mdDoc ''
+        Encryption key used to encrypt secrets in database. Only used as a fallback when
+        `sopsFile` is unset -- prefer `sopsFile` (sops-encrypted, decrypted only at activation)
+        over this (baked into the Nix store).
+      '';
+      type = types.str;
+      example = "Create with `open ssl rand -hex 32`";
+      default = "";
     };
   };
- 
+
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      assertions = f.ociAsserts cfg;
+
       virtualisation.podman.enable = true;
       users.users.${cfg.user.name} = f.createUser cfg.user;
       users.groups.${cfg.user.group} = f.createGroup cfg.user;
@@ -74,13 +55,13 @@ in
 
       # Decrypted at activation to sops-nix's default path (config.secret.templates."homarr-<name>".path,
       # normally /run/secrets/rendered/homarr-<name>), never touching the Nix store
-      secret.templates = lib.mkIf (cfg.secrets != null) {
+      secret.templates = lib.mkIf (cfg.sopsFile != null) {
         "homarr-${cfg.name}" = {
           filemode = "0400";
           content = ''
             SECRET_ENCRYPTION_KEY=${config.secret.ref."homarr/encKey"}
           '';
-          secrets."homarr/encKey".sopsFile = cfg.secrets;
+          secrets."homarr/encKey".sopsFile = cfg.sopsFile;
           # The container reads SECRET_ENCRYPTION_KEY from this env file at start only
           restartUnits = [ "podman-${cfg.name}.service" ];
         };
@@ -104,8 +85,8 @@ in
         environment = {
           "PUID" = "${toString cfg.user.uid}";    # Change to non-root
           "PGID" = "${toString cfg.user.gid}";    # Change to non-root
-        } // lib.optionalAttrs (cfg.secrets == null) { "SECRET_ENCRYPTION_KEY" = cfg.encKey; };
-        environmentFiles = lib.optionals (cfg.secrets != null) [ config.secret.templates."homarr-${cfg.name}".path ];
+        } // lib.optionalAttrs (cfg.sopsFile == null) { "SECRET_ENCRYPTION_KEY" = cfg.encKey; };
+        environmentFiles = lib.optionals (cfg.sopsFile != null) [ config.secret.templates."homarr-${cfg.name}".path ];
       };
 
       # Create podmane network and extend service to use it

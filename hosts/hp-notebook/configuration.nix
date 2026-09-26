@@ -13,10 +13,9 @@
   ];
 
   config = {
-    host.desktop.xfce.laptop = true;
-
     host.boot.efi = true;
     host.nix.cache.enable = true;
+    host.desktop.xfce.laptop = true;
 
     # broadcom_sta is an insecure package (upstream, unmaintained driver) - allowed only here
     # since only this host's wifi card needs it

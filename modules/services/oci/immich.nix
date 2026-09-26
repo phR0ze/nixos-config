@@ -12,44 +12,30 @@
 # - There is no need for additional firewall rules if using a bridge network as it already has taken 
 #   care of the isolation by injecting `-A NETAVARK_ISOLATION_3 -o ${network} -j DROP` into iptables
 # --------------------------------------------------------------------------------------------------
-{ config, lib, args, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
-  host = config.host;
   cfg = config.services.oci.immich;
   gpu = config.devices.gpu;
-  defaults = f.getService args "immich";
 in
 {
-  imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
-
-  options = {
-    services.oci.immich = lib.mkOption {
-      description = lib.mdDoc "Immich service options";
-      type = types.submodule {
-        options = {
-          secrets = lib.mkOption {
-            description = lib.mdDoc ''
-              Path to the sops-encrypted file holding the `immich/dbPassword` secret (the Postgres
-              password). When set, takes precedence over the plaintext `user.pass` fallback (baked
-              into the Nix store via args.enc.yaml).
-            '';
-            type = types.nullOr types.path;
-            default = null;
-            example = "./secrets.enc.yaml";
-          };
-        };
-        imports = [ (import ../../types/service.nix { inherit lib defaults; }) ];
-      };
-      default = defaults;
+  options.services.oci.immich = (import ../../types/service.nix {
+    inherit lib; defaults = { name = "immich"; };
+  }) // {
+    bridge = lib.mkOption {
+      description = lib.mdDoc ''
+        Name of the LAN bridge this service's port is opened on, see `devices.network.bridge.name`.
+        Forwarded by modules/default.nix rather than read from `devices.*` directly.
+      '';
+      type = types.str;
+      default = "br0";
     };
   };
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      assertions = [
-        #{ assertion = (cfg ? "debug"); message = "echo '${builtins.toJSON cfg}' | jq"; }
-        { assertion = cfg.secrets != null || (cfg.user.pass != null && cfg.user.pass != "");
-          message = "Postgres pass not set, please set 'services.oci.${cfg.name}.secrets' (recommended) or 'services.oci.${cfg.name}.user.pass'"; }
+      assertions = f.ociAsserts cfg ++ [
+        { assertion = cfg.sopsFile != null || (cfg.user.pass != null && cfg.user.pass != "");
+          message = "Postgres pass not set, please set 'host.sopsFile' (recommended, forwarded to 'services.oci.${cfg.name}.sopsFile') or 'services.oci.${cfg.name}.user.pass'"; }
       ];
       virtualisation.podman.enable = true;
 
@@ -58,14 +44,14 @@ in
       # /run/secrets/rendered/immich-<name>-db), never touching the Nix store. Both DB_PASSWORD
       # (immich-server) and POSTGRES_PASSWORD (postgres) are the same secret value, so one file
       # covers both containers -- unused keys are harmless env vars.
-      secret.templates = lib.mkIf (cfg.secrets != null) {
+      secret.templates = lib.mkIf (cfg.sopsFile != null) {
         "immich-${cfg.name}-db" = {
           filemode = "0400";
           content = ''
             DB_PASSWORD=${config.secret.ref."immich/dbPassword"}
             POSTGRES_PASSWORD=${config.secret.ref."immich/dbPassword"}
           '';
-          secrets."immich/dbPassword".sopsFile = cfg.secrets;
+          secrets."immich/dbPassword".sopsFile = cfg.sopsFile;
           # Both containers consuming this env file read it at start only. Note this restarts
           # them to pick up a rotated value; it does NOT change the password already stored in
           # the postgres data directory (POSTGRES_PASSWORD only applies at initdb), so an actual
@@ -111,10 +97,10 @@ in
           "DB_USERNAME" = "postgres";             # Username, "postgres" is the suggested value
           "DB_DATA_LOCATION" = "./postgres";      # Database files storage location
           "DB_DATABASE_NAME" = "immich";          # Database, "immich" is the suggested value
-        } // lib.optionalAttrs (cfg.secrets == null) {
+        } // lib.optionalAttrs (cfg.sopsFile == null) {
           "DB_PASSWORD" = "${cfg.user.pass}";     # Postgres secret e.g. random string only containing `A-Za-z0-9`
         };
-        environmentFiles = lib.optionals (cfg.secrets != null) [ config.secret.templates."immich-${cfg.name}-db".path ];
+        environmentFiles = lib.optionals (cfg.sopsFile != null) [ config.secret.templates."immich-${cfg.name}-db".path ];
         extraOptions = [ "--ip=${cfg.ip}" ];
       };
 
@@ -179,10 +165,10 @@ in
           "POSTGRES_USER" = "postgres";           # Username, "postgres" is the suggested value
           "DB_STORAGE_TYPE" = "HDD";              # Specify that we are not using SSDs
           "POSTGRES_INITDB_ARGS" = "--data-checksums";
-        } // lib.optionalAttrs (cfg.secrets == null) {
+        } // lib.optionalAttrs (cfg.sopsFile == null) {
           "POSTGRES_PASSWORD" = "${cfg.user.pass}"; # Postgres secret e.g. random string only containing `A-Za-z0-9`
         };
-        environmentFiles = lib.optionals (cfg.secrets != null) [ config.secret.templates."immich-${cfg.name}-db".path ];
+        environmentFiles = lib.optionals (cfg.sopsFile != null) [ config.secret.templates."immich-${cfg.name}-db".path ];
         extraOptions = [
           "--shm-size=128mb"                      # Increase the shared memory size, default is 64mb
           # Static IP — see cfg.ip's description in modules/types/service.nix for why
@@ -191,7 +177,7 @@ in
       };
 
       # Allow LAN ingress to containers
-      networking.firewall.interfaces.${host.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
+      networking.firewall.interfaces.${cfg.bridge}.allowedTCPPorts = [ cfg.port ];
 
       # Extend the services to depend on the podman network
       systemd.services."podman-${cfg.name}-server" = f.extendContService {

@@ -9,33 +9,36 @@
   #-------------------------------------------------------------------------------------------------
   hostInSubnet = subnet: host: "${lib.removeSuffix "0/24" subnet}${toString host}";
 
-  # Extract the target service and process defaults
-  # - args: is the json input used by the machine and related types
-  # - name: the target service's name used for user name and group
+  # Assertions every `services.oci.<name>` module shares, covering the fields declared by
+  # modules/types/service.nix that have no safe default and so must be supplied by the host.
   #
-  # There's no built-in uid default here — the machine's configuration.nix is the single place
-  # `services.oci.<name>.user.uid` gets set (service_base.nix asserts it's present). The group id
-  # always mirrors the user id (see modules/types/user.nix), so there's no separate gid to set.
+  # A plain function of the service's own `cfg` — deliberately not a module taking `config`, the
+  # way the old modules/types/service_base.nix was. That let it read `config.host.*` directly,
+  # which is exactly the coupling the host-option forwarding in modules/default.nix exists to
+  # avoid. Anything a service needs from the host arrives through its own options now, so the
+  # checks here only ever look at `cfg`.
+  #
+  # There's no built-in uid default — a machine's configuration.nix is the single place
+  # `services.oci.<name>.user.uid` gets set. The group id always mirrors the user id (see
+  # modules/types/user.nix), so there's no separate gid to set.
+  #
+  # Usage: `assertions = f.ociAsserts cfg;` inside the module's own `enable`-gated config block.
   #-------------------------------------------------------------------------------------------------
-  getService = args: name: let
-    target = args.services.oci."${name}" or {};
-    service = {
-      enable = target.enable or false;
-      name = target.name or name;
-      tag = if ((target.tag or "") != "") then target.tag else "latest";
-      user = {
-        name = target.user.name or name;
-        group = target.user.group or name;
-        pass = target.user.pass;
-        fullname = target.user.fullname or name;
-        email = target.user.email or "${name}@local";
-        uid = target.user.uid or null;
-      };
-      port = target.port or 80;
-      subnet = target.subnet or null;
-      ip = target.ip or null;
+  ociAsserts = cfg: let
+    req = field: value: {
+      assertion = value;
+      message = "services.oci.${toString cfg.name} requires '${field}' to be set";
     };
-  in service;
+  in [
+    (req "name" (cfg.name != null && cfg.name != ""))
+    (req "port" (cfg.port > 0))
+    (req "subnet" (cfg.subnet != null && cfg.subnet != ""))
+    (req "ip" (cfg.ip != null && cfg.ip != ""))
+    (req "user.name" (cfg.user != null && cfg.user.name != null && cfg.user.name != ""))
+    (req "user.group" (cfg.user != null && cfg.user.group != null && cfg.user.group != ""))
+    (req "user.uid" (cfg.user != null && cfg.user.uid != null && cfg.user.uid > 0))
+    (req "user.gid" (cfg.user != null && cfg.user.gid != null && cfg.user.gid > 0))
+  ];
 
   # Create a user for a containerized application to use. This is useful for setting the permissions 
   # on the /var/lib/APP directory to something that can be read by the container user.

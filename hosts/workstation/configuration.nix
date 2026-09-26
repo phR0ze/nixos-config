@@ -18,12 +18,11 @@
   ];
 
   config = {
+    host.boot.efi = true;
     host.desktop.xfce.develop = true;
 
-    host.boot.efi = true;
     devices.gpu.amd.enable = true;
     devices.network.bridge.enable = true;
-
     devices.printers.epson-wf7710 = true;
     devices.printers.brother-hll2405w = true;
 

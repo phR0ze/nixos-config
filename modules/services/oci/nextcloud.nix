@@ -5,24 +5,27 @@
 # ### Deployment Features
 # - Get status with: `systemctl status podman-nextcloud`
 # --------------------------------------------------------------------------------------------------
-{ config, lib, args, pkgs, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
-  host = config.host;
   cfg = config.services.oci.nextcloud;
-  defaults = f.getService args "nextcloud";
 in
 {
-  imports = [ (import ../../types/service_base.nix { inherit config lib pkgs f cfg; }) ];
-
-  options = {
-    services.oci.nextcloud = lib.mkOption {
-      description = lib.mdDoc "Nextcloud service options";
-      type = types.submodule { imports = [ (import ../../types/service.nix { inherit lib defaults; }) ]; };
-      default = defaults;
+  options.services.oci.nextcloud = (import ../../types/service.nix {
+    inherit lib; defaults = { name = "nextcloud"; };
+  }) // {
+    bridge = lib.mkOption {
+      description = lib.mdDoc ''
+        Name of the LAN bridge this service's port is opened on, see `devices.network.bridge.name`.
+        Forwarded by modules/default.nix rather than read from `devices.*` directly.
+      '';
+      type = types.str;
+      default = "br0";
     };
   };
- 
+
   config = lib.mkIf cfg.enable {
+    assertions = f.ociAsserts cfg;
+
     virtualisation.podman.enable = true;
     users.users.${cfg.user.name} = f.createUser cfg.user;
     users.groups.${cfg.user.group} = f.createGroup cfg.user;
@@ -47,7 +50,7 @@ in
       extraOptions = [ "--ip=${cfg.ip}" ];
     };
 
-    networking.firewall.interfaces.${host.net.bridge.name}.allowedTCPPorts = [ cfg.port ];
+    networking.firewall.interfaces.${cfg.bridge}.allowedTCPPorts = [ cfg.port ];
 
     # Create podmane network and extend service to use it
     systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };

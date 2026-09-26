@@ -18,15 +18,10 @@ in
   ];
 
   config = {
-    host.desktop.xfce.develop = true;
-
     host.boot.efi = true;
-    virtualisation.podman.enable = true;
-    virtualization.qemu.host.enable = true;
-
-    # Increase the default DPI size
+    host.desktop.xfce.develop = true;
     host.resolution = { x = 1920; y = 1200; } ;
-    system.x11.xft.dpi = lib.mkForce 120;
+    system.x11.xft.dpi = lib.mkForce 120;         # Increase the default DPI size
 
     # Fix default power governor to run at a lower frequency and boost as needed
     powerManagement.cpuFreqGovernor = "schedutil";
@@ -39,6 +34,9 @@ in
     # endlessly retries DHCP on it, which keeps nm-applet's tray icon spinning even though
     # the real (WiFi) connection is fine. Leave it unmanaged so NM stops trying to activate it.
     networking.networkmanager.unmanaged = [ "interface-name:enp2s0f1u1" ];
+
+    virtualisation.podman.enable = true;
+    virtualization.qemu.host.enable = true;
 
     boot.extraModprobeConfig = lib.mkIf dgpuPowerSave ''
       options apple_gmux force_igd=y
