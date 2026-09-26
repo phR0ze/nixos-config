@@ -52,13 +52,19 @@ in
           description = "Port of the custom binary cache host.";
         };
 
-        hostPublicKeyFile = lib.mkOption {
+        trustedPublicKeys = lib.mkOption {
           description = lib.mdDoc ''
-            Nix binary cache public key used for client configuration. Public by definition, so
-            this stays a plaintext file read at evaluation time (see modules/system/env/nix.nix).
+            Nix binary cache public keys used for client configuration. Public by definition, so
+            these stay plaintext files read at evaluation time (see modules/system/env/nix.nix).
+            Defaults to the cache host's own key; extend the list (e.g. host-specific overrides)
+            to also trust additional signing keys, such as one used to push unsigned builds from
+            an untrusted machine (see modules/services/native/nix-cache/README.md).
           '';
-          type = types.path;
-          default = ./include/public.pem;
+          type = types.listOf types.path;
+          default = [
+            ./include/server-public.pem
+            ./include/build-public.pem
+          ];
         };
       };
 
@@ -85,7 +91,7 @@ in
             README in this directory.
           '';
           type = types.path;
-          default = ./include/private.enc.pem;
+          default = ./include/server-private.enc.pem;
         };
       };
     };
@@ -107,7 +113,7 @@ in
         substituters = lib.mkBefore [ "http://${cfg.client.hostIP}:${toString cfg.client.hostPort}" ];
 
         # Signing keys for custom substituters
-        trusted-public-keys = [ "${(builtins.readFile cfg.client.hostPublicKeyFile)}" ];
+        trusted-public-keys = map builtins.readFile cfg.client.trustedPublicKeys;
 
         # The custom cache host runs a lot besides the binary cache server (Jellyfin, VMs, containers)
         # and can stall under load. Fail fast against it instead of the 300s default so we fall
