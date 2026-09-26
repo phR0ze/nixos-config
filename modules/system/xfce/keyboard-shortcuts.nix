@@ -60,7 +60,7 @@ let
             <property name="&lt;Super&gt;f" type="string" value="thunar"/>
             <property name="&lt;Super&gt;e" type="string" value="code"/>
             <property name="&lt;Super&gt;w" type="string" value="firefox"/>
-            ${lib.optionalString config.apps.media.jellyfin.enable ''<property name="&lt;Super&gt;j" type="string" value="jellyfinmediaplayer"/>''}
+            ${lib.optionalString config.apps.media.jellyfin.enable ''<property name="&lt;Super&gt;j" type="string" value="jellyfin-desktop"/>''}
             <property name="&lt;Super&gt;o" type="string" value="libreoffice"/>
             <property name="&lt;Super&gt;x" type="string" value="xfce4-session-logout"/>
             <property name="&lt;Super&gt;l" type="string" value="xflock4"/>
