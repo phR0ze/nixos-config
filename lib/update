@@ -112,11 +112,17 @@ update::system()
 #   still running at the console: xfwm4/xfdesktop/xfce4-panel/xfsettingsd/thunar all keep
 #   touching files under .config/xfce4 (session state, thumbnails, recently-used, etc), racing
 #   `rm -rf`'s directory walk and leaving it "Directory not empty". Kill the rest of the live
-#   session's daemons too, then retry the removal a few times in case something respawns once
-#   (e.g. under a session manager) before giving up.
+#   session's daemons too (none of them auto-respawn on their own), then retry the removal a
+#   few times in case something respawns once before giving up.
+# - deliberately does NOT kill xfce4-session itself: on an autologin host that immediately
+#   restarts the whole session (fresh xfconfd included) before `nixos-rebuild switch` even runs
+#   later in this same script, and that fresh xfconfd then persists its own auto-generated
+#   defaults right back over whatever nix-weave writes during the switch - silently discarding
+#   the reset entirely. Leaving the session process alive means the desktop looks dead (no wm/
+#   panel/wallpaper) until the user logs out or reboots, which is expected - see --reset-xfce.
 _update::removeUserXfceConfigs()
 {
-    pkill -x '^(xfwm4|xfdesktop|xfce4-panel|xfsettingsd|xfce4-session|thunar|xfce4-notifyd)$' 2>/dev/null || true
+    pkill -x '^(xfwm4|xfdesktop|xfce4-panel|xfsettingsd|thunar|xfce4-notifyd)$' 2>/dev/null || true
 
     local users=$(find /home -mindepth 1 -maxdepth 1)
     users+=('/root')
