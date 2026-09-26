@@ -22,6 +22,7 @@
     apps.games.hedgewars.enable = true;
     apps.games.superTuxKart.enable = true;
 
+    services.native.smb.enable = true;
     services.native.keyd.enable = true;
   };
 }

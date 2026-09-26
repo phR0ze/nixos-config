@@ -22,6 +22,7 @@
     apps.media.obs.enable = true;
     apps.network.rustdesk.autostart = false;
 
+    services.native.smb.enable = true;
     virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
 

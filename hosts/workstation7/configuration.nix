@@ -32,7 +32,7 @@
     apps.games.superTuxKart.enable = true;
     apps.media.freecad.enable = true;
 
-    # Services
+    services.native.smb.enable = true;
     virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
 
