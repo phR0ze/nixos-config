@@ -52,6 +52,7 @@ in
         authorizedKeysSecretRef = "users/admin/authorizedKeys";
         isNormalUser = true;
         uid = 1000;
+        gid = 1000;         # pin primary group so file ownership stays stable
         extraGroups = [ "wheel" ];
       };
 

@@ -16,13 +16,12 @@
     host.desktop.xfce.theater = true;
 
     devices.gpu.intel.enable = true;
+    services.native.smb.enable = true;
+    services.native.keyd.enable = true;
 
     apps.dev.rust.enable = true;
     apps.dev.flutter.enable = true;
     apps.games.hedgewars.enable = true;
     apps.games.superTuxKart.enable = true;
-
-    services.native.smb.enable = true;
-    services.native.keyd.enable = true;
   };
 }
