@@ -84,7 +84,7 @@ in
 
       # Set the root password to the same as the admin user
       # Overriding the ISO settings to avoid the duplicate values warning
-      users.users.root = passwordConfig;
+      users.users.root.hashedPasswordFile = passwordConfig;
 
       # Create user groups for sharing files using specific ids
       users.groups."users".gid = 100;       # TODO: keep things runing as usual until I decomission this
