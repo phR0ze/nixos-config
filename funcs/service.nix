@@ -72,11 +72,10 @@
   # (pointing at a dead container IP) wins because nftables evaluates in insertion order. Auto-IPAM
   # compounds this: if the network itself ever gets recreated (not just the container), it can land
   # on a *different* subnet than before, leaving the host bridge interface holding a stale address
-  # for a subnet nothing routes to anymore (this is what took oneup.example.com down). Pinning the
-  # subnet keeps the network's addressing stable across recreation; pinning each container's own IP
-  # (see the `--ip=` extraOptions in each services.oci.* module) makes the leftover stale rule
-  # harmless even when netavark fails to clean it up, since it ends up identical to the live one
-  # instead of pointing at a dead address.
+  # for a subnet nothing routes to anymore. Pinning the subnet keeps the network's addressing stable
+  # across recreation; pinning each container's own IP (see the `--ip=` extraOptions in each
+  # services.oci.* module) makes the leftover stale rule harmless even when netavark fails to clean
+  # it up, since it ends up identical to the live one instead of pointing at a dead address.
   #-------------------------------------------------------------------------------------------------
   createContNetwork = { name, subnet }: {
     serviceConfig = {
@@ -136,9 +135,7 @@
       # (net.ipv4.conf.<iface>.route_localnet, arp_notify, etc.) under /proc/sys every time it
       # creates a container's network namespace. Blocking that isn't hardening against a threat
       # the container poses to the host, it's blocking podman's own normal container-network
-      # setup — every services.oci.* container failed to start with this enabled (learned the
-      # hard way: oneup.example.com went down with `IO error: Read-only file system` from
-      # netavark until this was reverted).
+      # setup — every services.oci.* container failed to start with this enabled
       ProtectKernelModules = true;
       # NOT RestrictSUIDSGID — unconfirmed, but a real suspect: podman extracts image layers as
       # root and preserves each file's mode bits from the tar, including the setuid/setgid bit on

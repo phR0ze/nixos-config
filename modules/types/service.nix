@@ -75,11 +75,11 @@
   # stale one (pointing at a dead container IP) wins because nftables evaluates in insertion
   # order. Auto-IPAM compounds this: if the network itself ever gets recreated (not just the
   # container), it can land on a *different* subnet than before, leaving the host bridge
-  # interface holding a stale address for a subnet nothing routes to anymore (this is what took
-  # oneup.example.com down). Pinning `subnet` keeps the network's addressing stable across
-  # recreation; pinning `ip` makes a leftover stale rule harmless even when netavark fails to
-  # clean it up, since it ends up identical to the live one instead of pointing at a dead
-  # address. See `funcs/service.nix`'s `createContNetwork`/`hostInSubnet`.
+  # interface holding a stale address for a subnet nothing routes to anymore. Pinning `subnet` keeps
+  # the network's addressing stable across recreation; pinning `ip` makes a leftover stale rule
+  # harmless even when netavark fails to clean it up, since it ends up identical to the live one
+  # instead of pointing at a dead address. See `funcs/service.nix`'s
+  # `createContNetwork`/`hostInSubnet`.
   subnet = lib.mkOption {
     description = lib.mdDoc "Fixed CIDR (e.g. `10.89.101.0/24`) for this service's isolated podman network";
     type = types.nullOr types.str;
