@@ -7,21 +7,24 @@ host:
         nic0:
             name: ENC[AES256_GCM,data:F5y+dgqIEQ==,iv:nCOgd2jWj3271+vgLBv9j5xvWlR34jzQH5Ke63faJvc=,tag:MB/3SaAAPbOxIX+RN+Pyrw==,type:str]
             ip: ENC[AES256_GCM,data:aTY3RCNcvvElunvcggwY,iv:x7mikMv+hJ83XLI/SzzBYZUJDls/frEbuEOqL8sdXLI=,tag:GNd4WHFB02RMluMUrb9DhQ==,type:str]
-services:
-    native:
-        smb:
-            enable: ENC[AES256_GCM,data:k0/Rww==,iv:QLGa4n7KHiAsNBp7M6Khlpup5NlZmM7PloRIxS8k5i8=,tag:t9faCyyR/oEdIZCZBckhNA==,type:bool]
-            entries:
-                - mountPoint: ENC[AES256_GCM,data:ABCRmOU6E9xS,iv:rU3qr8vhLe2WSB6BzvHX3ctGtxZkIWcmn8kxsIniy7I=,tag:IN9+KlrHkHazLlDxei9Ybg==,type:str]
-                  remotePath: ENC[AES256_GCM,data:jqjH73ioaVJ8jHctwQUt8Rjs,iv:KT2Gzh5s4xj2R5tJBwwKhNTfnh66+L5BVZZamH8HD+M=,tag:Dr7KGxLlLmAuby19ExIijQ==,type:str]
-                  writable: ENC[AES256_GCM,data:uWQ+Dg==,iv:bXgOfHEPhyKImFNXFiRPHtXA1ckco2EgU1XjDzVfKIs=,tag:z+LbO19g8CU6wBL9phLqNA==,type:bool]
-                - mountPoint: ENC[AES256_GCM,data:JtZOibAbhjz9AUrVaA==,iv:OZ+ChUW+3vXDxFRWVs06KF7F8uWxCCMwBHRGPBJwuhQ=,tag:rxZwpCWzOgTPGcDwpra77g==,type:str]
-                  remotePath: ENC[AES256_GCM,data:KqD7glFeW3xCviAndL+vgUq+Sw==,iv:Kgjz/0dpSUyG/hBqr9tecyR5mXBgDkZTfm+eYEBgGuc=,tag:Y4VBn/gO1bwAIXcyXvyPSw==,type:str]
-                  writable: ENC[AES256_GCM,data:EoTOzRg=,iv:igwGOSBzzHOIZ0Boq9YkSE7PXDVmg6rgsWES3ru0xv4=,tag:c1BNJAgYcX/F5kajwm06Jw==,type:bool]
-                - user: ENC[AES256_GCM,data:fVHebnw=,iv:qb/GX6nPiDvQgh7o6+dirot4CaI7xvfNC+guljmDRhE=,tag:pJtnEN1+ZGUvHInEyTosog==,type:str]
-                  mountPoint: ENC[AES256_GCM,data:WUEEdSPPybLnSA==,iv:TsH5EheuinEmLtPkFkCMFV7TE1f0QTF37wo1H18QX1w=,tag:QZgXCuvI6X0/o+fA7imxgQ==,type:str]
-                  remotePath: ENC[AES256_GCM,data:qCEerXFxfPWEt+BrxjJm+9y5,iv:0L6hFFhm6YqNVnri6eAAh5xZvt6zwx3VC7Hko1hGKiI=,tag:3T7MRAhAx4fRd1FIYZQj4w==,type:str]
-                  writable: ENC[AES256_GCM,data:gt2QYQ==,iv:1kuphwMjgb5MfPtRCBC4m/gSEp558NedEaS+zNn/siI=,tag:3ZGpPFbarqkluVl5w8xkoA==,type:bool]
+    services:
+        native:
+            smb:
+                enable: ENC[AES256_GCM,data:D6TKkQ==,iv:88KZdrO5mu5BD0r85I7ZF9o5iIyOUcG07T3gAxLaR7s=,tag:sMHN6yYr08BgK4NR8oRIKw==,type:bool]
+                entries:
+                    - mountPoint: ENC[AES256_GCM,data:oMv9MWLbf/Qj,iv:mG0iebjQ4SrwhGGV1V4Jmt9ScuU+IoTgtbGcsKyVnZk=,tag:jrWrWM4xsZAz/SnFbsM8qg==,type:str]
+                      remotePath: ENC[AES256_GCM,data:TUZV2rEEGA8gKAoPboLUvgPi,iv:Y+lyq4gwL9TrbdvIxaj3fLgZ/S7FK/5T7ARhfG8Zp5E=,tag:tGldbvJzZwE0gWvRDauAXQ==,type:str]
+                      secretRef: ENC[AES256_GCM,data:jHTBboXyPSNWjOE=,iv:y2rBOIt5dWIytVDSL2D0BR1xLN6auWHA8Xyiyhe5L/Q=,tag:dp61d/npwJtoEfmhtx9T/g==,type:str]
+                      writable: ENC[AES256_GCM,data:zKmt+Q==,iv:IiOaXXoVC/tnwYb07C5m2ZOqGPxB7rvJcGfNgsIOrJI=,tag:UP0VaxFawu+zSa1Md9XbkQ==,type:bool]
+                    - mountPoint: ENC[AES256_GCM,data:yLoEf9+T7mZE7EjaWQ==,iv:G+eZhA2LmiHtzK9yCEFydHbVUmGz+BTunb/jObAGpgE=,tag:qLo3apGEouxUHMdBE3vJZw==,type:str]
+                      remotePath: ENC[AES256_GCM,data:ESNJf278j7hduF0jlgqR/fHvEg==,iv:4q3dZkLKUz7MKilLS4rCkLVNsYOl0TB/mnQEbsKlknU=,tag:HxVu85Pi3RlYyH5xGhiM7A==,type:str]
+                      secretRef: ENC[AES256_GCM,data:cTcaFlA+dKjypbU=,iv:BQz2TvhR0K8GTu44+76lXJJOdXGyDL17ypjcNmXSVtI=,tag:R01RVrcKkjGzPG6N7XfCwQ==,type:str]
+                      writable: ENC[AES256_GCM,data:mutFJ2I=,iv:LnJeJkgt7qQqZFKmctzoaWTRwNKzqnpQouZ1o3544eA=,tag:70Yw2WQN+v1n5noVyz0bww==,type:bool]
+                    - user: ENC[AES256_GCM,data:Iy1Z8sU=,iv:7C21N5bZQWqS/HZ0vjSctQ0HQAPH68sjEleEOKOmT5Q=,tag:POHUvL77TqquCajGM60vLA==,type:str]
+                      mountPoint: ENC[AES256_GCM,data:4VbQrWWGoAQ/2Q==,iv:fChxlbORG5E1p/LbGq9sTEj2zU003gtgz4ggmwwcuB4=,tag:P0PXsJuvjH5UYoaKYEcqiA==,type:str]
+                      remotePath: ENC[AES256_GCM,data:2olBTRXfke71fVhKU1XxYNFa,iv:tkqpPgCf3d5dlHBsXYRfp3FV9N97GA9epV2CiCFpC6E=,tag:a8znT6oOnsGezYNSJSf1Ww==,type:str]
+                      secretRef: ENC[AES256_GCM,data:2h4OaBKsgGpnO6Y=,iv:Fq6+hOSjjgAH1bhkBpFhYbWzZymJpMv5YwHUg8pxjy8=,tag:qdQvxDaBJBFtEcWtMJPpIw==,type:str]
+                      writable: ENC[AES256_GCM,data:im4mrA==,iv:41voh/SzVLq+k94+sEyWGjHDizHxdoBGm/rflasA33s=,tag:aDfbP6F7cs30C/4MifP7Sw==,type:bool]
 sops:
     age:
         - enc: |
@@ -33,7 +36,7 @@ sops:
             X3+XC5+hs9W2pJR2/QihAK2tMRHp4/ptXYVquI9Uf7GI1nCop+JnVg==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-09-26T00:04:41Z"
-    mac: ENC[AES256_GCM,data:IzskH47bI/DQqwmTKGmgLIf8ihXmMiGAOazERP6NYKKn0qodUuLtpfAQpj5YmLa/eBDEvOJzMj2CkHOvy4IeHakmhk6zoY2VxKYcrm9utDR38ATAHWnI7fDVM8G+EMmhLpDjquvWoUcbpi356cS8b68K4FSuSptXpIlBk+hfveQ=,iv:61zGBuOIPKwmMv6NdctWGxTjP5b9weoZZkKIDkgm14I=,tag:wpVLSbSQJ2Qtb2ZAiSWZkQ==,type:str]
+    lastmodified: "2026-09-26T18:10:36Z"
+    mac: ENC[AES256_GCM,data:2sdkuUXgB0V7BSFIV0BmZm3Rfi71nIfwSS1zpk1KAQjbpOm0OeV6D+bRKVEWOQyAdmaJPwQRIT4sN0D8ASVIwlQ4zqs4HdNL+GDijyd1dBG2ZdDe3IXNHyxa41gHcNpy5CRyGo5huTIkWIrzrPaQMMJZwvQdQ7JejFZ4yaJ4dOU=,iv:4ME/6vxpPucSuNIBEc0BLi22wGvRNkvrOvLoN4aVsvU=,tag:2gQ4ccpan9zEHMmemHeHYg==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1
