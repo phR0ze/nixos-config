@@ -59,6 +59,8 @@ in
       };
       system.dmenu.enable = true;                   # Configure dmenu
       system.dconf.enable = true;                   # General configuration manager that replaces gconf
+      system.users.desktopExtras = true;            # Additional configs for a full desktop
+      system.users.admin.passwordlessSudo = true;   # Enable passwordless sudo
 
       devices.audio.enable = true;                  # Install necessary support for audio
       devices.bluetooth.enable = true;              # Install necessary support for bluetooth

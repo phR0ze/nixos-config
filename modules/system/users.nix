@@ -18,6 +18,7 @@ in
   options = {
     system.users = {
       admin.enable = lib.mkEnableOption "Create admin user with secret name/pass from secrets.enc.yaml";
+      admin.passwordlessSudo = lib.mkEnableOption "Allow the admin user (wheel group) to sudo without a password";
       desktopExtras = lib.mkEnableOption "Configure additional settings for a desktop";
 
       sopsFile = lib.mkOption {
@@ -59,6 +60,7 @@ in
 
       # Configure sudo access for system admin
       security.sudo.enable = true;
+      security.sudo.wheelNeedsPassword = !cfg.admin.passwordlessSudo;
     })
 
     # Optionally configure additional desktop settings
@@ -87,9 +89,6 @@ in
       # Create user groups for sharing files using specific ids
       users.groups."users".gid = 100;       # TODO: keep things runing as usual until I decomission this
       users.groups."photos".gid = 1100;     # named group for specific files access
-
-      # Configure passwordless sudo access for 'wheel' group
-      security.sudo.wheelNeedsPassword = false;
     })
   ];
 }
