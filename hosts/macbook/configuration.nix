@@ -35,7 +35,7 @@ in
     # the real (WiFi) connection is fine. Leave it unmanaged so NM stops trying to activate it.
     networking.networkmanager.unmanaged = [ "interface-name:enp2s0f1u1" ];
 
-    virtualisation.podman.enable = true;
+    virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
 
     boot.extraModprobeConfig = lib.mkIf dgpuPowerSave ''

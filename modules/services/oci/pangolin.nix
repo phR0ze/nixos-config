@@ -622,7 +622,7 @@ in
       { assertion = cfg.acmeEmail != null; message = "services.oci.pangolin requires 'acmeEmail'"; }
     ];
 
-    virtualisation.podman.enable = true;
+    virtualization.podman.enable = true;
 
     # Same caveat as every other services.oci.* module publishing container ports: podman's own
     # NAT/forward rules reach these regardless of networking.firewall - these entries are

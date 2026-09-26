@@ -83,7 +83,7 @@ in
   config = lib.mkIf cfg.enable {
 
     # Enable podman support
-    virtualisation.podman.enable = true;
+    virtualization.podman.enable = true;
 
     # Create persistent data directory for backup purposes
     # - Args: type, path, mode, user, group, expiration

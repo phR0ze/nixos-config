@@ -18,5 +18,7 @@
 
     devices.printers.epson-wf7710 = true;
     devices.printers.brother-hll2405w = true;
+
+    services.native.smb.enable = true;
   };
 }

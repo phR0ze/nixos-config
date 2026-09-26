@@ -38,5 +38,12 @@
     echo 1 > "/proc/sys/net/ipv6/conf/${id}/disable_ipv6"
   fi
   ${lib.getExe' pkgs.iproute2 "ip"} link set '${id}' up
-  ${pkgs.coreutils-full}/bin/chown "$(cat ${userSecretPath}):$(cat ${groupSecretPath})" /dev/tap$(< "/sys/class/net/${id}/ifindex")
+  # Prefer the invoking sudo user (interactive `clu run vm` path) - falls back to the admin
+  # secret files for the systemd-autostart path, which runs as root with no $SUDO_USER set.
+  if [ -n "''${SUDO_USER:-}" ]; then
+    owner="$SUDO_USER:$(${pkgs.coreutils-full}/bin/id -gn "$SUDO_USER")"
+  else
+    owner="$(cat ${userSecretPath}):$(cat ${groupSecretPath})"
+  fi
+  ${pkgs.coreutils-full}/bin/chown "$owner" /dev/tap$(< "/sys/class/net/${id}/ifindex")
 '') macvtapInterfaces

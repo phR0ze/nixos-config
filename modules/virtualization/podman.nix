@@ -7,17 +7,21 @@
 #
 # ### Notes
 # - See README.md for usage details
-# - `enable` here is NixOS's own `virtualisation.podman.enable` — setting it (directly or via
-#   `dockerCompat`/`dockerSocket` below) also pulls in this module's extra opinionated config: the
-#   primary user's `podman` group membership, podman-compose, container-name DNS on custom networks,
-#   and weekly autoPrune.
+# - `virtualization.podman.enable` wraps NixOS's own `virtualisation.podman.enable` — setting it
+#   also pulls in this module's extra opinionated config: the primary user's `podman` group
+#   membership, podman-compose, container-name DNS on custom networks, and weekly autoPrune.
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
-  cfg = config.virtualisation.podman;
+  cfg = config.virtualization.podman;
 in
 {
+  options.virtualization.podman = {
+    enable = lib.mkEnableOption "Podman with this repo's opinionated defaults (see modules/virtualization/podman.nix)";
+  };
+
   config = lib.mkIf cfg.enable {
+    virtualisation.podman.enable = true;
 
     # ip_forward/bridge-nf-call sysctls podman needs
     devices.kernel.containers = true;

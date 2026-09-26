@@ -19,7 +19,7 @@
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
 
     # System services
-    virtualisation.podman.enable = true;
+    virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
 
     # Homelab services
@@ -27,6 +27,7 @@
     services.native.nix-cache.host.enable = true;
     services.raw.mullvad.enable = true;
     services.native.synology-drive-client.enable = true;
+    services.native.smb.enable = true;
     services.native.jellyfin = {
       enable = true; port = 8096; subdomain = "jellyfin";
     };

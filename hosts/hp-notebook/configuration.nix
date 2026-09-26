@@ -25,5 +25,7 @@
       config.boot.kernelPackages.broadcom_sta
     ];
     boot.blacklistedKernelModules = [ "b43" "bcma" ];
+
+    services.native.smb.enable = true;
   };
 }

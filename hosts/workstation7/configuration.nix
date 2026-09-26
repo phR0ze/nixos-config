@@ -33,7 +33,7 @@
     apps.media.freecad.enable = true;
 
     # Services
-    virtualisation.podman.enable = true;
+    virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
 
     # Misc

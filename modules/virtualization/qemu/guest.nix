@@ -272,9 +272,9 @@ in
           - Use `type = "nat"` for a simple NAT experience. The VM can connect out to the internet
             but not access or be accessed by devices on the LAN.
           - Use `type = "macvtap"` for a full presence on the LAN with the caveat that the guest and
-            host can't directly communicate without a forwardPorts option. However this requires no
-            host changes at all to support. In order to get true presence on the LAN with no
-            limitations use `type = "bridge"`, but that requires host networking changes to support.
+            host can't directly communicate at all. However this requires no host changes at all to
+            support. In order to get true presence on the LAN with no limitations use `type =
+            "bridge"`, but that requires host networking changes to support.
           - Use `type = "bridge"` for a true presence on the LAN via the host's `devices.network.bridge`
             (`virtualization.qemu.host.bridge`/`virtualization.qemu.guest.bridge`, e.g. `br0`), attached
             through `qemu-bridge-helper`. Requires `devices.network.bridge.enable` on the host; in

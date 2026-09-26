@@ -28,7 +28,9 @@
 
     apps.network.rustdesk.autostart = false;
 
-    virtualisation.podman.enable = true;
+    services.native.smb.enable = true;
+
+    virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
 
     apps.dev.gemini.enable = true;

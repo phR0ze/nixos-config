@@ -128,8 +128,8 @@ run::vm()
         local macvtap_up="${CONFIG_DIR}/vms/${HOST}/result/bin/macvtap-up"
         local macvtap_down="${CONFIG_DIR}/vms/${HOST}/result/bin/macvtap-down"
         if [[ -f "$macvtap_up" ]]; then
-            $SUDO "$macvtap_up"
-            trap "$SUDO '$macvtap_down'" EXIT
+            sudo "$macvtap_up"
+            trap "sudo '$macvtap_down'" EXIT
         fi
 
         # The generated run script (scripts-run.nix) resolves its VM state dir as a plain

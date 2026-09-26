@@ -33,7 +33,9 @@
     apps.games.superTuxKart.enable = true;
     apps.media.freecad.enable = true;
 
-    virtualisation.podman.enable = true;
+    services.native.smb.enable = true;
+
+    virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
 
     # Misc

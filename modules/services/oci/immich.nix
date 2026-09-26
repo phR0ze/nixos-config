@@ -37,7 +37,7 @@ in
         { assertion = cfg.sopsFile != null || (cfg.user.pass != null && cfg.user.pass != "");
           message = "Postgres pass not set, please set 'host.sopsFile' (recommended, forwarded to 'services.oci.${cfg.name}.sopsFile') or 'services.oci.${cfg.name}.user.pass'"; }
       ];
-      virtualisation.podman.enable = true;
+      virtualization.podman.enable = true;
 
       # Decrypted at activation to sops-nix's default path
       # (config.secret.templates."immich-<name>-db".path, normally

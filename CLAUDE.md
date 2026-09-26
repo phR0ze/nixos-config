@@ -25,10 +25,6 @@ dispatches to `<command>::run()`.
 `<command>::usage()`, dispatched from `clu`'s main case statement. Run `clu help` or `ls lib/` for
 the current command list - don't rely on a table here, it drifts.
 
-### Logging: `lib/log`
-
-4-level system (error/warn/info/debug) controlled by `LOG_LEVEL`.
-
 ---
 
 ## 2. Host Selection & Build-Time Args (`lib/flake`)

@@ -19,5 +19,7 @@
     devices.gpu.nvidia = { enable = true; open = true; };
 
     apps.games.roblox.enable = true;
+
+    services.native.smb.enable = true;
   };
 }

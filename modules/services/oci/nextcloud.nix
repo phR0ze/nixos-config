@@ -26,7 +26,7 @@ in
   config = lib.mkIf cfg.enable {
     assertions = f.ociAsserts cfg;
 
-    virtualisation.podman.enable = true;
+    virtualization.podman.enable = true;
     users.users.${cfg.user.name} = f.createUser cfg.user;
     users.groups.${cfg.user.group} = f.createGroup cfg.user;
 

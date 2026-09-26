@@ -98,7 +98,7 @@ in
         message = "services.oci.newt requires 'sopsFile' — normally forwarded from 'host.sopsFile'"; }
     ];
 
-    virtualisation.podman.enable = true;
+    virtualization.podman.enable = true;
     users.users.${cfg.user.name} = f.createUser cfg.user;
     users.groups.${cfg.user.group} = f.createGroup cfg.user;
 

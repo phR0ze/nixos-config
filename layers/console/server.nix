@@ -29,7 +29,7 @@ in
       };
 
       # OCI container runtime for services.oci.* modules
-      virtualisation.podman.enable = true;
+      virtualization.podman.enable = true;
     }
 
     # Harden

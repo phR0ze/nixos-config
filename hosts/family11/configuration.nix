@@ -22,5 +22,7 @@
 
     # Pre-generate thumbnails via tumblerd; run: gen-thumbs /mnt/Data
     apps.media.gen-thumbs.enable = true;
+
+    services.native.smb.enable = true;
   };
 }
