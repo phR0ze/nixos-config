@@ -20,4 +20,4 @@ echo "op USERNAME" > /run/minecraft-server.stdin
 - Data stored at `/var/lib/minecraft`
 - `lanOnly = true` (default) skips account validation against minecraft.net (offline mode)
 - JVM tuned with G1GC flags for reduced pause times
-- Firewall opened automatically via `openFirewall = true`
+- `port` (default 25565) is set as `server-port` and opened in the firewall automatically

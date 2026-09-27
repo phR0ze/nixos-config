@@ -424,6 +424,10 @@ in
       virtualization.qemu.guest.resolution = lib.mkIf (cfg.resolution.x != 0 && cfg.resolution.y != 0)
         { inherit (cfg.resolution) x y; };
       virtualization.qemu.guest.bridge = config.devices.network.bridge.name;
+
+      # Virtual disks expose no S.M.A.R.T. data so smartd would fail to start having found no
+      # devices to monitor. Forced so it wins over any layer that turns it on for physical hosts.
+      services.native.smartd.enable = lib.mkForce false;
     })
 
     (lib.mkIf config.virtualization.qemu.host.enable {

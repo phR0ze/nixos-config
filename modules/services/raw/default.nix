@@ -6,12 +6,7 @@
   imports = [
     ./immich
     ./kasmvnc
-    ./minecraft
-    ./private-internet-access
-    ./selkies
-    ./smartd
     ./sunshine
-    ./tailscale
     ./x11vnc
     ./x2go
   ];

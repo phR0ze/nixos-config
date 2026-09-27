@@ -25,7 +25,7 @@
 
     # Homelab services
     services.native.caddy.enable = true;
-    # services.raw.minecraft.enable = true;
+    # services.native.minecraft.enable = true;
     # services.native.mullvad.enable = true;
     services.native.synology-drive-client.enable = true;
     # services.native.jellyfin = {

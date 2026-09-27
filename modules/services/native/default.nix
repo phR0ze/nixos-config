@@ -10,9 +10,11 @@
     ./crowdsec.nix
     ./jellyfin.nix
     ./keyd
+    ./minecraft
     ./mullvad
     ./nfs.nix
     ./nix-cache
+    ./smartd.nix
     ./smb.nix
     ./sshd.nix
     ./synology-drive-client

@@ -76,6 +76,7 @@ in
       apps.network.filezilla.enable = true;         # Network/Transfer
 
       services.fwupd.enable = true;                 # Firmware update tool for BIOS, etc...
+      services.native.smartd.enable = true;         # Disk health monitoring
 
       # XFCE comes with a slimmed down version of GVFS by default so we need to set a package override
       # to include smb:// support in Thunar
