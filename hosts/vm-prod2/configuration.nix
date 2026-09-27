@@ -21,7 +21,6 @@
     host.type.vm = true;
     host.autologin = true;
     virtualization.qemu.guest = {
-      enable = true;
       cores = 8;
       memorySize = 16;
       network.bridge = true;

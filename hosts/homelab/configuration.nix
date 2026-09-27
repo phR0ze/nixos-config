@@ -25,7 +25,7 @@
     # Homelab services
     services.raw.minecraft.enable = true;
     services.native.nix-cache.host.enable = true;
-    services.raw.mullvad.enable = true;
+    services.native.mullvad.enable = true;
     services.native.synology-drive-client.enable = true;
     services.native.smb.enable = true;
     services.native.jellyfin = {

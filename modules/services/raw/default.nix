@@ -7,7 +7,6 @@
     ./immich
     ./kasmvnc
     ./minecraft
-    ./mullvad
     ./private-internet-access
     ./selkies
     ./smartd

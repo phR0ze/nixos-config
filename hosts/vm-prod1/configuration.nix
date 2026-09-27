@@ -36,7 +36,6 @@
     host.type.vm = true;
     host.autologin = true;
     virtualization.qemu.guest = {
-      enable = true;
       type.spice = true;
       cores = 4;
       rootDrive.size = 20;

@@ -30,9 +30,6 @@
     default = defaults.tag or "latest";
   };
 
-  # Always materialized (rather than `null` by default) so `cfg.user.name`/`cfg.user.group`
-  # resolve to the service name without the host having to restate them - a host only ever needs
-  # to supply `user.uid`. The `enable`-gated assertion in each module is what enforces that.
   user = lib.mkOption {
     description = lib.mdDoc "User options for service";
     type = types.nullOr (types.submodule (import ./user.nix {

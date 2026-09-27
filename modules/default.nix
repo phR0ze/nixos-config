@@ -178,6 +178,12 @@ in
             default = host.autologin or false;
           };
 
+          autolock = lib.mkOption {
+            description = lib.mdDoc "Automatically lock the screen when idle, see `system.x11.autolock`";
+            type = types.bool;
+            default = host.autolock or false;
+          };
+
           locale = lib.mkOption {
             description = lib.mdDoc "Locale to use for various identifiers";
             type = types.str;
@@ -407,6 +413,8 @@ in
     (lib.mkIf config.system.x11.enable {
       system.x11.sopsFile = cfg.sopsFile;
     })
+
+    { system.x11.autolock.enable = lib.mkIf cfg.autolock true; }
 
     (lib.mkIf cfg.type.vm {
       virtualization.qemu.guest.enable = true;

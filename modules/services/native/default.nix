@@ -10,6 +10,7 @@
     ./crowdsec.nix
     ./jellyfin.nix
     ./keyd
+    ./mullvad
     ./nfs.nix
     ./nix-cache
     ./smb.nix

@@ -10,7 +10,6 @@
   host.autologin = true;
 
   virtualization.qemu.guest = {
-    enable = true;
     cores = 4;
     memorySize = 8;
     rootDrive.size = 40;

@@ -7,16 +7,11 @@
 # ### Deployment Features
 # - Get status with: `systemctl status podman-oneup`
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, f, ... }:
 let
   cfg = config.services.oci.oneup;
 in
 {
-  # OneUp already runs as a fixed non-root user (see `user = ...` below) with no root-then-drop
-  # startup dance of its own, and persists everything under the one `/app/data` volume already
-  # declared below — so unlike Homarr/Stirling-PDF (PUID/PGID entrypoints, root-owned startup
-  # writes) it's a safe candidate for Newt's hardening baseline. Turn any of these off if a future
-  # OneUp release needs a capability or writes somewhere outside /app/data and fails to start.
   options.services.oci.oneup = import ../../types/service.nix {
     inherit lib;
     defaults = {
@@ -27,8 +22,8 @@ in
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       assertions = f.ociAsserts cfg;
 
       virtualization.podman.enable = true;
@@ -62,14 +57,14 @@ in
       # Create podmane network and extend service to use it
       systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
       systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
-    })
+    }
 
     # Contribute a proxy entry to services.native.caddy.proxies rather than requiring it be listed
     # separately in the machine's configuration.nix
-    (lib.mkIf (cfg.enable && cfg.subdomain != null) {
+    (lib.mkIf (cfg.subdomain != null) {
       services.native.caddy.proxies = [
         { inherit (cfg) subdomain port; }
       ];
     })
-  ];
+  ]);
 }

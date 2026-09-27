@@ -1,14 +1,13 @@
 # Mullvad VPN service
 #
 # ### Description
-# Mullvad offers anonymous registration. They don't require your personal information to create an 
 # Mullvad is a privacy focused VPN provider. They offer anonymous registration via a generated
 # account number. With the anonymous account you can then use a voucher to pay for VPN time
 # anonymously as well.
 #
 # ### Using mullvad GUI app
-# Enable with `services.raw.mullvad.gui.enable` to run the official Mullvad daemon and GUI app,
-# routing the entire system's traffic over the VPN.
+# Enable with `services.native.mullvad.gui = true` (alongside `enable`) to run the official Mullvad
+# daemon and GUI app, routing the entire system's traffic over the VPN.
 # 1. Ensure the daemon is running `sudo systemctl status mullvad-daemon`
 # 2. Login to your account with your auto generated account number
 # 3. Configure using [Mullvad config guide](https://github.com/phR0ze/tech-docs/tree/main/src/networking/vpns/mullvad)
@@ -31,11 +30,11 @@
 { config, lib, pkgs, ... }: with lib.types;
 let
   nic = config.devices.network.primary.name;
-  cfg = config.services.raw.mullvad;
+  cfg = config.services.native.mullvad;
 in
 {
   options = {
-    services.raw.mullvad = {
+    services.native.mullvad = {
       enable = lib.mkEnableOption "Configure Mullvad VPN service with Vopono";
       autostart = lib.mkOption {
         description = lib.mdDoc "Autostart VPN on login";
@@ -63,17 +62,15 @@ in
         default = [ ];
       };
 
-      # Used only for the upstream Mullvad GUI a separate app from Vopono
-      gui = {
-        enable = lib.mkEnableOption "Configure the official Mullvad daemon and GUI app";
-      };
+      # Used only for the upstream Mullvad GUI, a separate app from Vopono
+      gui = lib.mkEnableOption "Also install the official Mullvad daemon and GUI app";
     };
   };
 
   config = lib.mkMerge [
 
     # Install the official Mullvad daemon and GUI app
-    (lib.mkIf cfg.gui.enable {
+    (lib.mkIf (cfg.enable && cfg.gui) {
       services.mullvad-vpn.enable = true;
 
       environment.systemPackages = [
