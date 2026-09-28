@@ -3,17 +3,16 @@
 { pkgs, ... }:
 {
   config = {
-    # Host
-    host.type.vm = true;             # also enables the qemu guest and sets its hostname
+    host.type.vm = true;
     host.autologin = true;
-    host.autolock = true;
+    #host.autolock = true;
     host.desktop.xfce.standard = true;
 
-    # VM specification
     virtualization.qemu.guest = {
       cores = 4;
       memorySize = 8;
       rootDrive.size = 40;
+      display.enable = false;
       network.macvtap = true;
     };
 
@@ -23,11 +22,11 @@
     services.native.smb.enable = true;
     services.native.nix-cache.host.enable = true;
 
-    # Homelab services
-    services.native.caddy.enable = true;
-    # services.native.minecraft.enable = true;
+    services.native.adguardhome.enable = true;
+    #services.native.caddy.enable = true;
     # services.native.mullvad.enable = true;
-    services.native.synology-drive-client.enable = true;
+    #services.native.minecraft.enable = true;
+    # services.native.synology-drive-client.enable = true;
     # services.native.jellyfin = {
     #   enable = true; port = 8096; subdomain = "jellyfin";
     # };
@@ -40,9 +39,9 @@
     # services.oci.stirling-pdf = {
     #   enable = true; port = 8081; user.uid = 2001; subdomain = "pdf"; tag = "1.3.2";
     # };
-    services.oci.oneup = {
-      enable = true; port = 8082; user.uid = 2002; subdomain = "oneup"; tag = "latest";
-    };
+    # services.oci.oneup = {
+    #   enable = true; port = 8082; user.uid = 2002; subdomain = "oneup"; tag = "latest";
+    # };
     # services.oci.newt = {
     #   enable = true; /*        */ user.uid = 2005; tag = "1.16.0"; 
     # };

@@ -15,8 +15,8 @@ let
   cfg = config.virtualization.qemu.host;
 
   # secret admin user's name and group can only be accessessed at runtime by root for security
-  userSecretPath = config.secret.files."users/admin/name".path;
-  groupSecretPath = config.secret.files."users/admin/group".path;
+  userSecretPath = config.secret.files.${cfg.secretUserRef}.path;
+  groupSecretPath = config.secret.files.${cfg.secretGroupRef}.path;
 
   # Drop root to the real (uid, gid) pair at process-start time instead of via a static
   # serviceConfig User=/Group=, since the real gid isn't known until this path is read.
@@ -56,6 +56,37 @@ in
         type = types.str;
         default = "br0";
       };
+      sopsFile = lib.mkOption {
+        description = lib.mdDoc ''
+          Path to the sops-encrypted secrets file the admin name/group secrets (`secretUserRef`/
+          `secretGroupRef` below) are decrypted from. Forwarded from `modules/default.nix`
+          (`host.sopsFile`) - nullable/empty by default so the forward is unconditional, with the
+          real requirement expressed as the assertion below.
+        '';
+        type = types.nullOr types.path;
+        default = null;
+      };
+
+      secretUserRef = lib.mkOption {
+        description = lib.mdDoc ''
+          Key in `sopsFile` holding the admin user's real name, resolved at runtime for
+          privilege-dropping (see `dropPriv` above). See `modules/system/users.nix`'s
+          `secret.users."admin".userSecretRef` for the matching value normally used to create
+          that same account.
+        '';
+        type = types.str;
+        default = "users/admin/name";
+      };
+
+      secretGroupRef = lib.mkOption {
+        description = lib.mdDoc ''
+          Key in `sopsFile` holding the admin user's real group, resolved at runtime alongside
+          `secretUserRef` above.
+        '';
+        type = types.str;
+        default = "users/admin/group";
+      };
+
       vms = lib.mkOption {
         description = "Virtual machines";
         type = with types; attrsOf (submodule ({name, ...}: {
@@ -100,15 +131,18 @@ in
           assertion = config.system.users.admin.enable;
           message = "virtualization.qemu.host requires system.users.admin.enable (needed to resolve the real admin group at runtime)";
         }
+        {
+          assertion = cfg.sopsFile != null;
+          message = "virtualization.qemu.host requires virtualization.qemu.host.sopsFile to be set";
+        }
       ];
 
       # Make the secret admin name runtime accessible by root. modules/system/users.nix already
       # declares "users/admin/group" this way; the name isn't declared anywhere else (nix-weave
       # keeps its own copy under the private _users-from-secret/ prefix), so declare it here.
-      # Same sopsFile as system.users, so any overlapping definition merges rather than conflicts.
-      secret.files."users/admin/name" = {
+      secret.files.${cfg.secretUserRef} = {
         filemode = "0400";
-        sopsFile = config.system.users.sopsFile;
+        sopsFile = cfg.sopsFile;
       };
 
       # Create an activation script to ensure that the VM state directory exists. Ordered after

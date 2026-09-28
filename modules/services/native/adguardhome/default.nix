@@ -20,18 +20,16 @@
 # - App is exposed to the LAN as a first class citizen to allow it to log correct IP addresses
 # - App data is persisted at /var/lib/$APP
 #
-# ### Password reset
-# - Generate new password
-#   1. nix-shell -p apacheHttpd --run "htpasswd -nB <USER>"
-#   2. Trim off the prefix <USER>: and store the remaining portion
-#      e.g. $2y$05$x3123cn5Kcr/6JRpXfxXYulhrxSIVtTQvwYDzMgzba.bZ6cT78cwa
-# - https://github.com/AdguardTeam/AdGuardHome/wiki/Configuration#password-reset
+# ### Generate password
+# 1. nix shell nixpkgs#apacheHttpd -c htpasswd -nbB <USER> <PASSWORD>"
+# 2. Trim off the prefix <USER>: and store the remaining portion
+#    e.g. $2y$05$x3123cn5Kcr/6JRpXfxXYulhrxSIVtTQvwYDzMgzba.bZ6cT78cwa
 #
 # ### Services
 # - podman-adguard
 # - podman-network-adguard
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }:
+{ config, lib, pkgs, ... }:
 let
   cfg = config.services.native.adguardhome;
 
@@ -40,24 +38,36 @@ let
   # substituted into it at all (a sops placeholder would only render literally, not decrypt, since
   # that only happens through sops-nix's own template-rendering activation step). So `settings.users`
   # is left unset entirely and the admin user is (re)written into AdGuardHome's own persisted config
-  # at activation via `preStart`, reading the admin's name and plaintext password from the runtime
-  # secrets (decrypted to config.secret.files."users/admin/{name,password}".path) and hashing them
-  # there instead of at eval time -- the same "patch the app's own config file at activation"
+  # at activation via `preStart`, reading the admin's name and precomputed htpasswd hash from the
+  # runtime secrets (decrypted to config.secret.files."${cfg.secretUserRef}"/"${cfg.secretHtpasswdRef}".path)
+  # instead of hashing at eval time -- the same "patch the app's own config file at activation"
   # approach modules/services/native/jellyfin.nix already uses for network.xml.
   patchAdminUser = pkgs.writeShellScript "adguardhome-patch-admin-user" ''
     set -euo pipefail
-    export NAME="$(cat ${config.secret.files."users/admin/name".path})"
-    export HASH="$(${pkgs.apacheHttpd}/bin/htpasswd -nbB "$NAME" "$(cat ${config.secret.files."users/admin/password".path})" | cut -d: -f2)"
+    export NAME="$(cat ${config.secret.files.${cfg.secretUserRef}.path})"
+    export HASH="$(cat ${config.secret.files.${cfg.secretHtpasswdRef}.path})"
     ${pkgs.yq-go}/bin/yq -i '.users = [{"name": strenv(NAME), "password": strenv(HASH)}]' \
       /var/lib/AdGuardHome/AdGuardHome.yaml
   '';
-
-  ipAddress = (f.toIP config.devices.network.primary.ip).address;
 in
 {
   options = {
     services.native.adguardhome = {
       enable = lib.mkEnableOption "Install and configure Adguard Home server";
+
+      bindAddress = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "192.168.1.5";
+        description = lib.mdDoc ''
+          LAN IP address AdGuard Home binds its admin HTTP interface and DNS listener to. Bound
+          explicitly to this machine's LAN-facing IP rather than `0.0.0.0` so client requests are
+          correctly attributed to the LAN interface (see the module header's "exposed to the LAN
+          as a first class citizen" note) and the listener stays unreachable from any other
+          interface on the host. Nullable so that forwarding can be unconditional - see the
+          `enable`-gated assertion below for the actual requirement.
+        '';
+      };
 
       baseDomain = lib.mkOption {
         type = lib.types.str;
@@ -76,10 +86,28 @@ in
         default = null;
         example = "./secrets.enc.yaml";
         description = lib.mdDoc ''
-          Path to this host's sops-encrypted secrets, holding the `users/admin/name` and
-          `users/admin/password` entries the admin account is (re)written from at activation.
-          Forwarded from `host.sopsFile` by `modules/default.nix`. Nullable so that forwarding can
-          be unconditional - see the `enable`-gated assertion below for the actual requirement.
+          Path to this host's sops-encrypted secrets, holding the entries (keyed by
+          `secretUserRef`/`secretHtpasswdRef` below) the admin account is (re)written from at
+          activation. Forwarded from `host.sopsFile` by `modules/default.nix`. Nullable so that
+          forwarding can be unconditional - see the `enable`-gated assertion below for the actual
+          requirement.
+        '';
+      };
+
+      secretUserRef = lib.mkOption {
+        type = lib.types.str;
+        default = "adguard/user";
+        description = lib.mdDoc ''
+          Key path within `sopsFile` holding the admin account's plaintext username.
+        '';
+      };
+
+      secretHtpasswdRef = lib.mkOption {
+        type = lib.types.str;
+        default = "adguard/htpasswd";
+        description = lib.mdDoc ''
+          Key path within `sopsFile` holding the admin account's precomputed htpasswd hash (see
+          the password-reset instructions at the top of this file for how to generate it).
         '';
       };
     };
@@ -87,18 +115,19 @@ in
  
   config = lib.mkIf cfg.enable {
     assertions = [
-      { assertion = cfg.sopsFile != null; message = "services.native.adguardhome requires 'sopsFile', normally forwarded from 'host.sopsFile'"; }
+      { assertion = cfg.sopsFile != null; message = "services.native.adguard requires 'sopsFile', normally forwarded from 'host.sopsFile'"; }
+      { assertion = cfg.bindAddress != null && cfg.bindAddress != ""; message = "services.native.adguard requires 'bindAddress', normally forwarded from this host's primary NIC IP - is 'devices.network.primary.ip' set for this host?"; }
     ];
 
     services.adguardhome = {
       enable = true;
-      host = ipAddress;
+      host = cfg.bindAddress;
       openFirewall = true; # only opens TCP 53
       settings = {
         theme = "dark";
         dns = {
           bind_hosts = [
-            ipAddress
+            cfg.bindAddress
           ];
           ratelimit = 0;
           upstream_dns = [
@@ -348,16 +377,17 @@ in
           rewrites = [
             {
               domain = "adguard.local";
-              answer = ipAddress;
+              answer = cfg.bindAddress;
             }
           ] ++ lib.optional (cfg.baseDomain != "") {
+
             # Split-horizon: LAN clients (using this AdGuard instance as DNS) resolve
             # *.<baseDomain> straight to Caddy on the LAN instead of the public Pangolin IP the
             # Cloudflare wildcard record points at — see services.native.caddy's deployment notes.
             # Keeps every Caddy-fronted service reachable from the LAN regardless of whether
             # it also has a Pangolin Resource exposing it publicly yet.
             domain = "*.${cfg.baseDomain}";
-            answer = ipAddress;
+            answer = cfg.bindAddress;
           };
           filtering_enabled = true;
           parental_enabled = true;
@@ -371,20 +401,22 @@ in
       };
     };
 
-    systemd.services.adguardhome.preStart = "${patchAdminUser}";
+    # `mkAfter` guarantees this runs after upstream's own preStart (adguardhome.nix), which
+    # writes/yaml-merges AdGuardHome.yaml from `settings` on every start (mutableSettings=true
+    # preserves the existing `users` field across restarts since `settings` above never sets one) -
+    # patchAdminUser must see that file already in place before it can (re)patch `.users` into it.
+    # Plain string concatenation order isn't guaranteed by module priority alone, so this can't be
+    # left implicit.
+    systemd.services.adguardhome.preStart = lib.mkAfter "${patchAdminUser}";
 
-    # `users/admin/password` is also declared by modules/system/users.nix (identical sopsFile,
-    # both forwarded from `host.sopsFile`, so the definitions merge rather than conflict) - but
-    # declare both entries here too so this module stands on its own on a host that doesn't
-    # enable `system.users.desktopExtras`. `restartUnits` re-runs patchAdminUser (preStart) on a
-    # rotation, so the persisted AdGuardHome.yaml picks up the new name/hash.
+    # Stage runtime secrets
     secret.files = {
-      "users/admin/name" = {
+      ${cfg.secretUserRef} = {
         filemode = "0400";
         sopsFile = cfg.sopsFile;
         restartUnits = [ "adguardhome.service" ];
       };
-      "users/admin/password" = {
+      ${cfg.secretHtpasswdRef} = {
         filemode = "0400";
         sopsFile = cfg.sopsFile;
         restartUnits = [ "adguardhome.service" ];

@@ -235,7 +235,7 @@ in
               description = lib.mdDoc ''
                 Domain name owned by this host, forwarded below to every service that needs to know
                 the fleet's zone name (`services.native.caddy.baseDomain`,
-                `services.native.vaultwarden.baseDomain`, `services.native.adguardhome.baseDomain`,
+                `services.native.vaultwarden.baseDomain`, `services.native.adguard.baseDomain`,
                 `services.oci.pangolin.baseDomain`) so the literal zone stays out of tracked files.
               '';
               type = types.str;
@@ -419,6 +419,7 @@ in
     (lib.mkIf cfg.type.vm {
       virtualization.qemu.guest.enable = true;
       virtualization.qemu.guest.hostname = cfg.name;
+      virtualization.qemu.guest.sopsFile = cfg.sopsFile;
       # Only forward an explicitly set resolution; a 0x0 default would otherwise clobber
       # virtualization.qemu.guest.resolution's own 1920x1080 default.
       virtualization.qemu.guest.resolution = lib.mkIf (cfg.resolution.x != 0 && cfg.resolution.y != 0)
@@ -431,6 +432,7 @@ in
     })
 
     (lib.mkIf config.virtualization.qemu.host.enable {
+      virtualization.qemu.host.sopsFile = cfg.sopsFile;
       virtualization.qemu.host.bridge = config.devices.network.bridge.name;
     })
 
@@ -496,6 +498,7 @@ in
     (lib.mkIf config.services.native.adguardhome.enable {
       services.native.adguardhome.sopsFile = cfg.sopsFile;
       services.native.adguardhome.baseDomain = cfg.network.domain;
+      services.native.adguardhome.bindAddress = (f.toIP config.devices.network.primary.ip).address;
     })
 
     (lib.mkIf config.services.native.alerts.enable {

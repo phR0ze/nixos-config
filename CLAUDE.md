@@ -292,7 +292,7 @@ passwords, SMB share creds): decrypted by **sops-nix at systemd activation time*
 working tree at all. `host.sopsFile` is the single per-host path to that file, forwarded by
 `modules/default.nix` into every module that needs it (`system.users.sopsFile` for the user
 password hash, `services.native.smb.sopsFile` for SMB share creds, `services.native.caddy.sopsFile`
-for the Cloudflare DNS-01 token, `services.native.adguardhome.sopsFile`,
+for the Cloudflare DNS-01 token, `services.native.adguard.sopsFile`,
 `services.native.vaultwarden.sopsFile`, `services.oci.pangolin.sopsFile`) - each of those then
 declares its own `secret.files`/`secret.templates` entries against it. Prefer this over the build-time-args mechanism whenever a value is only consumed
 by a running service reading a file, not by a NixOS module option at evaluation time.

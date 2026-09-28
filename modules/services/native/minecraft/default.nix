@@ -22,7 +22,7 @@
 # ### Directories
 # - /var/lib/minecraft
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 let
   cfg = config.services.native.minecraft;
 in
