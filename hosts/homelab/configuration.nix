@@ -18,19 +18,19 @@
     devices.network.bridge.enable = true;
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
 
-    # System services
     virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
 
-    # Homelab services
-    services.native.minecraft.enable = true;
+    services.native.smb.enable = true;
     services.native.nix-cache.host.enable = true;
+
+    services.native.caddy.enable = true;
+    services.native.adguardhome.enable = true;
+    services.native.jellyfin.enable = true;
+
+    services.native.minecraft.enable = true;
     services.native.mullvad.enable = true;
     services.native.synology-drive-client.enable = true;
-    services.native.smb.enable = true;
-    services.native.jellyfin = {
-      enable = true; port = 8096; subdomain = "jellyfin";
-    };
     services.native.vaultwarden = {
       enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
     };
@@ -46,12 +46,6 @@
     services.oci.newt = {
       enable = true; /*        */ user.uid = 2005; tag = "1.16.0"; 
     };
-
-    # HTTPS Proxy service
-    # - `baseDomain`, `sopsFile` and the off-machine `proxies` entries (the remote AdGuard/Synology LAN
-    #   IPs) are all forwarded by modules/default.nix from this host's args/secrets, see
-    #   `host.services.native.caddy.proxies` in args.enc.yaml
-    services.native.caddy.enable = true;
 
     # Additional apps
     environment.systemPackages = [

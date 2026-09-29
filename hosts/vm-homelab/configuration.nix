@@ -24,13 +24,11 @@
 
     services.native.caddy.enable = true;
     services.native.adguardhome.enable = true;
+    services.native.jellyfin.enable = true;
 
     # services.native.mullvad.enable = true;
     #services.native.minecraft.enable = true;
     # services.native.synology-drive-client.enable = true;
-    # services.native.jellyfin = {
-    #   enable = true; port = 8096; subdomain = "jellyfin";
-    # };
     # services.native.vaultwarden = {
     #   enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
     # };

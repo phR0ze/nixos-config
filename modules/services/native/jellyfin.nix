@@ -27,16 +27,19 @@ in
         description = lib.mdDoc "Port the Jellyfin web/API server listens on.";
       };
 
-      subdomain = lib.mkOption {
+      caddy = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
         description = lib.mdDoc ''
-          Front this service with `services.native.caddy` at `<subdomain>.<domain>` — gets a hostname
-          matcher on Caddy's shared wildcard block, routed to this service's backend. Leave `null`
-          to not front this service with Caddy (e.g. if only LAN access via `openFirewall` is
-          desired).
+          Front Jellyfin with `services.native.caddy` (enabled by default along with it) at
+          `<subdomain>.<domain>`. When `false`, Jellyfin's ports are opened on the LAN instead.
         '';
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        example = "jellyfin";
+      };
+
+      subdomain = lib.mkOption {
+        type = lib.types.str;
+        default = "jellyfin";
+        description = lib.mdDoc "Subdomain Jellyfin is served at when `caddy` is enabled.";
       };
     };
   };
@@ -49,7 +52,7 @@ in
       #   go through Caddy's TLS instead of hitting Jellyfin's HTTP port directly.
       services.jellyfin = {
         enable = true;
-        openFirewall = cfg.subdomain == null;
+        openFirewall = !cfg.caddy;
       };
 
       environment.systemPackages = [
@@ -99,7 +102,8 @@ in
     }
 
     # Add a caddy proxy config for DNS subdomain resolution
-    (lib.mkIf (cfg.subdomain != null) {
+    (lib.mkIf cfg.caddy {
+      services.native.caddy.enable = lib.mkDefault true;
       services.native.caddy.proxies = [ { inherit (cfg) subdomain port; } ];
     })
   ]);
