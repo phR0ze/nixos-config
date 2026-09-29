@@ -75,16 +75,19 @@ in
         description = lib.mdDoc "Port the AdGuard Home admin web interface listens on.";
       };
 
-      subdomain = lib.mkOption {
+      caddy = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
         description = lib.mdDoc ''
-          Front the admin interface with `services.native.caddy` at `<subdomain>.<domain>` — gets a
-          hostname matcher on Caddy's shared wildcard block, routed to `bindAddress:port`. Leave
-          `null` to not front this service with Caddy (the admin port is then opened on the LAN
-          instead).
+          Front the admin interface with `services.native.caddy` (enabled by default along with it)
+          at `<subdomain>.<domain>`. When `false`, the admin port is opened on the LAN instead.
         '';
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        example = "adguard";
+      };
+
+      subdomain = lib.mkOption {
+        type = lib.types.str;
+        default = "adguard";
+        description = lib.mdDoc "Subdomain the admin interface is served at when `caddy` is enabled.";
       };
 
       baseDomain = lib.mkOption {
@@ -155,7 +158,7 @@ in
         enable = true;
         host = cfg.bindAddress;
         port = cfg.port;
-        openFirewall = cfg.subdomain == null; # opens only the HTTP admin port - see note above
+        openFirewall = !cfg.caddy; # opens only the HTTP admin port - see note above
         settings = {
           theme = "dark";
           dns = {
@@ -466,7 +469,8 @@ in
 
     # Add a caddy proxy config for DNS subdomain resolution. AdGuard listens on bindAddress rather
     # than loopback, so the proxy has to target that instead of caddy_proxy's 127.0.0.1 default.
-    (lib.mkIf (cfg.subdomain != null) {
+    (lib.mkIf cfg.caddy {
+      services.native.caddy.enable = lib.mkDefault true;
       services.native.caddy.proxies = [ { inherit (cfg) subdomain port; host = cfg.bindAddress; } ];
     })
   ]);
