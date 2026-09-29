@@ -52,6 +52,12 @@ let
     dns.fallback = host.network.nic0.dns.fallback or "";
     mapNameFromMAC = host.network.nic0.mapNameFromMAC or "";
   };
+
+  dnsDefaults = {
+    primary = host.network.dns.primary or null;
+    fallback = host.network.dns.fallback or null;
+    force = host.network.dns.force or false;
+  };
 in
 {
   # Read in all modules in all directories to make all module options available for opt in.
@@ -242,18 +248,10 @@ in
               default = host.network.domain or "";
             };
 
-            dns = {
-              primary = lib.mkOption {
-                description = lib.mdDoc "Primary DNS server, see `devices.network.dns.primary`";
-                type = types.str;
-                default = host.network.dns.primary or "";
-              };
-
-              fallback = lib.mkOption {
-                description = lib.mdDoc "Fallback DNS server, see `devices.network.dns.fallback`";
-                type = types.str;
-                default = host.network.dns.fallback or "";
-              };
+            dns = lib.mkOption {
+              description = lib.mdDoc "DNS options, see `devices.network.dns`";
+              type = types.submodule (import ./types/dns.nix { inherit lib; defaults = dnsDefaults; });
+              default = dnsDefaults;
             };
 
             allowList = lib.mkOption {
@@ -384,8 +382,9 @@ in
       system.users.sopsFile = cfg.sopsFile;
       devices.network.gateway = cfg.network.gateway;
       devices.network.subnet = cfg.network.subnet;
-      devices.network.dns.primary = cfg.network.dns.primary;
-      devices.network.dns.fallback = cfg.network.dns.fallback;
+      devices.network.dns.primary = if cfg.network.dns.primary == null then "" else cfg.network.dns.primary;
+      devices.network.dns.fallback = if cfg.network.dns.fallback == null then "" else cfg.network.dns.fallback;
+      devices.network.dns.force = cfg.network.dns.force;
       devices.network.nic0.name = cfg.network.nic0.name;
       devices.network.nic0.ip = cfg.network.nic0.ip;
       devices.network.nic0.mapNameFromMAC = cfg.network.nic0.mapNameFromMAC;

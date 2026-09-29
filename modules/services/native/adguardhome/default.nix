@@ -119,10 +119,16 @@ in
       { assertion = cfg.bindAddress != null && cfg.bindAddress != ""; message = "services.native.adguard requires 'bindAddress', normally forwarded from this host's primary NIC IP - is 'devices.network.primary.ip' set for this host?"; }
     ];
 
+    # Upstream's `openFirewall` only opens `cfg.port` (the HTTP admin port, TCP-only) - it does
+    # NOT open DNS's port 53 despite what the option name might suggest. DNS needs both UDP (the
+    # common case) and TCP (large/truncated responses), opened explicitly here instead.
+    networking.firewall.allowedTCPPorts = [ 53 ];
+    networking.firewall.allowedUDPPorts = [ 53 ];
+
     services.adguardhome = {
       enable = true;
       host = cfg.bindAddress;
-      openFirewall = true; # only opens TCP 53
+      openFirewall = true; # opens the HTTP admin port (cfg.port, default 3000) - see note above
       settings = {
         theme = "dark";
         dns = {
@@ -378,6 +384,7 @@ in
             {
               domain = "adguard.local";
               answer = cfg.bindAddress;
+              enabled = true;
             }
           ] ++ lib.optional (cfg.baseDomain != "") {
 
@@ -388,6 +395,7 @@ in
             # it also has a Pangolin Resource exposing it publicly yet.
             domain = "*.${cfg.baseDomain}";
             answer = cfg.bindAddress;
+            enabled = true;
           };
           filtering_enabled = true;
           parental_enabled = true;
@@ -401,13 +409,18 @@ in
       };
     };
 
-    # `mkAfter` guarantees this runs after upstream's own preStart (adguardhome.nix), which
-    # writes/yaml-merges AdGuardHome.yaml from `settings` on every start (mutableSettings=true
-    # preserves the existing `users` field across restarts since `settings` above never sets one) -
-    # patchAdminUser must see that file already in place before it can (re)patch `.users` into it.
-    # Plain string concatenation order isn't guaranteed by module priority alone, so this can't be
-    # left implicit.
-    systemd.services.adguardhome.preStart = lib.mkAfter "${patchAdminUser}";
+    # Upstream's own preStart (adguardhome.nix) writes/yaml-merges AdGuardHome.yaml from `settings`
+    # on every start, running as the service's `DynamicUser` (mutableSettings=true preserves the
+    # existing `users` field across restarts since `settings` above never sets one) - patchAdminUser
+    # must see that file already in place before it can (re)patch `.users` into it, so it's added as
+    # its own `ExecStartPre` entry (rather than folded into the `preStart` string) with a `+` prefix:
+    # that runs it as root, bypassing both `DynamicUser` (needed since the secret files below are
+    # root-owned/mode 0400 - adguardhome's DynamicUser has no static name to grant read access to
+    # instead) and `SystemCallFilter` (yq-go was getting killed with SIGSYS under upstream's
+    # `~@privileged ~@resources` filter). `mkAfter` keeps it ordered after upstream's own
+    # preStart-generated `ExecStartPre` entry, which plain list concatenation order wouldn't
+    # otherwise guarantee.
+    systemd.services.adguardhome.serviceConfig.ExecStartPre = lib.mkAfter [ "+${patchAdminUser}" ];
 
     # Stage runtime secrets
     secret.files = {

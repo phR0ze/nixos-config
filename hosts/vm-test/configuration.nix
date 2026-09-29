@@ -10,7 +10,7 @@
       cores = 4;
       memorySize = 8;
       rootDrive.size = 40;
-      display.enable = false;
+      #display.enable = false;
       network.macvtap = true;
       # network.forwardPorts = [
       #   { host = 2222; guest = 22; }
