@@ -94,11 +94,13 @@ in
       fallback = lib.mkOption {
         description = lib.mdDoc ''
           Fallback DNS server, only used by resolved when no other DNS server is known at all i.e.
-          neither `primary` nor any link's DHCP-provided DNS. Only meaningful in DHCP DNS mode.
+          neither `primary` nor any link's DHCP-provided DNS. Defaults to `primary` so that when
+          `primary` is set, resolved can never fall back to its compiled-in public servers
+          (Cloudflare/Google/Quad9) - set it explicitly to choose a different fallback.
         '';
         type = types.str;
         example = "8.8.8.8";
-        default = "";
+        default = cfg.dns.primary;
       };
     };
 
