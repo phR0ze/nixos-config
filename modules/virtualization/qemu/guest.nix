@@ -72,8 +72,8 @@ let
   runScript = import ./scripts-run.nix { inherit lib pkgs host macvtapInterfaces; guest = cfg; };
   macvtapUpScript = import ./scripts-macvtap-up.nix {
     inherit lib pkgs macvtapInterfaces;
-    userSecretPath = config.secret.files.${cfg.secretUserRef}.path;
-    groupSecretPath = config.secret.files.${cfg.secretGroupRef}.path;
+    userSecretPath = config.secret.files.${cfg.userSecretRef}.path;
+    groupSecretPath = config.secret.files.${cfg.groupSecretRef}.path;
   };
   macvtapDownScript = import ./scripts-macvtap-down.nix {
     inherit lib pkgs macvtapInterfaces;
@@ -421,8 +421,8 @@ in
 
       sopsFile = lib.mkOption {
         description = lib.mdDoc ''
-          Path to the sops-encrypted secrets file the admin name/group secrets (`secretUserRef`/
-          `secretGroupRef` below) are decrypted from. Forwarded from `modules/default.nix`
+          Path to the sops-encrypted secrets file the admin name/group secrets (`userSecretRef`/
+          `groupSecretRef` below) are decrypted from. Forwarded from `modules/default.nix`
           (`host.sopsFile`) - nullable/empty by default so the forward is unconditional, with the
           real requirement expressed as the assertion below (only when a macvtap interface is
           actually in use).
@@ -431,24 +431,25 @@ in
         default = null;
       };
 
-      secretUserRef = lib.mkOption {
+      userSecretRef = lib.mkOption {
         description = lib.mdDoc ''
           Key in `sopsFile` holding the admin user's real name, resolved at runtime so
-          `macvtapUpScript` can chown the macvtap device to the real (uid, gid) pair. See
-          `modules/system/users.nix`'s `secret.users."admin".userSecretRef` for the matching
-          value normally used to create that same account.
+          `macvtapUpScript` can chown the macvtap device to the real (uid, gid) pair. Defaults to
+          the same key `system.users.admin.userSecretRef` creates that account from.
         '';
         type = types.str;
-        default = "users/admin/name";
+        default = config.system.users.admin.userSecretRef;
+        defaultText = lib.literalExpression "config.system.users.admin.userSecretRef";
       };
 
-      secretGroupRef = lib.mkOption {
+      groupSecretRef = lib.mkOption {
         description = lib.mdDoc ''
           Key in `sopsFile` holding the admin user's real group, resolved at runtime alongside
-          `secretUserRef` above.
+          `userSecretRef` above. Defaults to `system.users.admin.groupSecretRef`.
         '';
         type = types.str;
-        default = "users/admin/group";
+        default = config.system.users.admin.groupSecretRef;
+        defaultText = lib.literalExpression "config.system.users.admin.groupSecretRef";
       };
 
       registeredPaths = lib.mkOption {
@@ -509,10 +510,10 @@ in
 
       # Make the secret admin name runtime accessible by root, for macvtapUpScript below.
       # modules/virtualization/qemu/host.nix declares this same secret (under its own
-      # secretUserRef/sopsFile options) for its own (host-side) privilege-dropping needs, but that
+      # userSecretRef/sopsFile options) for its own (host-side) privilege-dropping needs, but that
       # module is only enabled on machines that run other VMs - a guest built as a VM in its own
       # right (this module) never enables it, so the secret must be declared here too.
-      secret.files.${cfg.secretUserRef} = lib.mkIf (macvtapInterfaces != []) {
+      secret.files.${cfg.userSecretRef} = lib.mkIf (macvtapInterfaces != []) {
         filemode = "0400";
         sopsFile = cfg.sopsFile;
       };

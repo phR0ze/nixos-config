@@ -39,13 +39,13 @@ let
   # that only happens through sops-nix's own template-rendering activation step). So `settings.users`
   # is left unset entirely and the admin user is (re)written into AdGuardHome's own persisted config
   # at activation via `preStart`, reading the admin's name and precomputed htpasswd hash from the
-  # runtime secrets (decrypted to config.secret.files."${cfg.secretUserRef}"/"${cfg.secretHtpasswdRef}".path)
+  # runtime secrets (decrypted to config.secret.files."${cfg.userSecretRef}"/"${cfg.htpasswdSecretRef}".path)
   # instead of hashing at eval time -- the same "patch the app's own config file at activation"
   # approach modules/services/native/jellyfin.nix already uses for network.xml.
   patchAdminUser = pkgs.writeShellScript "adguardhome-patch-admin-user" ''
     set -euo pipefail
-    export NAME="$(cat ${config.secret.files.${cfg.secretUserRef}.path})"
-    export HASH="$(cat ${config.secret.files.${cfg.secretHtpasswdRef}.path})"
+    export NAME="$(cat ${config.secret.files.${cfg.userSecretRef}.path})"
+    export HASH="$(cat ${config.secret.files.${cfg.htpasswdSecretRef}.path})"
     ${pkgs.yq-go}/bin/yq -i '.users = [{"name": strenv(NAME), "password": strenv(HASH)}]' \
       /var/lib/AdGuardHome/AdGuardHome.yaml
   '';
@@ -87,14 +87,14 @@ in
         example = "./secrets.enc.yaml";
         description = lib.mdDoc ''
           Path to this host's sops-encrypted secrets, holding the entries (keyed by
-          `secretUserRef`/`secretHtpasswdRef` below) the admin account is (re)written from at
+          `userSecretRef`/`htpasswdSecretRef` below) the admin account is (re)written from at
           activation. Forwarded from `host.sopsFile` by `modules/default.nix`. Nullable so that
           forwarding can be unconditional - see the `enable`-gated assertion below for the actual
           requirement.
         '';
       };
 
-      secretUserRef = lib.mkOption {
+      userSecretRef = lib.mkOption {
         type = lib.types.str;
         default = "adguard/user";
         description = lib.mdDoc ''
@@ -102,7 +102,7 @@ in
         '';
       };
 
-      secretHtpasswdRef = lib.mkOption {
+      htpasswdSecretRef = lib.mkOption {
         type = lib.types.str;
         default = "adguard/htpasswd";
         description = lib.mdDoc ''
@@ -424,12 +424,12 @@ in
 
     # Stage runtime secrets
     secret.files = {
-      ${cfg.secretUserRef} = {
+      ${cfg.userSecretRef} = {
         filemode = "0400";
         sopsFile = cfg.sopsFile;
         restartUnits = [ "adguardhome.service" ];
       };
-      ${cfg.secretHtpasswdRef} = {
+      ${cfg.htpasswdSecretRef} = {
         filemode = "0400";
         sopsFile = cfg.sopsFile;
         restartUnits = [ "adguardhome.service" ];

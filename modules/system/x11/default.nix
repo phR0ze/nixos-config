@@ -177,11 +177,11 @@ in
       secret.templates."lightdm-autologin" = {
         content = ''
           [Seat:*]
-          autologin-user = ${config.secret.ref."users/admin/name"}
+          autologin-user = ${config.secret.ref.${config.system.users.admin.userSecretRef}}
           autologin-user-timeout = 0
           autologin-session = ${config.services.displayManager.defaultSession}
         '';
-        secrets."users/admin/name".sopsFile = cfg.sopsFile;
+        secrets.${config.system.users.admin.userSecretRef}.sopsFile = cfg.sopsFile;
 
         # Pick up a rotated admin name on the next activation
         restartUnits = [ "display-manager.service" ];

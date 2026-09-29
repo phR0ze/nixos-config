@@ -29,7 +29,7 @@ in
         openFirewall = true;
       };
 
-      secret.users."admin".extraGroups = [ "lp" ];
+      system.users.admin.extraGroups = [ "lp" ];
     }
 
     # Brother HL-L2405W support
@@ -57,7 +57,7 @@ in
         pkgs.utsushi
       ];
 
-      secret.users."admin".extraGroups = [ "scanner" ];
+      system.users.admin.extraGroups = [ "scanner" ];
     })
   ]);
 }

@@ -34,14 +34,11 @@
 let
   cfg = config.devices.network;
 
-  # NetworkManager can also be turned on outside this module, e.g. by the ISO's installer profile
-  nmEnabled = config.networking.networkmanager.enable;
-
   staticIp = cfg.nic0.ip != "";
   staticDns = cfg.dns.primary != "";
 
   # networkd owns the wired config unless NM is on and there's nothing it can't handle itself
-  networkdWired = !nmEnabled || cfg.bridge.enable || staticIp;
+  networkdWired = !cfg.networkManager.enable || cfg.bridge.enable || staticIp;
 
   # Shared by every network unit below. IPv6 is disabled host-wide so don't have networkd try to
   # configure IPv6 link-local addresses.
@@ -250,6 +247,11 @@ in
         { assertion = cfg.bridge.enable -> cfg.macvlan.name != "";
           message = "devices.network.macvlan.name must be specified for bridge mode";
         }
+        # NM turned on directly would skip the networkd/resolved integration in this module and end
+        # up racing networkd for the same interfaces
+        { assertion = config.networking.networkmanager.enable -> cfg.networkManager.enable;
+          message = "NetworkManager must be enabled via devices.network.networkManager.enable, not networking.networkmanager.enable directly";
+        }
       ];
 
       # networkd is always the backend and every wired unit is declared explicitly below, so turn
@@ -361,19 +363,13 @@ in
     #   DNS. Just setting a global nameserver isn't enough - resolved queries the global servers and
     #   every link's servers in parallel and takes the first answer, so the DHCP servers have to be
     #   kept off the links entirely. networkd links refuse it via `dhcp` above, NM is stopped from
-    #   passing any DNS to resolved below.
+    #   passing any DNS to resolved in the NetworkManager section below.
     # - DHCP: leave `primary` unset (e.g. on roaming laptops) so each link's DHCP-provided DNS wins,
     #   which lets captive portals (airline wifi, hotels, etc.) resolve their own login domains.
     #   `fallback` is only used when no link provides any DNS at all.
-    (lib.mkIf staticDns (lib.mkMerge [
-      { networking.nameservers = [ cfg.dns.primary ]; }
-
-      # Also disables NM's captive portal login and any VPN-provided DNS, which is the point of
-      # static mode
-      (lib.mkIf nmEnabled {
-        networking.networkmanager.dns = lib.mkForce "none";
-      })
-    ]))
+    (lib.mkIf staticDns {
+      networking.nameservers = [ cfg.dns.primary ];
+    })
     (lib.mkIf (cfg.dns.fallback != "") {
       services.resolved.settings.Resolve.FallbackDNS = [ cfg.dns.fallback ];
     })
@@ -383,7 +379,25 @@ in
     (lib.mkIf cfg.networkManager.enable {
       networking.networkmanager = {
         enable = true;                      # Enable networkmanager and nm-applet
-        dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
+
+        # Keep NM off the interfaces it doesn't own: container networks, and whatever networkd owns
+        # (see the network model at the top of this file). Two managers on one interface race each
+        # other for addresses, routes and DNS.
+        unmanaged = [ "interface-name:podman*" ]
+          ++ lib.optionals (networkdWired && cfg.nic0.name != "") [ "interface-name:${cfg.nic0.name}" ]
+          ++ lib.optionals cfg.bridge.enable [
+            "interface-name:${cfg.bridge.name}"
+            "interface-name:${cfg.macvlan.name}"
+          ];
+
+        # NM feeds resolved per-link DHCP/VPN DNS in DHCP mode, and nothing at all in static mode.
+        # Static mode needs both settings: `dns = "none"` only stops NM's main DNS plugin, while
+        # `[main] systemd-resolved` separately pushes every connection's DNS to resolved and
+        # defaults to true (see NetworkManager.conf(5)). Static mode also disables NM's captive
+        # portal login and any VPN-provided DNS, which is the point of it. mkForce is needed because
+        # nixpkgs' resolved module already sets `dns = "systemd-resolved"` whenever resolved is on.
+        dns = lib.mkForce (if staticDns then "none" else "systemd-resolved");
+        settings.main.systemd-resolved = !staticDns;
 
         wifi = {
           # Disable WiFi power saving to prevent intermittent disconnections. NetworkManager's default
@@ -403,19 +417,7 @@ in
       '';
 
       # Enables ability for user to make network manager changes
-      secret.users."admin".extraGroups = [ "networkmanager" ];
-    })
-
-    # Keep NM off the interfaces it doesn't own: container networks, and whatever networkd owns (see
-    # the network model at the top of this file). Two managers on one interface race each other for
-    # addresses, routes and DNS.
-    (lib.mkIf nmEnabled {
-      networking.networkmanager.unmanaged = [ "interface-name:podman*" ]
-        ++ lib.optionals (networkdWired && cfg.nic0.name != "") [ "interface-name:${cfg.nic0.name}" ]
-        ++ lib.optionals cfg.bridge.enable [
-          "interface-name:${cfg.bridge.name}"
-          "interface-name:${cfg.macvlan.name}"
-        ];
+      system.users.admin.extraGroups = [ "networkmanager" ];
     })
 
     # Harden

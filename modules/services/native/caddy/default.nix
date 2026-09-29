@@ -30,7 +30,7 @@
 #    since clients reach this host directly on the LAN) — any new subdomain added to `proxies` then just
 #    works without touching Cloudflare again.
 # 3. Add a scoped Cloudflare API token (Zone:DNS:Edit + Zone:Zone:Read for the zone(s) in question —
-#    not the Global API Key) to this host's `secrets.enc.yaml` under the `secretCloudflareApiTokenRef`
+#    not the Global API Key) to this host's `secrets.enc.yaml` under the `cloudflareApiTokenSecretRef`
 #    key (defaults to `caddy/cloudflareApiToken`). `sopsFile` is forwarded automatically from
 #    `host.sopsFile` by `modules/default.nix`, so the host's `configuration.nix` only needs:
 #      services.native.caddy.enable = true;
@@ -109,14 +109,14 @@ in
         default = null;
         example = "./secrets.enc.yaml";
         description = lib.mdDoc ''
-          Path to the sops-encrypted file holding the `secretCloudflareApiTokenRef` secret. Forwarded
+          Path to the sops-encrypted file holding the `cloudflareApiTokenSecretRef` secret. Forwarded
           from `host.sopsFile` by `modules/default.nix`, so the `sops.secrets` entry doesn't need to
           be repeated in every host's `configuration.nix`. Nullable so that forwarding can be
           unconditional - see the `enable`-gated assertion below for the actual requirement.
         '';
       };
 
-      secretCloudflareApiTokenRef = lib.mkOption {
+      cloudflareApiTokenSecretRef = lib.mkOption {
         type = types.str;
         default = "caddy/cloudflareApiToken";
         description = lib.mdDoc ''
@@ -138,9 +138,9 @@ in
     secret.templates."caddy-cloudflare" = {
       filemode = "0400";
       content = ''
-        CF_API_TOKEN=${config.secret.ref.${cfg.secretCloudflareApiTokenRef}}
+        CF_API_TOKEN=${config.secret.ref.${cfg.cloudflareApiTokenSecretRef}}
       '';
-      secrets.${cfg.secretCloudflareApiTokenRef}.sopsFile = cfg.sopsFile;
+      secrets.${cfg.cloudflareApiTokenSecretRef}.sopsFile = cfg.sopsFile;
       # Restart rather than reload: the token reaches caddy as an environment variable via
       # EnvironmentFile, which systemd only re-reads on start - `caddy reload` re-parses the
       # Caddyfile but keeps the already-running process's stale CF_API_TOKEN

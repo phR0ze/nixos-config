@@ -26,10 +26,8 @@ in
     # ip_forward/bridge-nf-call sysctls podman needs
     devices.kernel.containers = true;
 
-    # Configure primary user permissions - merges onto the same secret.users."admin" entry
-    # modules/system/users.nix declares (real username only known post-decrypt, see
-    # modules/devices/network.nix's networkmanager grant for the same pattern)
-    secret.users."admin".extraGroups = [ "podman" ];
+    # Configure primary user permissions
+    system.users.admin.extraGroups = [ "podman" ];
 
     # Install dependencies
     environment.systemPackages = [

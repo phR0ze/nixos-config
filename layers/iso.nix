@@ -56,10 +56,12 @@ in
   services.getty.helpLine = lib.mkForce ''
     The "nixos" and "root" account passwords are set to ${host.user.pass}.
 
-    If you need a wireless connection, type
-    `sudo systemctl start wpa_supplicant` and configure a
-    network using `wpa_cli`. See the NixOS manual for details.
+    If you need a wireless connection, type `nmtui`.
   '';
+
+  # The installer profile turns on NetworkManager directly - go through this repo's option instead so
+  # it gets the same networkd/resolved integration as every other NM host
+  devices.network.networkManager.enable = true;
 
   # Adding packages for the ISO environment
   environment.systemPackages = with pkgs; [

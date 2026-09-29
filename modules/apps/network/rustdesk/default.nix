@@ -124,7 +124,7 @@ in
 
       sopsFile = lib.mkOption {
         description = lib.mdDoc ''
-          Path to the sops-encrypted file holding this host's `secretPassRef` secret, i.e.
+          Path to the sops-encrypted file holding this host's `passwordSecretRef` secret, i.e.
           `rdutil encrypt <plaintext-pass> --key <host.id>`'s output. Tied to this specific host's
           `host.id`, so it can't be satisfied by a shared secrets file - defaults to
           `config.host.sopsFile` (`hosts/<hostname>/secrets.enc.yaml`) and only needs overriding
@@ -134,7 +134,7 @@ in
         example = "./secrets.enc.yaml";
       };
 
-      secretPassRef = lib.mkOption {
+      passwordSecretRef = lib.mkOption {
         description = lib.mdDoc ''
           Key path within `sopsFile` holding the encoded permanent password, i.e.
           `rdutil encrypt <plaintext-pass> --key <host.id>`'s output.
@@ -152,7 +152,7 @@ in
           assertion = !cfg.allowDirectIPAccess || cfg.sopsFile != null;
           message = ''
             apps.network.rustdesk is enabled but apps.network.rustdesk.sopsFile is null - the
-            permanent password comes from that file's `secretPassRef` key. Generate it with
+            permanent password comes from that file's `passwordSecretRef` key. Generate it with
             `rdutil encrypt <password> --key <host.id>`.
           '';
         }
@@ -209,8 +209,8 @@ in
         homePath = ".config/rustdesk/RustDesk.toml";
         includeRoot = true;
         filemode = "0600";
-        content = "password = '${config.secret.ref.${cfg.secretPassRef}}'\n";
-        secrets.${cfg.secretPassRef}.sopsFile = cfg.sopsFile;
+        content = "password = '${config.secret.ref.${cfg.passwordSecretRef}}'\n";
+        secrets.${cfg.passwordSecretRef}.sopsFile = cfg.sopsFile;
       };
     })
 
