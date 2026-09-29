@@ -69,6 +69,24 @@ in
         '';
       };
 
+      port = lib.mkOption {
+        type = lib.types.port;
+        default = 3000;
+        description = lib.mdDoc "Port the AdGuard Home admin web interface listens on.";
+      };
+
+      subdomain = lib.mkOption {
+        description = lib.mdDoc ''
+          Front the admin interface with `services.native.caddy` at `<subdomain>.<domain>` — gets a
+          hostname matcher on Caddy's shared wildcard block, routed to `bindAddress:port`. Leave
+          `null` to not front this service with Caddy (the admin port is then opened on the LAN
+          instead).
+        '';
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "adguard";
+      };
+
       baseDomain = lib.mkOption {
         type = lib.types.str;
         default = "";
@@ -113,327 +131,343 @@ in
     };
   };
  
-  config = lib.mkIf cfg.enable {
-    assertions = [
-      { assertion = cfg.sopsFile != null; message = "services.native.adguard requires 'sopsFile', normally forwarded from 'host.sopsFile'"; }
-      { assertion = cfg.bindAddress != null && cfg.bindAddress != ""; message = "services.native.adguard requires 'bindAddress', normally forwarded from this host's primary NIC IP - is 'devices.network.primary.ip' set for this host?"; }
-    ];
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
+      assertions = [
+        { assertion = cfg.sopsFile != null;
+            message = "services.native.adguard requires 'sopsFile', normally forwarded from 'host.sopsFile'";
+        }
+        { assertion = cfg.bindAddress != null && cfg.bindAddress != "";
+            message = "services.native.adguard requires 'bindAddress', is 'devices.network.primary.ip' set for this host?";
+        }
+      ];
 
-    # Upstream's `openFirewall` only opens `cfg.port` (the HTTP admin port, TCP-only) - it does
-    # NOT open DNS's port 53 despite what the option name might suggest. DNS needs both UDP (the
-    # common case) and TCP (large/truncated responses), opened explicitly here instead.
-    networking.firewall.allowedTCPPorts = [ 53 ];
-    networking.firewall.allowedUDPPorts = [ 53 ];
+      # Upstream's `openFirewall` only opens `cfg.port` (the HTTP admin port, TCP-only) - it does
+      # NOT open DNS's port 53 despite what the option name might suggest. DNS needs both UDP (the
+      # common case) and TCP (large/truncated responses), opened explicitly here instead.
+      networking.firewall.allowedTCPPorts = [ 53 ];
+      networking.firewall.allowedUDPPorts = [ 53 ];
 
-    services.adguardhome = {
-      enable = true;
-      host = cfg.bindAddress;
-      openFirewall = true; # opens the HTTP admin port (cfg.port, default 3000) - see note above
-      settings = {
-        theme = "dark";
-        dns = {
-          bind_hosts = [
-            cfg.bindAddress
-          ];
-          ratelimit = 0;
-          upstream_dns = [
-            "https://dns.cloudflare.com/dns-query"
-          ];
-          bootstrap_dns = [
-            "1.1.1.1"
-            "9.9.9.10"
-          ];
-          fallback_dns = [
-            "https://dns10.quad9.net/dns-query"
-          ];
-        };
-        filters = [
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt";
-            name = "AdGuard DNS filter";
-            id = 1;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt";
-            name = "AdAway Default Blocklist";
-            id = 2;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt";
-            name = "AdGuard DNS Popup Hosts filter";
-            id = 1733441346;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt";
-            name = "AWAvenue Ads Rule";
-            id = 1733441347;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_4.txt";
-            name = "Dan Pollock's List";
-            id = 1733441348;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_51.txt";
-            name = "HaGeZi's Pro++ Blocklist";
-            id = 1733441349;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt";
-            name = "OISD Blocklist Big";
-            id = 1733441350;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt";
-            name = "Peter Lowe's Blocklist";
-            id = 1733441351;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt";
-            name = "Steven Black's List";
-            id = 1733441352;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_39.txt";
-            name = "Dandelion Sprout's Anti Push Notifications";
-            id = 1733441353;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_6.txt";
-            name = "Dandelion Sprout's Game Console Adblock List";
-            id = 1733441354;
-          }
-
-          # Specific allow list for allowing some affiliate referral tracking to keep things working
-          # for shopping sites.
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_45.txt";
-            name = "HaGeZi's Allowlist Referral";
-            id = 1733441355;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt";
-            name = "Malicious URL Blocklist (URLHaus)";
-            id = 1733441356;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_7.txt";
-            name = "Perflyst and Dandelion Sprout's Smart-TV Blocklist";
-            id = 1733441357;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt";
-            name = "uBlock₀ filters – Badware risks";
-            id = 1733441358;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_23.txt";
-            name = "WindowsSpyBlocker - Hosts spy rules";
-            id = 1733441359;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_9.txt";
-            name = "The Big List of Hacked Malware Web Sites";
-            id = 1733441360;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_30.txt";
-            name = "Phishing URL Blocklist (PhishTank and OpenPhish)";
-            id = 1733441361;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_31.txt";
-            name = "Stalkerware Indicators List";
-            id = 1733441362;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_12.txt";
-            name = "Dandelion Sprout's Anti-Malware List";
-            id = 1733441363;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_42.txt";
-            name = "ShadowWhisperer's Malware List";
-            id = 1733441364;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_55.txt";
-            name = "HaGeZi's Badware Hoster Blocklist";
-            id = 1733441365;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_10.txt";
-            name = "Scam Blocklist by DurableNapkin";
-            id = 1733441366;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_54.txt";
-            name = "HaGeZi's DynDNS Blocklist";
-            id = 1733441367;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt";
-            name = "Phishing Army";
-            id = 1733441368;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt";
-            name = "HaGeZi's Threat Intelligence Feeds";
-            id = 1733441369;
-          }
-          {
-            enabled = true;
-            url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_8.txt";
-            name = "NoCoin Filter List";
-            id = 1733441370;
-          }
-          {
-            enabled = true;
-            url = "https://v.firebog.net/hosts/Easylist.txt";
-            name = "EasyList";
-            id = 1733441371;
-          }
-          {
-            enabled = true;
-            url = "https://v.firebog.net/hosts/Easyprivacy.txt";
-            name = "EasyPrivacy";
-            id = 1733441372;
-          }
-          {
-            enabled = true;
-            url = "https://blocklistproject.github.io/Lists/adguard/porn-ags.txt";
-            name = "Blocklist adult content";
-            id = 1733441373;
-          }
-        ];
-        whitelist_filters = [
-          {
-            enabled = true;
-            url = "https://raw.githubusercontent.com/phR0ze/adguard-lists/refs/heads/main/allow/allow.txt";
-            name = "phR0ze allows";
-            id = 1757123023;
-          }
-        ];
-        user_rules = [
-          "# Ads/Tracking allowed by AdGuard"
-          "||adservice.google.*^$important"
-          "||adsterra.com^$important"
-          "||amplitude.com^$important"
-          "||analytics.edgekey.net^$important"
-          "||analytics.twitter.com^$important"
-          "||app.adjust.*^$important"
-          "||app.*.adjust.com^$important"
-          "||app.appsflyer.com^$important"
-          "||doubleclick.net^$important"
-          "||googleadservices.com^$important"
-          "||guce.advertising.com^$important"
-          "||metric.gstatic.com^$important"
-          "||mmstat.com^$important"
-          "||statcounter.com^$important"
-          # Firefox telemetry
-          "||firefox.settings.services.mozilla.com^$important"
-          "||firefox-settings-attachments.cdn.mozilla.net^$important"
-          # Asus Router
-          "||epdg.epc.mnc260.mcc310.pub.3gppnetwork.org^$important"
-          "||getpocket.cdn.mozilla.net^$important"
-        ];
-
-        # Don't even bother logging just drop them
-        blocked_hosts = [
-          "connections.brother.com" # phone home for brother printers
-        ];
-
-        filtering = {
-          safe_search = {
-            enabled = true;
-            bing = true;
-            duckduckgo = true;
-            ecosia = true;
-            google = true;
-            pixabay = true;
-            yandex = true;
-            youtube = true;
+      # The HTTP admin port is left closed when fronted by services.native.caddy on the same host -
+      # Caddy reaches it via bindAddress (local traffic, not subject to the firewall), and LAN clients
+      # go through Caddy's TLS instead of hitting AdGuard's HTTP port directly.
+      services.adguardhome = {
+        enable = true;
+        host = cfg.bindAddress;
+        port = cfg.port;
+        openFirewall = cfg.subdomain == null; # opens only the HTTP admin port - see note above
+        settings = {
+          theme = "dark";
+          dns = {
+            bind_hosts = [
+              cfg.bindAddress
+            ];
+            ratelimit = 0;
+            upstream_dns = [
+              "https://dns.cloudflare.com/dns-query"
+            ];
+            bootstrap_dns = [
+              "1.1.1.1"
+              "9.9.9.10"
+            ];
+            fallback_dns = [
+              "https://dns10.quad9.net/dns-query"
+            ];
           };
-          rewrites = [
+          filters = [
             {
-              domain = "adguard.local";
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt";
+              name = "AdGuard DNS filter";
+              id = 1;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt";
+              name = "AdAway Default Blocklist";
+              id = 2;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt";
+              name = "AdGuard DNS Popup Hosts filter";
+              id = 1733441346;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt";
+              name = "AWAvenue Ads Rule";
+              id = 1733441347;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_4.txt";
+              name = "Dan Pollock's List";
+              id = 1733441348;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_51.txt";
+              name = "HaGeZi's Pro++ Blocklist";
+              id = 1733441349;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt";
+              name = "OISD Blocklist Big";
+              id = 1733441350;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt";
+              name = "Peter Lowe's Blocklist";
+              id = 1733441351;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt";
+              name = "Steven Black's List";
+              id = 1733441352;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_39.txt";
+              name = "Dandelion Sprout's Anti Push Notifications";
+              id = 1733441353;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_6.txt";
+              name = "Dandelion Sprout's Game Console Adblock List";
+              id = 1733441354;
+            }
+
+            # Specific allow list for allowing some affiliate referral tracking to keep things working
+            # for shopping sites.
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_45.txt";
+              name = "HaGeZi's Allowlist Referral";
+              id = 1733441355;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt";
+              name = "Malicious URL Blocklist (URLHaus)";
+              id = 1733441356;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_7.txt";
+              name = "Perflyst and Dandelion Sprout's Smart-TV Blocklist";
+              id = 1733441357;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt";
+              name = "uBlock₀ filters – Badware risks";
+              id = 1733441358;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_23.txt";
+              name = "WindowsSpyBlocker - Hosts spy rules";
+              id = 1733441359;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_9.txt";
+              name = "The Big List of Hacked Malware Web Sites";
+              id = 1733441360;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_30.txt";
+              name = "Phishing URL Blocklist (PhishTank and OpenPhish)";
+              id = 1733441361;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_31.txt";
+              name = "Stalkerware Indicators List";
+              id = 1733441362;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_12.txt";
+              name = "Dandelion Sprout's Anti-Malware List";
+              id = 1733441363;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_42.txt";
+              name = "ShadowWhisperer's Malware List";
+              id = 1733441364;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_55.txt";
+              name = "HaGeZi's Badware Hoster Blocklist";
+              id = 1733441365;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_10.txt";
+              name = "Scam Blocklist by DurableNapkin";
+              id = 1733441366;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_54.txt";
+              name = "HaGeZi's DynDNS Blocklist";
+              id = 1733441367;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt";
+              name = "Phishing Army";
+              id = 1733441368;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt";
+              name = "HaGeZi's Threat Intelligence Feeds";
+              id = 1733441369;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_8.txt";
+              name = "NoCoin Filter List";
+              id = 1733441370;
+            }
+            {
+              enabled = true;
+              url = "https://v.firebog.net/hosts/Easylist.txt";
+              name = "EasyList";
+              id = 1733441371;
+            }
+            {
+              enabled = true;
+              url = "https://v.firebog.net/hosts/Easyprivacy.txt";
+              name = "EasyPrivacy";
+              id = 1733441372;
+            }
+            {
+              enabled = true;
+              url = "https://blocklistproject.github.io/Lists/adguard/porn-ags.txt";
+              name = "Blocklist adult content";
+              id = 1733441373;
+            }
+          ];
+          whitelist_filters = [
+            {
+              enabled = true;
+              url = "https://raw.githubusercontent.com/phR0ze/adguard-lists/refs/heads/main/allow/allow.txt";
+              name = "phR0ze allows";
+              id = 1757123023;
+            }
+          ];
+          user_rules = [
+            "# Ads/Tracking allowed by AdGuard"
+            "||adservice.google.*^$important"
+            "||adsterra.com^$important"
+            "||amplitude.com^$important"
+            "||analytics.edgekey.net^$important"
+            "||analytics.twitter.com^$important"
+            "||app.adjust.*^$important"
+            "||app.*.adjust.com^$important"
+            "||app.appsflyer.com^$important"
+            "||doubleclick.net^$important"
+            "||googleadservices.com^$important"
+            "||guce.advertising.com^$important"
+            "||metric.gstatic.com^$important"
+            "||mmstat.com^$important"
+            "||statcounter.com^$important"
+            # Firefox telemetry
+            "||firefox.settings.services.mozilla.com^$important"
+            "||firefox-settings-attachments.cdn.mozilla.net^$important"
+            # Asus Router
+            "||epdg.epc.mnc260.mcc310.pub.3gppnetwork.org^$important"
+            "||getpocket.cdn.mozilla.net^$important"
+          ];
+
+          # Don't even bother logging just drop them
+          blocked_hosts = [
+            "connections.brother.com" # phone home for brother printers
+          ];
+
+          filtering = {
+            safe_search = {
+              enabled = true;
+              bing = true;
+              duckduckgo = true;
+              ecosia = true;
+              google = true;
+              pixabay = true;
+              yandex = true;
+              youtube = true;
+            };
+            rewrites = [
+              {
+                domain = "adguard.local";
+                answer = cfg.bindAddress;
+                enabled = true;
+              }
+            ] ++ lib.optional (cfg.baseDomain != "") {
+
+              # Split-horizon: LAN clients (using this AdGuard instance as DNS) resolve
+              # *.<baseDomain> straight to Caddy on the LAN instead of the public Pangolin IP the
+              # Cloudflare wildcard record points at — see services.native.caddy's deployment notes.
+              # Keeps every Caddy-fronted service reachable from the LAN regardless of whether
+              # it also has a Pangolin Resource exposing it publicly yet.
+              domain = "*.${cfg.baseDomain}";
               answer = cfg.bindAddress;
               enabled = true;
-            }
-          ] ++ lib.optional (cfg.baseDomain != "") {
-
-            # Split-horizon: LAN clients (using this AdGuard instance as DNS) resolve
-            # *.<baseDomain> straight to Caddy on the LAN instead of the public Pangolin IP the
-            # Cloudflare wildcard record points at — see services.native.caddy's deployment notes.
-            # Keeps every Caddy-fronted service reachable from the LAN regardless of whether
-            # it also has a Pangolin Resource exposing it publicly yet.
-            domain = "*.${cfg.baseDomain}";
-            answer = cfg.bindAddress;
-            enabled = true;
+            };
+            filtering_enabled = true;
+            parental_enabled = true;
+            safebrowsing_enabled = true;
+            protection_enabled = true;
           };
-          filtering_enabled = true;
-          parental_enabled = true;
-          safebrowsing_enabled = true;
-          protection_enabled = true;
-        };
-        statistics = {
-          # Increase retention to 90 days
-          interval = "2160h";
+          statistics = {
+            # Increase retention to 90 days
+            interval = "2160h";
+          };
         };
       };
-    };
 
-    # Upstream's own preStart (adguardhome.nix) writes/yaml-merges AdGuardHome.yaml from `settings`
-    # on every start, running as the service's `DynamicUser` (mutableSettings=true preserves the
-    # existing `users` field across restarts since `settings` above never sets one) - patchAdminUser
-    # must see that file already in place before it can (re)patch `.users` into it, so it's added as
-    # its own `ExecStartPre` entry (rather than folded into the `preStart` string) with a `+` prefix:
-    # that runs it as root, bypassing both `DynamicUser` (needed since the secret files below are
-    # root-owned/mode 0400 - adguardhome's DynamicUser has no static name to grant read access to
-    # instead) and `SystemCallFilter` (yq-go was getting killed with SIGSYS under upstream's
-    # `~@privileged ~@resources` filter). `mkAfter` keeps it ordered after upstream's own
-    # preStart-generated `ExecStartPre` entry, which plain list concatenation order wouldn't
-    # otherwise guarantee.
-    systemd.services.adguardhome.serviceConfig.ExecStartPre = lib.mkAfter [ "+${patchAdminUser}" ];
+      # Upstream's own preStart (adguardhome.nix) writes/yaml-merges AdGuardHome.yaml from `settings`
+      # on every start, running as the service's `DynamicUser` (mutableSettings=true preserves the
+      # existing `users` field across restarts since `settings` above never sets one) - patchAdminUser
+      # must see that file already in place before it can (re)patch `.users` into it, so it's added as
+      # its own `ExecStartPre` entry (rather than folded into the `preStart` string) with a `+` prefix:
+      # that runs it as root, bypassing both `DynamicUser` (needed since the secret files below are
+      # root-owned/mode 0400 - adguardhome's DynamicUser has no static name to grant read access to
+      # instead) and `SystemCallFilter` (yq-go was getting killed with SIGSYS under upstream's
+      # `~@privileged ~@resources` filter). `mkAfter` keeps it ordered after upstream's own
+      # preStart-generated `ExecStartPre` entry, which plain list concatenation order wouldn't
+      # otherwise guarantee.
+      systemd.services.adguardhome.serviceConfig.ExecStartPre = lib.mkAfter [ "+${patchAdminUser}" ];
 
-    # Stage runtime secrets
-    secret.files = {
-      ${cfg.userSecretRef} = {
-        filemode = "0400";
-        sopsFile = cfg.sopsFile;
-        restartUnits = [ "adguardhome.service" ];
+      # Stage runtime secrets
+      secret.files = {
+        ${cfg.userSecretRef} = {
+          filemode = "0400";
+          sopsFile = cfg.sopsFile;
+          restartUnits = [ "adguardhome.service" ];
+        };
+        ${cfg.htpasswdSecretRef} = {
+          filemode = "0400";
+          sopsFile = cfg.sopsFile;
+          restartUnits = [ "adguardhome.service" ];
+        };
       };
-      ${cfg.htpasswdSecretRef} = {
-        filemode = "0400";
-        sopsFile = cfg.sopsFile;
-        restartUnits = [ "adguardhome.service" ];
-      };
-    };
-  };
+    }
+
+    # Add a caddy proxy config for DNS subdomain resolution. AdGuard listens on bindAddress rather
+    # than loopback, so the proxy has to target that instead of caddy_proxy's 127.0.0.1 default.
+    (lib.mkIf (cfg.subdomain != null) {
+      services.native.caddy.proxies = [ { inherit (cfg) subdomain port; host = cfg.bindAddress; } ];
+    })
+  ]);
 }
