@@ -16,6 +16,8 @@ in
     inherit lib;
     defaults = {
       name = "oneup";
+      caddy = true;
+      subdomain = "oneup";
       capDropAll = true;
       noNewPrivileges = true;
       readOnlyRootfs = true;
@@ -24,7 +26,11 @@ in
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      assertions = f.ociAsserts cfg;
+      assertions = f.ociAsserts cfg ++ [
+        { assertion = cfg.caddy -> cfg.subdomain != null;
+          message = "services.oci.oneup: 'caddy' requires 'subdomain' to be set";
+        }
+      ];
 
       virtualization.podman.enable = true;
       users.users.${cfg.user.name} = f.createUser cfg.user;
@@ -45,7 +51,8 @@ in
         image = "ghcr.io/phr0ze/${cfg.name}:${cfg.tag}";
         autoStart = true;
         networks = [ cfg.name ];                  # Isolated app specific network
-        ports = [ "127.0.0.1:${toString cfg.port}:8080" ];  # Not exposed on LAN; front with services.native.caddy
+        # Loopback-only when fronted by Caddy, otherwise published on the LAN
+        ports = [ "${lib.optionalString cfg.caddy "127.0.0.1:"}${toString cfg.port}:8080" ];
         volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];
         environment = { "PORT" = "8080"; };
         extraOptions = [ "--ip=${cfg.ip}" ]
@@ -57,11 +64,14 @@ in
       # Create podmane network and extend service to use it
       systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
       systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
+
+      networking.firewall.allowedTCPPorts = lib.optional (!cfg.caddy) cfg.port;
     }
 
     # Contribute a proxy entry to services.native.caddy.proxies rather than requiring it be listed
     # separately in the machine's configuration.nix
-    (lib.mkIf (cfg.subdomain != null) {
+    (lib.mkIf cfg.caddy {
+      services.native.caddy.enable = lib.mkDefault true;
       services.native.caddy.proxies = [
         { inherit (cfg) subdomain port; }
       ];

@@ -36,6 +36,7 @@ let
     tag = arg "tag";
     user = arg "user";
     port = arg "port";
+    caddy = arg "caddy";
     subdomain = arg "subdomain";
     subnet = arg "subnet";
     ip = arg "ip";

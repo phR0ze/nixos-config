@@ -57,6 +57,15 @@
     default = defaults.port or 80;
   };
 
+  caddy = lib.mkOption {
+    description = lib.mdDoc ''
+      Front this service with `services.native.caddy` (enabled by default along with it) at
+      `<subdomain>.<domain>`. Only honored by modules that implement it (e.g. `oneup`).
+    '';
+    type = types.bool;
+    default = defaults.caddy or false;
+  };
+
   subdomain = lib.mkOption {
     description = lib.mdDoc ''
       Front this service with `services.native.caddy` at `<subdomain>.<domain>`. Leave `null` to not

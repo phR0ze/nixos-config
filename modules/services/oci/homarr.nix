@@ -15,7 +15,7 @@
 # - App data is persisted at /var/lib/$APP
 # - Generate key with: openssl rand -hex 32
 # - Get status with: sudo systemctl status podman-homarr
-# - Browse to: http://<IP>:8080
+# - Browse to: https://home.<domain> (or http://<IP>:<port> with `caddy = false`)
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
@@ -23,7 +23,7 @@ let
 in
 {
   options.services.oci.homarr = (import ../../types/service.nix {
-    inherit lib; defaults = { name = "homarr"; };
+    inherit lib; defaults = { name = "homarr"; caddy = true; subdomain = "home"; };
   }) // {
     encKey = lib.mkOption {
       description = lib.mdDoc ''
@@ -39,7 +39,11 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      assertions = f.ociAsserts cfg;
+      assertions = f.ociAsserts cfg ++ [
+        { assertion = cfg.caddy -> cfg.subdomain != null;
+          message = "services.oci.homarr: 'caddy' requires 'subdomain' to be set";
+        }
+      ];
 
       virtualization.podman.enable = true;
       users.users.${cfg.user.name} = f.createUser cfg.user;
@@ -75,7 +79,8 @@ in
         autoStart = true;
         hostname = "${cfg.name}";
         networks = [ cfg.name ];                  # Isolated app specific network
-        ports = [ "127.0.0.1:${toString cfg.port}:7575" ];  # Not exposed on LAN; front with services.native.caddy
+        # Loopback-only when fronted by Caddy, otherwise published on the LAN
+        ports = [ "${lib.optionalString cfg.caddy "127.0.0.1:"}${toString cfg.port}:7575" ];
         volumes = [
           "/var/lib/${cfg.name}/appdata:/appdata:rw"
         ];
@@ -92,11 +97,14 @@ in
       # Create podmane network and extend service to use it
       systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
       systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
+
+      networking.firewall.allowedTCPPorts = lib.optional (!cfg.caddy) cfg.port;
     })
 
     # Contribute a proxy entry to services.native.caddy.proxies rather than requiring it be listed
     # separately in the machine's configuration.nix
-    (lib.mkIf (cfg.enable && cfg.subdomain != null) {
+    (lib.mkIf (cfg.enable && cfg.caddy) {
+      services.native.caddy.enable = lib.mkDefault true;
       services.native.caddy.proxies = [
         { inherit (cfg) subdomain port; }
       ];
