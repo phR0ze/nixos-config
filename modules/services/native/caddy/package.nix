@@ -1,25 +1,11 @@
-# Caddy with the caddy-dns/cloudflare module
+# Upstream caddy with the caddy-dns/cloudflare DNS-01 plugin
 #
-# See README.md for update and build instructions.
+# `cloudflarePluginTag`/`hash` come from `services.native.caddy.cloudflarePluginTag`/
+# `cloudflarePluginHash` - see README.md for refreshing the hash.
 #---------------------------------------------------------------------------------------------------
-{ lib, buildGoModule }:
+{ caddy, cloudflarePluginTag, hash }:
 
-buildGoModule rec {
-  pname = "caddy";
-  version = "2.11.4";
-
-  src = ./include;
-
-  vendorHash = "sha256-Lt43gRNb58Zmav7FJcmY/8X1dkEaKmPYvwn/8NvAQe8=";
-
-  subPackages = [ "." ];
-
-  ldflags = [ "-s" "-w" "-X github.com/caddyserver/caddy/v2.CustomVersion=${version}" ];
-
-  meta = with lib; {
-    description = "Caddy build with the caddy-dns/cloudflare DNS-01 module included";
-    homepage = "https://caddyserver.com";
-    license = licenses.asl20;
-    mainProgram = "caddy";
-  };
+caddy.withPlugins {
+  plugins = [ "github.com/caddy-dns/cloudflare@${cloudflarePluginTag}" ];
+  inherit hash;
 }

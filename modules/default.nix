@@ -484,6 +484,7 @@ in
         services.native.caddy.sopsFile = cfg.sopsFile;
         services.native.caddy.baseDomain = cfg.network.domain;
         services.native.caddy.proxies = arg "proxies";
+        services.native.caddy.trustedProxies = arg "trustedProxies";
       }
     ))
 

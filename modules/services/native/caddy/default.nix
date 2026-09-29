@@ -3,41 +3,22 @@
 # - https://caddyserver.com/docs/modules/dns.providers
 #
 # ### Description
-# Fronts one or more homelab services with Caddy-managed TLS. All proxies share a single wildcard
-# `*.<baseDomain>` site block on port 443, routed by hostname, and a single wildcard certificate obtained
-# via a Cloudflare DNS-01 challenge (see `modules/services/native/caddy/package.nix` for the
-# caddy-dns/cloudflare build). The original HTTP port each service already listens on is left
-# untouched, so this is purely additive.
+# Fronts homelab services with TLS on a single `*.<baseDomain>` site on port 443, routed by hostname,
+# using one wildcard certificate from a Cloudflare DNS-01 challenge. Uses upstream `caddy` with the
+# caddy-dns/cloudflare plugin via `withPlugins` (see package.nix).
 #
 # ### Deployment notes
-# 1. Add an entry to `proxies` per backend service: `{ subdomain = "vault"; port = 8222; }`. It'll be
-#    reachable at `https://vault.<baseDomain>` via the shared wildcard block on port 443. `host` defaults to
-#    `127.0.0.1` for a backend running on this same machine; set it to another host's LAN IP to front a
-#    service running elsewhere on the network (e.g. `{ subdomain = "adguard"; host = "192.168.1.5"; port
-#    = 3000; }`).
-# 1b. A Pangolin *private* resource reaches a backend fronted here via a `Host`-mode (raw L4 tunnel)
-#    resource pointed straight at this host's LAN `IP:443` — Pangolin never terminates or re-originates
-#    TLS for that resource type, so the client's real SNI/Host header reaches this shared wildcard block
-#    intact, same as any LAN client. No separate listener or port is needed for this — an earlier design
-#    here provisioned a per-service `dedicatedPort` (a Host-header-free listener) to work around Newt not
-#    forwarding SNI on its *HTTP*-mode private-resource proxying (fosrl/pangolin#207); that workaround was
-#    dropped once the private resource was switched to `Host` mode instead, which sidesteps the gap
-#    entirely rather than routing around it.
-# 2. `baseDomain` is forwarded automatically from `host.network.domain` by `modules/default.nix`
-#    (sourced from the `network.domain` key in `args.enc.yaml`/`args.nix`, keeping the literal zone
-#    name out of tracked files) - a host only sets it here to override. DNS-01 only proves control of the zone — it doesn't create routing, so Cloudflare needs a
-#    single wildcard `*.<baseDomain>` DNS record (can be a greyed-out/non-proxied A/CNAME pointing anywhere,
-#    since clients reach this host directly on the LAN) — any new subdomain added to `proxies` then just
-#    works without touching Cloudflare again.
-# 3. Add a scoped Cloudflare API token (Zone:DNS:Edit + Zone:Zone:Read for the zone(s) in question —
-#    not the Global API Key) to this host's `secrets.enc.yaml` under the `cloudflareApiTokenSecretRef`
-#    key (defaults to `caddy/cloudflareApiToken`). `sopsFile` is forwarded automatically from
-#    `host.sopsFile` by `modules/default.nix`, so the host's `configuration.nix` only needs:
-#      services.native.caddy.enable = true;
-# 4. Back a service running on *another* machine by adding its entry to
-#    `host.services.native.caddy.proxies` in `args.enc.yaml` rather than hardcoding that machine's
-#    LAN IP here - `modules/default.nix` merges those entries into `proxies` alongside the ones
-#    each Caddy-fronted module contributes for itself.
+# 1. Cloudflare: create one wildcard `*.<baseDomain>` DNS record (non-proxied, pointing anywhere) and
+#    a scoped API token (Zone:DNS:Edit + Zone:Zone:Read). Store the token in the host's
+#    `secrets.enc.yaml` under `caddy/cloudflareApiToken`.
+# 2. Host: `services.native.caddy.enable = true;` - `baseDomain` and `sopsFile` are forwarded from
+#    `host.*` by `modules/default.nix`.
+# 3. Proxies: apps add their own entry via their `subdomain` option. Backends on other machines go in
+#    `host.services.native.caddy.proxies` in `args.enc.yaml` to keep LAN IPs untracked.
+# 4. Pangolin: point private resources in `Host` mode at this host's `IP:443`. For public HTTP
+#    resources, set `host.services.native.caddy.trustedProxies` to Newt's IP.
+# 5. DNS-01 checks use Cloudflare's resolvers because AdGuard's `*.<baseDomain>` rewrite would hide
+#    the `_acme-challenge` TXT record.
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -47,22 +28,23 @@ let
 
   wildcardProxies = lib.filter (p: p.subdomain != null) cfg.proxies;
 
-  wildcardSite = lib.nameValuePair "*.${cfg.baseDomain}:443" {
+  # Subdomains used by more than one proxy, which would define the same matcher twice
+  duplicateSubdomains = lib.attrNames (lib.filterAttrs (_: ps: lib.length ps > 1)
+    (lib.groupBy (p: p.subdomain) wildcardProxies));
+
+  wildcardSite = lib.nameValuePair "*.${cfg.baseDomain}" {
     extraConfig = ''
       tls {
         dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 1.0.0.1
       }
 
-      # Security headers applied to every proxied response, mirroring Pangolin's Traefik-side
-      # security-headers@file middleware. LAN-facing/TLS-passthrough traffic through Pangolin's
-      # Host-mode private resources never touches this (it's a raw L4 tunnel straight to :443, see
-      # module header comment above), but every other path — direct LAN access and Pangolin's Public
-      # HTTP resources — terminates TLS here and gets these on every response.
+      # `?` only sets the header if the backend didn't; HSTS is always set
       header {
         Strict-Transport-Security "max-age=31536000; includeSubDomains"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "strict-origin-when-cross-origin"
+        ?X-Content-Type-Options "nosniff"
+        ?X-Frame-Options "SAMEORIGIN"
+        ?Referrer-Policy "strict-origin-when-cross-origin"
         -Server
       }
     '' + lib.concatMapStringsSep "\n" (p: ''
@@ -70,7 +52,13 @@ let
       handle @${p.subdomain} {
         reverse_proxy ${p.host}:${toString p.port}
       }
-    '') wildcardProxies;
+    '') wildcardProxies + ''
+
+      # Unknown subdomains
+      handle {
+        respond 404
+      }
+    '';
   };
 in
 {
@@ -83,10 +71,8 @@ in
         default = "";
         example = "example.com";
         description = lib.mdDoc ''
-          Cloudflare-managed zone used for certificate issuance. Each proxy is reachable at
-          `<subdomain>.<baseDomain>`. Forwarded from `host.network.domain` by `modules/default.nix` so
-          the literal zone never lands in a tracked file - only set here to override. Empty by
-          default so that forwarding can be unconditional - see the `enable`-gated assertion below.
+          Cloudflare zone for the wildcard certificate; proxies are served at
+          `<subdomain>.<baseDomain>`. Forwarded from `host.network.domain`.
         '';
       };
 
@@ -95,12 +81,8 @@ in
         default = [ ];
         example = [{ subdomain = "vault"; port = 8222; }];
         description = lib.mdDoc ''
-          Backend services to front with Caddy-managed local TLS. Populated automatically from any
-          enabled app's own `subdomain`/`subdomains` option (e.g. `services.native.vaultwarden`) and
-          from `host.services.native.caddy.proxies` in this host's build-time args (that's where a
-          backend living on *another* machine belongs, so its LAN IP stays out of tracked files) —
-          only add entries here directly for apps that don't expose one. Each entry is hostname-routed on the shared
-          wildcard block when `subdomain` is set — see `../../../types/caddy_proxy.nix`.
+          Backends to front. Filled in by apps' own `subdomain` options and by
+          `host.services.native.caddy.proxies` in build-time args.
         '';
       };
 
@@ -109,10 +91,7 @@ in
         default = null;
         example = "./secrets.enc.yaml";
         description = lib.mdDoc ''
-          Path to the sops-encrypted file holding the `cloudflareApiTokenSecretRef` secret. Forwarded
-          from `host.sopsFile` by `modules/default.nix`, so the `sops.secrets` entry doesn't need to
-          be repeated in every host's `configuration.nix`. Nullable so that forwarding can be
-          unconditional - see the `enable`-gated assertion below for the actual requirement.
+          sops file holding the Cloudflare API token. Forwarded from `host.sopsFile`.
         '';
       };
 
@@ -120,8 +99,35 @@ in
         type = types.str;
         default = "caddy/cloudflareApiToken";
         description = lib.mdDoc ''
-          Key path within `sopsFile` holding the scoped Cloudflare API token (Zone:DNS:Edit +
-          Zone:Zone:Read for the zone(s) in question - not the Global API Key).
+          Key within `sopsFile` holding the Cloudflare API token (Zone:DNS:Edit + Zone:Zone:Read).
+        '';
+      };
+
+      cloudflarePluginTag = lib.mkOption {
+        type = types.str;
+        default = "v0.2.4";
+        description = lib.mdDoc ''
+          caddy-dns/cloudflare release tag compiled into Caddy. Changing it requires updating
+          `cloudflarePluginHash` too - see README.md.
+        '';
+      };
+
+      cloudflarePluginHash = lib.mkOption {
+        type = types.str;
+        default = "sha256-hEHgAG0F0ozHRAPuxEqLyTATBrE+pajeXDiSNwniorg=";
+        description = lib.mdDoc ''
+          Hash of Caddy's source with `cloudflarePluginTag` vendored in. Changes whenever the tag or
+          nixpkgs' caddy version does.
+        '';
+      };
+
+      trustedProxies = lib.mkOption {
+        type = listOf str;
+        default = [ ];
+        example = [ "192.168.1.10/32" ];
+        description = lib.mdDoc ''
+          Upstream proxy IPs/CIDRs (e.g. Pangolin's Newt) whose `X-Forwarded-For` is trusted, so
+          backends see real client IPs. Forwarded from `host.services.native.caddy.trustedProxies`.
         '';
       };
     };
@@ -129,51 +135,47 @@ in
 
   config = lib.mkIf cfg.enable {
     assertions = [
-      { assertion = cfg.sopsFile != null; message = "services.native.caddy requires 'sopsFile', normally forwarded from 'host.sopsFile'"; }
-      { assertion = cfg.baseDomain != ""; message = "services.native.caddy requires 'baseDomain', normally forwarded from 'host.network.domain'"; }
+      { assertion = cfg.sopsFile != null;
+        message = "services.native.caddy requires 'sopsFile', normally forwarded from 'host.sopsFile'";
+      }
+      { assertion = cfg.baseDomain != "";
+        message = "services.native.caddy requires 'baseDomain', normally forwarded from 'host.network.domain'";
+      }
+      { assertion = duplicateSubdomains == [ ];
+        message = "services.native.caddy: subdomain(s) claimed by more than one proxy: ${lib.concatStringsSep ", " duplicateSubdomains}";
+      }
     ];
 
-    # Wraps the bare-token secret in a KEY=VALUE line rendered at activation time (mode 0400),
-    # suitable for systemd's EnvironmentFile=.
+    # Token as an EnvironmentFile. Restart, not reload: env vars are only read at start.
     secret.templates."caddy-cloudflare" = {
       filemode = "0400";
       content = ''
         CF_API_TOKEN=${config.secret.ref.${cfg.cloudflareApiTokenSecretRef}}
       '';
       secrets.${cfg.cloudflareApiTokenSecretRef}.sopsFile = cfg.sopsFile;
-      # Restart rather than reload: the token reaches caddy as an environment variable via
-      # EnvironmentFile, which systemd only re-reads on start - `caddy reload` re-parses the
-      # Caddyfile but keeps the already-running process's stale CF_API_TOKEN
       restartUnits = [ "caddy.service" ];
     };
 
     services.caddy = {
       enable = true;
 
-      # Built with the caddy-dns/cloudflare module compiled in (see package.nix), providing the `dns
-      # cloudflare` directive used below for DNS-01 ACME challenges.
-      package = pkgs.callPackage ./package.nix { };
+      package = pkgs.callPackage ./package.nix {
+        inherit (cfg) cloudflarePluginTag;
+        hash = cfg.cloudflarePluginHash;
+      };
 
-      # - auto_https disable_redirects
-      #   Caddy's automatic HTTPS silently opens an HTTP->HTTPS redirect listener on :80 for any site
-      #   using TLS, even though every virtualHost below only declares its own https port. Disable it so
-      #   Caddy never touches port 80, matching this module's "no port 80 exposure" design. DNS-01
-      #   doesn't need inbound HTTP challenge traffic either, so nothing is lost.
-      #
-      # - default_sni: Caddy picks which site/cert to present at the TLS layer using the ClientHello's
-      #   SNI, but Pangolin's Newt "HTTPS Resource" proxying doesn't forward SNI on its backend
-      #   connection (github.com/fosrl/pangolin#207), so those connections arrive with no SNI at all
-      #   and the handshake fails outright ("bad gateway" downstream) before the request's Host header
-      #   is ever seen. This tells Caddy which hostname to assume when SNI is missing so it can still
-      #   pick the wildcard cert/site — actual routing to a backend still happens afterward via the
-      #   request's Host header, same as any normal request.
+      # - auto_https disable_redirects: keep Caddy off port 80; DNS-01 doesn't need it
+      # - default_sni: Pangolin's HTTPS resources connect without SNI (fosrl/pangolin#207), so
+      #   assume a hostname that selects the wildcard cert; routing still uses the Host header
       globalConfig = ''
         auto_https disable_redirects
         default_sni fallback.${cfg.baseDomain}
+      '' + lib.optionalString (cfg.trustedProxies != [ ]) ''
+        servers {
+          trusted_proxies static ${lib.concatStringsSep " " cfg.trustedProxies}
+        }
       '';
 
-      # Cloudflare API token handed to the caddy-dns/cloudflare module via an env var, sourced from
-      # the sops-nix-rendered template above rather than embedding the secret in the Caddyfile.
       environmentFile = config.secret.templates."caddy-cloudflare".path;
 
       virtualHosts = lib.optionalAttrs (wildcardProxies != [ ]) {
@@ -181,13 +183,20 @@ in
       };
     };
 
+    # UDP for HTTP/3
     networking.firewall.allowedTCPPorts = lib.optional (wildcardProxies != [ ]) 443;
+    networking.firewall.allowedUDPPorts = lib.optional (wildcardProxies != [ ]) 443;
 
-    # The NixOS caddy module runs the service as an unprivileged user with no capabilities, so
-    # binding port 443 needs this granted explicitly.
-    systemd.services.caddy.serviceConfig = {
-      AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
-      CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
-    };
+    # Fail the build if the generated Caddyfile doesn't validate. The dummy token is never used, and
+    # the log dir is swapped for $TMPDIR since `validate` opens the log files.
+    system.checks = [
+      (pkgs.runCommand "caddy-config-validate" { } ''
+        export HOME=$TMPDIR XDG_DATA_HOME=$TMPDIR XDG_CONFIG_HOME=$TMPDIR
+        export CF_API_TOKEN=0000000000000000000000000000000000000000
+        sed 's|${config.services.caddy.logDir}|'"$TMPDIR"'|g' ${config.services.caddy.configFile} > Caddyfile
+        ${lib.getExe config.services.caddy.package} validate --config Caddyfile --adapter caddyfile
+        touch $out
+      '')
+    ];
   };
 }
