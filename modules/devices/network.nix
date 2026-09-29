@@ -1,5 +1,17 @@
 # Networking options for the system
 #
+# ## Network model
+# - systemd-networkd is always the backend. All wired config (DHCP, static IP, bridge, macvlan) is
+#   written below as native `systemd.network` netdevs/networks rather than going through NixOS's
+#   `networking.interfaces`/`bridges`/`macvlans` translation layer, and NixOS's legacy scripted
+#   networking + dhcpcd is never used.
+# - NetworkManager is an optional overlay for desktops (WiFi, tray applet, captive portals). When NM
+#   is on and the host has neither a bridge nor a static IP, NM owns every interface and networkd
+#   manages nothing. When the host does have a bridge or static IP, networkd owns nic0/bridge/macvlan
+#   and NM is told to leave them alone, still handling WiFi and anything else.
+# - systemd-resolved is the only resolver on every host. DNS mode is selected by `dns.primary`, see
+#   the DNS section of the config below.
+#
 # ## Container networking
 # Networking options for connecting containers needs to be carefully planned:
 # - For protection against supply chain attacks and bad actors every container should be deployed in
@@ -18,20 +30,36 @@
 # - Exposing apps directly on the host provides isolation but becomes unwieldy and difficult to
 #   juggle all the various port mappings.
 #---------------------------------------------------------------------------------------------------
-{ config, lib, f, pkgs, ... }: with lib.types;
+{ config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.devices.network;
+
+  # NetworkManager can also be turned on outside this module, e.g. by the ISO's installer profile
+  nmEnabled = config.networking.networkmanager.enable;
+
+  staticIp = cfg.nic0.ip != "";
+  staticDns = cfg.dns.primary != "";
+
+  # networkd owns the wired config unless NM is on and there's nothing it can't handle itself
+  networkdWired = !nmEnabled || cfg.bridge.enable || staticIp;
+
+  # Shared by every network unit below. IPv6 is disabled host-wide so don't have networkd try to
+  # configure IPv6 link-local addresses.
+  common = { networkConfig.LinkLocalAddressing = "no"; };
+
+  # DHCP configuration for a link. In static DNS mode the link refuses the DHCP-provided DNS.
+  dhcp = { DHCP = "ipv4"; dhcpV4Config.UseDNS = !staticDns; };
+
+  # Static configuration for the link carrying the host's primary address
+  static = ip: { address = [ ip ]; gateway = [ cfg.gateway ]; };
+
+  # Build a network unit matching the given interface name
+  network = name: attrs: lib.recursiveUpdate (lib.recursiveUpdate common { matchConfig.Name = name; }) attrs;
 in
 {
   options.devices.network = {
-    networkManager.enable = lib.mkEnableOption "Install and configure network manager";
-
-    networkd.enable = lib.mkEnableOption ''
-      systemd-networkd as the network backend instead of the legacy scripted networking module.
-      NixOS auto-translates the nic0/bridge/macvlan/gateway config below into networkd .network/
-      .netdev units - nothing else in this module needs to change to support it. Mutually
-      exclusive with NetworkManager (devices.network.networkManager.enable) - pick one backend per
-      host.
+    networkManager.enable = lib.mkEnableOption ''
+      NetworkManager on top of networkd for desktop WiFi, tray applet and captive portal handling
     '';
 
     gateway = lib.mkOption {
@@ -51,10 +79,12 @@ in
     dns = {
       primary = lib.mkOption {
         description = lib.mdDoc ''
-          Primary DNS server. Forces a global nameserver, overriding whatever DHCP hands out on
-          every link. Leave unset (e.g. on roaming laptops) so DHCP-provided per-link DNS always
-          wins, which lets captive portals (airline wifi, hotels, etc.) resolve their own login
-          domains automatically.
+          Primary DNS server. Setting it selects static DNS mode: this is the only server used and
+          DHCP-provided DNS is ignored on every link, regardless of network backend. Leave unset
+          (e.g. on roaming laptops) for DHCP DNS mode, where each link's DHCP-provided DNS wins,
+          which lets captive portals (airline wifi, hotels, etc.) resolve their own login domains
+          automatically. Required when `devices.network.nic0.ip` is static, since no DHCP runs to
+          provide DNS.
         '';
         type = types.str;
         example = "1.1.1.1";
@@ -63,19 +93,13 @@ in
 
       fallback = lib.mkOption {
         description = lib.mdDoc ''
-          Fallback DNS server, only used by resolved when a link provides no DNS at all. Safe to
-          set even when `primary` is unset.
+          Fallback DNS server, only used by resolved when no other DNS server is known at all i.e.
+          neither `primary` nor any link's DHCP-provided DNS. Only meaningful in DHCP DNS mode.
         '';
         type = types.str;
         example = "8.8.8.8";
         default = "";
       };
-
-      force = lib.mkEnableOption ''
-        forcing the global DNS nameservers to be used, ignoring whatever DNS any link is separately
-        handed. Off by default since this breaks NetworkManager's captive portal detection/login,
-        which relies on DHCP-provided per-link DNS
-      '';
     };
 
     bridge = {
@@ -85,7 +109,8 @@ in
         other devices on the LAN. All of the other primary network settings will be used for the
         new bridge interface.
 
-        Note, for bridge mode to work the primary nic must be specified via `devices.network.nic0.name`
+        Note, for bridge mode to work the primary nic must be specified via
+        `devices.network.nic0.name` and the host macvlan via `devices.network.macvlan.name`
       '';
 
       name = lib.mkOption {
@@ -108,7 +133,7 @@ in
       };
 
       ip = lib.mkOption {
-        description = lib.mdDoc "Macvlan IP and CIDR combination";
+        description = lib.mdDoc "Macvlan IP and CIDR combination, DHCP is used when not set";
         type = types.str;
         example = "192.168.1.41/24";
         default = "";
@@ -116,8 +141,9 @@ in
 
       mac = lib.mkOption {
         description = lib.mdDoc ''
-          Macvlan MAC address, note the first octet must be '02'. Gets set on creation, so a
-          change might need `ip link del <macvlan.name>` and then a rerun to take effect.
+          Macvlan MAC address, note the first octet must be '02'. The MAC is only applied when
+          networkd creates the macvlan, so changing it on a running host needs the existing macvlan
+          removed first e.g. `ip link del <macvlan.name>` followed by `networkctl reload`.
         '';
         type = types.str;
         default = "";
@@ -136,7 +162,7 @@ in
       };
 
       ip = lib.mkOption {
-        description = lib.mdDoc "Primary NIC IP and CIDR combination";
+        description = lib.mdDoc "Primary NIC IP and CIDR combination, DHCP is used when not set";
         type = types.str;
         example = "192.168.1.41/24";
         default = "";
@@ -144,7 +170,7 @@ in
 
       mapNameFromMAC = lib.mkOption {
         description = lib.mdDoc ''
-          MAC address to pin this NIC's `name` to via a udev rule, and disable
+          MAC address to pin this NIC's `name` to via a systemd .link file, and disable
           `networking.usePredictableInterfaceNames` for. Needed on hosts (e.g. some cloud/VPS
           providers' virtio NICs) where the kernel's predictable name (`enp0s3`, `ens3`, ...) won't
           match a hardcoded `name` like "eth0" used elsewhere in this host's static config -
@@ -177,21 +203,9 @@ in
 
     harden = {
       enable = lib.mkEnableOption ''
-        recommended networking hardening. This also turns on a host-wide inbound geo-block: drops
-        every NEW, externally-initiated connection whose source address isn't inside a
-        US-registered IPv4 CIDR block (per the daily CI-published `ipverse/country-ip-blocks`
-        aggregate), regardless of destination port - any future opened port is automatically
-        covered without touching this module again. Only conntrack state NEW packets are ever
-        evaluated, so outbound-initiated traffic and its return path (nix substituter fetches from
-        cache.nixos.org, sops key fetches, CrowdSec's own hub/LAPI polling, DNS, NTP - none of
-        which are guaranteed to be US-hosted) are unaffected.
-
-        Implemented as its own nftables table, mirroring exactly how
-        `services.crowdsec-firewall-bouncer` structures its own `crowdsec` table: a declarative,
-        NixOS-managed table+chain+empty-set skeleton (loaded once by nftables.service), with the
-        set's actual contents refreshed independently at runtime by a small systemd timer - not a
-        separate firewall backend, and not competing with CrowdSec's own table for the same hook
-        (see the module-level comment on the config block below for why coexistence is safe).
+        nftables rules to provide protection for per-source connection-flooding, host-wide
+        geo-blocking of non-US IPv4 CIDRs, CrowdSec enforcement of suspicious behavior.
+        Note: Container ports are not covered by this and need separate Traefik Crowdsec protection.
       '';
 
       geoblockAllowList = lib.mkOption {
@@ -216,11 +230,30 @@ in
     # ----------------------------------------------------------------------------------------------
     {
       assertions = [
-        {
-          assertion = !(cfg.networkManager.enable && cfg.networkd.enable);
-          message = "devices.network.networkManager.enable and devices.network.networkd.enable are mutually exclusive - pick one network backend";
+        { assertion = staticIp -> cfg.nic0.name != "";
+          message = "devices.network.nic0.name must be specified e.g. 'eth0' when devices.network.nic0.ip is static";
+        }
+        { assertion = staticIp -> cfg.gateway != "";
+          message = "devices.network.gateway must be specified when devices.network.nic0.ip is static";
+        }
+        { assertion = staticIp -> staticDns;
+          message = "devices.network.dns.primary must be specified when devices.network.nic0.ip is static - no DHCP runs, so no DNS server would be learned";
+        }
+        { assertion = cfg.bridge.enable -> cfg.nic0.name != "";
+          message = "devices.network.nic0.name must be specified e.g. 'eth0' for bridge mode";
+        }
+        { assertion = cfg.bridge.enable -> cfg.bridge.name != "";
+          message = "devices.network.bridge.name must be specified for bridge mode";
+        }
+        { assertion = cfg.bridge.enable -> cfg.macvlan.name != "";
+          message = "devices.network.macvlan.name must be specified for bridge mode";
         }
       ];
+
+      # networkd is always the backend and every wired unit is declared explicitly below, so turn
+      # off NixOS's generic catch-all DHCP units.
+      networking.useNetworkd = true;
+      networking.useDHCP = false;
 
       # Use modern nftables for `networking.firewall` to be compatible with crowdsec
       networking.nftables.enable = true;
@@ -230,42 +263,162 @@ in
       boot.kernel.sysctl."net.ipv6.conf.all.forwarding" = 0;
 
       networking.firewall.allowPing = true;
-      networking.useNetworkd = cfg.networkd.enable;
-    }
 
-    # Configure global DNS. resolved works well with network manager
-    # DNS can be temporarily changed per interface with: sudo resolvectl dns enp1s0 1.1.1.1
-    # ----------------------------------------------------------------------------------------------
-    {
+      # systemd-resolved is the only resolver on every host, for both networkd and NetworkManager.
+      # DNS can be temporarily changed per interface with: sudo resolvectl dns enp1s0 1.1.1.1
       services.resolved = {
         enable = true;
-        settings.Resolve.DNSSEC = "allow-downgrade"; # using "true" will break DNS if VPN DNS servers don't support
+
+        # Leave DNSSEC validation to the upstream resolver (e.g. AdGuard, 1.1.1.1). resolved's
+        # local "allow-downgrade" mode is known to cause intermittent resolution failures with home
+        # routers, filtering resolvers and VPN DNS servers, and "true" breaks outright on any of
+        # them that don't support DNSSEC.
+        settings.Resolve.DNSSEC = "no";
       };
     }
 
-    # Primary and fallback DNS are configured independently:
-    # - `primary` forces a global nameserver, overriding whatever DHCP hands out on every link. Leave
-    #   it unset (e.g. on roaming laptops) so DHCP-provided per-link DNS always wins, which lets
-    #   captive portals (airline wifi, hotels, etc.) resolve their own login domains automatically.
-    # - `fallback` is only used by resolved when a link provides no DNS at all, so it's safe to set
-    #   even when `primary` is unset.
-    (lib.mkIf (cfg.dns.primary != "") {
-      networking.nameservers = [ "${cfg.dns.primary}" ];
+    # Wait for the network to come online
+    # ----------------------------------------------------------------------------------------------
+    # By default networkd-wait-online waits for every link networkd manages, which stalls boot and
+    # `nixos-rebuild switch` for its full timeout whenever one of them isn't connected e.g. a WiFi
+    # card with no network in range. Waiting for any one link is enough to reach the network. On NM
+    # hosts where networkd manages nothing it would never succeed at all, and
+    # NetworkManager-wait-online already covers network-online.target.
+    {
+      systemd.network.wait-online.anyInterface = lib.mkIf networkdWired true;
+      systemd.network.wait-online.enable = lib.mkIf (!networkdWired) false;
+    }
 
-      # Force the global dns nameservers to be used, ignoring whatever DNS any link is separately
-      # handed. Off by default since this breaks NetworkManager's captive portal detection/login,
-      # which relies on DHCP-provided per-link DNS.
-      services.resolved.settings.Resolve.Domains = lib.mkIf cfg.dns.force [ "~." ];
+    # Configure wired networking
+    # ----------------------------------------------------------------------------------------------
+    # Plain DHCP on every physical ethernet and WiFi station interface, same as NixOS's own generic
+    # catch-all units. On NM hosts NM handles this case itself.
+    (lib.mkIf (networkdWired && !cfg.bridge.enable && !staticIp) {
+      systemd.network.networks."30-wired" = lib.recursiveUpdate (lib.recursiveUpdate common dhcp) {
+        matchConfig = { Type = "ether"; Kind = "!*"; };  # physical interfaces have no kind
+      };
+
+      # Prefer ethernet over WiFi when both are connected
+      systemd.network.networks."30-wireless" = lib.recursiveUpdate (lib.recursiveUpdate common dhcp) {
+        matchConfig.WLANInterfaceType = "station";
+        dhcpV4Config.RouteMetric = 1025;
+      };
     })
+
+    # Static IP on the primary NIC
+    (lib.mkIf (networkdWired && !cfg.bridge.enable && staticIp) {
+      systemd.network.networks."30-${cfg.nic0.name}" = network cfg.nic0.name (static cfg.nic0.ip);
+    })
+
+    # Convert the primary NIC into a bridge carrying the host's primary address, plus a host macvlan
+    # on the bridge. Otherwise the virtualized devices on the bridge can be reached by every device
+    # on the LAN except the host itself.
+    (lib.mkIf cfg.bridge.enable {
+      devices.network.primary.name = cfg.bridge.name;
+
+      systemd.network.netdevs."30-${cfg.bridge.name}".netdevConfig = {
+        Kind = "bridge";
+        Name = cfg.bridge.name;
+      };
+      systemd.network.networks."30-${cfg.nic0.name}" = network cfg.nic0.name {
+        networkConfig.Bridge = cfg.bridge.name;
+        linkConfig.RequiredForOnline = "enslaved";
+      };
+      systemd.network.networks."30-${cfg.bridge.name}" = network cfg.bridge.name
+        ({ macvlan = [ cfg.macvlan.name ]; } // (if staticIp then static cfg.nic0.ip else dhcp));
+
+      systemd.network.netdevs."30-${cfg.macvlan.name}" = {
+        netdevConfig = {
+          Kind = "macvlan";
+          Name = cfg.macvlan.name;
+        } // lib.optionalAttrs (cfg.macvlan.mac != "") { MACAddress = cfg.macvlan.mac; };
+        macvlanConfig.Mode = "bridge";
+      };
+      # The bridge carries the default route, don't let a DHCP'd macvlan install a competing one
+      systemd.network.networks."30-${cfg.macvlan.name}" = network cfg.macvlan.name
+        (if cfg.macvlan.ip != "" then { address = [ cfg.macvlan.ip ]; }
+        else lib.recursiveUpdate dhcp { dhcpV4Config.UseGateway = false; });
+    })
+
+    # Pin nic0's name by MAC and disable predictable interface naming, only when a host opts in
+    # via `devices.network.nic0.mapNameFromMAC` (see modules/types/nic.nix for why this is needed).
+    # Matching on the permanent MAC only matches the real hardware, never a bridge/macvlan/VLAN that
+    # happens to share its MAC.
+    (lib.mkIf (cfg.nic0.mapNameFromMAC != "") {
+      networking.usePredictableInterfaceNames = lib.mkForce false;
+      systemd.network.links."10-${cfg.nic0.name}" = {
+        matchConfig.PermanentMACAddress = cfg.nic0.mapNameFromMAC;
+        linkConfig.Name = cfg.nic0.name;
+      };
+    })
+
+    # Configure DNS
+    # ----------------------------------------------------------------------------------------------
+    # DNS mode is selected by whether `primary` is set:
+    # - static: `primary` becomes resolved's global nameserver and every link refuses DHCP-provided
+    #   DNS. Just setting a global nameserver isn't enough - resolved queries the global servers and
+    #   every link's servers in parallel and takes the first answer, so the DHCP servers have to be
+    #   kept off the links entirely. networkd links refuse it via `dhcp` above, NM is stopped from
+    #   passing any DNS to resolved below.
+    # - DHCP: leave `primary` unset (e.g. on roaming laptops) so each link's DHCP-provided DNS wins,
+    #   which lets captive portals (airline wifi, hotels, etc.) resolve their own login domains.
+    #   `fallback` is only used when no link provides any DNS at all.
+    (lib.mkIf staticDns (lib.mkMerge [
+      { networking.nameservers = [ cfg.dns.primary ]; }
+
+      # Also disables NM's captive portal login and any VPN-provided DNS, which is the point of
+      # static mode
+      (lib.mkIf nmEnabled {
+        networking.networkmanager.dns = lib.mkForce "none";
+      })
+    ]))
     (lib.mkIf (cfg.dns.fallback != "") {
-      services.resolved.settings.Resolve.FallbackDNS = [ "${cfg.dns.fallback}" ];
+      services.resolved.settings.Resolve.FallbackDNS = [ cfg.dns.fallback ];
+    })
+
+    # Configure network manager
+    # ----------------------------------------------------------------------------------------------
+    (lib.mkIf cfg.networkManager.enable {
+      networking.networkmanager = {
+        enable = true;                      # Enable networkmanager and nm-applet
+        dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
+
+        wifi = {
+          # Disable WiFi power saving to prevent intermittent disconnections. NetworkManager's default
+          # powersave mode (2/enabled) causes adapters — especially Intel iwlwifi — to aggressively
+          # enter low-power states between bursts of activity, resulting in dropped connections and
+          # latency spikes.
+          powersave = false;
+        };
+      };
+
+      # Disable WiFi power saving at the kernel module level as a second line of defense. Some drivers
+      # (e.g. iwlwifi) manage their own power state independently of NetworkManager and must be
+      # explicitly told not to power save via a modprobe option. This complements the NetworkManager
+      # setting above and ensures coverage across Intel, Realtek, and Broadcom drivers.
+      boot.extraModprobeConfig = ''
+        options iwlwifi power_save=0
+      '';
+
+      # Enables ability for user to make network manager changes
+      secret.users."admin".extraGroups = [ "networkmanager" ];
+    })
+
+    # Keep NM off the interfaces it doesn't own: container networks, and whatever networkd owns (see
+    # the network model at the top of this file). Two managers on one interface race each other for
+    # addresses, routes and DNS.
+    (lib.mkIf nmEnabled {
+      networking.networkmanager.unmanaged = [ "interface-name:podman*" ]
+        ++ lib.optionals (networkdWired && cfg.nic0.name != "") [ "interface-name:${cfg.nic0.name}" ]
+        ++ lib.optionals cfg.bridge.enable [
+          "interface-name:${cfg.bridge.name}"
+          "interface-name:${cfg.macvlan.name}"
+        ];
     })
 
     # Harden
     # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.harden.enable) {
-      networking.domain = "";                             # always require fully-qualified names
-
+    (lib.mkIf cfg.harden.enable {
       networking.firewall.allowPing = lib.mkForce false;   # don't respond to pings
 
       # Log refused/dropped TCP connection attempts (kernel LOG target) so a port-scan detector
@@ -279,32 +432,31 @@ in
       # listeners rather than closing an active exposure.
       services.resolved.settings.Resolve.LLMNR = "no";
       services.resolved.settings.Resolve.MulticastDNS = "no";
-    })
 
-    # Connection-flood limiting
-    # ----------------------------------------------------------------------------------------------
-    # A blanket per-source cap on new connection attempts, hooked at a lower priority (evaluated
-    # earlier) than geoblock/CrowdSec/NixOS's own `input` chain below, so a genuine flood is dropped
-    # before it costs anything further downstream - geoblock's set lookup, CrowdSec's bouncer chain,
-    # and (most relevantly for CPU/IO under load) the `logRefusedConnections` log line every refused
-    # packet otherwise generates in NixOS's own `input` chain. 60/sec burst 120 is far above any
-    # legitimate traffic this single-admin VPS sees, so normal use (including a scan burst small
-    # enough for CrowdSec to still characterize and ban) is unaffected - only flood-level volume gets
-    # capped here. Same coexistence reasoning as geoblock below: this chain only ever DROPs or falls
-    # through via `policy accept`, so it can't itself let anything through that a later chain would
-    # otherwise have refused.
-    (lib.mkIf (cfg.harden.enable) {
-      # This chain's `limit rate` expression needs its own kernel module (nft_limit), distinct
-      # from nf_tables itself - both preloaded centrally by modules/devices/kernel.nix's harden
-      # block (see its comment for the module-lock ordering and why it's gathered there).
+      # Connection-flood limiting
+      # ----------------------------------------------------------------------------------------------
+      # A per-source cap on new connection attempts, tracked in a dynamic set keyed on the source
+      # address so one flooding source only ever throttles itself, never everyone else. Hooked at a
+      # lower priority (evaluated earlier) than geoblock/CrowdSec/NixOS's own `input` chain below, so
+      # a genuine flood is dropped before it costs anything further downstream. This chain only ever
+      # DROPs or falls through via `policy accept`, so it can't itself let anything through that a
+      # later chain would otherwise have refused. Loopback and container bridge traffic are exempt,
+      # same as the geo-block below.
+      # - requires kernel module `nft_limit`, preloaded by modules/devices/kernel.nix's harden block
       networking.nftables.tables.connlimit = {
         family = "ip";
         content = ''
+          set connlimit-src {
+            type ipv4_addr
+            flags dynamic
+            timeout 1m
+          }
+
           chain connlimit-chain {
             type filter hook input priority filter - 5; policy accept;
             iifname "lo" accept
-            ct state new limit rate 60/second burst 120 packets accept
-            ct state new drop
+            iifname "podman*" accept
+            ct state new add @connlimit-src { ip saddr limit rate over 60/second burst 120 packets } drop
           }
         '';
       };
@@ -438,8 +590,8 @@ in
             LockPersonality = true;
             RestrictRealtime = true;
             # RestrictAddressFamilies intentionally left unset: nft talks to the kernel over
-            # AF_NETLINK (same reasoning as crowdsec-firewall-bouncer.service and sshd's own
-            # AF_NETLINK allowance this session), and curl needs AF_INET.
+            # AF_NETLINK (same reasoning as crowdsec-firewall-bouncer.service), and curl needs
+            # AF_INET.
           };
         };
 
@@ -455,125 +607,5 @@ in
         };
       }
     ))
-
-    # Configure network manager
-    # ----------------------------------------------------------------------------------------------
-    (lib.mkIf (cfg.networkManager.enable) {
-      # NetworkManager runs its own internal DHCP client. Leaving the legacy scripted-networking
-      # dhcpcd client enabled at the same time means both independently DHCP the same interface and
-      # can race to register their own (possibly differing) DNS servers with resolved - dhcpcd was
-      # found doing exactly this even after NetworkManager's DNS integration was disabled.
-      networking.useDHCP = false;
-
-      networking.networkmanager = {
-        enable = true;                      # Enable networkmanager and nm-applet
-        dns = "systemd-resolved";           # Configure systemd-resolved as the DNS provider
-        unmanaged = [                       # Ignore virtualization networks
-          "interface-name:podman*"
-        ];
-
-        wifi = {
-          # Disable WiFi power saving to prevent intermittent disconnections. NetworkManager's default
-          # powersave mode (2/enabled) causes adapters — especially Intel iwlwifi — to aggressively
-          # enter low-power states between bursts of activity, resulting in dropped connections and
-          # latency spikes.
-          powersave = false;
-        };
-      };
-
-      # Disable WiFi power saving at the kernel module level as a second line of defense. Some drivers
-      # (e.g. iwlwifi) manage their own power state independently of NetworkManager and must be
-      # explicitly told not to power save via a modprobe option. This complements the NetworkManager
-      # setting above and ensures coverage across Intel, Realtek, and Broadcom drivers.
-      boot.extraModprobeConfig = ''
-        options iwlwifi power_save=0
-      '';
-
-      # Enables ability for user to make network manager changes
-      secret.users."admin".extraGroups = [ "networkmanager" ];
-    })
-
-    (lib.mkIf (cfg.bridge.enable) {
-      devices.network.primary.name = cfg.bridge.name;
-    })
-
-    # Configure network bridge
-    # ----------------------------------------------------------------------------------------------
-    (f.mkIfElse (cfg.bridge.enable) (lib.mkMerge [
-
-      # Create the bridge interface
-      {
-        assertions = [
-          { assertion = (cfg.bridge.name != ""); message = "Bridge name must be specified for bridge mode"; }
-          { assertion = (cfg.nic0.name != ""); message = "Primary nic must be specified e.g. 'eth0'"; }
-        ];
-        networking.useDHCP = false;
-        networking.bridges."${cfg.bridge.name}".interfaces = ["${cfg.nic0.name}" ];
-      }
-
-      # Configure bridge for static IP or DHCP
-      (f.mkIfElse (cfg.nic0.ip != "") {
-        networking.interfaces."${cfg.bridge.name}".ipv4.addresses = [ (f.toIP cfg.nic0.ip) ];
-      } {
-        networking.interfaces."${cfg.bridge.name}".useDHCP = true;
-      })
-
-      # Create host macvlan to communicate with containers on bridge otherwise the containers can be
-      # interacted with by every device on the LAN except the host due to local virtual networking oddities
-      {
-        assertions = [
-          { assertion = (cfg.macvlan.name != ""); message = "Macvlan name must be specified"; }
-        ];
-        networking.macvlans."${cfg.macvlan.name}" = {
-          interface = "${cfg.bridge.name}";
-          mode = "bridge";
-        };
-      }
-      (f.mkIfElse (cfg.macvlan.ip != "") {
-        networking.interfaces."${cfg.macvlan.name}".ipv4.addresses = [ (f.toIP cfg.macvlan.ip) ];
-      } {
-        networking.interfaces."${cfg.macvlan.name}".useDHCP = true;
-      })
-      # optionally set the MAC address of the macvlan, note the first octet must be '02'
-      # - the MAC gets set on creation so might need to `ip link del host` and then rerun update
-      # - doesn't seem to work but doesn't fail either???
-      (lib.mkIf (cfg.macvlan.mac != "") {
-        networking.interfaces."${cfg.macvlan.name}".macAddress = cfg.macvlan.mac;
-      })
-
-    # Otherwise configure primary NIC with static IP
-    # ----------------------------------------------------------------------------------------------
-    ]) (lib.mkIf (cfg.nic0.ip != "") {
-      assertions = [
-        { assertion = (cfg.nic0.name != ""); message = "Primary nic must be specified e.g. 'eth0'"; }
-      ];
-      # Same reasoning as the bridge/networkManager branches above: without this, NixOS's global
-      # default still runs dhcpcd against every interface lacking its own explicit DHCP setting,
-      # including this statically-addressed one - it just spins probing forever, doing nothing but
-      # burning a process and parsing untrusted DHCP responses off the wire.
-      networking.useDHCP = false;
-      networking.interfaces."${cfg.nic0.name}".ipv4.addresses = [ (f.toIP cfg.nic0.ip) ];
-    }))
-
-    # Pin nic0's name by MAC and disable predictable interface naming, only when a host opts in
-    # via `devices.network.nic0.mapNameFromMAC` (see modules/types/nic.nix for why this is needed).
-    (lib.mkIf (cfg.nic0.mapNameFromMAC != "") {
-      networking.usePredictableInterfaceNames = lib.mkForce false;
-      services.udev.extraRules = ''
-        ATTR{address}=="${cfg.nic0.mapNameFromMAC}", NAME="${cfg.nic0.name}"
-      '';
-    })
-
-    # Configure the default gateway if the primary nic is static
-    # Under systemd-networkd the interface must be explicit - a bare string coerces to
-    # `{ address = ...; interface = null; }`, which networkd's module asserts against.
-    (lib.mkIf (cfg.nic0.ip != "") {
-      assertions = [
-        { assertion = (cfg.gateway != ""); message = "Default gateway was not specified"; }
-      ];
-      networking.defaultGateway = if cfg.networkd.enable
-        then { address = cfg.gateway; interface = if cfg.bridge.enable then cfg.bridge.name else cfg.nic0.name; }
-        else cfg.gateway;
-    })
   ];
 }

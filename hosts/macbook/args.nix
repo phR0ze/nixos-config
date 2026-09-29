@@ -3,9 +3,9 @@
 {
   network = {
     dns = {
-      # Don't force a global nameserver on this roaming laptop - the root args.dec.yaml sets
-      # net.dns.primary to the home DNS server, which breaks DNS resolution on any other network
-      # (hotel wifi, airline captive portals, etc.) since it stomps on the DHCP-provided per-link DNS.
+      # DHCP DNS mode for this roaming laptop. The root args.dec.yaml sets net.dns.primary to the
+      # home DNS server, which puts a host in static DNS mode (DHCP-provided DNS ignored entirely)
+      # and breaks resolution on any other network (hotel wifi, airline captive portals, etc.).
       # Leaving primary empty lets each link's own DHCP-assigned DNS win, which is what makes captive
       # portal login pages resolve automatically. At home the router still hands out the same server
       # via DHCP, so it's used there anyway.

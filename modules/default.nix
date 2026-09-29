@@ -56,7 +56,6 @@ let
   dnsDefaults = {
     primary = host.network.dns.primary or null;
     fallback = host.network.dns.fallback or null;
-    force = host.network.dns.force or false;
   };
 in
 {
@@ -383,8 +382,7 @@ in
       devices.network.gateway = cfg.network.gateway;
       devices.network.subnet = cfg.network.subnet;
       devices.network.dns.primary = if cfg.network.dns.primary == null then "" else cfg.network.dns.primary;
-      devices.network.dns.fallback = if cfg.network.dns.fallback == null then "" else cfg.network.dns.fallback;
-      devices.network.dns.force = cfg.network.dns.force;
+      devices.network.dns.fallback = lib.mkIf (cfg.network.dns.fallback != null) cfg.network.dns.fallback;
       devices.network.nic0.name = cfg.network.nic0.name;
       devices.network.nic0.ip = cfg.network.nic0.ip;
       devices.network.nic0.mapNameFromMAC = cfg.network.nic0.mapNameFromMAC;
