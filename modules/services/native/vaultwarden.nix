@@ -19,7 +19,10 @@
 #    `sopsFile` is forwarded from `host.sopsFile` by `modules/default.nix`, so nothing else is
 #    needed in the host's `configuration.nix`.
 # 4. Point the Bitwarden client(s) at this server's `domain` and log in as normal — the first
-#    account created is a regular user, not an admin.
+#    account created is a regular user, not an admin. With `signupsAllowed` and
+#    `invitationsAllowed` both off (the defaults) the "Create account" link is hidden and nobody
+#    can register, so create the first account by briefly setting `signupsAllowed = true`, or by
+#    inviting it from the `/admin` panel.
 # 5. To reach this service through a Pangolin *private* (ZTNA) resource instead of a public
 #    subdomain, use a `Host`-mode (raw L4 tunnel) resource pointed straight at this host's LAN
 #    `IP:443` — the same shared wildcard block `subdomains` above already uses. Pangolin never
@@ -33,9 +36,22 @@
 #    so pair it with something that keeps history off-box (e.g. restic). Change the schedule with
 #    `systemd.timers.backup-vaultwarden.timerConfig.OnCalendar`; set `backupDir = null` to disable.
 #
-# ### Directories
-# - /var/lib/vaultwarden
-# - /var/backup/vaultwarden (`backupDir`)
+# ### Backup process
+# Backups are handled automatically and safely with the defaults to trigger a nightly run that will
+# backup /var/lib/vaultwarden to /var/backup/vaultwarden from there its up to you to then schedule
+# off system backups elsewhere.
+#
+# #### Trigger backup
+#  sudo systemctl start backup-vaultwarden
+# 
+# #### Manual backup steps
+# 1. Stop the service
+#    sudo systemctl stop vaultwarden
+#
+# 2. Trigger the backup using whatever method you prefer for /var/lib/vaultwarden
+#
+# 3. Start the service
+#    sudo systemctl start vaultwarden
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -92,6 +108,16 @@ in
         type = types.bool;
         default = false;
         description = "Whether new user signups are allowed.";
+      };
+
+      invitationsAllowed = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Whether organization admins can invite new users even with `signupsAllowed` off. Without
+          SMTP an invited user registers through the web vault's "Create account" page, so leaving
+          this on keeps that link visible. Invites from the `/admin` panel work regardless.
+        '';
       };
 
       enableAdminPanel = lib.mkOption {
@@ -163,6 +189,7 @@ in
           ROCKET_ADDRESS = if cfg.caddy then "127.0.0.1" else "0.0.0.0";
           ROCKET_PORT = cfg.port;
           SIGNUPS_ALLOWED = cfg.signupsAllowed;
+          INVITATIONS_ALLOWED = cfg.invitationsAllowed;
           IP_HEADER = if cfg.caddy then "X-Forwarded-For" else "none";
         } // lib.optionalAttrs (cfg.domain != null) {
           DOMAIN = cfg.domain;
