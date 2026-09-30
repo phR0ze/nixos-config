@@ -45,7 +45,7 @@
 #    ```
 # 4. Log out and back in to trigger the autostart, or start it manually as noted below
 #
-# * Note: you can manually start with `xdg-open "/etc/xdg/autostart/${APP}-over-vpn.desktop"`
+# * Note: you can manually start with `xdg-open "/etc/xdg/autostart/mullvad-apps-over-vpn.desktop"`
 # * The app will not be restarted if it exits or fails
 # * Requires passwordless sudo access to be able to elevate privileges when needed
 # * Validation can be done by using brave as an app and navigating to https://mullvad.net/en/check
@@ -55,6 +55,20 @@ let
   nic = config.devices.network.primary.name;
   cfg = config.services.native.mullvad;
   wgConfig = "mullvad-wg.conf";
+  vopono = lib.getExe pkgs.vopono;
+
+  # Start the first app to create the namespace, wait for it to be up, then start the rest which
+  # will join the existing namespace rather than racing to create their own
+  launcher = pkgs.writeShellScript "mullvad-apps-over-vpn" ''
+    ${vopono} exec ${lib.escapeShellArg (lib.head cfg.apps)} &
+    ${lib.optionalString (lib.length cfg.apps > 1) ''
+    for _ in $(seq 60); do
+      [ -n "$(${vopono} list namespaces 2>/dev/null)" ] && break
+      sleep 1
+    done
+    ${lib.concatMapStrings (app: "${vopono} exec ${lib.escapeShellArg app} &\n") (lib.tail cfg.apps)}''}
+    wait
+  '';
 in
 {
   options = {
@@ -67,8 +81,9 @@ in
       };
       apps = lib.mkOption {
         description = ''
-          Applications to run over the VPN. Each entry is a command line; its first word names the
-          autostart entry e.g. `brave https://mullvad.net/en` -> `brave-over-vpn.desktop`
+          Applications to run over the VPN. Each entry is a command line e.g.
+          `brave https://mullvad.net/en`. They are launched in order, the first one creating the
+          shared VPN network namespace the rest join.
         '';
         type = types.listOf types.str;
         default = [ "qbittorrent" "brave https://mullvad.net/en" ];
@@ -197,7 +212,9 @@ in
     })
 
     # Configure to autostart after login
-    # Creates `/etc/xdg/autostart/APP-over-vpn.desktop` for each app
+    # Creates a single `/etc/xdg/autostart/mullvad-apps-over-vpn.desktop` that launches the apps in
+    # sequence. Separate autostart entries would race to create the same vopono network namespace
+    # and all but one would fail, so the first app creates it and the rest join once it is up.
     (lib.mkIf cfg.autostart {
       assertions = [
         {
@@ -206,16 +223,12 @@ in
         }
       ];
 
-      environment.etc = lib.listToAttrs (map (app: let
-        name = lib.head (lib.splitString " " app);
-      in lib.nameValuePair "xdg/autostart/${name}-over-vpn.desktop" {
-        text = ''
-          [Desktop Entry]
-          Type=Application
-          Terminal=true
-          Exec=${lib.getExe pkgs.vopono} exec "${app}"
-        '';
-      }) cfg.apps);
+      environment.etc."xdg/autostart/mullvad-apps-over-vpn.desktop".text = ''
+        [Desktop Entry]
+        Type=Application
+        Terminal=true
+        Exec=${launcher}
+      '';
     })
 
   ]);

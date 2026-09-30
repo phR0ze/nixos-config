@@ -6,6 +6,19 @@
 #
 # ### Deployment Features
 # - Get status with: `systemctl status podman-oneup`
+#
+# ### Restore backup data
+# 1. Stop the service
+#    sudo systemctl stop podman-oneup
+# 2. Move the current data aside
+#    sudo mv /var/lib/oneup/data /var/lib/oneup/data.pre-restore
+# 3. Install the backup
+#    sudo rsync -a /path/to/backup/oneup/data/ /var/lib/oneup/data/
+# 4. Fix ownership if needed
+#    sudo chown -R 2002:2002 /var/lib/oneup/data/
+# 5. Restart the service
+#    sudo systemctl start podman-oneup
+#    sudo systemctl status podman-oneup
 # --------------------------------------------------------------------------------------------------
 { config, lib, f, ... }:
 let
