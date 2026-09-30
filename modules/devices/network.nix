@@ -59,14 +59,14 @@ in
       NetworkManager on top of networkd for desktop WiFi, tray applet and captive portal handling
     '';
     gateway = lib.mkOption {
-      description = lib.mdDoc "Default gateway to use for the host, required when devices.network.nic0.ip is static";
+      description = "Default gateway to use for the host, required when devices.network.nic0.ip is static";
       type = types.str;
       example = "192.168.1.1";
       default = "";
     };
 
     subnet = lib.mkOption {
-      description = lib.mdDoc "Default subnet/CIDR to use for the host";
+      description = "Default subnet/CIDR to use for the host";
       type = types.str;
       example = "192.168.1.0/24";
       default = "";
@@ -74,7 +74,7 @@ in
 
     dns = {
       primary = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Primary DNS server. Setting it selects static DNS mode: this is the only server used and
           DHCP-provided DNS is ignored on every link, regardless of network backend. Leave unset
           (e.g. on roaming laptops) for DHCP DNS mode, where each link's DHCP-provided DNS wins,
@@ -88,7 +88,7 @@ in
       };
 
       fallback = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Fallback DNS server, only used by resolved when no other DNS server is known at all i.e.
           neither `primary` nor any link's DHCP-provided DNS. Defaults to `primary` so that when
           `primary` is set, resolved can never fall back to its compiled-in public servers
@@ -112,7 +112,7 @@ in
       '';
 
       name = lib.mkOption {
-        description = lib.mdDoc "Name to use for the new bridge";
+        description = "Name to use for the new bridge";
         type = types.str;
         default = "br0";
       };
@@ -120,7 +120,7 @@ in
 
     macvlan = {
       name = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Macvlan interface name for the host to use on the bridge, which allows the host to
           communicate with virtualized devices connected to the bridge. Otherwise the virtualized
           devices can fully participate on the LAN but the host won't be able to interact directly
@@ -131,14 +131,14 @@ in
       };
 
       ip = lib.mkOption {
-        description = lib.mdDoc "Macvlan IP and CIDR combination, DHCP is used when not set";
+        description = "Macvlan IP and CIDR combination, DHCP is used when not set";
         type = types.str;
         example = "192.168.1.41/24";
         default = "";
       };
 
       mac = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Macvlan MAC address, note the first octet must be '02'. The MAC is only applied when
           networkd creates the macvlan, so changing it on a running host needs the existing macvlan
           removed first e.g. `ip link del <macvlan.name>` followed by `networkctl reload`.
@@ -150,7 +150,7 @@ in
 
     nic0 = {
       name = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Primary NIC identifier in the system, typically a physical interface name like 'eth0',
           'eno1' or 'enp1s0'.
         '';
@@ -160,14 +160,14 @@ in
       };
 
       ip = lib.mkOption {
-        description = lib.mdDoc "Primary NIC IP and CIDR combination, DHCP is used when not set";
+        description = "Primary NIC IP and CIDR combination, DHCP is used when not set";
         type = types.str;
         example = "192.168.1.41/24";
         default = "";
       };
 
       mapNameFromMAC = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           MAC address to pin this NIC's `name` to via a systemd .link file, and disable
           `networking.usePredictableInterfaceNames` for. Needed on hosts (e.g. some cloud/VPS
           providers' virtio NICs) where the kernel's predictable name (`enp0s3`, `ens3`, ...) won't
@@ -183,7 +183,7 @@ in
     };
 
     primary.name = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         Primary interface to use for network access. This will typically just be the physical nic
         e.g. ens18, but when 'devices.network.bridge.enable = true' it will be set to
         'devices.network.bridge.name' e.g. br0 as the bridge will be the primary interface.
@@ -193,7 +193,7 @@ in
     };
 
     primary.ip = lib.mkOption {
-      description = lib.mdDoc "Primary interface IP in CIDR notation";
+      description = "Primary interface IP in CIDR notation";
       type = types.str;
       example = "192.168.1.50/24";
       default = cfg.nic0.ip;
@@ -207,7 +207,7 @@ in
       '';
 
       geoblockAllowList = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           CIDRs/IPs that always bypass the geo-filter regardless of country, mirroring
           `services.native.crowdsec.allowlist`'s purpose: a safety valve against a self-inflicted
           lockout if the upstream geoIP data is ever wrong, or the admin travels/tunnels through a

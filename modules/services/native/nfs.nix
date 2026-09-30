@@ -19,40 +19,40 @@ in
     enable = lib.mkEnableOption "Mount the configured remote NFS shares";
 
     fsType = lib.mkOption {
-      description = lib.mdDoc "Default filesystem type, when not overridden per entry";
+      description = "Default filesystem type, when not overridden per entry";
       type = lib.types.str;
       default = "nfs";
       example = "nfs4";
     };
 
     options = lib.mkOption {
-      description = lib.mdDoc "Default mount options, when not overridden per entry";
+      description = "Default mount options, when not overridden per entry";
       type = lib.types.listOf lib.types.str;
       default = [ "auto" "noacl" "noatime" "nodiratime" "rsize=8192" "wsize=8192" "timeo=15" "_netdev" ];
     };
 
     entries = lib.mkOption {
-      description = lib.mdDoc "Share entries to mount";
+      description = "Share entries to mount";
       default = [ ];
       type = lib.types.listOf (lib.types.submodule {
         options = {
           mountPoint = lib.mkOption {
-            description = lib.mdDoc "Local mount point";
+            description = "Local mount point";
             type = lib.types.str;
             example = "/mnt/Media";
           };
           remotePath = lib.mkOption {
-            description = lib.mdDoc "Remote path to use for the share";
+            description = "Remote path to use for the share";
             type = lib.types.str;
             example = "192.168.1.2:/srv/nfs/Media";
           };
           fsType = lib.mkOption {
-            description = lib.mdDoc "Share filesystem type, defaults to `services.native.nfs.fsType`";
+            description = "Share filesystem type, defaults to `services.native.nfs.fsType`";
             type = lib.types.str;
             default = cfg.fsType;
           };
           options = lib.mkOption {
-            description = lib.mdDoc "Share mount options, defaults to `services.native.nfs.options`";
+            description = "Share mount options, defaults to `services.native.nfs.options`";
             type = lib.types.listOf lib.types.str;
             default = cfg.options;
           };

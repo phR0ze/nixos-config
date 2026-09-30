@@ -21,6 +21,7 @@
 
     services.native.smb.enable = true;
     services.native.mullvad.enable = true;
+    services.native.minecraft.enable = true;
     services.native.nix-cache.host.enable = true;
     services.native.synology-drive-client.enable = true;
 
@@ -41,8 +42,6 @@
     # services.native.vaultwarden = {
     #   enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
     # };
-
-    #services.native.minecraft.enable = true;
     # services.oci.newt = {
     #   enable = true; /*        */ user.uid = 2005; tag = "1.16.0"; 
     # };

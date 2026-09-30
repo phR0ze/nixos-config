@@ -29,7 +29,7 @@ in
       run = lib.mkOption {
         type = types.str;
         default = "dmenu_run -fn -misc-fixed-*-*-*-*-20-200-*-*-*-*-*-*  -i -nb '#000000' -nf '#efefef' -sf '#000000' -sb '#3cb0fd'";
-        description = lib.mdDoc "Run command to use";
+        description = "Run command to use";
       };
     };
   };

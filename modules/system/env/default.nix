@@ -16,7 +16,7 @@ in
   options = {
     system.env = {
       machineId = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Unique identifier for the local system to write to /etc/machine-id. A single newline
           terminated, hexadecimal, 32-character, lowercase value. Usually generated from a random
           source and stays constant ever more. Leave null to let systemd generate one at boot.
@@ -27,11 +27,11 @@ in
         default = null;
       };
       locale = lib.mkOption {
-        description = lib.mdDoc "Locale to use for various identifiers";
+        description = "Locale to use for various identifiers";
         type = types.str;
       };
       timezone = lib.mkOption {
-        description = lib.mdDoc "Timezone to use for various identifiers";
+        description = "Timezone to use for various identifiers";
         type = types.str;
       };
     };

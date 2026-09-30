@@ -42,12 +42,12 @@ in
       acceptedLegalNotice = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc "Accepts the legal notice";
+        description = "Accepts the legal notice";
       };
       fileDialogWidthScale = lib.mkOption {
         type = types.float;
         default = 1.5;
-        description = lib.mdDoc ''
+        description = ''
           Horizontal scale factor applied to the `File -> Open Torrent Files` chooser when it opens,
           keeping it centred. Relative to Qt's default size for that dialog, which the rule carries
           as a constant rather than measuring, so reopening the chooser never grows it further.
@@ -58,7 +58,7 @@ in
       fileDialogHeightScale = lib.mkOption {
         type = types.float;
         default = 1.75;
-        description = lib.mdDoc "Vertical scale factor for the `File -> Open Torrent Files` chooser";
+        description = "Vertical scale factor for the `File -> Open Torrent Files` chooser";
       };
     };
   };

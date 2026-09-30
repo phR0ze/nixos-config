@@ -48,7 +48,7 @@ in
         description = "Directory that contains the VMs";
       };
       bridge = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Name of the bridge that qemu-bridge-helper is allowed to attach `type = "bridge"`
           interfaces to, see `devices.network.bridge.name`. Forwarded by modules/default.nix,
           mirroring `virtualization.qemu.guest.bridge`.
@@ -57,7 +57,7 @@ in
         default = "br0";
       };
       sopsFile = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Path to the sops-encrypted secrets file the admin name/group secrets (`userSecretRef`/
           `groupSecretRef` below) are decrypted from. Forwarded from `modules/default.nix`
           (`host.sopsFile`) - nullable/empty by default so the forward is unconditional, with the
@@ -68,7 +68,7 @@ in
       };
 
       userSecretRef = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Key in `sopsFile` holding the admin user's real name, resolved at runtime for
           privilege-dropping (see `dropPriv` above). Defaults to the same key
           `system.users.admin.userSecretRef` creates that account from.
@@ -79,7 +79,7 @@ in
       };
 
       groupSecretRef = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Key in `sopsFile` holding the admin user's real group, resolved at runtime alongside
           `userSecretRef` above. Defaults to `system.users.admin.groupSecretRef`.
         '';
@@ -104,17 +104,17 @@ in
               example = 5971;
             };
             interface = lib.mkOption {
-              description = lib.mdDoc "Interface type to use";
+              description = "Interface type to use";
               type = types.enum [ "nat" "macvtap" "bridge" ];
               default = "nat";
             };
             deploy = lib.mkOption {
-              description = lib.mdDoc "Deploy the VM if it doesn't exist on the host yet";
+              description = "Deploy the VM if it doesn't exist on the host yet";
               type = types.bool;
               default = false;
             };
             autostart = lib.mkOption {
-              description = lib.mdDoc "Start the VM when the host system boots";
+              description = "Start the VM when the host system boots";
               type = types.bool;
               default = false;
             };

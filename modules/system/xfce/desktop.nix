@@ -103,32 +103,32 @@ in
         default = "${pkgs.desktop-assets}/share/backgrounds/sector-8_1600x900.jpg";
       };
       showHome = lib.mkOption {
-        description = lib.mdDoc "Show home icon on desktop";
+        description = "Show home icon on desktop";
         type = types.bool;
         default = false;
       };
       showTrash = lib.mkOption {
-        description = lib.mdDoc "Show trash icon on desktop";
+        description = "Show trash icon on desktop";
         type = types.bool;
         default = false;
       };
       showFilesystem = lib.mkOption {
-        description = lib.mdDoc "Show filesystem icon on desktop";
+        description = "Show filesystem icon on desktop";
         type = types.bool;
         default = false;
       };
       showRemovable = lib.mkOption {
-        description = lib.mdDoc "Show removable drives icon on desktop";
+        description = "Show removable drives icon on desktop";
         type = types.bool;
         default = false;
       };
       windowWidth = lib.mkOption {
-        description = lib.mdDoc "Desktop settings window width";
+        description = "Desktop settings window width";
         type = types.int;
         default = 885;
       };
       windowHeight = lib.mkOption {
-        description = lib.mdDoc "Desktop settings window height";
+        description = "Desktop settings window height";
         type = types.int;
         default = 710;
       };

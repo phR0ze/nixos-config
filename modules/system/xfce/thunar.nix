@@ -50,17 +50,17 @@ in
       view = lib.mkOption {
         type = types.enum [ "ThunarDetailsView" ];
         default = "ThunarDetailsView";
-        description = lib.mdDoc "The type of view to use";
+        description = "The type of view to use";
       };
       showHidden = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc "Show hidden files and directories";
+        description = "Show hidden files and directories";
       };
       snapLeft = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc ''
+        description = ''
           Open new Thunar windows snapped to the left half of the screen at full working height.
           Implemented as a `apps.system.devilspie2` rule, so it has no effect unless that option is
           also enabled, and it re-applies to every Thunar window as it opens.
@@ -71,12 +71,12 @@ in
       automountMedia = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc "Mount removable media when inserted";
+        description = "Mount removable media when inserted";
       };
       automountDrives = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc "Mount removable drives when hot-plugged";
+        description = "Mount removable drives when hot-plugged";
       };
     };
   };

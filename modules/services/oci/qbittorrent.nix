@@ -31,7 +31,7 @@ in
       enable = lib.mkEnableOption "Deploy container based qBittorrent";
 
       app = lib.mkOption {
-        description = lib.mdDoc "Containerized app options";
+        description = "Containerized app options";
         type = types.submodule appOpts;
         default = {
           name = "qbittorrent";

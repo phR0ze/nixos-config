@@ -66,31 +66,31 @@ in
 
       fontSize = lib.mkOption {
         type = types.str;
-        description = lib.mdDoc "Font size to use for displaying text in the terminal";
+        description = "Font size to use for displaying text in the terminal";
         default = "13";
       };
 
       opacity = lib.mkOption {
         type = types.str;
-        description = lib.mdDoc "Window background opacity (0.0 to 1.0)";
+        description = "Window background opacity (0.0 to 1.0)";
         default = "1.0";
       };
 
       colorScheme = lib.mkOption {
         type = types.str;
-        description = lib.mdDoc "Color scheme name to use";
+        description = "Color scheme name to use";
         default = "Tokyo Night Storm";
       };
 
       initialCols = lib.mkOption {
         type = types.int;
-        description = lib.mdDoc "Number of columns for new windows";
+        description = "Number of columns for new windows";
         default = 130;
       };
 
       initialRows = lib.mkOption {
         type = types.int;
-        description = lib.mdDoc "Number of rows for new windows";
+        description = "Number of rows for new windows";
         default = 50;
       };
     };

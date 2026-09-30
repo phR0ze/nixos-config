@@ -36,19 +36,19 @@ in
       enable = lib.mkEnableOption "Configure rustdesk Flutter based client";
 
       autostart = lib.mkOption {
-        description = lib.mdDoc "Autostart RustDesk";
+        description = "Autostart RustDesk";
         type = types.bool;
         default = true;
       };
 
       allowLinuxHeadless = lib.mkOption {
-        description = lib.mdDoc "Allow linux headless mode";
+        description = "Allow linux headless mode";
         type = types.bool;
         default = true;
       };
 
       service = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Install as systemd service and autostart
           WIP, doesn't seem to currently work :(
         '';
@@ -57,13 +57,13 @@ in
       };
 
       accessMode = lib.mkOption {
-        description = lib.mdDoc "Provide full access for remote session";
+        description = "Provide full access for remote session";
         type = types.enum [ "full" "view" ];
         default = "full";
       };
 
       acceptSessionViaPassword = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Accept RustDesk sessions after entering the password without prompting the remote user to
           click accept. Note this can be used with the click option to allow for both options.
         '';
@@ -72,7 +72,7 @@ in
       };
 
       acceptSessionViaClick = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Prompt the remote user to click accept in order to connect to the session.
           Note this can be used with the password option to allow for both options.
         '';
@@ -81,7 +81,7 @@ in
       };
 
       useTemporaryPassword = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Automatically generate a temporary password that can be used for access.
           Note this can be used with the permanent password such that either will work.
         '';
@@ -90,7 +90,7 @@ in
       };
 
       usePermanentPassword = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Use a permanent password for access.
           Note this can be used with the temporary password such that either will work.
         '';
@@ -99,31 +99,31 @@ in
       };
 
       allowRemoteConfigModification = lib.mkOption {
-        description = lib.mdDoc "Allow control side to change controlled settings";
+        description = "Allow control side to change controlled settings";
         type = types.bool;
         default = true;
       };
 
       allowDirectIPAccess = lib.mkOption {
-        description = lib.mdDoc "Allow remote users to connect directly by IP address";
+        description = "Allow remote users to connect directly by IP address";
         type = types.bool;
         default = true;
       };
 
       allowOnlyDirectIPAccess = lib.mkOption {
-        description = lib.mdDoc "Only accept direct IP connections";
+        description = "Only accept direct IP connections";
         type = types.bool;
         default = true;
       };
 
       enableDarkTheme = lib.mkOption {
-        description = lib.mdDoc "Enable dark theme mode";
+        description = "Enable dark theme mode";
         type = types.bool;
         default = true;
       };
 
       sopsFile = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Path to the sops-encrypted file holding this host's `passwordSecretRef` secret, i.e.
           `rdutil encrypt <plaintext-pass> --key <host.id>`'s output. Tied to this specific host's
           `host.id`, so it can't be satisfied by a shared secrets file - defaults to
@@ -135,7 +135,7 @@ in
       };
 
       passwordSecretRef = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Key path within `sopsFile` holding the encoded permanent password, i.e.
           `rdutil encrypt <plaintext-pass> --key <host.id>`'s output.
         '';

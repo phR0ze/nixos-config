@@ -14,7 +14,7 @@ in
       allowIPXMultiPlayer= lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc "Enable firewall rules for IPX multi-player.";
+        description = "Enable firewall rules for IPX multi-player.";
       };
     };
   };

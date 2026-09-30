@@ -14,7 +14,7 @@ in
     inherit lib; defaults = { name = "nextcloud"; };
   }) // {
     bridge = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         Name of the LAN bridge this service's port is opened on, see `devices.network.bridge.name`.
         Forwarded by modules/default.nix rather than read from `devices.*` directly.
       '';

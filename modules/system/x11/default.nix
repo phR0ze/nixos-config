@@ -40,7 +40,7 @@ in
       autologin = lib.mkEnableOption "Automatically log in after boot";
 
       autologinUser = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Plain (non-secret) user name to automatically log in when `autologin` is set. Leave this
           null to log in the `secret.users."admin"` account instead: its name is only known once
           sops-nix has decrypted it at activation time, so it can't go through nixpkgs'
@@ -53,14 +53,14 @@ in
       autolock = {
         enable = lib.mkEnableOption "Enable automatically locking the screen after login";
         exec = lib.mkOption {
-          description = lib.mdDoc "Execution command for autolock";
+          description = "Execution command for autolock";
           type = types.path;
           default = "${pkgs.xfce4-session}/bin/xflock4";
         };
       };
 
       sopsFile = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Path to the host's `secrets.enc.yaml`, used to resolve the admin user's name for
           autologin. Required when `autologin` is set and `autologinUser` is null.
         '';

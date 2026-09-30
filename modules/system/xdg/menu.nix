@@ -106,7 +106,7 @@ in
             source = "${pkgs.libxfce4ui}/share/applications/xfce4-about.desktop";
           }
         ];
-        description = lib.mdDoc "";
+        description = "";
       };
 
       dirOverrides = lib.mkOption {
@@ -118,7 +118,7 @@ in
             source = "${pkgs.libxfce4ui}/share/desktop-directories/xfce-network.directory";
           }
         ];
-        description = lib.mdDoc "";
+        description = "";
       };
     };
   };

@@ -28,7 +28,7 @@ in
         passwordlessSudo = lib.mkEnableOption "Allow the admin user (wheel group) to sudo without a password";
 
         extraGroups = lib.mkOption {
-          description = lib.mdDoc ''
+          description = ''
             Additional groups for the admin user, on top of `wheel`. Set by other modules for the
             access they need e.g. `networkmanager`, `podman`, `kvm`.
           '';
@@ -37,37 +37,37 @@ in
         };
 
         userSecretRef = lib.mkOption {
-          description = lib.mdDoc "Key in `sopsFile` holding the admin user's name";
+          description = "Key in `sopsFile` holding the admin user's name";
           type = lib.types.str;
           default = "users/admin/name";
         };
 
         groupSecretRef = lib.mkOption {
-          description = lib.mdDoc "Key in `sopsFile` holding the admin user's primary group name";
+          description = "Key in `sopsFile` holding the admin user's primary group name";
           type = lib.types.str;
           default = "users/admin/group";
         };
 
         passwordHashSecretRef = lib.mkOption {
-          description = lib.mdDoc "Key in `sopsFile` holding the admin user's password hash (`mkpasswd -m sha-512`)";
+          description = "Key in `sopsFile` holding the admin user's password hash (`mkpasswd -m sha-512`)";
           type = lib.types.str;
           default = "users/admin/passwordHash";
         };
 
         authorizedKeysSecretRef = lib.mkOption {
-          description = lib.mdDoc "Key in `sopsFile` holding the admin user's SSH authorized keys";
+          description = "Key in `sopsFile` holding the admin user's SSH authorized keys";
           type = lib.types.str;
           default = "users/admin/authorizedKeys";
         };
 
         uid = lib.mkOption {
-          description = lib.mdDoc "Admin user's uid";
+          description = "Admin user's uid";
           type = lib.types.int;
           default = 1000;
         };
 
         gid = lib.mkOption {
-          description = lib.mdDoc "Admin user's primary group gid, pinned so file ownership stays stable";
+          description = "Admin user's primary group gid, pinned so file ownership stays stable";
           type = lib.types.int;
           default = 1000;
         };
@@ -76,7 +76,7 @@ in
       desktopExtras = lib.mkEnableOption "Configure additional admin user settings for a desktop";
 
       sopsFile = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Path to the host's `secrets.enc.yaml`, decrypted at activation time by sops-nix to
           source the admin user's name/group/password hash. Required when `system.users.admin`
           is enabled.

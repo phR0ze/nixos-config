@@ -26,7 +26,7 @@ in
       reboot = lib.mkEnableOption "Reboot gets custom configuration when enabled";
 
       resolution = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Display resolution, set from `layers.xfce.base.resolution`. Consumed by
           `system.desktop.xfce.displays` for both the xserver mode list and XFCE's own displays.xml -
           leaving either axis at 0 skips both, letting the display autodetect.
@@ -34,12 +34,12 @@ in
         type = lib.types.submodule {
           options = {
             x = lib.mkOption {
-              description = lib.mdDoc "Horizontal resolution in pixels";
+              description = "Horizontal resolution in pixels";
               type = lib.types.int;
               default = 0;
             };
             y = lib.mkOption {
-              description = lib.mdDoc "Vertical resolution in pixels";
+              description = "Vertical resolution in pixels";
               type = lib.types.int;
               default = 0;
             };

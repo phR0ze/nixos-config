@@ -25,12 +25,12 @@ in
       rightHanded = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc "Enable right handed";
+        description = "Enable right handed";
       };
       acceleration = lib.mkOption {
         type = types.int;
         default = 8;
-        description = lib.mdDoc "Mouse acceleration speed";
+        description = "Mouse acceleration speed";
       };
     };
   };

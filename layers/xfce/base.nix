@@ -19,7 +19,7 @@ in
       lowMemory = lib.mkEnableOption "Enable the low memory configuration";
 
       resolution = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Display resolution, see `system.desktop.xfce.resolution`. Defaults to `host.resolution`, which
           a host or a higher xfce layer can override - leaving either axis at 0 lets the display
           autodetect.
@@ -27,12 +27,12 @@ in
         type = lib.types.submodule {
           options = {
             x = lib.mkOption {
-              description = lib.mdDoc "Horizontal resolution in pixels";
+              description = "Horizontal resolution in pixels";
               type = lib.types.int;
               default = 0;
             };
             y = lib.mkOption {
-              description = lib.mdDoc "Vertical resolution in pixels";
+              description = "Vertical resolution in pixels";
               type = lib.types.int;
               default = 0;
             };

@@ -26,7 +26,7 @@ in
     inherit lib; defaults = { name = "homarr"; caddy = true; subdomain = "home"; };
   }) // {
     encKey = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         Encryption key used to encrypt secrets in database. Only used as a fallback when
         `sopsFile` is unset -- prefer `sopsFile` (sops-encrypted, decrypted only at activation)
         over this (baked into the Nix store).

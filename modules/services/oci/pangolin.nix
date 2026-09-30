@@ -477,31 +477,31 @@ in
     enable = lib.mkEnableOption "Deploy Pangolin (pangolin+gerbil+traefik+crowdsec) via podman-compose";
 
     name = lib.mkOption {
-      description = lib.mdDoc "Compose project / container-name prefix";
+      description = "Compose project / container-name prefix";
       type = types.str;
       default = "pangolin";
     };
 
     pangolinTag = lib.mkOption {
-      description = lib.mdDoc "fosrl/pangolin image tag - check github.com/fosrl/pangolin/releases for current";
+      description = "fosrl/pangolin image tag - check github.com/fosrl/pangolin/releases for current";
       type = types.str;
       example = "ee-1.21.1";
     };
 
     gerbilTag = lib.mkOption {
-      description = lib.mdDoc "fosrl/gerbil image tag - check github.com/fosrl/gerbil/releases for current";
+      description = "fosrl/gerbil image tag - check github.com/fosrl/gerbil/releases for current";
       type = types.str;
       example = "1.5.1";
     };
 
     traefikTag = lib.mkOption {
-      description = lib.mdDoc "traefik image tag - check Traefik's release page for current";
+      description = "traefik image tag - check Traefik's release page for current";
       type = types.str;
       example = "v3.7";
     };
 
     crowdsecTag = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         crowdsecurity/crowdsec image tag - pinned deliberately (upstream's own `--crowdsec`
         installer template floats `:latest`), see the module-level "Documented exceptions" note.
         Check github.com/crowdsecurity/crowdsec/releases for current.
@@ -511,13 +511,13 @@ in
     };
 
     badgerPluginVersion = lib.mkOption {
-      description = lib.mdDoc "fosrl/badger Traefik plugin version - check github.com/fosrl/badger/releases";
+      description = "fosrl/badger Traefik plugin version - check github.com/fosrl/badger/releases";
       type = types.str;
       example = "v1.5.0";
     };
 
     crowdsecPluginVersion = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         maxlerebourg/crowdsec-bouncer-traefik-plugin version - check that repo's releases
       '';
       type = types.str;
@@ -525,7 +525,7 @@ in
     };
 
     crowdsecCollections = lib.mkOption {
-      description = lib.mdDoc "CrowdSec hub collections installed into the Traefik-facing engine";
+      description = "CrowdSec hub collections installed into the Traefik-facing engine";
       type = types.listOf types.str;
       default = [
         "crowdsecurity/traefik"
@@ -536,7 +536,7 @@ in
     };
 
     baseDomain = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         Base domain resources/wildcard cert are issued under, e.g. example.com. Nullable so
         `modules/default.nix` can unconditionally forward `machine.services.oci.pangolin.baseDomain`
         (host args) here without an existence check - see the `enable`-gated assertion below for
@@ -547,13 +547,13 @@ in
     };
 
     dashboardDomain = lib.mkOption {
-      description = lib.mdDoc "Pangolin dashboard hostname";
+      description = "Pangolin dashboard hostname";
       type = types.str;
       default = "pangolin.${cfg.baseDomain}";
     };
 
     acmeEmail = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         Contact email for Let's Encrypt ACME registration. Nullable so `modules/default.nix` can
         unconditionally forward `host.services.oci.pangolin.acmeEmail` (host args) here without
         an existence check - see the `enable`-gated assertion below for the actual requirement.
@@ -563,19 +563,19 @@ in
     };
 
     memoryLimit = lib.mkOption {
-      description = lib.mdDoc "Soft memory ceiling for the pangolin container - see Documented exceptions";
+      description = "Soft memory ceiling for the pangolin container - see Documented exceptions";
       type = types.str;
       default = "1g";
     };
 
     memoryReservation = lib.mkOption {
-      description = lib.mdDoc "Memory reservation for the pangolin container";
+      description = "Memory reservation for the pangolin container";
       type = types.str;
       default = "512m";
     };
 
     geoblockAllowList = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         CIDRs/IPs that always bypass Traefik's US geo-allowlist regardless of country, mirroring
         `devices.network.harden.geoblockAllowList`'s purpose - a safety valve against a
         self-inflicted lockout if the upstream geoIP data is ever wrong, or the admin travels/tunnels
@@ -591,26 +591,26 @@ in
     sopsFile = lib.mkOption {
       type = types.path;
       example = "./secrets.enc.yaml";
-      description = lib.mdDoc ''
+      description = ''
         Path to the sops-encrypted file holding `pangolin/serverSecret` and
         `pangolin/cloudflareApiToken` - see the module-level Secrets note.
       '';
     };
 
     disableUserCreateOrg = lib.mkOption {
-      description = lib.mdDoc "Whether to prevent non-admin users from creating their own organization";
+      description = "Whether to prevent non-admin users from creating their own organization";
       type = types.bool;
       default = true;
     };
 
     rateLimitWindowMinutes = lib.mkOption {
-      description = lib.mdDoc "Global rate-limit window, in minutes";
+      description = "Global rate-limit window, in minutes";
       type = types.int;
       default = 1;
     };
 
     rateLimitMaxRequests = lib.mkOption {
-      description = lib.mdDoc "Global rate-limit max requests per window";
+      description = "Global rate-limit max requests per window";
       type = types.int;
       default = 100;
     };

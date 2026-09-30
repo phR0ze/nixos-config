@@ -25,32 +25,32 @@ in
 {
   options = {
     services.oci.portainer = lib.mkOption {
-      description = lib.mdDoc "Portainer service options";
+      description = "Portainer service options";
       type = types.submodule {
         options = {
           enable = lib.mkEnableOption "Install and configure Portainer container management UI";
 
           name = lib.mkOption {
-            description = lib.mdDoc "Service name used for container and network naming";
+            description = "Service name used for container and network naming";
             type = types.str;
             default = "portainer";
           };
 
           tag = lib.mkOption {
-            description = lib.mdDoc "Portainer CE image tag to use";
+            description = "Portainer CE image tag to use";
             type = types.str;
             default = "lts";
             example = "2.21.4";
           };
 
           port = lib.mkOption {
-            description = lib.mdDoc "Host port to expose the Portainer UI on";
+            description = "Host port to expose the Portainer UI on";
             type = types.port;
             default = 9000;
           };
 
           openFirewall = lib.mkOption {
-            description = lib.mdDoc ''
+            description = ''
               Whether to open the firewall for the Portainer UI port. Defaults to closed — the
               container already mounts the Docker/podman socket (root-equivalent host access via
               spawning a privileged container through it), so reaching the UI at all should be a
@@ -64,13 +64,13 @@ in
           # description in modules/types/service.nix for why (netavark's stale-DNAT-rule cleanup
           # bug, containers/podman#27516).
           subnet = lib.mkOption {
-            description = lib.mdDoc "Fixed CIDR for Portainer's isolated podman network";
+            description = "Fixed CIDR for Portainer's isolated podman network";
             type = types.str;
             default = "10.89.105.0/24";
           };
 
           ip = lib.mkOption {
-            description = lib.mdDoc "Fixed IP address (within `subnet`) for the Portainer container";
+            description = "Fixed IP address (within `subnet`) for the Portainer container";
             type = types.str;
             default = "10.89.105.2";
           };

@@ -19,7 +19,7 @@ in
     apps.media.obs = {
       enable = lib.mkEnableOption "Install and configure OBS Studio";
       ndi = lib.mkOption {
-        description = lib.mdDoc "Install and configure NDI plugin";
+        description = "Install and configure NDI plugin";
         type = types.bool;
         default = true;
       };

@@ -72,23 +72,23 @@ in
 
   options = {
     host = lib.mkOption {
-      description = lib.mdDoc "Machine configuration definition";
+      description = "Machine configuration definition";
       type = types.submodule {
         options = {
           id = lib.mkOption {
-            description = lib.mdDoc "Machine id for /etc/machine-id";
+            description = "Machine id for /etc/machine-id";
             type = types.str;
             default = host.id or "";
           };
 
           name = lib.mkOption {
-            description = lib.mdDoc "Hostname";
+            description = "Hostname";
             type = types.str;
             default = host.name or "";
           };
 
           type = lib.mkOption {
-            description = lib.mdDoc ''
+            description = ''
               Descriptive capabilities of this machine. These are not mutually exclusive - a
               machine can carry more than one type.
             '';
@@ -101,7 +101,7 @@ in
           };
 
           desktop.xfce = lib.mkOption {
-            description = lib.mdDoc ''
+            description = ''
               Give this machine an XFCE desktop, see `layers.xfce.*`. Each variant chains the ones
               beneath it in on its own (e.g. `xfce.develop` -> `xfce.standard` -> `xfce.base` ->
               `console.desktop` -> `server` -> `core`), so the single variant a host wants is all
@@ -110,27 +110,27 @@ in
             type = types.submodule {
               options = {
                 base = lib.mkOption {
-                  description = lib.mdDoc "Minimal XFCE desktop, see `layers.xfce.base`";
+                  description = "Minimal XFCE desktop, see `layers.xfce.base`";
                   type = types.bool;
                   default = xfce.base or false;
                 };
                 standard = lib.mkOption {
-                  description = lib.mdDoc "Full general purpose XFCE desktop, see `layers.xfce.standard`";
+                  description = "Full general purpose XFCE desktop, see `layers.xfce.standard`";
                   type = types.bool;
                   default = xfce.standard or false;
                 };
                 develop = lib.mkOption {
-                  description = lib.mdDoc "Desktop with development tooling, see `layers.xfce.develop`";
+                  description = "Desktop with development tooling, see `layers.xfce.develop`";
                   type = types.bool;
                   default = xfce.develop or false;
                 };
                 laptop = lib.mkOption {
-                  description = lib.mdDoc "Desktop with laptop tooling/configs, see `layers.xfce.laptop`";
+                  description = "Desktop with laptop tooling/configs, see `layers.xfce.laptop`";
                   type = types.bool;
                   default = xfce.laptop or false;
                 };
                 theater = lib.mkOption {
-                  description = lib.mdDoc "Desktop tuned for a media theater, see `layers.xfce.theater`";
+                  description = "Desktop tuned for a media theater, see `layers.xfce.theater`";
                   type = types.bool;
                   default = xfce.theater or false;
                 };
@@ -140,7 +140,7 @@ in
           };
 
           drives = lib.mkOption {
-            description = lib.mdDoc ''
+            description = ''
               Drives this host boots from, in the order its `hardware-configuration.nix` expects
               them. Populated from `host.drives` in the host's `args.enc.yaml` - UUIDs are needed at
               evaluation time, which is exactly why they live in build-time args (see CLAUDE.md §7).
@@ -148,7 +148,7 @@ in
             type = types.listOf (types.submodule {
               options = {
                 uuid = lib.mkOption {
-                  description = lib.mdDoc "Drive identifier, as found under /dev/disk/by-uuid";
+                  description = "Drive identifier, as found under /dev/disk/by-uuid";
                   type = types.str;
                   default = "";
                 };
@@ -159,16 +159,16 @@ in
           };
 
           resolution = lib.mkOption {
-            description = lib.mdDoc "Display resolution, see `virtualization.qemu.guest.resolution`";
+            description = "Display resolution, see `virtualization.qemu.guest.resolution`";
             type = types.submodule {
               options = {
                 x = lib.mkOption {
-                  description = lib.mdDoc "Horizontal resolution in pixels";
+                  description = "Horizontal resolution in pixels";
                   type = types.int;
                   default = host.resolution.x or 0;
                 };
                 y = lib.mkOption {
-                  description = lib.mdDoc "Vertical resolution in pixels";
+                  description = "Vertical resolution in pixels";
                   type = types.int;
                   default = host.resolution.y or 0;
                 };
@@ -179,38 +179,38 @@ in
           };
 
           autologin = lib.mkOption {
-            description = lib.mdDoc "Automatically log the primary user in after boot, see `system.x11.autologin`";
+            description = "Automatically log the primary user in after boot, see `system.x11.autologin`";
             type = types.bool;
             default = host.autologin or false;
           };
 
           autolock = lib.mkOption {
-            description = lib.mdDoc "Automatically lock the screen when idle, see `system.x11.autolock`";
+            description = "Automatically lock the screen when idle, see `system.x11.autolock`";
             type = types.bool;
             default = host.autolock or false;
           };
 
           locale = lib.mkOption {
-            description = lib.mdDoc "Locale to use for various identifiers";
+            description = "Locale to use for various identifiers";
             type = types.str;
             default = if (host.locale or "" == "") then "en_US.UTF-8" else host.locale;
           };
 
           timezone = lib.mkOption {
-            description = lib.mdDoc "Timezone to use for various identifiers";
+            description = "Timezone to use for various identifiers";
             type = types.str;
             default = if (host.timezone or "" == "") then "Etc/GMT" else host.timezone;
           };
 
           boot = {
             efi = lib.mkOption {
-              description = lib.mdDoc "Whether this machine boots via EFI";
+              description = "Whether this machine boots via EFI";
               type = types.bool;
               default = host.boot.efi or false;
             };
 
             mbr = lib.mkOption {
-              description = lib.mdDoc "BIOS MBR boot device, see `devices.boot.mbr`";
+              description = "BIOS MBR boot device, see `devices.boot.mbr`";
               type = types.str;
               default = host.boot.mbr or "nodev";
               example = "/dev/sda";
@@ -220,25 +220,25 @@ in
           network = {
 
             nic0 = lib.mkOption {
-              description = lib.mdDoc "Primary NIC options, see `devices.network.nic0`";
+              description = "Primary NIC options, see `devices.network.nic0`";
               type = types.submodule (import ./types/nic.nix { inherit lib; defaults = nic0Defaults; });
               default = nic0Defaults;
             };
 
             gateway = lib.mkOption {
-              description = lib.mdDoc "Default gateway, see `devices.network.gateway`";
+              description = "Default gateway, see `devices.network.gateway`";
               type = types.str;
               default = host.network.gateway or "";
             };
 
             subnet = lib.mkOption {
-              description = lib.mdDoc "Default subnet/CIDR, see `devices.network.subnet`";
+              description = "Default subnet/CIDR, see `devices.network.subnet`";
               type = types.str;
               default = host.network.subnet or "";
             };
 
             domain = lib.mkOption {
-              description = lib.mdDoc ''
+              description = ''
                 Domain name owned by this host, forwarded below to every service that needs to know
                 the fleet's zone name (`services.native.caddy.baseDomain`,
                 `services.native.vaultwarden.baseDomain`, `services.native.adguard.baseDomain`,
@@ -249,13 +249,13 @@ in
             };
 
             dns = lib.mkOption {
-              description = lib.mdDoc "DNS options, see `devices.network.dns`";
+              description = "DNS options, see `devices.network.dns`";
               type = types.submodule (import ./types/dns.nix { inherit lib; defaults = dnsDefaults; });
               default = dnsDefaults;
             };
 
             allowList = lib.mkOption {
-              description = lib.mdDoc ''
+              description = ''
                 Trusted management IPs/CIDRs exempted from both hardening mechanisms: the geo-filter
                 (`devices.network.harden.geoblockAllowList`) and CrowdSec's ban engine
                 (`services.native.crowdsec.allowlist`).
@@ -266,7 +266,7 @@ in
           };
 
           sopsFile = lib.mkOption {
-            description = lib.mdDoc ''
+            description = ''
               Path to this machine's sops-encrypted secrets file. Not sourced from `args` (secrets
               stay sops-encrypted on disk and can't flow through the `args` merge like plain data) -
               instead `lib/flake`'s `flake::decrypt_secrets` merges the shared root
@@ -299,7 +299,7 @@ in
           };
 
           nix.cache.enable = lib.mkOption {
-            description = lib.mdDoc ''
+            description = ''
               Consume the fleet's Nix binary cache, see `services.native.nix-cache.client`. The
               cache host's address comes from `host.services.native.nix-cache.client.*` in args, so
               this single flag is all a client host needs.
@@ -309,7 +309,7 @@ in
           };
 
           nix.stateVersion = lib.mkOption {
-            description = lib.mdDoc ''
+            description = ''
               NixOS release this host was *first installed* with, see `system.env.nix.stateVersion`
               and upstream `system.stateVersion`. Never bump it on an existing host to match the
               nixpkgs being built - it exists precisely to keep stateful defaults (database
@@ -324,26 +324,26 @@ in
 
           git = {
             user = lib.mkOption {
-              description = lib.mdDoc "Git user name for flake management";
+              description = "Git user name for flake management";
               type = types.str;
               default = host.git.user or "";
             };
 
             email = lib.mkOption {
-              description = lib.mdDoc "Git user email for flake management";
+              description = "Git user email for flake management";
               type = types.str;
               default = host.git.email or "";
             };
           };
 
           users.root.authorizedKeys = lib.mkOption {
-            description = lib.mdDoc "SSH authorized keys for the root user";
+            description = "SSH authorized keys for the root user";
             type = types.listOf types.str;
             default = host.users.root.authorizedKeys or [ ];
           };
 
           services = lib.mkOption {
-            description = lib.mdDoc ''
+            description = ''
               Raw `services.<namespace>.<name>.*` overrides sourced from `host.services` (i.e.
               `args`/`args.nix`/`args.enc.yaml`), keyed the same way as the real option path minus
               the leading `services.` - e.g. `oci.pangolin.baseDomain`. Lets a host's build-time

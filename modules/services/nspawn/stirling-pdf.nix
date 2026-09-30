@@ -33,7 +33,7 @@ in
     services.nspawn.stirling-pdf = {
       enable = lib.mkEnableOption "Deploy nspawn container based Stirling PDF";
       opts = lib.mkOption {
-        description = lib.mdDoc "Containerized service options";
+        description = "Containerized service options";
         # types/service.nix now yields a bare option attrset (spliced with `//` by the
         # services.oci.* modules), so wrap it back into a module for this submodule type.
         type = types.submodule { options = import ../../types/service.nix {

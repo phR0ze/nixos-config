@@ -63,7 +63,7 @@ in
     };
   }) // {
     endpoint = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         Pangolin server base URL this site connects to. Forwarded by modules/default.nix from
         `host.services.oci.newt.endpoint`.
       '';
@@ -73,7 +73,7 @@ in
     };
 
     id = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         Newt Site ID issued by Pangolin when the Site is created. Forwarded by
         modules/default.nix from `host.services.oci.newt.id`.
       '';
@@ -84,7 +84,7 @@ in
     logLevel = lib.mkOption {
       type = types.enum [ "DEBUG" "INFO" "WARN" "ERROR" ];
       default = "INFO";
-      description = lib.mdDoc "Newt log verbosity.";
+      description = "Newt log verbosity.";
     };
   };
 

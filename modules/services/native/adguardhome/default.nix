@@ -59,7 +59,7 @@ in
         type = lib.types.nullOr lib.types.str;
         default = null;
         example = "192.168.1.5";
-        description = lib.mdDoc ''
+        description = ''
           LAN IP address AdGuard Home binds its admin HTTP interface and DNS listener to. Bound
           explicitly to this machine's LAN-facing IP rather than `0.0.0.0` so client requests are
           correctly attributed to the LAN interface (see the module header's "exposed to the LAN
@@ -72,13 +72,13 @@ in
       port = lib.mkOption {
         type = lib.types.port;
         default = 3000;
-        description = lib.mdDoc "Port the AdGuard Home admin web interface listens on.";
+        description = "Port the AdGuard Home admin web interface listens on.";
       };
 
       caddy = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = lib.mdDoc ''
+        description = ''
           Front the admin interface with `services.native.caddy` (enabled by default along with it)
           at `<subdomain>.<domain>`. When `false`, the admin port is opened on the LAN instead.
         '';
@@ -87,14 +87,14 @@ in
       subdomain = lib.mkOption {
         type = lib.types.str;
         default = "adguard";
-        description = lib.mdDoc "Subdomain the admin interface is served at when `caddy` is enabled.";
+        description = "Subdomain the admin interface is served at when `caddy` is enabled.";
       };
 
       baseDomain = lib.mkOption {
         type = lib.types.str;
         default = "";
         example = "example.com";
-        description = lib.mdDoc ''
+        description = ''
           Zone the split-horizon `*.<baseDomain>` DNS rewrite below is created for, pointing LAN
           clients at this machine's Caddy instead of the public record. Forwarded from
           `host.network.domain` by `modules/default.nix` so the literal zone never lands in a
@@ -106,7 +106,7 @@ in
         type = lib.types.nullOr lib.types.path;
         default = null;
         example = "./secrets.enc.yaml";
-        description = lib.mdDoc ''
+        description = ''
           Path to this host's sops-encrypted secrets, holding the entries (keyed by
           `userSecretRef`/`htpasswdSecretRef` below) the admin account is (re)written from at
           activation. Forwarded from `host.sopsFile` by `modules/default.nix`. Nullable so that
@@ -118,7 +118,7 @@ in
       userSecretRef = lib.mkOption {
         type = lib.types.str;
         default = "adguard/user";
-        description = lib.mdDoc ''
+        description = ''
           Key path within `sopsFile` holding the admin account's plaintext username.
         '';
       };
@@ -126,7 +126,7 @@ in
       htpasswdSecretRef = lib.mkOption {
         type = lib.types.str;
         default = "adguard/htpasswd";
-        description = lib.mdDoc ''
+        description = ''
           Key path within `sopsFile` holding the admin account's precomputed htpasswd hash (see
           the password-reset instructions at the top of this file for how to generate it).
         '';

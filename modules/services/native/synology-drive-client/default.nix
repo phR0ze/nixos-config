@@ -12,7 +12,7 @@ in
     services.native.synology-drive-client = {
       enable = lib.mkEnableOption "Configure Synology Drive client";
       autostart = lib.mkOption {
-        description = lib.mdDoc "Autostart once logged in";
+        description = "Autostart once logged in";
         type = types.bool;
         default = true;
       };

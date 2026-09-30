@@ -199,37 +199,37 @@ in
       dropDownTerminalKey = lib.mkOption {
         type = types.str;
         default = "F12";
-        description = lib.mdDoc "Drop down terminal shortcut";
+        description = "Drop down terminal shortcut";
       };
       maximizeWindowKey = lib.mkOption {
         type = types.str;
         default = "&lt;Super&gt;Up";
-        description = lib.mdDoc "Maximize the current window";
+        description = "Maximize the current window";
       };
       minimizeWindowKey = lib.mkOption {
         type = types.str;
         default = "&lt;Super&gt;Down";
-        description = lib.mdDoc "Minimize the current window";
+        description = "Minimize the current window";
       };
       showDesktopKey = lib.mkOption {
         type = types.str;
         default = "&lt;Super&gt;m";
-        description = lib.mdDoc "Hide all windows, showing the desktop";
+        description = "Hide all windows, showing the desktop";
       };
       nextWorkspaceKey = lib.mkOption {
         type = types.str;
         default = "&lt;Super&gt;Tab";
-        description = lib.mdDoc "Switch to the next workspace";
+        description = "Switch to the next workspace";
       };
       appMenuKey = lib.mkOption {
         type = types.str;
         default = "&lt;Super&gt;space";
-        description = lib.mdDoc "Activate the applications menu";
+        description = "Activate the applications menu";
       };
       appFinderCmd = lib.mkOption {
         type = types.str;
         default = if config.system.dmenu.enable then config.system.dmenu.run else "xfce4-appfinder -c";
-        description = lib.mdDoc "App finder command to use";
+        description = "App finder command to use";
       };
     };
   };

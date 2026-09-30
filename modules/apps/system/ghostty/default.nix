@@ -45,19 +45,19 @@ in
 
       fontSize = lib.mkOption {
         type = types.str;
-        description = lib.mdDoc "Font size to use for displaying text in the terminal";
+        description = "Font size to use for displaying text in the terminal";
         default = "13";
       };
 
       opacity = lib.mkOption {
         type = types.str;
-        description = lib.mdDoc "Window background opacity (0.0 to 1.0)";
+        description = "Window background opacity (0.0 to 1.0)";
         default = "1.0";
       };
 
       theme = lib.mkOption {
         type = types.str;
-        description = lib.mdDoc "Theme name to use";
+        description = "Theme name to use";
         default = "tokyonight_storm";
       };
     };

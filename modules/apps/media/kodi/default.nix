@@ -19,17 +19,17 @@ in
       port = lib.mkOption {
         type = types.port;
         default = 8080;
-        description = lib.mdDoc "Port to use for remote control.";
+        description = "Port to use for remote control.";
       };
       remoteControl = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc "Enable HTTP remote control.";
+        description = "Enable HTTP remote control.";
       };
       withJellyfin = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Enable Jellyfin backend add-on.";
+        description = "Enable Jellyfin backend add-on.";
       };
     };
   };

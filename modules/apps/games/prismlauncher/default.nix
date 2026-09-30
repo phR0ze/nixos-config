@@ -12,27 +12,27 @@ in
     apps.games.prismlauncher = {
       enable = lib.mkEnableOption "Install and configure PrismLauncher";
       hostname = lib.mkOption {
-        description = lib.mdDoc "Hostname to seed `LastHostname` with in the initial user config";
+        description = "Hostname to seed `LastHostname` with in the initial user config";
         type = types.str;
         default = "";
       };
       maxMemAlloc = lib.mkOption {
-        description = lib.mdDoc "Max memory to allocate for minecraft client";
+        description = "Max memory to allocate for minecraft client";
         type = types.int;
         default = 4096;
       };
       minMemAlloc = lib.mkOption {
-        description = lib.mdDoc "Min memory to allocate for minecraft client";
+        description = "Min memory to allocate for minecraft client";
         type = types.int;
         default = 512;
       };
       javaPath = lib.mkOption {
-        description = lib.mdDoc "Path to use to find java";
+        description = "Path to use to find java";
         type = types.str;
         default = "java";
       };
       tag = lib.mkOption {
-        description = lib.mdDoc "Version tag to match patches against";
+        description = "Version tag to match patches against";
         type = types.str;
         default = "v11.0";
       };

@@ -47,7 +47,7 @@ let
   anyEvents = lib.any (x: x != [ ]) (lib.attrValues cfg.on);
 
   eventScriptOption = event: lib.mkOption {
-    description = lib.mdDoc "Names of `scripts` entries to run on the ${event} event instead of on window open";
+    description = "Names of `scripts` entries to run on the ${event} event instead of on window open";
     type = types.listOf types.str;
     default = [ ];
     example = [ "terminal" ];
@@ -59,19 +59,19 @@ in
       enable = lib.mkEnableOption "Install and configure devilspie2 window matching";
 
       autostart = lib.mkOption {
-        description = lib.mdDoc "Autostart devilspie2 after login, when any scripts are configured";
+        description = "Autostart devilspie2 after login, when any scripts are configured";
         type = types.bool;
         default = true;
       };
 
       debug = lib.mkOption {
-        description = lib.mdDoc "Run with `--debug` so `debug_print` calls in scripts are printed";
+        description = "Run with `--debug` so `debug_print` calls in scripts are printed";
         type = types.bool;
         default = false;
       };
 
       emulate = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Run with `--emulate` so scripts can read window state and print, but never actually change
           a window. Useful with `debug` for working out the class/name of a window to match on.
         '';
@@ -80,7 +80,7 @@ in
       };
 
       scripts = lib.mkOption {
-        description = lib.mdDoc "Lua scripts to install, keyed by name without the `.lua` suffix";
+        description = "Lua scripts to install, keyed by name without the `.lua` suffix";
         type = types.attrsOf types.lines;
         default = { };
         example = lib.literalExpression ''

@@ -35,7 +35,7 @@ in
       maximized = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc ''
+        description = ''
           Start the Jellyfin desktop client maximized the first time it runs. Seeded as initial
           state only: the user's own window changes are saved over it and never overwritten.
         '';

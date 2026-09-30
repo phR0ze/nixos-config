@@ -61,12 +61,12 @@ in
     services.native.mullvad = {
       enable = lib.mkEnableOption "Configure Mullvad VPN service with Vopono";
       autostart = lib.mkOption {
-        description = lib.mdDoc "Autostart VPN on login";
+        description = "Autostart VPN on login";
         type = types.bool;
         default = true;
       };
       apps = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Applications to run over the VPN. Each entry is a command line; its first word names the
           autostart entry e.g. `brave https://mullvad.net/en` -> `brave-over-vpn.desktop`
         '';
@@ -74,7 +74,7 @@ in
         default = [ "qbittorrent" "brave https://mullvad.net/en" ];
       };
       sopsFile = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Path to this host's sops-encrypted secrets file holding the WireGuard private key and
           addresses. Nullable so modules/default.nix can forward `host.sopsFile` here
           unconditionally - required via an assertion when this module is enabled.
@@ -83,7 +83,7 @@ in
         default = null;
       };
       addressSecretRef = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Key path within `sopsFile` holding the comma separated addresses Mullvad assigned to the
           private key's device e.g. `10.64.5.4/32,fc00:eee:bbbe:bb01::1:102/128`
         '';
@@ -91,13 +91,13 @@ in
         default = "mullvad/address";
       };
       privateKeySecretRef = lib.mkOption {
-        description = lib.mdDoc "Key path within `sopsFile` holding the WireGuard private key";
+        description = "Key path within `sopsFile` holding the WireGuard private key";
         type = types.str;
         default = "mullvad/privateKey";
       };
       relay = {
         endpointSecretRef = lib.mkOption {
-          description = lib.mdDoc ''
+          description = ''
             Key path within `sopsFile` holding the IPv4 address and port of the Mullvad WireGuard
             server to connect to e.g. `21.210.100.3:51820`. The port is typically the wireguard
             default 51820
@@ -106,7 +106,7 @@ in
           default = "mullvad/relay/endpoint";
         };
         publicKeySecretRef = lib.mkOption {
-          description = lib.mdDoc ''
+          description = ''
             Key path within `sopsFile` holding the public key of the Mullvad WireGuard server to
             connect to
           '';
@@ -115,7 +115,7 @@ in
         };
       };
       dns = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           DNS servers to use inside the VPN, defaults to Mullvad's in-tunnel DNS server as published
           in Mullvad's help pages. Never empty as the app would otherwise fall back to the host's DNS
           and leak queries outside the VPN.

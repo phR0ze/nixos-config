@@ -27,12 +27,12 @@ in
       delay = lib.mkOption {
         type = types.int;
         default = 203;
-        description = lib.mdDoc "Keyboard repeat delay time";
+        description = "Keyboard repeat delay time";
       };
       rate = lib.mkOption {
         type = types.int;
         default = 102;
-        description = lib.mdDoc "Keyboard repeat rate";
+        description = "Keyboard repeat rate";
       };
     };
   };

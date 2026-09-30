@@ -25,13 +25,13 @@ in
 
       fontSize = lib.mkOption {
         type = types.str;
-        description = lib.mdDoc "Font size to use for displaying text in the editor";
+        description = "Font size to use for displaying text in the editor";
         default = "13.5";
       };
 
       linespace = lib.mkOption {
         type = types.str;
-        description = lib.mdDoc "Vertical space between lines/rows of text in the editor";
+        description = "Vertical space between lines/rows of text in the editor";
         default = "3";
       };
     };

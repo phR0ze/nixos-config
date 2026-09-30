@@ -28,7 +28,7 @@ in
       connectingDisplay = lib.mkOption {
         type = types.int;
         default = 1;
-        description = lib.mdDoc ''
+        description = ''
           Action to take when a display is connected.
           0 = Do nothing
           1 = Show dialog

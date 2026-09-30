@@ -29,12 +29,12 @@ in
       presentationMode = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc "Enable presentation mode";
+        description = "Enable presentation mode";
       };
       manageDisplayPower = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Enable xfce display power management i.e. dpms";
+        description = "Enable xfce display power management i.e. dpms";
       };
     };
   };

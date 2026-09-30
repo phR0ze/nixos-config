@@ -84,7 +84,7 @@ in
     virtualization.qemu.guest = {
       enable = lib.mkEnableOption "Build this host as a QEMU virtual machine guest";
       hostname = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Name of this guest. Used for the QEMU process/window name, the pidfile, the VM state
           directory the run script expects to be launched from, the default root image name and the
           default network interface id.
@@ -94,7 +94,7 @@ in
         example = "vm-prod1";
       };
       resolution = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Display resolution for the guest. Sets the virtio-gpu's preferred mode (so the console,
           X and any desktop autodetect it) and derives the GRUB BIOS graphics mode; leave at
           `0x0` to let QEMU/GRUB pick, which lands on virtio-gpu's own 1280x800 default.
@@ -102,12 +102,12 @@ in
         type = types.submodule {
           options = {
             x = lib.mkOption {
-              description = lib.mdDoc "Horizontal resolution in pixels";
+              description = "Horizontal resolution in pixels";
               type = types.int;
               default = 0;
             };
             y = lib.mkOption {
-              description = lib.mdDoc "Vertical resolution in pixels";
+              description = "Vertical resolution in pixels";
               type = types.int;
               default = 0;
             };
@@ -116,7 +116,7 @@ in
         default = { x = 1920; y = 1080; };
       };
       bridge = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Name of the bridge on the QEMU host that `type = "bridge"` interfaces attach to via
           `qemu-bridge-helper`, see `devices.network.bridge.name`.
         '';
@@ -124,7 +124,7 @@ in
         default = "br0";
       };
       type = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Virtual machine type for this guest. Neither flag set (the default) means a full desktop
           system with a local graphical display.
         '';
@@ -149,7 +149,7 @@ in
               default = true;
             };
             useImage = lib.mkOption {
-              description = lib.mdDoc ''
+              description = ''
                 Build and use a disk image for the Nix store, instead of accessing the host's through a
                 9p mount. This will drastically improve performance, but at the cost of disk space and
                 image built time.
@@ -195,32 +195,32 @@ in
         default = { };
       };
       cores = lib.mkOption {
-        description = lib.mdDoc "Number of virtual cores for VM";
+        description = "Number of virtual cores for VM";
         type = types.int;
         default = 2;
       };
       memorySize = lib.mkOption {
-        description = lib.mdDoc "Memory size in GB for VM";
+        description = "Memory size in GB for VM";
         type = types.int;
         default = 4;
       };
       virtioKeyboard = lib.mkOption {
-        description = lib.mdDoc ''Enable the virtio-keyboard device.'';
+        description = ''Enable the virtio-keyboard device.'';
         type = types.bool;
         default = true;
       };
       usb = lib.mkOption {
-        description = lib.mdDoc ''Enable USB support.'';
+        description = ''Enable USB support.'';
         type = types.bool;
         default = true;
       };
       display = lib.mkOption {
-        description = lib.mdDoc "Configure display for VM";
+        description = "Configure display for VM";
         type = types.submodule {
           options = {
             enable = lib.mkEnableOption "Enable display";
             memory = lib.mkOption {
-              description = lib.mdDoc ''
+              description = ''
                 Video memory size in MB for VM.
                 - This value must be in powers of two.
                 - The valid range is 1 MB to 256 MB.
@@ -239,7 +239,7 @@ in
         };
       };
       audio = lib.mkOption {
-        description = lib.mdDoc "Enable sound for VM";
+        description = "Enable sound for VM";
         type = types.bool;
         default = if (!cfg.type.micro) then true else false;
       };
@@ -249,7 +249,7 @@ in
           options = {
             enable = lib.mkEnableOption "Enable SPICE";
             port = lib.mkOption {
-              description = lib.mdDoc "SPICE port for VM";
+              description = "SPICE port for VM";
               type = types.int;
               default = 5970;
             };
@@ -420,7 +420,7 @@ in
       };
 
       sopsFile = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Path to the sops-encrypted secrets file the admin name/group secrets (`userSecretRef`/
           `groupSecretRef` below) are decrypted from. Forwarded from `modules/default.nix`
           (`host.sopsFile`) - nullable/empty by default so the forward is unconditional, with the
@@ -432,7 +432,7 @@ in
       };
 
       userSecretRef = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Key in `sopsFile` holding the admin user's real name, resolved at runtime so
           `macvtapUpScript` can chown the macvtap device to the real (uid, gid) pair. Defaults to
           the same key `system.users.admin.userSecretRef` creates that account from.
@@ -443,7 +443,7 @@ in
       };
 
       groupSecretRef = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Key in `sopsFile` holding the admin user's real group, resolved at runtime alongside
           `userSecretRef` above. Defaults to `system.users.admin.groupSecretRef`.
         '';
@@ -453,7 +453,7 @@ in
       };
 
       registeredPaths = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           A list of paths whose closure should be made available to the VM.
 
           When 9p is used, the closure is registered in the Nix database in the VM. All other paths
@@ -465,7 +465,7 @@ in
       };
 
       options = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Pass through arguments to the QEMU run function call. Will be filled out by configuration
           automation down below based on guest input options.
         '';

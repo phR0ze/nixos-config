@@ -79,12 +79,12 @@ in
       theme = lib.mkOption {
         type = types.str;
         default = "Numix-remix";
-        description = lib.mdDoc "Smplayer theme to use";
+        description = "Smplayer theme to use";
       };
       mouseWheelFunction = lib.mkOption {
         type = types.str;
         default = "4";
-        description = lib.mdDoc ''
+        description = ''
            2 Media seeking
            4 Volume control
            8 Zoom video

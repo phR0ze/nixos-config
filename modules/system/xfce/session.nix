@@ -23,7 +23,7 @@ in
       saveOnExit = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Save the open programs on exit and restore them on next session";
+        description = "Save the open programs on exit and restore them on next session";
       };
     };
   };

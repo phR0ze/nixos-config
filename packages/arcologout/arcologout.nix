@@ -40,7 +40,7 @@ in
       enable = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Install arcologout";
+        description = "Install arcologout";
       };
     };
   };

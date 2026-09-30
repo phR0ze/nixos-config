@@ -21,7 +21,7 @@ in
     enable = lib.mkEnableOption "Mount the configured remote SMB/CIFS shares";
 
     sopsFile = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         Path to the sops-encrypted file holding this host's real share passwords, decrypted at
         activation time by sops-nix. Each entry's `secretRef` names a flat top-level key in this
         file whose value is that share's password directly. Defaults to `host.sopsFile`.
@@ -32,7 +32,7 @@ in
     };
 
     uid = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         Numeric owner applied to every file on every share (`forceuid`). Numeric rather than a
         user name because the primary user's name is itself a runtime secret now
         (`system.users.admin`), so it can't be resolved at evaluation time - 1000 is the uid that
@@ -43,7 +43,7 @@ in
     };
 
     gid = lib.mkOption {
-      description = lib.mdDoc ''
+      description = ''
         Numeric group applied to every file on every share (`forcegid`). Same reasoning as `uid`;
         100 is the shared `users` group created by `system.users.desktopExtras`.
       '';
@@ -52,47 +52,47 @@ in
     };
 
     user = lib.mkOption {
-      description = lib.mdDoc "Default access user, when not overridden per entry";
+      description = "Default access user, when not overridden per entry";
       type = lib.types.str;
       default = "";
     };
 
     domain = lib.mkOption {
-      description = lib.mdDoc "Default domain or workgroup, when not overridden per entry";
+      description = "Default domain or workgroup, when not overridden per entry";
       type = lib.types.str;
       default = "";
       example = "WORKGROUP";
     };
 
     dirMode = lib.mkOption {
-      description = lib.mdDoc "Default mode for directories, when not overridden per entry";
+      description = "Default mode for directories, when not overridden per entry";
       type = lib.types.str;
       default = "0755";
     };
 
     fileMode = lib.mkOption {
-      description = lib.mdDoc "Default mode for files, when not overridden per entry";
+      description = "Default mode for files, when not overridden per entry";
       type = lib.types.str;
       default = "0644";
     };
 
     entries = lib.mkOption {
-      description = lib.mdDoc "Share entries to mount";
+      description = "Share entries to mount";
       default = [ ];
       type = lib.types.listOf (lib.types.submodule {
         options = {
           mountPoint = lib.mkOption {
-            description = lib.mdDoc "Local mount point, its basename names the share's secret and credentials file";
+            description = "Local mount point, its basename names the share's secret and credentials file";
             type = lib.types.str;
             example = "/mnt/Media";
           };
           remotePath = lib.mkOption {
-            description = lib.mdDoc "Remote path to use for the share";
+            description = "Remote path to use for the share";
             type = lib.types.str;
             example = "//<IP_OR_HOST>/path/to/share";
           };
           secretRef = lib.mkOption {
-            description = lib.mdDoc ''
+            description = ''
               Full sops secret key (in `sopsFile`) whose *value* is this share's password
               directly - a flat, opaque key independent of `mountPoint`/`remotePath` so the real
               share name never appears as a plaintext key in the encrypted secrets file. Pick any
@@ -103,32 +103,32 @@ in
             example = "smb/secretA";
           };
           user = lib.mkOption {
-            description = lib.mdDoc "Access user, defaults to `services.native.smb.user`";
+            description = "Access user, defaults to `services.native.smb.user`";
             type = lib.types.str;
             default = cfg.user;
           };
           domain = lib.mkOption {
-            description = lib.mdDoc "Domain or workgroup, defaults to `services.native.smb.domain`";
+            description = "Domain or workgroup, defaults to `services.native.smb.domain`";
             type = lib.types.str;
             default = cfg.domain;
           };
           dirMode = lib.mkOption {
-            description = lib.mdDoc "Mode for directories, defaults to `services.native.smb.dirMode`";
+            description = "Mode for directories, defaults to `services.native.smb.dirMode`";
             type = lib.types.str;
             default = cfg.dirMode;
           };
           fileMode = lib.mkOption {
-            description = lib.mdDoc "Mode for files, defaults to `services.native.smb.fileMode`";
+            description = "Mode for files, defaults to `services.native.smb.fileMode`";
             type = lib.types.str;
             default = cfg.fileMode;
           };
           writable = lib.mkOption {
-            description = lib.mdDoc "Enable writing to the share";
+            description = "Enable writing to the share";
             type = lib.types.bool;
             default = false;
           };
           options = lib.mkOption {
-            description = lib.mdDoc "Additional mount options, merged with the defaults below";
+            description = "Additional mount options, merged with the defaults below";
             type = lib.types.listOf lib.types.str;
             default = [ ];
             example = [ "x-systemd.idle-timeout=60" ];

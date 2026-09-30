@@ -176,61 +176,61 @@ in
       military = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Enable military time";
+        description = "Enable military time";
       };
       seconds = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Show seconds";
+        description = "Show seconds";
       };
       meridiem = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Show AM/PM";
+        description = "Show AM/PM";
       };
       inactiveSegments = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc "Show inactive segments";
+        description = "Show inactive segments";
       };
       flashSeparators = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc "Flash time separators";
+        description = "Flash time separators";
       };
     };
     system.desktop.xfce.panel.taskbar = {
       title = lib.mkOption {
         type = types.str;
         default = "Apps";
-        description = lib.mdDoc "Taskbar title";
+        description = "Taskbar title";
       };
       icon = lib.mkOption {
         type = types.str;
         default = "cyberlinux";
-        description = lib.mdDoc "Taskbar icon";
+        description = "Taskbar icon";
       };
       size = lib.mkOption {
         type = types.int;
         default = 24; # 36 for hidpi
-        description = lib.mdDoc "Taskbar size in pixels";
+        description = "Taskbar size in pixels";
       };
       iconSize = lib.mkOption {
         type = types.int;
         default = 20; # 32 for hidpi
-        description = lib.mdDoc "Taskbar icon size in pixels";
+        description = "Taskbar icon size in pixels";
       };
       grouping = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Taskbar item grouping";
+        description = "Taskbar item grouping";
       };
     };
     system.desktop.xfce.panel.launcher = {
       size = lib.mkOption {
         type = types.int;
         default = 36; # 52 for hidpi
-        description = lib.mdDoc "Launcher size in pixels";
+        description = "Launcher size in pixels";
       };
     };
     system.desktop.xfce.panel.launchers = lib.mkOption {
@@ -240,7 +240,7 @@ in
         { name = "Firefox"; exec = "firefox"; icon = "firefox"; }
         { name = "Xfce4 terminal"; exec = "xfce4-terminal"; icon = "org.xfce.terminalemulator"; }
       ];
-      description = lib.mdDoc "Define XFCE panel launchers";
+      description = "Define XFCE panel launchers";
     };
   };
 

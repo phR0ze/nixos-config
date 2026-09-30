@@ -24,22 +24,22 @@ in
       showLocalTree = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Show the local tree";
+        description = "Show the local tree";
       };
       showRemoteTree = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Show the remote tree";
+        description = "Show the remote tree";
       };
       numTransfers = lib.mkOption {
         type = types.int;
         default = 10;
-        description = lib.mdDoc "Set the number of parallel transfers";
+        description = "Set the number of parallel transfers";
       };
       fileSizeFormat = lib.mkOption {
         type = types.int;
         default = 2;
-        description = lib.mdDoc ''
+        description = ''
           Set the file size format.
           0 Display size in bytes
           1 IEC binary prefixes (e.g. 1 KiB = 1024 bytes)

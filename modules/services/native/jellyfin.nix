@@ -24,13 +24,13 @@ in
       port = lib.mkOption {
         type = lib.types.port;
         default = 8096;
-        description = lib.mdDoc "Port the Jellyfin web/API server listens on.";
+        description = "Port the Jellyfin web/API server listens on.";
       };
 
       caddy = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = lib.mdDoc ''
+        description = ''
           Front Jellyfin with `services.native.caddy` (enabled by default along with it) at
           `<subdomain>.<domain>`. When `false`, Jellyfin's ports are opened on the LAN instead.
         '';
@@ -39,7 +39,7 @@ in
       subdomain = lib.mkOption {
         type = lib.types.str;
         default = "jellyfin";
-        description = lib.mdDoc "Subdomain Jellyfin is served at when `caddy` is enabled.";
+        description = "Subdomain Jellyfin is served at when `caddy` is enabled.";
       };
     };
   };

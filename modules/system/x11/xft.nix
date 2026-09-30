@@ -10,97 +10,97 @@ in
   options = {
     system.x11.xft = {
       gtkTheme = lib.mkOption {
-        description = lib.mdDoc "GTK theme";
+        description = "GTK theme";
         type = types.str;
         default = "Arc-Dark";
       };
       qtTheme = lib.mkOption {
-        description = lib.mdDoc "Qt theme";
+        description = "Qt theme";
         type = types.str;
         default = "ArcDark";
       };
       iconTheme = lib.mkOption {
-        description = lib.mdDoc "Icon theme";
+        description = "Icon theme";
         type = types.str;
         default = "Paper";
       };
       cursorTheme = lib.mkOption {
-        description = lib.mdDoc "Cursor theme";
+        description = "Cursor theme";
         type = types.str;
         default = "Numix-Cursor-Light";
       };
       cursorSize = lib.mkOption {
-        description = lib.mdDoc "Cursor size";
+        description = "Cursor size";
         type = types.int;
         default = 16;
       };
       sans = lib.mkOption {
-        description = lib.mdDoc "Default sans serif font";
+        description = "Default sans serif font";
         type = types.str;
         default = "Noto Sans";
       };
       sansStyle = lib.mkOption {
-        description = lib.mdDoc "Default sans serif font style";
+        description = "Default sans serif font style";
         type = types.str;
         default = "Regular";
       };
       sansSize = lib.mkOption {
-        description = lib.mdDoc "Default sans serif font size";
+        description = "Default sans serif font size";
         type = types.int;
         default = 11;
       };
       serif = lib.mkOption {
-        description = lib.mdDoc "Default serif font";
+        description = "Default serif font";
         type = types.str;
         default = "Noto Serif";
       };
       serifStyle = lib.mkOption {
-        description = lib.mdDoc "Default serif font style";
+        description = "Default serif font style";
         type = types.str;
         default = "Regular";
       };
       serifSize = lib.mkOption {
-        description = lib.mdDoc "Default serif font size";
+        description = "Default serif font size";
         type = types.int;
         default = 11;
       };
       serifWebSize = lib.mkOption {
-        description = lib.mdDoc "Default serif font size for Browser use";
+        description = "Default serif font size for Browser use";
         type = types.int;
         default = 16;
       };
       monospace = lib.mkOption {
-        description = lib.mdDoc "Default monospace font";
+        description = "Default monospace font";
         type = types.str;
         default = "InconsolataGo Nerd Font Mono";
       };
       monospaceStyle = lib.mkOption {
-        description = lib.mdDoc "Default monospace font style";
+        description = "Default monospace font style";
         type = types.str;
         default = "Regular";
       };
       monospaceSize = lib.mkOption {
-        description = lib.mdDoc "Default monospace font size";
+        description = "Default monospace font size";
         type = types.int;
         default = 13;
       };
       dpi = lib.mkOption {
-        description = lib.mdDoc "Xft dpi";
+        description = "Xft dpi";
         type = types.int;
         default = 96;
       };
       rgba = lib.mkOption {
-        description = lib.mdDoc "Xft rgba";
+        description = "Xft rgba";
         type = types.str;
         default = "rgb";
       };
       antiAlias = lib.mkOption {
-        description = lib.mdDoc "Xft anti-aliasing";
+        description = "Xft anti-aliasing";
         type = types.bool;
         default = true;
       };
       hintingStyle = lib.mkOption {
-        description = lib.mdDoc "Xft anti-aliasing hinting";
+        description = "Xft anti-aliasing hinting";
         type = types.str;
         default = "hintfull";
       };

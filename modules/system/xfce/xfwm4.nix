@@ -105,27 +105,27 @@ in
       theme = lib.mkOption {
         type = types.str;
         default = "Arc-Dark";
-        description = lib.mdDoc "Window manager theme";
+        description = "Window manager theme";
       };
       titleFont = lib.mkOption {
         type = types.str;
         default = "DejaVu Sans Bold";
-        description = lib.mdDoc "Title font";
+        description = "Title font";
       };
       titleSize = lib.mkOption {
         type = types.int;
         default = 10;
-        description = lib.mdDoc "Title font size";
+        description = "Title font size";
       };
       workspaceCount = lib.mkOption {
         type = types.int;
         default = 2;
-        description = lib.mdDoc "Workspace count";
+        description = "Workspace count";
       };
       useCompositing = lib.mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc "Use composititing";
+        description = "Use composititing";
       };
     };
   };

@@ -5,52 +5,52 @@
   desktopType = submodule {
     options = {
       name = lib.mkOption {
-        description = lib.mdDoc "Name of the desktop entry";
+        description = "Name of the desktop entry";
         type = types.str;
         default = "null";
       };
       exec = lib.mkOption {
-        description = lib.mdDoc "Execution command for the desktop entry";
+        description = "Execution command for the desktop entry";
         type = types.str;
         default = "null";
       };
       icon = lib.mkOption {
-        description = lib.mdDoc "Icon to use for the desktop entry";
+        description = "Icon to use for the desktop entry";
         type = types.str;
         default = "null";
       };
       startupNotify = lib.mkOption {
-        description = lib.mdDoc "Notify the user when the app starts";
+        description = "Notify the user when the app starts";
         type = types.bool;
         default = false;
       };
       terminal = lib.mkOption {
-        description = lib.mdDoc "Launch the execution command in a terminal window";
+        description = "Launch the execution command in a terminal window";
         type = types.bool;
         default = false;
       };
       noDisplay = lib.mkOption {
-        description = lib.mdDoc "Hide this desktop entry from the menu";
+        description = "Hide this desktop entry from the menu";
         type = types.bool;
         default = false;
       };
       launcher = lib.mkOption {
-        description = lib.mdDoc "Is this desktop entry a launcher";
+        description = "Is this desktop entry a launcher";
         type = types.bool;
         default = false;
       };
       categories = lib.mkOption {
-        description = lib.mdDoc "Category for the desktop entry";
+        description = "Category for the desktop entry";
         type = types.str;
         default = "null";
       };
       comment = lib.mkOption {
-        description = lib.mdDoc "Comment for the desktop entry's tooltip";
+        description = "Comment for the desktop entry's tooltip";
         type = types.str;
         default = "null";
       };
       source = lib.mkOption {
-        description = lib.mdDoc "Nix store path to the source desktop entry to start from";
+        description = "Nix store path to the source desktop entry to start from";
         type = types.nullOr types.path;
         default = null;
       };

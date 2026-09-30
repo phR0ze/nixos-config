@@ -19,17 +19,17 @@ in
       enable = lib.mkEnableOption "Configure git with sensible defaults";
 
       user = lib.mkOption {
-        description = lib.mdDoc "Git user name";
+        description = "Git user name";
         type = lib.types.str;
       };
 
       email = lib.mkOption {
-        description = lib.mdDoc "Git email address";
+        description = "Git email address";
         type = lib.types.str;
       };
 
       ignores = lib.mkOption {
-        description = lib.mdDoc "Global gitignore patterns applied to every repo";
+        description = "Global gitignore patterns applied to every repo";
         type = lib.types.listOf lib.types.str;
         default = [ "**/.claude/" ];
       };

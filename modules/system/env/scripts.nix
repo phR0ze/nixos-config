@@ -17,12 +17,12 @@ in
         source = lib.mkOption {
           type = lib.types.path;
           default = ./include/${name};
-          description = lib.mdDoc "Path to the script to install";
+          description = "Path to the script to install";
         };
       };
     }));
     default = { };
-    description = lib.mdDoc "Executable helper scripts to deploy to ~/.local/bin";
+    description = "Executable helper scripts to deploy to ~/.local/bin";
   };
 
   config.files.all = lib.mkMerge (lib.mapAttrsToList

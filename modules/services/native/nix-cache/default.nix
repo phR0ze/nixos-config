@@ -53,7 +53,7 @@ in
         };
 
         trustedPublicKeys = lib.mkOption {
-          description = lib.mdDoc ''
+          description = ''
             Nix binary cache public keys used for client configuration. Public by definition, so
             these stay plaintext files read at evaluation time (see modules/system/env/nix.nix).
             Defaults to the cache host's own key; extend the list (e.g. host-specific overrides)
@@ -72,19 +72,19 @@ in
         enable = lib.mkEnableOption "Install and configure Nix Binary Cache";
 
         bindAddress = lib.mkOption {
-          description = lib.mdDoc "IP address where harmonia will bind its listening socket";
+          description = "IP address where harmonia will bind its listening socket";
           type = types.str;
           default = "0.0.0.0";
         };
 
         port = lib.mkOption {
-          description = lib.mdDoc "Port number where harmonia will listen on";
+          description = "Port number where harmonia will listen on";
           type = types.port;
           default = 5000;
         };
 
         secretKeyFile = lib.mkOption {
-          description = lib.mdDoc ''
+          description = ''
             sops-encrypted (binary format) Nix binary cache signing key. Decrypted by nix-weave/
             sops-nix at activation time straight to /run/secrets - never staged into git or the
             Nix store. Re-encrypt a new key with `sops --encrypt` after generating it, see the
