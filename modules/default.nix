@@ -500,6 +500,10 @@ in
       services.native.adguardhome.bindAddress = (f.toIP config.devices.network.primary.ip).address;
     })
 
+    (lib.mkIf config.services.native.mullvad.enable {
+      services.native.mullvad.sopsFile = cfg.sopsFile;
+    })
+
     (lib.mkIf config.services.native.alerts.enable {
       services.native.alerts.sopsFile = cfg.sopsFile;
     })
