@@ -66,9 +66,12 @@ in
         default = true;
       };
       apps = lib.mkOption {
-        description = lib.mdDoc "Applications to run over the VPN";
+        description = lib.mdDoc ''
+          Applications to run over the VPN. Each entry is a command line; its first word names the
+          autostart entry e.g. `brave https://mullvad.net/en` -> `brave-over-vpn.desktop`
+        '';
         type = types.listOf types.str;
-        default = [ "qbittorrent" "brave" ];
+        default = [ "qbittorrent" "brave https://mullvad.net/en" ];
       };
       sopsFile = lib.mkOption {
         description = lib.mdDoc ''
@@ -203,12 +206,14 @@ in
         }
       ];
 
-      environment.etc = lib.listToAttrs (map (app: lib.nameValuePair "xdg/autostart/${app}-over-vpn.desktop" {
+      environment.etc = lib.listToAttrs (map (app: let
+        name = lib.head (lib.splitString " " app);
+      in lib.nameValuePair "xdg/autostart/${name}-over-vpn.desktop" {
         text = ''
           [Desktop Entry]
           Type=Application
           Terminal=true
-          Exec=${lib.getExe pkgs.vopono} exec ${app}
+          Exec=${lib.getExe pkgs.vopono} exec "${app}"
         '';
       }) cfg.apps);
     })
