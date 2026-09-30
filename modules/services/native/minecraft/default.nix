@@ -34,37 +34,37 @@ in
       port = lib.mkOption {
         type = lib.types.port;
         default = 25565;
-        description = lib.mdDoc "Port the Minecraft server listens on; opened in the firewall for LAN clients.";
+        description = "Port the Minecraft server listens on; opened in the firewall for LAN clients.";
       };
 
       levelSeed = lib.mkOption {
         type = lib.types.str;
         default = "5705783928676095273";
-        description = lib.mdDoc "Level seed; the world generates with a random seed if left blank.";
+        description = "Level seed; the world generates with a random seed if left blank.";
       };
 
       memory = lib.mkOption {
         type = lib.types.ints.positive;
         default = 4;
-        description = lib.mdDoc "Amount of memory in GB to give the JVM (both min and max heap).";
+        description = "Amount of memory in GB to give the JVM (both min and max heap).";
       };
 
       gameMode = lib.mkOption {
         type = lib.types.enum [ "survival" "creative" "adventure" "spectator" ];
         default = "survival";
-        description = lib.mdDoc "Game mode to run in.";
+        description = "Game mode to run in.";
       };
 
       difficulty = lib.mkOption {
         type = lib.types.enum [ "peaceful" "easy" "normal" "hard" ];
         default = "normal";
-        description = lib.mdDoc "Game difficulty to run in.";
+        description = "Game difficulty to run in.";
       };
 
-      lanOnly = lib.mkOption {
+      onlineMode = lib.mkOption {
         type = lib.types.bool;
-        default = true;
-        description = lib.mdDoc "Set to false for account validation against minecraft.net (online mode).";
+        default = false;
+        description = "Validate player accounts against Mojang; when false any username can join.";
       };
     };
   };
@@ -75,9 +75,6 @@ in
 
       # This means agreeing to Mojang's EULA: https://account.mojang.com/documents/minecraft_eula
       eula = true;
-
-      # Minecraft data files for state location
-      dataDir = "/var/lib/minecraft";
 
       # Open server-port in the firewall so others on the LAN can connect
       openFirewall = true;
@@ -102,8 +99,6 @@ in
         "-XX:MaxTenuringThreshold=1"
         "-XX:G1SATBBufferEnqueueingThresholdPercent=30"
         "-XX:G1ConcMarkStepDurationMillis=5"
-        "-XX:G1ConcRSHotCardLimit=16"
-        "-XX:G1ConcRefinementServiceIntervalMillis=150"
       ];
 
       # Enable serverProperties to take effect
@@ -113,7 +108,7 @@ in
         level-seed = cfg.levelSeed;
         gamemode = cfg.gameMode;
         difficulty = cfg.difficulty;
-        online-mode = ! cfg.lanOnly;
+        online-mode = cfg.onlineMode;
       };
     };
   };

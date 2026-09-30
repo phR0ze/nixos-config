@@ -6,14 +6,18 @@
 # official Bitwarden clients: browser extension, desktop app, mobile app and CLI.
 #
 # ### Deployment notes
-# 1. Vaultwarden listens on `127.0.0.1:<port>` only (not exposed on the LAN).
-# 2. `domain` defaults to `https://<first subdomains entry>.<baseDomain>`, where `baseDomain` is
-#    forwarded from `host.network.domain` by `modules/default.nix`. Set `domain` explicitly to
-#    override.
+# 1. With `caddy` (the default) Vaultwarden listens on `127.0.0.1:<port>` only and is reached
+#    through Caddy's TLS at `<subdomain>.<baseDomain>` for each `subdomains` entry. With
+#    `caddy = false` it listens on all interfaces and `port` is opened on the LAN instead - plain
+#    HTTP, so only do this behind some other TLS-terminating proxy.
+# 2. `domain` defaults to `https://<first subdomains entry>.<baseDomain>` when `caddy` is set, where
+#    `baseDomain` is forwarded from `host.network.domain` by `modules/default.nix`. Set `domain`
+#    explicitly to override.
 # 3. To enable the `/admin` diagnostics page, set `enableAdminPanel = true` and add an admin token to
-#    this host's `secrets.enc.yaml` under the `vaultwarden/adminToken` key. `sopsFile` is forwarded
-#    from `host.sopsFile` by `modules/default.nix`, so nothing else is needed in the host's
-#    `configuration.nix`.
+#    this host's `secrets.enc.yaml` under the `adminTokenSecretRef` key (`vaultwarden/adminToken`
+#    by default). Store an Argon2 hash from `vaultwarden hash` rather than the plain token.
+#    `sopsFile` is forwarded from `host.sopsFile` by `modules/default.nix`, so nothing else is
+#    needed in the host's `configuration.nix`.
 # 4. Point the Bitwarden client(s) at this server's `domain` and log in as normal — the first
 #    account created is a regular user, not an admin.
 # 5. To reach this service through a Pangolin *private* (ZTNA) resource instead of a public
@@ -39,14 +43,14 @@ in
       port = lib.mkOption {
         type = types.port;
         default = 8222;
-        description = lib.mdDoc "Port the Vaultwarden web/API server listens on.";
+        description = "Port the Vaultwarden web/API server listens on.";
       };
 
       baseDomain = lib.mkOption {
         type = types.str;
         default = "";
         example = "example.com";
-        description = lib.mdDoc ''
+        description = ''
           Zone this server is reachable under, used to build `domain`'s default. Forwarded from
           `host.network.domain` by `modules/default.nix` so the literal zone never lands in a
           tracked file - only set here to override. Empty by default so that forwarding can be
@@ -56,14 +60,14 @@ in
 
       domain = lib.mkOption {
         type = types.nullOr types.str;
-        default = if cfg.baseDomain == "" then null
+        default = if !cfg.caddy || cfg.baseDomain == "" || cfg.subdomains == [ ] then null
           else "https://${builtins.head cfg.subdomains}.${cfg.baseDomain}";
-        defaultText = lib.literalExpression ''"https://''${builtins.head subdomains}.''${baseDomain}"'';
+        defaultText = lib.literalExpression ''"https://''${builtins.head subdomains}.''${baseDomain}" when caddy, else null'';
         example = "https://vault.example.com";
-        description = lib.mdDoc ''
+        description = ''
           Externally reachable URL clients will use to reach this server. Required for WebAuthn/U2F
           and for icons/links to render correctly. Defaults to `https://<first subdomains
-          entry>.<baseDomain>`. Set explicitly to override.
+          entry>.<baseDomain>` when `caddy` is set. Set explicitly to override.
         '';
       };
 
@@ -71,8 +75,8 @@ in
         type = types.nullOr types.path;
         default = null;
         example = "./secrets.enc.yaml";
-        description = lib.mdDoc ''
-          Path to the sops-encrypted file holding the `vaultwarden/adminToken` secret, forwarded
+        description = ''
+          Path to the sops-encrypted file holding the `adminTokenSecretRef` secret, forwarded
           from `host.sopsFile` by `modules/default.nix`. Only required when `enableAdminPanel` is
           set - see that block's assertion below.
         '';
@@ -81,28 +85,48 @@ in
       signupsAllowed = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc "Whether new user signups are allowed.";
+        description = "Whether new user signups are allowed.";
       };
 
       enableAdminPanel = lib.mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc ''
-          Whether to enable the `/admin` diagnostics page, protected by an admin token pulled from
-          `secret.files."vaultwarden/adminToken"`.
+        description = ''
+          Whether to enable the `/admin` diagnostics page, protected by the admin token at
+          `adminTokenSecretRef` in `sopsFile`.
+        '';
+      };
+
+      adminTokenSecretRef = lib.mkOption {
+        type = types.str;
+        default = "vaultwarden/adminToken";
+        description = ''
+          Key path within `sopsFile` holding the admin token, ideally an Argon2 hash generated with
+          `vaultwarden hash`. Only used when `enableAdminPanel` is set.
+        '';
+      };
+
+      caddy = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Front Vaultwarden with `services.native.caddy` (enabled by default along with it) at
+          `<subdomain>.<domain>` for each `subdomains` entry. When `false`, Vaultwarden listens on
+          all interfaces and `port` is opened on the LAN instead.
         '';
       };
 
       subdomains = lib.mkOption {
-        description = lib.mdDoc ''
-          Front this service with `services.native.caddy` at `<subdomain>.<domain>` for each entry
-          listed — every one gets its own hostname matcher on Caddy's shared wildcard block, all
-          routed to the same backend. The first entry is also what `domain` defaults to. List more
-          than one to give this service multiple names (e.g. a distinct name for a Pangolin private
-          resource — see deployment note 5 above); Caddy treats every entry identically.
-        '';
         type = listOf types.str;
+        default = [ "vault" ];
         example = [ "vault" "vault-vpn" ];
+        description = ''
+          Subdomains Vaultwarden is served at when `caddy` is enabled - every entry gets its own
+          hostname matcher on Caddy's shared wildcard block, all routed to the same backend. The
+          first entry is also what `domain` defaults to. List more than one to give this service
+          multiple names (e.g. a distinct name for a Pangolin private resource - see deployment
+          note 5 above); Caddy treats every entry identically.
+        '';
       };
 
     };
@@ -110,31 +134,43 @@ in
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      assertions = [
-        { assertion = cfg.baseDomain != "" || cfg.domain != null;
-          message = "services.native.vaultwarden requires 'baseDomain', normally forwarded from 'host.network.domain', or an explicit 'domain'"; }
-      ];
-
       # Enable Vaultwarden server
+      # - IP_HEADER: the client IP keys the login/admin rate limits. Behind Caddy it arrives in
+      #   X-Forwarded-For (Vaultwarden defaults to X-Real-IP, which Caddy doesn't send, so every
+      #   client would otherwise share Caddy's 127.0.0.1 bucket). Without Caddy clients connect
+      #   directly, so no header is trusted - Vaultwarden's default "local" trust would otherwise
+      #   let any LAN client spoof one.
       services.vaultwarden = {
         enable = true;
         config = {
-          ROCKET_ADDRESS = "127.0.0.1";
+          ROCKET_ADDRESS = if cfg.caddy then "127.0.0.1" else "0.0.0.0";
           ROCKET_PORT = cfg.port;
           SIGNUPS_ALLOWED = cfg.signupsAllowed;
+          IP_HEADER = if cfg.caddy then "X-Forwarded-For" else "none";
         } // lib.optionalAttrs (cfg.domain != null) {
           DOMAIN = cfg.domain;
         };
       };
 
+      networking.firewall.allowedTCPPorts = lib.optionals (!cfg.caddy) [ cfg.port ];
+
       environment.systemPackages = [
-        pkgs.vaultwarden      # Vaultwarden server (for the `vaultwarden` CLI tools)
+        pkgs.vaultwarden      # Vaultwarden server, `vaultwarden hash` generates an Argon2 admin token
+      ];
+    }
+
+    # Add a caddy proxy config per subdomain for DNS subdomain resolution
+    (lib.mkIf cfg.caddy {
+      assertions = [
+        { assertion = cfg.subdomains != [ ];
+          message = "services.native.vaultwarden with caddy requires at least one 'subdomains' entry"; }
+        { assertion = cfg.domain != null;
+          message = "services.native.vaultwarden with caddy requires 'baseDomain', normally forwarded from 'host.network.domain', or an explicit 'domain'"; }
       ];
 
-      # Contribute a proxy entry per subdomain to services.native.caddy.proxies rather than
-      # requiring them be listed separately in the host's configuration.nix
+      services.native.caddy.enable = lib.mkDefault true;
       services.native.caddy.proxies = map (s: { subdomain = s; inherit (cfg) port; }) cfg.subdomains;
-    }
+    })
 
     # Conditionally enable the admin panel, pulling the token from the sops-nix secret rather than
     # baking it into the nix store
@@ -147,9 +183,10 @@ in
       secret.templates."vaultwarden-admin" = {
         filemode = "0400";
         content = ''
-          ADMIN_TOKEN=${config.secret.ref."vaultwarden/adminToken"}
+          ADMIN_TOKEN=${config.secret.ref.${cfg.adminTokenSecretRef}}
         '';
-        secrets."vaultwarden/adminToken".sopsFile = cfg.sopsFile;
+        secrets.${cfg.adminTokenSecretRef}.sopsFile = cfg.sopsFile;
+
         # EnvironmentFile is only read at unit start, so a rotated admin token needs a restart
         restartUnits = [ "vaultwarden.service" ];
       };

@@ -38,10 +38,9 @@
     services.oci.oneup = {
       enable = true; port = 8082; user.uid = 2002; tag = "latest";
     };
-
-    # services.native.vaultwarden = {
-    #   enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
-    # };
+    services.native.vaultwarden = {
+      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
+    };
     # services.oci.newt = {
     #   enable = true; /*        */ user.uid = 2005; tag = "1.16.0"; 
     # };

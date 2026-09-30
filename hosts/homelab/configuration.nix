@@ -44,7 +44,7 @@
 
 
     services.native.vaultwarden = {
-      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
+      enable = true; subdomains = [ "vault" "vault-vpn" ];
     };
     services.oci.newt = {
       enable = true; /*        */ user.uid = 2005; tag = "1.16.0"; 

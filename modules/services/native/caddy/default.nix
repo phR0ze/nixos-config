@@ -70,7 +70,7 @@ in
         type = types.str;
         default = "";
         example = "example.com";
-        description = lib.mdDoc ''
+        description = ''
           Cloudflare zone for the wildcard certificate; proxies are served at
           `<subdomain>.<baseDomain>`. Forwarded from `host.network.domain`.
         '';
@@ -80,7 +80,7 @@ in
         type = listOf (submodule { imports = [ (import ../../../types/caddy_proxy.nix { inherit lib; }) ]; });
         default = [ ];
         example = [{ subdomain = "vault"; port = 8222; }];
-        description = lib.mdDoc ''
+        description = ''
           Backends to front. Filled in by apps' own `subdomain` options and by
           `host.services.native.caddy.proxies` in build-time args.
         '';
@@ -90,7 +90,7 @@ in
         type = types.nullOr types.path;
         default = null;
         example = "./secrets.enc.yaml";
-        description = lib.mdDoc ''
+        description = ''
           sops file holding the Cloudflare API token. Forwarded from `host.sopsFile`.
         '';
       };
@@ -98,7 +98,7 @@ in
       cloudflareApiTokenSecretRef = lib.mkOption {
         type = types.str;
         default = "caddy/cloudflareApiToken";
-        description = lib.mdDoc ''
+        description = ''
           Key within `sopsFile` holding the Cloudflare API token (Zone:DNS:Edit + Zone:Zone:Read).
         '';
       };
@@ -106,7 +106,7 @@ in
       cloudflarePluginTag = lib.mkOption {
         type = types.str;
         default = "v0.2.4";
-        description = lib.mdDoc ''
+        description = ''
           caddy-dns/cloudflare release tag compiled into Caddy. Changing it requires updating
           `cloudflarePluginHash` too - see README.md.
         '';
@@ -115,7 +115,7 @@ in
       cloudflarePluginHash = lib.mkOption {
         type = types.str;
         default = "sha256-hEHgAG0F0ozHRAPuxEqLyTATBrE+pajeXDiSNwniorg=";
-        description = lib.mdDoc ''
+        description = ''
           Hash of Caddy's source with `cloudflarePluginTag` vendored in. Changes whenever the tag or
           nixpkgs' caddy version does.
         '';
@@ -125,7 +125,7 @@ in
         type = listOf str;
         default = [ ];
         example = [ "192.168.1.10/32" ];
-        description = lib.mdDoc ''
+        description = ''
           Upstream proxy IPs/CIDRs (e.g. Pangolin's Newt) whose `X-Forwarded-For` is trusted, so
           backends see real client IPs. Forwarded from `host.services.native.caddy.trustedProxies`.
         '';
