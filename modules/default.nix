@@ -504,6 +504,10 @@ in
       services.native.mullvad.sopsFile = cfg.sopsFile;
     })
 
+    (lib.mkIf config.apps.dev.claude.enable {
+      apps.dev.claude.sopsFile = cfg.sopsFile;
+    })
+
     (lib.mkIf config.services.native.alerts.enable {
       services.native.alerts.sopsFile = cfg.sopsFile;
     })
