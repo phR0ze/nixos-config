@@ -48,7 +48,7 @@
 # * Note: you can manually start with `xdg-open "/etc/xdg/autostart/${APP}-over-vpn.desktop"`
 # * The app will not be restarted if it exits or fails
 # * Requires passwordless sudo access to be able to elevate privileges when needed
-# * Validation can be done by using firefox as the app and navigating to https://mullvad.net/en/check
+# * Validation can be done by using brave as an app and navigating to https://mullvad.net/en/check
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -65,10 +65,10 @@ in
         type = types.bool;
         default = true;
       };
-      app = lib.mkOption {
+      apps = lib.mkOption {
         description = lib.mdDoc "Applications to run over the VPN";
-        type = types.str;
-        default = "qbittorrent";
+        type = types.listOf types.str;
+        default = [ "qbittorrent" "brave" ];
       };
       sopsFile = lib.mkOption {
         description = lib.mdDoc ''
@@ -194,21 +194,23 @@ in
     })
 
     # Configure to autostart after login
-    # Creates `/etc/xdg/autostart/APP-over-vpn.desktop`
+    # Creates `/etc/xdg/autostart/APP-over-vpn.desktop` for each app
     (lib.mkIf cfg.autostart {
       assertions = [
         {
-          assertion = cfg.app != "";
-          message = "services.native.mullvad.app must be set when services.native.mullvad.autostart is enabled";
+          assertion = cfg.apps != [ ] && !(lib.elem "" cfg.apps);
+          message = "services.native.mullvad.apps must be set when services.native.mullvad.autostart is enabled";
         }
       ];
 
-      environment.etc."xdg/autostart/${cfg.app}-over-vpn.desktop".text = ''
-        [Desktop Entry]
-        Type=Application
-        Terminal=true
-        Exec=${lib.getExe pkgs.vopono} exec ${cfg.app}
-      '';
+      environment.etc = lib.listToAttrs (map (app: lib.nameValuePair "xdg/autostart/${app}-over-vpn.desktop" {
+        text = ''
+          [Desktop Entry]
+          Type=Application
+          Terminal=true
+          Exec=${lib.getExe pkgs.vopono} exec ${app}
+        '';
+      }) cfg.apps);
     })
 
   ]);

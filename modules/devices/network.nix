@@ -58,7 +58,6 @@ in
     networkManager.enable = lib.mkEnableOption ''
       NetworkManager on top of networkd for desktop WiFi, tray applet and captive portal handling
     '';
-
     gateway = lib.mkOption {
       description = lib.mdDoc "Default gateway to use for the host, required when devices.network.nic0.ip is static";
       type = types.str;
@@ -380,15 +379,14 @@ in
       networking.networkmanager = {
         enable = true;                      # Enable networkmanager and nm-applet
 
-        # Keep NM off the interfaces it doesn't own: container networks, and whatever networkd owns
-        # (see the network model at the top of this file). Two managers on one interface race each
-        # other for addresses, routes and DNS.
-        unmanaged = [ "interface-name:podman*" ]
+        # Keep NM off the interfaces it doesn't own: bridges, and whatever networkd owns (see the
+        # network model at the top of this file). Two managers on one interface race each other for
+        # addresses, routes and DNS. Bridges are matched by type as every one on these hosts is
+        # someone else's: networkd's primary bridge, and podman's per-service networks which are
+        # named after the service (see `f.createContNetwork`) rather than podman*.
+        unmanaged = [ "type:bridge" ]
           ++ lib.optionals (networkdWired && cfg.nic0.name != "") [ "interface-name:${cfg.nic0.name}" ]
-          ++ lib.optionals cfg.bridge.enable [
-            "interface-name:${cfg.bridge.name}"
-            "interface-name:${cfg.macvlan.name}"
-          ];
+          ++ lib.optionals cfg.bridge.enable [ "interface-name:${cfg.macvlan.name}" ];
 
         # NM feeds resolved per-link DHCP/VPN DNS in DHCP mode, and nothing at all in static mode.
         # Static mode needs both settings: `dns = "none"` only stops NM's main DNS plugin, while
@@ -419,7 +417,6 @@ in
       # Enables ability for user to make network manager changes
       system.users.admin.extraGroups = [ "networkmanager" ];
     })
-
     # Harden
     # ----------------------------------------------------------------------------------------------
     (lib.mkIf cfg.harden.enable {
