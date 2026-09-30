@@ -385,8 +385,15 @@ in
         # someone else's: networkd's primary bridge, and podman's per-service networks which are
         # named after the service (see `f.createContNetwork`) rather than podman*.
         unmanaged = [ "type:bridge" ]
-          ++ lib.optionals (networkdWired && cfg.nic0.name != "") [ "interface-name:${cfg.nic0.name}" ]
+          ++ lib.optionals (networkdWired && cfg.bridge.enable && cfg.nic0.name != "") [ "interface-name:${cfg.nic0.name}" ]
           ++ lib.optionals cfg.bridge.enable [ "interface-name:${cfg.macvlan.name}" ];
+
+        # A networkd owned static nic0 is left managed rather than unmanaged so NM sees it as
+        # "connected (externally)". Otherwise NM has no connected device and reports its global
+        # state, and so the tray applet, as disconnected. Blocking NM's auto default profile on it
+        # means NM only observes networkd's config and never activates a connection of its own.
+        settings.main.no-auto-default = lib.mkIf (networkdWired && !cfg.bridge.enable && staticIp)
+          "interface-name:${cfg.nic0.name}";
 
         # NM feeds resolved per-link DHCP/VPN DNS in DHCP mode, and nothing at all in static mode.
         # Static mode needs both settings: `dns = "none"` only stops NM's main DNS plugin, while
