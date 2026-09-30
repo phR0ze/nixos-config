@@ -27,9 +27,15 @@
 #    reaches Caddy intact, same as any LAN client; no dedicated listener or port is needed. Add a
 #    second entry to `subdomains` if you want the private resource to have its own distinct name
 #    rather than reusing the first one — Caddy routes every entry identically.
+# 6. `backupDir` (default `/var/backup/vaultwarden`) gets a nightly (23:00) snapshot of the data
+#    dir: an SQLite-safe `.backup` of the DB plus a copy of everything else (attachments,
+#    `rsa_key.pem`, `config.json`, sends). Each run overwrites the last and it stays on this disk,
+#    so pair it with something that keeps history off-box (e.g. restic). Change the schedule with
+#    `systemd.timers.backup-vaultwarden.timerConfig.OnCalendar`; set `backupDir = null` to disable.
 #
 # ### Directories
 # - /var/lib/vaultwarden
+# - /var/backup/vaultwarden (`backupDir`)
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -106,6 +112,16 @@ in
         '';
       };
 
+      backupDir = lib.mkOption {
+        type = types.nullOr types.str;
+        default = "/var/backup/vaultwarden";
+        example = null;
+        description = ''
+          Directory to snapshot the data dir into nightly, overwriting the previous run - see
+          deployment note 6 above. Must be outside `/var/lib/vaultwarden`. `null` disables backups.
+        '';
+      };
+
       caddy = lib.mkOption {
         type = types.bool;
         default = true;
@@ -142,6 +158,7 @@ in
       #   let any LAN client spoof one.
       services.vaultwarden = {
         enable = true;
+        inherit (cfg) backupDir;
         config = {
           ROCKET_ADDRESS = if cfg.caddy then "127.0.0.1" else "0.0.0.0";
           ROCKET_PORT = cfg.port;
