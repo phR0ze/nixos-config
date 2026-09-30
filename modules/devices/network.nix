@@ -8,7 +8,10 @@
 # - NetworkManager is an optional overlay for desktops (WiFi, tray applet, captive portals). When NM
 #   is on and the host has neither a bridge nor a static IP, NM owns every interface and networkd
 #   manages nothing. When the host does have a bridge or static IP, networkd owns nic0/bridge/macvlan
-#   and NM is told to leave them alone, still handling WiFi and anything else.
+#   and NM only observes the primary interface ("connected (externally)") so the tray applet shows
+#   the real status, still handling WiFi and anything else. NM is started after networkd has the
+#   primary interface online, as it only assumes an interface that is already configured when it
+#   starts - otherwise it claims the interface itself and flushes networkd's config.
 # - systemd-resolved is the only resolver on every host. DNS mode is selected by `dns.primary`, see
 #   the DNS section of the config below.
 #
@@ -375,6 +378,17 @@ in
 
     # Configure network manager
     # ----------------------------------------------------------------------------------------------
+    # NM only assumes an externally configured interface at its own startup (`keep-configuration`,
+    # see NetworkManager.conf(5)), so start it after networkd has the primary interface online.
+    # Otherwise NM claims the interface first as its own disconnected device and flushes networkd's
+    # addresses and routes. `after` doesn't require wait-online to succeed, so e.g. an unplugged
+    # cable only delays NM by wait-online's timeout.
+    (lib.mkIf (cfg.networkManager.enable && networkdWired) {
+      systemd.services.NetworkManager = {
+        wants = [ "systemd-networkd-wait-online.service" ];
+        after = [ "systemd-networkd-wait-online.service" ];
+      };
+    })
     (lib.mkIf cfg.networkManager.enable {
       networking.networkmanager = {
         enable = true;                      # Enable networkmanager and nm-applet
@@ -383,17 +397,20 @@ in
         # network model at the top of this file). Two managers on one interface race each other for
         # addresses, routes and DNS. Bridges are matched by type as every one on these hosts is
         # someone else's: networkd's primary bridge, and podman's per-service networks which are
-        # named after the service (see `f.createContNetwork`) rather than podman*.
+        # named after the service (see `f.createContNetwork`) rather than podman*. The primary
+        # interface is the exception, see `no-auto-default` below.
         unmanaged = [ "type:bridge" ]
-          ++ lib.optionals (networkdWired && cfg.bridge.enable && cfg.nic0.name != "") [ "interface-name:${cfg.nic0.name}" ]
-          ++ lib.optionals cfg.bridge.enable [ "interface-name:${cfg.macvlan.name}" ];
+          ++ lib.optionals cfg.bridge.enable [
+            "except:interface-name:${cfg.bridge.name}"
+            "interface-name:${cfg.nic0.name}"
+            "interface-name:${cfg.macvlan.name}"
+          ];
 
-        # A networkd owned static nic0 is left managed rather than unmanaged so NM sees it as
+        # networkd's primary interface is left managed rather than unmanaged so NM sees it as
         # "connected (externally)". Otherwise NM has no connected device and reports its global
         # state, and so the tray applet, as disconnected. Blocking NM's auto default profile on it
         # means NM only observes networkd's config and never activates a connection of its own.
-        settings.main.no-auto-default = lib.mkIf (networkdWired && !cfg.bridge.enable && staticIp)
-          "interface-name:${cfg.nic0.name}";
+        settings.main.no-auto-default = lib.mkIf networkdWired "interface-name:${cfg.primary.name}";
 
         # NM feeds resolved per-link DHCP/VPN DNS in DHCP mode, and nothing at all in static mode.
         # Static mode needs both settings: `dns = "none"` only stops NM's main DNS plugin, while
