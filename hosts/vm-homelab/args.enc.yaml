@@ -13,6 +13,10 @@ host:
         native:
             smb:
                 entries:
+                    - mountPoint: ENC[AES256_GCM,data:fxttdRGgRqqg,iv:WB28slLtlLeTm5SV5SodLX4/ieRiShRYfePQsoLzAsw=,tag:HdKPmlV/VeW7iiCeuv7jAw==,type:str]
+                      remotePath: ENC[AES256_GCM,data:8WazYqw2NhBXgjFAya3EuCGb,iv:Db1KBlouDS3yR+jF1oJy+dPJP2ky2URuF4p02pr+Bos=,tag:WwX8pjh134CXObEiAS3k6g==,type:str]
+                      secretRef: ENC[AES256_GCM,data:1/6pQVQSIZ6lnU4=,iv:IfG/dfnoz5g4EHEpDpr6Eohnu6XK/7nmhSjgHozYf0A=,tag:WtGATG9woqvnhEMmJLpFGA==,type:str]
+                      writable: ENC[AES256_GCM,data:UzaouA==,iv:mxzsh9YvLV27rvpcM8xDS8gOy6O9YmhOVi4tkiYy4zY=,tag:qFlyBKsMipl67gEDaxhZag==,type:bool]
                     - mountPoint: ENC[AES256_GCM,data:k9c5h7py1Ax953w=,iv:0s5RVhM33V64a4gDDAo9ZTb6w5fAL77BErbmbUZYURk=,tag:LOwlQBO0k+pC/w65Kii3gg==,type:str]
                       remotePath: ENC[AES256_GCM,data:aUH0LQCu4KGYVPu0l2k2Hx4plGc=,iv:Qtli2cmLI2svK+lcjsKN5wBclbUH2mSty+BhYFmej6U=,tag:XCi7pUFv2kpxI3eWpqXniw==,type:str]
                       secretRef: ENC[AES256_GCM,data:1/6pQVQSIZ6lnU4=,iv:IfG/dfnoz5g4EHEpDpr6Eohnu6XK/7nmhSjgHozYf0A=,tag:WtGATG9woqvnhEMmJLpFGA==,type:str]
@@ -59,7 +63,7 @@ sops:
             15E/UYdLPOZ/obszZQVoI4bMn2L71YCx0fhNnxV0e0JQRMQlzjvm9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-09-29T23:27:25Z"
-    mac: ENC[AES256_GCM,data:LQ20ouvD0rV56zghO0S9ZdI88glY0Rn/h/x3GiYwfnOA1jkZPbYyQccd9b3NeMN2ppSf7qgwHz3glD2FvdhF4q6CQnnOlf4j7VXIeoDT8gpwLxsEsfSkdT3xdqQ32g1TZoe/z6JqpG4FBMl4rXE0lzvFlATaHBvJAd8uge4BjRE=,iv:HqVC3DbtJUpHufziMhjwH3LdugyKzWIIt8E3QKhnD9w=,tag:jqM6WflgW40FEwta3ZHU4A==,type:str]
+    lastmodified: "2026-09-30T22:25:15Z"
+    mac: ENC[AES256_GCM,data:EADF2NJoK4GQzWreaRnDv4w6lMBO9H1J/KPZ7UWgWHVkAD6DJqKb5mOOlKKfTj3aW+xdoFFJEKKT3fFOZyUetPfOHamOXRTDkgeqL6gJ0z8Iu9BWn08DCxp4csDE2wGGs9F29EXWeRgLHdXwSaMjr7YJezAEosKhwb4KVNKqXIo=,iv:L4bE+EoA2eLaxKIEYzDeHRuM1xWzlgYCDNNDFsbIcgo=,tag:akMrMy6MbALVtLYv3TBSCQ==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1
