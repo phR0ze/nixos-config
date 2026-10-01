@@ -71,6 +71,7 @@ in
       apps.system.devilspie2.enable = true;         # Lua scripted window rules for X11
       apps.system.hardinfo.enable = true;           # A system information and benchmark tool
       apps.system.neovide.enable = true;            # Graphical interface for Neovim
+      apps.system.omacalc.enable = true;            # Omarchy's simple calculator
       apps.system.wezterm.enable = true;            # GPU accelerated terminal
       apps.network.firefox.enable = true;           # Mozilla browser
       apps.network.filezilla.enable = true;         # Network/Transfer
@@ -124,7 +125,6 @@ in
         # Utilities
         conky                               # Advanced, highly configurable system monitor
         exiftool                             # A tool to read, write and edit EXIF meta information
-        gnome-calculator                      # Calculator
         gnome-multi-writer                 # Tool for writing an ISO file to multiple USB devices at once
         htop                                 # Better top tool
         brightnessctl                        # Control backlights for screen and keyboard

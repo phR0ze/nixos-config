@@ -18,13 +18,20 @@
 # sudo systemctl start backup-jellyfin
 #
 # #### Restore
+# The backup share doesn't preserve ownership or modes (everything comes back with the mount's
+# forced owner and modes), so the restore copies content only (`-rlt`, leaving the live dirs'
+# modes alone) and then resets ownership recursively.
+#
 # 1. Stop the service
 #    sudo systemctl stop jellyfin
 #
 # 2. Restore the data
-#    sudo rsync -a --delete <backupDir>/jellyfin/ /var/lib/jellyfin/
+#    sudo rsync -rlt --delete <backupDir>/jellyfin/ /var/lib/jellyfin/
 #
-# 3. Start the service
+# 3. Reset ownership
+#    sudo chown -R jellyfin:jellyfin /var/lib/jellyfin
+#
+# 4. Start the service
 #    sudo systemctl start jellyfin
 #
 # --------------------------------------------------------------------------------------------------

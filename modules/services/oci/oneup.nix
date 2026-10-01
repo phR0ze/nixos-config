@@ -26,14 +26,18 @@
 #    sudo systemctl start podman-oneup
 #
 # #### Restore
+# The backup share doesn't preserve ownership or modes (everything comes back with the mount's
+# forced owner and modes), so the restore copies content only (`-rlt`, leaving the live dirs'
+# modes alone) and then resets ownership recursively.
+#
 # 1. Stop the service
 #    sudo systemctl stop podman-oneup
 #
 # 2. Restore the data
-#    sudo rsync -a --delete <backupDir>/oneup/ /var/lib/oneup/data/
+#    sudo rsync -rlt --delete <backupDir>/oneup/ /var/lib/oneup/data/
 #
-# 3. Fix ownership if needed
-#    sudo chown -R 2002:2002 /var/lib/oneup/data/
+# 3. Reset ownership to the app user the container runs as (`user.uid`/`user.gid`)
+#    sudo chown -R oneup:oneup /var/lib/oneup/data
 #
 # 4. Start the service
 #    sudo systemctl start podman-oneup

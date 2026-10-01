@@ -8,6 +8,7 @@
     ./hardinfo
     ./neovide
     ./neovim
+    ./omacalc
     ./veracrypt
     ./wezterm
     ./zellij

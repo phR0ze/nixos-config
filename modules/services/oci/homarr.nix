@@ -36,13 +36,20 @@
 #    sudo systemctl start podman-homarr
 #
 # #### Restore
+# The backup share doesn't preserve ownership or modes (everything comes back with the mount's
+# forced owner and modes), so the restore copies content only (`-rlt`, leaving the live dirs'
+# modes alone) and then resets ownership recursively.
+#
 # 1. Stop the service
 #    sudo systemctl stop podman-homarr
 #
 # 2. Restore the data
-#    sudo rsync -a --delete <backupDir>/homarr/ /var/lib/homarr/appdata/
+#    sudo rsync -rlt --delete <backupDir>/homarr/ /var/lib/homarr/appdata/
 #
-# 3. Start the service
+# 3. Reset ownership to the app user the container runs as (`user.uid`/`user.gid`)
+#    sudo chown -R homarr:homarr /var/lib/homarr/appdata
+#
+# 4. Start the service
 #    sudo systemctl start podman-homarr
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;

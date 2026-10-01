@@ -25,7 +25,6 @@
     services.native.mullvad.enable = true;
     services.native.minecraft.enable = true;
     services.native.nix-cache.host.enable = true;
-    services.native.synology-drive-client.enable = true;
 
     # Caddy fronted services
     services.native.caddy.enable = true;
@@ -40,15 +39,13 @@
     services.oci.oneup = {
       enable = true; port = 8082; user.uid = 2002; tag = "latest";
     };
-
-
-
     services.native.vaultwarden = {
-      enable = true; subdomains = [ "vault" "vault-vpn" ];
+      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
     };
-    services.oci.newt = {
-      enable = true; /*        */ user.uid = 2005; tag = "1.16.0"; 
-    };
+
+    # services.oci.newt = {
+    #   enable = true; /*        */ user.uid = 2005; tag = "1.16.0"; 
+    # };
 
     # Additional apps
     environment.systemPackages = [

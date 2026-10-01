@@ -37,13 +37,22 @@
 # sudo systemctl start backup-adguardhome
 #
 # #### Restore
+# The backup share doesn't preserve ownership or modes (everything comes back with the mount's
+# forced owner and modes), so the restore copies content only (`-rlt`, leaving the live dirs'
+# modes alone) and then resets ownership recursively.
+#
 # 1. Stop the service
 #    sudo systemctl stop adguardhome
 #
 # 2. Restore the data
-#    sudo rsync -a --delete --exclude=/data/filters/ <backupDir>/adguardhome/ /var/lib/AdGuardHome/
+#    sudo rsync -rlt --delete --exclude=/data/filters/ <backupDir>/adguardhome/ /var/lib/AdGuardHome/
 #
-# 3. Start the service, systemd re-chowns the data dir to the service's DynamicUser
+# 3. Reset ownership. The DynamicUser has no fixed name, so take its uid/gid from the data dir
+#    itself, which `-rlt` left alone. systemd only checks the top-level dir's owner on start, so
+#    it won't fix the root-owned files rsync just wrote on its own.
+#    sudo chown -R "$(sudo stat -c %u:%g /var/lib/private/AdGuardHome)" /var/lib/private/AdGuardHome
+#
+# 4. Start the service
 #    sudo systemctl start adguardhome
 #
 # ### Services

@@ -24,7 +24,6 @@
     services.native.mullvad.enable = true;
     services.native.minecraft.enable = true;
     services.native.nix-cache.host.enable = true;
-    services.native.synology-drive-client.enable = true;
 
     # Caddy fronted services
     services.native.caddy.enable = true;
