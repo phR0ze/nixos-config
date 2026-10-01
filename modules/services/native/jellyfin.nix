@@ -8,17 +8,14 @@
 # - Remote control of Kodi or Jellyfin Media Player or Jellyfin MPV Shim via mobile app
 #
 # ### Backup process
-# `backupDir` (default `/var/backup/jellyfin`) gets a nightly snapshot at `backupTime` (default
-# 04:00) of `/var/lib/jellyfin` minus its logs: the service is stopped, the data dir rsynced over,
-# then the service restarted. Jellyfin's SQLite DB runs in WAL mode and `metadata/` is written
-# alongside it, so stopping is the simplest way to get a consistent copy. Each run overwrites the
-# last and it stays on this disk, so pair it with something that keeps history off-box (e.g.
-# restic). Set `backupDir = null` to disable.
+# - `backupDir` gets a nightly snapshot at `backupTime` from /var/lib/jellyfin` minus its logs
+#   the service is stopped, the data dir rsynced over, then the service restarted.
+# - Jellyfin's SQLite DB runs in WAL mode and `metadata/` is written alongside it, so stopping is the
+#   simplest way to get a consistent copy. Each run overwrites the last
+# - `/var/cache/jellyfin` (transcodes, resized images, extracted subtitles) is regenerable and skipped.
 #
-# `/var/cache/jellyfin` (transcodes, resized images, extracted subtitles) is regenerable and skipped.
-#
-# #### Trigger backup
-#  sudo systemctl start backup-jellyfin
+# **Trigger backup**
+# sudo systemctl start backup-jellyfin
 #
 # #### Restore
 # 1. Stop the service
@@ -73,7 +70,7 @@ in
 
       backupTime = lib.mkOption {
         type = lib.types.str;
-        default = "04:00";
+        default = "00:00";
         example = "Sun 02:30";
         description = ''
           When the nightly `backupDir` snapshot runs, as a systemd `OnCalendar` expression. The

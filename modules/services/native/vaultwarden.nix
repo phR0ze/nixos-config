@@ -30,11 +30,11 @@
 #    reaches Caddy intact, same as any LAN client; no dedicated listener or port is needed. Add a
 #    second entry to `subdomains` if you want the private resource to have its own distinct name
 #    rather than reusing the first one — Caddy routes every entry identically.
-# 6. `backupDir` (default `/var/backup/vaultwarden`) gets a nightly (23:00) snapshot of the data
-#    dir: an SQLite-safe `.backup` of the DB plus a copy of everything else (attachments,
-#    `rsa_key.pem`, `config.json`, sends). Each run overwrites the last and it stays on this disk,
-#    so pair it with something that keeps history off-box (e.g. restic). Change the schedule with
-#    `systemd.timers.backup-vaultwarden.timerConfig.OnCalendar`; set `backupDir = null` to disable.
+# 6. `backupDir` (default `/var/backup/vaultwarden`) gets a nightly snapshot at `backupTime`
+#    (default 23:00) of the data dir: an SQLite-safe `.backup` of the DB plus a copy of everything
+#    else (attachments, `rsa_key.pem`, `config.json`, sends). Each run overwrites the last and it
+#    stays on this disk, so pair it with something that keeps history off-box (e.g. restic). Set
+#    `backupDir = null` to disable.
 #
 # ### Backup process
 # Backups are handled automatically and safely with the defaults to trigger a nightly run that will
@@ -148,6 +148,16 @@ in
         '';
       };
 
+      backupTime = lib.mkOption {
+        type = types.str;
+        default = "23:00";
+        example = "Sun 02:30";
+        description = ''
+          When the nightly `backupDir` snapshot runs, as a systemd `OnCalendar` expression. Only
+          used when `backupDir` is set.
+        '';
+      };
+
       caddy = lib.mkOption {
         type = types.bool;
         default = true;
@@ -202,6 +212,12 @@ in
         pkgs.vaultwarden      # Vaultwarden server, `vaultwarden hash` generates an Argon2 admin token
       ];
     }
+
+    # Override the upstream backup timer's schedule. Gated on backupDir since upstream only defines
+    # the timer then - setting timerConfig unconditionally would create a stray unit
+    (lib.mkIf (cfg.backupDir != null) {
+      systemd.timers.backup-vaultwarden.timerConfig.OnCalendar = cfg.backupTime;
+    })
 
     # Add a caddy proxy config per subdomain for DNS subdomain resolution
     (lib.mkIf cfg.caddy {
