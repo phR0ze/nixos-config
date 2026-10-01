@@ -219,6 +219,10 @@ in
     # the timer then - setting timerConfig unconditionally would create a stray unit
     (lib.mkIf (cfg.backupDir != null) {
       systemd.timers.backup-vaultwarden.timerConfig.OnCalendar = cfg.backupTime;
+
+      # Have services.native.alerts watch this backup
+      services.native.alerts.enable = lib.mkDefault true;
+      services.native.alerts.backup.services = [ "vaultwarden" ];
     })
 
     # Add a caddy proxy config per subdomain for DNS subdomain resolution

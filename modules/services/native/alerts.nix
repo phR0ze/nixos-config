@@ -3,6 +3,7 @@
 # ### Features
 # - Configurable alerts for failed systemd units
 # - Configurable alerts for CrowdSec activity
+# - Configurable alerts for missing, failed or stale `backup-<name>` units
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
@@ -71,6 +72,31 @@ in
         type = lib.types.str;
         default = "05:00";
         example = "Mon 08:00";
+      };
+    };
+
+    backup = {
+      services = lib.mkOption {
+        description = ''
+          Names of the services whose `backup-<name>.service` units are checked, pushing a
+          notification when the set of unhealthy backups changes - a unit that's missing, whose
+          last run failed, or that hasn't succeeded in the last 26h (a nightly schedule plus
+          slack). Each service that supports backups adds its own name here when its `backupDir`
+          is set, rather than this being listed per host. Empty (the default) disables the check.
+        '';
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        example = [ "jellyfin" "vaultwarden" ];
+      };
+
+      interval = lib.mkOption {
+        description = ''
+          How often to check the backups, as a systemd time span (`OnUnitActiveSec`). Also the
+          worst-case delay between a backup failing and the notification going out.
+        '';
+        type = lib.types.str;
+        default = "1h";
+        example = "15min";
       };
     };
   };
@@ -172,6 +198,78 @@ in
         timerConfig = {
           OnCalendar = cfg.securityDigest.time;
           Persistent = true;
+        };
+      };
+    })
+
+    (lib.mkIf (cfg.backup.services != [ ]) {
+      systemd.services.check-backups = {
+        description = "Push a notification when the set of unhealthy backups changes";
+        serviceConfig = {
+          Type = "oneshot";
+          StateDirectory = "alerts";
+          ExecStart = toString (pkgs.writeShellScript "check-backups" ''
+            set -uo pipefail
+            ${ntfyFunc}
+            HOST=${config.networking.hostName}
+            STATE_DIR=/var/lib/alerts
+            STATE_FILE=$STATE_DIR/backups.state
+            MAX_AGE=$((26 * 3600))
+            NOW=$(date +%s)
+
+            # systemd forgets a unit's last run on reboot, so each backup's last successful finish
+            # is persisted here instead. A service with no record yet is seeded with now, giving
+            # it MAX_AGE to produce its first success rather than alerting straight after deploy.
+            PROBLEMS=""
+            for svc in ${lib.escapeShellArgs cfg.backup.services}; do
+              unit="backup-$svc.service"
+              last_file="$STATE_DIR/backup-$svc.last"
+              [ -s "$last_file" ] || echo "$NOW" > "$last_file"
+
+              if [ "$(systemctl show -P LoadState "$unit")" != "loaded" ]; then
+                PROBLEMS+="$svc: backup unit not found"$'\n'
+                continue
+              fi
+
+              # Result stays `success` for a unit that hasn't run this boot, so only an exit
+              # timestamp means there's a real run to record
+              result=$(systemctl show -P Result "$unit")
+              exited=$(systemctl show --timestamp=unix -P ExecMainExitTimestamp "$unit")
+              exited=''${exited#@}
+              if [ "$result" != "success" ]; then
+                PROBLEMS+="$svc: last backup run failed ($result)"$'\n'
+              elif [ -n "$exited" ] && [ "$exited" -gt "$(cat "$last_file")" ]; then
+                echo "$exited" > "$last_file"
+              fi
+
+              # No age in the message, otherwise it changes every check and re-notifies
+              if [ $((NOW - $(cat "$last_file"))) -gt "$MAX_AGE" ]; then
+                PROBLEMS+="$svc: no successful backup in over 26h"$'\n'
+              fi
+            done
+            # Drop the trailing newline so it compares equal to PREV, which $(cat) strips too
+            PROBLEMS=$(printf '%s' "$PROBLEMS")
+
+            PREV=$(cat "$STATE_FILE" 2>/dev/null || true)
+            if [ "$PROBLEMS" != "$PREV" ]; then
+              if [ -n "$PROBLEMS" ]; then
+                ntfy -H "Title: [ $HOST ] backup problem" -H "Priority: high" -d "$PROBLEMS"
+              else
+                ntfy -H "Title: [ $HOST ] backups recovered" \
+                  -d "All previously unhealthy backups are healthy again"
+              fi
+            fi
+            printf '%s' "$PROBLEMS" > "$STATE_FILE"
+          '');
+        };
+      };
+
+      systemd.timers.check-backups = {
+        description = "Check backup health every ${cfg.backup.interval}";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnBootSec = "5min";
+          OnUnitActiveSec = cfg.backup.interval;
         };
       };
     })

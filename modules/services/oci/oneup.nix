@@ -125,6 +125,10 @@ in
           message = "services.oci.oneup.backupDir must be outside ${dataDir}"; }
       ];
 
+      # Have services.native.alerts watch this backup
+      services.native.alerts.enable = lib.mkDefault true;
+      services.native.alerts.backup.services = [ cfg.name ];
+
       systemd.tmpfiles.rules = [
         "d ${backupDir} 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
       ];

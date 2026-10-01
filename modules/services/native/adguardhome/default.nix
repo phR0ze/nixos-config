@@ -525,6 +525,10 @@ in
           message = "services.native.adguardhome.backupDir must be outside ${dataDir}"; }
       ];
 
+      # Have services.native.alerts watch this backup
+      services.native.alerts.enable = lib.mkDefault true;
+      services.native.alerts.backup.services = [ "adguardhome" ];
+
       systemd.tmpfiles.settings."10-adguardhome-backup".${backupDir}.d = {
         user = "root";
         group = "root";

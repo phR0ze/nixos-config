@@ -152,6 +152,10 @@ in
           message = "services.native.jellyfin.backupDir must be outside ${dataDir}"; }
       ];
 
+      # Have services.native.alerts watch this backup
+      services.native.alerts.enable = lib.mkDefault true;
+      services.native.alerts.backup.services = [ "jellyfin" ];
+
       systemd.tmpfiles.settings."10-jellyfin-backup".${backupDir}.d = {
         user = "jellyfin";
         group = "jellyfin";
