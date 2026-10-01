@@ -26,6 +26,7 @@
   apps.system.hardinfo.enable = true;         # A system information and benchmark tool
   apps.system.neovide.enable = true;          # Graphical interface for Neovim
   apps.system.wezterm.enable = true;          # GPU accelerated terminal
+  apps.system.wmctl.enable = true;            # Window placement for keyboard shortcuts
 
   services.fwupd.enable = true;               # Firmware update tool for BIOS, etc...
   services.gvfs.enable = true;
@@ -41,7 +42,6 @@
 
     # Custom packages
     desktop-assets                            # Custom package for wallpaper and other settings
-    wmctl                                     # Custom package for wmctl
 
     # System
     desktop-file-utils                  # Command line utilities for working with desktop entries

@@ -11,6 +11,7 @@
     ./omacalc
     ./veracrypt
     ./wezterm
+    ./wmctl
     ./zellij
   ];
 }

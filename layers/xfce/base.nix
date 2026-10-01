@@ -73,6 +73,7 @@ in
       apps.system.neovide.enable = true;            # Graphical interface for Neovim
       apps.system.omacalc.enable = true;            # Omarchy's simple calculator
       apps.system.wezterm.enable = true;            # GPU accelerated terminal
+      apps.system.wmctl.enable = true;              # Window placement for keyboard shortcuts
       apps.network.firefox.enable = true;           # Mozilla browser
       apps.network.filezilla.enable = true;         # Network/Transfer
 
@@ -102,7 +103,6 @@ in
 
         # Custom packages
         desktop-assets                              # Custom package for wallpaper and other settings
-        wmctl                                       # Custom package for wmctl
 
         # System
         file-roller                           # Generic Gnome file archive utility needed for Thunar

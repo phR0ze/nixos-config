@@ -1,12 +1,13 @@
-# wmctl
+# wmctl package
 #
+# Rust X11 EWMH window manager control tool used for window placement keyboard shortcuts
 #---------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+{ rustPlatform, fetchFromGitHub }:
 
-pkgs.rustPlatform.buildRustPackage rec {
+rustPlatform.buildRustPackage rec {
   pname = "wmctl";
   version = "0.0.52";
-  src = pkgs.fetchFromGitHub {
+  src = fetchFromGitHub {
     owner = "phR0ze";
     repo = pname;
     rev = "refs/tags/v${version}";

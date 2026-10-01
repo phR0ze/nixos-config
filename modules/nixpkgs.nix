@@ -23,7 +23,6 @@
       opencode = final.callPackage ../modules/apps/dev/opencode/package.nix {};
       rdutil = final.callPackage ../modules/apps/dev/rdutil/package.nix {};
       tinymediamanager = final.callPackage ../packages/tinymediamanager {};
-      wmctl = final.callPackage ../packages/wmctl {};
     } // (let
       pkgsUnstable = import inputs.nixpkgs-unstable {
         system = prev.stdenv.hostPlatform.system;
