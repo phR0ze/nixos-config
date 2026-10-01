@@ -60,7 +60,7 @@ in
 
       backupDir = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
-        default = "/var/backup/jellyfin";
+        default = "/mnt/Apps/homelab/jellyfin";
         example = null;
         description = ''
           Directory to snapshot the data dir into nightly, overwriting the previous run - see the

@@ -27,6 +27,10 @@
     apps.dev.gemini.enable = true;
     apps.dev.opencode.enable = true;
 
+    # Use the full-scope `claude auth login` session (needed for Remote Control) instead of the
+    # inference-only sops-provided CLAUDE_CODE_OAUTH_TOKEN.
+    apps.dev.claude.oauthToken.enable = false;
+
     apps.games.roblox.enable = true;
     apps.games.hedgewars.enable = true;
     apps.games.superTuxKart.enable = true;

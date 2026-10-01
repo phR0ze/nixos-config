@@ -140,7 +140,7 @@ in
 
       backupDir = lib.mkOption {
         type = types.nullOr types.str;
-        default = "/var/backup/vaultwarden";
+        default = "/mnt/Apps/homelab/vaultwarden";
         example = null;
         description = ''
           Directory to snapshot the data dir into nightly, overwriting the previous run - see
