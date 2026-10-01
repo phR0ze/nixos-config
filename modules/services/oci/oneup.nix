@@ -14,6 +14,16 @@
 #
 # **Trigger backup**
 # sudo systemctl start backup-oneup
+# 
+# ### Manual Backup
+# 1. Stop the service
+#    sudo systemctl stop podman-oneup
+#
+# 2. Run the backup
+#    sudo rsync -a --delete /var/lib/oneup/data/ /mnt/Apps/homelab/oneup/
+#
+# 3. Start the service backup
+#    sudo systemctl start podman-oneup
 #
 # #### Restore
 # 1. Stop the service

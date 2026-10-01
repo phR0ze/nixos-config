@@ -25,6 +25,16 @@
 # **Trigger backup**
 # sudo systemctl start backup-homarr
 #
+# ### Manual Backup
+# 1. Stop the service
+#    sudo systemctl stop podman-homarr
+#
+# 2. Run the backup
+#    sudo rsync -a --delete /var/lib/homarr/appdata/ /mnt/Apps/homelab/homarr/
+#
+# 3. Start the service backup
+#    sudo systemctl start podman-homarr
+#
 # #### Restore
 # 1. Stop the service
 #    sudo systemctl stop podman-homarr

@@ -48,7 +48,9 @@
 # 1. Stop the service
 #    sudo systemctl stop vaultwarden
 #
-# 2. Trigger the backup using whatever method you prefer for /var/lib/vaultwarden
+# 2. Backup the files to an alernate location
+#    sudo mkdir -p /mnt/Apps/homelab/vaultwarden
+#    sudo rsync -a --delete --exclude=/icon_cache/ --exclude=/tmp/ /var/lib/vaultwarden/ /mnt/Apps/homelab/vaultwarden/
 #
 # 3. Start the service
 #    sudo systemctl start vaultwarden
