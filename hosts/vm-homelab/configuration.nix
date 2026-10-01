@@ -7,6 +7,7 @@
     host.autologin = true;
     #host.autolock = true;
     host.desktop.xfce.standard = true;
+    host.backupDir = "/mnt/Apps/vm-homelab";
 
     virtualization.qemu.guest = {
       cores = 4;

@@ -16,6 +16,24 @@
 # - Generate key with: openssl rand -hex 32
 # - Get status with: sudo systemctl status podman-homarr
 # - Browse to: https://home.<domain> (or http://<IP>:<port> with `caddy = false`)
+#
+# ### Backup process
+# - `<backupDir>/homarr` gets a nightly snapshot at `backupTime` of `/var/lib/homarr/appdata`: the container
+#   is stopped, the data dir rsynced over, then the container restarted. Each run overwrites the last
+# - Homarr keeps its SQLite DB in `appdata/db/`, so stopping is the simplest way to get a consistent copy
+#
+# **Trigger backup**
+# sudo systemctl start backup-homarr
+#
+# #### Restore
+# 1. Stop the service
+#    sudo systemctl stop podman-homarr
+#
+# 2. Restore the data
+#    sudo rsync -a --delete <backupDir>/homarr/ /var/lib/homarr/appdata/
+#
+# 3. Start the service
+#    sudo systemctl start podman-homarr
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, f, ... }: with lib.types;
 let
@@ -34,6 +52,28 @@ in
       type = types.str;
       example = "Create with `open ssl rand -hex 32`";
       default = "";
+    };
+
+    backupDir = lib.mkOption {
+      description = ''
+        Parent directory to snapshot `/var/lib/<name>/appdata` into nightly, as `<backupDir>/<name>`,
+        overwriting the previous run - see the backup process notes above. Forwarded from
+        `host.backupDir` by `modules/default.nix`. Must be outside `/var/lib/<name>`. `null`
+        disables backups.
+      '';
+      type = types.nullOr types.str;
+      default = null;
+      example = "/mnt/Apps/homelab";
+    };
+
+    backupTime = lib.mkOption {
+      description = ''
+        When the nightly `backupDir` snapshot runs, as a systemd `OnCalendar` expression. The
+        container is stopped for the duration of the run.
+      '';
+      type = types.str;
+      default = "23:30";
+      example = "Sun 02:30";
     };
   };
 
@@ -100,6 +140,48 @@ in
 
       networking.firewall.allowedTCPPorts = lib.optional (!cfg.caddy) cfg.port;
     })
+
+    # Nightly stop -> rsync -> start snapshot of the data dir
+    # - Runs as root since it has to stop/start the service; rsync -a keeps the app user's ownership
+    # - The EXIT trap restarts the container even if rsync fails, but only if it was running beforehand
+    # - No wantedBy on the service itself so it never fires (and takes homarr down) at boot
+    (lib.mkIf (cfg.enable && cfg.backupDir != null) (let
+      dataDir = "/var/lib/${cfg.name}";
+      unit = "podman-${cfg.name}.service";
+      backupDir = "${cfg.backupDir}/${cfg.name}";
+    in {
+      assertions = [
+        { assertion = !(lib.hasPrefix "${dataDir}/" "${backupDir}/");
+          message = "services.oci.homarr.backupDir must be outside ${dataDir}"; }
+      ];
+
+      systemd.tmpfiles.rules = [
+        "d ${backupDir} 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
+      ];
+
+      systemd.services."backup-${cfg.name}" = {
+        description = "Backup Homarr data dir";
+        path = [ pkgs.rsync config.systemd.package ];
+        serviceConfig.Type = "oneshot";
+        script = ''
+          set -euo pipefail
+          if systemctl is-active --quiet ${unit}; then
+            trap 'systemctl start ${unit}' EXIT
+            systemctl stop ${unit}
+          fi
+          rsync -a --delete ${dataDir}/appdata/ ${backupDir}/
+        '';
+      };
+
+      systemd.timers."backup-${cfg.name}" = {
+        description = "Backup Homarr nightly";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = cfg.backupTime;
+          Persistent = true;
+        };
+      };
+    }))
 
     # Contribute a proxy entry to services.native.caddy.proxies rather than requiring it be listed
     # separately in the machine's configuration.nix

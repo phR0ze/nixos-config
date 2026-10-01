@@ -30,15 +30,15 @@
 #    reaches Caddy intact, same as any LAN client; no dedicated listener or port is needed. Add a
 #    second entry to `subdomains` if you want the private resource to have its own distinct name
 #    rather than reusing the first one — Caddy routes every entry identically.
-# 6. `backupDir` (default `/var/backup/vaultwarden`) gets a nightly snapshot at `backupTime`
-#    (default 23:00) of the data dir: an SQLite-safe `.backup` of the DB plus a copy of everything
+# 6. `<backupDir>/vaultwarden` gets a nightly snapshot at `backupTime` (default 23:00) of the
+#    data dir: an SQLite-safe `.backup` of the DB plus a copy of everything
 #    else (attachments, `rsa_key.pem`, `config.json`, sends). Each run overwrites the last and it
-#    stays on this disk, so pair it with something that keeps history off-box (e.g. restic). Set
-#    `backupDir = null` to disable.
+#    stays on this disk, so pair it with something that keeps history off-box (e.g. restic).
+#    `backupDir` is forwarded from `host.backupDir`; `null` (the default) disables backups.
 #
 # ### Backup process
 # Backups are handled automatically and safely with the defaults to trigger a nightly run that will
-# backup /var/lib/vaultwarden to /var/backup/vaultwarden from there its up to you to then schedule
+# backup /var/lib/vaultwarden to <backupDir>/vaultwarden from there its up to you to then schedule
 # off system backups elsewhere.
 #
 # #### Trigger backup
@@ -140,11 +140,13 @@ in
 
       backupDir = lib.mkOption {
         type = types.nullOr types.str;
-        default = "/mnt/Apps/homelab/vaultwarden";
-        example = null;
+        default = null;
+        example = "/mnt/Apps/homelab";
         description = ''
-          Directory to snapshot the data dir into nightly, overwriting the previous run - see
-          deployment note 6 above. Must be outside `/var/lib/vaultwarden`. `null` disables backups.
+          Parent directory to snapshot the data dir into nightly, as `<backupDir>/vaultwarden`,
+          overwriting the previous run - see deployment note 6 above. Forwarded from
+          `host.backupDir` by `modules/default.nix`. Must be outside `/var/lib/vaultwarden`. `null`
+          disables backups.
         '';
       };
 
@@ -194,7 +196,7 @@ in
       #   let any LAN client spoof one.
       services.vaultwarden = {
         enable = true;
-        inherit (cfg) backupDir;
+        backupDir = lib.mkIf (cfg.backupDir != null) "${cfg.backupDir}/vaultwarden";
         config = {
           ROCKET_ADDRESS = if cfg.caddy then "127.0.0.1" else "0.0.0.0";
           ROCKET_PORT = cfg.port;

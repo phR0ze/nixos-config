@@ -25,6 +25,27 @@
 # 2. Trim off the prefix <USER>: and store the remaining portion
 #    e.g. $2y$05$x3123cn5Kcr/6JRpXfxXYulhrxSIVtTQvwYDzMgzba.bZ6cT78cwa
 #
+# ### Backup process
+# - `<backupDir>/adguardhome` gets a nightly snapshot at `backupTime` of `/var/lib/AdGuardHome` minus its
+#   downloaded blocklists: the service is stopped, the data dir rsynced over, then the service
+#   restarted. Each run overwrites the last
+# - `data/stats.db` and `data/sessions.db` are bbolt files written live, so stopping is the simplest
+#   way to get a consistent copy. LAN DNS is down for the few seconds the copy takes
+# - `data/filters/` is re-downloaded from the filter URLs on start and is skipped
+#
+# **Trigger backup**
+# sudo systemctl start backup-adguardhome
+#
+# #### Restore
+# 1. Stop the service
+#    sudo systemctl stop adguardhome
+#
+# 2. Restore the data
+#    sudo rsync -a --delete --exclude=/data/filters/ <backupDir>/adguardhome/ /var/lib/AdGuardHome/
+#
+# 3. Start the service, systemd re-chowns the data dir to the service's DynamicUser
+#    sudo systemctl start adguardhome
+#
 # ### Services
 # - podman-adguard
 # - podman-network-adguard
@@ -129,6 +150,27 @@ in
         description = ''
           Key path within `sopsFile` holding the admin account's precomputed htpasswd hash (see
           the password-reset instructions at the top of this file for how to generate it).
+        '';
+      };
+
+      backupDir = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "/mnt/Apps/homelab";
+        description = ''
+          Parent directory to snapshot the data dir into nightly, as `<backupDir>/adguardhome`, overwriting
+          the previous run - see the backup process notes above. Forwarded from `host.backupDir` by
+          `modules/default.nix`. Must be outside `/var/lib/AdGuardHome`. `null` disables backups.
+        '';
+      };
+
+      backupTime = lib.mkOption {
+        type = lib.types.str;
+        default = "00:30";
+        example = "Sun 02:30";
+        description = ''
+          When the nightly `backupDir` snapshot runs, as a systemd `OnCalendar` expression. DNS is
+          down for the duration of the run, so pick a time the LAN is quiet.
         '';
       };
     };
@@ -466,6 +508,52 @@ in
         };
       };
     }
+
+    # Nightly stop -> rsync -> start snapshot of the data dir
+    # - Runs as root since it has to stop/start the service. Upstream uses DynamicUser so the data
+    #   actually lives in /var/lib/private/AdGuardHome; the trailing slash makes rsync follow the
+    #   /var/lib/AdGuardHome symlink. There's no static user to own the backup, so it's root-only
+    # - The EXIT trap restarts adguardhome even if rsync fails, but only if it was running beforehand
+    # - No wantedBy on the service itself so it never fires (and takes DNS down) at boot
+    (lib.mkIf (cfg.backupDir != null) (let
+      dataDir = "/var/lib/AdGuardHome";
+      backupDir = "${cfg.backupDir}/adguardhome";
+    in {
+      assertions = [
+        { assertion = !(lib.hasPrefix "${dataDir}/" "${backupDir}/")
+            && !(lib.hasPrefix "/var/lib/private/AdGuardHome/" "${backupDir}/");
+          message = "services.native.adguardhome.backupDir must be outside ${dataDir}"; }
+      ];
+
+      systemd.tmpfiles.settings."10-adguardhome-backup".${backupDir}.d = {
+        user = "root";
+        group = "root";
+        mode = "0700";
+      };
+
+      systemd.services.backup-adguardhome = {
+        description = "Backup AdGuard Home data dir";
+        path = [ pkgs.rsync config.systemd.package ];
+        serviceConfig.Type = "oneshot";
+        script = ''
+          set -euo pipefail
+          if systemctl is-active --quiet adguardhome.service; then
+            trap 'systemctl start adguardhome.service' EXIT
+            systemctl stop adguardhome.service
+          fi
+          rsync -a --delete --exclude=/data/filters/ ${dataDir}/ ${backupDir}/
+        '';
+      };
+
+      systemd.timers.backup-adguardhome = {
+        description = "Backup AdGuard Home nightly";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = cfg.backupTime;
+          Persistent = true;
+        };
+      };
+    }))
 
     # Add a caddy proxy config for DNS subdomain resolution. AdGuard listens on bindAddress rather
     # than loopback, so the proxy has to target that instead of caddy_proxy's 127.0.0.1 default.

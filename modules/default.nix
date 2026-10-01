@@ -298,6 +298,17 @@ in
               in if cfg.name != "" && found != [ ] then lib.head found else null;
           };
 
+          backupDir = lib.mkOption {
+            description = ''
+              Parent directory this host's services snapshot their data into nightly, each under
+              its own `<backupDir>/<app>` subdirectory - forwarded below to every service that
+              supports it. `null` (the default) leaves backups disabled on this host.
+            '';
+            type = types.nullOr types.str;
+            default = host.backupDir or null;
+            example = "/mnt/Apps/homelab";
+          };
+
           nix.cache.enable = lib.mkOption {
             description = ''
               Consume the fleet's Nix binary cache, see `services.native.nix-cache.client`. The
@@ -515,6 +526,15 @@ in
     (lib.mkIf config.services.native.crowdsec.enable {
       services.native.crowdsec.sopsFile = cfg.sopsFile;
       services.native.crowdsec.allowlist = cfg.network.allowList;
+    })
+
+    # Nightly backups, each service snapshots into its own `<backupDir>/<app>` subdirectory
+    (lib.mkIf (cfg.backupDir != null) {
+      services.native.adguardhome.backupDir = lib.mkIf config.services.native.adguardhome.enable cfg.backupDir;
+      services.native.jellyfin.backupDir = lib.mkIf config.services.native.jellyfin.enable cfg.backupDir;
+      services.native.vaultwarden.backupDir = lib.mkIf config.services.native.vaultwarden.enable cfg.backupDir;
+      services.oci.homarr.backupDir = lib.mkIf config.services.oci.homarr.enable cfg.backupDir;
+      services.oci.oneup.backupDir = lib.mkIf config.services.oci.oneup.enable cfg.backupDir;
     })
 
     # Shared OCI service forwarding, see `ociForward` above. Pangolin and Portainer are not in this

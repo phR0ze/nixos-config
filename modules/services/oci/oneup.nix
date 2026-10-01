@@ -7,25 +7,33 @@
 # ### Deployment Features
 # - Get status with: `systemctl status podman-oneup`
 #
-# ### Restore backup data
+# ### Backup process
+# - `<backupDir>/oneup` gets a nightly snapshot at `backupTime` of `/var/lib/oneup/data`: the container is
+#   stopped, the data dir rsynced over, then the container restarted. Each run overwrites the last
+# - Stopping is the simplest way to get a consistent copy of the app's database
+#
+# **Trigger backup**
+# sudo systemctl start backup-oneup
+#
+# #### Restore
 # 1. Stop the service
 #    sudo systemctl stop podman-oneup
-# 2. Move the current data aside
-#    sudo mv /var/lib/oneup/data /var/lib/oneup/data.pre-restore
-# 3. Install the backup
-#    sudo rsync -a /path/to/backup/oneup/data/ /var/lib/oneup/data/
-# 4. Fix ownership if needed
+#
+# 2. Restore the data
+#    sudo rsync -a --delete <backupDir>/oneup/ /var/lib/oneup/data/
+#
+# 3. Fix ownership if needed
 #    sudo chown -R 2002:2002 /var/lib/oneup/data/
-# 5. Restart the service
+#
+# 4. Start the service
 #    sudo systemctl start podman-oneup
-#    sudo systemctl status podman-oneup
 # --------------------------------------------------------------------------------------------------
-{ config, lib, f, ... }:
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.oci.oneup;
 in
 {
-  options.services.oci.oneup = import ../../types/service.nix {
+  options.services.oci.oneup = (import ../../types/service.nix {
     inherit lib;
     defaults = {
       name = "oneup";
@@ -34,6 +42,28 @@ in
       capDropAll = true;
       noNewPrivileges = true;
       readOnlyRootfs = true;
+    };
+  }) // {
+    backupDir = lib.mkOption {
+      description = ''
+        Parent directory to snapshot `/var/lib/<name>/data` into nightly, as `<backupDir>/<name>`,
+        overwriting the previous run - see the backup process notes above. Forwarded from
+        `host.backupDir` by `modules/default.nix`. Must be outside `/var/lib/<name>`. `null`
+        disables backups.
+      '';
+      type = types.nullOr types.str;
+      default = null;
+      example = "/mnt/Apps/homelab";
+    };
+
+    backupTime = lib.mkOption {
+      description = ''
+        When the nightly `backupDir` snapshot runs, as a systemd `OnCalendar` expression. The
+        container is stopped for the duration of the run.
+      '';
+      type = types.str;
+      default = "00:00";
+      example = "Sun 02:30";
     };
   };
 
@@ -80,6 +110,48 @@ in
 
       networking.firewall.allowedTCPPorts = lib.optional (!cfg.caddy) cfg.port;
     }
+
+    # Nightly stop -> rsync -> start snapshot of the data dir
+    # - Runs as root since it has to stop/start the service; rsync -a keeps the app user's ownership
+    # - The EXIT trap restarts the container even if rsync fails, but only if it was running beforehand
+    # - No wantedBy on the service itself so it never fires (and takes oneup down) at boot
+    (lib.mkIf (cfg.backupDir != null) (let
+      dataDir = "/var/lib/${cfg.name}";
+      unit = "podman-${cfg.name}.service";
+      backupDir = "${cfg.backupDir}/${cfg.name}";
+    in {
+      assertions = [
+        { assertion = !(lib.hasPrefix "${dataDir}/" "${backupDir}/");
+          message = "services.oci.oneup.backupDir must be outside ${dataDir}"; }
+      ];
+
+      systemd.tmpfiles.rules = [
+        "d ${backupDir} 0750 ${toString cfg.user.uid} ${toString cfg.user.gid} -"
+      ];
+
+      systemd.services."backup-${cfg.name}" = {
+        description = "Backup OneUp data dir";
+        path = [ pkgs.rsync config.systemd.package ];
+        serviceConfig.Type = "oneshot";
+        script = ''
+          set -euo pipefail
+          if systemctl is-active --quiet ${unit}; then
+            trap 'systemctl start ${unit}' EXIT
+            systemctl stop ${unit}
+          fi
+          rsync -a --delete ${dataDir}/data/ ${backupDir}/
+        '';
+      };
+
+      systemd.timers."backup-${cfg.name}" = {
+        description = "Backup OneUp nightly";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = cfg.backupTime;
+          Persistent = true;
+        };
+      };
+    }))
 
     # Contribute a proxy entry to services.native.caddy.proxies rather than requiring it be listed
     # separately in the machine's configuration.nix

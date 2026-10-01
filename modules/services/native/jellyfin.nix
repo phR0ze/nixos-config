@@ -8,7 +8,7 @@
 # - Remote control of Kodi or Jellyfin Media Player or Jellyfin MPV Shim via mobile app
 #
 # ### Backup process
-# - `backupDir` gets a nightly snapshot at `backupTime` from /var/lib/jellyfin` minus its logs
+# - `<backupDir>/jellyfin` gets a nightly snapshot at `backupTime` from `/var/lib/jellyfin` minus its logs
 #   the service is stopped, the data dir rsynced over, then the service restarted.
 # - Jellyfin's SQLite DB runs in WAL mode and `metadata/` is written alongside it, so stopping is the
 #   simplest way to get a consistent copy. Each run overwrites the last
@@ -22,7 +22,7 @@
 #    sudo systemctl stop jellyfin
 #
 # 2. Restore the data
-#    sudo rsync -a --delete /var/backup/jellyfin/ /var/lib/jellyfin/
+#    sudo rsync -a --delete <backupDir>/jellyfin/ /var/lib/jellyfin/
 #
 # 3. Start the service
 #    sudo systemctl start jellyfin
@@ -60,17 +60,18 @@ in
 
       backupDir = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
-        default = "/mnt/Apps/homelab/jellyfin";
-        example = null;
+        default = null;
+        example = "/mnt/Apps/homelab";
         description = ''
-          Directory to snapshot the data dir into nightly, overwriting the previous run - see the
-          backup process notes above. Must be outside `/var/lib/jellyfin`. `null` disables backups.
+          Parent directory to snapshot the data dir into nightly, as `<backupDir>/jellyfin`, overwriting
+          the previous run - see the backup process notes above. Forwarded from `host.backupDir` by
+          `modules/default.nix`. Must be outside `/var/lib/jellyfin`. `null` disables backups.
         '';
       };
 
       backupTime = lib.mkOption {
         type = lib.types.str;
-        default = "00:00";
+        default = "01:00";
         example = "Sun 02:30";
         description = ''
           When the nightly `backupDir` snapshot runs, as a systemd `OnCalendar` expression. The
@@ -144,13 +145,14 @@ in
     (lib.mkIf (cfg.backupDir != null) (let
       dataDir = config.services.jellyfin.dataDir;
       logDir = config.services.jellyfin.logDir;
+      backupDir = "${cfg.backupDir}/jellyfin";
     in {
       assertions = [
-        { assertion = !(lib.hasPrefix "${dataDir}/" "${cfg.backupDir}/");
+        { assertion = !(lib.hasPrefix "${dataDir}/" "${backupDir}/");
           message = "services.native.jellyfin.backupDir must be outside ${dataDir}"; }
       ];
 
-      systemd.tmpfiles.settings."10-jellyfin-backup".${cfg.backupDir}.d = {
+      systemd.tmpfiles.settings."10-jellyfin-backup".${backupDir}.d = {
         user = "jellyfin";
         group = "jellyfin";
         mode = "0770";
@@ -168,7 +170,7 @@ in
           fi
           rsync -a --delete ${lib.optionalString (lib.hasPrefix "${dataDir}/" logDir)
             "--exclude=/${lib.removePrefix "${dataDir}/" logDir}/"} \
-            ${dataDir}/ ${cfg.backupDir}/
+            ${dataDir}/ ${backupDir}/
         '';
       };
 
