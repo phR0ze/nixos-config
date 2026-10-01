@@ -127,21 +127,42 @@ in
     (lib.mkIf cfg.securityDigest.enable {
       systemd.services.security-digest = {
         description = "Push a daily summary of sshd/CrowdSec activity";
+        # The `cscli` wrapper only lands on environment.systemPackages, so config.system.path is
+        # needed for the unit to find it - see crowdsec-firewall-bouncer-register in crowdsec.nix
+        path = lib.optional config.services.native.crowdsec.enable config.system.path;
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = toString (pkgs.writeShellScript "security-digest" ''
+          ExecStart = toString (pkgs.writeShellScript "security-digest" (''
             set -uo pipefail
             ${ntfyFunc}
             HOST=${config.networking.hostName}
-            # Counts only - never the matched log lines, which carry source IPs and usernames
-            AUTH_FAILS=$(journalctl -u sshd --since "-1 day" | grep -c "Failed password" || true)
-            CS_DECISIONS=$(cscli decisions list -o raw 2>/dev/null | tail -n +2 | wc -l || echo 0)
-            ntfy -H "Title: [ $HOST ] Daily security digest" -d "$(cat <<MSG
-            Failed SSH password attempts (last 24h): $AUTH_FAILS
-            Active CrowdSec decisions: $CS_DECISIONS
-            MSG
-            )"
-          '');
+
+            # Rejected SSH logins, one line per connection that never authenticated. Matching on
+            # these rather than "Failed password" works with key-only auth (sshd.harden), and avoids
+            # counting a legit client's agent trying a wrong key before the right one. openssh 9.8+
+            # logs auth from sshd-session (10.x also sshd-auth) rather than sshd, and socket
+            # activation renames the unit, so match the syslog identifiers instead of `-u sshd`.
+            # Counts only - never the matched lines, which carry source IPs and usernames.
+            SSH_REJECTS=$(journalctl -t sshd -t sshd-session -t sshd-auth --since "-1 day" -o cat \
+              | grep -E 'Invalid user |Connection closed by authenticating user |Disconnecting authenticating user ' \
+              || true)
+            SSH_COUNT=$(printf '%s' "$SSH_REJECTS" | grep -c . || true)
+            SSH_SOURCES=$(printf '%s' "$SSH_REJECTS" | grep -oE '[^ ]+ port [0-9]+' | cut -d' ' -f1 \
+              | sort -u | grep -c . || true)
+            MSG="Rejected SSH logins (last 24h): $SSH_COUNT from $SSH_SOURCES source(s)"
+          ''
+          # Only report CrowdSec on hosts running it, and say so if cscli fails rather than
+          # reporting a misleading 0
+          + lib.optionalString config.services.native.crowdsec.enable ''
+            if CS_RAW=$(cscli decisions list -o raw 2>/dev/null); then
+              CS_DECISIONS=$(printf '%s\n' "$CS_RAW" | tail -n +2 | grep -c . || true)
+            else
+              CS_DECISIONS="unavailable (cscli failed)"
+            fi
+            MSG="$MSG"$'\n'"Active CrowdSec decisions: $CS_DECISIONS"
+          '' + ''
+            ntfy -H "Title: [ $HOST ] Daily security digest" -d "$MSG"
+          ''));
         };
       };
 
