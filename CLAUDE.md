@@ -26,6 +26,19 @@ just creating that directory.
 `args.dec.yaml`) - the host must be self-contained. Pair with a dedicated sops age key in
 `.sops.yaml`. Example: `hosts/vps`.
 
+## Networking: networkd + NetworkManager (`modules/devices/network.nix`)
+
+- **systemd-networkd owns all wired config** (DHCP, static IP, bridge, macvlan) as native
+  `systemd.network` units. systemd-resolved is the only resolver.
+- **NetworkManager is an optional desktop overlay** that handles WiFi and nm-applet tray status. On
+  hosts with a static IP or bridge it only *observes* networkd's primary interface ("connected
+  (externally)") and never configures it. With neither, NM owns everything and networkd is idle.
+- NM only adopts an interface as external if networkd has already configured it when NM starts.
+  Otherwise NM claims the interface and flushes networkd's config. So NM is started after networkd
+  settles the primary interface, with a short carrier check and no wait if no cable is connected.
+- **Boot never waits on networking.** Nothing in the boot path may depend on NM, wait-online or
+  `network-online.target`. Network-dependent units retry or start after boot.
+
 ## Args Composition (`mergeArgs` in `flake.nix`, low -> high)
 
 1. `args.nix` 2. `args.dec.yaml` 3. `hosts/<name>/args.nix` 4. `hosts/<name>/args.dec.yaml`,

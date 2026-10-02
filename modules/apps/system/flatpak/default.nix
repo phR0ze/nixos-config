@@ -62,12 +62,17 @@ in
 
       systemd.services.flatpak-managed-install = {
         description = "Managed Flatpak remotes and packages";
-        after = [ "network-online.target" ];
-        wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
+
+        # Boot never waits on networking, so rather than waiting for network-online.target this
+        # runs in the background and retries until the network is up. Unchanged config skips on
+        # the stamp file below without touching the network.
+        unitConfig.StartLimitIntervalSec = 0;
         serviceConfig = {
-          Type = "oneshot";
+          Type = "exec";
           RemainAfterExit = true;
+          Restart = "on-failure";
+          RestartSec = "30s";
         };
         script =
           let

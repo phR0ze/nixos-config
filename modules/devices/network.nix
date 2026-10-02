@@ -12,6 +12,8 @@
 #   the real status, still handling WiFi and anything else. NM is started after networkd has the
 #   primary interface online, as it only assumes an interface that is already configured when it
 #   starts - otherwise it claims the interface itself and flushes networkd's config.
+# - Boot never waits on networking. NM is started after boot rather than by multi-user.target, and
+#   nothing in the boot path may depend on NM, wait-online or network-online.target.
 # - systemd-resolved is the only resolver on every host. DNS mode is selected by `dns.primary`, see
 #   the DNS section of the config below.
 #
@@ -288,11 +290,12 @@ in
     # By default networkd-wait-online waits for every link networkd manages, which stalls boot and
     # `nixos-rebuild switch` for its full timeout whenever one of them isn't connected e.g. a WiFi
     # card with no network in range. Waiting for any one link is enough to reach the network. On NM
-    # hosts where networkd manages nothing it would never succeed at all, and
-    # NetworkManager-wait-online already covers network-online.target.
+    # hosts it's disabled entirely: it only sees networkd's links, so a WiFi-only boot with networkd
+    # owning an unplugged nic0 would stall for its full timeout, and NetworkManager-wait-online
+    # already covers network-online.target for every link including networkd's.
     {
-      systemd.network.wait-online.anyInterface = lib.mkIf networkdWired true;
-      systemd.network.wait-online.enable = lib.mkIf (!networkdWired) false;
+      systemd.network.wait-online.anyInterface = true;
+      systemd.network.wait-online.enable = lib.mkIf cfg.networkManager.enable false;
     }
 
     # Configure wired networking
@@ -381,12 +384,48 @@ in
     # NM only assumes an externally configured interface at its own startup (`keep-configuration`,
     # see NetworkManager.conf(5)), so start it after networkd has the primary interface online.
     # Otherwise NM claims the interface first as its own disconnected device and flushes networkd's
-    # addresses and routes. `after` doesn't require wait-online to succeed, so e.g. an unplugged
-    # cable only delays NM by wait-online's timeout.
+    # addresses and routes. Boot must never wait on that though, so NM is taken out of
+    # multi-user.target and queued after boot by a non-blocking starter instead:
+    # - networkd-primary-settled waits for the primary interface, but only once it has a carrier,
+    #   so an unplugged cable (e.g. a WiFi-only boot) costs just the short carrier check, which
+    #   also covers link negotiation after networkd brings the interface up. It never fails.
+    # - NM is ordered after it, so it can't win the race even when something else starts it early.
+    # - NetworkManager-deferred-start is Type=simple so multi-user doesn't wait on it. It settles
+    #   the interface first and only then queues NM, as upstream NM is `Before=network.target`
+    #   and queuing it during boot would hold network.target, and everything after it, on the wait.
     (lib.mkIf (cfg.networkManager.enable && networkdWired) {
+      systemd.services.networkd-primary-settled = {
+        description = "Wait for networkd to configure ${cfg.primary.name}";
+        wants = [ "systemd-networkd.service" ];
+        after = [ "systemd-networkd.service" ];
+        serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
+        script = ''
+          for _ in $(seq 50); do
+            if [[ "$(cat /sys/class/net/${cfg.primary.name}/carrier 2>/dev/null)" == 1 ]]; then
+              ${config.systemd.package}/lib/systemd/systemd-networkd-wait-online \
+                -i ${cfg.primary.name} --timeout=30 || true
+              exit 0
+            fi
+            sleep 0.2
+          done
+          echo "${cfg.primary.name} has no carrier, not waiting for it"
+        '';
+      };
+
       systemd.services.NetworkManager = {
-        wants = [ "systemd-networkd-wait-online.service" ];
-        after = [ "systemd-networkd-wait-online.service" ];
+        wantedBy = lib.mkForce [ ];
+        wants = [ "networkd-primary-settled.service" ];
+        after = [ "networkd-primary-settled.service" ];
+      };
+
+      systemd.services.NetworkManager-deferred-start = {
+        description = "Start NetworkManager once networkd has settled";
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = { Type = "simple"; RemainAfterExit = true; };
+        script = ''
+          systemctl start networkd-primary-settled.service
+          systemctl start --no-block NetworkManager.service
+        '';
       };
     })
     (lib.mkIf cfg.networkManager.enable {
