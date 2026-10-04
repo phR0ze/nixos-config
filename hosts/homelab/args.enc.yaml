@@ -9,10 +9,6 @@ host:
         dns:
             primary: ENC[AES256_GCM,data:4LRinYqlog==,iv:O/m9viafEYXHcQofD3kIp1uIAk/0P4ZjPL71wlvLwrk=,tag:r7cSp67Am/TebI6Ejmlfhg==,type:str]
             fallback: ENC[AES256_GCM,data:h7jKV+W7YQ==,iv:c2IaogFf/gEF/VO9b7hoADuxTSxEiyA4v4jvZfDLo/Y=,tag:LVD5IyRpAZ/jisBKmPLCoQ==,type:str]
-        macvlan:
-            name: ENC[AES256_GCM,data:4nqP7Q==,iv:oZrEktDYd8rKbFmfuqCIZaiumwpbh9ijvjptdzX0Rc0=,tag:KMGJeyGceFIyz9EScKoGEQ==,type:str]
-            ip: ENC[AES256_GCM,data:gzyVCAeVMq9/yexaNmg=,iv:2XY6wayzI/ncCzrxb4c91fsFJN5KfFz2n8VF4DI367c=,tag:JLLqk9GwkjOVBBnwaZOeDg==,type:str]
-            mac: ENC[AES256_GCM,data:vouASvCb+6xHrOP3TOhG4rA=,iv:9MONVGWy0bgfwxyJMesw1I9XAuGUclZxfbhhbugM8vM=,tag:/eS77KbzQGKg6+P4bAunFg==,type:str]
         nic0:
             name: ENC[AES256_GCM,data:qN/NyT4I,iv:MWhrupSIk+pHJZiOKKvTiaJ9HX6VQKIWOxIeSA+2L2o=,tag:qhcSSlewmFf+YACWufcdkg==,type:str]
             ip: ENC[AES256_GCM,data:OqimdOqyO5UzttLET20=,iv:Z4t65q6IMRfJStJZcBLL1b4xWqjTLp6RWCIDCU12VdE=,tag:zjMBq9iEbUKXXp1GHadybQ==,type:str]
@@ -20,10 +16,6 @@ host:
             name: ENC[AES256_GCM,data:ytYihA==,iv:K1ucJSXUF2rE0Rt3ld0I99FZ9J3LNXZ13Z4LsauM8HE=,tag:cWTxHsZjU2CNGJ/qWdB+/A==,type:str]
     services:
         native:
-            adguard:
-                host: ENC[AES256_GCM,data:CnAiIKo8DxJ1JGE=,iv:C63taBTx12IGtIZ4ybVq/T0E67sZdxZGVWzxu0bsDm0=,tag:CUGxuyKznzv6Bm2VubPNXw==,type:str]
-            synology:
-                host: ENC[AES256_GCM,data:bgVcDV8YvdPb174=,iv:ewQlZSC5uYtgjZeo60XakYegA1es2U90hQeU/4r4lr0=,tag:uQHYxUOVaImLzEY2lN6GNQ==,type:str]
             smb:
                 entries:
                     - mountPoint: ENC[AES256_GCM,data:4BBaQsoRNn5/,iv:+5LxUV1GIGxKWhX4m+pQvVcfcDhCm314T/63551ZzN8=,tag:7ajM0ncKjHoHsp0OMAnV0w==,type:str]
@@ -76,7 +68,7 @@ sops:
             15E/UYdLPOZ/obszZQVoI4bMn2L71YCx0fhNnxV0e0JQRMQlzjvm9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-09-30T22:26:43Z"
-    mac: ENC[AES256_GCM,data:og8UTD9uTSw05aqWmUH6g2hXVDMjWj7lWpwpcCj6G/MWQrY1VMJtVkl0FAj/JgMkEjSElKuilxY8IXTfSYrgX5W6XvnuB8q2AR5YVI3rFqC2ZBxMbfkoetZhT7wSvBJVe0xO8YXnk/vv6/x0CrLXKfBhgYTwQp4efbHNgj0RA7Y=,iv:A5+BRZMbT0a5BRy9y6WTW2UHxPBkqCVwR0/rde4tERc=,tag:QlJJnJNGSJ0ZQzLU6Idbgg==,type:str]
+    lastmodified: "2026-10-04T05:29:29Z"
+    mac: ENC[AES256_GCM,data:XDF/fxAtf50UO+CWzJU/9CYY/nVZEe8fkLpH6fqSNBPEsPJCnbEE2AJFBhCXIG5osICl+CXM/DB6/fz+7hTUJWIKL456P2wu+Nm9apI51O6OgAcDbn232C702FivCOa72+4prZQP/YBUVew6wXonqjEK9rQI5MxT6Nt19xnyNpw=,iv:aH2NznGd8W7Ctx90+DwZXM25OyU/SWSY2BTvroPYMhU=,tag:t/3WxWpbCiJReXwRTgbiTw==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1

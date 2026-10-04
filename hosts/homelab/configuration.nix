@@ -11,11 +11,10 @@
 
   config = {
     host.boot.efi = true;
+    host.autolock = true;
     host.autologin = true;
     host.desktop.xfce.standard = true;
-
-    system.x11.autolock.enable = true;
-    devices.network.bridge.enable = true;
+    host.backupDir = "/mnt/Apps/homelab";
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
 
     virtualization.podman.enable = true;
