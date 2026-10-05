@@ -42,6 +42,10 @@ in
     # networking.nftables.enable) - the generated ruleset interpolates the interface name
     # unquoted, and a bare trailing "+" is a syntax error to nft, not a wildcard. nftables' own
     # glob operator is "*", written here directly via extraInputRules instead.
+    #
+    # Fleet convention: every podman bridge matches "podman*" - podman's own auto-named `podmanN`
+    # (e.g. podman-compose stacks) and every services.oci.* network via `f.contBridge`
+    # ("podman-<name>"). Rules that should cover container bridges match that glob.
     networking.firewall.extraInputRules = ''
       iifname "podman*" udp dport 53 accept
     '';

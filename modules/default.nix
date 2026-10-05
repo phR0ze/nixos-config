@@ -500,6 +500,13 @@ in
       }
     ))
 
+    # Newt reaches Caddy from its fixed container IP (see modules/services/oci/newt.nix), so trust
+    # the X-Forwarded-For it carries from Pangolin's Traefik. Merges with any args-supplied list.
+    (lib.mkIf (config.services.native.caddy.enable && config.services.oci.newt.enable
+        && config.services.oci.newt.ip != null) {
+      services.native.caddy.trustedProxies = [ "${config.services.oci.newt.ip}/32" ];
+    })
+
     (lib.mkIf config.services.native.vaultwarden.enable {
       services.native.vaultwarden.sopsFile = cfg.sopsFile;
       services.native.vaultwarden.baseDomain = cfg.network.domain;
@@ -547,15 +554,6 @@ in
     ]))
     (lib.mkIf config.services.oci.oneup.enable { services.oci.oneup = ociForward "oneup"; })
     (lib.mkIf config.services.oci.stirling-pdf.enable { services.oci.stirling-pdf = ociForward "stirling-pdf"; })
-    (lib.mkIf config.services.oci.newt.enable (
-      let arg = f.getSvcFunc "oci.newt" cfg.services;
-      in {
-        services.oci.newt = (ociForward "newt") // {
-          endpoint = arg "endpoint";
-          id = arg "id";
-        };
-      }
-    ))
 
     (lib.mkIf config.services.oci.pangolin.enable (
       let arg = f.getSvcFunc "oci.pangolin" cfg.services;
@@ -564,6 +562,17 @@ in
         services.oci.pangolin.baseDomain = cfg.network.domain;
         services.oci.pangolin.acmeEmail = arg "acmeEmail";
         services.oci.pangolin.geoblockAllowList = cfg.network.allowList;
+      }
+    ))
+
+    (lib.mkIf config.services.oci.newt.enable (
+      let arg = f.getSvcFunc "oci.newt" cfg.services;
+      in {
+        services.oci.newt = (ociForward "newt") // {
+          endpoint = arg "endpoint";
+          id = arg "id";
+          pangolinAddress = arg "pangolinAddress";
+        };
       }
     ))
   ];

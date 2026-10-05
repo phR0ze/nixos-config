@@ -139,11 +139,10 @@ let
         endpoint: "http://pangolin:3001/api/v1/traefik-config"
         pollInterval: "5s"
       file:
-        # Directory (not filename) mode is required for the geo-allowlist below to hot-reload -
-        # Traefik's single-file mode never watches for changes, only directory mode does. This
-        # also means dynamic_config.yml itself now picks up edits live, though nothing here
-        # currently relies on that (the crowdsec-bouncer key patch below still explicitly restarts
-        # traefik rather than assuming the reload landed in time).
+        # Directory (not filename) mode is required for the geo-allowlist and crowdsec middleware
+        # files below to hot-reload - Traefik's single-file mode never watches for changes, only
+        # directory mode does. Both are written by their own services (atomically, via a
+        # non-.yml temp file + mv) and picked up live without restarting traefik.
         directory: "/etc/traefik/dynamic"
         watch: true
 
@@ -300,31 +299,6 @@ let
             stsIncludeSubdomains: true
             stsSeconds: 63072000
             stsPreload: true
-        crowdsec:
-          plugin:
-            crowdsec:
-              enabled: true
-              logLevel: INFO
-              updateIntervalSeconds: 15
-              updateMaxFailure: 0
-              defaultDecisionSeconds: 15
-              httpTimeoutSeconds: 10
-              crowdsecMode: live
-              crowdsecAppsecEnabled: true
-              crowdsecAppsecHost: crowdsec:7422
-              crowdsecAppsecFailureBlock: true
-              crowdsecAppsecUnreachableBlock: true
-              crowdsecAppsecBodyLimit: 10485760
-              crowdsecLapiKey: "PUT_YOUR_BOUNCER_KEY_HERE_OR_IT_WILL_NOT_WORK"
-              crowdsecLapiHost: crowdsec:8080
-              crowdsecLapiScheme: http
-              forwardedHeadersTrustedIPs:
-                - "0.0.0.0/0"
-              clientTrustedIPs:
-                - "10.0.0.0/8"
-                - "172.16.0.0/12"
-                - "192.168.0.0/16"
-                - "100.89.137.0/20" # Gerbil's default site-tunnel CGNAT range - keep in sync with any override
 
       routers:
         main-app-router-redirect:
@@ -385,6 +359,43 @@ let
         pp-transport-v2:
           proxyProtocol:
             version: 2
+  '';
+
+  # The crowdsec bouncer middleware lives in its own dynamic-config file, written by the
+  # crowdsec-bouncer service below (with @LAPI_KEY@ substituted) rather than by tmpfiles. NixOS
+  # re-runs tmpfiles on *every* switch (switch-to-configuration always restarts
+  # sysinit-reactivation.target, which pulls in systemd-tmpfiles-resetup), so when the key lived in
+  # the tmpfiles-managed dynamic_config.yml every switch silently reverted it to upstream's
+  # placeholder - and Traefik's directory watch hot-loaded that, failing every websecure request
+  # (dashboard, Newt's API/websocket) at the bouncer until the next stack restart re-patched it.
+  crowdsecMiddlewareText = ''
+    http:
+      middlewares:
+        crowdsec:
+          plugin:
+            crowdsec:
+              enabled: true
+              logLevel: INFO
+              updateIntervalSeconds: 15
+              updateMaxFailure: 0
+              defaultDecisionSeconds: 15
+              httpTimeoutSeconds: 10
+              crowdsecMode: live
+              crowdsecAppsecEnabled: true
+              crowdsecAppsecHost: crowdsec:7422
+              crowdsecAppsecFailureBlock: true
+              crowdsecAppsecUnreachableBlock: true
+              crowdsecAppsecBodyLimit: 10485760
+              crowdsecLapiKey: "@LAPI_KEY@"
+              crowdsecLapiHost: crowdsec:8080
+              crowdsecLapiScheme: http
+              forwardedHeadersTrustedIPs:
+                - "0.0.0.0/0"
+              clientTrustedIPs:
+                - "10.0.0.0/8"
+                - "172.16.0.0/12"
+                - "192.168.0.0/16"
+                - "100.89.137.0/20" # Gerbil's default site-tunnel CGNAT range - keep in sync with any override
   '';
 
   crowdsecAcquisTraefikText = ''
@@ -552,7 +563,8 @@ in
     dashboardDomain = lib.mkOption {
       description = "Pangolin dashboard hostname";
       type = types.str;
-      default = "pangolin.${cfg.baseDomain}";
+      # toString so a missing baseDomain reaches the assertion below instead of a coercion error
+      default = "pangolin.${toString cfg.baseDomain}";
     };
 
     acmeEmail = lib.mkOption {
@@ -592,11 +604,14 @@ in
     };
 
     sopsFile = lib.mkOption {
-      type = types.path;
+      type = types.nullOr types.path;
+      default = null;
       example = "./secrets.enc.yaml";
       description = ''
         Path to the sops-encrypted file holding the `serverSecretRef` and
-        `cloudflareApiTokenRef` keys - see the module-level Secrets note.
+        `cloudflareApiTokenRef` keys - see the module-level Secrets note. Nullable so
+        `modules/default.nix` can forward `host.sopsFile` unconditionally - see the `enable`-gated
+        assertion below for the actual requirement.
       '';
     };
 
@@ -642,6 +657,7 @@ in
     assertions = [
       { assertion = cfg.baseDomain != null && cfg.baseDomain != ""; message = "services.oci.pangolin requires 'baseDomain', normally forwarded from 'host.network.domain'"; }
       { assertion = cfg.acmeEmail != null; message = "services.oci.pangolin requires 'acmeEmail'"; }
+      { assertion = cfg.sopsFile != null; message = "services.oci.pangolin requires 'sopsFile', normally forwarded from 'host.sopsFile'"; }
     ];
 
     virtualization.podman.enable = true;
@@ -693,12 +709,12 @@ in
       "C+ ${dataDir}/config/traefik/traefik_config.yml - - - - ${pkgs.writeText "${cfg.name}-traefik-config.yml" traefikConfigText}"
       "r ${dataDir}/config/traefik/dynamic/dynamic_config.yml"
       "C+ ${dataDir}/config/traefik/dynamic/dynamic_config.yml - - - - ${pkgs.writeText "${cfg.name}-dynamic-config.yml" dynamicConfigText}"
-      # Baseline only (geoblockAllowList entries, no fetched US CIDRs yet) - re-applied on every
-      # switch, same as devices.network.harden's nftables geoblock skeleton. The geoblock-refresh
-      # service below overwrites this same path with the full fetched list, independently of any
-      # nixos-rebuild switch, until the next switch resets it back to this baseline.
-      "r ${dataDir}/config/traefik/dynamic/geo-allowlist.yml"
-      "C+ ${dataDir}/config/traefik/dynamic/geo-allowlist.yml - - - - ${pkgs.writeText "${cfg.name}-geo-allowlist-initial.yml" geoAllowlistHeaderText}"
+      # Baseline only (geoblockAllowList entries, no fetched US CIDRs yet), seeded once with plain
+      # `C` (no `r`) so the file is never missing. Deliberately NOT reset on switch: tmpfiles re-runs
+      # on every switch (see crowdsecMiddlewareText), which used to drop the fetched US list until
+      # the next daily refresh. The geoblock-refresh service owns this file from then on, and
+      # re-renders it (current header + last fetched list) whenever the stack restarts.
+      "C ${dataDir}/config/traefik/dynamic/geo-allowlist.yml - - - - ${pkgs.writeText "${cfg.name}-geo-allowlist-initial.yml" geoAllowlistHeaderText}"
       "r ${dataDir}/config/crowdsec/acquis.d/traefik.yaml"
       "C+ ${dataDir}/config/crowdsec/acquis.d/traefik.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-acquis-traefik.yaml" crowdsecAcquisTraefikText}"
       "r ${dataDir}/config/crowdsec/acquis.d/appsec.yaml"
@@ -809,11 +825,16 @@ in
       timerConfig = { OnCalendar = "weekly"; Persistent = true; RandomizedDelaySec = "1h"; };
     };
 
-    # Refresh of Traefik's us-allowlist middleware - same CIDR source and "fail safe to yesterday's
-    # list" reasoning as devices.network.harden's own geoblock-refresh (curl --fail + set -e aborts
-    # before install ever runs on a bad fetch, leaving the previous file untouched), just targeting
-    # a Traefik dynamic-config file instead of an nftables set. See geoAllowlistHeaderText's comment
-    # above for why this exists as a separate mechanism from the host-level geoblock.
+    # Refresh of Traefik's us-allowlist middleware - same CIDR source as devices.network.harden's own
+    # geoblock-refresh, just targeting a Traefik dynamic-config file instead of an nftables set. See
+    # geoAllowlistHeaderText's comment above for why this exists as a separate mechanism from the
+    # host-level geoblock.
+    # - "Fail safe to yesterday's list": each successful fetch is cached in state/, and a failed
+    #   fetch falls back to that cache rather than aborting - so the file is always re-rendered with
+    #   the *current* geoblockAllowList header (a changed allowlist still lands even while the
+    #   upstream source is down) without ever dropping the last-known US CIDRs.
+    # - Written via a non-.yml temp file in the same directory + mv, so Traefik's directory watch
+    #   only ever sees a complete file (it ignores non-.yml/.toml files).
     systemd.services."${cfg.name}-geoblock-refresh" = {
       description = "Refresh Traefik's US IPv4 allowlist middleware for the ${cfg.name} stack";
       after = [ "network-online.target" ];
@@ -822,13 +843,25 @@ in
       serviceConfig.Type = "oneshot";
       script = ''
         set -euo pipefail
-        tmp=$(mktemp)
-        trap 'rm -f "$tmp"' EXIT
+        cache=${dataDir}/state/us-cidrs.txt
+        dest=${dataDir}/config/traefik/dynamic/geo-allowlist.yml
+        tmp=$(mktemp ${dataDir}/config/traefik/dynamic/.geo-allowlist.XXXXXX.tmp)
+        fetched=$(mktemp)
+        trap 'rm -f "$tmp" "$fetched"' EXIT
+
+        if curl --fail --silent --show-error "${usCidrUrl}" \
+            | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$' > "$fetched"; then
+          install -m 0600 "$fetched" "$cache"
+        else
+          echo "US CIDR fetch failed, falling back to the cached list" >&2
+        fi
+
         cat ${pkgs.writeText "${cfg.name}-geo-allowlist-header.yml" geoAllowlistHeaderText} > "$tmp"
-        curl --fail --silent --show-error "${usCidrUrl}" \
-          | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$' \
-          | sed 's/^/            - /' >> "$tmp"
-        install -m 0644 "$tmp" ${dataDir}/config/traefik/dynamic/geo-allowlist.yml
+        if [ -s "$cache" ]; then
+          sed 's/^/            - /' "$cache" >> "$tmp"
+        fi
+        chmod 0644 "$tmp"
+        mv -f "$tmp" "$dest"
       '';
     };
     systemd.timers."${cfg.name}-geoblock-refresh" = {
@@ -869,18 +902,12 @@ in
       # loop whose constant veth teardown/recreate also broke crowdsec's DNS lookups on the same
       # bridge (hosts/vm-vps1 testing, 2026-09-21).
       #
-      # Same ordering applied to geoblock-refresh, for a different reason: every switch that
-      # changes any rendered config forces this unit to restart (see CONFIG_REV below), and the
-      # tmpfiles `r`+`C+` pair for geo-allowlist.yml (see its comment above) resets that file to
-      # its bare baseline - placeholder + geoblockAllowList only, no fetched US CIDRs - on every
-      # single switch, not just first boot. The geoblock-refresh timer's OnBootSec only fires
-      # after an actual reboot and OnUnitActiveSec=1d only re-fires a day after its last run, so
-      # without this ordering a plain `nixos-rebuild switch` (no reboot) would silently drop
-      # Traefik's us-allowlist middleware back to blocking all but the explicit allowlist entries
-      # for up to 24h - confirmed live: switch at 03:07 wiped the file the 02:43 boot-time refresh
-      # had already populated, with the timer not due again until the next day (hosts/vm-vps1
-      # testing, 2026-09-22). Ordering the refresh to run (and finish, success or failure) before
-      # the stack starts closes that gap on every switch, same as geolite-refresh above.
+      # Same ordering applied to geoblock-refresh, for a different reason: it's what applies a
+      # changed geoblockAllowList. geoAllowlistHeaderText is part of CONFIG_REV, so any allowlist
+      # change restarts this unit, which pulls the refresh in to re-render geo-allowlist.yml with
+      # the new header (tmpfiles only seeds that file once - see its comment above). Before that, a
+      # tmpfiles `r`+`C+` pair reset the file to its bare baseline on every switch and wiped the
+      # fetched US CIDRs for up to 24h (hosts/vm-vps1 testing, 2026-09-22).
       after = [
         "network-online.target"
         "podman.service"
@@ -916,8 +943,12 @@ in
     # bouncer plugin) - the plugin authenticates every LAPI call with a per-bouncer key that can
     # only be generated once crowdsec is actually running, so it can't be a sops-sourced secret
     # like server/cloudflare above. Idempotent and safe to re-run: skips registration once
-    # state/bouncer-key exists, only restarts traefik if the deployed dynamic_config.yml doesn't
-    # already carry the current key (e.g. after a fresh deploy, or the key file being reset).
+    # state/bouncer-key exists, then renders crowdsecMiddlewareText with the key into its own
+    # dynamic-config file (never touched by tmpfiles - see crowdsecMiddlewareText's comment) and
+    # only rewrites it when the content differs. Traefik's directory watch picks the change up live,
+    # so traefik is never restarted (which would drop every tunnel's connection). The template's
+    # store path is in this script, so a template change alters the unit and NixOS re-runs it on
+    # switch; a stack restart re-runs it via `requires`.
     # Mirrors services.native.crowdsec.nix's own delete-then-recreate recovery pattern for the same
     # class of interrupted-registration hazard.
     systemd.services."${cfg.name}-crowdsec-bouncer" = {
@@ -925,11 +956,12 @@ in
       after = [ "${cfg.name}-stack.service" ];
       requires = [ "${cfg.name}-stack.service" ];
       wantedBy = [ "multi-user.target" ];
-      path = [ pkgs.podman pkgs.gnused pkgs.coreutils ];
+      path = [ pkgs.podman pkgs.coreutils pkgs.diffutils ];
       serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
       script = ''
         set -euo pipefail
-        dynCfg=${dataDir}/config/traefik/dynamic/dynamic_config.yml
+        dynDir=${dataDir}/config/traefik/dynamic
+        dest=$dynDir/crowdsec.yml
         keyFile=${dataDir}/state/crowdsec-bouncer-key
 
         for i in $(seq 1 30); do
@@ -943,10 +975,14 @@ in
           chmod 0600 "$keyFile"
         fi
 
-        key=$(cat "$keyFile")
-        if ! grep -qF "$key" "$dynCfg"; then
-          sed -i "s|crowdsecLapiKey: .*|crowdsecLapiKey: \"$key\"|" "$dynCfg"
-          podman restart traefik
+        key=$(< "$keyFile")
+        template=$(< ${pkgs.writeText "${cfg.name}-crowdsec-middleware.yml" crowdsecMiddlewareText})
+        tmp=$(mktemp "$dynDir/.crowdsec.XXXXXX.tmp")
+        trap 'rm -f "$tmp"' EXIT
+        printf '%s\n' "''${template//@LAPI_KEY@/$key}" > "$tmp"
+        chmod 0600 "$tmp"
+        if ! cmp -s "$tmp" "$dest"; then
+          mv -f "$tmp" "$dest"
         fi
       '';
     };

@@ -7,11 +7,22 @@
 # --------------------------------------------------------------------------------------------------
 { ... }:
 {
-  imports = [
-    ./hardware-configuration.nix
-  ];
+  # imports = [
+  #   ./hardware-configuration.nix
+  # ];
 
   config = {
+
+    # VM specification
+    host.type.vm = true;
+    virtualization.qemu.guest = {
+      cores = 2;
+      memorySize = 2;
+      rootDrive.size = 30;
+      network.macvtap = true;
+    };
+
+    # Server specification
     layers.console.server = {
       enable = true;
       harden = true;

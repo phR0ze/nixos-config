@@ -17,36 +17,63 @@
 #   `--cap-drop=ALL`, non-root, and (by default) with a read-only rootfs.
 # - `endpoint`/`id` identify *which* site connects, but grant nothing without the secret below. They
 #   come from `host.services.oci.newt.*` in `args.enc.yaml`, forwarded by modules/default.nix.
-# - The Newt client secret is the actual site-connector credential, so it's kept out of the Nix store
-#   entirely via sops-nix rather than args.enc.yaml. `sopsFile` is forwarded from `host.sopsFile`, so
-#   the machine's `configuration.nix` only needs:
-#     services.oci.newt = {
-#       enable = true;
-#       tag = "<pin a version — see github.com/fosrl/newt/releases>";
-#     };
 # - Get the Endpoint/ID/Secret from the Pangolin dashboard: `Network > Sites > + Add Site > Newt Site
-#   (Recommended)`, then use the `Endpoint`/`ID`/`Secret` values shown under `Install Site > Docker`
-#   rather than the generated `docker run` string.
-# - Get status with: sudo systemctl status podman-newt
+# - Get status with:
+#   sudo systemctl status podman-newt
+# - Tunnel health: Newt maintains HEALTH_FILE while its WireGuard tunnel to Gerbil is up, which the
+#   podman healthcheck below reports — `podman healthcheck run newt` or the STATUS column of
+#   `sudo podman ps`. Report-only: Newt reconnects on its own, so an unhealthy state never kills it.
+# - Newt's client tunnels (DISABLE_CLIENTS) and SSH auth daemon (DISABLE_SSH) are both turned off —
+#   neither is used here, and each would otherwise let the Pangolin server open more paths into the
+#   homelab than the Resources defined for this site.
 #
-# ### Reaching services behind Caddy (no LAN hop)
-# Newt sits on its own isolated podman network like every other services.oci.* app, with no route to
-# any other container's network — including Caddy, which runs as a native host service (not a
-# container) fronting homarr/oneup/stirling-pdf/vaultwarden with TLS. Rather than pointing Pangolin
-# Resources at this host's LAN IP (which would make anything exposed to Pangolin equally reachable by
-# every other device on the LAN), the container is given `host.containers.internal` as an alias for
-# its network's gateway address via `--add-host=host.containers.internal:host-gateway`. That gateway
-# is only reachable from inside newt's own network namespace, never from the LAN, and Caddy already
-# listens on all interfaces (it has to, to also serve LAN clients directly), so it's reachable there.
-# When defining a Resource in the Pangolin dashboard for an app fronted by Caddy, set the target to
-# `host.containers.internal:443` with TLS passthrough enabled, so the TLS ClientHello's SNI reaches
-# Caddy intact and it can route to the right vhost — the same single target/port works for every
-# Caddy-fronted app since Caddy multiplexes by SNI. Apps not fronted by Caddy still have to be
-# targeted by LAN IP:port, same as before.
+# ### Reaching services behind Caddy
+# Caddy runs as a native host service (not a container) fronting homarr/oneup/stirling-pdf/
+# vaultwarden with TLS, listening on all interfaces. Newt reaches it through its own podman network's
+# gateway, aliased as `host.containers.internal` via `--add-host`, so Resources don't depend on this
+# host's LAN IP. To expose a Caddy-fronted app, create an HTTP
+# Resource in the Pangolin dashboard with:
+# - Target: method `https`, host `host.containers.internal`, port `443`. Pangolin terminates the
+#   public TLS at its own Traefik and opens a fresh TLS connection to Caddy *without SNI*
+#   (fosrl/pangolin#207) — Caddy's `default_sni` picks its wildcard cert, and routing is by the
+#   `Host` header. There's no TLS passthrough involved.
+# - A custom Host header of `<subdomain>.<this host's network.domain>` if the public hostname on
+#   Pangolin differs from the Caddy vhost; Traefik passes the public Host through unchanged otherwise.
+# Apps not fronted by Caddy can't be targeted at all — see "Egress containment" below.
+#
+# Caddy sees all of this traffic arriving from Newt's fixed container `ip` (host-local, so it's never
+# SNAT'd), so modules/default.nix adds that IP to Caddy's `trustedProxies` whenever both are enabled —
+# backends (e.g. Vaultwarden's login rate limiting) then see real client IPs from Traefik's
+# `X-Forwarded-For` rather than every Pangolin visitor as one address.
+#
+# ### Egress containment
+# Pangolin decides which targets Newt proxies to (and which Gerbil endpoint it tunnels to), so
+# without a limit whoever controls the Pangolin server could reach any LAN host:port — or use this
+# homelab as a relay to anywhere on the internet — through Newt's normal NAT'd podman egress. The
+# `newt-egress` nftables table below is default-deny, allowing Newt's bridge exactly:
+# - its own gateway on tcp/443 (Caddy, i.e. only Caddy-fronted services) and udp/53 (aardvark-dns,
+#   which resolves the Pangolin endpoint — Newt's `DNS` setting is only used inside the tunnel)
+# - `pangolinAddress` (the Pangolin VPS's IPv4, public or private) on tcp/443 (API + websocket)
+#   and udp/51820,21820 (Gerbil's WireGuard and relay/hole-punch ports)
+# Everything else is dropped — other host ports, the host's LAN IP, other containers' published
+# ports, the rest of the LAN and the rest of the internet. The VPS address is pinned rather than
+# resolved from `endpoint` at runtime, so a changed DNS record or a server-pushed endpoint can't
+# widen it; if the VPS ever changes IP, update `host.services.oci.newt.pangolinAddress`. It's a
+# single address because one Newt is one site connection to one Pangolin server (one endpoint, one
+# id/secret), and Gerbil's `base_endpoint` is that same server's dashboard domain.
+# It hooks prerouting at mangle priority, ahead of netavark's DNAT (-100), so it judges the address
+# Newt actually dialed — a published port reached via the host's IP is caught before it's rewritten
+# to a container. `host.containers.internal` is pinned to that same gateway (rather than podman's
+# `host-gateway` lookup) so the target in Pangolin always matches what the rule allows.
+# Apps not fronted by Caddy are therefore unreachable through Newt by design — front them with Caddy.
+# Debug drops with: sudo nft monitor trace (after adding `meta nftrace set 1` to the egress chain)
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, f, ... }: with lib.types;
+{ config, lib, f, ... }: with lib.types;
 let
   cfg = config.services.oci.newt;
+
+  # Netavark gives a `--subnet` network the first host address as its gateway (see createContNetwork)
+  gateway = f.hostInSubnet (toString cfg.subnet) 1;
 
 in
 {
@@ -86,6 +113,19 @@ in
       default = "INFO";
       description = "Newt log verbosity.";
     };
+
+    pangolinAddress = lib.mkOption {
+      description = ''
+        IPv4 address of the Pangolin server — the only internet/LAN destination Newt's egress rule
+        allows. The public VPS IP in production, or its LAN IP for a local test server like
+        hosts/vm-vps1. Must be what `endpoint` (and Gerbil's `base_endpoint`) resolve to. Forwarded
+        by modules/default.nix from `host.services.oci.newt.pangolinAddress`, keeping it out of
+        tracked files.
+      '';
+      type = types.nullOr types.str;
+      default = null;
+      example = "203.1.138.10";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -96,6 +136,15 @@ in
         message = "services.oci.newt requires 'id' set (host.services.oci.newt.id) — from the Pangolin Site's Newt credentials"; }
       { assertion = cfg.sopsFile != null;
         message = "services.oci.newt requires 'sopsFile' — normally forwarded from 'host.sopsFile'"; }
+      { assertion = lib.hasSuffix ".0/24" (toString cfg.subnet);
+        message = "services.oci.newt requires a /24 'subnet' ending in .0 — its egress rule derives the gateway from it"; }
+      # A literal IPv4 only — nft would resolve a hostname once at ruleset load, silently pinning
+      # whatever it pointed at then
+      { assertion = cfg.pangolinAddress != null
+          && builtins.match "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}" cfg.pangolinAddress != null;
+        message = "services.oci.newt requires 'pangolinAddress' set to an IPv4 address (host.services.oci.newt.pangolinAddress) — the Pangolin server, the only destination its egress rule allows"; }
+      { assertion = config.networking.nftables.enable;
+        message = "services.oci.newt requires networking.nftables.enable — its egress containment is nftables-only"; }
     ];
 
     virtualization.podman.enable = true;
@@ -134,21 +183,61 @@ in
         # CONFIG_FILE is Newt's documented override (see resolveConfigFilePath in fosrl/newt) —
         # point it at the writable /tmp tmpfs mounted below instead.
         CONFIG_FILE = "/tmp/newt-client/config.json";
+        # Unused features, off to limit what the Pangolin server can open — see notes above
+        DISABLE_CLIENTS = "true";
+        DISABLE_SSH = "true";
+        # No failover to Pangolin's cloud-managed nodes — self-hosted only, and the egress rule
+        # would block them anyway
+        NO_CLOUD = "true";
+        # Present only while the tunnel is up — read by the healthcheck below
+        HEALTH_FILE = "/tmp/newt-healthy";
       };
       environmentFiles = [ config.secret.templates."newt-${cfg.name}".path ];
       volumes = [
         "/etc/localtime:/etc/localtime:ro"
       ];
       extraOptions = [
-        "--add-host=host.containers.internal:host-gateway"  # Reach Caddy without a LAN hop — see notes above
+        "--add-host=host.containers.internal:${gateway}"  # Caddy via the gateway — see notes above
         "--ip=${cfg.ip}"
+        # Report-only tunnel health (the default --health-on-failure=none) — see notes above
+        ''--health-cmd=["CMD","test","-f","/tmp/newt-healthy"]''
+        "--health-interval=30s"
+        "--health-start-period=60s"
       ] ++ lib.optionals cfg.capDropAll [ "--cap-drop=ALL" ]
         ++ lib.optionals cfg.noNewPrivileges [ "--security-opt=no-new-privileges" ]
         ++ lib.optionals cfg.readOnlyRootfs [ "--read-only" "--tmpfs=/tmp" ];
     };
 
     # Newt is outbound-only (dials out to Pangolin/Gerbil) — nothing to publish, so no
-    # networking.firewall rule is added for it, unlike the other services.oci.* modules
+    # networking.firewall rule is added for it. DNS to aardvark-dns on its gateway is already allowed
+    # by podman.nix's `iifname "podman*"` rule, which its bridge (`f.contBridge`) falls under.
+
+    # Egress containment — see "Egress containment" in the notes above
+    networking.nftables.tables."${cfg.name}-egress" = {
+      family = "inet";
+      content = ''
+        chain prerouting {
+          type filter hook prerouting priority mangle; policy accept;
+          iifname "${f.contBridge cfg.name}" jump egress
+        }
+
+        chain egress {
+          meta nfproto != ipv4 drop
+          ct state established,related accept
+
+          # Caddy and aardvark-dns on the bridge gateway
+          ip daddr ${gateway} tcp dport 443 accept
+          ip daddr ${gateway} udp dport 53 accept
+
+          # Pangolin: API/websocket and Gerbil's WireGuard/relay ports
+          ip daddr ${toString cfg.pangolinAddress} tcp dport 443 accept
+          ip daddr ${toString cfg.pangolinAddress} udp dport { 51820, 21820 } accept
+
+          # Everything else: the host's other ports, the LAN, and the rest of the internet
+          drop
+        }
+      '';
+    };
 
     # Create podman network and extend service to use it
     systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };

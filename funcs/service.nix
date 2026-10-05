@@ -1,6 +1,18 @@
 # Service management functions
 #---------------------------------------------------------------------------------------------------
-{ lib, pkgs, ... }: {
+{ lib, pkgs, ... }:
+let
+  # Host bridge interface name for a service's podman network e.g. `contBridge "homarr"` ->
+  # "podman-homarr". Prefixed so every service bridge falls under the fleet's `iifname "podman*"`
+  # rules (container DNS in modules/virtualization/podman.nix, and devices.network.harden's
+  # geoblock/connlimit exemptions) the same as podman's own auto-named `podmanN` bridges. Cut to
+  # the kernel's 15-character interface-name limit (IFNAMSIZ), so only the first 8 characters of
+  # the service name survive e.g. "podman-stirling" — two services sharing those would collide.
+  #-------------------------------------------------------------------------------------------------
+  contBridge = name: builtins.substring 0 15 "podman-${name}";
+in {
+  # Exposed for modules that need the bridge name e.g. for nftables `iifname` rules
+  inherit contBridge;
 
   # Compute the Nth host address within a service's `/24` subnet e.g.
   # `hostInSubnet "10.89.107.0/24" 3` -> "10.89.107.3". Used for a multi-container service (like
@@ -66,6 +78,10 @@
   # - name: name of the network to create e.g. `immich`
   # - subnet: fixed CIDR for this network e.g. `10.89.101.0/24` (gateway defaults to the .1 address)
   #
+  # The bridge is named by `contBridge`. A network that already exists with any other bridge name
+  # (e.g. one created before that prefix existed) is removed and recreated — `rm -f` also removes
+  # its containers, which their own units' `Restart=always` brings straight back.
+  #
   # Pinned rather than left to netavark's auto-IPAM. Podman/netavark have a long-standing bug
   # (containers/podman#27516, containers/netavark#302) where the hostport DNAT rule for a stopped
   # container is never removed — a new rule is just appended on every restart, and the stale one
@@ -77,7 +93,10 @@
   # services.oci.* module) makes the leftover stale rule harmless even when netavark fails to clean
   # it up, since it ends up identical to the live one instead of pointing at a dead address.
   #-------------------------------------------------------------------------------------------------
-  createContNetwork = { name, subnet }: {
+  createContNetwork = { name, subnet }: let
+    bridge = contBridge name;
+  in {
+    path = [ pkgs.podman ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -86,8 +105,12 @@
       ];
     };
     script = ''
-      if ! ${pkgs.podman}/bin/podman network exists ${name}; then
-        ${pkgs.podman}/bin/podman network create --interface-name ${name} --subnet ${subnet} ${name}
+      if podman network exists ${name} \
+          && [ "$(podman network inspect --format '{{.NetworkInterface}}' ${name})" != "${bridge}" ]; then
+        podman network rm -f ${name}
+      fi
+      if ! podman network exists ${name}; then
+        podman network create --interface-name ${bridge} --subnet ${subnet} ${name}
       fi
     '';
   };

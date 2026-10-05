@@ -435,9 +435,8 @@ in
         # Keep NM off the interfaces it doesn't own: bridges, and whatever networkd owns (see the
         # network model at the top of this file). Two managers on one interface race each other for
         # addresses, routes and DNS. Bridges are matched by type as every one on these hosts is
-        # someone else's: networkd's primary bridge, and podman's per-service networks which are
-        # named after the service (see `f.createContNetwork`) rather than podman*. The primary
-        # interface is the exception, see `no-auto-default` below.
+        # someone else's: networkd's primary bridge, and podman's networks (all named "podman*",
+        # see `f.contBridge`). The primary interface is the exception, see `no-auto-default` below.
         unmanaged = [ "type:bridge" ]
           ++ lib.optionals cfg.bridge.enable [
             "except:interface-name:${cfg.bridge.name}"

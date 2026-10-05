@@ -15,8 +15,9 @@
 #    `host.*` by `modules/default.nix`.
 # 3. Proxies: apps add their own entry via their `subdomain` option. Backends on other machines go in
 #    `host.services.native.caddy.proxies` in `args.enc.yaml` to keep LAN IPs untracked.
-# 4. Pangolin: point private resources in `Host` mode at this host's `IP:443`. For public HTTP
-#    resources, set `host.services.native.caddy.trustedProxies` to Newt's IP.
+# 4. Pangolin: with `services.oci.newt` on this host, target HTTP resources at
+#    `https://host.containers.internal:443` (see newt.nix's "Reaching services behind Caddy").
+#    Newt's IP is added to `trustedProxies` automatically by `modules/default.nix`.
 # 5. DNS-01 checks use Cloudflare's resolvers because AdGuard's `*.<baseDomain>` rewrite would hide
 #    the `_acme-challenge` TXT record.
 # --------------------------------------------------------------------------------------------------
@@ -173,6 +174,8 @@ in
       '' + lib.optionalString (cfg.trustedProxies != [ ]) ''
         servers {
           trusted_proxies static ${lib.concatStringsSep " " cfg.trustedProxies}
+          # Right-to-left: the client IP is the first untrusted hop, not a client-supplied leftmost
+          trusted_proxies_strict
         }
       '';
 
