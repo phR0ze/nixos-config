@@ -11,6 +11,18 @@ host:
             ip: ENC[AES256_GCM,data:pMOeuDi9HYsGIxhsG/8Q,iv:EgZ2TX9T40bol0NZk5IPYtxD4BGmW7D1h26Vh4tdSns=,tag:ZzYyRtm8py8TfFX98VZs5g==,type:str]
     services:
         native:
+            adguardhome:
+                dnsRewrites:
+                    - domain: ENC[AES256_GCM,data:Uflt72/Lkh1fmJt3tlgVFET2if1IVVnaQox+zA==,iv:1jU4NicjKg2Wkv8btaiw437rizq51TNEnLIyzc9S7bQ=,tag:OTVNdlmp8l1vslggHhT6/Q==,type:str]
+                      answer: ENC[AES256_GCM,data:I/G57yDZy7U1Eadn,iv:0WsSi0aV31Q6EYMDNOVxC5ILFV7SwZJzEALI42vT2l8=,tag:rQjfYiJRj7kiHigTfX1i2g==,type:str]
+                    - domain: ENC[AES256_GCM,data:BK9HlNgiyZwH2XWXdQGFghWyNqi4UbLDjg==,iv:BBDHdnpWmZrekbBMKa8/03JPe6Yyy9cfdZHqSfTYl6Y=,tag:7+jFamPY0c4tQDxeGfqQVQ==,type:str]
+                      answer: ENC[AES256_GCM,data:CH2Er4fU6deGk9C9,iv:ep/CyLJz+bv2AH/Xe7ocM590UexEiVnVID7XV5/cHBw=,tag:Vgk2zQvwK+LAWl4gGLh9ZQ==,type:str]
+                    - domain: ENC[AES256_GCM,data:YS/CJC/nAZ1EsiciQ/eeWavXBudM2FmMeA==,iv:eBlBc5IB4nj4Umr8k/GUVGPPummaI9rdMA6kcr8GozQ=,tag:ZCbQWUvAzo+9BYpIHMVCWg==,type:str]
+                      answer: ENC[AES256_GCM,data:CH2Er4fU6deGk9C9,iv:ep/CyLJz+bv2AH/Xe7ocM590UexEiVnVID7XV5/cHBw=,tag:Vgk2zQvwK+LAWl4gGLh9ZQ==,type:str]
+                    - domain: ENC[AES256_GCM,data:Hi2nuXtv3oyKOdXiAVnzeLOGRYSyOfA=,iv:Q7L4HCRRVxzG/s9aLApWC5dRcHUUfzwZ0nrjzwO1+aI=,tag:gPhrQSTeCYFS8YMojciqpQ==,type:str]
+                      answer: ENC[AES256_GCM,data:CH2Er4fU6deGk9C9,iv:ep/CyLJz+bv2AH/Xe7ocM590UexEiVnVID7XV5/cHBw=,tag:Vgk2zQvwK+LAWl4gGLh9ZQ==,type:str]
+                    - domain: ENC[AES256_GCM,data:oYlurkmKeBIqPFE4EvSNwWQ0LXNSLJyt,iv:3I0lTLsnxYkYpkdX3i2ttQiUGWMUi2lv1JcHPyqPK2M=,tag:SnHlPw8eW2XDKY0VAHXlWw==,type:str]
+                      answer: ENC[AES256_GCM,data:CH2Er4fU6deGk9C9,iv:ep/CyLJz+bv2AH/Xe7ocM590UexEiVnVID7XV5/cHBw=,tag:Vgk2zQvwK+LAWl4gGLh9ZQ==,type:str]
             smb:
                 entries:
                     - mountPoint: ENC[AES256_GCM,data:fxttdRGgRqqg,iv:WB28slLtlLeTm5SV5SodLX4/ieRiShRYfePQsoLzAsw=,tag:HdKPmlV/VeW7iiCeuv7jAw==,type:str]
@@ -39,19 +51,21 @@ host:
                       writable: ENC[AES256_GCM,data:a2tHkXk=,iv:T0qt2syZzeTCbatnwpqis94L8GyYelr5NGxipqfAOQQ=,tag:31maVkPU+7peZIWbGPVZYQ==,type:bool]
         oci:
             homarr:
-                subnet: ENC[AES256_GCM,data:Bdqfz4ldPW+3bFkG6NA=,iv:mqfCtvctQaXobbd6iSF0ua8k7NXfIsX02n1tZgwwR40=,tag:LR5FK8sbXUisjFUvnNqf0A==,type:str]
                 ip: ENC[AES256_GCM,data:MuS76Mup+hiHo6I=,iv:rIOsRF/DiaTD6rBbfABck906G/gEqK3LHiQ1bR2J1tA=,tag:nKg1EfbaL9Igx7vBXcV/7g==,type:str]
+                subnet: ENC[AES256_GCM,data:Bdqfz4ldPW+3bFkG6NA=,iv:mqfCtvctQaXobbd6iSF0ua8k7NXfIsX02n1tZgwwR40=,tag:LR5FK8sbXUisjFUvnNqf0A==,type:str]
             oneup:
-                subnet: ENC[AES256_GCM,data:kMm2xEstQ7krJWh3GeQ=,iv:CG0RfQlrW9Gc/YvOj7YX4Beb7tL1fufeHENVNjdymRI=,tag:vYK1Z+wQU+nio5N5DgZ5cw==,type:str]
                 ip: ENC[AES256_GCM,data:WjtupH62ZwLMi/s=,iv:apVFFTekiVrrHhQglN5qqNB17htuMkAvDA89FupHYHM=,tag:juZh8AyeYWnEktxt5XScTw==,type:str]
+                subnet: ENC[AES256_GCM,data:kMm2xEstQ7krJWh3GeQ=,iv:CG0RfQlrW9Gc/YvOj7YX4Beb7tL1fufeHENVNjdymRI=,tag:vYK1Z+wQU+nio5N5DgZ5cw==,type:str]
+            stirling-pdf:
+                ip: ENC[AES256_GCM,data:3aYi1mDuPU2zK2s=,iv:03sGCDmhs4wcJXn7PECV0cyf51/v4UNRt2YMH3XcAYg=,tag:OgLEBUxEA688kWIIDX2v1g==,type:str]
+                subnet: ENC[AES256_GCM,data:1wuyQbTAM2La8rozuh4=,iv:IZKnoZZoAMdmWs8c4M9NIBLzSsAx/1DYcqrQKn/omKc=,tag:AqDogI5HKHgy1yTXWVF38A==,type:str]
             newt:
                 id: ENC[AES256_GCM,data:9Sf5Xpzpfs7g4Q68Y852,iv:s+nPNZAphZMl1u+XiOoakhaHNUF6IABC0U09TMAVyRk=,tag:RhZc0A9kqP3G4/sECCIS3g==,type:str]
-                endpoint: ENC[AES256_GCM,data:I8n8sBJGg5uBOgR0JlepOx/VNoh7ndq41K8nyA==,iv:+gUf0N34JeDDBSNwim0ljTZCDa1pYw7oJcVqAiNSLik=,tag:3PztZquwMyI+OSppmwrV+w==,type:str]
-                subnet: ENC[AES256_GCM,data:9hTSiS0y5RX7L57m5yI=,iv:jgVktgs6TpDRU/z9cSMwVyCVZigORHJoNGvyolWzWag=,tag:AgnYAbPDZqYe2pI7pl/z+w==,type:str]
-                ip: ENC[AES256_GCM,data:KTGp9B50WCTUOjw=,iv:pv9O+B0ExfjXKBhZDGOHF/UouL0SP+EuB9lr7h68ceo=,tag:3n0gicFdbtp9ngCkHLAbSw==,type:str]
-            stirling-pdf:
-                subnet: ENC[AES256_GCM,data:PbQM85myFXMs3qvMecM=,iv:8ZnD4W3ZrSru8U5/4efvgWjheTWpgyI1R/F5FgddSWA=,tag:4/wTS+I3sspRJMyWST5JyQ==,type:str]
-                ip: ENC[AES256_GCM,data:FdYB3TRO513QwQE=,iv:e6pgruOfAyAFudUbQeGw0yZv8xrQbI+9AR3a6PX49Gw=,tag:9m08boy60DzbZUhIIErVZg==,type:str]
+                ip: ENC[AES256_GCM,data:XBAygm8p5Ko8LIk=,iv:cvD8cihKLrlosOtQN/VzonqLERuOaof4GyP/b4oLNkY=,tag:JpROYJBQySzDmGh9YrI6JQ==,type:str]
+                subnet: ENC[AES256_GCM,data:UzLt7/Rz291AYlP2Bdo=,iv:HQ37MupWslMDjunm/vVdyB+AJ1UqmaNYp6wBBFP/JZ0=,tag:I6vN7H5lInw9EpnAlBpUJg==,type:str]
+                pangolin:
+                    ip: ENC[AES256_GCM,data:QeurL8K6F87WyVo2,iv:Yj2eTgoXoGuj06Ry+kFsUsgdvaiw3l4jRsewxdO/0So=,tag:orBxtdlcWjB3h9pyKDAgbQ==,type:str]
+                    url: ENC[AES256_GCM,data:C+MEQ8JTGeqT4xVucDY8m89/lGl9Tn7ASXvKqYDzD3Fy/069,iv:c26zkw1j36zooZKCRKEOiF1WKrLwf7qx2mXqoTR1b6s=,tag:ZoNv5N/a1CZsf51rvxkXxw==,type:str]
 sops:
     age:
         - enc: |
@@ -63,7 +77,7 @@ sops:
             15E/UYdLPOZ/obszZQVoI4bMn2L71YCx0fhNnxV0e0JQRMQlzjvm9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-09-30T22:25:15Z"
-    mac: ENC[AES256_GCM,data:EADF2NJoK4GQzWreaRnDv4w6lMBO9H1J/KPZ7UWgWHVkAD6DJqKb5mOOlKKfTj3aW+xdoFFJEKKT3fFOZyUetPfOHamOXRTDkgeqL6gJ0z8Iu9BWn08DCxp4csDE2wGGs9F29EXWeRgLHdXwSaMjr7YJezAEosKhwb4KVNKqXIo=,iv:L4bE+EoA2eLaxKIEYzDeHRuM1xWzlgYCDNNDFsbIcgo=,tag:akMrMy6MbALVtLYv3TBSCQ==,type:str]
+    lastmodified: "2026-10-05T22:39:06Z"
+    mac: ENC[AES256_GCM,data:Hwcz0m/ih0bdmv/ZRIHwGiysjAoGPVHn1ufVWLf/xVffUT8fpg3VIgEjfi8LcuJ0WPlin6YcU/z28RnYQhaMYRD8zB2rcCywgAidkdbKC7r+XzR5WZpY7pb5oJc7MNQcrL2ufoRNTP0DFC0WaKPwq0UGbXHu5V+E6ztrsHXG7BQ=,iv:1L913Z5hOQfeVzYkMsbjMm+ZK0/hldjdCXk7VNFld+c=,tag:W2qnj84ATtuYJ1Xu5HxR2Q==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1

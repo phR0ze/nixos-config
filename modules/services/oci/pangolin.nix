@@ -396,7 +396,16 @@ let
                 - "172.16.0.0/12"
                 - "192.168.0.0/16"
                 - "100.89.137.0/20" # Gerbil's default site-tunnel CGNAT range - keep in sync with any override
+    ${crowdsecTrustedAllowList}
   '';
+
+  # geoblockAllowList entries (the host's `network.allowList`) appended to clientTrustedIPs, which
+  # skips the bouncer entirely - LAPI decisions and AppSec - for those clients. Keeps a trusted
+  # site (e.g. the homelab's Newt registering over the API/websocket) from being locked out by a
+  # community-blocklist or captcha decision on its public IP, or by AppSec being unreachable while
+  # crowdsec restarts. Explicit absolute-column lines for the same reason as wildcardTls above.
+  crowdsecTrustedAllowList = lib.concatMapStringsSep "\n"
+    (ip: "            - \"${ip}\"") cfg.geoblockAllowList;
 
   crowdsecAcquisTraefikText = ''
     poll_without_inotify: false
@@ -597,6 +606,11 @@ in
         through a non-US VPN exit. Baked directly into the allowlist file's initial contents (zero
         network dependency at boot) and re-applied on every subsequent daily refresh alongside the
         fetched US list.
+
+        Also appended to the Traefik crowdsec bouncer's `clientTrustedIPs`, so these clients skip
+        CrowdSec entirely (LAPI decisions and AppSec) - e.g. the homelab's public IP, so its Newt
+        can't be locked out of registering. Only list addresses you control: never shared/CGNAT
+        ranges, which would exempt strangers too.
       '';
       type = lib.types.listOf lib.types.str;
       default = [ ];

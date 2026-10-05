@@ -256,9 +256,11 @@ in
 
             allowList = lib.mkOption {
               description = ''
-                Trusted management IPs/CIDRs exempted from both hardening mechanisms: the geo-filter
-                (`devices.network.harden.geoblockAllowList`) and CrowdSec's ban engine
-                (`services.native.crowdsec.allowlist`).
+                Trusted management IPs/CIDRs exempted from the hardening mechanisms: the geo-filter
+                (`devices.network.harden.geoblockAllowList`), CrowdSec's ban engine
+                (`services.native.crowdsec.allowlist`), and on a Pangolin host both Traefik's US
+                geo-allowlist and its CrowdSec bouncer (`services.oci.pangolin.geoblockAllowList`) -
+                e.g. a homelab's public IP so its Newt can always register.
               '';
               type = types.listOf types.str;
               default = host.network.allowList or [ ];
@@ -512,11 +514,15 @@ in
       services.native.vaultwarden.baseDomain = cfg.network.domain;
     })
 
-    (lib.mkIf config.services.native.adguardhome.enable {
-      services.native.adguardhome.sopsFile = cfg.sopsFile;
-      services.native.adguardhome.baseDomain = cfg.network.domain;
-      services.native.adguardhome.bindAddress = (f.toIP config.devices.network.primary.ip).address;
-    })
+    (lib.mkIf config.services.native.adguardhome.enable (
+      let arg = f.getSvcFunc "native.adguardhome" cfg.services;
+      in {
+        services.native.adguardhome.sopsFile = cfg.sopsFile;
+        services.native.adguardhome.baseDomain = cfg.network.domain;
+        services.native.adguardhome.bindAddress = (f.toIP config.devices.network.primary.ip).address;
+        services.native.adguardhome.dnsRewrites = arg "dnsRewrites";
+      }
+    ))
 
     (lib.mkIf config.services.native.mullvad.enable {
       services.native.mullvad.sopsFile = cfg.sopsFile;
@@ -569,9 +575,9 @@ in
       let arg = f.getSvcFunc "oci.newt" cfg.services;
       in {
         services.oci.newt = (ociForward "newt") // {
-          endpoint = arg "endpoint";
+          pangolin.url = arg "pangolin.url";
+          pangolin.ip = arg "pangolin.ip";
           id = arg "id";
-          pangolinAddress = arg "pangolinAddress";
         };
       }
     ))

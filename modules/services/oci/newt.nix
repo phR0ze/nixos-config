@@ -7,16 +7,16 @@
 # host TUN device, no NET_ADMIN) that dials outbound from this homelab to a Pangolin VPS and proxies
 # traffic for whatever internal services are exposed as Resources in the Pangolin dashboard. See the
 # tech-docs Pangolin doc (`networking/reverse_tunnel/pangolin/README.md`) for the VPS-side setup this
-# connects to, and its "Create a Site describing your server" section for where `endpoint`/`id`/secret
-# come from.
+# connects to, and its "Create a Site describing your server" section for where `pangolin.url`/`id`/
+# secret come from.
 #
 # ### Deployment Details
 # - Outbound-only: Newt registers with Pangolin over HTTPS/WebSocket and tunnels over UDP to Gerbil.
 #   No inbound ports are published on this host for this service, so no firewall rule is needed either.
 # - Fully user-space WireGuard — no Linux capabilities, no `/dev/net/tun`, so the container runs
 #   `--cap-drop=ALL`, non-root, and (by default) with a read-only rootfs.
-# - `endpoint`/`id` identify *which* site connects, but grant nothing without the secret below. They
-#   come from `host.services.oci.newt.*` in `args.enc.yaml`, forwarded by modules/default.nix.
+# - `pangolin.url`/`id` identify *which* site connects, but grant nothing without the secret below.
+#   They come from `host.services.oci.newt.*` in `args.enc.yaml`, forwarded by modules/default.nix.
 # - Get the Endpoint/ID/Secret from the Pangolin dashboard: `Network > Sites > + Add Site > Newt Site
 # - Get status with:
 #   sudo systemctl status podman-newt
@@ -53,14 +53,14 @@
 # `newt-egress` nftables table below is default-deny, allowing Newt's bridge exactly:
 # - its own gateway on tcp/443 (Caddy, i.e. only Caddy-fronted services) and udp/53 (aardvark-dns,
 #   which resolves the Pangolin endpoint — Newt's `DNS` setting is only used inside the tunnel)
-# - `pangolinAddress` (the Pangolin VPS's IPv4, public or private) on tcp/443 (API + websocket)
-#   and udp/51820,21820 (Gerbil's WireGuard and relay/hole-punch ports)
+# - `pangolin.ip` (the Pangolin VPS's IPv4, public or private) on tcp/443 (API + websocket) and
+#   udp/51820,21820 (Gerbil's WireGuard and relay/hole-punch ports)
 # Everything else is dropped — other host ports, the host's LAN IP, other containers' published
 # ports, the rest of the LAN and the rest of the internet. The VPS address is pinned rather than
-# resolved from `endpoint` at runtime, so a changed DNS record or a server-pushed endpoint can't
-# widen it; if the VPS ever changes IP, update `host.services.oci.newt.pangolinAddress`. It's a
-# single address because one Newt is one site connection to one Pangolin server (one endpoint, one
-# id/secret), and Gerbil's `base_endpoint` is that same server's dashboard domain.
+# resolved from `pangolin.url` at runtime, so a changed DNS record or a server-pushed endpoint can't
+# widen it; if the VPS ever changes IP, update `host.services.oci.newt.pangolin.ip`. It's a single
+# address because one Newt is one site connection to one Pangolin server (one url, one id/secret),
+# and Gerbil's `base_endpoint` is that same server's dashboard domain.
 # It hooks prerouting at mangle priority, ahead of netavark's DNAT (-100), so it judges the address
 # Newt actually dialed — a published port reached via the host's IP is caught before it's rewritten
 # to a container. `host.containers.internal` is pinned to that same gateway (rather than podman's
@@ -89,14 +89,31 @@ in
       readOnlyRootfs = true;
     };
   }) // {
-    endpoint = lib.mkOption {
-      description = ''
-        Pangolin server base URL this site connects to. Forwarded by modules/default.nix from
-        `host.services.oci.newt.endpoint`.
-      '';
-      type = types.str;
-      default = "";
-      example = "https://pangolin.example.com";
+    # The one Pangolin server this site connects to — one Newt is one site connection (one URL, one
+    # id/secret), and Gerbil's `base_endpoint` is that same server's dashboard domain
+    pangolin = {
+      url = lib.mkOption {
+        description = ''
+          Pangolin server base URL this site connects to — the dashboard's "Endpoint", passed to
+          Newt as PANGOLIN_ENDPOINT. Forwarded by modules/default.nix from
+          `host.services.oci.newt.pangolin.url`.
+        '';
+        type = types.str;
+        default = "";
+        example = "https://pangolin.example.com";
+      };
+
+      ip = lib.mkOption {
+        description = ''
+          IPv4 address `pangolin.url` (and Gerbil's `base_endpoint`) resolve to — the only
+          internet/LAN destination Newt's egress rule allows. The public VPS IP in production, or
+          its LAN IP for a local test server like hosts/vm-vps1. Forwarded by modules/default.nix
+          from `host.services.oci.newt.pangolin.ip`, keeping it out of tracked files.
+        '';
+        type = types.nullOr types.str;
+        default = null;
+        example = "203.1.138.10";
+      };
     };
 
     id = lib.mkOption {
@@ -113,25 +130,12 @@ in
       default = "INFO";
       description = "Newt log verbosity.";
     };
-
-    pangolinAddress = lib.mkOption {
-      description = ''
-        IPv4 address of the Pangolin server — the only internet/LAN destination Newt's egress rule
-        allows. The public VPS IP in production, or its LAN IP for a local test server like
-        hosts/vm-vps1. Must be what `endpoint` (and Gerbil's `base_endpoint`) resolve to. Forwarded
-        by modules/default.nix from `host.services.oci.newt.pangolinAddress`, keeping it out of
-        tracked files.
-      '';
-      type = types.nullOr types.str;
-      default = null;
-      example = "203.1.138.10";
-    };
   };
 
   config = lib.mkIf cfg.enable {
     assertions = f.ociAsserts cfg ++ [
-      { assertion = cfg.endpoint != "";
-        message = "services.oci.newt requires 'endpoint' set (host.services.oci.newt.endpoint) — the Pangolin dashboard's base URL"; }
+      { assertion = cfg.pangolin.url != "";
+        message = "services.oci.newt requires 'pangolin.url' set (host.services.oci.newt.pangolin.url) — the Pangolin dashboard's base URL"; }
       { assertion = cfg.id != "";
         message = "services.oci.newt requires 'id' set (host.services.oci.newt.id) — from the Pangolin Site's Newt credentials"; }
       { assertion = cfg.sopsFile != null;
@@ -140,9 +144,9 @@ in
         message = "services.oci.newt requires a /24 'subnet' ending in .0 — its egress rule derives the gateway from it"; }
       # A literal IPv4 only — nft would resolve a hostname once at ruleset load, silently pinning
       # whatever it pointed at then
-      { assertion = cfg.pangolinAddress != null
-          && builtins.match "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}" cfg.pangolinAddress != null;
-        message = "services.oci.newt requires 'pangolinAddress' set to an IPv4 address (host.services.oci.newt.pangolinAddress) — the Pangolin server, the only destination its egress rule allows"; }
+      { assertion = cfg.pangolin.ip != null
+          && builtins.match "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}" cfg.pangolin.ip != null;
+        message = "services.oci.newt requires 'pangolin.ip' set to an IPv4 address (host.services.oci.newt.pangolin.ip) — the Pangolin server, the only destination its egress rule allows"; }
       { assertion = config.networking.nftables.enable;
         message = "services.oci.newt requires networking.nftables.enable — its egress containment is nftables-only"; }
     ];
@@ -151,7 +155,7 @@ in
     users.users.${cfg.user.name} = f.createUser cfg.user;
     users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
-    # Combine the sensitive secret with the non-secret endpoint/id into one env file for the
+    # Combine the sensitive secret with the non-secret url/id into one env file for the
     # container, decrypted at activation to sops-nix's default path
     # (config.secret.templates."newt-<name>".path, normally /run/secrets/rendered/newt-<name>),
     # never touching the Nix store, so NEWT_SECRET never lands in `podman inspect`/process
@@ -159,7 +163,7 @@ in
     secret.templates."newt-${cfg.name}" = {
       filemode = "0400";
       content = ''
-        PANGOLIN_ENDPOINT=${cfg.endpoint}
+        PANGOLIN_ENDPOINT=${cfg.pangolin.url}
         NEWT_ID=${cfg.id}
         NEWT_SECRET=${config.secret.ref."newt/clientSecret"}
         LOG_LEVEL=${cfg.logLevel}
@@ -230,8 +234,8 @@ in
           ip daddr ${gateway} udp dport 53 accept
 
           # Pangolin: API/websocket and Gerbil's WireGuard/relay ports
-          ip daddr ${toString cfg.pangolinAddress} tcp dport 443 accept
-          ip daddr ${toString cfg.pangolinAddress} udp dport { 51820, 21820 } accept
+          ip daddr ${toString cfg.pangolin.ip} tcp dport 443 accept
+          ip daddr ${toString cfg.pangolin.ip} udp dport { 51820, 21820 } accept
 
           # Everything else: the host's other ports, the LAN, and the rest of the internet
           drop

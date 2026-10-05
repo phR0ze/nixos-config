@@ -132,6 +132,30 @@ in
         '';
       };
 
+      dnsRewrites = lib.mkOption {
+        type = lib.types.listOf (lib.types.submodule {
+          options = {
+            domain = lib.mkOption {
+              type = lib.types.str;
+              example = "vault.example.com";
+              description = "Domain to rewrite. Wildcards are supported, e.g. `*.example.com`.";
+            };
+            answer = lib.mkOption {
+              type = lib.types.str;
+              example = "192.168.1.5";
+              description = "IP address (or CNAME target) returned for `domain`.";
+            };
+          };
+        });
+        default = [ ];
+        example = [ { domain = "vault.example.com"; answer = "192.168.1.5"; } ];
+        description = ''
+          DNS rewrites served to LAN clients. Merged with the module's own built-in rewrites
+          (`adguard.local` and the split-horizon `*.<baseDomain>`), so setting this adds to them
+          rather than replacing them.
+        '';
+      };
+
       sopsFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
@@ -195,6 +219,20 @@ in
             message = "services.native.adguard requires 'bindAddress', is 'devices.network.primary.ip' set for this host?";
         }
       ];
+
+      # Built-in rewrites, merged with any set by the host
+      services.native.adguardhome.dnsRewrites = [
+        { domain = "adguard.local"; answer = cfg.bindAddress; }
+      ] ++ lib.optional (cfg.baseDomain != "") {
+
+        # Split-horizon: LAN clients (using this AdGuard instance as DNS) resolve
+        # *.<baseDomain> straight to Caddy on the LAN instead of the public Pangolin IP the
+        # Cloudflare wildcard record points at — see services.native.caddy's deployment notes.
+        # Keeps every Caddy-fronted service reachable from the LAN regardless of whether
+        # it also has a Pangolin Resource exposing it publicly yet.
+        domain = "*.${cfg.baseDomain}";
+        answer = cfg.bindAddress;
+      };
 
       # Upstream's `openFirewall` only opens `cfg.port` (the HTTP admin port, TCP-only) - it does
       # NOT open DNS's port 53 despite what the option name might suggest. DNS needs both UDP (the
@@ -461,23 +499,7 @@ in
               yandex = true;
               youtube = true;
             };
-            rewrites = [
-              {
-                domain = "adguard.local";
-                answer = cfg.bindAddress;
-                enabled = true;
-              }
-            ] ++ lib.optional (cfg.baseDomain != "") {
-
-              # Split-horizon: LAN clients (using this AdGuard instance as DNS) resolve
-              # *.<baseDomain> straight to Caddy on the LAN instead of the public Pangolin IP the
-              # Cloudflare wildcard record points at — see services.native.caddy's deployment notes.
-              # Keeps every Caddy-fronted service reachable from the LAN regardless of whether
-              # it also has a Pangolin Resource exposing it publicly yet.
-              domain = "*.${cfg.baseDomain}";
-              answer = cfg.bindAddress;
-              enabled = true;
-            };
+            rewrites = map (x: x // { enabled = true; }) cfg.dnsRewrites;
             filtering_enabled = true;
             parental_enabled = true;
             safebrowsing_enabled = true;
