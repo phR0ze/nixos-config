@@ -87,7 +87,7 @@ in
         user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
         image = "ghcr.io/immich-app/${cfg.name}-server:${cfg.tag}";
         autoStart = true;
-        networks = [ cfg.name ];                  # Isolated app specific network
+        networks = [ (f.contNetwork cfg.name "${cfg.name}-server") ];  # Isolated network, named veth
         ports = [ "${(f.toIP config.devices.network.primary.ip).address}:${toString cfg.port}:2283" ];
         volumes = [
           "/var/lib/${cfg.name}/data:/data:rw"
@@ -115,7 +115,7 @@ in
         #user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
         image = "ghcr.io/immich-app/immich-machine-learning:${tag}";
         autoStart = true;
-        networks = [ cfg.name ];                  # Isolated app specific network
+        networks = [ (f.contNetwork cfg.name "${cfg.name}-machine-learning") ];  # Isolated network, named veth
         volumes = [ "/var/lib/${cfg.name}/cache:/cache:rw" ];
         environment = {
           "NVIDIA_VISIBLE_DEVICES" = "all";       # 
@@ -146,7 +146,7 @@ in
         #user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
         image = "docker.io/valkey/valkey:8-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571";
         autoStart = true;
-        networks = [ cfg.name ];                  # Isolated app specific network
+        networks = [ (f.contNetwork cfg.name "${cfg.name}-redis") ];  # Isolated network, named veth
         # Static IP — see cfg.ip's description in modules/types/service.nix for why
         extraOptions = [ "--ip=${f.hostInSubnet cfg.subnet 4}" ];
       };
@@ -157,7 +157,7 @@ in
         #user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
         image = "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:41eacbe83eca995561fe43814fd4891e16e39632806253848efaf04d3c8a8b84";
         autoStart = true;
-        networks = [ cfg.name ];                  # Isolated app specific network
+        networks = [ (f.contNetwork cfg.name "${cfg.name}-postgres") ];  # Isolated network, named veth
         volumes = [ "/var/lib/${cfg.name}/postgres:/var/lib/postgresql/data:rw" ];
         #user = cfg.user.name;
         environment = {

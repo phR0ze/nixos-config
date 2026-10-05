@@ -10,9 +10,25 @@ let
   # the service name survive e.g. "podman-stirling" — two services sharing those would collide.
   #-------------------------------------------------------------------------------------------------
   contBridge = name: builtins.substring 0 15 "podman-${name}";
+
+  # Host-side veth interface name for a container e.g. `contVeth "homarr"` -> "veth-homarr", in
+  # place of netavark's anonymous, creation-ordered `vethN`, so `ip link`/`resolvectl`/`bridge link`
+  # show which container each one belongs to. Purely for readability - firewall rules match the
+  # bridge (`contBridge`), which is the incoming interface for container traffic, never the veth.
+  # Keyed by *container* name (not service) since every container needs its own veth; cut to the
+  # same 15-character IFNAMSIZ limit, so only 10 characters of the name survive e.g.
+  # "veth-immich-ser" - modules/virtualization/podman.nix asserts they stay unique.
+  #-------------------------------------------------------------------------------------------------
+  contVeth = container: builtins.substring 0 15 "veth-${container}";
 in {
   # Exposed for modules that need the bridge name e.g. for nftables `iifname` rules
-  inherit contBridge;
+  inherit contBridge contVeth;
+
+  # `virtualisation.oci-containers.containers.<container>.networks` entry attaching a container to
+  # a service's podman network with a named host-side veth (see `contVeth`), e.g.
+  # `networks = [ (f.contNetwork cfg.name "${cfg.name}-redis") ];`
+  #-------------------------------------------------------------------------------------------------
+  contNetwork = network: container: "${network}:host_interface_name=${contVeth container}";
 
   # Compute the Nth host address within a service's `/24` subnet e.g.
   # `hostInSubnet "10.89.107.0/24" 3` -> "10.89.107.3". Used for a multi-container service (like

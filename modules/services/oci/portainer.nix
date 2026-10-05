@@ -107,7 +107,7 @@ in
       image = "portainer/portainer-ce:${cfg.tag}";
       autoStart = true;
       hostname = "${cfg.name}";
-      networks = [ cfg.name ];                  # Isolated app specific network
+      networks = [ (f.contNetwork cfg.name cfg.name) ];  # Isolated network, named veth
       ports = [ "${toString cfg.port}:9000" ];
       volumes = [
         "/var/run/docker.sock:/var/run/docker.sock"

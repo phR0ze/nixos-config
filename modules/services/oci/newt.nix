@@ -182,7 +182,7 @@ in
       autoStart = true;
       hostname = "${cfg.name}";
       user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
-      networks = [ cfg.name ];                  # Isolated app specific network
+      networks = [ (f.contNetwork cfg.name cfg.name) ];  # Isolated network, named veth
       environment = {
         # CONFIG_FILE is Newt's documented override (see resolveConfigFilePath in fosrl/newt) —
         # point it at the writable /tmp tmpfs mounted below instead.

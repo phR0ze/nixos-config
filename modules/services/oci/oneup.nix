@@ -107,7 +107,7 @@ in
         user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
         image = "ghcr.io/phr0ze/${cfg.name}:${cfg.tag}";
         autoStart = true;
-        networks = [ cfg.name ];                  # Isolated app specific network
+        networks = [ (f.contNetwork cfg.name cfg.name) ];  # Isolated network, named veth
         # Loopback-only when fronted by Caddy, otherwise published on the LAN
         ports = [ "${lib.optionalString cfg.caddy "127.0.0.1:"}${toString cfg.port}:8080" ];
         volumes = [ "/var/lib/${cfg.name}/data:/app/data:rw" ];

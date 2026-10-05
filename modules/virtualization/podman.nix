@@ -14,6 +14,13 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.virtualization.podman;
+
+  # Every `host_interface_name=` set on an oci-containers network attachment (see `f.contVeth`),
+  # whose 15-character truncation could make two containers collide
+  hostVeths = lib.concatMap (c: lib.concatMap (n:
+      let m = builtins.match ".*host_interface_name=([^,]+).*" n; in lib.optional (m != null) (lib.head m))
+    c.networks) (lib.attrValues config.virtualisation.oci-containers.containers);
+  duplicateVeths = lib.attrNames (lib.filterAttrs (_: v: lib.length v > 1) (lib.groupBy (x: x) hostVeths));
 in
 {
   options.virtualization.podman = {
@@ -22,6 +29,13 @@ in
 
   config = lib.mkIf cfg.enable {
     virtualisation.podman.enable = true;
+
+    # Two containers with the same veth name would fail at start with an opaque netlink error
+    assertions = [
+      { assertion = duplicateVeths == [ ];
+        message = "podman: containers share a host veth name after f.contVeth's 15-character truncation: ${lib.concatStringsSep ", " duplicateVeths}";
+      }
+    ];
 
     # ip_forward/bridge-nf-call sysctls podman needs
     devices.kernel.containers = true;
