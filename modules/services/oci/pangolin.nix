@@ -24,7 +24,8 @@
 #   `traefik` collection itself, so adding it again is a no-op.
 #
 # ### Secrets
-# `secrets` must point at a `secrets.enc.yaml` holding:
+# `sopsFile` must point at a `secrets.enc.yaml` holding (key names configurable via the `*Ref`
+# options, always nested under `<name>/`):
 # - `pangolin/serverSecret`  - session/token signing key (`openssl rand -base64 32`)
 # - `pangolin/cloudflareApiToken` - scoped Cloudflare API token (Zone:DNS:Edit + Zone:Zone:Read) for
 #   the DNS-01 challenge
@@ -34,6 +35,8 @@
 let
   cfg = config.services.oci.pangolin;
   dataDir = "/var/lib/${cfg.name}";
+  serverSecretKey = "${cfg.name}/${cfg.serverSecretRef}";
+  cloudflareApiTokenKey = "${cfg.name}/${cfg.cloudflareApiTokenRef}";
 
   composeText = ''
     name: ${cfg.name}
@@ -592,9 +595,28 @@ in
       type = types.path;
       example = "./secrets.enc.yaml";
       description = ''
-        Path to the sops-encrypted file holding `pangolin/serverSecret` and
-        `pangolin/cloudflareApiToken` - see the module-level Secrets note.
+        Path to the sops-encrypted file holding the `serverSecretRef` and
+        `cloudflareApiTokenRef` keys - see the module-level Secrets note.
       '';
+    };
+
+    serverSecretRef = lib.mkOption {
+      description = ''
+        Key under `<name>/` within `sopsFile` holding Pangolin's session/token signing key,
+        referenced as `''${name}/''${serverSecretRef}`.
+      '';
+      type = types.str;
+      default = "serverSecret";
+    };
+
+    cloudflareApiTokenRef = lib.mkOption {
+      description = ''
+        Key under `<name>/` within `sopsFile` holding the Cloudflare API token (Zone:DNS:Edit +
+        Zone:Zone:Read) used for the DNS-01 challenge, referenced as
+        `''${name}/''${cloudflareApiTokenRef}`.
+      '';
+      type = types.str;
+      default = "cloudflareApiToken";
     };
 
     disableUserCreateOrg = lib.mkOption {
@@ -686,7 +708,7 @@ in
 
       # Secret-bearing config - targets rendered by the secret.templates entries below. Same
       # never-refreshes bug applies here too - without the `r`, rotating
-      # pangolin/serverSecret or pangolin/cloudflareApiToken would silently never reach the
+      # serverSecretRef or cloudflareApiTokenRef would silently never reach the
       # container after the first-ever deploy.
       "r ${dataDir}/config/config.yml"
       "C+ ${dataDir}/config/config.yml - - - - ${config.secret.templates."${cfg.name}-config".path}"
@@ -717,7 +739,7 @@ in
                 cert_resolver: "letsencrypt"
 
         server:
-            secret: "${config.secret.ref."${cfg.name}/serverSecret"}"
+            secret: "${config.secret.ref.${serverSecretKey}}"
             maxmind_db_path: "./config/GeoLite2-Country.mmdb"
             maxmind_asn_path: "./config/GeoLite2-ASN.mmdb"
             cors:
@@ -742,7 +764,7 @@ in
             disable_user_create_org: ${lib.boolToString cfg.disableUserCreateOrg}
             allow_raw_resources: true
       '';
-      secrets."${cfg.name}/serverSecret".sopsFile = cfg.sopsFile;
+      secrets.${serverSecretKey}.sopsFile = cfg.sopsFile;
       # configRev below only hashes the *plaintext* configs, so a rotated serverSecret changes
       # this rendered file without changing the stack unit's own definition - nothing would
       # restart it and the containers would keep running against the old value
@@ -752,9 +774,9 @@ in
     secret.templates."${cfg.name}-env" = {
       filemode = "0400";
       content = ''
-        CF_DNS_API_TOKEN=${config.secret.ref."${cfg.name}/cloudflareApiToken"}
+        CF_DNS_API_TOKEN=${config.secret.ref.${cloudflareApiTokenKey}}
       '';
-      secrets."${cfg.name}/cloudflareApiToken".sopsFile = cfg.sopsFile;
+      secrets.${cloudflareApiTokenKey}.sopsFile = cfg.sopsFile;
       # Same configRev gap as the config template above - traefik reads CF_DNS_API_TOKEN from
       # .env at container start only
       restartUnits = [ "${cfg.name}-stack.service" ];
