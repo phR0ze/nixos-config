@@ -1030,22 +1030,28 @@ in
         Type = "oneshot";
         RemainAfterExit = true;
         WorkingDirectory = dataDir;
-        # podman-compose only creates a missing network, never updates one, so an existing network
-        # whose bridge isn't (yet) `bridge` - e.g. the auto-named podmanN from before it was set - is
-        # removed here for `up` to recreate. Its containers are torn down with `down` first: they
-        # persist across reboots (so they can still exist even though ExecStop ran), and a bare
-        # `podman network rm -f` can't remove them itself - podman-compose links gerbil/traefik to
-        # pangolin as dependents, and rm refuses the parent first ("has dependent containers which
-        # must be removed before it"), failing this unit with exit 125 (hosts/vm-vps1, 2026-10-05).
-        ExecStartPre = pkgs.writeShellScript "${cfg.name}-network-check" ''
+        # Every start begins from a clean slate: the project's containers are always torn down
+        # first, so `up` creates every container fresh from the current compose file. Containers
+        # persist across reboots (ExecStop's `down` doesn't always get to run at shutdown), and
+        # podman-compose's own change detection can't be trusted to replace them: it does notice a
+        # changed config hash, but only recreates *running* dependents alongside the changed
+        # service, so at boot (everything exited) changing gerbil skips traefik, which shares
+        # gerbil's netns. podman then refuses to remove gerbil ("has dependent containers which must
+        # be removed before it"), the create fails on the name in use, and podman-compose silently
+        # starts the stale container and exits 0 - leaving gerbil publishing a port removed from
+        # the compose file a day earlier (hosts/vm-vps1, 2026-10-06). `down` removes dependents
+        # first, so it can't hit that.
+        #
+        # podman-compose also only creates a missing network, never updates one, so an existing
+        # network whose bridge isn't (yet) `bridge` - e.g. the auto-named podmanN from before it was
+        # set - is removed here for `up` to recreate (hosts/vm-vps1, 2026-10-05).
+        ExecStartPre = pkgs.writeShellScript "${cfg.name}-stack-reset" ''
           set -euo pipefail
+          ${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} down
           net=${cfg.name}_frontend
           if ${pkgs.podman}/bin/podman network exists "$net" \
               && [ "$(${pkgs.podman}/bin/podman network inspect --format '{{.NetworkInterface}}' "$net")" != "${bridge}" ]; then
-            ${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} down
-            if ${pkgs.podman}/bin/podman network exists "$net"; then
-              ${pkgs.podman}/bin/podman network rm "$net"
-            fi
+            ${pkgs.podman}/bin/podman network rm "$net"
           fi
         '';
         ExecStart = "${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} up -d";
