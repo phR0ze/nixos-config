@@ -4,6 +4,8 @@
 # - Configurable alerts for failed systemd units
 # - Configurable alerts for CrowdSec activity
 # - Configurable alerts for missing, failed or stale `backup-<name>` units
+# - Configurable alerts for down/unhealthy podman containers
+# - Configurable alerts for new upstream releases of pinned container images
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
@@ -20,6 +22,8 @@ let
         | ${pkgs.curl}/bin/curl -sf -K - "$@"
     }
   '';
+
+  podman = "${config.virtualisation.podman.package}/bin/podman";
 in
 {
   options.services.native.alerts = {
@@ -67,6 +71,17 @@ in
         default = true;
       };
 
+      crowdsecContainers = lib.mkOption {
+        description = ''
+          Podman containers running their own CrowdSec engine (separate from the host's, with its
+          own decisions), whose active decision count is reported alongside the host's. Each
+          module running one adds its own entry, rather than this being listed per host.
+        '';
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        example = [ "crowdsec" ];
+      };
+
       time = lib.mkOption {
         description = "When the digest is pushed, as a systemd `OnCalendar` expression";
         type = lib.types.str;
@@ -97,6 +112,86 @@ in
         type = lib.types.str;
         default = "1h";
         example = "15min";
+      };
+    };
+
+    containers = {
+      units = lib.mkOption {
+        description = ''
+          Podman containers to watch, keyed by the systemd unit that owns them (without
+          `.service`), pushing a notification when the set of down or unhealthy containers
+          changes. A container stack started by a oneshot unit (e.g. podman-compose `up -d`) keeps
+          that unit `active` even once a container crash-loops or exits, so the failed-unit check
+          never sees it. Containers are only checked while their unit is `active`: a stopped,
+          restarting or failed unit is either intentional or already reported by `failedUnits`.
+          Each module running containers adds its own entry, rather than this being listed per
+          host. Empty (the default) disables the check.
+        '';
+        type = lib.types.attrsOf (lib.types.listOf lib.types.str);
+        default = { };
+        example = { pangolin-stack = [ "pangolin" "gerbil" "traefik" "crowdsec" ]; };
+      };
+
+      interval = lib.mkOption {
+        description = ''
+          How often to check the containers, as a systemd time span (`OnUnitActiveSec`). Also the
+          worst-case delay between a container going down and the notification going out.
+        '';
+        type = lib.types.str;
+        default = "5min";
+        example = "1min";
+      };
+    };
+
+    imageUpdates = {
+      images = lib.mkOption {
+        description = ''
+          Pinned container images to compare against their upstream project's latest GitHub
+          release, pushing a notification when the set of outdated images changes. A notice only,
+          never an update - bumping a pin stays a deliberate change after reading the release
+          notes. Each module running pinned images adds its own entries, rather than this being
+          listed per host. Empty (the default) disables the check.
+        '';
+        type = lib.types.attrsOf (lib.types.submodule {
+          options = {
+            tag = lib.mkOption {
+              description = "The image tag currently pinned";
+              type = lib.types.str;
+              example = "v1.7.8";
+            };
+            repo = lib.mkOption {
+              description = "GitHub `owner/repo` whose latest release is compared against `tag`";
+              type = lib.types.str;
+              example = "crowdsecurity/crowdsec";
+            };
+            tagPrefix = lib.mkOption {
+              description = ''
+                Image-only prefix on `tag` that upstream release names don't carry (e.g. `ee-` for
+                Pangolin's Enterprise images). Stripped before comparing and re-added to the
+                reported version, so the alert names the exact tag to pull next.
+              '';
+              type = lib.types.str;
+              default = "";
+              example = "ee-";
+            };
+            minorOnly = lib.mkOption {
+              description = ''
+                Compare major.minor only - for a floating minor tag (e.g. traefik `v3.7`) that
+                upstream republishes on every patch, so only a new minor/major series is reported.
+              '';
+              type = lib.types.bool;
+              default = false;
+            };
+          };
+        });
+        default = { };
+        example = { crowdsec = { tag = "v1.7.8"; repo = "crowdsecurity/crowdsec"; }; };
+      };
+
+      time = lib.mkOption {
+        description = "When to check for new releases, as a systemd `OnCalendar` expression";
+        type = lib.types.str;
+        default = "09:00";
       };
     };
   };
@@ -185,8 +280,19 @@ in
             else
               CS_DECISIONS="unavailable (cscli failed)"
             fi
-            MSG="$MSG"$'\n'"Active CrowdSec decisions: $CS_DECISIONS"
-          '' + ''
+            MSG="$MSG"$'\n'"Active CrowdSec decisions (host): $CS_DECISIONS"
+          ''
+          # Each containerized engine is a separate LAPI with its own decisions, never visible to
+          # the host's cscli
+          + lib.concatMapStrings (c: ''
+            if CS_RAW=$(${podman} exec ${lib.escapeShellArg c} cscli decisions list -o raw 2>/dev/null); then
+              CS_DECISIONS=$(printf '%s\n' "$CS_RAW" | tail -n +2 | grep -c . || true)
+            else
+              CS_DECISIONS="unavailable (cscli failed)"
+            fi
+            MSG="$MSG"$'\n'"Active CrowdSec decisions (container ${c}): $CS_DECISIONS"
+          '') cfg.securityDigest.crowdsecContainers
+          + ''
             ntfy -H "Title: [ $HOST ] Daily security digest" -d "$MSG"
           ''));
         };
@@ -270,6 +376,128 @@ in
         timerConfig = {
           OnBootSec = "5min";
           OnUnitActiveSec = cfg.backup.interval;
+        };
+      };
+    })
+
+    (lib.mkIf (cfg.containers.units != { }) {
+      systemd.services.check-containers = {
+        description = "Push a notification when the set of down or unhealthy containers changes";
+        serviceConfig = {
+          Type = "oneshot";
+          StateDirectory = "alerts";
+          ExecStart = toString (pkgs.writeShellScript "check-containers" (''
+            set -uo pipefail
+            ${ntfyFunc}
+            HOST=${config.networking.hostName}
+            STATE_FILE=/var/lib/alerts/containers.state
+
+            # One snapshot for every check. `.Status` is free-form ("Up 3 hours (unhealthy)"), so
+            # only its health suffix is used - never the uptime, which changes every run and would
+            # re-notify
+            PS=$(${podman} ps -a --format '{{.Names}}|{{.State}}|{{.Status}}')
+            PROBLEMS=""
+          '' + lib.concatStrings (lib.mapAttrsToList (unit: names: ''
+            if [ "$(systemctl show -P ActiveState ${lib.escapeShellArg "${unit}.service"})" = "active" ]; then
+              for c in ${lib.escapeShellArgs names}; do
+                line=$(printf '%s\n' "$PS" | grep -m1 "^$c|" || true)
+                state=$(printf '%s' "$line" | cut -d'|' -f2)
+                if [ -z "$line" ]; then
+                  PROBLEMS+="$c: missing"$'\n'
+                elif [ "$state" != "running" ]; then
+                  PROBLEMS+="$c: $state"$'\n'
+                elif [[ "$line" == *"(unhealthy)"* ]]; then
+                  PROBLEMS+="$c: unhealthy"$'\n'
+                fi
+              done
+            fi
+          '') cfg.containers.units) + ''
+            # Drop the trailing newline so it compares equal to PREV, which $(cat) strips too
+            PROBLEMS=$(printf '%s' "$PROBLEMS")
+
+            PREV=$(cat "$STATE_FILE" 2>/dev/null || true)
+            if [ "$PROBLEMS" != "$PREV" ]; then
+              if [ -n "$PROBLEMS" ]; then
+                ntfy -H "Title: [ $HOST ] container down" -H "Priority: high" -d "$PROBLEMS"
+              else
+                ntfy -H "Title: [ $HOST ] containers recovered" \
+                  -d "All previously down or unhealthy containers are running again"
+              fi
+            fi
+            printf '%s' "$PROBLEMS" > "$STATE_FILE"
+          ''));
+        };
+      };
+
+      systemd.timers.check-containers = {
+        description = "Check container health every ${cfg.containers.interval}";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnBootSec = "5min";
+          OnUnitActiveSec = cfg.containers.interval;
+        };
+      };
+    })
+
+    (lib.mkIf (cfg.imageUpdates.images != { }) {
+      systemd.services.check-image-updates = {
+        description = "Push a notification when pinned container images fall behind upstream";
+        after = [ "network-online.target" ];
+        wants = [ "network-online.target" ];
+        serviceConfig = {
+          Type = "oneshot";
+          StateDirectory = "alerts";
+          ExecStart = toString (pkgs.writeShellScript "check-image-updates" (''
+            set -uo pipefail
+            ${ntfyFunc}
+            HOST=${config.networking.hostName}
+            STATE_FILE=/var/lib/alerts/image-updates.state
+            PREV=$(cat "$STATE_FILE" 2>/dev/null || true)
+            REPORT=""
+
+            # Latest non-prerelease release tag, with any leading `v` dropped so `v1.7.8` and
+            # `1.7.8` compare equal
+            latest() {
+              ${pkgs.curl}/bin/curl -sf --max-time 30 \
+                "https://api.github.com/repos/$1/releases/latest" \
+                | ${pkgs.jq}/bin/jq -er '.tag_name' | sed 's/^v//'
+            }
+          '' + lib.concatStrings (lib.mapAttrsToList (name: img: ''
+            pinned=${lib.escapeShellArg img.tag}
+            pinned=''${pinned#${lib.escapeShellArg img.tagPrefix}}
+            vprefix=""; [[ "$pinned" == v* ]] && vprefix=v
+            pinned=''${pinned#v}
+            if new=$(latest ${lib.escapeShellArg img.repo}); then
+              ${lib.optionalString img.minorOnly ''new=$(printf '%s' "$new" | cut -d. -f1-2)''}
+              if [ "$new" != "$pinned" ]; then
+                REPORT+=${lib.escapeShellArg "${name}: ${img.tag} -> ${img.tagPrefix}"}"$vprefix$new"$'\n'
+              fi
+            else
+              # Keep the last known result rather than flip-flopping the state on a failed fetch
+              old=$(printf '%s\n' "$PREV" | grep -m1 ${lib.escapeShellArg "^${name}: "} || true)
+              [ -n "$old" ] && REPORT+="$old"$'\n'
+            fi
+          '') cfg.imageUpdates.images) + ''
+            # Drop the trailing newline so it compares equal to PREV, which $(cat) strips too
+            REPORT=$(printf '%s' "$REPORT")
+
+            # Report only newly changed results - a still-outdated pin doesn't re-notify daily,
+            # and catching up on a pin is its own confirmation
+            if [ "$REPORT" != "$PREV" ] && [ -n "$REPORT" ]; then
+              ntfy -H "Title: [ $HOST ] new container image version(s)" -d "$REPORT"
+            fi
+            printf '%s' "$REPORT" > "$STATE_FILE"
+          ''));
+        };
+      };
+
+      systemd.timers.check-image-updates = {
+        description = "Check pinned container images for new upstream releases";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = cfg.imageUpdates.time;
+          Persistent = true;
+          RandomizedDelaySec = "15min";
         };
       };
     })

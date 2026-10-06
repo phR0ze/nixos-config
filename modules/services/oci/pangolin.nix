@@ -31,6 +31,7 @@
 # - No telemetry: Pangolin's `anonymous_usage` off, Traefik's release check/anonymous stats off.
 # - Traefik's API/dashboard off (upstream ships `api.insecure: true`) - nothing here uses it.
 # - `aliasHeadersStrategy: delete` on the websecure entrypoint (Traefik 3.7+) - see the entryPoints note.
+# - CrowdSec bouncer trusts no forwarded headers and no RFC1918 ranges - see crowdsecMiddlewareText.
 #
 # ### Secrets
 # `sopsFile` must point at a `secrets.enc.yaml` holding (key names configurable via the `*Ref`
@@ -397,6 +398,16 @@ let
   # the tmpfiles-managed dynamic_config.yml every switch silently reverted it to upstream's
   # placeholder - and Traefik's directory watch hot-loaded that, failing every websecure request
   # (dashboard, Newt's API/websocket) at the bouncer until the next stack restart re-patched it.
+  #
+  # Client-IP trust is narrowed from upstream's template, since `clientTrustedIPs` skips the bouncer
+  # entirely - LAPI decisions and AppSec alike:
+  # - `forwardedHeadersTrustedIPs` is empty (upstream: 0.0.0.0/0). Traefik sits at the edge and sees
+  #   each client's real address directly, so the plugin never needs X-Forwarded-For - trusting it
+  #   from everyone means a single `X-Forwarded-For: <trusted IP>` header skips CrowdSec the moment
+  #   anything upstream of the plugin stops overwriting it (e.g. `forwardedHeaders.insecure`).
+  # - No RFC1918 ranges (upstream: 10/8, 172.16/12, 192.168/16). No legitimate client reaches a VPS
+  #   from them - only the stack's own podman bridge or a provider's shared private network would.
+  #   A host that does front a LAN (e.g. hosts/vm-vps1) lists it explicitly in `geoblockAllowList`.
   crowdsecMiddlewareText = ''
     http:
       middlewares:
@@ -418,12 +429,8 @@ let
               crowdsecLapiKey: "@LAPI_KEY@"
               crowdsecLapiHost: crowdsec:8080
               crowdsecLapiScheme: http
-              forwardedHeadersTrustedIPs:
-                - "0.0.0.0/0"
+              forwardedHeadersTrustedIPs: []
               clientTrustedIPs:
-                - "10.0.0.0/8"
-                - "172.16.0.0/12"
-                - "192.168.0.0/16"
                 - "100.89.137.0/20" # Gerbil's default site-tunnel CGNAT range - keep in sync with any override
     ${crowdsecTrustedAllowList}
   '';
@@ -694,6 +701,26 @@ in
       type = types.int;
       default = 100;
     };
+
+    dashboardSessionLengthHours = lib.mkOption {
+      description = ''
+        Install-wide dashboard login session length, in hours (Pangolin's default is 720, i.e. 30
+        days - long-lived for an admin-facing UI). Per-org session policy in the dashboard layers
+        on top of this.
+      '';
+      type = types.ints.positive;
+      default = 24;
+    };
+
+    resourceSessionLengthHours = lib.mkOption {
+      description = ''
+        Install-wide session length for users authenticating to exposed resources, in hours
+        (Pangolin's default is 720). Kept longer than the dashboard's since end users hit resources
+        day to day.
+      '';
+      type = types.ints.positive;
+      default = 168;
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -807,6 +834,8 @@ in
                 allowed_headers: ["X-CSRF-Token", "Content-Type"]
                 credentials: false
             trust_proxy: 1
+            dashboard_session_length_hours: ${toString cfg.dashboardSessionLengthHours}
+            resource_session_length_hours: ${toString cfg.resourceSessionLengthHours}
 
         rate_limits:
             global:
@@ -920,6 +949,11 @@ in
 
     # Traefik's own access log (config/traefik/logs/access.log) grows unbounded otherwise - nothing
     # in the compose stack rotates it, same as upstream's plain install.
+    # Traefik holds the file open, so after the rename it would keep writing to access.log.1 -
+    # outside crowdsec's `*.log` acquisition glob, blinding it from the first rotation on, and later
+    # compressed/deleted out from under the open handle. USR1 makes Traefik reopen its log files
+    # (its documented rotation hook), unlike copytruncate, which drops lines written between the
+    # copy and the truncate. `|| true` so a stopped stack doesn't fail the rotation.
     services.logrotate.settings."${cfg.name}-traefik" = {
       files = [ "${dataDir}/config/traefik/logs/access.log" ];
       frequency = "daily";
@@ -928,6 +962,33 @@ in
       delaycompress = true;
       missingok = true;
       notifempty = true;
+      sharedscripts = true;
+      postrotate = "${config.virtualisation.podman.package}/bin/podman kill --signal USR1 traefik >/dev/null 2>&1 || true";
+    };
+
+    # Have services.native.alerts watch the stack. Its unit is a oneshot that stays `active` however
+    # the containers fare, so a crash-looping container never shows up as a failed unit; the
+    # containerized CrowdSec engine's decisions are separate from the host's; and every image is
+    # pinned, so nothing else notices a new upstream release.
+    services.native.alerts.enable = lib.mkDefault true;
+    services.native.alerts.containers.units."${cfg.name}-stack" = [ cfg.name "gerbil" "traefik" "crowdsec" ];
+    services.native.alerts.securityDigest.crowdsecContainers = [ "crowdsec" ];
+    services.native.alerts.imageUpdates.images = {
+      pangolin = {
+        tag = cfg.pangolinTag;
+        repo = "fosrl/pangolin";
+        # EE and CE ship from the same release as separate image tags
+        tagPrefix = lib.optionalString (lib.hasPrefix "ee-" cfg.pangolinTag) "ee-";
+      };
+      gerbil = { tag = cfg.gerbilTag; repo = "fosrl/gerbil"; };
+      # A `v3.7`-style floating tag is republished upstream on every patch, so only a new
+      # minor/major series is news; an exact `v3.7.10` pin compares exactly like the others
+      traefik = {
+        tag = cfg.traefikTag;
+        repo = "traefik/traefik";
+        minorOnly = builtins.length (lib.splitString "." (lib.removePrefix "v" cfg.traefikTag)) == 2;
+      };
+      crowdsec = { tag = cfg.crowdsecTag; repo = "crowdsecurity/crowdsec"; };
     };
 
     # The compose stack itself - a oneshot "up -d"/"down" pair rather than a long-running
