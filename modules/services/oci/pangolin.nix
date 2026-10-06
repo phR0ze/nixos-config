@@ -22,6 +22,9 @@
 #   HTTP-CVE-exploitation-detection collection recommended for any internet-facing deployment.
 #   `base-http-scenarios` is deliberately not listed separately - it's already a dependency of the
 #   `traefik` collection itself, so adding it again is a no-op.
+# - No telemetry: Pangolin's `anonymous_usage` off, Traefik's release check/anonymous stats off.
+# - Traefik's API/dashboard off (upstream ships `api.insecure: true`) - nothing here uses it.
+# - `aliasHeadersStrategy: delete` on both entrypoints (Traefik 3.7+) - see the entryPoints note.
 #
 # ### Secrets
 # `sopsFile` must point at a `secrets.enc.yaml` holding (key names configurable via the `*Ref`
@@ -31,12 +34,26 @@
 #   the DNS-01 challenge
 # - `crowdsec` <-> Traefik bouncer key
 #---------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.oci.pangolin;
   dataDir = "/var/lib/${cfg.name}";
   serverSecretKey = "${cfg.name}/${cfg.serverSecretRef}";
   cloudflareApiTokenKey = "${cfg.name}/${cfg.cloudflareApiTokenRef}";
+
+  # Interface names following the fleet's podman conventions (see funcs/service.nix): the stack's
+  # bridge as "podman-<name>" (so the `iifname "podman*"` DNS/harden rules cover it, same as before
+  # when podman auto-named it podmanN) and each container's host-side veth as "veth-<container>"
+  # rather than netavark's anonymous vethN. traefik shares gerbil's netns, so it has no veth.
+  # - The bridge name goes through the network's `driver_opts` (podman's documented
+  #   `com.docker.network.bridge.name`).
+  # - podman-compose (verified 1.5.0/1.6.0) has no field for podman's `host_interface_name`, but it appends
+  #   `x-podman.interface_name` verbatim into `--network=<net>:interface_name=<value>`, so a value
+  #   of `eth0,host_interface_name=<veth>` passes it through (eth0 is the in-container default
+  #   anyway). Relies on that unescaped concatenation - if a podman-compose bump ever validates the
+  #   value, the stack fails to start (visible on hosts/vm-vps1 first); drop the suffix then.
+  bridge = f.contBridge cfg.name;
+  vethOpt = container: "\"eth0,host_interface_name=${f.contVeth container}\"";
 
   composeText = ''
     name: ${cfg.name}
@@ -45,6 +62,9 @@ let
         image: docker.io/fosrl/pangolin:${cfg.pangolinTag}
         container_name: ${cfg.name}
         restart: unless-stopped
+        networks:
+          default:
+            x-podman.interface_name: ${vethOpt cfg.name}
         deploy:
           resources:
             limits:
@@ -63,6 +83,9 @@ let
         image: docker.io/fosrl/gerbil:${cfg.gerbilTag}
         container_name: gerbil
         restart: unless-stopped
+        networks:
+          default:
+            x-podman.interface_name: ${vethOpt "gerbil"}
         depends_on:
           pangolin:
             condition: service_healthy
@@ -104,6 +127,9 @@ let
         image: docker.io/crowdsecurity/crowdsec:${cfg.crowdsecTag}
         container_name: crowdsec
         restart: unless-stopped
+        networks:
+          default:
+            x-podman.interface_name: ${vethOpt "crowdsec"}
         environment:
           GID: "1000"
           COLLECTIONS: ${lib.concatStringsSep " " cfg.crowdsecCollections}
@@ -127,12 +153,21 @@ let
       default:
         driver: bridge
         name: ${cfg.name}_frontend
+        driver_opts:
+          com.docker.network.bridge.name: ${bridge}
   '';
 
   traefikConfigText = ''
+    # No phoning home: no release check (which also sends usage data), no anonymous stats
+    global:
+      checkNewVersion: false
+      sendAnonymousUsage: false
+
+    # Upstream's insecure dashboard/API opens an unauthenticated `traefik` entrypoint on :8080 that
+    # nothing here uses - Pangolin feeds Traefik through the http provider below, never its API
     api:
-      insecure: true
-      dashboard: true
+      insecure: false
+      dashboard: false
 
     providers:
       http:
@@ -212,9 +247,16 @@ let
           storage: "/letsencrypt/acme.json"
           caServer: "https://acme-v02.api.letsencrypt.org/directory"
 
+    # aliasHeadersStrategy: delete - drop any request header whose name has a character other than a
+    # letter, digit or dash (e.g. `X_Forwarded_For`, `X.Real.Ip`), which backends deriving variable
+    # names from headers (CGI/PHP/WSGI/nginx) would read as the real header Traefik manages, letting
+    # a client spoof it. Silent drop rather than `reject` (400), matching nginx's own default of
+    # ignoring underscored headers. Traefik 3.7+, default `keep`.
     entryPoints:
       web:
         address: ":80"
+        http:
+          aliasHeadersStrategy: delete
       websecure:
         address: ":443"
         transport:
@@ -223,6 +265,7 @@ let
         http3:
           advertisedPort: 443
         http:
+          aliasHeadersStrategy: delete
           tls:
             certResolver: "letsencrypt"
           middlewares:
@@ -758,7 +801,7 @@ in
             dashboard_url: "https://${cfg.dashboardDomain}"
             log_level: "info"
             telemetry:
-                anonymous_usage: true
+                anonymous_usage: false
             save_logs: true
             log_failed_attempts: true
 
@@ -940,6 +983,24 @@ in
         Type = "oneshot";
         RemainAfterExit = true;
         WorkingDirectory = dataDir;
+        # podman-compose only creates a missing network, never updates one, so an existing network
+        # whose bridge isn't (yet) `bridge` - e.g. the auto-named podmanN from before it was set - is
+        # removed here for `up` to recreate. Its containers are torn down with `down` first: they
+        # persist across reboots (so they can still exist even though ExecStop ran), and a bare
+        # `podman network rm -f` can't remove them itself - podman-compose links gerbil/traefik to
+        # pangolin as dependents, and rm refuses the parent first ("has dependent containers which
+        # must be removed before it"), failing this unit with exit 125 (hosts/vm-vps1, 2026-10-05).
+        ExecStartPre = pkgs.writeShellScript "${cfg.name}-network-check" ''
+          set -euo pipefail
+          net=${cfg.name}_frontend
+          if ${pkgs.podman}/bin/podman network exists "$net" \
+              && [ "$(${pkgs.podman}/bin/podman network inspect --format '{{.NetworkInterface}}' "$net")" != "${bridge}" ]; then
+            ${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} down
+            if ${pkgs.podman}/bin/podman network exists "$net"; then
+              ${pkgs.podman}/bin/podman network rm "$net"
+            fi
+          fi
+        '';
         ExecStart = "${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} up -d";
         ExecStop = "${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} down";
         # podman-compose blocks on `podman wait --condition=healthy` for every service with a
