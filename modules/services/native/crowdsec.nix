@@ -96,13 +96,20 @@ in
 
         # Never ban our own trusted management IPs, no matter what triggers detection (e.g. a flaky
         # VPN/jump-host reconnect loop tripping a brute-force scenario against ourselves).
+        # CrowdSec parses `ip` entries as bare addresses only - a CIDR there is a fatal parse error
+        # at startup - so ranges have to be split out into the separate `cidr` field.
         postOverflows.s01Whitelist = lib.optional (cfg.allowlist != [ ]) {
           name = "local/whitelist-management-ips";
           description = "Whitelist trusted management IPs from bans";
-          whitelist = {
-            reason = "trusted management IP";
-            ip = cfg.allowlist;
-          };
+          whitelist =
+            let
+              isCidr = lib.hasInfix "/";
+            in
+            {
+              reason = "trusted management IP";
+              ip = lib.filter (x: !isCidr x) cfg.allowlist;
+              cidr = lib.filter isCidr cfg.allowlist;
+            };
         };
 
         # Setting localConfig.profiles at all replaces the hub's profiles.yaml outright (it does
@@ -217,6 +224,35 @@ in
           fi
         '');
       };
+    };
+
+    # Upstream deploys every localConfig file (scenarios, parsers, postoverflows, ...) as a tmpfiles
+    # `L+` symlink named after its content-hashed store path, but never removes the previous
+    # generation's link. Any change to e.g. the allowlist above therefore leaves two files declaring
+    # the same `name` side by side, and crowdsec loads whichever sorts first ("multiple
+    # postoverflows named ...: ignoring ..."), possibly the stale one. Prune any store-path symlink
+    # under /etc/crowdsec that the current generation's tmpfiles rules no longer declare. Hub items
+    # are symlinks into /var/lib/crowdsec, never /nix/store, so they're left alone.
+    systemd.services.crowdsec-prune-stale-links = {
+      description = "Remove CrowdSec local config symlinks left behind by previous generations";
+      before = [ "crowdsec.service" ];
+      requiredBy = [ "crowdsec.service" ];
+      after = [ "systemd-tmpfiles-setup.service" "systemd-tmpfiles-resetup.service" ];
+      serviceConfig.Type = "oneshot";
+      script =
+        let
+          expected = lib.attrNames (lib.filterAttrs (_: v: v ? link)
+            config.systemd.tmpfiles.settings."10-crowdsec");
+        in
+        ''
+          declare -A expected=(${lib.concatMapStringsSep " " (p: "[${lib.escapeShellArg p}]=1") expected})
+          find /etc/crowdsec -type l -lname '/nix/store/*' -print0 | while IFS= read -r -d "" link; do
+            if [ -z "''${expected[$link]:-}" ]; then
+              echo "removing stale $link -> $(readlink "$link")"
+              rm -f -- "$link"
+            fi
+          done
+        '';
     };
 
     # Upstream's crowdsec-update-hub.service (autoUpdateService above) always fails its
