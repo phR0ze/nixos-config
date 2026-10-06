@@ -124,12 +124,24 @@ in
           that unit `active` even once a container crash-loops or exits, so the failed-unit check
           never sees it. Containers are only checked while their unit is `active`: a stopped,
           restarting or failed unit is either intentional or already reported by `failedUnits`.
+          Separately, any unit systemd has auto-restarted since the last check is reported too,
+          whatever its state - this is what catches a container crash-looping too slowly to hit
+          the unit's start limit (and so never showing up as failed).
           Each module running containers adds its own entry, rather than this being listed per
           host. Empty (the default) disables the check.
         '';
         type = lib.types.attrsOf (lib.types.listOf lib.types.str);
         default = { };
         example = { pangolin-stack = [ "pangolin" "gerbil" "traefik" "crowdsec" ]; };
+      };
+
+      ociContainers = lib.mkOption {
+        description = ''
+          Watch every `virtualisation.oci-containers` container (each run by its own
+          `<backend>-<name>` unit) without each module registering it in `units` itself.
+        '';
+        type = lib.types.bool;
+        default = true;
       };
 
       interval = lib.mkOption {
@@ -380,6 +392,12 @@ in
       };
     })
 
+    (lib.mkIf cfg.containers.ociContainers {
+      services.native.alerts.containers.units = lib.mapAttrs'
+        (name: _: lib.nameValuePair "${config.virtualisation.oci-containers.backend}-${name}" [ name ])
+        config.virtualisation.oci-containers.containers;
+    })
+
     (lib.mkIf (cfg.containers.units != { }) {
       systemd.services.check-containers = {
         description = "Push a notification when the set of down or unhealthy containers changes";
@@ -398,6 +416,18 @@ in
             PS=$(${podman} ps -a --format '{{.Names}}|{{.State}}|{{.Status}}')
             PROBLEMS=""
           '' + lib.concatStrings (lib.mapAttrsToList (unit: names: ''
+            # NRestarts only counts systemd's own automatic restarts (a container that exited
+            # under Restart=), and resets on a manual start - so any increase since the last check
+            # means it died on its own. Reported regardless of the unit's state, since a crash loop
+            # spends most of its time `activating`/`auto-restart` rather than `active`.
+            restarts=$(systemctl show -P NRestarts ${lib.escapeShellArg "${unit}.service"})
+            last_file=${lib.escapeShellArg "/var/lib/alerts/restarts-${unit}"}
+            last=$(cat "$last_file" 2>/dev/null || echo "$restarts")
+            if [ "''${restarts:-0}" -gt "''${last:-0}" ]; then
+              PROBLEMS+=${lib.escapeShellArg "${unit}: restarted by systemd after exiting"}$'\n'
+            fi
+            echo "''${restarts:-0}" > "$last_file"
+
             if [ "$(systemctl show -P ActiveState ${lib.escapeShellArg "${unit}.service"})" = "active" ]; then
               for c in ${lib.escapeShellArgs names}; do
                 line=$(printf '%s\n' "$PS" | grep -m1 "^$c|" || true)
@@ -421,7 +451,7 @@ in
                 ntfy -H "Title: [ $HOST ] container down" -H "Priority: high" -d "$PROBLEMS"
               else
                 ntfy -H "Title: [ $HOST ] containers recovered" \
-                  -d "All previously down or unhealthy containers are running again"
+                  -d "All previously down, unhealthy or restarting containers are running again"
               fi
             fi
             printf '%s' "$PROBLEMS" > "$STATE_FILE"
