@@ -16,7 +16,13 @@
 # - IPv6 left off (`enable_ipv6` omitted) - this fleet disables IPv6 everywhere
 # - DNS-01 (Cloudflare) + wildcard certs from the start, not upstream's HTTP-01 default - port 80 is
 #   never published at all, sidestepping the "ufw/nftables can't actually close it once Docker/podman
-#   already published it" gotcha entirely rather than closing it after the fact.
+#   already published it" gotcha entirely rather than closing it after the fact. Traefik's own `web`
+#   entrypoint, its `ping`, and upstream's http->https redirect router are dropped too, so nothing
+#   listens on :80 even inside the container. Any router Pangolin generates on its default
+#   `traefik.http_entrypoint` (`web`) is skipped by Traefik with an "entryPoint web doesn't exist"
+#   log line instead - only plain-HTTP routes are lost, which is the point.
+# - No HTTP/3: upstream's `http3` block on websecure and its `443/udp` publish are both dropped, so
+#   only 443/tcp is exposed - nothing here needs QUIC, and it's one less listener to harden.
 # - CrowdSec `COLLECTIONS` matches upstream's own `--crowdsec` installer default
 #   (`traefik`/`appsec-virtual-patching`/`appsec-generic-rules`) plus `http-cve` - a maintained,
 #   HTTP-CVE-exploitation-detection collection recommended for any internet-facing deployment.
@@ -24,7 +30,7 @@
 #   `traefik` collection itself, so adding it again is a no-op.
 # - No telemetry: Pangolin's `anonymous_usage` off, Traefik's release check/anonymous stats off.
 # - Traefik's API/dashboard off (upstream ships `api.insecure: true`) - nothing here uses it.
-# - `aliasHeadersStrategy: delete` on both entrypoints (Traefik 3.7+) - see the entryPoints note.
+# - `aliasHeadersStrategy: delete` on the websecure entrypoint (Traefik 3.7+) - see the entryPoints note.
 #
 # ### Secrets
 # `sopsFile` must point at a `secrets.enc.yaml` holding (key names configurable via the `*Ref`
@@ -102,7 +108,6 @@ let
           - 51820:51820/udp
           - 21820:21820/udp
           - 443:443
-          - 443:443/udp
 
       traefik:
         image: docker.io/traefik:${cfg.traefikTag}
@@ -252,18 +257,14 @@ let
     # names from headers (CGI/PHP/WSGI/nginx) would read as the real header Traefik manages, letting
     # a client spoof it. Silent drop rather than `reject` (400), matching nginx's own default of
     # ignoring underscored headers. Traefik 3.7+, default `keep`.
+    # No `web` (:80) entrypoint at all - certs come from DNS-01, so nothing needs plain HTTP, and
+    # Traefik doesn't even listen on it inside the container (see the header's DNS-01 note).
     entryPoints:
-      web:
-        address: ":80"
-        http:
-          aliasHeadersStrategy: delete
       websecure:
         address: ":443"
         transport:
           respondingTimeouts:
             readTimeout: "30m"
-        http3:
-          advertisedPort: 443
         http:
           aliasHeadersStrategy: delete
           tls:
@@ -281,9 +282,6 @@ let
 
     serversTransport:
       insecureSkipVerify: true
-
-    ping:
-      entryPoint: "web"
   '';
 
   # Wildcard `domains:` override applied to all three websecure routers that match the dashboard
@@ -316,9 +314,6 @@ let
           plugin:
             badger:
               disableForwardAuth: true
-        redirect-to-https:
-          redirectScheme:
-            scheme: https
         default-whitelist:
           ipWhiteList:
             sourceRange:
@@ -344,15 +339,6 @@ let
             stsPreload: true
 
       routers:
-        main-app-router-redirect:
-          rule: "Host(`${cfg.dashboardDomain}`)"
-          service: next-service
-          entryPoints:
-            - web
-          middlewares:
-            - redirect-to-https
-            - badger
-
         next-router:
           rule: "Host(`${cfg.dashboardDomain}`) && !PathPrefix(`/api/v1`)"
           service: next-service
@@ -725,7 +711,7 @@ in
     # crowdsec-firewall-bouncer or this stack's own docker-scoped engine, two separate LAPIs) still
     # intercepts traffic to these ports before relying on either as the real enforcement point.
     networking.firewall.allowedTCPPorts = [ 443 ];
-    networking.firewall.allowedUDPPorts = [ 443 51820 21820 ];
+    networking.firewall.allowedUDPPorts = [ 51820 21820 ];
 
     # Non-secret config - rendered directly into the Nix store and symlinked into place, so a
     # nixos-rebuild switch always reflects the current module source. Runtime-writable state
