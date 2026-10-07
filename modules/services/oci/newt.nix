@@ -52,7 +52,7 @@
 # homelab as a relay to anywhere on the internet — through Newt's normal NAT'd podman egress. The
 # `newt-egress` nftables table below is default-deny, allowing Newt's bridge exactly:
 # - its own gateway on tcp/443 (Caddy, i.e. only Caddy-fronted services) and udp/53 (aardvark-dns,
-#   which resolves the Pangolin endpoint — Newt's `DNS` setting is only used inside the tunnel)
+#   for any other lookup — Newt's `DNS` setting is only used inside the tunnel)
 # - `pangolin.ip` (the Pangolin VPS's IPv4, public or private) on tcp/443 (API + websocket) and
 #   udp/51820,21820 (Gerbil's WireGuard and relay/hole-punch ports)
 # Everything else is dropped — other host ports, the host's LAN IP, other containers' published
@@ -61,6 +61,15 @@
 # widen it; if the VPS ever changes IP, update `host.services.oci.newt.pangolin.ip`. It's a single
 # address because one Newt is one site connection to one Pangolin server (one url, one id/secret),
 # and Gerbil's `base_endpoint` is that same server's dashboard domain.
+# The endpoint's hostname is pinned to that same address in the container's /etc/hosts
+# (`--add-host`), which Newt's resolver checks before DNS, so name and egress rule can't disagree.
+# Otherwise the name resolves through aardvark-dns to the host's upstream resolver: on a host that
+# doesn't use the LAN AdGuard (whose rewrite points it at a local test server) the name never
+# resolves at all, and where AdGuard is used its `*.<domain>` split-horizon wildcard would answer
+# with the homelab's own Caddy - either way Newt silently never connects (hosts/vm-homelab ->
+# hosts/vm-vps1, 2026-10-06). It also means a spoofed DNS answer can't steer Newt's dials, and TLS
+# still validates against the name. Covers the WireGuard dial too, since Gerbil's `base_endpoint`
+# is that same hostname.
 # It hooks prerouting at mangle priority, ahead of netavark's DNAT (-100), so it judges the address
 # Newt actually dialed — a published port reached via the host's IP is caught before it's rewritten
 # to a container. `host.containers.internal` is pinned to that same gateway (rather than podman's
@@ -74,6 +83,10 @@ let
 
   # Netavark gives a `--subnet` network the first host address as its gateway (see createContNetwork)
   gateway = f.hostInSubnet (toString cfg.subnet) 1;
+
+  # Bare hostname of `pangolin.url` (scheme, path and port stripped), pinned to `pangolin.ip`
+  pangolinHost = builtins.head (lib.splitString ":"
+    (builtins.head (lib.splitString "/" (lib.last (lib.splitString "://" cfg.pangolin.url)))));
 
 in
 {
@@ -105,8 +118,9 @@ in
 
       ip = lib.mkOption {
         description = ''
-          IPv4 address `pangolin.url` (and Gerbil's `base_endpoint`) resolve to — the only
-          internet/LAN destination Newt's egress rule allows. The public VPS IP in production, or
+          IPv4 address of the Pangolin server — the only internet/LAN destination Newt's egress
+          rule allows, and what `pangolin.url`'s hostname (and Gerbil's `base_endpoint`) is pinned
+          to inside the container, bypassing DNS. The public VPS IP in production, or
           its LAN IP for a local test server like hosts/vm-vps1. Forwarded by modules/default.nix
           from `host.services.oci.newt.pangolin.ip`, keeping it out of tracked files.
         '';
@@ -202,6 +216,7 @@ in
       ];
       extraOptions = [
         "--add-host=host.containers.internal:${gateway}"  # Caddy via the gateway — see notes above
+        "--add-host=${pangolinHost}:${toString cfg.pangolin.ip}" # Endpoint pinned to the egress rule's IP
         "--ip=${cfg.ip}"
         # Report-only tunnel health (the default --health-on-failure=none) — see notes above
         ''--health-cmd=["CMD","test","-f","/tmp/newt-healthy"]''
