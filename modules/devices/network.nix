@@ -13,7 +13,8 @@
 #   primary interface online, as it only assumes an interface that is already configured when it
 #   starts - otherwise it claims the interface itself and flushes networkd's config.
 # - Boot never waits on networking. NM is started after boot rather than by multi-user.target, and
-#   nothing in the boot path may depend on NM, wait-online or network-online.target.
+#   nothing in the boot path may depend on NM, wait-online or network-online.target. Services that
+#   need the network list themselves in `onlineServices` to be started once it's up, after boot.
 # - systemd-resolved is the only resolver on every host. DNS mode is selected by `dns.primary`, see
 #   the DNS section of the config below.
 #
@@ -204,6 +205,18 @@ in
       default = cfg.nic0.ip;
     };
 
+    onlineServices = lib.mkOption {
+      description = ''
+        systemd services (unit names without `.service`) that need a working network to start, e.g.
+        to reach the internet or bind a LAN address. They're taken out of multi-user.target and
+        started by `network-services.target` once network-online.target is reached, which is only
+        queued after boot has finished - so they wait on the network, but boot never waits on them.
+      '';
+      type = types.listOf types.str;
+      default = [ ];
+      example = [ "pangolin-stack" "podman-newt" ];
+    };
+
     harden = {
       enable = lib.mkEnableOption ''
         nftables rules to provide protection for per-source connection-flooding, host-wide
@@ -298,6 +311,41 @@ in
       systemd.network.wait-online.anyInterface = true;
       systemd.network.wait-online.enable = lib.mkIf cfg.networkManager.enable false;
     }
+
+    # Network-dependent services
+    # ----------------------------------------------------------------------------------------------
+    # `onlineServices` wait on network-online.target, which must never be in the boot path (see the
+    # network model above). So they hang off their own target instead of multi-user.target, and
+    # that target is only queued once boot has finished, by a non-blocking starter - the same
+    # approach as NetworkManager-deferred-start below. Waiting for boot to finish first also keeps
+    # an NM host's NetworkManager-wait-online (which requires NM) from pulling NM in during boot.
+    # - On switch the starter re-runs whenever the list changes (restartTriggers), so newly listed
+    #   services start without a reboot. `is-system-running --wait` returns at once by then.
+    # - Services stay restartable/stoppable on their own; the target only starts them.
+    (lib.mkIf (cfg.onlineServices != [ ]) {
+      systemd.targets.network-services = {
+        description = "Services that need a working network";
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ];
+      };
+
+      systemd.services = lib.genAttrs cfg.onlineServices (_: {
+        wantedBy = lib.mkForce [ "network-services.target" ];
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ];
+      }) // {
+        network-services-deferred-start = {
+          description = "Start network-dependent services once boot has finished";
+          wantedBy = [ "multi-user.target" ];
+          restartTriggers = cfg.onlineServices;
+          serviceConfig = { Type = "simple"; RemainAfterExit = true; };
+          script = ''
+            systemctl is-system-running --wait >/dev/null || true
+            systemctl start --no-block network-services.target
+          '';
+        };
+      };
+    })
 
     # Configure wired networking
     # ----------------------------------------------------------------------------------------------

@@ -49,7 +49,9 @@ with a dedicated sops age key in `.sops.yaml`. Examples: `hosts/vps1`, `hosts/vm
   Otherwise NM claims the interface and flushes networkd's config. So NM is started after networkd
   settles the primary interface, with a short carrier check and no wait if no cable is connected.
 - **Boot never waits on networking.** Nothing in the boot path may depend on NM, wait-online or
-  `network-online.target`. Network-dependent units retry or start after boot.
+  `network-online.target`. Network-dependent units retry, or list themselves in
+  `devices.network.onlineServices` to be started by `network-services.target` once the network is
+  up, after boot (never via `wantedBy multi-user` + `after network-online`).
 
 ## Args Composition (`mergeArgs` in `flake.nix`, low -> high)
 

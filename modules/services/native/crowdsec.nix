@@ -145,7 +145,6 @@ in
     # instead of the raw, unconfigured package binary.
     systemd.services.crowdsec-firewall-bouncer-register = {
       description = "Register the CrowdSec Firewall Bouncer to the local CrowdSec service";
-      wantedBy = [ "multi-user.target" ];
       after = [ "crowdsec.service" ];
       wants = [ "crowdsec.service" ];
       # The `cscli` wrapper only lands on environment.systemPackages, not any package we can
@@ -178,6 +177,13 @@ in
         UMask = "0077";
       };
     };
+
+    # crowdsec's startup hub update and CAPI login need the network, so start the engine and its
+    # bouncer once it's up, after boot (see devices.network.onlineServices). The register unit is
+    # listed too, as its `wants` would otherwise pull crowdsec back into boot.
+    devices.network.onlineServices = [
+      "crowdsec" "crowdsec-firewall-bouncer" "crowdsec-firewall-bouncer-register"
+    ];
 
     systemd.services.crowdsec-firewall-bouncer.requires = [ "crowdsec-firewall-bouncer-register.service" ];
     systemd.services.crowdsec-firewall-bouncer.after = [ "crowdsec-firewall-bouncer-register.service" ];
@@ -267,10 +273,11 @@ in
       lib.mkForce "+systemctl try-reload-or-restart crowdsec.service";
 
     systemd.services.crowdsec.serviceConfig = {
-      # crowdsec-setup's ExecStartPre runs `cscli hub update`, which needs DNS. Boot doesn't wait on
-      # networking, so early on that lookup can fail ("Temporary failure in name resolution") and
-      # upstream sets RestartSec = 60 but no Restart=, leaving the unit failed for good (hosts/vm-vps1
-      # testing, 2026-10-07). Retry until DNS is up; 60s spacing never trips the default start limit.
+      # crowdsec-setup's ExecStartPre runs `cscli hub update`, which needs DNS. network-online only
+      # means a link is routable, not that the resolver answers yet, so that lookup can still fail
+      # ("Temporary failure in name resolution") and upstream sets RestartSec = 60 but no Restart=,
+      # leaving the unit failed for good (hosts/vm-vps1 testing, 2026-10-07). Retry until DNS is up;
+      # 60s spacing never trips the default start limit.
       Restart = "on-failure";
       ProtectSystem = "strict";
       ProtectHome = true;

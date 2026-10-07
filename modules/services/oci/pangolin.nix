@@ -755,6 +755,12 @@ in
 
     virtualization.podman.enable = true;
 
+    # Started once the network is up, after boot (see devices.network.onlineServices): at startup
+    # traefik downloads its plugins and requests certs, crowdsec updates its hub, and pangolin
+    # looks up its public IP. The bouncer is listed too, or multi-user.target would pull the stack
+    # back into boot through its `requires`.
+    devices.network.onlineServices = [ "${cfg.name}-stack" "${cfg.name}-crowdsec-bouncer" ];
+
     # Modules gerbil needs on the host, preloaded rather than left to autoload: devices.kernel.harden's
     # lockKernelModules blocks loading anything once the default target is reached, which only
     # happens to land after gerbil's first start - a gerbil restart later on would fail. Besides
@@ -1043,17 +1049,14 @@ in
       # tmpfiles `r`+`C+` pair reset the file to its bare baseline on every switch and wiped the
       # fetched US CIDRs for up to 24h (hosts/vm-vps1 testing, 2026-09-22).
       after = [
-        "network-online.target"
         "podman.service"
         "${cfg.name}-geolite-refresh.service"
         "${cfg.name}-geoblock-refresh.service"
       ];
       wants = [
-        "network-online.target"
         "${cfg.name}-geolite-refresh.service"
         "${cfg.name}-geoblock-refresh.service"
       ];
-      wantedBy = [ "multi-user.target" ];
       environment.CONFIG_REV = configRev;
       path = [ pkgs.podman ];
       serviceConfig = {
@@ -1118,7 +1121,6 @@ in
       description = "Register Pangolin's Traefik CrowdSec bouncer and apply its LAPI key";
       after = [ "${cfg.name}-stack.service" ];
       requires = [ "${cfg.name}-stack.service" ];
-      wantedBy = [ "multi-user.target" ];
       path = [ pkgs.podman pkgs.coreutils pkgs.diffutils ];
       serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
       script = ''
