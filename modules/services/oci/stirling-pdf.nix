@@ -33,6 +33,9 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      # Have services.native.alerts check this image for new upstream releases
+      services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "Stirling-Tools/Stirling-PDF"; };
+
       assertions = f.ociAsserts cfg ++ [
         { assertion = cfg.caddy -> cfg.subdomain != null;
           message = "services.oci.stirling-pdf: 'caddy' requires 'subdomain' to be set";

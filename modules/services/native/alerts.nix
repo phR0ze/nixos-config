@@ -24,10 +24,24 @@ let
   '';
 
   podman = "${config.virtualisation.podman.package}/bin/podman";
+
+  # Split each registered tag into the image-only prefix upstream release names don't carry (`v`,
+  # or `ee-` for Pangolin's Enterprise images) and the version proper. A floating tag with no
+  # version (`latest`, `lts`) can't be compared against a release, so it's dropped here. A
+  # major.minor-only tag (traefik `v3.7`) is republished upstream on every patch, so it's compared
+  # at major.minor only - only a new minor/major series is news.
+  versionedImages = lib.filterAttrs (_: img: img != null) (lib.mapAttrs (_: img:
+    let m = builtins.match "([^0-9]*)([0-9]+(\\.[0-9]+)*)" img.tag; in
+    if m == null then null else {
+      inherit (img) tag repo;
+      prefix = lib.elemAt m 0;
+      version = lib.elemAt m 1;
+      minorOnly = builtins.length (lib.splitString "." (lib.elemAt m 1)) == 2;
+    }) cfg.imageUpdates.images);
 in
 {
   options.services.native.alerts = {
-    enable = lib.mkEnableOption "push notifications for failed systemd units and a daily security digest";
+    enable = lib.mkEnableOption "push notifications for failed units, plus whatever backups, containers and images services register";
 
     sopsFile = lib.mkOption {
       description = ''
@@ -68,7 +82,7 @@ in
       enable = lib.mkOption {
         description = "Push a daily summary of sshd/CrowdSec activity";
         type = lib.types.bool;
-        default = true;
+        default = false;
       };
 
       crowdsecContainers = lib.mkOption {
@@ -128,7 +142,7 @@ in
           whatever its state - this is what catches a container crash-looping too slowly to hit
           the unit's start limit (and so never showing up as failed).
           Each module running containers adds its own entry, rather than this being listed per
-          host. Empty (the default) disables the check.
+          host. Empty disables the check.
         '';
         type = lib.types.attrsOf (lib.types.listOf lib.types.str);
         default = { };
@@ -162,7 +176,9 @@ in
           release, pushing a notification when the set of outdated images changes. A notice only,
           never an update - bumping a pin stays a deliberate change after reading the release
           notes. Each module running pinned images adds its own entries, rather than this being
-          listed per host. Empty (the default) disables the check.
+          listed per host. A tag's non-numeric prefix (`v`, `ee-`) is kept on the reported version
+          and a major.minor tag (`v3.7`) is compared at major.minor only; a tag with no version in
+          it (`latest`, `lts`) is skipped. Empty disables the check.
         '';
         type = lib.types.attrsOf (lib.types.submodule {
           options = {
@@ -175,24 +191,6 @@ in
               description = "GitHub `owner/repo` whose latest release is compared against `tag`";
               type = lib.types.str;
               example = "crowdsecurity/crowdsec";
-            };
-            tagPrefix = lib.mkOption {
-              description = ''
-                Image-only prefix on `tag` that upstream release names don't carry (e.g. `ee-` for
-                Pangolin's Enterprise images). Stripped before comparing and re-added to the
-                reported version, so the alert names the exact tag to pull next.
-              '';
-              type = lib.types.str;
-              default = "";
-              example = "ee-";
-            };
-            minorOnly = lib.mkOption {
-              description = ''
-                Compare major.minor only - for a floating minor tag (e.g. traefik `v3.7`) that
-                upstream republishes on every patch, so only a new minor/major series is reported.
-              '';
-              type = lib.types.bool;
-              default = false;
             };
           };
         });
@@ -469,7 +467,7 @@ in
       };
     })
 
-    (lib.mkIf (cfg.imageUpdates.images != { }) {
+    (lib.mkIf (versionedImages != { }) {
       systemd.services.check-image-updates = {
         description = "Push a notification when pinned container images fall behind upstream";
         after = [ "network-online.target" ];
@@ -493,21 +491,17 @@ in
                 | ${pkgs.jq}/bin/jq -er '.tag_name' | sed 's/^v//'
             }
           '' + lib.concatStrings (lib.mapAttrsToList (name: img: ''
-            pinned=${lib.escapeShellArg img.tag}
-            pinned=''${pinned#${lib.escapeShellArg img.tagPrefix}}
-            vprefix=""; [[ "$pinned" == v* ]] && vprefix=v
-            pinned=''${pinned#v}
             if new=$(latest ${lib.escapeShellArg img.repo}); then
               ${lib.optionalString img.minorOnly ''new=$(printf '%s' "$new" | cut -d. -f1-2)''}
-              if [ "$new" != "$pinned" ]; then
-                REPORT+=${lib.escapeShellArg "${name}: ${img.tag} -> ${img.tagPrefix}"}"$vprefix$new"$'\n'
+              if [ "$new" != ${lib.escapeShellArg img.version} ]; then
+                REPORT+=${lib.escapeShellArg "${name}: ${img.tag} -> ${img.prefix}"}"$new"$'\n'
               fi
             else
               # Keep the last known result rather than flip-flopping the state on a failed fetch
               old=$(printf '%s\n' "$PREV" | grep -m1 ${lib.escapeShellArg "^${name}: "} || true)
               [ -n "$old" ] && REPORT+="$old"$'\n'
             fi
-          '') cfg.imageUpdates.images) + ''
+          '') versionedImages) + ''
             # Drop the trailing newline so it compares equal to PREV, which $(cat) strips too
             REPORT=$(printf '%s' "$REPORT")
 

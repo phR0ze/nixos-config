@@ -33,6 +33,9 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      # Have services.native.alerts check this image for new upstream releases
+      services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "immich-app/immich"; };
+
       assertions = f.ociAsserts cfg ++ [
         { assertion = cfg.sopsFile != null || (cfg.user.pass != null && cfg.user.pass != "");
           message = "Postgres pass not set, please set 'host.sopsFile' (recommended, forwarded to 'services.oci.${cfg.name}.sopsFile') or 'services.oci.${cfg.name}.user.pass'"; }

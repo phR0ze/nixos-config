@@ -96,6 +96,9 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      # Have services.native.alerts check this image for new upstream releases
+      services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "homarr-labs/homarr"; };
+
       assertions = f.ociAsserts cfg ++ [
         { assertion = cfg.caddy -> cfg.subdomain != null;
           message = "services.oci.homarr: 'caddy' requires 'subdomain' to be set";

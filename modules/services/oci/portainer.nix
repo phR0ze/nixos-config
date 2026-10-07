@@ -81,6 +81,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # Have services.native.alerts check this image for new upstream releases
+    services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "portainer/portainer"; };
+
 
     # Enable podman support
     virtualization.podman.enable = true;

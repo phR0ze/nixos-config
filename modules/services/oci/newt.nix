@@ -148,6 +148,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # Have services.native.alerts check this image for new upstream releases
+    services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "fosrl/newt"; };
+
     assertions = f.ociAsserts cfg ++ [
       { assertion = cfg.pangolin.url != "";
         message = "services.oci.newt requires 'pangolin.url' set (host.services.oci.newt.pangolin.url) — the Pangolin dashboard's base URL"; }

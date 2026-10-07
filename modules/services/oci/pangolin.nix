@@ -878,7 +878,13 @@ in
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
       path = [ pkgs.curl pkgs.gnutar pkgs.gzip pkgs.coreutils ];
-      serviceConfig.Type = "oneshot";
+      # Boot doesn't wait on networking, so DNS may not resolve yet on the first attempt - retry
+      # rather than staying failed until next week's timer
+      serviceConfig = {
+        Type = "oneshot";
+        Restart = "on-failure";
+        RestartSec = 60;
+      };
       script = ''
         set -euo pipefail
         tmp=$(mktemp -d)
@@ -969,25 +975,17 @@ in
     # Have services.native.alerts watch the stack. Its unit is a oneshot that stays `active` however
     # the containers fare, so a crash-looping container never shows up as a failed unit; the
     # containerized CrowdSec engine's decisions are separate from the host's; and every image is
-    # pinned, so nothing else notices a new upstream release.
+    # pinned, so nothing else notices a new upstream release. As a public-facing CrowdSec host, it
+    # also gets the daily security digest.
     services.native.alerts.enable = lib.mkDefault true;
+    services.native.alerts.securityDigest.enable = true;
     services.native.alerts.containers.units."${cfg.name}-stack" = [ cfg.name "gerbil" "traefik" "crowdsec" ];
     services.native.alerts.securityDigest.crowdsecContainers = [ "crowdsec" ];
     services.native.alerts.imageUpdates.images = {
-      pangolin = {
-        tag = cfg.pangolinTag;
-        repo = "fosrl/pangolin";
-        # EE and CE ship from the same release as separate image tags
-        tagPrefix = lib.optionalString (lib.hasPrefix "ee-" cfg.pangolinTag) "ee-";
-      };
+      # EE and CE ship from the same release as separate image tags (`ee-` is handled by alerts)
+      pangolin = { tag = cfg.pangolinTag; repo = "fosrl/pangolin"; };
       gerbil = { tag = cfg.gerbilTag; repo = "fosrl/gerbil"; };
-      # A `v3.7`-style floating tag is republished upstream on every patch, so only a new
-      # minor/major series is news; an exact `v3.7.10` pin compares exactly like the others
-      traefik = {
-        tag = cfg.traefikTag;
-        repo = "traefik/traefik";
-        minorOnly = builtins.length (lib.splitString "." (lib.removePrefix "v" cfg.traefikTag)) == 2;
-      };
+      traefik = { tag = cfg.traefikTag; repo = "traefik/traefik"; };
       crowdsec = { tag = cfg.crowdsecTag; repo = "crowdsecurity/crowdsec"; };
     };
 

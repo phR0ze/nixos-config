@@ -267,6 +267,11 @@ in
       lib.mkForce "+systemctl try-reload-or-restart crowdsec.service";
 
     systemd.services.crowdsec.serviceConfig = {
+      # crowdsec-setup's ExecStartPre runs `cscli hub update`, which needs DNS. Boot doesn't wait on
+      # networking, so early on that lookup can fail ("Temporary failure in name resolution") and
+      # upstream sets RestartSec = 60 but no Restart=, leaving the unit failed for good (hosts/vm-vps1
+      # testing, 2026-10-07). Retry until DNS is up; 60s spacing never trips the default start limit.
+      Restart = "on-failure";
       ProtectSystem = "strict";
       ProtectHome = true;
       ReadWritePaths = [ "/var/lib/crowdsec" "/etc/crowdsec" ];
@@ -291,6 +296,12 @@ in
     };
 
     systemd.services.crowdsec-firewall-bouncer.serviceConfig = {
+      # The bouncer exits fatally ("bouncer stream halted") if crowdsec's LAPI isn't listening yet,
+      # e.g. while crowdsec.service is still retrying its boot-time hub update above. Upstream sets
+      # no Restart=, so keep retrying until the LAPI comes up.
+      Restart = "on-failure";
+      RestartSec = 30;
+
       # CAP_NET_ADMIN manipulates the nftables ruleset via netlink - cannot be capability-stripped
       # like the engine above. CAP_NET_RAW is NOT needed here: upstream's module only adds it for
       # the legacy iptables/ipset mode (raw packet-filter socket access for the iptables binary),

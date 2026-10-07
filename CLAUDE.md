@@ -18,13 +18,25 @@ just creating that directory.
   NixOS option needs at *evaluation* time (drive UUIDs, NIC config, EFI/MBR). Flakes only see
   git-tracked files, so `lib/flake` decrypts just the one target host's files, `git add -f`s them,
   and an `EXIT` trap unstages/deletes them after. `clu clean dec` sweeps leftovers from a crash.
-- **Runtime secrets** (`hosts/<name>/secrets.enc.yaml`): decrypted by sops-nix at activation to
-  `/run/secrets`; never touches the store or git. `host.sopsFile` is forwarded into each module that
-  needs it. **Prefer this** for anything only a running service reads.
+- **Runtime secrets** (root `secrets.enc.yaml` + `hosts/<name>/secrets.enc.yaml`): decrypted by
+  sops-nix at activation to `/run/secrets`; never touches the store or git. `host.sopsFile` is
+  forwarded into each module that needs it. **Prefer this** for anything only a running service reads.
 
-**Isolated hosts**: an empty `hosts/<name>/.isolated` marker skips both root layers (`args.nix` and
-`args.dec.yaml`) - the host must be self-contained. Pair with a dedicated sops age key in
-`.sops.yaml`. Example: `hosts/vps`.
+**A host's runtime secrets are two files, not one** - unless the host is `.isolated`:
+
+- **Normal hosts**: `clu`'s `flake::decrypt_secrets` (`lib/flake`) merges the fleet-shared root
+  `secrets.enc.yaml` with `hosts/<name>/secrets.enc.yaml` (host wins on conflict) into a transient
+  `hosts/<name>/secrets.merged.enc.yaml`, which `host.sopsFile` resolves to first. A key absent
+  from the host file is **not** missing if root has it (e.g. `alerts/ntfyTopic` lives only in
+  root) - always check both files before calling a secret missing.
+- **`.isolated` hosts**: no merge; root is never read. Only `hosts/<name>/secrets.enc.yaml`
+  counts, so a key absent from it really is missing.
+- A bare `nix eval` outside `clu` has no merged file, so `host.sopsFile` falls back to the host file
+  alone - it does **not** reflect what a real build sees for a normal host.
+
+**Isolated hosts**: an empty `hosts/<name>/.isolated` marker skips every root layer - `args.nix`,
+`args.dec.yaml` and the root `secrets.enc.yaml` merge - so the host must be self-contained. Pair
+with a dedicated sops age key in `.sops.yaml`. Examples: `hosts/vps1`, `hosts/vm-vps1`.
 
 ## Networking: networkd + NetworkManager (`modules/devices/network.nix`)
 
