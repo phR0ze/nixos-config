@@ -25,6 +25,10 @@ in
 {
   options.virtualization.podman = {
     enable = lib.mkEnableOption "Podman with this repo's opinionated defaults (see modules/virtualization/podman.nix)";
+    harden = lib.mkEnableOption ''
+      Drop the docker-compatible socket and keep the admin user out of the `podman` group. Either
+      one grants root-equivalent access to the rootful podman API without going through sudo
+    '';
   };
 
   config = lib.mkIf cfg.enable {
@@ -41,7 +45,7 @@ in
     devices.kernel.containers = true;
 
     # Configure primary user permissions
-    system.users.admin.extraGroups = [ "podman" ];
+    system.users.admin.extraGroups = lib.optional (!cfg.harden) "podman";
 
     # Install dependencies
     environment.systemPackages = [
@@ -71,7 +75,7 @@ in
     # Enable and configure podman
     virtualisation.podman = {
       dockerCompat = true;            # provide docker alias
-      dockerSocket.enable = true;     # link podman socket as /var/run/docker.sock requires restart
+      dockerSocket.enable = !cfg.harden;  # link podman socket as /var/run/docker.sock requires restart
 
       # Allows docker containers to refer to each other by name
       defaultNetwork.settings.dns_enabled = true;

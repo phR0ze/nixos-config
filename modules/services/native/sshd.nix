@@ -131,7 +131,8 @@ in
       services.openssh.openFirewall = false;
 
       services.openssh.settings = {
-        PermitRootLogin = "prohibit-password";          # root login only via key, never password
+        PermitRootLogin = "no";                         # root has no authorized keys; admin + sudo instead
+        AllowGroups = [ "wheel" ];                      # only the admin user (wheel) may log in at all
         PasswordAuthentication = false;                 # key-only auth for all users
         KbdInteractiveAuthentication = false;           # PAM can otherwise prompt for a password anyway
         X11Forwarding = false;                          # no GUI forwarding needed for a headless daemon

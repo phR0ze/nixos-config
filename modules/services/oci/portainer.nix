@@ -84,6 +84,10 @@ in
     # Have services.native.alerts check this image for new upstream releases
     services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "portainer/portainer"; };
 
+    assertions = [
+      { assertion = !config.virtualization.podman.harden;
+        message = "services.oci.portainer needs the docker socket, which virtualization.podman.harden removes"; }
+    ];
 
     # Enable podman support
     virtualization.podman.enable = true;

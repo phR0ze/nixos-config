@@ -15,11 +15,12 @@ let
   # Shell function both scripts push through. The topic is the only thing gating who can read the
   # notifications, so the URL is fed to curl as a config on stdin (`-K -`) rather than as an
   # argument - argv is world-readable via `ps`/`/proc/<pid>/cmdline` for as long as curl runs.
-  # `printf` is a bash builtin so it never exposes the topic in argv either.
+  # `printf` is a bash builtin so it never exposes the topic in argv either. ntfy's JSON response
+  # echoes the topic back, so it's discarded rather than landing in the unit's journal.
   ntfyFunc = ''
     ntfy() {
       printf 'url = "https://ntfy.sh/%s"\n' "$(cat ${ntfyTopicFile})" \
-        | ${pkgs.curl}/bin/curl -sf -K - "$@"
+        | ${pkgs.curl}/bin/curl -sf -o /dev/null -K - "$@"
     }
   '';
 

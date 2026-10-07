@@ -176,8 +176,9 @@ in
     # Combine the sensitive secret with the non-secret url/id into one env file for the
     # container, decrypted at activation to sops-nix's default path
     # (config.secret.templates."newt-<name>".path, normally /run/secrets/rendered/newt-<name>),
-    # never touching the Nix store, so NEWT_SECRET never lands in `podman inspect`/process
-    # listing the way a plain `environment` entry would
+    # never touching the Nix store or the unit's command line the way a plain `environment` entry
+    # would. It is still visible in `podman inspect` (env-file values land in Config.Env), which
+    # only root - or anyone with podman API access - can run.
     secret.templates."newt-${cfg.name}" = {
       filemode = "0400";
       content = ''

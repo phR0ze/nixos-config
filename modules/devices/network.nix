@@ -208,7 +208,8 @@ in
       enable = lib.mkEnableOption ''
         nftables rules to provide protection for per-source connection-flooding, host-wide
         geo-blocking of non-US IPv4 CIDRs, CrowdSec enforcement of suspicious behavior.
-        Note: Container ports are not covered by this and need separate Traefik Crowdsec protection.
+        Note: the connection-flood limit covers container-published ports, but the geo-block doesn't -
+        those need separate protection (e.g. Pangolin's Traefik geo-allowlist and CrowdSec bouncer).
       '';
 
       geoblockAllowList = lib.mkOption {
@@ -499,9 +500,12 @@ in
       # Connection-flood limiting
       # ----------------------------------------------------------------------------------------------
       # A per-source cap on new connection attempts, tracked in a dynamic set keyed on the source
-      # address so one flooding source only ever throttles itself, never everyone else. Hooked at a
-      # lower priority (evaluated earlier) than geoblock/CrowdSec/NixOS's own `input` chain below, so
-      # a genuine flood is dropped before it costs anything further downstream. This chain only ever
+      # address so one flooding source only ever throttles itself, never everyone else. Hooked at
+      # prerouting (mangle, ahead of netavark's DNAT at -100) rather than `input`, so it also covers
+      # container-published ports - DNAT'd traffic goes through `forward` and never reaches an
+      # `input` chain (e.g. Pangolin's 443 and WireGuard ports). It runs before geoblock/CrowdSec/
+      # NixOS's own firewall, so a genuine flood is dropped before it costs anything further
+      # downstream. This chain only ever
       # DROPs or falls through via `policy accept`, so it can't itself let anything through that a
       # later chain would otherwise have refused. Loopback and container bridge traffic are exempt,
       # same as the geo-block below.
@@ -516,7 +520,7 @@ in
           }
 
           chain connlimit-chain {
-            type filter hook input priority filter - 5; policy accept;
+            type filter hook prerouting priority mangle; policy accept;
             iifname "lo" accept
             iifname "podman*" accept
             ct state new add @connlimit-src { ip saddr limit rate over 60/second burst 120 packets } drop

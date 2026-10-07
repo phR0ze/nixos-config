@@ -32,6 +32,13 @@
 # - Traefik's API/dashboard off (upstream ships `api.insecure: true`) - nothing here uses it.
 # - `aliasHeadersStrategy: delete` on the websecure entrypoint (Traefik 3.7+) - see the entryPoints note.
 # - CrowdSec bouncer trusts no forwarded headers and no RFC1918 ranges - see crowdsecMiddlewareText.
+# - No captcha profile: upstream's turns HTTP-scenario alerts into captcha decisions, which need a
+#   captcha provider (e.g. Turnstile) configured in the bouncer. Without one they're bans instead.
+# - Gerbil drops `SYS_MODULE` (the host preloads `wireguard`, and lockKernelModules makes the cap
+#   inert anyway) and mounts only `config/gerbil` for its key rather than all of `config/`, which
+#   holds the server secret and acme.json's private keys.
+# - Every container gets `no-new-privileges`, and traefik drops all caps but `NET_BIND_SERVICE`.
+# - `allow_raw_resources` off by default (`allowRawResources`).
 #
 # ### Secrets
 # `sopsFile` must point at a `secrets.enc.yaml` holding (key names configurable via the `*Ref`
@@ -78,6 +85,8 @@ let
               memory: ${cfg.memoryLimit}
             reservations:
               memory: ${cfg.memoryReservation}
+        security_opt:
+          - no-new-privileges:true
         volumes:
           - ./config:/app/config
         healthcheck:
@@ -101,10 +110,11 @@ let
           - --generateAndSaveKeyTo=/var/config/key
           - --remoteConfig=http://pangolin:3001/api/v1/
         volumes:
-          - ./config/:/var/config
+          - ./config/gerbil:/var/config
+        security_opt:
+          - no-new-privileges:true
         cap_add:
           - NET_ADMIN
-          - SYS_MODULE
         ports:
           - 51820:51820/udp
           - 21820:21820/udp
@@ -124,6 +134,12 @@ let
           - .env
         command:
           - --configFile=/etc/traefik/traefik_config.yml
+        security_opt:
+          - no-new-privileges:true
+        cap_drop:
+          - ALL
+        cap_add:
+          - NET_BIND_SERVICE
         volumes:
           - ./config/traefik:/etc/traefik:ro
           - ./config/letsencrypt:/letsencrypt
@@ -150,6 +166,8 @@ let
           start_period: "30s"
         labels:
           - "traefik.enable=false"
+        security_opt:
+          - no-new-privileges:true
         volumes:
           - ./config/crowdsec:/etc/crowdsec
           - ./config/crowdsec/db:/var/lib/crowdsec/data
@@ -461,15 +479,6 @@ let
   '';
 
   crowdsecProfilesText = ''
-    name: captcha_remediation
-    filters:
-      - Alert.Remediation == true && Alert.GetScope() == "Ip" && Alert.GetScenario() contains "http"
-    decisions:
-      - type: captcha
-        duration: 4h
-    on_success: break
-
-    ---
     name: default_ip_remediation
     filters:
      - Alert.Remediation == true && Alert.GetScope() == "Ip"
@@ -690,6 +699,15 @@ in
       default = true;
     };
 
+    allowRawResources = lib.mkOption {
+      description = ''
+        Whether raw TCP/UDP resources can be created. Off by default: they each need their own
+        port published on gerbil, and nothing here uses them.
+      '';
+      type = types.bool;
+      default = false;
+    };
+
     rateLimitWindowMinutes = lib.mkOption {
       description = "Global rate-limit window, in minutes";
       type = types.int;
@@ -732,6 +750,10 @@ in
 
     virtualization.podman.enable = true;
 
+    # Gerbil's WireGuard interface needs the module loaded on the host. Preloaded rather than left
+    # to autoload: devices.kernel.harden's lockKernelModules blocks loading anything after boot.
+    boot.kernelModules = [ "wireguard" ];
+
     # Same caveat as every other services.oci.* module publishing container ports: podman's own
     # NAT/forward rules reach these regardless of networking.firewall - these entries are
     # documentation/consistency, not the actual gate. Verify a CrowdSec ban (native
@@ -748,6 +770,7 @@ in
       "d ${dataDir} 0750 root root -"
       "d ${dataDir}/config 0750 root root -"
       "d ${dataDir}/config/db 0750 root root -"
+      "d ${dataDir}/config/gerbil 0700 root root -"
       "d ${dataDir}/config/logs 0750 root root -"
       "d ${dataDir}/config/letsencrypt 0700 root root -"
       "d ${dataDir}/config/traefik 0750 root root -"
@@ -850,7 +873,7 @@ in
             require_email_verification: false
             disable_signup_without_invite: true
             disable_user_create_org: ${lib.boolToString cfg.disableUserCreateOrg}
-            allow_raw_resources: true
+            allow_raw_resources: ${lib.boolToString cfg.allowRawResources}
       '';
       secrets.${serverSecretKey}.sopsFile = cfg.sopsFile;
       # configRev below only hashes the *plaintext* configs, so a rotated serverSecret changes
@@ -1046,6 +1069,11 @@ in
         ExecStartPre = pkgs.writeShellScript "${cfg.name}-stack-reset" ''
           set -euo pipefail
           ${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} down
+          # Gerbil used to mount all of config/ and keep its key at config/key - move it into
+          # gerbil's own dir so its WireGuard identity survives narrowing that mount
+          if [ -s config/key ] && [ ! -e config/gerbil/key ]; then
+            mv config/key config/gerbil/key
+          fi
           net=${cfg.name}_frontend
           if ${pkgs.podman}/bin/podman network exists "$net" \
               && [ "$(${pkgs.podman}/bin/podman network inspect --format '{{.NetworkInterface}}' "$net")" != "${bridge}" ]; then

@@ -38,6 +38,7 @@ in
       devices.boot.harden = true;                   # clean /tmp on every boot
       devices.kernel.harden = true;                 # include kernel hardening configuration
       devices.network.harden.enable = true;         # networking hardening, incl. geo-block
+      virtualization.podman.harden = true;          # no docker socket or podman group for admin
 
       services.native.sshd.harden = true;           # restrict sshd and enable CrowdSec brute-force protection
       services.native.systemd.harden = true;        # additional security and low memory options
