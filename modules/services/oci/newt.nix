@@ -55,8 +55,9 @@
 #   for any other lookup — Newt's `DNS` setting is only used inside the tunnel)
 # - `pangolin.ip` (the Pangolin VPS's IPv4, public or private) on tcp/443 (API + websocket) and
 #   udp/51820,21820 (Gerbil's WireGuard and relay/hole-punch ports)
-# Everything else is dropped — other host ports, the host's LAN IP, other containers' published
-# ports, the rest of the LAN and the rest of the internet. The VPS address is pinned rather than
+# Everything else is rejected (TCP reset / ICMP admin-prohibited, so it fails fast) — other host
+# ports, the host's LAN IP, other containers' published ports, the rest of the LAN and the rest of
+# the internet. The VPS address is pinned rather than
 # resolved from `pangolin.url` at runtime, so a changed DNS record or a server-pushed endpoint can't
 # widen it; if the VPS ever changes IP, update `host.services.oci.newt.pangolin.ip`. It's a single
 # address because one Newt is one site connection to one Pangolin server (one url, one id/secret),
@@ -75,7 +76,7 @@
 # to a container. `host.containers.internal` is pinned to that same gateway (rather than podman's
 # `host-gateway` lookup) so the target in Pangolin always matches what the rule allows.
 # Apps not fronted by Caddy are therefore unreachable through Newt by design — front them with Caddy.
-# Debug drops with: sudo nft monitor trace (after adding `meta nftrace set 1` to the egress chain)
+# Debug rejects with: sudo nft monitor trace (after adding `meta nftrace set 1` to the egress chain)
 # --------------------------------------------------------------------------------------------------
 { config, lib, f, ... }: with lib.types;
 let
@@ -257,8 +258,12 @@ in
           ip daddr ${toString cfg.pangolin.ip} tcp dport 443 accept
           ip daddr ${toString cfg.pangolin.ip} udp dport { 51820, 21820 } accept
 
-          # Everything else: the host's other ports, the LAN, and the rest of the internet
-          drop
+          # Everything else: the host's other ports, the LAN, and the rest of the internet.
+          # Rejected rather than dropped so a blocked dial fails immediately instead of waiting out
+          # its timeout (e.g. Newt's startup update check to api.fossorial.io, which has no off
+          # switch and otherwise stalls startup 10s) - nothing to hide from our own container.
+          meta l4proto tcp reject with tcp reset
+          reject with icmpx admin-prohibited
         }
       '';
     };
