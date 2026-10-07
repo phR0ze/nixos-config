@@ -199,14 +199,19 @@ in
       networks = [ (f.contNetwork cfg.name cfg.name) ];  # Isolated network, named veth
       environment = {
         # CONFIG_FILE is Newt's documented override (see resolveConfigFilePath in fosrl/newt) —
-        # point it at the writable /tmp tmpfs mounted below instead.
-        CONFIG_FILE = "/tmp/newt-client/config.json";
+        # point it at the writable /tmp tmpfs mounted below instead. Directly in /tmp: Newt's
+        # saveConfig is a bare os.WriteFile that never creates parent directories, so a
+        # subdirectory here fails every save ("open ...: no such file or directory").
+        CONFIG_FILE = "/tmp/newt-config.json";
         # Unused features, off to limit what the Pangolin server can open — see notes above
         DISABLE_CLIENTS = "true";
         DISABLE_SSH = "true";
-        # No failover to Pangolin's cloud-managed nodes — self-hosted only, and the egress rule
-        # would block them anyway
-        NO_CLOUD = "true";
+        # NO_CLOUD is deliberately NOT set. Despite the name, Pangolin's Enterprise build answers a
+        # `noCloud` newt with no `gerbil`-type exit nodes at all - including a self-hosted Gerbil
+        # (server/private/lib/exitNodes/exitNodes.ts) - so Newt logs "No exit nodes provided" and
+        # never brings its tunnel up (hosts/vm-homelab -> hosts/vm-vps1 on ee-1.21.1, 2026-10-06).
+        # Cloud failover is already impossible regardless: the egress rule only allows
+        # `pangolin.ip`.
         # Present only while the tunnel is up — read by the healthcheck below
         HEALTH_FILE = "/tmp/newt-healthy";
       };
