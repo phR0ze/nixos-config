@@ -24,6 +24,33 @@ let
     }
   '';
 
+  # Shared by every problem-list check: diff the current problems (one per line) against the last
+  # set successfully reported, and push only what changed - new problems, resolved ones, and any
+  # still outstanding - so a partial recovery reads as one rather than as another failure.
+  # Recoveries go out at the same high priority as failures so a priority-filtered subscription
+  # never hides them. The state only advances once the push succeeds, so a failed send (e.g. DNS
+  # not up yet at boot) is retried on the next run instead of being lost. Returns non-zero only
+  # when a needed push failed.
+  #   report <state file> <failure title> <recovery title> <current problems>
+  reportFunc = ''
+    report() {
+      local state_file=$1 fail_title=$2 ok_title=$3 current=$4 prev new gone still title msg=""
+      prev=$(cat "$state_file" 2>/dev/null || true)
+      [ "$current" = "$prev" ] && return 0
+      lines() { printf '%s\n' "$1" | sed '/^$/d' | sort -u; }
+      new=$(comm -13 <(lines "$prev") <(lines "$current"))
+      gone=$(comm -23 <(lines "$prev") <(lines "$current"))
+      still=$(comm -12 <(lines "$prev") <(lines "$current"))
+      [ -n "$new" ] && msg+="New:"$'\n'"$new"$'\n'
+      [ -n "$gone" ] && msg+="Resolved:"$'\n'"$gone"$'\n'
+      [ -n "$still" ] && msg+="Still failing:"$'\n'"$still"$'\n'
+      [ -z "$current" ] && msg+="All healthy again"
+      if [ -n "$new" ]; then title=$fail_title; else title=$ok_title; fi
+      ntfy -H "Title: [ $HOST ] $title" -H "Priority: high" -d "$msg" || return 1
+      printf '%s' "$current" > "$state_file"
+    }
+  '';
+
   podman = "${config.virtualisation.podman.package}/bin/podman";
 
   # Split each registered tag into the image-only prefix upstream release names don't carry (`v`,
@@ -225,23 +252,17 @@ in
           StateDirectory = "alerts";
           ExecStart = toString (pkgs.writeShellScript "check-failed-units" ''
             set -uo pipefail
-            STATE_FILE=/var/lib/alerts/failed-units.state
             ${ntfyFunc}
+            ${reportFunc}
             HOST=${config.networking.hostName}
-            # Unit names and sub-state only. The free-form description is dropped
-            FAILED=$(systemctl --failed --no-legend --plain | while read -r unit _load _active sub _; do
-              echo "$unit ($sub)"
-            done)
-            PREV=$(cat "$STATE_FILE" 2>/dev/null || true)
-            if [ "$FAILED" != "$PREV" ]; then
-              if [ -n "$FAILED" ]; then
-                ntfy -H "Title: [ $HOST ] systemd unit failure" -H "Priority: high" -d "$FAILED"
-              else
-                ntfy -H "Title: [ $HOST ] systemd units recovered" \
-                  -d "All previously failed units are healthy again"
-              fi
-            fi
-            echo "$FAILED" > "$STATE_FILE"
+            # Unit names only - the free-form description is dropped. Podman's transient
+            # health-check units (`<64-hex container id>-<hex>.service`/`.timer`) are skipped: one
+            # failed probe marks them failed under an unreadable name, and check-containers already
+            # reports an unhealthy container by name.
+            FAILED=$(systemctl --failed --no-legend --plain | awk '{print $1}' \
+              | grep -vE '^[0-9a-f]{64}-[0-9a-f]+\.(service|timer)$' || true)
+            report /var/lib/alerts/failed-units.state \
+              "systemd unit failure" "systemd units recovered" "$FAILED"
           '');
         };
       };
@@ -328,9 +349,9 @@ in
           ExecStart = toString (pkgs.writeShellScript "check-backups" ''
             set -uo pipefail
             ${ntfyFunc}
+            ${reportFunc}
             HOST=${config.networking.hostName}
             STATE_DIR=/var/lib/alerts
-            STATE_FILE=$STATE_DIR/backups.state
             MAX_AGE=$((26 * 3600))
             NOW=$(date +%s)
 
@@ -364,19 +385,9 @@ in
                 PROBLEMS+="$svc: no successful backup in over 26h"$'\n'
               fi
             done
-            # Drop the trailing newline so it compares equal to PREV, which $(cat) strips too
+            # Drop the trailing newline so it compares equal to the state, which $(cat) strips too
             PROBLEMS=$(printf '%s' "$PROBLEMS")
-
-            PREV=$(cat "$STATE_FILE" 2>/dev/null || true)
-            if [ "$PROBLEMS" != "$PREV" ]; then
-              if [ -n "$PROBLEMS" ]; then
-                ntfy -H "Title: [ $HOST ] backup problem" -H "Priority: high" -d "$PROBLEMS"
-              else
-                ntfy -H "Title: [ $HOST ] backups recovered" \
-                  -d "All previously unhealthy backups are healthy again"
-              fi
-            fi
-            printf '%s' "$PROBLEMS" > "$STATE_FILE"
+            report "$STATE_DIR/backups.state" "backup problem" "backups recovered" "$PROBLEMS"
           '');
         };
       };
@@ -406,14 +417,17 @@ in
           ExecStart = toString (pkgs.writeShellScript "check-containers" (''
             set -uo pipefail
             ${ntfyFunc}
+            ${reportFunc}
             HOST=${config.networking.hostName}
-            STATE_FILE=/var/lib/alerts/containers.state
 
             # One snapshot for every check. `.Status` is free-form ("Up 3 hours (unhealthy)"), so
             # only its health suffix is used - never the uptime, which changes every run and would
             # re-notify
             PS=$(${podman} ps -a --format '{{.Names}}|{{.State}}|{{.Status}}')
             PROBLEMS=""
+            # Restart counters are only advanced once the report is sent (below), so a restart
+            # spotted during a failed push is reported again next run rather than being lost
+            declare -A RESTARTS=()
           '' + lib.concatStrings (lib.mapAttrsToList (unit: names: ''
             # NRestarts only counts systemd's own automatic restarts (a container that exited
             # under Restart=), and resets on a manual start - so any increase since the last check
@@ -425,7 +439,7 @@ in
             if [ "''${restarts:-0}" -gt "''${last:-0}" ]; then
               PROBLEMS+=${lib.escapeShellArg "${unit}: restarted by systemd after exiting"}$'\n'
             fi
-            echo "''${restarts:-0}" > "$last_file"
+            RESTARTS[$last_file]=''${restarts:-0}
 
             if [ "$(systemctl show -P ActiveState ${lib.escapeShellArg "${unit}.service"})" = "active" ]; then
               for c in ${lib.escapeShellArgs names}; do
@@ -441,19 +455,12 @@ in
               done
             fi
           '') cfg.containers.units) + ''
-            # Drop the trailing newline so it compares equal to PREV, which $(cat) strips too
+            # Drop the trailing newline so it compares equal to the state, which $(cat) strips too
             PROBLEMS=$(printf '%s' "$PROBLEMS")
-
-            PREV=$(cat "$STATE_FILE" 2>/dev/null || true)
-            if [ "$PROBLEMS" != "$PREV" ]; then
-              if [ -n "$PROBLEMS" ]; then
-                ntfy -H "Title: [ $HOST ] container down" -H "Priority: high" -d "$PROBLEMS"
-              else
-                ntfy -H "Title: [ $HOST ] containers recovered" \
-                  -d "All previously down, unhealthy or restarting containers are running again"
-              fi
+            if report /var/lib/alerts/containers.state \
+                "container down" "containers recovered" "$PROBLEMS"; then
+              for f in "''${!RESTARTS[@]}"; do echo "''${RESTARTS[$f]}" > "$f"; done
             fi
-            printf '%s' "$PROBLEMS" > "$STATE_FILE"
           ''));
         };
       };
@@ -508,8 +515,9 @@ in
 
             # Report only newly changed results - a still-outdated pin doesn't re-notify daily,
             # and catching up on a pin is its own confirmation
+            # The state only advances once the push succeeds, so a failed send is retried next run
             if [ "$REPORT" != "$PREV" ] && [ -n "$REPORT" ]; then
-              ntfy -H "Title: [ $HOST ] new container image version(s)" -d "$REPORT"
+              ntfy -H "Title: [ $HOST ] new container image version(s)" -d "$REPORT" || exit 0
             fi
             printf '%s' "$REPORT" > "$STATE_FILE"
           ''));
