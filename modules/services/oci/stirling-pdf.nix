@@ -77,15 +77,18 @@ in
           "/var/lib/${cfg.name}/pipeline:/pipeline:rw"
         ];
 
-        # Configure app via overrides
+        # Configure app via overrides - env vars bind onto settings.yml keys (e.g. SECURITY_ENABLELOGIN
+        # -> security.enableLogin), overriding whatever the persisted /configs/settings.yml holds
+        # - SECURITY_ENABLELOGIN: v3's template defaults it to true. The old DOCKER_ENABLE_SECURITY
+        #   switch is gone (build-time only since 1.0), so set the real key to keep login off
+        # - INSTALL_BOOK_AND_ADVANCED_HTML_OPS dropped: only the `-fat` image ever read it
         environment = {
           "PUID" = "${toString cfg.user.uid}";            # set the user to run as
           "PGID" = "${toString cfg.user.gid}";            # set the group to run as
           "METRICS_ENABLED" = "false";                    # no need to track with homelab
           "SYSTEM_ENABLEANALYTICS" = "false";             # not a fan of being tracked
-          "DOCKER_ENABLE_SECURITY" = "false";             # don't need to login with homelab
+          "SECURITY_ENABLELOGIN" = "false";               # don't need to login with homelab
           "DISABLE_ADDITIONAL_FEATURES" = "false";        # don't lock off other features
-          "INSTALL_BOOK_AND_ADVANCED_HTML_OPS" = "false"; # ??
         };
 
         extraOptions = [ "--ip=${cfg.ip}" ];

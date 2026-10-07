@@ -25,7 +25,7 @@
     services.native.minecraft.enable = true;
     services.native.nix-cache.host.enable = true;
     services.oci.newt = {
-      enable = true; user.uid = 2005; tag = "1.16.0";
+      enable = true; user.uid = 2005; tag = "1.18.1";
     };
 
     # Caddy fronted services
