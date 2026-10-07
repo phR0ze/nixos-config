@@ -44,6 +44,15 @@ in
     # ip_forward/bridge-nf-call sysctls podman needs
     devices.kernel.containers = true;
 
+    # nixpkgs makes every container whose image comes from a registry `wantedBy multi-user` and
+    # `after network-online.target`, so it can pull its image - which puts the network in the boot
+    # path for every services.oci.* app, and on NM hosts starts NetworkManager during boot
+    # (hosts/vm-homelab, 2026-10-07). Start them once the network is up, after boot, instead (see
+    # devices.network.onlineServices).
+    devices.network.onlineServices = map (n: "podman-${n}") (lib.attrNames (lib.filterAttrs
+      (_: c: c.autoStart && c.imageFile == null && c.imageStream == null)
+      config.virtualisation.oci-containers.containers));
+
     # Configure primary user permissions
     system.users.admin.extraGroups = lib.optional (!cfg.harden) "podman";
 

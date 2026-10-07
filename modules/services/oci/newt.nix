@@ -272,10 +272,6 @@ in
       '';
     };
 
-    # Newt dials out to Pangolin as soon as it starts, so start it once the network is up, after
-    # boot (see devices.network.onlineServices)
-    devices.network.onlineServices = [ "podman-${cfg.name}" ];
-
     # Create podman network and extend service to use it
     systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
     systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
