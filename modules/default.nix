@@ -502,11 +502,12 @@ in
       }
     ))
 
-    # Newt reaches Caddy from its fixed container IP (see modules/services/oci/newt.nix), so trust
-    # the X-Forwarded-For it carries from Pangolin's Traefik. Merges with any args-supplied list.
-    (lib.mkIf (config.services.native.caddy.enable && config.services.oci.newt.enable
-        && config.services.oci.newt.ip != null) {
-      services.native.caddy.trustedProxies = [ "${config.services.oci.newt.ip}/32" ];
+    # Each Newt instance reaches Caddy from its fixed container IP (see
+    # modules/services/oci/newt.nix), so trust the X-Forwarded-For it carries from Pangolin's
+    # Traefik. Enabled instances only. Merges with any args-supplied list.
+    (lib.mkIf (config.services.native.caddy.enable && config.services.oci.newt.enable) {
+      services.native.caddy.trustedProxies = lib.mapAttrsToList (_: inst: "${inst.ip}/32")
+        (lib.filterAttrs (_: inst: inst.enable && inst.ip != null) config.services.oci.newt.instances);
     })
 
     (lib.mkIf config.services.native.vaultwarden.enable {
@@ -574,10 +575,17 @@ in
     (lib.mkIf config.services.oci.newt.enable (
       let arg = f.getSvcFunc "oci.newt" cfg.services;
       in {
-        services.oci.newt = (ociForward "newt") // {
-          pangolin.url = arg "pangolin.url";
-          pangolin.ip = arg "pangolin.ip";
-          id = arg "id";
+        # Not `ociForward`: Newt has no shared subnet/ip/caddy/subdomain - each instance has its
+        # own subnet/ip, and its whole connection (`pangolin.url`/`ip`, `id`, `subnet`, `ip`) comes
+        # from `host.services.oci.newt.instances.<instance>.*`. Every instance defined there is
+        # enabled by default.
+        services.oci.newt = {
+          sopsFile = cfg.sopsFile;
+          name = arg "name";
+          tag = arg "tag";
+          user = arg "user";
+          port = arg "port";
+          instances = arg "instances";
         };
       }
     ))

@@ -10,19 +10,44 @@
 # connects to, and its "Create a Site describing your server" section for where `pangolin.url`/`id`/
 # secret come from.
 #
+# ### Instances
+# One Newt is one site connection to one Pangolin server, so each Pangolin server this host joins
+# is its own named entry in `instances`, run as its own container (`newt-<instance>`) on its own
+# podman network with its own egress rule and secret. Everything else (tag, user, hardening, log
+# level) is shared. Every instance defined in `args.enc.yaml` runs once the module is enabled; its
+# own `enable` defaults to on and only needs setting to turn one off in the host's
+# `configuration.nix`:
+# ```nix
+#   services.oci.newt = {
+#     enable = true; user.uid = 2005; tag = "1.16.0";
+#     instances.b.enable = false;   # optional - temporarily drop just this connection
+#   };
+# ```
+# ```yaml
+# host:
+#   services:
+#     oci:
+#       newt:
+#         instances:
+#           a: { id: ..., subnet: 10.89.120.0/24, ip: 10.89.120.2, pangolin: { url: ..., ip: ... } }
+# ```
+# Keep instance names to 3 characters or fewer: the bridge name `podman-newt-<instance>` is cut to
+# the kernel's 15-character limit, and an assertion rejects two instances that collide after that.
+#
 # ### Deployment Details
 # - Outbound-only: Newt registers with Pangolin over HTTPS/WebSocket and tunnels over UDP to Gerbil.
 #   No inbound ports are published on this host for this service, so no firewall rule is needed either.
 # - Fully user-space WireGuard — no Linux capabilities, no `/dev/net/tun`, so the container runs
 #   `--cap-drop=ALL`, non-root, and (by default) with a read-only rootfs.
 # - `pangolin.url`/`id` identify *which* site connects, but grant nothing without the secret below.
-#   They come from `host.services.oci.newt.*` in `args.enc.yaml`, forwarded by modules/default.nix.
+#   They come from `host.services.oci.newt.instances.<instance>.*` in `args.enc.yaml`, forwarded by
+#   modules/default.nix. The secret is `newt/<instance>/clientSecret` in the host's secrets.
 # - Get the Endpoint/ID/Secret from the Pangolin dashboard: `Network > Sites > + Add Site > Newt Site
 # - Get status with:
-#   sudo systemctl status podman-newt
+#   sudo systemctl status podman-newt-<instance>
 # - Tunnel health: Newt maintains HEALTH_FILE while its WireGuard tunnel to Gerbil is up, which the
-#   podman healthcheck below reports — `podman healthcheck run newt` or the STATUS column of
-#   `sudo podman ps`. Report-only: Newt reconnects on its own, so an unhealthy state never kills it.
+#   podman healthcheck below reports — `podman healthcheck run newt-<instance>` or the STATUS column
+#   of `sudo podman ps`. Report-only: Newt reconnects on its own, so an unhealthy state never kills it.
 # - Newt's client tunnels (DISABLE_CLIENTS) and SSH auth daemon (DISABLE_SSH) are both turned off —
 #   neither is used here, and each would otherwise let the Pangolin server open more paths into the
 #   homelab than the Resources defined for this site.
@@ -41,16 +66,18 @@
 #   Pangolin differs from the Caddy vhost; Traefik passes the public Host through unchanged otherwise.
 # Apps not fronted by Caddy can't be targeted at all — see "Egress containment" below.
 #
-# Caddy sees all of this traffic arriving from Newt's fixed container `ip` (host-local, so it's never
-# SNAT'd), so modules/default.nix adds that IP to Caddy's `trustedProxies` whenever both are enabled —
+# Caddy sees all of this traffic arriving from each instance's fixed container `ip` (host-local, so
+# it's never SNAT'd), so modules/default.nix adds every enabled instance's IP to Caddy's
+# `trustedProxies` whenever both are enabled —
 # backends (e.g. Vaultwarden's login rate limiting) then see real client IPs from Traefik's
 # `X-Forwarded-For` rather than every Pangolin visitor as one address.
 #
 # ### Egress containment
 # Pangolin decides which targets Newt proxies to (and which Gerbil endpoint it tunnels to), so
 # without a limit whoever controls the Pangolin server could reach any LAN host:port — or use this
-# homelab as a relay to anywhere on the internet — through Newt's normal NAT'd podman egress. The
-# `newt-egress` nftables table below is default-deny, allowing Newt's bridge exactly:
+# homelab as a relay to anywhere on the internet — through Newt's normal NAT'd podman egress. Each
+# instance's `newt-<instance>-egress` nftables table below is default-deny, allowing its bridge
+# exactly:
 # - its own gateway on tcp/443 (Caddy, i.e. only Caddy-fronted services) and udp/53 (aardvark-dns,
 #   for any other lookup — Newt's `DNS` setting is only used inside the tunnel)
 # - `pangolin.ip` (the Pangolin VPS's IPv4, public or private) on tcp/443 (API + websocket) and
@@ -59,9 +86,10 @@
 # ports, the host's LAN IP, other containers' published ports, the rest of the LAN and the rest of
 # the internet. The VPS address is pinned rather than
 # resolved from `pangolin.url` at runtime, so a changed DNS record or a server-pushed endpoint can't
-# widen it; if the VPS ever changes IP, update `host.services.oci.newt.pangolin.ip`. It's a single
-# address because one Newt is one site connection to one Pangolin server (one url, one id/secret),
-# and Gerbil's `base_endpoint` is that same server's dashboard domain.
+# widen it; if the VPS ever changes IP, update `host.services.oci.newt.instances.<instance>.pangolin.ip`.
+# It's a single address because one Newt is one site connection to one Pangolin server (one url,
+# one id/secret), and Gerbil's `base_endpoint` is that same server's dashboard domain - so instance
+# A's container can never reach instance B's server, or vice versa.
 # The endpoint's hostname is pinned to that same address in the container's /etc/hosts
 # (`--add-host`), which Newt's resolver checks before DNS, so name and egress rule can't disagree.
 # Otherwise the name resolves through aardvark-dns to the host's upstream resolver: on a host that
@@ -82,126 +110,137 @@
 let
   cfg = config.services.oci.newt;
 
+  # Only enabled instances get a container, network, secret and egress rule
+  enabled = lib.filterAttrs (_: inst: inst.enable) cfg.instances;
+
+  # Container, network, unit and secret-template name for an instance e.g. "newt-a"
+  contName = name: "${cfg.name}-${name}";
+
   # Netavark gives a `--subnet` network the first host address as its gateway (see createContNetwork)
-  gateway = f.hostInSubnet (toString cfg.subnet) 1;
+  gatewayOf = inst: f.hostInSubnet (toString inst.subnet) 1;
 
   # Bare hostname of `pangolin.url` (scheme, path and port stripped), pinned to `pangolin.ip`
-  pangolinHost = builtins.head (lib.splitString ":"
-    (builtins.head (lib.splitString "/" (lib.last (lib.splitString "://" cfg.pangolin.url)))));
+  pangolinHostOf = inst: builtins.head (lib.splitString ":"
+    (builtins.head (lib.splitString "/" (lib.last (lib.splitString "://" inst.pangolin.url)))));
 
-in
-{
-  # Fully user-space WireGuard — no NET_ADMIN/tun needed, and Newt is stateless with nothing
-  # written outside its writable /tmp tmpfs — so it's a safe candidate for the full hardening
-  # baseline by default.
-  options.services.oci.newt = (import ../../types/service.nix {
-    inherit lib;
-    defaults = {
-      name = "newt";
-      capDropAll = true;
-      noNewPrivileges = true;
-      readOnlyRootfs = true;
-    };
-  }) // {
-    # The one Pangolin server this site connects to — one Newt is one site connection (one URL, one
-    # id/secret), and Gerbil's `base_endpoint` is that same server's dashboard domain
-    pangolin = {
-      url = lib.mkOption {
+  # Bridge names of the enabled instances that collide after f.contBridge's 15-character cut
+  bridges = map (name: f.contBridge (contName name)) (lib.attrNames enabled);
+  duplicateBridges = lib.unique (lib.filter (b: lib.count (x: x == b) bridges > 1) bridges);
+
+  # One site connection to one Pangolin server
+  instanceOpts = { name, ... }: {
+    options = {
+      # On by default: defining an instance in args is what deploys it, so this only needs
+      # setting to turn one off without deleting its connection details
+      enable = lib.mkOption {
+        description = "Run Newt site connection '${name}'";
+        type = types.bool;
+        default = true;
+      };
+
+      # The one Pangolin server this site connects to — one Newt is one site connection (one URL,
+      # one id/secret), and Gerbil's `base_endpoint` is that same server's dashboard domain
+      pangolin = {
+        url = lib.mkOption {
+          description = ''
+            Pangolin server base URL this site connects to — the dashboard's "Endpoint", passed to
+            Newt as PANGOLIN_ENDPOINT. Forwarded by modules/default.nix from
+            `host.services.oci.newt.instances.${name}.pangolin.url`.
+          '';
+          type = types.str;
+          default = "";
+          example = "https://pangolin.example.com";
+        };
+
+        ip = lib.mkOption {
+          description = ''
+            IPv4 address of the Pangolin server — the only internet/LAN destination this
+            instance's egress rule allows, and what `pangolin.url`'s hostname (and Gerbil's
+            `base_endpoint`) is pinned to inside the container, bypassing DNS. The public VPS IP in
+            production, or its LAN IP for a local test server like hosts/vm-vps1. Forwarded by
+            modules/default.nix from `host.services.oci.newt.instances.${name}.pangolin.ip`,
+            keeping it out of tracked files.
+          '';
+          type = types.nullOr types.str;
+          default = null;
+          example = "203.1.138.10";
+        };
+      };
+
+      id = lib.mkOption {
         description = ''
-          Pangolin server base URL this site connects to — the dashboard's "Endpoint", passed to
-          Newt as PANGOLIN_ENDPOINT. Forwarded by modules/default.nix from
-          `host.services.oci.newt.pangolin.url`.
+          Newt Site ID issued by Pangolin when the Site is created. Forwarded by
+          modules/default.nix from `host.services.oci.newt.instances.${name}.id`.
         '';
         type = types.str;
         default = "";
-        example = "https://pangolin.example.com";
+      };
+
+      # Same pinning rationale as the shared `subnet`/`ip` in modules/types/service.nix, but per
+      # instance since each runs on its own podman network
+      subnet = lib.mkOption {
+        description = "Fixed /24 CIDR (e.g. `10.89.120.0/24`) for this instance's isolated podman network";
+        type = types.nullOr types.str;
+        default = null;
       };
 
       ip = lib.mkOption {
-        description = ''
-          IPv4 address of the Pangolin server — the only internet/LAN destination Newt's egress
-          rule allows, and what `pangolin.url`'s hostname (and Gerbil's `base_endpoint`) is pinned
-          to inside the container, bypassing DNS. The public VPS IP in production, or
-          its LAN IP for a local test server like hosts/vm-vps1. Forwarded by modules/default.nix
-          from `host.services.oci.newt.pangolin.ip`, keeping it out of tracked files.
-        '';
+        description = "Fixed IP address (within `subnet`) for this instance's container";
         type = types.nullOr types.str;
         default = null;
-        example = "203.1.138.10";
       };
-    };
-
-    id = lib.mkOption {
-      description = ''
-        Newt Site ID issued by Pangolin when the Site is created. Forwarded by
-        modules/default.nix from `host.services.oci.newt.id`.
-      '';
-      type = types.str;
-      default = "";
-    };
-
-    logLevel = lib.mkOption {
-      type = types.enum [ "DEBUG" "INFO" "WARN" "ERROR" ];
-      default = "INFO";
-      description = "Newt log verbosity.";
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    # Have services.native.alerts check this image for new upstream releases
-    services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "fosrl/newt"; };
-
-    assertions = f.ociAsserts cfg ++ [
-      { assertion = cfg.pangolin.url != "";
-        message = "services.oci.newt requires 'pangolin.url' set (host.services.oci.newt.pangolin.url) — the Pangolin dashboard's base URL"; }
-      { assertion = cfg.id != "";
-        message = "services.oci.newt requires 'id' set (host.services.oci.newt.id) — from the Pangolin Site's Newt credentials"; }
-      { assertion = cfg.sopsFile != null;
-        message = "services.oci.newt requires 'sopsFile' — normally forwarded from 'host.sopsFile'"; }
-      { assertion = lib.hasSuffix ".0/24" (toString cfg.subnet);
-        message = "services.oci.newt requires a /24 'subnet' ending in .0 — its egress rule derives the gateway from it"; }
+  # Everything one enabled instance deploys
+  mkInstance = name: inst: let
+    cont = contName name;
+    gateway = gatewayOf inst;
+    secretKey = "newt/${name}/clientSecret";
+  in {
+    assertions = f.ociAsserts (cfg // { name = cont; inherit (inst) subnet ip; }) ++ [
+      { assertion = inst.pangolin.url != "";
+        message = "services.oci.newt.instances.${name} requires 'pangolin.url' set (host.services.oci.newt.instances.${name}.pangolin.url) — the Pangolin dashboard's base URL"; }
+      { assertion = inst.id != "";
+        message = "services.oci.newt.instances.${name} requires 'id' set (host.services.oci.newt.instances.${name}.id) — from the Pangolin Site's Newt credentials"; }
+      { assertion = lib.hasSuffix ".0/24" (toString inst.subnet);
+        message = "services.oci.newt.instances.${name} requires a /24 'subnet' ending in .0 — its egress rule derives the gateway from it"; }
       # A literal IPv4 only — nft would resolve a hostname once at ruleset load, silently pinning
       # whatever it pointed at then
-      { assertion = cfg.pangolin.ip != null
-          && builtins.match "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}" cfg.pangolin.ip != null;
-        message = "services.oci.newt requires 'pangolin.ip' set to an IPv4 address (host.services.oci.newt.pangolin.ip) — the Pangolin server, the only destination its egress rule allows"; }
-      { assertion = config.networking.nftables.enable;
-        message = "services.oci.newt requires networking.nftables.enable — its egress containment is nftables-only"; }
+      { assertion = inst.pangolin.ip != null
+          && builtins.match "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}" inst.pangolin.ip != null;
+        message = "services.oci.newt.instances.${name} requires 'pangolin.ip' set to an IPv4 address (host.services.oci.newt.instances.${name}.pangolin.ip) — the Pangolin server, the only destination its egress rule allows"; }
     ];
-
-    virtualization.podman.enable = true;
-    users.users.${cfg.user.name} = f.createUser cfg.user;
-    users.groups.${cfg.user.group} = f.createGroup cfg.user;
 
     # Combine the sensitive secret with the non-secret url/id into one env file for the
     # container, decrypted at activation to sops-nix's default path
-    # (config.secret.templates."newt-<name>".path, normally /run/secrets/rendered/newt-<name>),
+    # (config.secret.templates."newt-<instance>".path, normally /run/secrets/rendered/newt-<instance>),
     # never touching the Nix store or the unit's command line the way a plain `environment` entry
     # would. It is still visible in `podman inspect` (env-file values land in Config.Env), which
     # only root - or anyone with podman API access - can run.
-    secret.templates."newt-${cfg.name}" = {
+    secret.templates."${cont}" = {
       filemode = "0400";
       content = ''
-        PANGOLIN_ENDPOINT=${cfg.pangolin.url}
-        NEWT_ID=${cfg.id}
-        NEWT_SECRET=${config.secret.ref."newt/clientSecret"}
+        PANGOLIN_ENDPOINT=${inst.pangolin.url}
+        NEWT_ID=${inst.id}
+        NEWT_SECRET=${config.secret.ref.${secretKey}}
         LOG_LEVEL=${cfg.logLevel}
       '';
-      secrets."newt/clientSecret".sopsFile = cfg.sopsFile;
+      secrets.${secretKey}.sopsFile = cfg.sopsFile;
       # The container gets these as environment variables at start, so a rotated NEWT_SECRET
       # needs the container restarted to take effect
-      restartUnits = [ "podman-${cfg.name}.service" ];
+      restartUnits = [ "podman-${cont}.service" ];
     };
 
-    # Generate the "podman-newt" service unit for the container
+    # Generate the "podman-newt-<instance>" service unit for the container
     # - cfg.port is unused here (Newt publishes no ports) — kept only because it's part of the
     #   shared service.nix type this module reuses for name/tag/user consistency
-    virtualisation.oci-containers.containers."${cfg.name}" = {
+    virtualisation.oci-containers.containers."${cont}" = {
       image = "docker.io/fosrl/newt:${cfg.tag}";
       autoStart = true;
-      hostname = "${cfg.name}";
+      hostname = cont;
       user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
-      networks = [ (f.contNetwork cfg.name cfg.name) ];  # Isolated network, named veth
+      networks = [ (f.contNetwork cont cont) ];  # Isolated network, named veth
       environment = {
         # CONFIG_FILE is Newt's documented override (see resolveConfigFilePath in fosrl/newt) —
         # point it at the writable /tmp tmpfs mounted below instead. Directly in /tmp: Newt's
@@ -220,14 +259,14 @@ in
         # Present only while the tunnel is up — read by the healthcheck below
         HEALTH_FILE = "/tmp/newt-healthy";
       };
-      environmentFiles = [ config.secret.templates."newt-${cfg.name}".path ];
+      environmentFiles = [ config.secret.templates."${cont}".path ];
       volumes = [
         "/etc/localtime:/etc/localtime:ro"
       ];
       extraOptions = [
         "--add-host=host.containers.internal:${gateway}"  # Caddy via the gateway — see notes above
-        "--add-host=${pangolinHost}:${toString cfg.pangolin.ip}" # Endpoint pinned to the egress rule's IP
-        "--ip=${cfg.ip}"
+        "--add-host=${pangolinHostOf inst}:${toString inst.pangolin.ip}" # Endpoint pinned to the egress rule's IP
+        "--ip=${inst.ip}"
         # Report-only tunnel health (the default --health-on-failure=none) — see notes above
         ''--health-cmd=["CMD","test","-f","/tmp/newt-healthy"]''
         "--health-interval=30s"
@@ -242,12 +281,12 @@ in
     # by podman.nix's `iifname "podman*"` rule, which its bridge (`f.contBridge`) falls under.
 
     # Egress containment — see "Egress containment" in the notes above
-    networking.nftables.tables."${cfg.name}-egress" = {
+    networking.nftables.tables."${cont}-egress" = {
       family = "inet";
       content = ''
         chain prerouting {
           type filter hook prerouting priority mangle; policy accept;
-          iifname "${f.contBridge cfg.name}" jump egress
+          iifname "${f.contBridge cont}" jump egress
         }
 
         chain egress {
@@ -259,8 +298,8 @@ in
           ip daddr ${gateway} udp dport 53 accept
 
           # Pangolin: API/websocket and Gerbil's WireGuard/relay ports
-          ip daddr ${toString cfg.pangolin.ip} tcp dport 443 accept
-          ip daddr ${toString cfg.pangolin.ip} udp dport { 51820, 21820 } accept
+          ip daddr ${toString inst.pangolin.ip} tcp dport 443 accept
+          ip daddr ${toString inst.pangolin.ip} udp dport { 51820, 21820 } accept
 
           # Everything else: the host's other ports, the LAN, and the rest of the internet.
           # Rejected rather than dropped so a blocked dial fails immediately instead of waiting out
@@ -273,7 +312,70 @@ in
     };
 
     # Create podman network and extend service to use it
-    systemd.services."podman-network-${cfg.name}" = f.createContNetwork { name = cfg.name; subnet = cfg.subnet; };
-    systemd.services."podman-${cfg.name}" = f.extendContService { name = cfg.name; };
+    systemd.services."podman-network-${cont}" = f.createContNetwork { name = cont; subnet = inst.subnet; };
+    systemd.services."podman-${cont}" = f.extendContService { name = cont; };
+  };
+
+  # Every enabled instance's config, and the merge of one option path across all of them
+  perInstance = lib.mapAttrsToList mkInstance enabled;
+  collect = path: lib.mkMerge (map (lib.getAttrFromPath path) perInstance);
+
+in
+{
+  # Fully user-space WireGuard — no NET_ADMIN/tun needed, and Newt is stateless with nothing
+  # written outside its writable /tmp tmpfs — so it's a safe candidate for the full hardening
+  # baseline by default. The shared `subnet`/`ip` are replaced by per-instance ones, and `caddy`/
+  # `subdomain` don't apply to an outbound-only connector.
+  options.services.oci.newt = (removeAttrs (import ../../types/service.nix {
+    inherit lib;
+    defaults = {
+      name = "newt";
+      capDropAll = true;
+      noNewPrivileges = true;
+      readOnlyRootfs = true;
+    };
+  }) [ "subnet" "ip" "caddy" "subdomain" ]) // {
+    instances = lib.mkOption {
+      description = ''
+        Pangolin site connections, one container each, keyed by a short instance name (3
+        characters or fewer, see the notes above). Each runs unless its `enable` is set false.
+        Connection details are forwarded by modules/default.nix from
+        `host.services.oci.newt.instances.<instance>.*`.
+      '';
+      type = types.attrsOf (types.submodule instanceOpts);
+      default = { };
+    };
+
+    logLevel = lib.mkOption {
+      type = types.enum [ "DEBUG" "INFO" "WARN" "ERROR" ];
+      default = "INFO";
+      description = "Newt log verbosity, shared by every instance.";
+    };
+  };
+
+  # Per-instance pieces are merged option by option rather than as one top-level `mkMerge` list:
+  # the list depends on `instances`, and the module system must know this module's top-level
+  # config keys before it can evaluate any option, so a config-dependent list there recurses.
+  config = lib.mkIf (cfg.enable && enabled != { }) {
+    # Have services.native.alerts check this image for new upstream releases
+    services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "fosrl/newt"; };
+
+    assertions = [
+      { assertion = cfg.sopsFile != null;
+        message = "services.oci.newt requires 'sopsFile' — normally forwarded from 'host.sopsFile'"; }
+      { assertion = config.networking.nftables.enable;
+        message = "services.oci.newt requires networking.nftables.enable — its egress containment is nftables-only"; }
+      { assertion = duplicateBridges == [ ];
+        message = "services.oci.newt: instances share a bridge name after f.contBridge's 15-character truncation: ${lib.concatStringsSep ", " duplicateBridges} — shorten the instance names"; }
+    ] ++ lib.concatMap (x: x.assertions) perInstance;
+
+    virtualization.podman.enable = true;
+    users.users.${cfg.user.name} = f.createUser cfg.user;
+    users.groups.${cfg.user.group} = f.createGroup cfg.user;
+
+    secret.templates = collect [ "secret" "templates" ];
+    virtualisation.oci-containers.containers = collect [ "virtualisation" "oci-containers" "containers" ];
+    networking.nftables.tables = collect [ "networking" "nftables" "tables" ];
+    systemd.services = collect [ "systemd" "services" ];
   };
 }

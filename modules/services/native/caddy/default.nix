@@ -17,7 +17,7 @@
 #    `host.services.native.caddy.proxies` in `args.enc.yaml` to keep LAN IPs untracked.
 # 4. Pangolin: with `services.oci.newt` on this host, target HTTP resources at
 #    `https://host.containers.internal:443` (see newt.nix's "Reaching services behind Caddy").
-#    Newt's IP is added to `trustedProxies` automatically by `modules/default.nix`.
+#    Each enabled Newt instance's IP is added to `trustedProxies` automatically by `modules/default.nix`.
 # 5. DNS-01 checks use Cloudflare's resolvers because AdGuard's `*.<baseDomain>` rewrite would hide
 #    the `_acme-challenge` TXT record.
 # --------------------------------------------------------------------------------------------------
