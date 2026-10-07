@@ -48,9 +48,20 @@
 # - Tunnel health: Newt maintains HEALTH_FILE while its WireGuard tunnel to Gerbil is up, which the
 #   podman healthcheck below reports — `podman healthcheck run newt-<instance>` or the STATUS column
 #   of `sudo podman ps`. Report-only: Newt reconnects on its own, so an unhealthy state never kills it.
-# - Newt's client tunnels (DISABLE_CLIENTS) and SSH auth daemon (DISABLE_SSH) are both turned off —
-#   neither is used here, and each would otherwise let the Pangolin server open more paths into the
-#   homelab than the Resources defined for this site.
+# - Newt's SSH auth daemon (DISABLE_SSH) is turned off. Its client tunnels (DISABLE_CLIENTS) are on
+#   by default for private resources, and off with `allowClients = false`. Each opens more paths
+#   into the homelab than the public Resources defined for this site. See "Private resources".
+#
+# ### Private resources
+# `allowClients` lets Pangolin clients (the CLI/desktop apps) reach this site's *private* (ZTNA)
+# resources through Newt. Clients always come in through Gerbil's relay (udp/21820 on the Pangolin
+# server, already allowed below): Newt only hole-punches towards Gerbil, and replies to any other
+# address are rejected, so a direct client<->homelab path never forms. What a client can reach is
+# still bounded by "Egress containment": a private resource has to target Caddy on Newt's gateway,
+# i.e. `host.containers.internal` (the gateway IP) on 443, never this host's LAN IP. A `Host`-mode
+# resource keeps the client's own SNI/Host header, so Caddy routes it like any LAN client. Newt's
+# in-tunnel DNS (default 9.9.9.9, which egress rejects) is pointed at that same gateway -
+# aardvark-dns, i.e. this host's resolver.
 #
 # ### Reaching services behind Caddy
 # Caddy runs as a native host service (not a container) fronting homarr/oneup/stirling-pdf/
@@ -247,8 +258,8 @@ let
         # saveConfig is a bare os.WriteFile that never creates parent directories, so a
         # subdirectory here fails every save ("open ...: no such file or directory").
         CONFIG_FILE = "/tmp/newt-config.json";
-        # Unused features, off to limit what the Pangolin server can open — see notes above
-        DISABLE_CLIENTS = "true";
+        # Off to limit what the Pangolin server can open — see notes above
+        DISABLE_CLIENTS = lib.boolToString (!cfg.allowClients);
         DISABLE_SSH = "true";
         # NO_CLOUD is deliberately NOT set. Despite the name, Pangolin's Enterprise build answers a
         # `noCloud` newt with no `gerbil`-type exit nodes at all - including a self-hosted Gerbil
@@ -258,6 +269,8 @@ let
         # `pangolin.ip`.
         # Present only while the tunnel is up — read by the healthcheck below
         HEALTH_FILE = "/tmp/newt-healthy";
+      } // lib.optionalAttrs cfg.allowClients {
+        DNS = gateway;   # In-tunnel DNS via aardvark-dns - the only resolver egress allows
       };
       environmentFiles = [ config.secret.templates."${cont}".path ];
       volumes = [
@@ -313,7 +326,12 @@ let
 
     # Create podman network and extend service to use it
     systemd.services."podman-network-${cont}" = f.createContNetwork { name = cont; subnet = inst.subnet; };
-    systemd.services."podman-${cont}" = f.extendContService { name = cont; };
+    # extendContService runs the unit from /var/lib/<container>, but every instance shares the one
+    # Newt user whose home (/var/lib/<user>) is the only dir created - point it there instead, or
+    # systemd fails the start with CHDIR. Newt writes nothing outside its /tmp tmpfs anyway.
+    systemd.services."podman-${cont}" = lib.recursiveUpdate (f.extendContService { name = cont; }) {
+      serviceConfig.WorkingDirectory = "/var/lib/${cfg.user.name}";
+    };
   };
 
   # Every enabled instance's config, and the merge of one option path across all of them
@@ -344,6 +362,15 @@ in
       '';
       type = types.attrsOf (types.submodule instanceOpts);
       default = { };
+    };
+
+    allowClients = lib.mkOption {
+      description = ''
+        Let Pangolin clients reach this site's private resources through Newt (clears
+        DISABLE_CLIENTS) - see "Private resources" above. Set false for public resources only.
+      '';
+      type = types.bool;
+      default = true;
     };
 
     logLevel = lib.mkOption {

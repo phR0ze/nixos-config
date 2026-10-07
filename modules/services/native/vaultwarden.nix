@@ -24,8 +24,9 @@
 #    can register, so create the first account by briefly setting `signupsAllowed = true`, or by
 #    inviting it from the `/admin` panel.
 # 5. To reach this service through a Pangolin *private* (ZTNA) resource instead of a public
-#    subdomain, use a `Host`-mode (raw L4 tunnel) resource pointed straight at this host's LAN
-#    `IP:443` — the same shared wildcard block `subdomains` above already uses. Pangolin never
+#    subdomain, use a `Host`-mode (raw L4 tunnel)
+#    resource pointed at Newt's gateway (`host.containers.internal`) on 443 — Newt's egress rule
+#    rejects this host's LAN IP — the same shared wildcard block `subdomains` above already uses. Pangolin never
 #    terminates or re-originates TLS for that resource type, so the client's real SNI/Host header
 #    reaches Caddy intact, same as any LAN client; no dedicated listener or port is needed. Add a
 #    second entry to `subdomains` if you want the private resource to have its own distinct name

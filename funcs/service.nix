@@ -125,6 +125,18 @@ in {
           && [ "$(podman network inspect --format '{{.NetworkInterface}}' ${name})" != "${bridge}" ]; then
         podman network rm -f ${name}
       fi
+      # A network left behind by a renamed or removed service (e.g. `newt` -> `newt-a`, whose old
+      # unit never got to run its ExecStop across a reboot) still claims this subnet, and podman
+      # refuses to create a second network on it. Remove it - without -f, so one still in use by
+      # a container fails here, naming the conflict, instead of being torn out from under it.
+      for other in $(podman network ls --format '{{.Name}}'); do
+        [ "$other" = ${name} ] && continue
+        if podman network inspect --format '{{range .Subnets}}{{.Subnet}} {{end}}' "$other" \
+            | tr ' ' '\n' | grep -qxF ${subnet}; then
+          echo "removing stale network $other, which holds ${subnet}"
+          podman network rm "$other"
+        fi
+      done
       if ! podman network exists ${name}; then
         podman network create --interface-name ${bridge} --subnet ${subnet} ${name}
       fi
