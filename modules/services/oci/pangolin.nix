@@ -38,6 +38,10 @@
 #   inert anyway) and mounts only `config/gerbil` for its key rather than all of `config/`, which
 #   holds the server secret and acme.json's private keys.
 # - Every container gets `no-new-privileges`, and traefik drops all caps but `NET_BIND_SERVICE`.
+#   Without `DAC_OVERRIDE`, root can't create Traefik's default `./plugins-storage` in the image's
+#   read-only (0555) `/`, which silently disables the badger and crowdsec plugins and fails every
+#   router using them (hosts/vm-vps1, 2026-10-07). So it gets its own root-owned dir mounted there,
+#   outside `config/` so pangolin's mount doesn't see it.
 # - `allow_raw_resources` off by default (`allowRawResources`).
 #
 # ### Secrets
@@ -142,6 +146,7 @@ let
           - NET_BIND_SERVICE
         volumes:
           - ./config/traefik:/etc/traefik:ro
+          - ./traefik-plugins:/plugins-storage
           - ./config/letsencrypt:/letsencrypt
           - ./config/traefik/logs:/var/log/traefik
 
@@ -750,9 +755,12 @@ in
 
     virtualization.podman.enable = true;
 
-    # Gerbil's WireGuard interface needs the module loaded on the host. Preloaded rather than left
-    # to autoload: devices.kernel.harden's lockKernelModules blocks loading anything after boot.
-    boot.kernelModules = [ "wireguard" ];
+    # Modules gerbil needs on the host, preloaded rather than left to autoload: devices.kernel.harden's
+    # lockKernelModules blocks loading anything once the default target is reached, which only
+    # happens to land after gerbil's first start - a gerbil restart later on would fail. Besides
+    # its WireGuard interface, gerbil's iptables-nft MSS-clamping and wg0 INPUT rules pull in the
+    # xt_* matches through nft_compat (confirmed via lsmod, hosts/vm-vps1 2026-10-07).
+    boot.kernelModules = [ "wireguard" "nft_compat" "xt_TCPMSS" "xt_conntrack" "xt_tcpudp" ];
 
     # Same caveat as every other services.oci.* module publishing container ports: podman's own
     # NAT/forward rules reach these regardless of networking.firewall - these entries are
@@ -780,6 +788,7 @@ in
       "d ${dataDir}/config/crowdsec/db 0750 root root -"
       "d ${dataDir}/config/crowdsec/acquis.d 0750 root root -"
       "d ${dataDir}/state 0700 root root -"
+      "d ${dataDir}/traefik-plugins 0700 root root -"
 
       "L+ ${dataDir}/docker-compose.yml - - - - ${pkgs.writeText "${cfg.name}-compose.yml" composeText}"
       # Configs below land under dataDir/config, which gets bind-mounted wholesale into one

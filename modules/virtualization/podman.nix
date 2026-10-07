@@ -47,6 +47,15 @@ in
     # Configure primary user permissions
     system.users.admin.extraGroups = lib.optional (!cfg.harden) "podman";
 
+    # The admin user comes from nix-weave's secret users, whose extraGroups are only ever added
+    # (`usermod -aG`), never removed - so a host hardened after the fact kept the admin in `podman`
+    # (hosts/vm-vps1, 2026-10-07). Empty the group on every activation instead.
+    system.activationScripts.podmanHardenGroup = lib.mkIf cfg.harden (lib.stringAfter [ "users" "groups" ] ''
+      for u in $(${pkgs.getent}/bin/getent group podman | ${pkgs.coreutils}/bin/cut -d: -f4 | ${pkgs.coreutils}/bin/tr , ' '); do
+        ${pkgs.shadow}/bin/gpasswd -d "$u" podman
+      done
+    '');
+
     # Install dependencies
     environment.systemPackages = [
       pkgs.podman-compose

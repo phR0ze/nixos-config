@@ -17,7 +17,7 @@
     host.autologin = true;
     #host.autolock = true;
     host.desktop.xfce.standard = true;
-    host.backupDir = "/mnt/Apps/vm-homelab";
+    #host.backupDir = "/mnt/Apps/vm-homelab";
 
     virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
