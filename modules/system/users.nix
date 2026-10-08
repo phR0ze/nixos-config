@@ -23,6 +23,8 @@ in
 {
   options = {
     system.users = {
+      harden = lib.mkEnableOption "Only let wheel members execute sudo at all (security.sudo.execWheelOnly)";
+
       admin = {
         enable = lib.mkEnableOption "Create admin user with secret name/pass from secrets.enc.yaml";
         passwordlessSudo = lib.mkEnableOption "Allow the admin user (wheel group) to sudo without a password";
@@ -88,6 +90,12 @@ in
   };
 
   config = lib.mkMerge [
+    # sudo is setuid root - limiting who can even execute it shrinks the attack surface for any
+    # local privilege escalation in sudo itself, e.g. from a compromised service account
+    (lib.mkIf cfg.harden {
+      security.sudo.execWheelOnly = true;
+    })
+
     {
       assertions = [
         {

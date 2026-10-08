@@ -12,6 +12,7 @@ in
 {
   options.system.env.nix = {
     enable = lib.mkEnableOption "default nix environment settings";
+    harden = lib.mkEnableOption "Only let wheel members talk to the Nix daemon at all";
 
     stateVersion = lib.mkOption {
       type = lib.types.str;
@@ -27,6 +28,12 @@ in
   };
 
   config = lib.mkMerge [
+    # The Nix daemon runs as root and builds whatever a client asks for - keep service accounts
+    # (and anything that compromises one) from talking to it at all
+    (lib.mkIf (cfg.enable && cfg.harden) {
+      nix.settings.allowed-users = [ "@wheel" ];
+    })
+
     (lib.mkIf cfg.enable {
       system.stateVersion = cfg.stateVersion;
 

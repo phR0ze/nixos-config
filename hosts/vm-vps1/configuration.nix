@@ -30,12 +30,15 @@
     };
     services.oci.pangolin = {
       enable = true;
-      pangolinTag = "ee-1.21.1";
-      gerbilTag = "1.5.1";
+      pangolinTag = "ee-1.24.0";
+      gerbilTag = "1.5.2";
       traefikTag = "v3.7";
-      crowdsecTag = "v1.7.8";
-      badgerPluginVersion = "v1.5.0";
-      crowdsecPluginVersion = "v1.4.4";
+      crowdsecTag = "v1.7.8";  # agent only, must not be newer than the host LAPI
+      badgerPluginVersion = "v1.7.0";
+      crowdsecPluginVersion = "v1.7.1";
     };
+
+    # Console enrollment for its extra blocklists - needs crowdsec/consoleEnrollKey in secrets
+    services.native.crowdsec.console.enroll = true;
   };
 }

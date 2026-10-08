@@ -43,7 +43,15 @@
 #   router using them (hosts/vm-vps1, 2026-10-07). So it gets its own root-owned dir mounted there,
 #   outside `config/` so pangolin's mount doesn't see it.
 # - `allow_raw_resources` off by default (`allowRawResources`).
-#
+# - One CrowdSec for the whole host: the crowdsec container runs as an agent only
+#   (`DISABLE_LOCAL_API`). It still parses Traefik's logs and serves AppSec, but its alerts go to
+#   the host's LAPI (services.native.crowdsec), and Traefik's bouncer pulls decisions from there
+#   too. So SSH, port-scan, Traefik and AppSec detections share one decision list, one set of
+#   permanent-ban profiles, one allowlist and one CAPI/Console identity, and every ban is enforced
+#   by both Traefik and the host firewall (which covers the WireGuard ports too). Upstream runs a
+#   self-contained LAPI in the container instead.
+# - No geo-blocking in Traefik: the host's prerouting geo-block (devices.network.harden, asserted
+#   below) drops non-US connections to every published port before they reach any container.
 # ### Secrets
 # `sopsFile` must point at a `secrets.enc.yaml` holding (key names configurable via the `*Ref`
 # options, always nested under `<name>/`):
@@ -73,6 +81,28 @@ let
   bridge = f.contBridge cfg.name;
   vethOpt = container: "\"eth0,host_interface_name=${f.contVeth container}\"";
 
+  # Fixed addressing on the stack's network (see the `subnet` option) so the host LAPI on 8080 can
+  # be opened to exactly the two containers that use it, rather than the whole bridge. traefik
+  # shares gerbil's netns, so its LAPI traffic comes from gerbil's address. pangolin gets a fixed
+  # address too, only so netavark's auto-assignment can never take one of the others first.
+  gatewayIp = f.hostInSubnet cfg.subnet 1;
+  pangolinIp = f.hostInSubnet cfg.subnet 2;
+  gerbilIp = f.hostInSubnet cfg.subnet 3;
+  crowdsecIp = f.hostInSubnet cfg.subnet 4;
+
+  # The host's CrowdSec LAPI (services.native.crowdsec), the single hub this stack's crowdsec agent
+  # reports to and Traefik's bouncer pulls decisions from. podman puts `host.containers.internal`
+  # in every container's /etc/hosts; whichever host address it resolves to, the traffic enters on
+  # this stack's bridge, the only interface 8080 is opened on.
+  lapiHost = "host.containers.internal:8080";
+
+  # Credentials the crowdsec-agent unit registers with the host LAPI: the agent's
+  # AGENT_USERNAME/AGENT_PASSWORD env file and the Traefik bouncer's API key
+  agentStateDir = "/var/lib/${cfg.name}-crowdsec-agent";
+  agentEnvFile = "${agentStateDir}/agent.env";
+  agentMachine = "${cfg.name}-agent";
+  bouncerName = "${cfg.name}-traefik";
+
   composeText = ''
     name: ${cfg.name}
     services:
@@ -83,6 +113,7 @@ let
         networks:
           default:
             x-podman.interface_name: ${vethOpt cfg.name}
+            ipv4_address: ${pangolinIp}
         deploy:
           resources:
             limits:
@@ -106,6 +137,7 @@ let
         networks:
           default:
             x-podman.interface_name: ${vethOpt "gerbil"}
+            ipv4_address: ${gerbilIp}
         depends_on:
           pangolin:
             condition: service_healthy
@@ -157,12 +189,15 @@ let
         networks:
           default:
             x-podman.interface_name: ${vethOpt "crowdsec"}
+            ipv4_address: ${crowdsecIp}
         environment:
           GID: "1000"
           COLLECTIONS: ${lib.concatStringsSep " " cfg.crowdsecCollections}
-          ENROLL_INSTANCE_NAME: "${cfg.name}-crowdsec"
           PARSERS: crowdsecurity/whitelists
-          ENROLL_TAGS: docker
+          DISABLE_LOCAL_API: "true"
+          LOCAL_API_URL: http://${lapiHost}
+        env_file:
+          - ${agentEnvFile}
         healthcheck:
           test: ["CMD", "cscli", "lapi", "status"]
           interval: "10s"
@@ -184,6 +219,10 @@ let
         name: ${cfg.name}_frontend
         driver_opts:
           com.docker.network.bridge.name: ${bridge}
+        ipam:
+          config:
+            - subnet: ${cfg.subnet}
+              gateway: ${gatewayIp}
   '';
 
   traefikConfigText = ''
@@ -203,10 +242,10 @@ let
         endpoint: "http://pangolin:3001/api/v1/traefik-config"
         pollInterval: "5s"
       file:
-        # Directory (not filename) mode is required for the geo-allowlist and crowdsec middleware
-        # files below to hot-reload - Traefik's single-file mode never watches for changes, only
-        # directory mode does. Both are written by their own services (atomically, via a
-        # non-.yml temp file + mv) and picked up live without restarting traefik.
+        # Directory (not filename) mode is required for the crowdsec middleware file below to
+        # hot-reload - Traefik's single-file mode never watches for changes, only directory mode
+        # does. It's written by its own service (atomically, via a non-.yml temp file + mv) and
+        # picked up live without restarting traefik.
         directory: "/etc/traefik/dynamic"
         watch: true
 
@@ -294,11 +333,6 @@ let
           tls:
             certResolver: "letsencrypt"
           middlewares:
-            # us-allowlist runs first - a short-circuiting nftables-style set lookup that rejects
-            # non-US traffic before crowdsec@file ever makes its synchronous LAPI/AppSec round-trip
-            # (host-level geo-blocking never covered this path at all - see the "Traefik geoblock"
-            # comment on the geoblockAllowList option below for why).
-            - us-allowlist@file
             - crowdsec@file
           encodedCharacters:
             allowEncodedSlash: true
@@ -430,7 +464,7 @@ let
   #   anything upstream of the plugin stops overwriting it (e.g. `forwardedHeaders.insecure`).
   # - No RFC1918 ranges (upstream: 10/8, 172.16/12, 192.168/16). No legitimate client reaches a VPS
   #   from them - only the stack's own podman bridge or a provider's shared private network would.
-  #   A host that does front a LAN (e.g. hosts/vm-vps1) lists it explicitly in `geoblockAllowList`.
+  #   A host that does front a LAN (e.g. hosts/vm-vps1) lists it explicitly in `trustedClients`.
   crowdsecMiddlewareText = ''
     http:
       middlewares:
@@ -439,18 +473,21 @@ let
             crowdsec:
               enabled: true
               logLevel: INFO
+              # stream: keep a local copy of the ban list, refreshed every 15s, rather than asking
+              # the LAPI on every request (live). The LAPI is the host's now, which restarts daily
+              # with the hub update; stream rides that out instead of returning 403s. After 8
+              # failed refreshes in a row (~2min) it fails closed and blocks everything.
               updateIntervalSeconds: 15
-              updateMaxFailure: 0
-              defaultDecisionSeconds: 15
+              updateMaxFailure: 8
               httpTimeoutSeconds: 10
-              crowdsecMode: live
+              crowdsecMode: stream
               crowdsecAppsecEnabled: true
               crowdsecAppsecHost: crowdsec:7422
               crowdsecAppsecFailureBlock: true
               crowdsecAppsecUnreachableBlock: true
               crowdsecAppsecBodyLimit: 10485760
               crowdsecLapiKey: "@LAPI_KEY@"
-              crowdsecLapiHost: crowdsec:8080
+              crowdsecLapiHost: ${lapiHost}
               crowdsecLapiScheme: http
               forwardedHeadersTrustedIPs: []
               clientTrustedIPs:
@@ -458,13 +495,13 @@ let
     ${crowdsecTrustedAllowList}
   '';
 
-  # geoblockAllowList entries (the host's `network.allowList`) appended to clientTrustedIPs, which
+  # trustedClients entries (the host's `network.allowList`) appended to clientTrustedIPs, which
   # skips the bouncer entirely - LAPI decisions and AppSec - for those clients. Keeps a trusted
   # site (e.g. the homelab's Newt registering over the API/websocket) from being locked out by a
   # community-blocklist or captcha decision on its public IP, or by AppSec being unreachable while
   # crowdsec restarts. Explicit absolute-column lines for the same reason as wildcardTls above.
   crowdsecTrustedAllowList = lib.concatMapStringsSep "\n"
-    (ip: "            - \"${ip}\"") cfg.geoblockAllowList;
+    (ip: "            - \"${ip}\"") cfg.trustedClients;
 
   crowdsecAcquisTraefikText = ''
     poll_without_inotify: false
@@ -483,66 +520,12 @@ let
       type: appsec
   '';
 
-  crowdsecProfilesText = ''
-    name: default_ip_remediation
-    filters:
-     - Alert.Remediation == true && Alert.GetScope() == "Ip"
-    decisions:
-     - type: ban
-       duration: 4h
-    on_success: break
-
-    ---
-    name: default_range_remediation
-    filters:
-     - Alert.Remediation == true && Alert.GetScope() == "Range"
-    decisions:
-     - type: ban
-       duration: 4h
-    on_success: break
-  '';
-
-  # Traefik geoblock - closes a gap host-level geo-blocking never covered: `devices.network.harden`'s
-  # geoblock-chain only hooks the host's own `input` chain, so it never sees traffic DNAT'd into a
-  # container (netfilter's routing decision runs after DNAT rewrites the destination to the
-  # container's private IP, sending it through `forward` instead) - meaning Traefik's published 443
-  # had zero country-based filtering regardless of the host-level geoblock. Same upstream CIDR
-  # source and same "bake the allowlist in, refresh the fetched list independently" shape as
-  # devices.network.harden's own geoblock, just expressed as a Traefik dynamic-config file instead
-  # of an nftables set, since nftables can't see into forwarded container traffic at all.
-  usCidrUrl = "https://raw.githubusercontent.com/ipverse/country-ip-blocks/master/country/us/ipv4-aggregated.txt";
-
-  # Static half of the geo-allowlist file: the header plus geoblockAllowList's entries, baked in so
-  # the file is well-formed and non-empty from the very first activation (zero network dependency -
-  # mirrors devices.network.harden.geoblockAllowList's own "closes the boot to first-refresh gap"
-  # reasoning). The refresh service below appends the fetched US CIDRs to this same header.
-  #
-  # The leading placeholder entry (RFC 5737 TEST-NET-1, never a real client address) is not
-  # optional even when geoblockAllowList is empty: Traefik's file provider rejects an ipAllowList
-  # middleware whose sourceRange resolves to an empty list as "cannot be a standalone element" -
-  # and rejects the ENTIRE dynamic-config directory when that happens, not just this middleware,
-  # taking down every router/service Pangolin/Traefik serve until the next successful reload
-  # (confirmed live: this exact empty-sourceRange state during the ~2min boot-to-first-refresh
-  # window blanked the whole stack - hosts/vm-vps1 testing, 2026-09-22).
-  # Built from explicit lines (not a `''...''` literal) so its indentation is unambiguous and
-  # matches the 12-space list-item convention the geoblock-refresh script's own `sed` output and
-  # the appended geoblockAllowList entries below both use - mixing an auto-dedented block with
-  # separately-concatenated literal-indent lines is exactly the mismatch that broke wildcardTls.
-  geoAllowlistHeaderText = lib.concatStringsSep "\n" ([
-    "http:"
-    "  middlewares:"
-    "    us-allowlist:"
-    "      ipAllowList:"
-    "        sourceRange:"
-    "            - 192.0.2.1"
-  ] ++ map (ip: "            - ${ip}") cfg.geoblockAllowList) + "\n";
-
   # Forces the systemd unit definition itself to change whenever any rendered config changes -
   # otherwise a `nixos-rebuild switch` that only updates a symlink target doesn't bump the unit's
   # own hash, so NixOS never restarts it and podman-compose never re-applies the new config.
   configRev = builtins.hashString "sha256" (
     composeText + traefikConfigText + dynamicConfigText + crowdsecAcquisTraefikText
-    + crowdsecAcquisAppsecText + crowdsecProfilesText + geoAllowlistHeaderText
+    + crowdsecAcquisAppsecText
   );
 in
 {
@@ -642,25 +625,30 @@ in
       default = "1g";
     };
 
+    subnet = lib.mkOption {
+      description = ''
+        Fixed /24 for the stack's podman network. The containers get fixed addresses in it
+        (gateway .1, pangolin .2, gerbil/traefik .3, crowdsec .4), and the host LAPI on 8080 is
+        only opened to gerbil/traefik and crowdsec. Must not overlap any other podman network on
+        the host.
+      '';
+      type = types.strMatching "[0-9]+\\.[0-9]+\\.[0-9]+\\.0/24";
+      default = "10.89.130.0/24";
+    };
+
     memoryReservation = lib.mkOption {
       description = "Memory reservation for the pangolin container";
       type = types.str;
       default = "512m";
     };
 
-    geoblockAllowList = lib.mkOption {
+    trustedClients = lib.mkOption {
       description = ''
-        CIDRs/IPs that always bypass Traefik's US geo-allowlist regardless of country, mirroring
-        `devices.network.harden.geoblockAllowList`'s purpose - a safety valve against a
-        self-inflicted lockout if the upstream geoIP data is ever wrong, or the admin travels/tunnels
-        through a non-US VPN exit. Baked directly into the allowlist file's initial contents (zero
-        network dependency at boot) and re-applied on every subsequent daily refresh alongside the
-        fetched US list.
-
-        Also appended to the Traefik crowdsec bouncer's `clientTrustedIPs`, so these clients skip
-        CrowdSec entirely (LAPI decisions and AppSec) - e.g. the homelab's public IP, so its Newt
-        can't be locked out of registering. Only list addresses you control: never shared/CGNAT
-        ranges, which would exempt strangers too.
+        CIDRs/IPs appended to the Traefik crowdsec bouncer's `clientTrustedIPs`, so these clients
+        skip CrowdSec entirely (LAPI decisions and AppSec) - e.g. the homelab's public IP, so its
+        Newt can't be locked out of registering. Normally forwarded from `host.network.allowList`,
+        which also exempts them from the host geo-block. Only list addresses you control: never
+        shared/CGNAT ranges, which would exempt strangers too.
       '';
       type = lib.types.listOf lib.types.str;
       default = [ ];
@@ -751,6 +739,18 @@ in
       { assertion = cfg.baseDomain != null && cfg.baseDomain != ""; message = "services.oci.pangolin requires 'baseDomain', normally forwarded from 'host.network.domain'"; }
       { assertion = cfg.acmeEmail != null; message = "services.oci.pangolin requires 'acmeEmail'"; }
       { assertion = cfg.sopsFile != null; message = "services.oci.pangolin requires 'sopsFile', normally forwarded from 'host.sopsFile'"; }
+      # Country filtering for every port this stack publishes (443, WireGuard) is the host's
+      # prerouting geo-block - there's no second one in Traefik
+      { assertion = config.devices.network.harden.enable;
+        message = "services.oci.pangolin requires devices.network.harden.enable - its geo-block is the only country filter in front of the stack";
+      }
+      { assertion = config.services.native.crowdsec.enable;
+        message = "services.oci.pangolin requires services.native.crowdsec - its crowdsec agent and Traefik bouncer use the host's LAPI";
+      }
+      # CrowdSec agents must not be newer than the LAPI they report to
+      { assertion = lib.versionAtLeast config.services.crowdsec.package.version (lib.removePrefix "v" cfg.crowdsecTag);
+        message = "services.oci.pangolin.crowdsecTag (${cfg.crowdsecTag}) is newer than the host's CrowdSec LAPI (${config.services.crowdsec.package.version})";
+      }
     ];
 
     virtualization.podman.enable = true;
@@ -759,7 +759,9 @@ in
     # traefik downloads its plugins and requests certs, crowdsec updates its hub, and pangolin
     # looks up its public IP. The bouncer is listed too, or multi-user.target would pull the stack
     # back into boot through its `requires`.
-    devices.network.onlineServices = [ "${cfg.name}-stack" "${cfg.name}-crowdsec-bouncer" ];
+    devices.network.onlineServices = [
+      "${cfg.name}-stack" "${cfg.name}-crowdsec-bouncer" "${cfg.name}-crowdsec-agent"
+    ];
 
     # Modules gerbil needs on the host, preloaded rather than left to autoload: devices.kernel.harden's
     # lockKernelModules blocks loading anything once the default target is reached, which only
@@ -770,11 +772,19 @@ in
 
     # Same caveat as every other services.oci.* module publishing container ports: podman's own
     # NAT/forward rules reach these regardless of networking.firewall - these entries are
-    # documentation/consistency, not the actual gate. Verify a CrowdSec ban (native
-    # crowdsec-firewall-bouncer or this stack's own docker-scoped engine, two separate LAPIs) still
-    # intercepts traffic to these ports before relying on either as the real enforcement point.
+    # documentation/consistency, not the actual gate. The real gates for them are the prerouting
+    # chains: services.native.crowdsec's ban set and devices.network.harden's geo-block.
     networking.firewall.allowedTCPPorts = [ 443 ];
     networking.firewall.allowedUDPPorts = [ 51820 21820 ];
+
+    # The host LAPI (see lapiHost), reachable only from the two containers that use it: the
+    # crowdsec agent and Traefik's bouncer (in gerbil's netns). The pangolin app container is on
+    # the same bridge but has no business with the LAPI. The source match is safe from spoofing:
+    # NixOS's reverse-path filter drops packets claiming these addresses on any other interface,
+    # and the addresses are fixed so nothing else on the bridge can be assigned them.
+    networking.firewall.extraInputRules = ''
+      iifname "${bridge}" ip saddr { ${gerbilIp}, ${crowdsecIp} } tcp dport 8080 accept
+    '';
 
     # Non-secret config - rendered directly into the Nix store and symlinked into place, so a
     # nixos-rebuild switch always reflects the current module source. Runtime-writable state
@@ -809,26 +819,24 @@ in
       # - the `+` suffix only changes whether an *existing non-empty directory* gets descended
       # into, it has no effect on an existing regular file at all. Confirmed live: every one of
       # these files was silently frozen at its very first-ever rendered content, un-refreshed by
-      # any subsequent `nixos-rebuild switch` (found while verifying the Traefik geo-allowlist
-      # feature below never took effect despite a clean build - hosts/vm-vps1 testing,
+      # any subsequent `nixos-rebuild switch` (found while verifying a since-removed Traefik
+      # geo-allowlist feature never took effect despite a clean build - hosts/vm-vps1 testing,
       # 2026-09-22). `r` doesn't error if the path is already missing, so this is safe on a
       # first-ever activation too.
       "r ${dataDir}/config/traefik/traefik_config.yml"
       "C+ ${dataDir}/config/traefik/traefik_config.yml - - - - ${pkgs.writeText "${cfg.name}-traefik-config.yml" traefikConfigText}"
       "r ${dataDir}/config/traefik/dynamic/dynamic_config.yml"
       "C+ ${dataDir}/config/traefik/dynamic/dynamic_config.yml - - - - ${pkgs.writeText "${cfg.name}-dynamic-config.yml" dynamicConfigText}"
-      # Baseline only (geoblockAllowList entries, no fetched US CIDRs yet), seeded once with plain
-      # `C` (no `r`) so the file is never missing. Deliberately NOT reset on switch: tmpfiles re-runs
-      # on every switch (see crowdsecMiddlewareText), which used to drop the fetched US list until
-      # the next daily refresh. The geoblock-refresh service owns this file from then on, and
-      # re-renders it (current header + last fetched list) whenever the stack restarts.
-      "C ${dataDir}/config/traefik/dynamic/geo-allowlist.yml - - - - ${pkgs.writeText "${cfg.name}-geo-allowlist-initial.yml" geoAllowlistHeaderText}"
+      # Left over from the removed Traefik geo-block (the host's prerouting geo-block covers it)
+      "r ${dataDir}/config/traefik/dynamic/geo-allowlist.yml"
+      "r ${dataDir}/state/us-cidrs.txt"
       "r ${dataDir}/config/crowdsec/acquis.d/traefik.yaml"
       "C+ ${dataDir}/config/crowdsec/acquis.d/traefik.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-acquis-traefik.yaml" crowdsecAcquisTraefikText}"
       "r ${dataDir}/config/crowdsec/acquis.d/appsec.yaml"
       "C+ ${dataDir}/config/crowdsec/acquis.d/appsec.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-acquis-appsec.yaml" crowdsecAcquisAppsecText}"
+      # Left over from when the container ran its own LAPI with 4h bans; profiles now live on the
+      # host LAPI, and an agent never reads this
       "r ${dataDir}/config/crowdsec/profiles.yaml"
-      "C+ ${dataDir}/config/crowdsec/profiles.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-profiles.yaml" crowdsecProfilesText}"
 
       # Secret-bearing config - targets rendered by the secret.templates entries below. Same
       # never-refreshes bug applies here too - without the `r`, rotating
@@ -941,56 +949,6 @@ in
       timerConfig = { OnCalendar = "weekly"; Persistent = true; RandomizedDelaySec = "1h"; };
     };
 
-    # Refresh of Traefik's us-allowlist middleware - same CIDR source as devices.network.harden's own
-    # geoblock-refresh, just targeting a Traefik dynamic-config file instead of an nftables set. See
-    # geoAllowlistHeaderText's comment above for why this exists as a separate mechanism from the
-    # host-level geoblock.
-    # - "Fail safe to yesterday's list": each successful fetch is cached in state/, and a failed
-    #   fetch falls back to that cache rather than aborting - so the file is always re-rendered with
-    #   the *current* geoblockAllowList header (a changed allowlist still lands even while the
-    #   upstream source is down) without ever dropping the last-known US CIDRs.
-    # - Written via a non-.yml temp file in the same directory + mv, so Traefik's directory watch
-    #   only ever sees a complete file (it ignores non-.yml/.toml files).
-    systemd.services."${cfg.name}-geoblock-refresh" = {
-      description = "Refresh Traefik's US IPv4 allowlist middleware for the ${cfg.name} stack";
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
-      path = [ pkgs.curl pkgs.gnugrep pkgs.gnused pkgs.coreutils ];
-      serviceConfig.Type = "oneshot";
-      script = ''
-        set -euo pipefail
-        cache=${dataDir}/state/us-cidrs.txt
-        dest=${dataDir}/config/traefik/dynamic/geo-allowlist.yml
-        tmp=$(mktemp ${dataDir}/config/traefik/dynamic/.geo-allowlist.XXXXXX.tmp)
-        fetched=$(mktemp)
-        trap 'rm -f "$tmp" "$fetched"' EXIT
-
-        if curl --fail --silent --show-error "${usCidrUrl}" \
-            | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$' > "$fetched"; then
-          install -m 0600 "$fetched" "$cache"
-        else
-          echo "US CIDR fetch failed, falling back to the cached list" >&2
-        fi
-
-        cat ${pkgs.writeText "${cfg.name}-geo-allowlist-header.yml" geoAllowlistHeaderText} > "$tmp"
-        if [ -s "$cache" ]; then
-          sed 's/^/            - /' "$cache" >> "$tmp"
-        fi
-        chmod 0644 "$tmp"
-        mv -f "$tmp" "$dest"
-      '';
-    };
-    systemd.timers."${cfg.name}-geoblock-refresh" = {
-      description = "Daily refresh of the ${cfg.name} stack's Traefik US IPv4 allowlist";
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnBootSec = "2min";       # minimize the geoblockAllowList-only window after boot
-        OnUnitActiveSec = "1d";   # matches ipverse/country-ip-blocks' own daily CI cadence
-        RandomizedDelaySec = 300;
-        Persistent = true;
-      };
-    };
-
     # Traefik's own access log (config/traefik/logs/access.log) grows unbounded otherwise - nothing
     # in the compose stack rotates it, same as upstream's plain install.
     # Traefik holds the file open, so after the rename it would keep writing to access.log.1 -
@@ -1011,14 +969,13 @@ in
     };
 
     # Have services.native.alerts watch the stack. Its unit is a oneshot that stays `active` however
-    # the containers fare, so a crash-looping container never shows up as a failed unit; the
-    # containerized CrowdSec engine's decisions are separate from the host's; and every image is
-    # pinned, so nothing else notices a new upstream release. As a public-facing CrowdSec host, it
-    # also gets the daily security digest.
+    # the containers fare, so a crash-looping container never shows up as a failed unit; and every
+    # image is pinned, so nothing else notices a new upstream release. As a public-facing CrowdSec
+    # host, it also gets the daily security digest - the host's own `cscli` covers this stack's
+    # decisions too, since its crowdsec container is only an agent of the host LAPI.
     services.native.alerts.enable = lib.mkDefault true;
     services.native.alerts.securityDigest.enable = true;
     services.native.alerts.containers.units."${cfg.name}-stack" = [ cfg.name "gerbil" "traefik" "crowdsec" ];
-    services.native.alerts.securityDigest.crowdsecContainers = [ "crowdsec" ];
     services.native.alerts.imageUpdates.images = {
       # EE and CE ship from the same release as separate image tags (`ee-` is handled by alerts)
       pangolin = { tag = cfg.pangolinTag; repo = "fosrl/pangolin"; };
@@ -1042,21 +999,19 @@ in
       # loop whose constant veth teardown/recreate also broke crowdsec's DNS lookups on the same
       # bridge (hosts/vm-vps1 testing, 2026-09-21).
       #
-      # Same ordering applied to geoblock-refresh, for a different reason: it's what applies a
-      # changed geoblockAllowList. geoAllowlistHeaderText is part of CONFIG_REV, so any allowlist
-      # change restarts this unit, which pulls the refresh in to re-render geo-allowlist.yml with
-      # the new header (tmpfiles only seeds that file once - see its comment above). Before that, a
-      # tmpfiles `r`+`C+` pair reset the file to its bare baseline on every switch and wiped the
-      # fetched US CIDRs for up to 24h (hosts/vm-vps1 testing, 2026-09-22).
+      # The crowdsec container is an agent of the host LAPI and traefik waits on it turning healthy
+      # (`cscli lapi status`), so the host LAPI and the agent's credentials must be up first.
       after = [
         "podman.service"
         "${cfg.name}-geolite-refresh.service"
-        "${cfg.name}-geoblock-refresh.service"
+        "crowdsec.service"
+        "${cfg.name}-crowdsec-agent.service"
       ];
       wants = [
         "${cfg.name}-geolite-refresh.service"
-        "${cfg.name}-geoblock-refresh.service"
+        "crowdsec.service"
       ];
+      requires = [ "${cfg.name}-crowdsec-agent.service" ];
       environment.CONFIG_REV = configRev;
       path = [ pkgs.podman ];
       serviceConfig = {
@@ -1076,8 +1031,9 @@ in
         # first, so it can't hit that.
         #
         # podman-compose also only creates a missing network, never updates one, so an existing
-        # network whose bridge isn't (yet) `bridge` - e.g. the auto-named podmanN from before it was
-        # set - is removed here for `up` to recreate (hosts/vm-vps1, 2026-10-05).
+        # network whose bridge or subnet doesn't match - e.g. the auto-named podmanN from before
+        # `bridge` was set (hosts/vm-vps1, 2026-10-05), or an auto-assigned subnet from before
+        # `subnet` was - is removed here for `up` to recreate.
         ExecStartPre = pkgs.writeShellScript "${cfg.name}-stack-reset" ''
           set -euo pipefail
           ${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} down
@@ -1088,7 +1044,7 @@ in
           fi
           net=${cfg.name}_frontend
           if ${pkgs.podman}/bin/podman network exists "$net" \
-              && [ "$(${pkgs.podman}/bin/podman network inspect --format '{{.NetworkInterface}}' "$net")" != "${bridge}" ]; then
+              && [ "$(${pkgs.podman}/bin/podman network inspect --format '{{.NetworkInterface}} {{range .Subnets}}{{.Subnet}}{{end}}' "$net")" != "${bridge} ${cfg.subnet}" ]; then
             ${pkgs.podman}/bin/podman network rm "$net"
           fi
         '';
@@ -1105,42 +1061,74 @@ in
       };
     };
 
-    # CrowdSec splits detection (the crowdsec container) from enforcement (Traefik's crowdsec
-    # bouncer plugin) - the plugin authenticates every LAPI call with a per-bouncer key that can
-    # only be generated once crowdsec is actually running, so it can't be a sops-sourced secret
-    # like server/cloudflare above. Idempotent and safe to re-run: skips registration once
-    # state/bouncer-key exists, then renders crowdsecMiddlewareText with the key into its own
-    # dynamic-config file (never touched by tmpfiles - see crowdsecMiddlewareText's comment) and
-    # only rewrites it when the content differs. Traefik's directory watch picks the change up live,
-    # so traefik is never restarted (which would drop every tunnel's connection). The template's
-    # store path is in this script, so a template change alters the unit and NixOS re-runs it on
-    # switch; a stack restart re-runs it via `requires`.
-    # Mirrors services.native.crowdsec.nix's own delete-then-recreate recovery pattern for the same
-    # class of interrupted-registration hazard.
+    # Registers this stack with the host LAPI, the single CrowdSec hub: the crowdsec container as an
+    # agent (machine) that sends its Traefik/AppSec alerts there, and Traefik's bouncer plugin
+    # with its own API key. Both credentials can only be generated by the running LAPI, so they
+    # can't be sops-sourced like server/cloudflare above. Runs as the crowdsec user through the
+    # host's `cscli` wrapper, like services.native.crowdsec's firewall-bouncer registration, and
+    # mirrors its recovery pattern: if the LAPI entry or the local credential file is missing,
+    # delete and recreate both rather than retrying (`add` refuses an existing name).
+    systemd.services."${cfg.name}-crowdsec-agent" = {
+      description = "Register Pangolin's CrowdSec agent and Traefik bouncer with the host LAPI";
+      after = [ "crowdsec.service" ];
+      wants = [ "crowdsec.service" ];
+      path = [ pkgs.jq pkgs.openssl config.system.path ];
+      script = ''
+        set -euo pipefail
+        stateDir=${agentStateDir}
+
+        for i in $(seq 1 30); do
+          cscli lapi status >/dev/null 2>&1 && break
+          sleep 2
+        done
+
+        if ! cscli machines list -o json | jq -e 'any(.[]; .machineId == "${agentMachine}")' >/dev/null \
+            || [ ! -s "$stateDir/agent.env" ]; then
+          rm -f "$stateDir/agent.env"
+          password=$(openssl rand -hex 32)
+          cscli machines add ${agentMachine} --password "$password" -f /dev/null --force >/dev/null
+          printf 'AGENT_USERNAME=%s\nAGENT_PASSWORD=%s\n' ${agentMachine} "$password" > "$stateDir/agent.env.tmp"
+          mv -f "$stateDir/agent.env.tmp" "$stateDir/agent.env"
+        fi
+
+        if ! cscli bouncers list -o json | jq -e 'any(.[]; .name == "${bouncerName}")' >/dev/null \
+            || [ ! -s "$stateDir/bouncer-key" ]; then
+          rm -f "$stateDir/bouncer-key"
+          cscli bouncers delete --ignore-missing -- ${bouncerName} >/dev/null
+          if ! cscli bouncers add --output raw -- ${bouncerName} > "$stateDir/bouncer-key"; then
+            rm -f "$stateDir/bouncer-key"
+            exit 1
+          fi
+        fi
+      '';
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        User = config.services.crowdsec.user;
+        Group = config.services.crowdsec.group;
+        StateDirectory = "${cfg.name}-crowdsec-agent";
+        UMask = "0077";
+      };
+    };
+
+    # Renders crowdsecMiddlewareText with the bouncer key into its own dynamic-config file (never
+    # touched by tmpfiles - see crowdsecMiddlewareText's comment), only rewriting it when the
+    # content differs. Traefik's directory watch picks the change up live, so traefik is never
+    # restarted (which would drop every tunnel's connection). The template's store path is in this
+    # script, so a template change alters the unit and NixOS re-runs it on switch; a stack restart
+    # re-runs it via `requires`.
     systemd.services."${cfg.name}-crowdsec-bouncer" = {
-      description = "Register Pangolin's Traefik CrowdSec bouncer and apply its LAPI key";
-      after = [ "${cfg.name}-stack.service" ];
-      requires = [ "${cfg.name}-stack.service" ];
-      path = [ pkgs.podman pkgs.coreutils pkgs.diffutils ];
+      description = "Apply the LAPI key to Pangolin's Traefik CrowdSec bouncer";
+      after = [ "${cfg.name}-stack.service" "${cfg.name}-crowdsec-agent.service" ];
+      requires = [ "${cfg.name}-stack.service" "${cfg.name}-crowdsec-agent.service" ];
+      path = [ pkgs.coreutils pkgs.diffutils ];
       serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
       script = ''
         set -euo pipefail
         dynDir=${dataDir}/config/traefik/dynamic
         dest=$dynDir/crowdsec.yml
-        keyFile=${dataDir}/state/crowdsec-bouncer-key
 
-        for i in $(seq 1 30); do
-          podman exec crowdsec cscli lapi status >/dev/null 2>&1 && break
-          sleep 2
-        done
-
-        if [ ! -s "$keyFile" ]; then
-          podman exec crowdsec cscli bouncers delete --ignore-missing -- traefik-bouncer >/dev/null 2>&1 || true
-          podman exec crowdsec cscli bouncers add traefik-bouncer -o raw > "$keyFile"
-          chmod 0600 "$keyFile"
-        fi
-
-        key=$(< "$keyFile")
+        key=$(< ${agentStateDir}/bouncer-key)
         template=$(< ${pkgs.writeText "${cfg.name}-crowdsec-middleware.yml" crowdsecMiddlewareText})
         tmp=$(mktemp "$dynDir/.crowdsec.XXXXXX.tmp")
         trap 'rm -f "$tmp"' EXIT

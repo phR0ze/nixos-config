@@ -221,8 +221,8 @@ in
       enable = lib.mkEnableOption ''
         nftables rules to provide protection for per-source connection-flooding, host-wide
         geo-blocking of non-US IPv4 CIDRs, CrowdSec enforcement of suspicious behavior.
-        Note: the connection-flood limit covers container-published ports, but the geo-block doesn't -
-        those need separate protection (e.g. Pangolin's Traefik geo-allowlist and CrowdSec bouncer).
+        Both the connection-flood limit and the geo-block hook prerouting, so they cover
+        container-published ports as well as the host's own
       '';
 
       geoblockAllowList = lib.mkOption {
@@ -587,17 +587,20 @@ in
     # `nixos-rebuild switch` and never risks a full nftables.service ruleset reload interrupting
     # traffic on an unrelated table (CrowdSec's, or NixOS's own generated firewall chain).
     #
-    # Coexistence with CrowdSec's `crowdsec-chain` (same `input` hook, same `filter` priority
-    # neighborhood) is safe because neither chain ever independently ACCEPTs a packet - each can
-    # only DROP (final, immediate) or fall through via its own `policy accept` (provisional only:
-    # the packet still traverses every other base chain hooked to `input`, including NixOS's own
-    # generated firewall chain, before actually being allowed through). So a packet is let through
-    # only if NONE of the input-hooked chains drop it, regardless of which one nftables happens to
-    # evaluate first - this holds structurally, not by careful ordering, which is why this table
-    # doesn't need any systemd-level ordering dependency against crowdsec-firewall-bouncer.service
-    # for correctness. `hook input priority filter + 5` (rather than bare `filter`, which CrowdSec's
-    # own table already uses) only exists for predictable/readable `nft list ruleset` output during
-    # debugging - it has no effect on the actual drop-or-defer semantics above.
+    # Hooked at prerouting rather than `input`, like the connlimit chain above: container-published
+    # ports (e.g. Pangolin's 443 and WireGuard ports) are DNAT'd and go through `forward`, never
+    # `input`, so an input-only geo-block left them open to every country. `mangle + 10` runs after
+    # conntrack (-200, needed for `ct state new`) and connlimit (mangle), and before netavark's
+    # DNAT (dstnat, -100); the source address it matches is never rewritten anyway.
+    #
+    # Coexistence with CrowdSec's chains (its `input` chain and services.native.crowdsec's
+    # prerouting one) is safe because none of these chains ever independently ACCEPTs a packet -
+    # each can only DROP (final, immediate) or fall through via its own `policy accept`
+    # (provisional only: the packet still traverses every other base chain on its path, including
+    # NixOS's own generated firewall chain, before actually being allowed through). So a packet is
+    # let through only if NONE of them drop it, regardless of evaluation order - this holds
+    # structurally, which is why this table doesn't need any systemd-level ordering dependency
+    # against crowdsec-firewall-bouncer.service for correctness.
     (lib.mkIf (cfg.harden.enable) (
       let
         usCidrUrl = "https://raw.githubusercontent.com/ipverse/country-ip-blocks/master/country/us/ipv4-aggregated.txt";
@@ -637,7 +640,7 @@ in
             }
 
             chain geoblock-chain {
-              type filter hook input priority filter + 5; policy accept;
+              type filter hook prerouting priority mangle + 10; policy accept;
               # 127.0.0.0/8 is never inside the fetched US CIDR set, so without this exception
               # every loopback-addressed connection on the host - including CrowdSec's own agent
               # talking to its local API on 127.0.0.1:8080 - gets geo-filtered out (confirmed via

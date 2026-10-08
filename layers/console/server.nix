@@ -37,6 +37,8 @@ in
     (lib.mkIf cfg.harden {
       devices.boot.harden = true;                   # clean /tmp on every boot
       devices.kernel.harden = true;                 # include kernel hardening configuration
+      system.env.nix.harden = true;                 # only wheel may use the Nix daemon
+      system.users.harden = true;                   # only wheel may execute sudo
       devices.network.harden.enable = true;         # networking hardening, incl. geo-block
       virtualization.podman.harden = true;          # no docker socket or podman group for admin
 

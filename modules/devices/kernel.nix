@@ -158,7 +158,24 @@ in
         "kernel.dmesg_restrict" = 1;
         "kernel.yama.ptrace_scope" = 1;
         "kernel.sysrq" = 0;
+
+        # From the NixOS Hardening wiki (nixpkgs' hardened profile was removed in 26.05).
+        # kexec is already off via security.protectKernelImage.
+        "kernel.io_uring_disabled" = 2;             # io_uring is a recurring kernel exploit surface; nothing here uses it
+        "kernel.ftrace_enabled" = 0;                # no runtime function tracing
+        "fs.suid_dumpable" = 0;                     # never core-dump setuid processes
+        "fs.protected_fifos" = 2;                   # no O_CREAT opens of others' FIFOs/files in
+        "fs.protected_regular" = 2;                 #   world-writable sticky dirs (e.g. /tmp spoofing)
       };
+
+      # Obscure network protocols and filesystems a server never uses, rarely audited and a
+      # common source of kernel CVEs. lockKernelModules already stops loading them once boot
+      # completes; this also covers the window before that.
+      boot.blacklistedKernelModules = [
+        "dccp" "sctp" "rds" "tipc" "n-hdlc" "ax25" "netrom" "x25" "rose" "appletalk" "atm" "can"
+        "cramfs" "freevxfs" "jffs2" "hfs" "hfsplus"
+        "firewire-core" "thunderbolt"
+      ];
     })
   ];
 }

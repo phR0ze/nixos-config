@@ -258,9 +258,9 @@ in
               description = ''
                 Trusted management IPs/CIDRs exempted from the hardening mechanisms: the geo-filter
                 (`devices.network.harden.geoblockAllowList`), CrowdSec's ban engine
-                (`services.native.crowdsec.allowlist`), and on a Pangolin host both Traefik's US
-                geo-allowlist and its CrowdSec bouncer (`services.oci.pangolin.geoblockAllowList`) -
-                e.g. a homelab's public IP so its Newt can always register.
+                (`services.native.crowdsec.allowlist`), and on a Pangolin host its Traefik CrowdSec
+                bouncer (`services.oci.pangolin.trustedClients`) - e.g. a homelab's public IP so its
+                Newt can always register.
               '';
               type = types.listOf types.str;
               default = host.network.allowList or [ ];
@@ -568,7 +568,7 @@ in
         services.oci.pangolin.sopsFile = cfg.sopsFile;
         services.oci.pangolin.baseDomain = cfg.network.domain;
         services.oci.pangolin.acmeEmail = arg "acmeEmail";
-        services.oci.pangolin.geoblockAllowList = cfg.network.allowList;
+        services.oci.pangolin.trustedClients = cfg.network.allowList;
       }
     ))
 

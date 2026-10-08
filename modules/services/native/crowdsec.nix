@@ -46,9 +46,33 @@ in
       type = lib.types.nullOr lib.types.path;
       default = if cfg.sopsFile != null then config.secret.files."crowdsec/capiCredentials".path else null;
     };
+
+    console.enroll = lib.mkEnableOption ''
+      one-time enrollment in the CrowdSec Console (app.crowdsec.net), which lets this engine
+      subscribe to the Console's extra blocklists on top of the community blocklist. Reads the
+      enroll key from `crowdsec/consoleEnrollKey` in `sopsFile`; accept the engine in the Console
+      afterwards. The console.yaml `share_*` options stay at their false defaults
+    '';
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      { assertion = cfg.console.enroll -> cfg.sopsFile != null;
+        message = "services.native.crowdsec.console.enroll requires 'sopsFile' for crowdsec/consoleEnrollKey";
+      }
+      # The LAPI listens on 0.0.0.0 (see listen_uri below), so the NixOS firewall is the only
+      # thing keeping 8080 off the public interface
+      { assertion = config.networking.firewall.enable;
+        message = "services.native.crowdsec requires networking.firewall.enable - its LAPI listens on 0.0.0.0:8080 and relies on the firewall to stay private";
+      }
+    ];
+
+    secret.files."crowdsec/consoleEnrollKey" = lib.mkIf cfg.console.enroll {
+      sopsFile = cfg.sopsFile;
+      user = config.services.crowdsec.user;
+      group = config.services.crowdsec.group;
+    };
+
     secret.files."crowdsec/capiCredentials" = lib.mkIf (cfg.sopsFile != null) {
       sopsFile = cfg.sopsFile;
       user = config.services.crowdsec.user;
@@ -66,6 +90,12 @@ in
     services.crowdsec = {
       enable = true;
       settings.general.api.server.enable = true;   # local LAPI for the bouncer to query decisions from
+
+      # The single LAPI for every CrowdSec component on the host, including container agents and
+      # bouncers (e.g. services.oci.pangolin's), which reach it over their podman bridge - so it
+      # can't stay on loopback. networking.firewall keeps 8080 closed on every other interface;
+      # a module that needs it opens it on its own bridge only.
+      settings.general.api.server.listen_uri = "0.0.0.0:8080";
       autoUpdateService = true;                    # daily `cscli hub update` to pick up new/CVE scenarios
 
       # Local LAPI machine credentials, auto-provisioned by `cscli machine add --auto` on first
@@ -115,11 +145,16 @@ in
         # Setting localConfig.profiles at all replaces the hub's profiles.yaml outright (it does
         # not merge). Upstream splits Ip/Range scope into two profiles since they can carry
         # different durations, but both use the same permanent duration here, so one profile
-        # matching any actionable alert (Alert.Remediation == true) covers both.
+        # covers both. It matches every Ip/Range alert, not just upstream's
+        # `Alert.Remediation == true`, so a scenario that only flags an address still bans it.
+        # This LAPI is the hub for every agent (sshd, kernel port scans, Pangolin's Traefik/AppSec),
+        # so they all get the same permanent ban. Profiles only apply to local alerts: community
+        # blocklist (CAPI) and Console blocklist decisions keep the durations CrowdSec sets.
+        # Hub scenarios stay unmodified, which is what CAPI requires to count our signals.
         profiles = [
           {
             name = "permanent_ban";
-            filters = [ "Alert.Remediation == true" ];
+            filters = [ ''Alert.GetScope() in ["Ip", "Range"]'' ];
             decisions = [
               { type = "ban"; duration = "87600h"; } # ~10 years - effectively permanent
             ];
@@ -138,7 +173,22 @@ in
       # instead, via the working `cscli` wrapper services.crowdsec puts on PATH.
       registerBouncer.enable = false;
       secrets.apiKeyPath = "/var/lib/crowdsec-firewall-bouncer-register/api-key.cred";
+
+      # Upstream derives this from the LAPI's listen_uri, which is 0.0.0.0 above
+      settings.api_url = "http://127.0.0.1:8080";
     };
+
+    # nixpkgs' set-only ruleset only hooks `input`, but container-published ports (e.g. Pangolin's
+    # 443 and WireGuard ports) are DNAT'd and go through `forward` instead, so a ban never reached
+    # them. Upstream's own bouncer hooks both `input` and `forward`. Dropping banned sources at
+    # prerouting covers both in one place, before netavark's DNAT (dstnat, -100). The source
+    # address is never rewritten there, so this matches the same set the bouncer fills.
+    networking.nftables.tables.${config.services.crowdsec-firewall-bouncer.settings.nftables.ipv4.table}.content = lib.mkAfter ''
+      chain crowdsec-prerouting {
+        type filter hook prerouting priority mangle + 5; policy accept;
+        ip saddr @${config.services.crowdsec-firewall-bouncer.settings.blacklists_ipv4} drop
+      }
+    '';
 
     # Replaces upstream's broken crowdsec-firewall-bouncer-register.service (see comment above) -
     # same idempotent register-once-then-verify logic, just calling the working `cscli` wrapper
@@ -183,7 +233,87 @@ in
     # listed too, as its `wants` would otherwise pull crowdsec back into boot.
     devices.network.onlineServices = [
       "crowdsec" "crowdsec-firewall-bouncer" "crowdsec-firewall-bouncer-register"
-    ];
+      "crowdsec-allowlist-sync"
+    ] ++ lib.optional cfg.console.enroll "crowdsec-console-enroll";
+
+    # The postoverflow whitelist above only applies to this host's own agent. A centralized
+    # allowlist is enforced by the LAPI itself, so it also covers every remote agent (e.g.
+    # Pangolin's Traefik/AppSec container), AppSec requests, and community/Console blocklist
+    # decisions. Reconciled to `allowlist` on every start: missing entries added, stale ones
+    # removed. The postoverflow stays as the static fallback while this hasn't run yet.
+    systemd.services.crowdsec-allowlist-sync = {
+      description = "Sync the CrowdSec centralized management allowlist";
+      after = [ "crowdsec.service" ];
+      wants = [ "crowdsec.service" ];
+      partOf = [ "crowdsec.service" ];
+      path = [ pkgs.jq config.system.path ];
+      script = ''
+        set -euo pipefail
+        name=management
+        for i in $(seq 1 30); do
+          cscli lapi status >/dev/null 2>&1 && break
+          sleep 2
+        done
+        if ! cscli allowlists list -o json | jq -e --arg n "$name" 'any(.[]?; .name == $n)' >/dev/null; then
+          cscli allowlists create "$name" -d "Trusted management IPs, never banned"
+        fi
+        current=$(cscli allowlists inspect "$name" -o json | jq -r '.items // [] | .[].value')
+        wanted=${lib.escapeShellArg (lib.concatStringsSep "\n" cfg.allowlist)}
+        for v in $current; do
+          grep -qxF -- "$v" <<<"$wanted" || cscli allowlists remove "$name" "$v"
+        done
+        for v in $wanted; do
+          grep -qxF -- "$v" <<<"$current" || cscli allowlists add "$name" "$v" -d "services.native.crowdsec.allowlist"
+        done
+      '';
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        User = config.services.crowdsec.user;
+        Group = config.services.crowdsec.group;
+      };
+    };
+
+    # nixpkgs' own `settings.console.tokenFile` enrollment is unusable: its guard is inverted (it
+    # only enrolls when the token file does *not* exist, then reads that missing file). Enrolled
+    # once here instead, tracked by a marker file. cscli enrolls with the Console first and then
+    # always rewrites console.yaml, which fails here because that file is a read-only store path.
+    # So success is judged by cscli's own enrolled/already-enrolled log line rather than its exit
+    # code. `--disable all` keeps every console.yaml share_* option at its false default.
+    systemd.services.crowdsec-console-enroll = lib.mkIf cfg.console.enroll {
+      description = "Enroll this CrowdSec engine in the CrowdSec Console";
+      after = [ "crowdsec.service" ];
+      wants = [ "crowdsec.service" ];
+      path = [ config.system.path ];
+      script = ''
+        set -uo pipefail
+        marker=/var/lib/crowdsec-console-enroll/enrolled
+        [ -e "$marker" ] && exit 0
+        out=$(cscli console enroll --disable all --name ${lib.escapeShellArg config.networking.hostName} \
+          "$(cat ${config.secret.files."crowdsec/consoleEnrollKey".path})" 2>&1)
+        echo "$out"
+        if grep -qE 'successfully enrolled|already enrolled' <<<"$out"; then
+          touch "$marker" /var/lib/crowdsec-console-enroll/restart
+        else
+          exit 1
+        fi
+      '';
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        User = config.services.crowdsec.user;
+        Group = config.services.crowdsec.group;
+        StateDirectory = "crowdsec-console-enroll";
+        # Enrollment only takes effect once the engine restarts (cscli's own instruction) - only
+        # right after enrolling, not on every boot. `+` for the privileges to restart a unit.
+        ExecStartPost = "+${pkgs.writeShellScript "crowdsec-console-enroll-restart" ''
+          if [ -e /var/lib/crowdsec-console-enroll/restart ]; then
+            rm -f /var/lib/crowdsec-console-enroll/restart
+            ${config.systemd.package}/bin/systemctl try-restart --no-block crowdsec.service
+          fi
+        ''}";
+      };
+    };
 
     systemd.services.crowdsec-firewall-bouncer.requires = [ "crowdsec-firewall-bouncer-register.service" ];
     systemd.services.crowdsec-firewall-bouncer.after = [ "crowdsec-firewall-bouncer-register.service" ];
@@ -271,6 +401,14 @@ in
     # ActiveEnterTimestamp advanced when triggered this way.
     systemd.services.crowdsec-update-hub.serviceConfig.ExecStartPost =
       lib.mkForce "+systemctl try-reload-or-restart crowdsec.service";
+
+    # Never serve the 0.0.0.0 LAPI without the firewall in place: if the ruleset fails to load at
+    # boot, or nftables.service is stopped (which flushes it), crowdsec doesn't start or is stopped
+    # with it. A switch only reloads nftables.service, which doesn't propagate, so firewall changes
+    # don't restart crowdsec. systemd's IPAddressAllow/Deny can't do this job: it filters by
+    # remote address in both directions, so it would also cut off the CAPI and hub.
+    systemd.services.crowdsec.requires = [ "nftables.service" ];
+    systemd.services.crowdsec.after = [ "nftables.service" ];
 
     systemd.services.crowdsec.serviceConfig = {
       # crowdsec-setup's ExecStartPre runs `cscli hub update`, which needs DNS. network-online only
