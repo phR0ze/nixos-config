@@ -33,10 +33,10 @@
     services.native.adguardhome.enable = true;
     services.native.jellyfin.enable = true;
     services.oci.homarr = {
-      enable = true; port = 8080; user.uid = 2000; tag = "v1.37.0";
+      enable = true; port = 8080; user.uid = 2000; tag = "v2.3.0";
     };
     services.oci.stirling-pdf = {
-      enable = true; port = 8081; user.uid = 2001; tag = "1.3.2";
+      enable = true; port = 8081; user.uid = 2001; tag = "3.1.0";
     };
     services.oci.oneup = {
       enable = true; port = 8082; user.uid = 2002; tag = "latest";
