@@ -47,12 +47,17 @@ in
       default = if cfg.sopsFile != null then config.secret.files."crowdsec/capiCredentials".path else null;
     };
 
-    console.enroll = lib.mkEnableOption ''
-      one-time enrollment in the CrowdSec Console (app.crowdsec.net), which lets this engine
-      subscribe to the Console's extra blocklists on top of the community blocklist. Reads the
-      enroll key from `crowdsec/consoleEnrollKey` in `sopsFile`; accept the engine in the Console
-      afterwards. The console.yaml `share_*` options stay at their false defaults
-    '';
+    console.enroll = lib.mkOption {
+      description = ''
+        One-time enrollment in the CrowdSec Console (app.crowdsec.net), which lets this engine
+        subscribe to the Console's extra blocklists on top of the community blocklist. Reads the
+        enroll key from `crowdsec/consoleEnrollKey` in `sopsFile`; accept the engine in the Console
+        afterwards. The console.yaml `share_*` options stay at their false defaults. On by default
+        whenever CrowdSec is enabled; set false for a host without a consoleEnrollKey.
+      '';
+      type = lib.types.bool;
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

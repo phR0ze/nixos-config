@@ -37,8 +37,5 @@
       badgerPluginVersion = "v1.7.0";
       crowdsecPluginVersion = "v1.7.1";
     };
-
-    # Console enrollment for its extra blocklists - needs crowdsec/consoleEnrollKey in secrets
-    services.native.crowdsec.console.enroll = true;
   };
 }
