@@ -241,6 +241,16 @@ in
     (lib.mkIf (cfg.backupDir != null) {
       systemd.timers.backup-vaultwarden.timerConfig.OnCalendar = cfg.backupTime;
 
+      # Upstream runs the backup as vaultwarden, which can't write to a CIFS backup share whose files
+      # are all forced to the mount's owner and modes - run it as root like the other backup units.
+      # Upstream also has wantedBy multi-user, firing a backup on every boot against a share that
+      # may not be mounted yet - the timer alone (Persistent, so missed runs still catch up) is enough
+      systemd.services.backup-vaultwarden = {
+        serviceConfig.User = "root";
+        serviceConfig.Group = "root";
+        wantedBy = lib.mkForce [ ];
+      };
+
       # Have services.native.alerts watch this backup
       services.native.alerts.enable = lib.mkDefault true;
       services.native.alerts.backup.services = [ "vaultwarden" ];
