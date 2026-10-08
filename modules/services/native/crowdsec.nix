@@ -276,27 +276,29 @@ in
 
     # nixpkgs' own `settings.console.tokenFile` enrollment is unusable: its guard is inverted (it
     # only enrolls when the token file does *not* exist, then reads that missing file). Enrolled
-    # once here instead, tracked by a marker file. cscli enrolls with the Console first and then
-    # always rewrites console.yaml, which fails here because that file is a read-only store path.
-    # So success is judged by cscli's own enrolled/already-enrolled log line rather than its exit
-    # code. `--disable all` keeps every console.yaml share_* option at its false default.
+    # once here instead, tracked by a marker file.
+    #
+    # A first enroll exits 1 even when it worked: cscli enrolls with the Console, then always
+    # rewrites console.yaml, which is a read-only store path here. Its output can't be relied on to
+    # tell the cases apart either - captured from this unit it came back empty (hosts/vm-vps1,
+    # 2026-10-08). So a failure is retried once: an enrolled instance gets "already enrolled" and
+    # exits 0 before touching console.yaml, and anything still failing is a real failure (bad key,
+    # no network). `--disable all` keeps every console.yaml share_* option at its false default.
     systemd.services.crowdsec-console-enroll = lib.mkIf cfg.console.enroll {
       description = "Enroll this CrowdSec engine in the CrowdSec Console";
       after = [ "crowdsec.service" ];
       wants = [ "crowdsec.service" ];
       path = [ config.system.path ];
       script = ''
-        set -uo pipefail
-        marker=/var/lib/crowdsec-console-enroll/enrolled
-        [ -e "$marker" ] && exit 0
-        out=$(cscli console enroll --disable all --name ${lib.escapeShellArg config.networking.hostName} \
-          "$(cat ${config.secret.files."crowdsec/consoleEnrollKey".path})" 2>&1)
-        echo "$out"
-        if grep -qE 'successfully enrolled|already enrolled' <<<"$out"; then
-          touch "$marker" /var/lib/crowdsec-console-enroll/restart
-        else
-          exit 1
-        fi
+        set -euo pipefail
+        state=/var/lib/crowdsec-console-enroll
+        [ -e "$state/enrolled" ] && exit 0
+        enroll() {
+          cscli console enroll --disable all --name ${lib.escapeShellArg config.networking.hostName} \
+            "$(cat ${config.secret.files."crowdsec/consoleEnrollKey".path})"
+        }
+        enroll || enroll
+        touch "$state/enrolled" "$state/restart"
       '';
       serviceConfig = {
         Type = "oneshot";
@@ -304,6 +306,9 @@ in
         User = config.services.crowdsec.user;
         Group = config.services.crowdsec.group;
         StateDirectory = "crowdsec-console-enroll";
+        # A boot-time attempt can fail on DNS/network not being ready yet, same as crowdsec.service
+        Restart = "on-failure";
+        RestartSec = 60;
         # Enrollment only takes effect once the engine restarts (cscli's own instruction) - only
         # right after enrolling, not on every boot. `+` for the privileges to restart a unit.
         ExecStartPost = "+${pkgs.writeShellScript "crowdsec-console-enroll-restart" ''
