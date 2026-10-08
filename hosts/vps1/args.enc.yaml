@@ -25,6 +25,10 @@ host:
         root:
             authorizedKeys:
                 - ENC[AES256_GCM,data:Bx5FIv1qEdSL6ADVj5VKkDqds1QhMqdLdkK7PWai0Ctv8Ratt6mUzFFG5PcDwlH3hALdXEWfSVfeE2qRq9og3WaPqrP1ERf50wQJwUpTkbLpWJQvZdp85vjPqYm1jvY8k35xuozFUYZ6STcQ0okpxCSYOTQAP7fsHYLgfUa1qUQ5qSo86V1VOb+Fbfd3KZTecn9x1okWPzh+qO4/oONITLs4hotfHewjikWG+t3uzk/nuP/yNz0L+566bwglN943oIwON8sSiIlhKhMlLxKYxi3tnrq4MrFU257eiNSbDOdj4HuSESZbYzbwMZu2g4nYkyEKYp/0Du+3d2RZVSu1qDjHLAdMiVBFHj4RJXdeK1M8U+rMjkNZOywxJnTIwyo0+DgzHiPYDSxFBpoPEu3CHi6sStqc/xsBTeMqA/fMlRq1n+a/nblm82JJE1yzP7uqSw5zDlEMwZZsHv1ctg1ksrC93CoTwNK0MiHBR5/ZVfU6R6OVNGQnEidwIgE=,iv:+2my3D134wCPHmuRY474a4Oq3zQ+yEXfUE+wegoii7s=,tag:53xFZtfy0Y3RQ3fqmHaQuA==,type:str]
+    services:
+        oci:
+            pangolin:
+                acmeEmail: ENC[AES256_GCM,data:MF+77Z64XmbgspZdrkCndQ==,iv:u9OzqzHkiWfikhdUahPdYCgrf0PGzuVXzqVVjEGVw20=,tag:i77eB7zvILVBYlEXRB2MZA==,type:str]
 sops:
     age:
         - enc: |
@@ -36,7 +40,7 @@ sops:
             36bOY3LRplz7dNH0MyF/HI8761YziGSCX58Hn4lF0yEF01yOb7Mk3g==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1ugsz6x2fq8tqdd39gnchvzrcgv2sg79mknrutw2tsgu82z73kpxsqaxf3g
-    lastmodified: "2026-10-08T21:15:25Z"
-    mac: ENC[AES256_GCM,data:JbPa63PjgRjLU1UyNCfozJf+thUpzet8GvOQm+feNNK29RYurDnk+2foO5yTR4Oi4PNjKwzZss4UVAW2xWzGwh7ARXsUDbCDwcxJp17QsHo1GV4rH2IvyEoY1Z+fgJbK4gDtpUEYQ/29MeODOMiQ/fWiQvpEHQ03FFI3m0Bdilk=,iv:WTrpD7VBaaOkDSAsXEkmO4dCwoQn9nuR805tC8hTJ3k=,tag:NTC7qCjOGp3M8LTi0iZDsg==,type:str]
+    lastmodified: "2026-10-08T23:05:59Z"
+    mac: ENC[AES256_GCM,data:dce7IfUwIDC4kcpb5g1Th5gzAE482OBZeWC/FqrWgD4ekbBGHmx/zsveN8BCqGUEGYcY9XnnntsNZrs+NUA+rGDw3Os8EMdY9wHBn6mGBos0O7alppU7CuDA4V0pqs0RybNkiIkZ6afkeLiE3sWkgxLdhKqDKbn+6zY7X2iyCRM=,iv:W11OE47aFnlNYPcizoQhZe/CDsmOyapwF00h/peG/DA=,tag:SvX0I3qYSoTrxJEmjLrT8Q==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1
