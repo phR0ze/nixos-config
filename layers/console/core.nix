@@ -27,6 +27,7 @@ in
       system.env.vars.enable = true;                # Enable standard env variables
       system.env.dircolors.enable = true;           # Enable custom dircolors
       system.env.starship.enable = true;            # Enable the starship shell prompt
+      system.env.scripts.tt.enable = true;          # Set the terminal tab title (emoji + cwd)
 
       apps.system.git.enable = true;                # Git version control for flake management
       apps.system.neovim.enable = true;             # Best terminal text editor
