@@ -400,8 +400,31 @@ let
             stsIncludeSubdomains: true
             stsSeconds: 63072000
             stsPreload: true
+        # Nothing is allowed, so every request is answered 403 without reaching a backend
+        deny-all:
+          ipAllowList:
+            sourceRange:
+              - "127.0.0.1/32"
 
       routers:
+        # Lowest-priority catch-all for requests no other router matches - scanners hitting the
+        # bare IP or an unknown hostname. Traefik only runs middlewares on a matched router, so
+        # without this they got its built-in 404 and skipped the entrypoint's crowdsec@file
+        # (bouncer + AppSec) entirely; now AppSec inspects them like any other request. crowdsec@file
+        # isn't listed here since entrypoint middlewares already apply to every websecure router.
+        # Answers 403 rather than a 5xx so it stays inside the access log's 2xx/4xx filter, which
+        # the Traefik-log scenarios read. `tls: {}` keeps it off the entrypoint's ACME resolver,
+        # which can't issue for a rule with no Host.
+        catchall-router:
+          rule: "PathPrefix(`/`)"
+          priority: 1
+          service: noop@internal
+          entryPoints:
+            - websecure
+          middlewares:
+            - deny-all
+          tls: {}
+
         next-router:
           rule: "Host(`${cfg.dashboardDomain}`) && !PathPrefix(`/api/v1`)"
           service: next-service
