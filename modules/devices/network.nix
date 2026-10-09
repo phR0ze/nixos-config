@@ -639,6 +639,13 @@ in
               ${lib.optionalString (cfg.harden.geoblockAllowList != [ ]) "elements = { ${extraElements} }"}
             }
 
+            # Drops below, read by services.native.alerts' security digest. Geo-blocked traffic
+            # never reaches the input chain's refused-connection LOG rule that CrowdSec's port-scan
+            # scenario reads, so without this a quiet CrowdSec can't be told apart from a broken
+            # one. Resets whenever nftables.service reloads the table (rebuild, reboot).
+            counter geoblock-dropped {
+            }
+
             chain geoblock-chain {
               type filter hook prerouting priority mangle + 10; policy accept;
               # 127.0.0.0/8 is never inside the fetched US CIDR set, so without this exception
@@ -661,7 +668,7 @@ in
               # IPs passed fine (hosts/vm-vps1 testing, 2026-09-21). Matches nixos-fw's own
               # `iifname "podman*" udp dport 53 accept` wildcard for the same interface family.
               iifname "podman*" accept
-              ct state new ip saddr != @geoblock-allow drop
+              ct state new ip saddr != @geoblock-allow counter name "geoblock-dropped" drop
             }
           '';
         };

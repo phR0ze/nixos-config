@@ -108,7 +108,7 @@ in
 
     securityDigest = {
       enable = lib.mkOption {
-        description = "Push a daily summary of sshd/CrowdSec activity";
+        description = "Push a daily summary of sshd, firewall/geo-block and CrowdSec activity";
         type = lib.types.bool;
         default = false;
       };
@@ -259,7 +259,9 @@ in
             # health-check units (`<64-hex container id>-<hex>.service`/`.timer`) are skipped: one
             # failed probe marks them failed under an unreadable name, and check-containers already
             # reports an unhealthy container by name.
-            FAILED=$(systemctl --failed --no-legend --plain | awk '{print $1}' \
+            # awk by store path: it isn't on a systemd unit's default PATH, and a missing awk
+            # empties FAILED, silently reporting every failure as healthy
+            FAILED=$(systemctl --failed --no-legend --plain | ${pkgs.gawk}/bin/awk '{print $1}' \
               | grep -vE '^[0-9a-f]{64}-[0-9a-f]+\.(service|timer)$' || true)
             report /var/lib/alerts/failed-units.state \
               "systemd unit failure" "systemd units recovered" "$FAILED"
@@ -285,10 +287,12 @@ in
         path = lib.optional config.services.native.crowdsec.enable config.system.path;
         serviceConfig = {
           Type = "oneshot";
+          StateDirectory = "alerts";
           ExecStart = toString (pkgs.writeShellScript "security-digest" (''
             set -uo pipefail
             ${ntfyFunc}
             HOST=${config.networking.hostName}
+            jq=${pkgs.jq}/bin/jq
 
             # Rejected SSH logins, one line per connection that never authenticated. Matching on
             # these rather than "Failed password" works with key-only auth (sshd.harden), and avoids
@@ -304,28 +308,72 @@ in
               | sort -u | grep -c . || true)
             MSG="Rejected SSH logins (last 24h): $SSH_COUNT from $SSH_SOURCES source(s)"
           ''
-          # Only report CrowdSec on hosts running it, and say so if cscli fails rather than
-          # reporting a misleading 0
-          + lib.optionalString config.services.native.crowdsec.enable ''
-            if CS_RAW=$(cscli decisions list -o raw 2>/dev/null); then
-              CS_DECISIONS=$(printf '%s\n' "$CS_RAW" | tail -n +2 | grep -c . || true)
+          # The kernel LOG lines CrowdSec's port-scan scenario reads, so a drop in bans can be
+          # told apart from a drop in input. `_TRANSPORT=kernel` rather than `-k`, which only
+          # covers the current boot.
+          + lib.optionalString config.networking.firewall.logRefusedConnections ''
+            REFUSED=$(journalctl _TRANSPORT=kernel --since "-1 day" -o cat \
+              | grep '^refused connection: ' || true)
+            REFUSED_COUNT=$(printf '%s' "$REFUSED" | grep -c . || true)
+            REFUSED_SOURCES=$(printf '%s' "$REFUSED" | grep -oE 'SRC=[^ ]+' | sort -u | grep -c . || true)
+            MSG+=$'\n'"Refused connections logged (last 24h): $REFUSED_COUNT from $REFUSED_SOURCES source(s)"
+          ''
+          # Diffed against the value at the last sent digest. The counter resets on every ruleset
+          # reload, so a lower reading (or no saved one) is reported as-is, since that reset.
+          + lib.optionalString config.devices.network.harden.enable ''
+            GEO_STATE=/var/lib/alerts/geoblock-dropped.last
+            if GEO_NOW=$(${pkgs.nftables}/bin/nft -j list counter ip geoblock geoblock-dropped 2>/dev/null \
+                | $jq -er '.nftables[] | .counter? // empty | .packets'); then
+              GEO_PREV=$(cat "$GEO_STATE" 2>/dev/null || true)
+              if [ -n "$GEO_PREV" ] && [ "$GEO_NOW" -ge "$GEO_PREV" ]; then
+                GEO=$((GEO_NOW - GEO_PREV))
+              else
+                GEO="$GEO_NOW (since the counter last reset)"
+              fi
             else
-              CS_DECISIONS="unavailable (cscli failed)"
+              GEO_NOW=""
+              GEO="unavailable (nft failed)"
             fi
-            MSG="$MSG"$'\n'"Active CrowdSec decisions (host): $CS_DECISIONS"
+            MSG+=$'\n'"Geo-blocked new-connection packets (since last digest): $GEO"
+          ''
+          # Decisions active now and alerts raised in the last 24h, per scenario. Both lists are
+          # paged by default (100 alerts / 50), so `--limit 0` is needed for a true count. Without
+          # `-a` neither includes community (CAPI) or blocklist entries, only this engine's own
+          # detections. Scenario names only - never the alerts' source addresses. Says so if cscli
+          # fails rather than reporting a misleading 0.
+          #   crowdsec_summary <label> <cscli command...>
+          + ''
+            crowdsec_summary() {
+              local label=$1 raw; shift
+              if raw=$("$@" decisions list --limit 0 -o raw 2>/dev/null); then
+                raw=$(printf '%s\n' "$raw" | tail -n +2 | grep -c . || true)
+              else
+                raw="unavailable (cscli failed)"
+              fi
+              MSG+=$'\n'"Active CrowdSec decisions ($label): $raw"
+              if ! raw=$("$@" alerts list --since 24h --limit 0 -o json 2>/dev/null) \
+                  || ! raw=$(printf '%s' "$raw" | $jq -er '. // [] | (length | tostring),
+                    (group_by(.scenario)[] | "  \(.[0].scenario): \(length)")'); then
+                raw="unavailable (cscli failed)"
+              fi
+              MSG+=$'\n'"New CrowdSec alerts ($label, last 24h): $raw"
+            }
+          ''
+          # Only report CrowdSec on hosts running it
+          + lib.optionalString config.services.native.crowdsec.enable ''
+            crowdsec_summary host cscli
           ''
           # Each containerized engine is a separate LAPI with its own decisions, never visible to
           # the host's cscli
           + lib.concatMapStrings (c: ''
-            if CS_RAW=$(${podman} exec ${lib.escapeShellArg c} cscli decisions list -o raw 2>/dev/null); then
-              CS_DECISIONS=$(printf '%s\n' "$CS_RAW" | tail -n +2 | grep -c . || true)
-            else
-              CS_DECISIONS="unavailable (cscli failed)"
-            fi
-            MSG="$MSG"$'\n'"Active CrowdSec decisions (container ${c}): $CS_DECISIONS"
+            crowdsec_summary ${lib.escapeShellArg "container ${c}"} ${podman} exec ${lib.escapeShellArg c} cscli
           '') cfg.securityDigest.crowdsecContainers
           + ''
-            ntfy -H "Title: [ $HOST ] Daily security digest" -d "$MSG"
+            ntfy -H "Title: [ $HOST ] Daily security digest" -d "$MSG" || exit 1
+          ''
+          # Only advanced once the digest is sent, so a failed push doesn't drop a day's drops
+          + lib.optionalString config.devices.network.harden.enable ''
+            if [ -n "$GEO_NOW" ]; then printf '%s' "$GEO_NOW" > "$GEO_STATE"; fi
           ''));
         };
       };

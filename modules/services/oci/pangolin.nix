@@ -25,7 +25,12 @@
 #   only 443/tcp is exposed - nothing here needs QUIC, and it's one less listener to harden.
 # - CrowdSec `COLLECTIONS` matches upstream's own `--crowdsec` installer default
 #   (`traefik`/`appsec-virtual-patching`/`appsec-generic-rules`) plus `http-cve` - a maintained,
-#   HTTP-CVE-exploitation-detection collection recommended for any internet-facing deployment.
+#   HTTP-CVE-exploitation-detection collection recommended for any internet-facing deployment,
+#   `http-dos` (application-layer DoS scenarios over the same Traefik logs), and `appsec-crs`
+#   (OWASP Core Rule Set). CRS runs out-of-band only - its `crowdsecurity/crs` appsec config is
+#   loaded after `appsec-default` in the AppSec acquisition, so it never blocks a request itself,
+#   just raises alerts that ban repeat offenders via `crowdsec-appsec-outofband`. Blocking CRS
+#   (`appsec-crs-inband`) is too false-positive-prone without per-app tuning.
 #   `base-http-scenarios` is deliberately not listed separately - it's already a dependency of the
 #   `traefik` collection itself, so adding it again is a no-op.
 # - No telemetry: Pangolin's `anonymous_usage` off, Traefik's release check/anonymous stats off.
@@ -513,7 +518,9 @@ let
 
   crowdsecAcquisAppsecText = ''
     listen_addr: 0.0.0.0:7422
-    appsec_config: crowdsecurity/appsec-default
+    appsec_configs:
+      - crowdsecurity/appsec-default
+      - crowdsecurity/crs
     name: myAppSecComponent
     source: appsec
     labels:
@@ -588,6 +595,8 @@ in
         "crowdsecurity/http-cve"
         "crowdsecurity/appsec-virtual-patching"
         "crowdsecurity/appsec-generic-rules"
+        "crowdsecurity/http-dos"
+        "crowdsecurity/appsec-crs"
       ];
     };
 
