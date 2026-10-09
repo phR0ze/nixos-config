@@ -46,8 +46,8 @@
 # - One CrowdSec for the whole host: the crowdsec container runs as an agent only
 #   (`DISABLE_LOCAL_API`). It still parses Traefik's logs and serves AppSec, but its alerts go to
 #   the host's LAPI (services.native.crowdsec), and Traefik's bouncer pulls decisions from there
-#   too. So SSH, port-scan, Traefik and AppSec detections share one decision list, one set of
-#   permanent-ban profiles, one allowlist and one CAPI/Console identity, and every ban is enforced
+#   too. So SSH, port-scan, Traefik and AppSec detections share one decision list, one
+#   escalating-ban profile, one allowlist and one CAPI/Console identity, and every ban is enforced
 #   by both Traefik and the host firewall (which covers the WireGuard ports too). Upstream runs a
 #   self-contained LAPI in the container instead.
 # - No geo-blocking in Traefik: the host's prerouting geo-block (devices.network.harden, asserted

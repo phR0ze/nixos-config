@@ -149,20 +149,30 @@ in
 
         # Setting localConfig.profiles at all replaces the hub's profiles.yaml outright (it does
         # not merge). Upstream splits Ip/Range scope into two profiles since they can carry
-        # different durations, but both use the same permanent duration here, so one profile
-        # covers both. It matches every Ip/Range alert, not just upstream's
-        # `Alert.Remediation == true`, so a scenario that only flags an address still bans it.
-        # This LAPI is the hub for every agent (sshd, kernel port scans, Pangolin's Traefik/AppSec),
-        # so they all get the same permanent ban. Profiles only apply to local alerts: community
-        # blocklist (CAPI) and Console blocklist decisions keep the durations CrowdSec sets.
-        # Hub scenarios stay unmodified, which is what CAPI requires to count our signals.
+        # different durations, but both escalate the same way here, so one profile covers both. It
+        # matches every Ip/Range alert, not just upstream's `Alert.Remediation == true`, so a
+        # scenario that only flags an address still bans it. This LAPI is the hub for every agent
+        # (sshd, kernel port scans, Pangolin's Traefik/AppSec), so they all share it.
+        #
+        # Bans escalate rather than being permanent: 4h, 16h, 36h, 64h, ... (4h x n^2 for the IP's
+        # nth decision), so repeat offenders still end up effectively banned while one-off hits on
+        # shared carrier-NAT addresses and false positives expire on their own - a single AppSec
+        # hit from a T-Mobile phone earned a 10-year ban on that shared IP under the old permanent
+        # profile (hosts/vps1, 2026-10-08), and the firewall bouncer applies every ban on every
+        # port. GetDecisionsCount counts this LAPI's stored decisions, expired ones included until
+        # the database flush drops them, and `cscli decisions delete` resets it.
+        #
+        # Profiles only apply to local alerts: community blocklist (CAPI) and Console blocklist
+        # decisions keep the durations CrowdSec sets. Hub scenarios stay unmodified, which is what
+        # CAPI requires to count our signals.
         profiles = [
           {
-            name = "permanent_ban";
+            name = "escalating_ban";
             filters = [ ''Alert.GetScope() in ["Ip", "Range"]'' ];
             decisions = [
-              { type = "ban"; duration = "87600h"; } # ~10 years - effectively permanent
+              { type = "ban"; duration = "4h"; } # fallback if duration_expr fails to evaluate
             ];
+            duration_expr = "Sprintf('%dh', 4 * (GetDecisionsCount(Alert.GetValue()) + 1) * (GetDecisionsCount(Alert.GetValue()) + 1))";
             on_success = "break";
           }
         ];
