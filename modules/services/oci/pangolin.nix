@@ -30,7 +30,8 @@
 #   (OWASP Core Rule Set). CRS runs out-of-band only - its `crowdsecurity/crs` appsec config is
 #   loaded after `appsec-default` in the AppSec acquisition, so it never blocks a request itself,
 #   just raises alerts that ban repeat offenders via `crowdsec-appsec-outofband`. Blocking CRS
-#   (`appsec-crs-inband`) is too false-positive-prone without per-app tuning.
+#   (`appsec-crs-inband`) is too false-positive-prone without per-app tuning. Known out-of-band
+#   false positives are excluded per request in crowdsecAppsecExclusionsText.
 #   `base-http-scenarios` is deliberately not listed separately - it's already a dependency of the
 #   `traefik` collection itself, so adding it again is a no-op.
 # - No telemetry: Pangolin's `anonymous_usage` off, Traefik's release check/anonymous stats off.
@@ -561,10 +562,28 @@ let
     appsec_configs:
       - crowdsecurity/appsec-default
       - crowdsecurity/crs
+      - ${appsecExclusionsName}
     name: myAppSecComponent
     source: appsec
     labels:
       type: appsec
+  '';
+
+  # Per-request CRS false-positive exclusions, loaded after crowdsecurity/crs in the AppSec
+  # acquisition above. A pre_eval hook only drops the rule for the request its filter matches, so
+  # every other request still gets the full rule set.
+  # - 920420 (content type not allowed by policy) for the dashboard's Next.js Server Actions,
+  #   which always POST `text/plain;charset=UTF-8` with a `Next-Action` header - CRS v4 dropped
+  #   text/plain from its allowed types. Scoring 5 on its own, it banned every dashboard login from
+  #   a non-trusted IP for 4h, e.g. the Android client's device-code login from a phone on
+  #   cellular, which got a new CGNAT address banned on each retry (hosts/vps1, 2026-10-11).
+  appsecExclusionsName = "custom/${cfg.name}-exclusions";
+  crowdsecAppsecExclusionsText = ''
+    name: ${appsecExclusionsName}
+    pre_eval:
+      - filter: IsOutBand == true && req.Host == "${cfg.dashboardDomain}" && req.Header.Get("Next-Action") != ""
+        apply:
+          - RemoveOutBandRuleByID(920420)
   '';
 
   # Forces the systemd unit definition itself to change whenever any rendered config changes -
@@ -572,7 +591,7 @@ let
   # own hash, so NixOS never restarts it and podman-compose never re-applies the new config.
   configRev = builtins.hashString "sha256" (
     composeText + traefikConfigText + dynamicConfigText + crowdsecAcquisTraefikText
-    + crowdsecAcquisAppsecText
+    + crowdsecAcquisAppsecText + crowdsecAppsecExclusionsText
   );
 in
 {
@@ -913,6 +932,9 @@ in
       "C+ ${dataDir}/config/crowdsec/acquis.d/traefik.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-acquis-traefik.yaml" crowdsecAcquisTraefikText}"
       "r ${dataDir}/config/crowdsec/acquis.d/appsec.yaml"
       "C+ ${dataDir}/config/crowdsec/acquis.d/appsec.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-acquis-appsec.yaml" crowdsecAcquisAppsecText}"
+      "d ${dataDir}/config/crowdsec/appsec-configs 0750 root root -"
+      "r ${dataDir}/config/crowdsec/appsec-configs/${cfg.name}-exclusions.yaml"
+      "C+ ${dataDir}/config/crowdsec/appsec-configs/${cfg.name}-exclusions.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-appsec-exclusions.yaml" crowdsecAppsecExclusionsText}"
       # Left over from when the container ran its own LAPI with 4h bans; profiles now live on the
       # host LAPI, and an agent never reads this
       "r ${dataDir}/config/crowdsec/profiles.yaml"
