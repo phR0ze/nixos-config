@@ -108,6 +108,12 @@ in
       # required any time api.server.enable is set, regardless of the CAPI/hosted-console settings.
       settings.lapi.credentialsFile = "/var/lib/crowdsec/state/local_api_credentials.yaml";
 
+      # Without a `flush` block the LAPI never prunes its database: every alert and expired
+      # decision (community blocklist refreshes included) is kept forever. Deleting an alert
+      # deletes its decisions too, so max_age must stay at or above the longest ban the profiles
+      # below can issue (2160h = 90d).
+      settings.general.db_config.flush.max_age = "90d";
+
       # console.configuration.share_* are intentionally left at their false upstream defaults -
       # nothing is reported to CrowdSec's hosted console unless explicitly opted into.
       settings.capi.credentialsFile = cfg.capiCredentialsFile;
@@ -155,24 +161,40 @@ in
         # (sshd, kernel port scans, Pangolin's Traefik/AppSec), so they all share it.
         #
         # Bans escalate rather than being permanent: 4h, 16h, 36h, 64h, ... (4h x n^2 for the IP's
-        # nth decision), so repeat offenders still end up effectively banned while one-off hits on
-        # shared carrier-NAT addresses and false positives expire on their own - a single AppSec
-        # hit from a T-Mobile phone earned a 10-year ban on that shared IP under the old permanent
-        # profile (hosts/vps1, 2026-10-08), and the firewall bouncer applies every ban on every
-        # port. GetDecisionsCount counts this LAPI's stored decisions, expired ones included until
-        # the database flush drops them, and `cscli decisions delete` resets it.
+        # nth decision in the last 30 days), so repeat offenders end up banned for long stretches
+        # while one-off hits on shared carrier-NAT addresses and false positives expire on their own
+        # - a single AppSec hit from a T-Mobile phone earned a 10-year ban on that shared IP under
+        # the old permanent profile (hosts/vps1, 2026-10-08), and the firewall bouncer applies every
+        # ban on every port. Exploit attempts no real client makes (AppSec virtual patches, CVE
+        # scenarios) start at 3 days on the same curve instead.
+        #
+        # Both only ban an IP with no active decision. Every alert of a burst used to get its own
+        # decision, and each one raised the count for the next, so one 6-second scan escalated
+        # 4h -> 774400h (88 years) and left ~500 decisions for a single IP (hosts/vps1, 2026-10-10).
+        # Alerts from an already-banned IP (requests in flight before the bouncers caught up) are
+        # still stored and shared with CAPI, they just match no profile. The caps keep every ban
+        # inside the database flush's max_age below, which deletes an alert's decisions with it.
         #
         # Profiles only apply to local alerts: community blocklist (CAPI) and Console blocklist
         # decisions keep the durations CrowdSec sets. Hub scenarios stay unmodified, which is what
         # CAPI requires to count our signals.
         profiles = [
           {
+            name = "exploit_ban";
+            filters = [ ''Alert.GetScope() == "Ip" && Alert.GetScenario() matches "(?i)^crowdsecurity/vpatch-|^crowdsecurity/appsec-vpatch$|cve" && GetActiveDecisionsCount(Alert.GetValue()) == 0'' ];
+            decisions = [
+              { type = "ban"; duration = "72h"; } # fallback if duration_expr fails to evaluate
+            ];
+            duration_expr = "let n = GetDecisionsSinceCount(Alert.GetValue(), '30d'); Sprintf('%dh', min(72 * (n + 1) * (n + 1), 2160))";
+            on_success = "break";
+          }
+          {
             name = "escalating_ban";
-            filters = [ ''Alert.GetScope() in ["Ip", "Range"]'' ];
+            filters = [ ''Alert.GetScope() in ["Ip", "Range"] && GetActiveDecisionsCount(Alert.GetValue()) == 0'' ];
             decisions = [
               { type = "ban"; duration = "4h"; } # fallback if duration_expr fails to evaluate
             ];
-            duration_expr = "Sprintf('%dh', 4 * (GetDecisionsCount(Alert.GetValue()) + 1) * (GetDecisionsCount(Alert.GetValue()) + 1))";
+            duration_expr = "let n = GetDecisionsSinceCount(Alert.GetValue(), '30d'); Sprintf('%dh', min(4 * (n + 1) * (n + 1), 720))";
             on_success = "break";
           }
         ];
@@ -191,7 +213,21 @@ in
 
       # Upstream derives this from the LAPI's listen_uri, which is 0.0.0.0 above
       settings.api_url = "http://127.0.0.1:8080";
+
+      # Upstream polls every 10s, but web-exploit scanners finish a burst of hundreds of requests
+      # in 6-13s, so bans only landed after the scan was over (hosts/vps1, 2026-10-10). Polling a
+      # loopback LAPI every 2s is cheap.
+      settings.update_frequency = "2s";
     };
+
+    # nftables.service reloads (every switch that changes a rule) delete and recreate each declared
+    # table, emptying the bouncer's ban set. The bouncer doesn't notice and never re-adds a
+    # decision it already pushed, and its PartOf only follows stop/restart, not reload - after one
+    # reload 13.5k active bans stayed missing from the firewall for two days (hosts/vps1,
+    # 2026-10-11). A restart re-pulls every active decision.
+    systemd.services.nftables.serviceConfig.ExecReload = lib.mkAfter [
+      "${config.systemd.package}/bin/systemctl --no-block try-restart crowdsec-firewall-bouncer.service"
+    ];
 
     # nixpkgs' set-only ruleset only hooks `input`, but container-published ports (e.g. Pangolin's
     # 443 and WireGuard ports) are DNAT'd and go through `forward` instead, so a ban never reached

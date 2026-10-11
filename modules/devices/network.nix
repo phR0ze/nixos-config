@@ -238,6 +238,21 @@ in
         default = [ ];
         example = [ "203.0.113.7" "198.51.100.0/24" ];
       };
+
+      blockDatacenters = lib.mkOption {
+        description = ''
+          Also drop new inbound connections from datacenter/hosting IPv4 ranges (cloud providers,
+          VPS hosts), refreshed daily alongside the geo-block from X4BNet's aggregated list. Nearly
+          all scanners run there, and the geo-block can't catch them: cloud providers register
+          their worldwide blocks to their US headquarters. Breaks anything legitimate that
+          connects in from a cloud host (uptime monitors, webhooks, your own VPS or cloud VPN) -
+          list those in `geoblockAllowList`, which this honours too. It also blocks Apple's iCloud
+          Private Relay, about half of whose US egress ranges are on the list. Only applies with
+          `harden.enable`.
+        '';
+        type = lib.types.bool;
+        default = true;
+      };
     };
   };
 
@@ -557,6 +572,8 @@ in
       # DROPs or falls through via `policy accept`, so it can't itself let anything through that a
       # later chain would otherwise have refused. Loopback and container bridge traffic are exempt,
       # same as the geo-block below.
+      # - 20/s (burst 60) is far above what a browser or a Newt site opens, but below a port
+      #   scanner's pace - a 3000-port scan at ~37/s passed the old 60/s limit (hosts/vps1, 2026-10-11)
       # - requires kernel module `nft_limit`, preloaded by modules/devices/kernel.nix's harden block
       networking.nftables.tables.connlimit = {
         family = "ip";
@@ -571,7 +588,7 @@ in
             type filter hook prerouting priority mangle; policy accept;
             iifname "lo" accept
             iifname "podman*" accept
-            ct state new add @connlimit-src { ip saddr limit rate over 60/second burst 120 packets } drop
+            ct state new add @connlimit-src { ip saddr limit rate over 20/second burst 60 packets } drop
           }
         '';
       };
@@ -604,7 +621,9 @@ in
     (lib.mkIf (cfg.harden.enable) (
       let
         usCidrUrl = "https://raw.githubusercontent.com/ipverse/country-ip-blocks/master/country/us/ipv4-aggregated.txt";
+        dcCidrUrl = "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/datacenter/ipv4.txt";
         extraElements = lib.concatStringsSep ", " cfg.harden.geoblockAllowList;
+        allowElements = lib.optionalString (cfg.harden.geoblockAllowList != [ ]) "elements = { ${extraElements} }";
       in
       {
         assertions = [
@@ -636,8 +655,29 @@ in
               # collapses such overlaps instead of erroring, which is what we want either way.
               flags interval
               auto-merge
-              ${lib.optionalString (cfg.harden.geoblockAllowList != [ ]) "elements = { ${extraElements} }"}
+              ${allowElements}
             }
+          '' + lib.optionalString cfg.harden.blockDatacenters ''
+            # Exempt from the datacenter block: geoblockAllowList on its own, since geoblock-allow
+            # above also holds every US block
+            set datacenter-exempt {
+              type ipv4_addr
+              flags interval
+              auto-merge
+              ${allowElements}
+            }
+
+            # Datacenter/hosting ranges, filled by geoblock-refresh (see harden.blockDatacenters)
+            set datacenter-block {
+              type ipv4_addr
+              flags interval
+              auto-merge
+            }
+
+            # Read by services.native.alerts' security digest, like geoblock-dropped below
+            counter datacenter-dropped {
+            }
+          '' + ''
 
             # Drops below, read by services.native.alerts' security digest. Geo-blocked traffic
             # never reaches the input chain's refused-connection LOG rule that CrowdSec's port-scan
@@ -668,6 +708,9 @@ in
               # IPs passed fine (hosts/vm-vps1 testing, 2026-09-21). Matches nixos-fw's own
               # `iifname "podman*" udp dport 53 accept` wildcard for the same interface family.
               iifname "podman*" accept
+              ${lib.optionalString cfg.harden.blockDatacenters ''
+                ct state new ip saddr @datacenter-block ip saddr != @datacenter-exempt counter name "datacenter-dropped" drop
+              ''}
               ct state new ip saddr != @geoblock-allow counter name "geoblock-dropped" drop
             }
           '';
@@ -677,30 +720,62 @@ in
         # above. `nft -f` applies every statement in one invocation as a single atomic kernel
         # transaction (nftables' own core guarantee, unlike iptables-legacy's line-by-line
         # non-transactional model): if any element fails to parse, NONE of the statements take
-        # effect and the live set is left completely untouched. Combined with `set -e` +
-        # `curl --fail` aborting the whole script before ever invoking `nft -f` on a failed fetch,
-        # a failed refresh always fails safe - it falls back to yesterday's still-reasonably-fresh
-        # list rather than wiping the set to empty or loading a truncated/garbage one.
+        # effect and the live set is left completely untouched.
+        #
+        # Each fetched list is cached in /var/lib/geoblock, and a failed or empty fetch loads the
+        # cached copy instead (the unit still exits non-zero so the failure is visible). That
+        # matters because the sets aren't only refreshed daily: nftables.service reloads (every
+        # switch that changes a rule) recreate this table with geoblock-allow holding just
+        # geoblockAllowList, which drops everyone else - for 7h on hosts/vps1 (2026-10-09) until the
+        # daily timer happened to run. So every reload re-runs this unit, and the cache keeps that
+        # from depending on GitHub being reachable at that moment.
+        systemd.services.nftables.serviceConfig.ExecReload = lib.mkAfter [
+          "${config.systemd.package}/bin/systemctl --no-block start geoblock-refresh.service"
+        ];
+
         systemd.services.geoblock-refresh = {
           description = "Fetch the current US IPv4 CIDR list and atomically refresh the geoblock nftables set";
           after = [ "network-online.target" "nftables.service" ];
           wants = [ "network-online.target" ];
           requires = [ "nftables.service" ];
-          path = [ pkgs.nftables pkgs.curl pkgs.gnugrep ];
+          path = [ pkgs.nftables pkgs.curl pkgs.gnugrep pkgs.coreutils ];
           script = ''
             set -euo pipefail
+            stale=0
 
-            usCidrs=$(curl --fail --silent --show-error "${usCidrUrl}" \
-              | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$' \
-              | paste -sd, -)
+            # fetch <url> <cache>: refresh the cached CIDR list, keeping the previous one if the
+            # fetch fails or comes back empty. Fails only if there's no list at all.
+            fetch() {
+              local list
+              if list=$(curl --fail --silent --show-error --max-time 120 "$1" \
+                  | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$') && [ -n "$list" ]; then
+                printf '%s\n' "$list" > "$2.tmp"
+                mv -f "$2.tmp" "$2"
+              else
+                echo "fetching $1 failed, loading the cached list" >&2
+                stale=1
+              fi
+              [ -s "$2" ]
+            }
 
-            {
-              echo "flush set ip geoblock geoblock-allow"
-              echo "add element ip geoblock geoblock-allow { ${extraElements}${lib.optionalString (cfg.harden.geoblockAllowList != [ ]) ","} $usCidrs }"
-            } | nft -f -
+            cache=/var/lib/geoblock
+            fetch "${usCidrUrl}" "$cache/us.txt"
+            rules="flush set ip geoblock geoblock-allow
+            add element ip geoblock geoblock-allow { ${extraElements}${lib.optionalString (cfg.harden.geoblockAllowList != [ ]) ","} $(paste -sd, "$cache/us.txt") }"
+          '' + lib.optionalString cfg.harden.blockDatacenters ''
+            # A missing datacenter list must not hold up the geo-block
+            if fetch "${dcCidrUrl}" "$cache/datacenter.txt"; then
+              rules+="
+            flush set ip geoblock datacenter-block
+            add element ip geoblock datacenter-block { $(paste -sd, "$cache/datacenter.txt") }"
+            fi
+          '' + ''
+            nft -f - <<<"$rules"
+            exit "$stale"
           '';
           serviceConfig = {
             Type = "oneshot";
+            StateDirectory = "geoblock";
             NoNewPrivileges = true;
             CapabilityBoundingSet = [ "CAP_NET_ADMIN" ];   # same as crowdsec-firewall-bouncer.service's nftables-mode capability
             ProtectSystem = "strict";

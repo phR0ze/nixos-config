@@ -36,6 +36,7 @@
 # - No telemetry: Pangolin's `anonymous_usage` off, Traefik's release check/anonymous stats off.
 # - Traefik's API/dashboard off (upstream ships `api.insecure: true`) - nothing here uses it.
 # - `aliasHeadersStrategy: delete` on the websecure entrypoint (Traefik 3.7+) - see the entryPoints note.
+# - `sniStrict` TLS: no-SNI/unknown-SNI handshakes are refused instead of getting the default cert.
 # - CrowdSec bouncer trusts no forwarded headers and no RFC1918 ranges - see crowdsecMiddlewareText.
 # - No captcha profile: upstream's turns HTTP-scenario alerts into captcha decisions, which need a
 #   captcha provider (e.g. Turnstile) configured in the bouncer. Without one they're bans instead.
@@ -407,8 +408,9 @@ let
               - "127.0.0.1/32"
 
       routers:
-        # Lowest-priority catch-all for requests no other router matches - scanners hitting the
-        # bare IP or an unknown hostname. Traefik only runs middlewares on a matched router, so
+        # Lowest-priority catch-all for requests no other router matches - scanners hitting an
+        # unknown hostname (bare-IP requests without SNI are refused at the handshake, see tls).
+        # Traefik only runs middlewares on a matched router, so
         # without this they got its built-in 404 and skipped the entrypoint's crowdsec@file
         # (bouncer + AppSec) entirely; now AppSec inspects them like any other request. crowdsec@file
         # isn't listed here since entrypoint middlewares already apply to every websecure router.
@@ -466,6 +468,16 @@ let
             servers:
               - url: "http://pangolin:3000"
 
+    # sniStrict: refuse the TLS handshake when the client's SNI matches no certificate, rather than
+    # answering with Traefik's self-signed default cert. Scanners sweeping the bare IP (no SNI) are
+    # cut off before any HTTP exchange, which saves the bandwidth but also means the catchall-router
+    # above (and AppSec) never sees them, so they're no longer banned for it. Every real hostname
+    # is covered by the wildcard cert, including the unknown subdomains the catch-all still gets.
+    tls:
+      options:
+        default:
+          sniStrict: true
+
     tcp:
       serversTransports:
         pp-transport-v1:
@@ -501,12 +513,13 @@ let
             crowdsec:
               enabled: true
               logLevel: INFO
-              # stream: keep a local copy of the ban list, refreshed every 15s, rather than asking
+              # stream: keep a local copy of the ban list, refreshed every 5s, rather than asking
               # the LAPI on every request (live). The LAPI is the host's now, which restarts daily
-              # with the hub update; stream rides that out instead of returning 403s. After 8
-              # failed refreshes in a row (~2min) it fails closed and blocks everything.
-              updateIntervalSeconds: 15
-              updateMaxFailure: 8
+              # with the hub update; stream rides that out instead of returning 403s. After 24
+              # failed refreshes in a row (~2min) it fails closed and blocks everything. 5s rather
+              # than 15s since exploit scanners finish a burst in 6-13s (hosts/vps1, 2026-10-10).
+              updateIntervalSeconds: 5
+              updateMaxFailure: 24
               httpTimeoutSeconds: 10
               crowdsecMode: stream
               crowdsecAppsecEnabled: true

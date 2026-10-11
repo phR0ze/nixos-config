@@ -321,25 +321,37 @@ in
           # Diffed against the value at the last sent digest - the title's 24h on the daily schedule,
           # less after a manual run. The counter resets on every ruleset reload, so a lower reading
           # (or no saved one) is reported as-is, since that reset.
+          #   nft_counter <label> <counter name in the `geoblock` table>
           + lib.optionalString config.devices.network.harden.enable ''
-            GEO_STATE=/var/lib/alerts/geoblock-dropped.last
-            if GEO_NOW=$(${pkgs.nftables}/bin/nft -j list counter ip geoblock geoblock-dropped 2>/dev/null \
-                | $jq -er '.nftables[] | .counter? // empty | .packets'); then
-              GEO_PREV=$(cat "$GEO_STATE" 2>/dev/null || true)
-              if [ -n "$GEO_PREV" ] && [ "$GEO_NOW" -ge "$GEO_PREV" ]; then
-                GEO="$((GEO_NOW - GEO_PREV)) pkts"
+            COUNTERS=()
+            nft_counter() {
+              local label=$1 name=$2 now prev out
+              if now=$(${pkgs.nftables}/bin/nft -j list counter ip geoblock "$name" 2>/dev/null \
+                  | $jq -er '.nftables[] | .counter? // empty | .packets'); then
+                prev=$(cat "/var/lib/alerts/$name.last" 2>/dev/null || true)
+                if [ -n "$prev" ] && [ "$now" -ge "$prev" ]; then
+                  out="$((now - prev)) pkts"
+                else
+                  out="$now pkts (since reset)"
+                fi
+                COUNTERS+=("$name=$now")
               else
-                GEO="$GEO_NOW pkts (since reset)"
+                out="n/a"
               fi
-            else
-              GEO_NOW=""
-              GEO="n/a"
-            fi
-            MSG+=$'\n'"Geo-blocked: $GEO"
+              MSG+=$'\n'"$label: $out"
+            }
+            nft_counter Geo-blocked geoblock-dropped
+          ''
+          + lib.optionalString config.devices.network.harden.blockDatacenters ''
+            nft_counter "Datacenter-blocked" datacenter-dropped
           ''
           # Alerts raised in the last 24h, then one line per scenario (most frequent first, the
-          # `crowdsecurity/` hub prefix dropped), and the decisions active now. Both lists are
-          # paged by default (100 alerts / 50), so `--limit 0` is needed for a true count. Without
+          # `crowdsecurity/` hub prefix dropped, with how many distinct IPs raised it), and the
+          # decisions active now. AppSec CRS alerts are named after their anomaly scores
+          # ("anomaly score out-of-band: sql_injection: 10, rce: 35, ..."), so every score
+          # combination was its own line - 27 lines for ~10 scenarios (hosts/vps1, 2026-10-11) -
+          # they're grouped as one `appsec-crs` line instead. Both lists are paged by default
+          # (100 alerts / 50), so `--limit 0` is needed for a true count. Without
           # `-a` neither includes community (CAPI) or blocklist entries, only this engine's own
           # detections. Scenario names only - never the alerts' source addresses. `n/a` if cscli
           # fails rather than a misleading 0.
@@ -354,8 +366,10 @@ in
               fi
               if raw=$("$@" alerts list --since 24h --limit 0 -o json 2>/dev/null) \
                   && raw=$(printf '%s' "$raw" | $jq -er '. // [] | (length | tostring),
-                    (group_by(.scenario) | map({s: (.[0].scenario | sub("^crowdsecurity/"; "")), n: length})
-                      | sort_by(-.n)[] | "  \(.s): \(.n)")'); then
+                    (map(.scenario |= (sub("^anomaly score out-of-band.*"; "appsec-crs") | sub("^crowdsecurity/"; "")))
+                      | group_by(.scenario)
+                      | map({s: .[0].scenario, n: length, ips: (map(.source.ip // .source.value) | unique | length)})
+                      | sort_by(-.n)[] | "  \(.s): \(.n) (\(.ips) IPs)")'); then
                 alerts=$(printf '%s\n' "$raw" | head -n 1)
                 scenarios=$(printf '%s\n' "$raw" | tail -n +2)
               else
@@ -379,7 +393,7 @@ in
           ''
           # Only advanced once the digest is sent, so a failed push doesn't drop a day's drops
           + lib.optionalString config.devices.network.harden.enable ''
-            if [ -n "$GEO_NOW" ]; then printf '%s' "$GEO_NOW" > "$GEO_STATE"; fi
+            for c in "''${COUNTERS[@]}"; do printf '%s' "''${c#*=}" > "/var/lib/alerts/''${c%%=*}.last"; done
           ''));
         };
       };
