@@ -48,7 +48,11 @@
 #   read-only (0555) `/`, which silently disables the badger and crowdsec plugins and fails every
 #   router using them (hosts/vm-vps1, 2026-10-07). So it gets its own root-owned dir mounted there,
 #   outside `config/` so pangolin's mount doesn't see it.
-# - `allow_raw_resources` off by default (`allowRawResources`).
+# - `allow_raw_resources` off by default (`allowRawResources`), in both `flags` and `traefik` (the
+#   latter stops Traefik route generation for any that already exist).
+# - Login rate limit (`rate_limits.auth`) tightened to 10/min from Pangolin's default of 500/min.
+# - Local and basic-WireGuard sites disabled (every site runs Newt), and the integration API pinned
+#   off explicitly rather than relying on its default.
 # - One CrowdSec for the whole host: the crowdsec container runs as an agent only
 #   (`DISABLE_LOCAL_API`). It still parses Traefik's logs and serves AppSec, but its alerts go to
 #   the host's LAPI (services.native.crowdsec), and Traefik's bouncer pulls decisions from there
@@ -758,6 +762,36 @@ in
       default = 100;
     };
 
+    authRateLimitWindowMinutes = lib.mkOption {
+      description = "Auth-endpoint (login) rate-limit window, in minutes";
+      type = types.int;
+      default = 1;
+    };
+
+    authRateLimitMaxRequests = lib.mkOption {
+      description = ''
+        Auth-endpoint (login) rate-limit max requests per window. Pangolin's default is 500, which
+        allows brute-forcing logins at a high rate.
+      '';
+      type = types.int;
+      default = 10;
+    };
+
+    disableLocalSites = lib.mkOption {
+      description = "Whether to prevent creating local sites (Newt-less, on the Pangolin host's network)";
+      type = types.bool;
+      default = true;
+    };
+
+    disableBasicWireguardSites = lib.mkOption {
+      description = ''
+        Whether to prevent creating basic WireGuard sites (a plain WireGuard peer instead of Newt).
+        Disabled by default since every site here runs Newt.
+      '';
+      type = types.bool;
+      default = true;
+    };
+
     dashboardSessionLengthHours = lib.mkOption {
       description = ''
         Install-wide dashboard login session length, in hours (Pangolin's default is 720, i.e. 30
@@ -932,16 +966,23 @@ in
             global:
                 window_minutes: ${toString cfg.rateLimitWindowMinutes}
                 max_requests: ${toString cfg.rateLimitMaxRequests}
+            auth:
+                window_minutes: ${toString cfg.authRateLimitWindowMinutes}
+                max_requests: ${toString cfg.authRateLimitMaxRequests}
 
         traefik:
             additional_middlewares:
                 - "security-headers@file"
+            allow_raw_resources: ${lib.boolToString cfg.allowRawResources}
 
         flags:
             require_email_verification: false
             disable_signup_without_invite: true
             disable_user_create_org: ${lib.boolToString cfg.disableUserCreateOrg}
             allow_raw_resources: ${lib.boolToString cfg.allowRawResources}
+            disable_local_sites: ${lib.boolToString cfg.disableLocalSites}
+            disable_basic_wireguard_sites: ${lib.boolToString cfg.disableBasicWireguardSites}
+            enable_integration_api: false
       '';
       secrets.${serverSecretKey}.sopsFile = cfg.sopsFile;
       # configRev below only hashes the *plaintext* configs, so a rotated serverSecret changes
