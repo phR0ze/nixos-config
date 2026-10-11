@@ -79,6 +79,40 @@ let
     ${pkgs.yq-go}/bin/yq -i '.users = [{"name": strenv(NAME), "password": strenv(HASH)}]' \
       /var/lib/AdGuardHome/AdGuardHome.yaml
   '';
+
+  # Global safe search engines, also reused by clients that enable their own safe search
+  safeSearch = {
+    enabled = true;
+    bing = true;
+    duckduckgo = true;
+    ecosia = true;
+    google = true;
+    pixabay = true;
+    yandex = true;
+    youtube = true;
+  };
+
+  # AdGuard's YAML form of a persistent client. Every field is written out because any boolean
+  # AdGuard doesn't find defaults to false, e.g. a missing `use_global_settings` would silently
+  # switch the client to its own settings with filtering off. `uid` is left out and AdGuard
+  # generates one on load.
+  toClient = c: {
+    inherit (c) name ids tags upstreams;
+    use_global_settings = c.useGlobalSettings;
+    filtering_enabled = c.filtering;
+    parental_enabled = c.parental;
+    safebrowsing_enabled = c.safeBrowsing;
+    safe_search = if c.safeSearch then safeSearch else lib.mapAttrs (_: _: false) safeSearch;
+    use_global_blocked_services = c.blockedServices == null;
+    blocked_services = {
+      schedule.time_zone = "Local";
+      ids = if c.blockedServices == null then [ ] else c.blockedServices;
+    };
+    upstreams_cache_enabled = false;
+    upstreams_cache_size = 0;
+    ignore_querylog = c.ignoreQueryLog;
+    ignore_statistics = c.ignoreStatistics;
+  };
 in
 {
   options = {
@@ -88,7 +122,7 @@ in
       bindAddress = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        example = "192.168.1.5";
+        example = "192.168.x.x";
         description = ''
           LAN IP address AdGuard Home binds its admin HTTP interface and DNS listener to. Bound
           explicitly to this machine's LAN-facing IP rather than `0.0.0.0` so client requests are
@@ -132,6 +166,31 @@ in
         '';
       };
 
+      unblockedDomains = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [
+          "api.mixpanel.com"
+          "oli.vi"
+          "track.byustore.com"
+          "email2.harri.com"
+          "cdn.harri.com"
+          "harri.com"
+          "wallet-api.urbanairship.com"
+          "forms.gle"
+          "www.bark.us"
+          "bcove.video"
+          "nexus-websocket-a.intercom.io"
+          "bit.ly"
+        ];
+        example = [ "bit.ly" "*.example.com" ];
+        description = ''
+          Domains always allowed through, overriding every blocklist. Each one becomes an
+          `@@||<domain>^$important` rule, which also covers its subdomains. Wildcards are
+          supported. Setting this replaces the defaults; set it with `lib.mkOptionDefault` to add to
+          them instead. `*.<baseDomain>` is always appended.
+        '';
+      };
+
       dnsRewrites = lib.mkOption {
         type = lib.types.listOf (lib.types.submodule {
           options = {
@@ -142,17 +201,104 @@ in
             };
             answer = lib.mkOption {
               type = lib.types.str;
-              example = "192.168.1.5";
+              example = "192.168.x.x";
               description = "IP address (or CNAME target) returned for `domain`.";
             };
           };
         });
         default = [ ];
-        example = [ { domain = "vault.example.com"; answer = "192.168.1.5"; } ];
+        example = [ { domain = "vault.example.com"; answer = "192.168.x.x"; } ];
         description = ''
           DNS rewrites served to LAN clients. Merged with the module's own built-in rewrites
           (`adguard.local` and the split-horizon `*.<baseDomain>`), so setting this adds to them
           rather than replacing them.
+        '';
+      };
+
+      clients = lib.mkOption {
+        type = lib.types.listOf (lib.types.submodule {
+          options = {
+            name = lib.mkOption {
+              type = lib.types.str;
+              example = "Workstation";
+              description = "Display name of the client, must be unique.";
+            };
+            ids = lib.mkOption {
+              type = lib.types.nonEmptyListOf lib.types.str;
+              example = [ "192.168.x.x" ];
+              description = "IPs, CIDRs, MACs or ClientIDs identifying the client.";
+            };
+            tags = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
+              example = [ "device_pc" ];
+              description = "AdGuard client tags, usable in `$ctag` filtering rules.";
+            };
+            upstreams = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
+              description = "Per-client upstream DNS servers. Empty uses the global upstreams.";
+            };
+            useGlobalSettings = lib.mkOption {
+              type = lib.types.bool;
+              default = true;
+              description = ''
+                Use the global filtering settings. When `false`, the `filtering`, `parental`,
+                `safeBrowsing` and `safeSearch` options below apply to this client instead.
+              '';
+            };
+            filtering = lib.mkOption {
+              type = lib.types.bool;
+              default = true;
+              description = "Apply blocklists. Only used when `useGlobalSettings` is `false`.";
+            };
+            parental = lib.mkOption {
+              type = lib.types.bool;
+              default = true;
+              description = "Apply parental control. Only used when `useGlobalSettings` is `false`.";
+            };
+            safeBrowsing = lib.mkOption {
+              type = lib.types.bool;
+              default = true;
+              description = "Apply safe browsing. Only used when `useGlobalSettings` is `false`.";
+            };
+            safeSearch = lib.mkOption {
+              type = lib.types.bool;
+              default = true;
+              description = ''
+                Enforce safe search, with the same per-engine choices as the global setting. Only
+                used when `useGlobalSettings` is `false`.
+              '';
+            };
+            blockedServices = lib.mkOption {
+              type = lib.types.nullOr (lib.types.listOf lib.types.str);
+              default = null;
+              example = [ "tiktok" "discord" ];
+              description = ''
+                Service ids to block for this client instead of the global blocked services. `null`
+                uses the global list.
+              '';
+            };
+            ignoreQueryLog = lib.mkOption {
+              type = lib.types.bool;
+              default = false;
+              description = "Leave this client's queries out of the query log.";
+            };
+            ignoreStatistics = lib.mkOption {
+              type = lib.types.bool;
+              default = false;
+              description = "Leave this client's queries out of the statistics.";
+            };
+          };
+        });
+        default = [ ];
+        example = [ { name = "Workstation"; ids = [ "192.168.x.x" ]; ignoreQueryLog = true; } ];
+        description = ''
+          Persistent clients. Forwarded from `host.services.native.adguardhome.clients` in
+          `args.enc.yaml` by `modules/default.nix` to keep device names and LAN IPs untracked.
+          When non-empty this is the complete list: upstream merges `settings` into the live config
+          on every start and replaces lists outright, so clients added in the web UI are dropped on
+          the next restart. Leave empty to manage clients in the web UI instead.
         '';
       };
 
@@ -218,6 +364,15 @@ in
         { assertion = cfg.bindAddress != null && cfg.bindAddress != "";
             message = "services.native.adguard requires 'bindAddress', is 'devices.network.primary.ip' set for this host?";
         }
+        # AdGuard refuses to start, taking LAN DNS down with it, on a duplicate client name or id
+        (let names = map (c: c.name) cfg.clients; in {
+          assertion = lib.length names == lib.length (lib.unique names);
+          message = "services.native.adguardhome.clients has duplicate names: ${toString names}";
+        })
+        (let ids = lib.concatMap (c: c.ids) cfg.clients; in {
+          assertion = lib.length ids == lib.length (lib.unique ids);
+          message = "services.native.adguardhome.clients has duplicate ids: ${toString ids}";
+        })
       ];
 
       # Built-in rewrites, merged with any set by the host
@@ -265,6 +420,15 @@ in
             fallback_dns = [
               "https://dns10.quad9.net/dns-query"
             ];
+
+            # Don't even bother logging just drop them. Setting this replaces AdGuard's defaults, so
+            # its fingerprinting-query defaults are repeated here
+            blocked_hosts = [
+              "version.bind"
+              "id.server"
+              "hostname.bind"
+              "connections.brother.com" # phone home for brother printers
+            ];
           };
           filters = [
             {
@@ -275,63 +439,93 @@ in
             }
             {
               enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt";
-              name = "AdAway Default Blocklist";
-              id = 2;
-            }
-            {
-              enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt";
               name = "AdGuard DNS Popup Hosts filter";
-              id = 1733441346;
+              id = 1768503590;
             }
             {
               enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt";
               name = "AWAvenue Ads Rule";
-              id = 1733441347;
+              id = 1768503591;
             }
             {
               enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_4.txt";
               name = "Dan Pollock's List";
-              id = 1733441348;
+              id = 1768503592;
+            }
+            {
+              enabled = false;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_51.txt";
+              name = "HaGeZi's Pro++ Blocklist";
+              id = 1768503595;
             }
             {
               enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_51.txt";
-              name = "HaGeZi's Pro++ Blocklist";
-              id = 1733441349;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt";
+              name = "Malicious URL Blocklist (URLHaus)";
+              id = 1768503598;
             }
             {
               enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt";
               name = "OISD Blocklist Big";
-              id = 1733441350;
+              id = 1768503599;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt";
+              name = "uBlock₀ filters – Badware risks";
+              id = 1768503600;
             }
             {
               enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt";
               name = "Peter Lowe's Blocklist";
-              id = 1733441351;
+              id = 1768503601;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_9.txt";
+              name = "The Big List of Hacked Malware Web Sites";
+              id = 1768503602;
+            }
+            {
+              enabled = false;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_69.txt";
+              name = "ShadowWhisperer Tracking List";
+              id = 1768503603;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_31.txt";
+              name = "Stalkerware Indicators List";
+              id = 1768503604;
             }
             {
               enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt";
               name = "Steven Black's List";
-              id = 1733441352;
+              id = 1768503605;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_42.txt";
+              name = "ShadowWhisperer's Malware List";
+              id = 1768503606;
             }
             {
               enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_39.txt";
               name = "Dandelion Sprout's Anti Push Notifications";
-              id = 1733441353;
+              id = 1768503607;
             }
             {
               enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_6.txt";
               name = "Dandelion Sprout's Game Console Adblock List";
-              id = 1733441354;
+              id = 1768503608;
             }
 
             # Specific allow list for allowing some affiliate referral tracking to keep things working
@@ -340,115 +534,145 @@ in
               enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_45.txt";
               name = "HaGeZi's Allowlist Referral";
-              id = 1733441355;
-            }
-            {
-              enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt";
-              name = "Malicious URL Blocklist (URLHaus)";
-              id = 1733441356;
-            }
-            {
-              enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_7.txt";
-              name = "Perflyst and Dandelion Sprout's Smart-TV Blocklist";
-              id = 1733441357;
-            }
-            {
-              enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt";
-              name = "uBlock₀ filters – Badware risks";
-              id = 1733441358;
-            }
-            {
-              enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_23.txt";
-              name = "WindowsSpyBlocker - Hosts spy rules";
-              id = 1733441359;
-            }
-            {
-              enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_9.txt";
-              name = "The Big List of Hacked Malware Web Sites";
-              id = 1733441360;
-            }
-            {
-              enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_30.txt";
-              name = "Phishing URL Blocklist (PhishTank and OpenPhish)";
-              id = 1733441361;
-            }
-            {
-              enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_31.txt";
-              name = "Stalkerware Indicators List";
-              id = 1733441362;
-            }
-            {
-              enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_12.txt";
-              name = "Dandelion Sprout's Anti-Malware List";
-              id = 1733441363;
-            }
-            {
-              enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_42.txt";
-              name = "ShadowWhisperer's Malware List";
-              id = 1733441364;
-            }
-            {
-              enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_55.txt";
-              name = "HaGeZi's Badware Hoster Blocklist";
-              id = 1733441365;
+              id = 1768503609;
             }
             {
               enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_10.txt";
               name = "Scam Blocklist by DurableNapkin";
-              id = 1733441366;
+              id = 1768503610;
             }
             {
               enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_54.txt";
-              name = "HaGeZi's DynDNS Blocklist";
-              id = 1733441367;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_46.txt";
+              name = "HaGeZi's Anti-Piracy Blocklist";
+              id = 1768503611;
             }
             {
               enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt";
               name = "Phishing Army";
-              id = 1733441368;
+              id = 1768503612;
             }
             {
               enabled = true;
-              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt";
-              name = "HaGeZi's Threat Intelligence Feeds";
-              id = 1733441369;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_67.txt";
+              name = "HaGeZi's Apple Tracker Blocklist";
+              id = 1768503613;
             }
             {
               enabled = true;
               url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_8.txt";
               name = "NoCoin Filter List";
-              id = 1733441370;
+              id = 1768503614;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_47.txt";
+              name = "HaGeZi's Gambling Blocklist";
+              id = 1768503615;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_66.txt";
+              name = "HaGeZi's OPPO & Realme Tracker Blocklist";
+              id = 1768503616;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_68.txt";
+              name = "HaGeZi's URL Shortener Blocklist";
+              id = 1768503617;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt";
+              name = "HaGeZi's Threat Intelligence Feeds";
+              id = 1768503619;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_56.txt";
+              name = "HaGeZi's The World's Most Abused TLDs";
+              id = 1768503621;
+            }
+            {
+              enabled = false;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_52.txt";
+              name = "HaGeZi's Encrypted DNS/VPN/TOR/Proxy Bypass";
+              id = 1768503624;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_54.txt";
+              name = "HaGeZi's DynDNS Blocklist";
+              id = 1768503626;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_7.txt";
+              name = "Perflyst and Dandelion Sprout's Smart-TV Blocklist";
+              id = 1768503627;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_57.txt";
+              name = "ShadowWhisperer's Dating List";
+              id = 1768503628;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_71.txt";
+              name = "HaGeZi's DNS Rebind Protection";
+              id = 1768503629;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_62.txt";
+              name = "Ukrainian Security Filter";
+              id = 1768503630;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_55.txt";
+              name = "HaGeZi's Badware Hoster Blocklist";
+              id = 1768503631;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_30.txt";
+              name = "Phishing URL Blocklist (PhishTank and OpenPhish)";
+              id = 1768503632;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_12.txt";
+              name = "Dandelion Sprout's Anti-Malware List";
+              id = 1768503633;
             }
             {
               enabled = true;
               url = "https://v.firebog.net/hosts/Easylist.txt";
               name = "EasyList";
-              id = 1733441371;
+              id = 1768503634;
             }
             {
               enabled = true;
               url = "https://v.firebog.net/hosts/Easyprivacy.txt";
               name = "EasyPrivacy";
-              id = 1733441372;
+              id = 1768503635;
             }
             {
               enabled = true;
               url = "https://blocklistproject.github.io/Lists/adguard/porn-ags.txt";
               name = "Blocklist adult content";
-              id = 1733441373;
+              id = 1768503636;
+            }
+            {
+              enabled = true;
+              url = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_24.txt";
+              name = "1Hosts (Lite)";
+              id = 1768503639;
             }
           ];
           whitelist_filters = [
@@ -460,7 +684,7 @@ in
             }
           ];
           user_rules = [
-            "# Ads/Tracking allowed by AdGuard"
+            "# Block Ads/Tracking not blocked by AdGuard"
             "||adservice.google.*^$important"
             "||adsterra.com^$important"
             "||amplitude.com^$important"
@@ -468,37 +692,25 @@ in
             "||analytics.twitter.com^$important"
             "||app.adjust.*^$important"
             "||app.*.adjust.com^$important"
-            "||app.appsflyer.com^$important"
             "||doubleclick.net^$important"
             "||googleadservices.com^$important"
             "||guce.advertising.com^$important"
             "||metric.gstatic.com^$important"
             "||mmstat.com^$important"
             "||statcounter.com^$important"
-            # Firefox telemetry
+            "# Block firefox telemetry"
             "||firefox.settings.services.mozilla.com^$important"
             "||firefox-settings-attachments.cdn.mozilla.net^$important"
-            # Asus Router
-            "||epdg.epc.mnc260.mcc310.pub.3gppnetwork.org^$important"
             "||getpocket.cdn.mozilla.net^$important"
-          ];
-
-          # Don't even bother logging just drop them
-          blocked_hosts = [
-            "connections.brother.com" # phone home for brother printers
-          ];
+            "# Unblock one offs"
+          ]
+          ++ map (d: "@@||${d}^$important") (cfg.unblockedDomains
+            # Never block our own Caddy-fronted services. Built from baseDomain so the zone never
+            # lands in a tracked file
+            ++ lib.optional (cfg.baseDomain != "") "*.${cfg.baseDomain}");
 
           filtering = {
-            safe_search = {
-              enabled = true;
-              bing = true;
-              duckduckgo = true;
-              ecosia = true;
-              google = true;
-              pixabay = true;
-              yandex = true;
-              youtube = true;
-            };
+            safe_search = safeSearch;
             rewrites = map (x: x // { enabled = true; }) cfg.dnsRewrites;
             filtering_enabled = true;
             parental_enabled = true;
@@ -508,6 +720,11 @@ in
           statistics = {
             # Increase retention to 90 days
             interval = "2160h";
+          };
+
+          # Only when declared, so a host without args keeps managing clients in the web UI
+          clients = lib.mkIf (cfg.clients != [ ]) {
+            persistent = map toClient cfg.clients;
           };
         };
       };

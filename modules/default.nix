@@ -522,6 +522,7 @@ in
         services.native.adguardhome.baseDomain = cfg.network.domain;
         services.native.adguardhome.bindAddress = (f.toIP config.devices.network.primary.ip).address;
         services.native.adguardhome.dnsRewrites = arg "dnsRewrites";
+        services.native.adguardhome.clients = arg "clients";
       }
     ))
 
