@@ -175,6 +175,19 @@ in
         # still stored and shared with CAPI, they just match no profile. The caps keep every ban
         # inside the database flush's max_age below, which deletes an alert's decisions with it.
         #
+        # Lone OWASP CRS hits don't ban. The hub's crowdsecurity/crs appsec config sends an alert
+        # for every out-of-band match, and its scenario is named after the request's CRS scores
+        # (`anomaly score out-of-band: <category>: <n>, ..., anomaly: <total>, `). A request that
+        # only trips one rule with no attack category, scoring under 8 (one critical rule is 5),
+        # is a policy hit such as a disallowed content type or a scanner-like user agent, and a
+        # legitimate client repeats it on every poll or retry: Pangolin's dashboard login and its
+        # Android client each banned a phone on its first request (hosts/vps1, 2026-10-11). The
+        # hub's crowdsecurity/crowdsec-appsec-outofband (6 out-of-band hits within ~2.5min) skips
+        # banning too, since a client polling once a second reaches that on a single URL. Repeated
+        # lone hits are banned instead by a scenario counting distinct URLs per IP, which only
+        # probing reaches - shipped by whichever module runs CRS (services.oci.pangolin's
+        # crs-probing). Requests with an attack category or several rules still ban on one hit.
+        #
         # Profiles only apply to local alerts: community blocklist (CAPI) and Console blocklist
         # decisions keep the durations CrowdSec sets. Hub scenarios stay unmodified, which is what
         # CAPI requires to count our signals.
@@ -190,7 +203,7 @@ in
           }
           {
             name = "escalating_ban";
-            filters = [ ''Alert.GetScope() in ["Ip", "Range"] && GetActiveDecisionsCount(Alert.GetValue()) == 0'' ];
+            filters = [ ''Alert.GetScope() in ["Ip", "Range"] && GetActiveDecisionsCount(Alert.GetValue()) == 0 && !(Alert.GetScenario() matches "^anomaly score out-of-band: anomaly: [1-7], ?$" || Alert.GetScenario() == "crowdsecurity/crowdsec-appsec-outofband")'' ];
             decisions = [
               { type = "ban"; duration = "4h"; } # fallback if duration_expr fails to evaluate
             ];

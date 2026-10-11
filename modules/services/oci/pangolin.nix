@@ -31,7 +31,9 @@
 #   loaded after `appsec-default` in the AppSec acquisition, so it never blocks a request itself,
 #   just raises alerts that ban repeat offenders via `crowdsec-appsec-outofband`. Blocking CRS
 #   (`appsec-crs-inband`) is too false-positive-prone without per-app tuning. Known out-of-band
-#   false positives are excluded per request in crowdsecAppsecExclusionsText.
+#   false positives are excluded per request in crowdsecAppsecExclusionsText. A lone low-score
+#   CRS hit doesn't ban on its own (host LAPI profiles); crowdsecCrsProbingText bans an IP that
+#   trips them on 3 distinct URLs instead.
 #   `base-http-scenarios` is deliberately not listed separately - it's already a dependency of the
 #   `traefik` collection itself, so adding it again is a no-op.
 # - No telemetry: Pangolin's `anonymous_usage` off, Traefik's release check/anonymous stats off.
@@ -577,6 +579,10 @@ let
   #   text/plain from its allowed types. Scoring 5 on its own, it banned every dashboard login from
   #   a non-trusted IP for 4h, e.g. the Android client's device-code login from a phone on
   #   cellular, which got a new CGNAT address banned on each retry (hosts/vps1, 2026-10-11).
+  # - 913100 (security scanner user agent) for Pangolin's own clients: CRS's scanner list includes
+  #   "pangolin" (an old SQL-injection tool), which matches the clients' `pangolin-<platform>-<ver>`
+  #   user agent, e.g. the Android client polling for device-code approval right after its login
+  #   (hosts/vps1, 2026-10-11).
   appsecExclusionsName = "custom/${cfg.name}-exclusions";
   crowdsecAppsecExclusionsText = ''
     name: ${appsecExclusionsName}
@@ -584,6 +590,30 @@ let
       - filter: IsOutBand == true && req.Host == "${cfg.dashboardDomain}" && req.Header.Get("Next-Action") != ""
         apply:
           - RemoveOutBandRuleByID(920420)
+      - filter: IsOutBand == true && req.Host == "${cfg.dashboardDomain}" && req.Header.Get("User-Agent") startsWith "pangolin-"
+        apply:
+          - RemoveOutBandRuleByID(913100)
+  '';
+
+  # Bans repeated lone CRS hits, which the host LAPI's profiles no longer ban on their own (see
+  # services.native.crowdsec's profiles): 3 different URLs (query string ignored) from one IP
+  # within a few minutes - the bucket drains one URL every 150s. A client polling or retrying
+  # repeats the same URL and never fills it; probing walks new paths. Same filter as the hub's
+  # crowdsecurity/crowdsec-appsec-outofband, which counts every hit instead.
+  crowdsecCrsProbingText = ''
+    type: leaky
+    name: custom/${cfg.name}-crs-probing
+    description: "IP triggered out-of-band CRS rules on 3 distinct URLs"
+    filter: evt.Parsed.source == 'crowdsec-appsec' && evt.Appsec.HasOutBandMatches == true && evt.Parsed.outofband_action in ["deny", "drop"]
+    groupby: evt.Meta.source_ip
+    distinct: Split(evt.Parsed.target_uri, "?")[0]
+    capacity: 2
+    leakspeed: 150s
+    blackhole: 2m
+    labels:
+      type: exploit
+      remediation: true
+      service: http
   '';
 
   # Forces the systemd unit definition itself to change whenever any rendered config changes -
@@ -591,7 +621,7 @@ let
   # own hash, so NixOS never restarts it and podman-compose never re-applies the new config.
   configRev = builtins.hashString "sha256" (
     composeText + traefikConfigText + dynamicConfigText + crowdsecAcquisTraefikText
-    + crowdsecAcquisAppsecText + crowdsecAppsecExclusionsText
+    + crowdsecAcquisAppsecText + crowdsecAppsecExclusionsText + crowdsecCrsProbingText
   );
 in
 {
@@ -935,6 +965,9 @@ in
       "d ${dataDir}/config/crowdsec/appsec-configs 0750 root root -"
       "r ${dataDir}/config/crowdsec/appsec-configs/${cfg.name}-exclusions.yaml"
       "C+ ${dataDir}/config/crowdsec/appsec-configs/${cfg.name}-exclusions.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-appsec-exclusions.yaml" crowdsecAppsecExclusionsText}"
+      "d ${dataDir}/config/crowdsec/scenarios 0750 root root -"
+      "r ${dataDir}/config/crowdsec/scenarios/${cfg.name}-crs-probing.yaml"
+      "C+ ${dataDir}/config/crowdsec/scenarios/${cfg.name}-crs-probing.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-crs-probing.yaml" crowdsecCrsProbingText}"
       # Left over from when the container ran its own LAPI with 4h bans; profiles now live on the
       # host LAPI, and an agent never reads this
       "r ${dataDir}/config/crowdsec/profiles.yaml"
