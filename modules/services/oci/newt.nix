@@ -81,9 +81,9 @@
 # - Public (`public`, on by default): an HTTPS resource behind Platform SSO, proxied to Caddy on the
 #   gateway (`https://host.containers.internal:443`) with the SNI and Host header set to that same
 #   name.
-# - Private (`private`): a Host-mode resource keyed `<key>-private`, with Newt's gateway as its
-#   destination, tcp/443 only, no UDP or ICMP, aliased to that name. The client's SNI reaches Caddy
-#   unchanged.
+# - Private (`private`): a Host-mode resource keyed `<key>-private`, with `host.containers.internal`
+#   (Newt's gateway) as its destination, tcp/443 only, no UDP or ICMP, aliased to that name. The
+#   client's SNI reaches Caddy unchanged.
 # - Roles are `roles` or else `pangolin.defaultRoles`. Pangolin *creates* any role it
 #   doesn't know (a typo silently becomes a new empty role). `users` are usernames or emails, and
 #   an unknown one fails the whole blueprint.
@@ -296,7 +296,9 @@ let
       "private-resources" = lib.mapAttrs' (key: res: lib.nameValuePair "${key}-private" {
         inherit (res) name enabled users;
         mode = "host";
-        destination = gateway;  # Literal IP, exactly what the egress rule allows
+        # Same name the public targets use; Newt resolves it through its `--add-host` pin to the
+        # gateway, the one address the egress rule allows. A hostname destination needs `alias`.
+        destination = "host.containers.internal";
         alias = pangolinName res;
         "tcp-ports" = "443";
         "udp-ports" = "";       # Empty is none, unset would be all
