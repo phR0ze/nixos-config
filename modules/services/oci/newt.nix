@@ -84,9 +84,11 @@
 # - Private (`private`): a Host-mode resource keyed `<key>` too, with `host.containers.internal`
 #   (Newt's gateway) as its destination, tcp/443 only, no UDP or ICMP, aliased to that name. The
 #   client's SNI reaches Caddy unchanged.
-# - Roles are `roles` or else `pangolin.defaultRoles`. Pangolin *creates* any role it
-#   doesn't know (a typo silently becomes a new empty role). `users` are usernames or emails, and
-#   an unknown one fails the whole blueprint.
+# - Roles are `roles` or else `pangolin.defaultRoles`, matched by exact name within the site's
+#   org (roles are per org). Create them in the dashboard first: a new public resource with an
+#   unknown role fails the whole blueprint ("Role not found", ee-1.24.0), while existing public
+#   and private resources silently create it as a new empty role, so a typo can go unnoticed.
+#   `users` are usernames or emails, and an unknown one fails the whole blueprint.
 # - Failures are only logged by Newt: `journalctl -u podman-newt-<instance> | rg -i blueprint`
 #   ("Blueprint application failed: ..."). Success is logged at DEBUG only.
 # - Removing a resource from `pangolin.resources` does **not** delete it from Pangolin (ee-1.24.0 never

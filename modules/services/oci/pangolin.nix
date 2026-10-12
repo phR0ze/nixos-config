@@ -594,6 +594,12 @@ let
   #   "pangolin" (an old SQL-injection tool), which matches the clients' `pangolin-<platform>-<ver>`
   #   user agent, e.g. the Android client polling for device-code approval right after its login
   #   (hosts/vps1, 2026-10-11).
+  # - 911100 (method not allowed by policy) for the dashboard host: Pangolin's API is REST and uses
+  #   PUT/PATCH/DELETE by design (see `server.cors.methods`), which CRS's default GET/HEAD/POST/
+  #   OPTIONS policy scores 5 each time. Together with 913100 it banned the Android client's
+  #   `PUT /api/v1/user/<id>/olm` (hosts/vps1, 2026-10-12) - that hit came via the old dashboard
+  #   name after a dashboardDomain change, which no exclusion here covers, so clients must move
+  #   to the new name promptly.
   appsecExclusionsName = "custom/${cfg.name}-exclusions";
   crowdsecAppsecExclusionsText = ''
     name: ${appsecExclusionsName}
@@ -604,6 +610,9 @@ let
       - filter: IsOutBand == true && req.Host == "${cfg.dashboardDomain}" && req.Header.Get("User-Agent") startsWith "pangolin-"
         apply:
           - RemoveOutBandRuleByID(913100)
+      - filter: IsOutBand == true && req.Host == "${cfg.dashboardDomain}" && req.Method in ["PUT", "PATCH", "DELETE"]
+        apply:
+          - RemoveOutBandRuleByID(911100)
   '';
 
   # Bans repeated lone CRS hits, which the host LAPI's profiles no longer ban on their own (see
