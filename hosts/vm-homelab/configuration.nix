@@ -44,7 +44,7 @@
       enable = true; port = 8082; user.uid = 2002; tag = "latest";
     };
     services.native.vaultwarden = {
-      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
+      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ]; whichDomains = "all";
     };
 
     # Additional apps

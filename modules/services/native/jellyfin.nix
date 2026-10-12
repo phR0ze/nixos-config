@@ -35,13 +35,14 @@
 #    sudo systemctl start jellyfin
 #
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, f, ... }:
 let
   cfg = config.services.native.jellyfin;
 in
 {
   options = {
-    services.native.jellyfin = {
+    # `domains`/`whichDomains`: which Caddy zones it's served on, see modules/types/caddy_domains.nix
+    services.native.jellyfin = (import ../../types/caddy_domains.nix { inherit lib; }) // {
       enable = lib.mkEnableOption "Install and configure Jellyfin server";
 
       port = lib.mkOption {
@@ -55,7 +56,8 @@ in
         default = true;
         description = ''
           Front Jellyfin with `services.native.caddy` (enabled by default along with it) at
-          `<subdomain>.<domain>`. When `false`, Jellyfin's ports are opened on the LAN instead.
+          `<subdomain>.<zone>` (see `whichDomains`). When `false`, Jellyfin's ports are opened on
+          the LAN instead.
         '';
       };
 
@@ -198,7 +200,8 @@ in
     # Add a caddy proxy config for DNS subdomain resolution
     (lib.mkIf cfg.caddy {
       services.native.caddy.enable = lib.mkDefault true;
-      services.native.caddy.proxies = [ { inherit (cfg) subdomain port; } ];
+      services.native.caddy.domains = f.caddyProxies cfg [ { inherit (cfg) subdomain port; } ];
+      assertions = [ (f.caddyDomainsAssert "native.jellyfin" cfg) ];
     })
   ]);
 }

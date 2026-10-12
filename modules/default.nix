@@ -38,6 +38,7 @@ let
     port = arg "port";
     caddy = arg "caddy";
     subdomain = arg "subdomain";
+    domains = cfg.network.domains;
     subnet = arg "subnet";
     ip = arg "ip";
   };
@@ -237,15 +238,15 @@ in
               default = host.network.subnet or "";
             };
 
-            domain = lib.mkOption {
+            domains = lib.mkOption {
               description = ''
-                Domain name owned by this host, forwarded below to every service that needs to know
-                the fleet's zone name (`services.native.caddy.primaryDomain`,
-                `services.native.vaultwarden.baseDomain`, `services.native.adguard.baseDomain`,
-                `services.oci.pangolin.baseDomain`) so the literal zone stays out of tracked files.
+                Domain names owned by this host, the first being the primary (LAN) zone. Forwarded
+                below to every service that needs them (`services.native.caddy.domains`, each
+                Caddy-fronted service's `domains`, `services.oci.pangolin.baseDomain` from the
+                first) so the literal zones stay out of tracked files.
               '';
-              type = types.str;
-              default = host.network.domain or "";
+              type = types.listOf types.str;
+              default = host.network.domains or [ ];
             };
 
             dns = lib.mkOption {
@@ -402,6 +403,12 @@ in
       devices.network.nic0.mapNameFromMAC = cfg.network.nic0.mapNameFromMAC;
       devices.network.harden.geoblockAllowList = cfg.network.allowList;
       users.users.root.openssh.authorizedKeys.keys = cfg.users.root.authorizedKeys;
+
+      # An un-migrated args file would otherwise silently leave the host with no domains
+      assertions = [
+        { assertion = !(host.network or { }) ? domain;
+          message = "host.network.domain was renamed to host.network.domains (a list, primary first) — update this host's args"; }
+      ];
     }
 
     # Every xfce variant bottoms out in `layers.xfce.base`, so the shared host-level desktop
@@ -496,9 +503,12 @@ in
       let arg = f.getSvcFunc "native.caddy" cfg.services;
       in {
         services.native.caddy.sopsFile = cfg.sopsFile;
-        services.native.caddy.primaryDomain = cfg.network.domain;
-        services.native.caddy.secondaryDomain = arg "secondaryDomain";
-        services.native.caddy.proxies = arg "proxies";
+        # One Caddy zone per host domain. Args can add per-zone extras (a different
+        # `cloudflareApiTokenSecretRef`, `proxies` to other machines) keyed by the same zone.
+        services.native.caddy.domains = lib.mkMerge [
+          (lib.genAttrs cfg.network.domains (_: { }))
+          (arg "domains")
+        ];
         services.native.caddy.trustedProxies = arg "trustedProxies";
       }
     ))
@@ -513,19 +523,23 @@ in
 
     (lib.mkIf config.services.native.vaultwarden.enable {
       services.native.vaultwarden.sopsFile = cfg.sopsFile;
-      services.native.vaultwarden.baseDomain = cfg.network.domain;
+      services.native.vaultwarden.domains = cfg.network.domains;
     })
 
     (lib.mkIf config.services.native.adguardhome.enable (
       let arg = f.getSvcFunc "native.adguardhome" cfg.services;
       in {
         services.native.adguardhome.sopsFile = cfg.sopsFile;
-        services.native.adguardhome.baseDomain = cfg.network.domain;
+        services.native.adguardhome.domains = cfg.network.domains;
         services.native.adguardhome.bindAddress = (f.toIP config.devices.network.primary.ip).address;
         services.native.adguardhome.dnsRewrites = arg "dnsRewrites";
         services.native.adguardhome.clients = arg "clients";
       }
     ))
+
+    (lib.mkIf config.services.native.jellyfin.enable {
+      services.native.jellyfin.domains = cfg.network.domains;
+    })
 
     (lib.mkIf config.services.native.mullvad.enable {
       services.native.mullvad.sopsFile = cfg.sopsFile;
@@ -568,7 +582,8 @@ in
       let arg = f.getSvcFunc "oci.pangolin" cfg.services;
       in {
         services.oci.pangolin.sopsFile = cfg.sopsFile;
-        services.oci.pangolin.baseDomain = cfg.network.domain;
+        # Pangolin serves one zone: the host's primary
+        services.oci.pangolin.baseDomain = if cfg.network.domains == [ ] then "" else lib.head cfg.network.domains;
         services.oci.pangolin.acmeEmail = arg "acmeEmail";
         services.oci.pangolin.trustedClients = cfg.network.allowList;
       }

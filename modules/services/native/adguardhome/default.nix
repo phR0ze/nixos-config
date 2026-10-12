@@ -59,9 +59,13 @@
 # - podman-adguard
 # - podman-network-adguard
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, f, ... }:
 let
   cfg = config.services.native.adguardhome;
+
+  # The LAN zone the split-horizon rewrite covers - only the primary, so other zones (e.g. a
+  # Pangolin server's, whose dashboard must stay reachable) still resolve publicly
+  primaryDomain = if cfg.domains == [ ] then "" else lib.head cfg.domains;
 
   # `services.adguardhome.settings` is compiled straight into a Nix-store YAML derivation at eval
   # time -- there's no environmentFile-style escape hatch for it -- so a real secret can't be
@@ -116,7 +120,8 @@ let
 in
 {
   options = {
-    services.native.adguardhome = {
+    # `domains`/`whichDomains`: which Caddy zones it's served on, see modules/types/caddy_domains.nix
+    services.native.adguardhome = (import ../../../types/caddy_domains.nix { inherit lib; }) // {
       enable = lib.mkEnableOption "Install and configure Adguard Home server";
 
       bindAddress = lib.mkOption {
@@ -144,7 +149,8 @@ in
         default = true;
         description = ''
           Front the admin interface with `services.native.caddy` (enabled by default along with it)
-          at `<subdomain>.<domain>`. When `false`, the admin port is opened on the LAN instead.
+          at `<subdomain>.<zone>` (see `whichDomains`). When `false`, the admin port is opened on the
+          LAN instead.
         '';
       };
 
@@ -152,18 +158,6 @@ in
         type = lib.types.str;
         default = "adguard";
         description = "Subdomain the admin interface is served at when `caddy` is enabled.";
-      };
-
-      baseDomain = lib.mkOption {
-        type = lib.types.str;
-        default = "";
-        example = "example.com";
-        description = ''
-          Zone the split-horizon `*.<baseDomain>` DNS rewrite below is created for, pointing LAN
-          clients at this machine's Caddy instead of the public record. Forwarded from
-          `host.network.domain` by `modules/default.nix` so the literal zone never lands in a
-          tracked file - only set here to override. Leave empty to skip the rewrite entirely.
-        '';
       };
 
       unblockedDomains = lib.mkOption {
@@ -187,7 +181,7 @@ in
           Domains always allowed through, overriding every blocklist. Each one becomes an
           `@@||<domain>^$important` rule, which also covers its subdomains. Wildcards are
           supported. Setting this replaces the defaults; set it with `lib.mkOptionDefault` to add to
-          them instead. `*.<baseDomain>` is always appended.
+          them instead. `*.<primary domain>` (the first of `domains`) is always appended.
         '';
       };
 
@@ -210,7 +204,7 @@ in
         example = [ { domain = "vault.example.com"; answer = "192.168.x.x"; } ];
         description = ''
           DNS rewrites served to LAN clients. Merged with the module's own built-in rewrites
-          (`adguard.local` and the split-horizon `*.<baseDomain>`), so setting this adds to them
+          (`adguard.local` and the split-horizon `*.<primary domain>`), so setting this adds to them
           rather than replacing them.
         '';
       };
@@ -378,14 +372,14 @@ in
       # Built-in rewrites, merged with any set by the host
       services.native.adguardhome.dnsRewrites = [
         { domain = "adguard.local"; answer = cfg.bindAddress; }
-      ] ++ lib.optional (cfg.baseDomain != "") {
+      ] ++ lib.optional (primaryDomain != "") {
 
         # Split-horizon: LAN clients (using this AdGuard instance as DNS) resolve
-        # *.<baseDomain> straight to Caddy on the LAN instead of the public Pangolin IP the
+        # *.<primary domain> straight to Caddy on the LAN instead of the public Pangolin IP the
         # Cloudflare wildcard record points at — see services.native.caddy's deployment notes.
         # Keeps every Caddy-fronted service reachable from the LAN regardless of whether
         # it also has a Pangolin Resource exposing it publicly yet.
-        domain = "*.${cfg.baseDomain}";
+        domain = "*.${primaryDomain}";
         answer = cfg.bindAddress;
       };
 
@@ -705,9 +699,9 @@ in
             "# Unblock one offs"
           ]
           ++ map (d: "@@||${d}^$important") (cfg.unblockedDomains
-            # Never block our own Caddy-fronted services. Built from baseDomain so the zone never
-            # lands in a tracked file
-            ++ lib.optional (cfg.baseDomain != "") "*.${cfg.baseDomain}");
+            # Never block our own Caddy-fronted services. Built from the primary domain so the zone
+            # never lands in a tracked file
+            ++ lib.optional (primaryDomain != "") "*.${primaryDomain}");
 
           filtering = {
             safe_search = safeSearch;
@@ -811,7 +805,8 @@ in
     # than loopback, so the proxy has to target that instead of caddy_proxy's 127.0.0.1 default.
     (lib.mkIf cfg.caddy {
       services.native.caddy.enable = lib.mkDefault true;
-      services.native.caddy.proxies = [ { inherit (cfg) subdomain port; host = cfg.bindAddress; } ];
+      services.native.caddy.domains = f.caddyProxies cfg [ { inherit (cfg) subdomain port; host = cfg.bindAddress; } ];
+      assertions = [ (f.caddyDomainsAssert "native.adguardhome" cfg) ];
     })
   ]);
 }

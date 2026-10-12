@@ -37,6 +37,24 @@ in {
   #-------------------------------------------------------------------------------------------------
   hostInSubnet = subnet: host: "${lib.removeSuffix "0/24" subnet}${toString host}";
 
+  # `services.native.caddy.domains` entries putting an app's proxies on the zones it's served on:
+  # its primary (first) domain, or every one with `whichDomains = "all"`. `cfg` carries the
+  # options from modules/types/caddy_domains.nix.
+  #
+  # Usage: `services.native.caddy.domains = f.caddyProxies cfg [ { inherit (cfg) subdomain port; } ];`
+  #-------------------------------------------------------------------------------------------------
+  caddyProxies = cfg: proxies: lib.genAttrs
+    (if cfg.whichDomains == "all" then cfg.domains else lib.take 1 cfg.domains)
+    (_: { inherit proxies; });
+
+  # The assertion every Caddy-fronted app shares: with no domains its proxies would go nowhere
+  # Usage: `assertions = [ (f.caddyDomainsAssert "native.jellyfin" cfg) ];`
+  #-------------------------------------------------------------------------------------------------
+  caddyDomainsAssert = svc: cfg: {
+    assertion = cfg.domains != [ ];
+    message = "services.${svc} with caddy requires 'domains', normally forwarded from 'host.network.domains'";
+  };
+
   # Assertions every `services.oci.<name>` module shares, covering the fields declared by
   # modules/types/service.nix that have no safe default and so must be supplied by the host.
   #

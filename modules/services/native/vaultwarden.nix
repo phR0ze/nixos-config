@@ -7,11 +7,12 @@
 #
 # ### Deployment notes
 # 1. With `caddy` (the default) Vaultwarden listens on `127.0.0.1:<port>` only and is reached
-#    through Caddy's TLS at `<subdomain>.<baseDomain>` for each `subdomains` entry. With
-#    `caddy = false` it listens on all interfaces and `port` is opened on the LAN instead - plain
-#    HTTP, so only do this behind some other TLS-terminating proxy.
-# 2. `domain` defaults to `https://<first subdomains entry>.<baseDomain>` when `caddy` is set, where
-#    `baseDomain` is forwarded from `host.network.domain` by `modules/default.nix`. Set `domain`
+#    through Caddy's TLS at `<subdomain>.<zone>` for each `subdomains` entry, on the primary zone
+#    or, with `whichDomains = "all"`, on every zone in `domains`. With `caddy = false` it listens on
+#    all interfaces and `port` is opened on the LAN instead - plain HTTP, so only do this behind
+#    some other TLS-terminating proxy.
+# 2. `domain` defaults to `https://<first subdomains entry>.<primary domain>` when `caddy` is set,
+#    where `domains` is forwarded from `host.network.domains` by `modules/default.nix`. Set `domain`
 #    explicitly to override.
 # 3. To enable the `/admin` diagnostics page, set `enableAdminPanel = true` and add an admin token to
 #    this host's `secrets.enc.yaml` under the `adminTokenSecretRef` key (`vaultwarden/adminToken`
@@ -23,16 +24,15 @@
 #    `invitationsAllowed` both off (the defaults) the "Create account" link is hidden and nobody
 #    can register, so create the first account by briefly setting `signupsAllowed = true`, or by
 #    inviting it from the `/admin` panel.
-# 5. To reach this service through a Pangolin *private* (ZTNA) resource instead of a public
-#    subdomain, use a `Host`-mode (raw L4 tunnel)
-#    resource pointed at Newt's gateway (`host.containers.internal`) on 443 — Newt's egress rule
-#    rejects this host's LAN IP — the same shared wildcard block `subdomains` above already uses. Pangolin never
-#    terminates or re-originates TLS for that resource type, so the client's real SNI/Host header
-#    reaches Caddy intact, same as any LAN client; no dedicated listener or port is needed. Add a
-#    second entry to `subdomains` if you want the private resource to have its own distinct name
-#    rather than reusing the first one. If the resource is on a Pangolin server under another zone,
-#    give that entry `domains` including `config.services.native.caddy.secondaryDomain`, since the
-#    client's SNI reaches Caddy unchanged and needs a matching certificate.
+# 5. Pangolin resources keep their public name end to end, so a resource on a Pangolin server
+#    under zone X needs Caddy to serve that subdomain on X: set `whichDomains = "all"` and list
+#    the zone in `host.network.domains`. A *private* (ZTNA) resource is declared with
+#    `private: true` in Newt's `pangolin.resources` (see "Blueprints" in
+#    modules/services/oci/newt.nix): a `Host`-mode (raw L4 tunnel) resource pointed at Newt's
+#    gateway (`host.containers.internal`) on 443 - Newt's egress rule rejects this host's LAN IP.
+#    Pangolin never terminates or re-originates TLS for that resource type, so the client's real
+#    SNI/Host header reaches Caddy intact, same as any LAN client. Add a second entry to
+#    `subdomains` (e.g. `vault-vpn`) to give the private resource its own name.
 # 6. `<backupDir>/vaultwarden` gets a nightly snapshot at `backupTime` (default 23:00) of the
 #    data dir: an SQLite-safe `.backup` of the DB plus a copy of everything
 #    else (attachments, `rsa_key.pem`, `config.json`, sends). Each run overwrites the last and it
@@ -76,17 +76,14 @@
 # 4. Start the service
 #    sudo systemctl start vaultwarden
 # --------------------------------------------------------------------------------------------------
-{ config, lib, pkgs, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.native.vaultwarden;
-
-  # `subdomains` entries normalized to { name, domains } - a bare string is served on Caddy's
-  # primaryDomain only (domains = null)
-  subdomains = map (s: if lib.isString s then { name = s; domains = null; } else s) cfg.subdomains;
 in
 {
   options = {
-    services.native.vaultwarden = {
+    # `domains`/`whichDomains`: which Caddy zones it's served on, see modules/types/caddy_domains.nix
+    services.native.vaultwarden = (import ../../types/caddy_domains.nix { inherit lib; }) // {
       enable = lib.mkEnableOption "Install and configure Vaultwarden server";
 
       port = lib.mkOption {
@@ -95,28 +92,16 @@ in
         description = "Port the Vaultwarden web/API server listens on.";
       };
 
-      baseDomain = lib.mkOption {
-        type = types.str;
-        default = "";
-        example = "example.com";
-        description = ''
-          Zone this server is reachable under, used to build `domain`'s default. Forwarded from
-          `host.network.domain` by `modules/default.nix` so the literal zone never lands in a
-          tracked file - only set here to override. Empty by default so that forwarding can be
-          unconditional - see the `enable`-gated assertion below.
-        '';
-      };
-
       domain = lib.mkOption {
         type = types.nullOr types.str;
-        default = if !cfg.caddy || cfg.baseDomain == "" || cfg.subdomains == [ ] then null
-          else "https://${(builtins.head subdomains).name}.${cfg.baseDomain}";
-        defaultText = lib.literalExpression ''"https://''${builtins.head subdomains}.''${baseDomain}" when caddy, else null'';
+        default = if !cfg.caddy || cfg.domains == [ ] || cfg.subdomains == [ ] then null
+          else "https://${lib.head cfg.subdomains}.${lib.head cfg.domains}";
+        defaultText = lib.literalExpression ''"https://''${lib.head subdomains}.''${lib.head domains}" when caddy, else null'';
         example = "https://vault.example.com";
         description = ''
           Externally reachable URL clients will use to reach this server. Required for WebAuthn/U2F
           and for icons/links to render correctly. Defaults to `https://<first subdomains
-          entry>.<baseDomain>` when `caddy` is set. Set explicitly to override.
+          entry>.<primary domain>` when `caddy` is set. Set explicitly to override.
         '';
       };
 
@@ -192,43 +177,22 @@ in
         default = true;
         description = ''
           Front Vaultwarden with `services.native.caddy` (enabled by default along with it) at
-          `<subdomain>.<domain>` for each `subdomains` entry. When `false`, Vaultwarden listens on
+          `<subdomain>.<zone>` for each `subdomains` entry on each zone picked by `whichDomains`.
+          When `false`, Vaultwarden listens on
           all interfaces and `port` is opened on the LAN instead.
         '';
       };
 
       subdomains = lib.mkOption {
-        type = listOf (either types.str (types.submodule {
-          options = {
-            name = lib.mkOption {
-              type = types.str;
-              description = "Subdomain, served as `<name>.<domain>` for each of `domains`.";
-            };
-            domains = lib.mkOption {
-              type = types.nullOr (listOf types.str);
-              default = null;
-              description = ''
-                Caddy zones this subdomain is served on - see `services.native.caddy.proxies.*.domains`.
-                `null` serves it on Caddy's `primaryDomain` only.
-              '';
-            };
-          };
-        }));
+        type = listOf types.str;
         default = [ "vault" ];
-        example = lib.literalExpression ''
-          [ "vault" {
-            name = "vault-vpn";
-            domains = with config.services.native.caddy; [ primaryDomain secondaryDomain ];
-          } ]
-        '';
+        example = [ "vault" "vault-vpn" ];
         description = ''
           Subdomains Vaultwarden is served at when `caddy` is enabled - every entry gets its own
-          hostname matcher on Caddy's shared wildcard block, all routed to the same backend. The
-          first entry is also what `domain` defaults to. List more than one to give this service
-          multiple names (e.g. a distinct name for a Pangolin private resource - see deployment
-          note 5 above). A bare string is served on Caddy's `primaryDomain` (`host.network.domain`);
-          an attrset picks its zones with `domains`, each `services.native.caddy.primaryDomain` or
-          `secondaryDomain`.
+          hostname matcher on each served zone's wildcard block, all routed to the same backend.
+          The first entry is also what `domain` defaults to. List more than one to give this
+          service multiple names (e.g. a distinct name for a Pangolin private resource - see
+          deployment note 5 above).
         '';
       };
 
@@ -290,11 +254,12 @@ in
         { assertion = cfg.subdomains != [ ];
           message = "services.native.vaultwarden with caddy requires at least one 'subdomains' entry"; }
         { assertion = cfg.domain != null;
-          message = "services.native.vaultwarden with caddy requires 'baseDomain', normally forwarded from 'host.network.domain', or an explicit 'domain'"; }
+          message = "services.native.vaultwarden with caddy requires 'domains', normally forwarded from 'host.network.domains', or an explicit 'domain'"; }
+        (f.caddyDomainsAssert "native.vaultwarden" cfg)
       ];
 
       services.native.caddy.enable = lib.mkDefault true;
-      services.native.caddy.proxies = map (s: { subdomain = s.name; inherit (s) domains; inherit (cfg) port; }) subdomains;
+      services.native.caddy.domains = f.caddyProxies cfg (map (sub: { subdomain = sub; inherit (cfg) port; }) cfg.subdomains);
     })
 
     # Conditionally enable the admin panel, pulling the token from the sops-nix secret rather than

@@ -14,7 +14,6 @@
     host.autolock = true;
     host.autologin = true;
     host.desktop.xfce.standard = true;
-    host.backupDir = "/mnt/Apps/homelab";
     devices.gpu.nvidia = { enable = true; legacy580 = true; };
 
     virtualization.podman.enable = true;
@@ -42,10 +41,7 @@
       enable = true; port = 8082; user.uid = 2002; tag = "latest";
     };
     services.native.vaultwarden = {
-      enable = true; port = 8222;
-      subdomains = [ "vault" { name = "vault-vpn";
-        domains = with config.services.native.caddy; [ primaryDomain secondaryDomain ]; }
-      ];
+      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ]; whichDomains = "all";
     };
 
     # Additional apps

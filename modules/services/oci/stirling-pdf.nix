@@ -101,13 +101,12 @@ in
       networking.firewall.allowedTCPPorts = lib.optional (!cfg.caddy) cfg.port;
     })
 
-    # Contribute a proxy entry to services.native.caddy.proxies rather than requiring it be listed
-    # separately in the machine's configuration.nix
+    # Contribute a proxy entry on each zone it's served on (see `whichDomains`) rather than
+    # requiring it be listed separately in the machine's configuration.nix
     (lib.mkIf (cfg.enable && cfg.caddy) {
       services.native.caddy.enable = lib.mkDefault true;
-      services.native.caddy.proxies = [
-        { inherit (cfg) subdomain port; }
-      ];
+      services.native.caddy.domains = f.caddyProxies cfg [ { inherit (cfg) subdomain port; } ];
+      assertions = [ (f.caddyDomainsAssert "oci.${cfg.name}" cfg) ];
     })
   ];
 }

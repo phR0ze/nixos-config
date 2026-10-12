@@ -864,7 +864,7 @@ in
 
   config = lib.mkIf cfg.enable {
     assertions = [
-      { assertion = cfg.baseDomain != null && cfg.baseDomain != ""; message = "services.oci.pangolin requires 'baseDomain', normally forwarded from 'host.network.domain'"; }
+      { assertion = cfg.baseDomain != null && cfg.baseDomain != ""; message = "services.oci.pangolin requires 'baseDomain', normally forwarded from the first of 'host.network.domains'"; }
       { assertion = cfg.acmeEmail != null; message = "services.oci.pangolin requires 'acmeEmail'"; }
       { assertion = cfg.sopsFile != null; message = "services.oci.pangolin requires 'sopsFile', normally forwarded from 'host.sopsFile'"; }
       # Country filtering for every port this stack publishes (443, WireGuard) is the host's

@@ -15,7 +15,8 @@
 # forwarded by modules/default.nix's `ociForward`, the same as every native service.
 #---------------------------------------------------------------------------------------------------
 { lib, defaults, ... }: with lib.types;
-{
+# `domains`/`whichDomains`: which Caddy zones the service is served on, see caddy_domains.nix
+(import ./caddy_domains.nix { inherit lib; }) // {
   enable = lib.mkEnableOption "Deploy ${defaults.name or "target"} service";
 
   name = lib.mkOption {
@@ -60,7 +61,8 @@
   caddy = lib.mkOption {
     description = ''
       Front this service with `services.native.caddy` (enabled by default along with it) at
-      `<subdomain>.<domain>`. Only honored by modules that implement it (e.g. `oneup`).
+      `<subdomain>.<zone>` for each zone picked by `whichDomains`. Only honored by modules that
+      implement it (e.g. `oneup`).
     '';
     type = types.bool;
     default = defaults.caddy or false;
@@ -68,7 +70,7 @@
 
   subdomain = lib.mkOption {
     description = ''
-      Front this service with `services.native.caddy` at `<subdomain>.<domain>`. Leave `null` to not
+      Front this service with `services.native.caddy` at `<subdomain>.<zone>`. Leave `null` to not
       expose it via Caddy.
     '';
     type = types.nullOr types.str;

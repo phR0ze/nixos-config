@@ -74,9 +74,9 @@ host. Consequently:
 - `modules/default.nix` also declares the `host.*` option (defaults from `args`) and translates it
   into real options. Shared values are forwarded into services with small enable-gated blocks:
   ```nix
-  (lib.mkIf config.services.native.caddy.enable {
-    services.native.caddy.sopsFile = cfg.sopsFile;
-    services.native.caddy.baseDomain = cfg.network.domain;
+  (lib.mkIf config.services.native.vaultwarden.enable {
+    services.native.vaultwarden.sopsFile = cfg.sopsFile;
+    services.native.vaultwarden.domains = cfg.network.domains;
   })
   ```
   The receiving option must be nullable/empty by default, with the real requirement as an
