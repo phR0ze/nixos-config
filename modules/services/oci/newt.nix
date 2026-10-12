@@ -81,7 +81,7 @@
 # - Public (`public`, on by default): an HTTPS resource behind Platform SSO, proxied to Caddy on the
 #   gateway (`https://host.containers.internal:443`) with the SNI and Host header set to that same
 #   name.
-# - Private (`private`): a Host-mode resource keyed `<key>-private`, with `host.containers.internal`
+# - Private (`private`): a Host-mode resource keyed `<key>` too, with `host.containers.internal`
 #   (Newt's gateway) as its destination, tcp/443 only, no UDP or ICMP, aliased to that name. The
 #   client's SNI reaches Caddy unchanged.
 # - Roles are `roles` or else `pangolin.defaultRoles`. Pangolin *creates* any role it
@@ -160,7 +160,7 @@ let
       };
 
       private = lib.mkOption {
-        description = "Create the private Host-mode resource `<key>-private`";
+        description = "Create the private Host-mode resource, keyed `<key>` like the public one";
         type = types.bool;
         default = false;
       };
@@ -293,7 +293,8 @@ let
         auth = { "sso-enabled" = true; "sso-roles" = rolesOf res; "sso-users" = res.users; };
         targets = [ { hostname = "host.containers.internal"; port = 443; method = "https"; } ];
       }) publicRes;
-      "private-resources" = lib.mapAttrs' (key: res: lib.nameValuePair "${key}-private" {
+      # Keyed the same as a public one: Pangolin keeps the two in separate tables
+      "private-resources" = lib.mapAttrs (_: res: {
         inherit (res) name enabled users;
         mode = "host";
         # Same name the public targets use; Newt resolves it through its `--add-host` pin to the
