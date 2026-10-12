@@ -152,6 +152,7 @@ host:
                         pangolin:
                             ip: ENC[AES256_GCM,data:E/pGMNrXcR4Sh4lQJVMO,iv:c92pSo8+HQzKogEr2OKyGIAlgM9sQZQnhgePd//B/Sc=,tag:j/lbemeV+f1Fpv3vikptxQ==,type:str]
                             domain: ENC[AES256_GCM,data:hAewXfMzx17iYWG7d/ErjhA1DQ==,iv:nV1RVj8JVb5trThl7i1Vk1nRWbHRFSzxGhRa/LGE7po=,tag:H7X+RuZeI311H/ti3osGeg==,type:str]
+                            url: ENC[AES256_GCM,data:nFcGwA+zW7lS5+9Tj2yOBJCicfybTr9sqlx1Sw==,iv:DKnIQK494yMjCFKvuLeWKsBuO7b57cMA+fk6vq+cTgI=,tag:FD24nxc6fqBI76V535kcsA==,type:str]
                             defaultRoles:
                                 - ENC[AES256_GCM,data:hl2mv1vylUjx6YTd7gs7,iv:scHcY70baWaD2Str0gG8/5rcnvOt6f4tSTr7Si1KoqY=,tag:R4PlIeLvLZ1zui+Rc5NjPw==,type:str]
                             resources:
@@ -170,7 +171,7 @@ sops:
             15E/UYdLPOZ/obszZQVoI4bMn2L71YCx0fhNnxV0e0JQRMQlzjvm9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-10-12T23:12:31Z"
-    mac: ENC[AES256_GCM,data:RWBBVe0H3WJvEgNYYoAyaprDDBM3GqxPxBPwMt+sdAyEyQwXCGRCH4QE70NmoBWXqSCPBWyoZRPRgZL5DJ3rwylOErkU7AcqLBFtW0N0Os6KDhy0deYkvd1Ub0sHF7FijpNw2XdcKyYGqBnD18V5Nt9cQkq+Yam4i2JDH+1ay30=,iv:rAlvG1/l1BY/bxKWxW/jZg8gORR3llwHzlqCDea7L0g=,tag:peVMqlbv7hTLrkte3bTnqg==,type:str]
+    lastmodified: "2026-10-12T23:26:25Z"
+    mac: ENC[AES256_GCM,data:EmwgpSeLnEJqM3H+KbYHPAvhhPdp7MhS3r6fWdohV2TVWLwGQTnmnQte/fTWVKzIjnyLAiH0cRjEXu2nWUwvlgj/e9VlhpBR0fH/4ioadUbh6+gIc6wFeTFrjQTLPn3cMRb2B5EVER2WtqOBYoPbep7ukUyo9GYtoMeF/CI2I7k=,iv:FMOmMatrhwuUCYWD9/L4u7bVsfrI6MP0PY1nO6rGYvQ=,tag:znu4aPDFcnP92jxmoQ+8XA==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1
