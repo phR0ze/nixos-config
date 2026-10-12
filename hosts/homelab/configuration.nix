@@ -3,7 +3,7 @@
 # ### Features
 # - Homelab server deployment
 # --------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -42,7 +42,10 @@
       enable = true; port = 8082; user.uid = 2002; tag = "latest";
     };
     services.native.vaultwarden = {
-      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
+      enable = true; port = 8222;
+      subdomains = [ "vault" { name = "vault-vpn";
+        domains = with config.services.native.caddy; [ primaryDomain secondaryDomain ]; }
+      ];
     };
 
     # Additional apps

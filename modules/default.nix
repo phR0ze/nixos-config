@@ -240,7 +240,7 @@ in
             domain = lib.mkOption {
               description = ''
                 Domain name owned by this host, forwarded below to every service that needs to know
-                the fleet's zone name (`services.native.caddy.baseDomain`,
+                the fleet's zone name (`services.native.caddy.primaryDomain`,
                 `services.native.vaultwarden.baseDomain`, `services.native.adguard.baseDomain`,
                 `services.oci.pangolin.baseDomain`) so the literal zone stays out of tracked files.
               '';
@@ -496,7 +496,8 @@ in
       let arg = f.getSvcFunc "native.caddy" cfg.services;
       in {
         services.native.caddy.sopsFile = cfg.sopsFile;
-        services.native.caddy.baseDomain = cfg.network.domain;
+        services.native.caddy.primaryDomain = cfg.network.domain;
+        services.native.caddy.secondaryDomain = arg "secondaryDomain";
         services.native.caddy.proxies = arg "proxies";
         services.native.caddy.trustedProxies = arg "trustedProxies";
       }

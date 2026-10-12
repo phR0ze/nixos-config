@@ -3,37 +3,53 @@
 # - https://caddyserver.com/docs/modules/dns.providers
 #
 # ### Description
-# Fronts homelab services with TLS on a single `*.<baseDomain>` site on port 443, routed by hostname,
-# using one wildcard certificate from a Cloudflare DNS-01 challenge. Uses upstream `caddy` with the
-# caddy-dns/cloudflare plugin via `withPlugins` (see package.nix).
+# Fronts homelab services with TLS on a `*.<zone>` site per zone (`primaryDomain` and optionally
+# `secondaryDomain`) on port 443, routed by hostname, using one wildcard certificate per zone from a
+# Cloudflare DNS-01 challenge. Uses
+# upstream `caddy` with the caddy-dns/cloudflare plugin via `withPlugins` (see package.nix).
 #
 # ### Deployment notes
-# 1. Cloudflare: create one wildcard `*.<baseDomain>` DNS record (non-proxied, pointing anywhere) and
+# 1. Cloudflare: create a wildcard `*.<zone>` DNS record per zone (non-proxied, pointing anywhere) and
 #    a scoped API token (Zone:DNS:Edit + Zone:Zone:Read). Store the token in the host's
 #    `secrets.enc.yaml` under `caddy/cloudflareApiToken`.
-# 2. Host: `services.native.caddy.enable = true;` - `baseDomain` and `sopsFile` are forwarded from
-#    `host.*` by `modules/default.nix`.
+#    `secondaryDomain` gets its own `*.<zone>` site and certificate (DNS-01, same token, so it must
+#    cover both zones), serving only the proxies that list it in their `domains`.
+#    E.g. a second Pangolin server's domain, so a Host-mode private resource on it (whose TLS
+#    reaches Caddy untouched, carrying that domain's SNI) can be served.
+# 2. Host: `services.native.caddy.enable = true;` - `sopsFile`, `primaryDomain` (`host.network.domain`)
+#    and `secondaryDomain` (`host.services.native.caddy.secondaryDomain` in `args.enc.yaml`) are
+#    forwarded from `host.*` by `modules/default.nix`, keeping both zones out of tracked files.
 # 3. Proxies: apps add their own entry via their `subdomain` option. Backends on other machines go in
 #    `host.services.native.caddy.proxies` in `args.enc.yaml` to keep LAN IPs untracked.
 # 4. Pangolin: with `services.oci.newt` on this host, target HTTP resources at
 #    `https://host.containers.internal:443` (see newt.nix's "Reaching services behind Caddy").
 #    Each enabled Newt instance's IP is added to `trustedProxies` automatically by `modules/default.nix`.
-# 5. DNS-01 checks use Cloudflare's resolvers because AdGuard's `*.<baseDomain>` rewrite would hide
+# 5. DNS-01 checks use Cloudflare's resolvers because AdGuard's `*.<primaryDomain>` rewrite would hide
 #    the `_acme-challenge` TXT record.
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
   cfg = config.services.native.caddy;
 
-  hostOf = p: "${p.subdomain}.${cfg.baseDomain}";
+  # Zones served; the primary also serves every proxy without its own `domains`
+  domains = [ cfg.primaryDomain ] ++ lib.optional (cfg.secondaryDomain != "") cfg.secondaryDomain;
 
-  wildcardProxies = lib.filter (p: p.subdomain != null) cfg.proxies;
+  wildcardProxies = map (p: p // { domains = if p.domains == null then [ cfg.primaryDomain ] else p.domains; })
+    (lib.filter (p: p.subdomain != null) cfg.proxies);
 
-  # Subdomains used by more than one proxy, which would define the same matcher twice
-  duplicateSubdomains = lib.attrNames (lib.filterAttrs (_: ps: lib.length ps > 1)
-    (lib.groupBy (p: p.subdomain) wildcardProxies));
+  proxiesOn = domain: lib.filter (p: lib.elem domain p.domains) wildcardProxies;
 
-  wildcardSite = lib.nameValuePair "*.${cfg.baseDomain}" {
+  # Subdomains used by more than one proxy on the same zone, which would define the same matcher twice
+  duplicateSubdomains = lib.concatMap (domain: map (sub: "${sub}.${domain}")
+    (lib.attrNames (lib.filterAttrs (_: ps: lib.length ps > 1)
+      (lib.groupBy (p: p.subdomain) (proxiesOn domain))))) domains;
+
+  # Proxy domains that are neither zone, which would get no site or certificate
+  unknownDomains = lib.subtractLists domains (lib.unique (lib.concatMap (p: p.domains) wildcardProxies));
+
+  # One `*.<domain>` site per zone with only that zone's proxies, each with its own wildcard
+  # certificate. The token comes from the same env var for every zone, so it must cover all of them.
+  wildcardSite = domain: lib.nameValuePair "*.${domain}" {
     extraConfig = ''
       tls {
         dns cloudflare {env.CF_API_TOKEN}
@@ -49,11 +65,11 @@ let
         -Server
       }
     '' + lib.concatMapStringsSep "\n" (p: ''
-      @${p.subdomain} host ${hostOf p}
+      @${p.subdomain} host ${p.subdomain}.${domain}
       handle @${p.subdomain} {
         reverse_proxy ${p.host}:${toString p.port}
       }
-    '') wildcardProxies + ''
+    '') (proxiesOn domain) + ''
 
       # Unknown subdomains
       handle {
@@ -67,13 +83,24 @@ in
     services.native.caddy = {
       enable = lib.mkEnableOption "Install and configure Caddy as a local TLS-terminating reverse proxy";
 
-      baseDomain = lib.mkOption {
+      primaryDomain = lib.mkOption {
         type = types.str;
         default = "";
         example = "example.com";
         description = ''
-          Cloudflare zone for the wildcard certificate; proxies are served at
-          `<subdomain>.<baseDomain>`. Forwarded from `host.network.domain`.
+          Main Cloudflare zone, served as a `*.<zone>` site with its own wildcard certificate. Proxies
+          without their own `domains` are served here only. Forwarded from `host.network.domain`.
+        '';
+      };
+
+      secondaryDomain = lib.mkOption {
+        type = types.str;
+        default = "";
+        example = "example.org";
+        description = ''
+          Optional second Cloudflare zone, served as its own `*.<zone>` site and certificate. Only
+          proxies listing it in their `domains` are served here. Forwarded from
+          `host.services.native.caddy.secondaryDomain`; empty disables it.
         '';
       };
 
@@ -139,11 +166,17 @@ in
       { assertion = cfg.sopsFile != null;
         message = "services.native.caddy requires 'sopsFile', normally forwarded from 'host.sopsFile'";
       }
-      { assertion = cfg.baseDomain != "";
-        message = "services.native.caddy requires 'baseDomain', normally forwarded from 'host.network.domain'";
+      { assertion = cfg.primaryDomain != "";
+        message = "services.native.caddy requires 'primaryDomain', normally forwarded from 'host.network.domain'";
+      }
+      { assertion = cfg.secondaryDomain != cfg.primaryDomain;
+        message = "services.native.caddy: secondaryDomain must differ from primaryDomain";
+      }
+      { assertion = unknownDomains == [ ];
+        message = "services.native.caddy: proxy domains that are neither primaryDomain nor secondaryDomain: ${lib.concatStringsSep ", " unknownDomains}";
       }
       { assertion = duplicateSubdomains == [ ];
-        message = "services.native.caddy: subdomain(s) claimed by more than one proxy: ${lib.concatStringsSep ", " duplicateSubdomains}";
+        message = "services.native.caddy: host(s) claimed by more than one proxy: ${lib.concatStringsSep ", " duplicateSubdomains}";
       }
     ];
 
@@ -170,7 +203,7 @@ in
       #   assume a hostname that selects the wildcard cert; routing still uses the Host header
       globalConfig = ''
         auto_https disable_redirects
-        default_sni fallback.${cfg.baseDomain}
+        default_sni fallback.${cfg.primaryDomain}
       '' + lib.optionalString (cfg.trustedProxies != [ ]) ''
         servers {
           trusted_proxies static ${lib.concatStringsSep " " cfg.trustedProxies}
@@ -181,9 +214,8 @@ in
 
       environmentFile = config.secret.templates."caddy-cloudflare".path;
 
-      virtualHosts = lib.optionalAttrs (wildcardProxies != [ ]) {
-        ${wildcardSite.name} = wildcardSite.value;
-      };
+      virtualHosts = lib.optionalAttrs (wildcardProxies != [ ])
+        (lib.listToAttrs (map wildcardSite domains));
     };
 
     # UDP for HTTP/3

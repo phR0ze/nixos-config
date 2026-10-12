@@ -16,6 +16,17 @@
       '';
     };
 
+    domains = lib.mkOption {
+      type = types.nullOr (types.listOf types.str);
+      default = null;
+      example = [ "example.com" "example.org" ];
+      description = ''
+        Zones this proxy is served on, as `<subdomain>.<domain>` for each - each must be
+        `services.native.caddy.primaryDomain` or `secondaryDomain`, so reference those options rather
+        than literal zones. `null` serves it on `primaryDomain` only.
+      '';
+    };
+
     host = lib.mkOption {
       type = types.str;
       default = "127.0.0.1";
