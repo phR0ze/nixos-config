@@ -294,8 +294,7 @@ let
         targets = [ { hostname = "host.containers.internal"; port = 443; method = "https"; } ];
       }) publicRes;
       "private-resources" = lib.mapAttrs' (key: res: lib.nameValuePair "${key}-private" {
-        name = "${res.name} (private)";
-        inherit (res) enabled users;
+        inherit (res) name enabled users;
         mode = "host";
         destination = gateway;  # Literal IP, exactly what the egress rule allows
         alias = pangolinName res;
