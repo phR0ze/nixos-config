@@ -242,8 +242,8 @@ in
               description = ''
                 Domain names owned by this host, the first being the primary (LAN) zone. Forwarded
                 below to every service that needs them (`services.native.caddy.domains`, each
-                Caddy-fronted service's `domains`, `services.oci.pangolin.baseDomain` from the
-                first) so the literal zones stay out of tracked files.
+                Caddy-fronted service's `domains`, `services.oci.pangolin.domains`) so the literal
+                zones stay out of tracked files.
               '';
               type = types.listOf types.str;
               default = host.network.domains or [ ];
@@ -582,8 +582,8 @@ in
       let arg = f.getSvcFunc "oci.pangolin" cfg.services;
       in {
         services.oci.pangolin.sopsFile = cfg.sopsFile;
-        # Pangolin serves one zone: the host's primary
-        services.oci.pangolin.baseDomain = if cfg.network.domains == [ ] then "" else lib.head cfg.network.domains;
+        # Every zone becomes a config-managed Pangolin domain; the dashboard uses the first
+        services.oci.pangolin.domains = cfg.network.domains;
         services.oci.pangolin.acmeEmail = arg "acmeEmail";
         services.oci.pangolin.trustedClients = cfg.network.allowList;
       }

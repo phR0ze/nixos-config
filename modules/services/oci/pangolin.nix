@@ -116,6 +116,17 @@ let
   agentMachine = "${cfg.name}-agent";
   bouncerName = "${cfg.name}-traefik";
 
+  # One config-managed domain per zone, `domain1` first. Explicitly indented lines rather than a
+  # `''...''` literal for the same reason as `wildcardTls` below: the interpolated block would
+  # otherwise lose its indentation under `domains:`. The first line takes its indentation from the
+  # placeholder's column in the config template.
+  domainsYaml = lib.concatStringsSep "\n" (lib.concatLists (lib.imap1 (i: d: [
+    "${lib.optionalString (i > 1) "    "}domain${toString i}:"
+    "        base_domain: \"${d}\""
+    "        prefer_wildcard_cert: true"
+    "        cert_resolver: \"letsencrypt\""
+  ]) cfg.domains));
+
   composeText = ''
     name: ${cfg.name}
     services:
@@ -689,15 +700,27 @@ in
       ];
     };
 
+    domains = lib.mkOption {
+      description = ''
+        Zones Pangolin serves resources under, each a config-managed domain (`domain1`, `domain2`,
+        ... in list order) with a wildcard certificate from the `letsencrypt` DNS-01 resolver.
+        Pangolin attaches config-managed domains to every org. Forwarded from
+        `host.network.domains` by `modules/default.nix`. Keep the order stable: an entry's position
+        is its Pangolin domain ID, and Pangolin deletes a config-managed domain whose ID disappears.
+        The Cloudflare token must cover every zone.
+      '';
+      type = types.listOf types.str;
+      default = [ ];
+    };
+
     baseDomain = lib.mkOption {
       description = ''
-        Base domain resources/wildcard cert are issued under, e.g. example.com. Nullable so
-        `modules/default.nix` can unconditionally forward `machine.services.oci.pangolin.baseDomain`
-        (host args) here without an existence check - see the `enable`-gated assertion below for
-        the actual requirement.
+        Zone the dashboard (`dashboardDomain`) lives under, e.g. example.com. Defaults to the first
+        of `domains`; null without any - see the `enable`-gated assertion below.
       '';
       type = types.nullOr types.str;
-      default = null;
+      default = if cfg.domains == [ ] then null else lib.head cfg.domains;
+      defaultText = lib.literalExpression "lib.head domains";
     };
 
     dashboardDomain = lib.mkOption {
@@ -864,7 +887,7 @@ in
 
   config = lib.mkIf cfg.enable {
     assertions = [
-      { assertion = cfg.baseDomain != null && cfg.baseDomain != ""; message = "services.oci.pangolin requires 'baseDomain', normally forwarded from the first of 'host.network.domains'"; }
+      { assertion = cfg.baseDomain != null && cfg.baseDomain != ""; message = "services.oci.pangolin requires 'baseDomain', normally the first of 'domains', forwarded from 'host.network.domains'"; }
       { assertion = cfg.acmeEmail != null; message = "services.oci.pangolin requires 'acmeEmail'"; }
       { assertion = cfg.sopsFile != null; message = "services.oci.pangolin requires 'sopsFile', normally forwarded from 'host.sopsFile'"; }
       # Country filtering for every port this stack publishes (443, WireGuard) is the host's
@@ -999,10 +1022,7 @@ in
             log_failed_attempts: true
 
         domains:
-            domain1:
-                base_domain: "${cfg.baseDomain}"
-                prefer_wildcard_cert: true
-                cert_resolver: "letsencrypt"
+            ${domainsYaml}
 
         server:
             secret: "${config.secret.ref.${serverSecretKey}}"
