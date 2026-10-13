@@ -1011,12 +1011,10 @@ in
       # host LAPI, and an agent never reads this
       "r ${dataDir}/config/crowdsec/profiles.yaml"
 
-      # Secret-bearing config - targets rendered by the secret.templates entries below. Same
-      # never-refreshes bug applies here too - without the `r`, rotating
-      # serverSecretRef or cloudflareApiTokenRef would silently never reach the
-      # container after the first-ever deploy.
-      "r ${dataDir}/config/config.yml"
-      "C+ ${dataDir}/config/config.yml - - - - ${config.secret.templates."${cfg.name}-config".path}"
+      # Secret-bearing config - targets rendered by the secret.templates entries below. config.yml
+      # isn't copied here: its rule would never change (the rendered path is fixed), so tmpfiles
+      # wouldn't re-run when only the secret template's content changes and the copy went stale
+      # - the stack's ExecStartPre copies it on every start instead (hosts/vps1, 2026-10-12).
       "L+ ${dataDir}/.env - - - - ${config.secret.templates."${cfg.name}-env".path}"
     ];
 
@@ -1214,6 +1212,9 @@ in
         ExecStartPre = pkgs.writeShellScript "${cfg.name}-stack-reset" ''
           set -euo pipefail
           ${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} down
+          # Fresh copy of the sops-rendered config.yml on every start, so the restart sops-nix
+          # triggers when the template changes (restartUnits below) picks it up - see tmpfiles
+          install -m 0400 ${config.secret.templates."${cfg.name}-config".path} config/config.yml
           # Gerbil used to mount all of config/ and keep its key at config/key - move it into
           # gerbil's own dir so its WireGuard identity survives narrowing that mount
           if [ -s config/key ] && [ ! -e config/gerbil/key ]; then
