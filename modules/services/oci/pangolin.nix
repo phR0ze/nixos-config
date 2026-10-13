@@ -53,7 +53,8 @@
 #   outside `config/` so pangolin's mount doesn't see it.
 # - `allow_raw_resources` off by default (`allowRawResources`), in both `flags` and `traefik` (the
 #   latter stops Traefik route generation for any that already exist).
-# - Login rate limit (`rate_limits.auth`) tightened to 10/min from Pangolin's default of 500/min.
+# - Auth-route rate limit (`rate_limits.auth`) tightened to 120/min from Pangolin's default of
+#   500/min - see `authRateLimitMaxRequests` for why not lower.
 # - Local and basic-WireGuard sites disabled (every site runs Newt), and the integration API pinned
 #   off explicitly rather than relying on its default.
 # - One CrowdSec for the whole host: the crowdsec container runs as an agent only
@@ -849,13 +850,19 @@ in
       default = 1;
     };
 
+    # Pangolin applies this limiter to every `/api/v1/auth/*` route, counted per IP and per path
+    # (routers/external.ts, ee-1.24.0) - including endpoints clients poll or retry: device-code
+    # login polling and `/olm/get-token`/`/newt/get-token`. At 10/min the CLI's device login
+    # failed within seconds ("Rate limit exceeded") (hosts/vm-test, 2026-10-12). Brute force is
+    # covered separately: `/login`, signup and 2FA have their own 15-per-15-minutes limiters.
     authRateLimitMaxRequests = lib.mkOption {
       description = ''
-        Auth-endpoint (login) rate-limit max requests per window. Pangolin's default is 500, which
-        allows brute-forcing logins at a high rate.
+        Auth-route rate-limit max requests per window, per IP and path. Pangolin's default is 500.
+        Must leave room for clients polling device-code login and fetching tokens; logins have
+        their own stricter per-route limit regardless.
       '';
       type = types.int;
-      default = 10;
+      default = 120;
     };
 
     disableLocalSites = lib.mkOption {
