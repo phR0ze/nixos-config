@@ -5,7 +5,7 @@
 # - Isolated from shared fleet config/secrets
 # - Hardened for public internet consuption
 # --------------------------------------------------------------------------------------------------
-{ ... }:
+{ lib, ... }:
 
 {
 
@@ -19,5 +19,8 @@
       harden = true;
       lowMemory = true;
     };
+
+    # Both the harden layer and sshd's harden flag turn CrowdSec on, so force it back off
+    services.native.crowdsec.enable = lib.mkForce false;
   };
 }
