@@ -131,6 +131,11 @@ in
         "nft_fib_inet"  # nftables fib lookup (inet family) - netavark's routing-decision rules in the
                         #   same ruleset; pulls in nft_fib_ipv4/nft_fib_ipv6/nft_fib as dependencies
         "nft_log"       # nftables log expression - netavark's ruleset includes log rules
+        "nf_log_syslog" # syslog backend nft_log hands off to - the NixOS firewall's
+                        #   logRefusedConnections `log ... prefix "refused connection: "` rule (which
+                        #   alerts.nix greps for) requests it on first use; without it nftables.service
+                        #   fails with "Could not process rule: No such file or directory" (confirmed
+                        #   live on hosts/vps2)
       ];
 
       boot.kernel.sysctl = {
