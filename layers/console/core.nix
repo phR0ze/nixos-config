@@ -45,6 +45,7 @@ in
         # - diffutils findutils gawk getent getconf gnugrep gnupatch gnused gnutar gzip less
         # - libcap ncurses netcat mkpasswd procps su time util-linux which xz zstd
 
+        dmidecode                           # Read hardware info (board, BIOS, RAM) from SMBIOS/DMI
         just                                # A handy way to save and run project-specific commands
         tree                                 # Simple dir listing app in tree form
       ];
