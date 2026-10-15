@@ -44,11 +44,11 @@
       enable = true; port = 8082; user.uid = 2002; tag = "latest";
     };
     services.native.vaultwarden = {
-      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ]; whichDomains = "all";
+      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
     };
-    services.native.immich = {
-      enable = true; port = 2283; subdomains = [ "immich" "immich-vpn" ]; whichDomains = "all";
-    };
+    # services.native.immich = {
+    #   enable = true; port = 2283; subdomains = [ "immich" "immich-vpn" ];
+    # };
 
     # Additional apps
     environment.systemPackages = [
