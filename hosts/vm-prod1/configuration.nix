@@ -22,14 +22,10 @@
 
     # Immich
     # --------------------------------------------
-    services.immich = {
+    services.native.immich = {
       enable = true;
-      host = "0.0.0.0";       # by default it only listens on localhost
-      openFirewall = true;    # allow immich to be reached on the LAN
+      caddy = false;          # listen on all interfaces with the port opened on the LAN
     };
-
-    # Enable hardware accelerated video transcoding
-    users.users.immich.extraGroups = [ "video" "render" ];
 
     # VM specification
     # --------------------------------------------

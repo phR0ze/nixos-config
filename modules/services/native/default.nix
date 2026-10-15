@@ -8,6 +8,7 @@
     ./alerts.nix
     ./caddy
     ./crowdsec.nix
+    ./immich
     ./jellyfin.nix
     ./keyd
     ./minecraft

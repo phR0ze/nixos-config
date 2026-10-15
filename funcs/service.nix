@@ -17,7 +17,7 @@ let
   # bridge (`contBridge`), which is the incoming interface for container traffic, never the veth.
   # Keyed by *container* name (not service) since every container needs its own veth; cut to the
   # same 15-character IFNAMSIZ limit, so only 10 characters of the name survive e.g.
-  # "veth-immich-ser" - modules/virtualization/podman.nix asserts they stay unique.
+  # "veth-stirling-p" - modules/virtualization/podman.nix asserts they stay unique.
   #-------------------------------------------------------------------------------------------------
   contVeth = container: builtins.substring 0 15 "veth-${container}";
 in {
@@ -32,7 +32,7 @@ in {
 
   # Compute the Nth host address within a service's `/24` subnet e.g.
   # `hostInSubnet "10.89.107.0/24" 3` -> "10.89.107.3". Used for a multi-container service (like
-  # Immich) where every container shares one `cfg.subnet` but needs its own fixed `cfg.ip`-style
+  # Pangolin) where every container shares one `cfg.subnet` but needs its own fixed `cfg.ip`-style
   # address — see `cfg.ip`'s description in `modules/types/service.nix` for why it's fixed at all.
   #-------------------------------------------------------------------------------------------------
   hostInSubnet = subnet: host: "${lib.removeSuffix "0/24" subnet}${toString host}";
@@ -109,7 +109,7 @@ in {
   };
 
   # Create systemd service for podman network creation
-  # - name: name of the network to create e.g. `immich`
+  # - name: name of the network to create e.g. `homarr`
   # - subnet: fixed CIDR for this network e.g. `10.89.101.0/24` (gateway defaults to the .1 address)
   #
   # The bridge is named by `contBridge`. A network that already exists with any other bridge name
@@ -189,7 +189,7 @@ in {
       # above) or is a read-only `/etc/localtime` bind — neither is affected by the restrictions
       # below, so this is safe to apply uniformly rather than per-service.
       # NOT NoNewPrivileges — rootful podman runs crun as root, then setresuid()s down to each
-      # container's configured non-root user (newt/immich/oneup all set `user = "<uid>:<gid>"`).
+      # container's configured non-root user (newt/oneup both set `user = "<uid>:<gid>"`).
       # That drop needs crun to retain CAP_SETUID/CAP_SETGID through the transition, which
       # NoNewPrivileges on the wrapping systemd unit blocks — `crun: setresuid to \`2002\`:
       # Operation not permitted` on every container that runs as non-root until this was reverted.

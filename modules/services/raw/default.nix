@@ -4,7 +4,6 @@
 { ... }:
 {
   imports = [
-    ./immich
     ./kasmvnc
     ./sunshine
     ./x11vnc

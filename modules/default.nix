@@ -526,6 +526,10 @@ in
       services.native.vaultwarden.domains = cfg.network.domains;
     })
 
+    (lib.mkIf config.services.native.immich.enable {
+      services.native.immich.domains = cfg.network.domains;
+    })
+
     (lib.mkIf config.services.native.adguardhome.enable (
       let arg = f.getSvcFunc "native.adguardhome" cfg.services;
       in {
@@ -561,6 +565,7 @@ in
     # Nightly backups, each service snapshots into its own `<backupDir>/<app>` subdirectory
     (lib.mkIf (cfg.backupDir != null) {
       services.native.adguardhome.backupDir = lib.mkIf config.services.native.adguardhome.enable cfg.backupDir;
+      services.native.immich.backupDir = lib.mkIf config.services.native.immich.enable cfg.backupDir;
       services.native.jellyfin.backupDir = lib.mkIf config.services.native.jellyfin.enable cfg.backupDir;
       services.native.vaultwarden.backupDir = lib.mkIf config.services.native.vaultwarden.enable cfg.backupDir;
       services.oci.homarr.backupDir = lib.mkIf config.services.oci.homarr.enable cfg.backupDir;
@@ -571,10 +576,6 @@ in
     # list: neither is built on modules/types/service.nix, so they have no common field set to
     # forward (Pangolin has its own block below).
     (lib.mkIf config.services.oci.homarr.enable { services.oci.homarr = ociForward "homarr"; })
-    (lib.mkIf config.services.oci.immich.enable (lib.mkMerge [
-      { services.oci.immich = ociForward "immich"; }
-      { services.oci.immich.bridge = config.devices.network.bridge.name; }
-    ]))
     (lib.mkIf config.services.oci.oneup.enable { services.oci.oneup = ociForward "oneup"; })
     (lib.mkIf config.services.oci.stirling-pdf.enable { services.oci.stirling-pdf = ociForward "stirling-pdf"; })
 

@@ -11,7 +11,6 @@
 {
   imports = [
     ./homarr.nix
-    ./immich.nix
     ./newt.nix
     ./oneup.nix
     ./pangolin.nix

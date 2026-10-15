@@ -14,7 +14,7 @@
     host.autolock = true;
     host.autologin = true;
     host.desktop.xfce.standard = true;
-    devices.gpu.nvidia = { enable = true; legacy580 = true; };
+    devices.gpu.nvidia = { enable = true; open = true; };    # GeForce GTX 1660 (Turing)
 
     virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
@@ -41,7 +41,10 @@
       enable = true; port = 8082; user.uid = 2002; tag = "latest";
     };
     services.native.vaultwarden = {
-      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ]; whichDomains = "all";
+      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
+    };
+    services.native.immich = {
+      enable = false; port = 2283; subdomains = [ "immich" "immich-vpn" ]; cuda = true;
     };
 
     # Additional apps
