@@ -14,38 +14,15 @@
 
 ## Performance
 Compared to [family11](../family11/README.md) (6-core AMD Ryzen 5 2600X, GTX 1660):
-* **CPU, per-core**: family11 wins - Ryzen 5 2600X (Zen+, 2018) PassMark single-thread ~2406 vs
-  homelab's Xeon E5-2637 v2 (Ivy Bridge-EP, 2013) ~1923; the newer architecture and higher boost
-  clock outweigh homelab's higher base clock
-* **CPU, total throughput**: homelab wins on paper - (2) sockets x 4c/8t = 16 threads vs family11's
-  12, and homelab's listed PassMark CPU Mark (~12075) is itself close to the 2600X's ~14053 on a
-  single socket, so a second populated socket likely puts homelab ahead in heavily parallel,
+* **CPU, per-core**: Ryzen 5 2600X (Zen+, 2018) wins with PassMark single-thread ~2406 vs
+  Xeon E5-2637 v2 (Ivy Bridge-EP, 2013) ~1923; the newer architecture and higher boost
+  clock outweigh E5-2637's higher base clock
+* **CPU, total throughput**: Dual Xeon E5-2637 wins on paper - (2) sockets x 4c/8t = 16 threads vs
+  Ryzen 5 2600X's 12, and the E5-2637 PassMark CPU Mark (~12075) is itself close to the 2600X's ~14053 on a
+  single socket, so a second populated socket likely puts this solution ahead in heavily parallel,
   thread-count-bound work; but homelab's actual workload (native services + podman containers, no
   VMs) doesn't stress 16 threads, so this edge mostly goes unused
-* **GPU**: family11 wins clearly - GTX 1660 (TU116, Turing) G3D Mark ~11691 vs homelab's GTX 1050
-  (GP107, Pascal) ~5049, roughly 2.3x; matters for homelab's Jellyfin transcoding and the
-  currently-disabled Immich CUDA path in `configuration.nix`
-* **RAM**: homelab has far more installed (96 GB vs family11's 16 GB), but actual usage is ~11 GB
-  with everything running (Minecraft's JVM heap alone is pinned at 4 GB) - with no VMs in the
-  picture, homelab's workload doesn't need anywhere near 96 GB
-* **Power draw**: family11 wins by a wide margin - homelab's (2) 130W-TDP Xeons (260W combined) and
-  8-DIMM dual-socket board idle well above a single 95W-TDP Ryzen 5 2600X system (dual-socket HP
-  workstations are commonly reported around 90-150W idle vs ~50W for a Ryzen 2600X desktop build);
-  running 24/7, that gap is the single biggest cost of keeping the Z620 as-is
-
-Net: homelab's dual-socket design and 96 GB only pay off for VM-heavy or highly parallel workloads,
-neither of which homelab actually runs today. For its real job (lightweight native services +
-containers, Jellyfin/Immich transcoding), family11's hardware wins on per-core speed, GPU, and
-power draw, and loses nothing that's actually used.
-
-## Upgrade notes
-**Plan**: rebuild homelab on family11-equivalent hardware (MSI A320M PRO-M2 V2, Ryzen 5 2600X,
-GTX 1660) with 32 GB RAM (2x16 GB) instead of family11's 16 GB
-* Driven by three things: wanting GPU acceleration for Jellyfin/Immich, the Z620's proprietary PSU
-  lacking the PCIe power connectors a GTX 1660 needs, and the idle power savings above
-* 32 GB covers homelab's real usage (~11 GB today, Minecraft's JVM heap pinned at 4 GB) with ample
-  headroom, assuming no VMs are added later - if that assumption changes, revisit RAM before buying
-* A320M PRO-M2 V2 has 4 DIMM slots (vs the 2-slot board in workstation7), so there's room to go to
-  64 GB later without a board swap if the workload grows
-* Swap `devices.gpu.nvidia` stays as-is in `configuration.nix` - no `devices.gpu.amd` change needed
-  since the GTX 1660 is NVIDIA, unlike the AMD upgrade paths suggested for family11/workstation7
+* **GPU**: GTX 1660 clearly wins - GTX 1660 (TU116, Turing) G3D Mark ~11691 vs GTX 1050
+  (GP107, Pascal) ~5049, roughly 2.3x; matters for Jellyfin transcoding and Immich CUDA
+* **RAM**: this is what sucks. the MSI A320M PRO-M2 V2 only supports (2) memory slots and I only have
+  * 16 GB RAM: (2) 8 GB Kingston HyperX Fury DDR4-2400 CL15 (KHX2400C15/8G)
