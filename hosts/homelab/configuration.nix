@@ -3,7 +3,7 @@
 # ### Features
 # - Homelab server deployment
 # --------------------------------------------------------------------------------------------------
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
