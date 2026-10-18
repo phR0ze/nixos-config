@@ -43,9 +43,9 @@
     services.native.vaultwarden = {
       enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
     };
-    services.native.immich = {
-      enable = false; port = 2283; subdomains = [ "immich" "immich-vpn" ]; cuda = true;
-    };
+    # services.native.immich = {
+    #   enable = false; port = 2283; subdomains = [ "immich" "immich-vpn" ]; cuda = true;
+    # };
 
     # Additional apps
     environment.systemPackages = [
