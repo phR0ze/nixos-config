@@ -28,7 +28,8 @@
 # 6. `cuda` runs machine learning (smart search, faces, OCR) on onnxruntime's CUDA provider and
 #    gives both services the NVIDIA device nodes for NVENC transcoding. Needs a Turing or newer
 #    card (cuDNN 9.11+ dropped Maxwell/Pascal/Volta) on the current, non-legacy driver. onnxruntime
-#    with CUDA isn't in the public binary cache, so the first build compiles it locally (long).
+#    with CUDA isn't in the public binary cache, so the first build compiles it locally (long -
+#    set `cudaCapabilities` to just your card's to cut it to roughly a tenth).
 #    Check it took with `journalctl -u immich-machine-learning | rg -i CUDAExecutionProvider`
 #    while a job runs and `nvidia-smi` showing the python process.
 # 7. `<backupDir>/immich` gets a nightly copy at `backupTime` (default 03:00) of `mediaLocation`:
@@ -116,6 +117,18 @@ in
         '';
       };
 
+      cudaCapabilities = lib.mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        example = [ "7.5" ];
+        description = ''
+          CUDA compute capabilities to compile onnxruntime for, e.g. `[ "7.5" ]` for a GTX 16xx /
+          RTX 20xx. Empty uses nixpkgs' default, which targets every supported generation and
+          multiplies the compile time. PTX for the last entry is kept, so newer cards still work
+          (JIT-compiled at first start).
+        '';
+      };
+
       backupDir = lib.mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -160,7 +173,7 @@ in
           message = "services.native.immich.cuda requires 'devices.gpu.nvidia.enable' on the current (non-legacy) driver with a Turing or newer card"; }
       ];
 
-      services.immich.package = pkgs.callPackage ./package.nix { };
+      services.immich.package = pkgs.callPackage ./package.nix { inherit (cfg) cudaCapabilities; };
 
       # Upstream's default `[ ]` sets PrivateDevices, hiding the GPU from both services
       services.immich.accelerationDevices = [

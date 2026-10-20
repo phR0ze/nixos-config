@@ -44,7 +44,8 @@
       enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
     };
     services.native.immich = {
-      enable = true; port = 2283; subdomains = [ "immich" "immich-vpn" ]; cuda = true;
+      enable = true; port = 2283; subdomains = [ "immich" "immich-vpn" ];
+      cuda = true; cudaCapabilities = [ "7.5" ];    # GTX 1660 (Turing)
     };
 
     # Additional apps
