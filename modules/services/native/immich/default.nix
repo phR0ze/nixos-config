@@ -158,12 +158,15 @@ in
       # - host: Immich's default "localhost" can resolve to ::1 only, Caddy proxies to 127.0.0.1
       # - IMMICH_TRUSTED_PROXIES: only Caddy over loopback may set X-Forwarded-For. Without Caddy
       #   clients connect directly, so no proxy is trusted
+      # - HOME: gunicorn creates its control socket in $HOME/.gunicorn and the immich user's home
+      #   is the read-only /var/empty, so point it at upstream's writable cache dir
       services.immich = {
         enable = true;
         port = cfg.port;
         host = if cfg.caddy then "127.0.0.1" else "0.0.0.0";
         openFirewall = !cfg.caddy;
         environment.IMMICH_TRUSTED_PROXIES = lib.mkIf cfg.caddy "127.0.0.1";
+        machine-learning.environment.HOME = "/var/cache/immich";
       };
     }
 
