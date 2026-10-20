@@ -175,6 +175,7 @@ in
           "bcove.video"
           "nexus-websocket-a.intercom.io"
           "bit.ly"
+          "farspire.top"
         ];
         example = [ "bit.ly" "*.example.com" ];
         description = ''
