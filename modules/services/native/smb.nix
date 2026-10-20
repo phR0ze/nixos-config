@@ -20,6 +20,32 @@ in
   options.services.native.smb = {
     enable = lib.mkEnableOption "Mount the configured remote SMB/CIFS shares";
 
+    premount = lib.mkOption {
+      description = ''
+        Trigger every share's automount in the background once the network is up, after boot.
+        The first SMB session to a server can take tens of seconds to set up (e.g. a NAS waking
+        its disks), and anything that touches a share while it's pending blocks - a shell prompt
+        stat'ing home symlinks into /mnt, Thunar drawing its bookmarks. Pre-mounting pays that
+        cost before you open them. Shares still unmount after `idleTimeout` as usual afterwards.
+      '';
+      type = lib.types.bool;
+      default = true;
+    };
+
+    idleTimeout = lib.mkOption {
+      description = ''
+        Unmount a share after it's been unused this long (`x-systemd.idle-timeout`), or never
+        when null. Once every share on a server has unmounted its SMB session closes, so the next
+        access pays the (possibly slow) session setup again - keep it long enough to cover a work
+        session. Short values cause churn: 1min made every Thunar mount drop and re-trigger
+        together on the next directory access. Never unmounting leaves stale mounts to stall
+        whatever touches them if the server goes away.
+      '';
+      type = lib.types.nullOr lib.types.str;
+      default = "4h";
+      example = "10m";
+    };
+
     sopsFile = lib.mkOption {
       description = ''
         Path to the sops-encrypted file holding this host's real share passwords, decrypted at
@@ -131,7 +157,7 @@ in
             description = "Additional mount options, merged with the defaults below";
             type = lib.types.listOf lib.types.str;
             default = [ ];
-            example = [ "x-systemd.idle-timeout=60" ];
+            example = [ "nobrl" ];
           };
         };
       });
@@ -196,18 +222,30 @@ in
           # for CIFS session setup to complete over WiFi (5s was too short).
           "x-systemd.automount,noauto,x-systemd.mount-timeout=60s"
 
-          # Automatically unmount after idle for this time. 1min caused constant
-          # remount churn when browsing with Thunar — all mounts would drop and
-          # re-trigger simultaneously on the next directory access.
-          "x-systemd.idle-timeout=10min"
-
           # Fail connecting to external mount after this time rather than default 90s
           "x-systemd.device-timeout=30s"
 
           # Specify the mount type, read-only (ro), read-write (rw)
           (if x.writable then "rw" else "ro")
-        ];
+        ]
+        # Automatically unmount after idle for this time, see `idleTimeout`
+        ++ lib.optional (cfg.idleTimeout != null) "x-systemd.idle-timeout=${cfg.idleTimeout}";
       };
     } // a) {} cfg.entries);
+
+    # Touch each mount point in parallel so the automounts fire without anyone waiting on them.
+    # Started once the network is up, after boot (see devices.network.onlineServices). A share
+    # that fails to mount is only logged; it will just retry on the next real access.
+    systemd.services.smb-premount = lib.mkIf (cfg.premount && cfg.entries != [ ]) {
+      description = "Pre-mount SMB/CIFS shares in the background";
+      serviceConfig.Type = "oneshot";
+      script = ''
+        for mp in ${lib.escapeShellArgs (map (x: x.mountPoint) cfg.entries)}; do
+          ls "$mp/" >/dev/null 2>&1 || echo "failed to pre-mount $mp" &
+        done
+        wait
+      '';
+    };
+    devices.network.onlineServices = lib.mkIf (cfg.premount && cfg.entries != [ ]) [ "smb-premount" ];
   };
 }
