@@ -1,9 +1,9 @@
 # Immich with its machine-learning service on onnxruntime's CUDA execution provider
 #
 # Only onnxruntime is rebuilt with `cudaSupport` (swapped into the ML service's Python set, so
-# insightface/rapidocr pick it up too) rather than importing nixpkgs with a global `cudaSupport`,
-# which would rebuild far more of the closure. The server derivation is untouched - only its
-# `machine-learning` passthru, which the upstream module runs, is replaced.
+# rapidocr and immich-model pick it up too) rather than importing nixpkgs with a global
+# `cudaSupport`, which would rebuild far more of the closure. The server derivation is untouched -
+# only its `machine-learning` passthru, which the upstream module runs, is replaced.
 #
 # Uses nixpkgs' default `cudaCapabilities` (Turing+ for CUDA 12.9; cuDNN 9.11+ dropped
 # Maxwell/Pascal/Volta), so there's no point targeting an older card here.

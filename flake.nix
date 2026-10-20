@@ -3,8 +3,8 @@
     # nixos-unstable from 2026.07.05
     nixpkgs.url = "github:nixos/nixpkgs/d407951447dcd00442e97087bf374aad70c04cea";
 
-    # nixos-unstable from 2026.08.09 (bumped for vaultwarden 1.37.1, fixes WASM client crashes)
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/f13ff45afd1bb73e640eaa08a7066dbed07e3238";
+    # nixos-unstable from 2026.10.17 (bumped for Immich 3.3.3)
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/09063bd1f2b36fd9fd793c36dfade7bd40a93dfc";
 
     # Flake inputs can't be conditional on which host so declared here, but only gets used by macbook
     nixos-hardware.url = "github:nixos/nixos-hardware/779c32a00155994c86cde8213a8dd4df139d4355";
