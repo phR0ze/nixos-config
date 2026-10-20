@@ -13,6 +13,10 @@
 # NCCL is disabled: it only serves multi-GPU collectives, which single-GPU inference never uses, and
 # skipping it avoids a long compile. It also dodges nixpkgs' nccl 2.32.3-1 src hash mismatch
 # (GitHub `export-subst` drift, fixed upstream in NixOS/nixpkgs@f20ba3c6).
+#
+# onnxruntime's built-in TensorRT provider is disabled too: Immich never selects it (it uses CUDA,
+# or TensorRT-RTX via the separate `onnxruntime_ep_nv_tensorrt_rtx` plugin), and the TensorRT
+# 11.3 redist crashes patchelf (`shiftFile: Assertion splitIndex == -1`) in addDriverRunpath.
 #---------------------------------------------------------------------------------------------------
 { immich, lib, cudaCapabilities ? [ ] }:
 let
@@ -23,6 +27,7 @@ let
           onnxruntime = o.onnxruntime.override (ort: {
             cudaSupport = true;
             ncclSupport = false;
+            tensorrtSupport = false;
           } // lib.optionalAttrs (cudaCapabilities != [ ]) {
             cudaPackages = ort.cudaPackages.override (cp: {
               config = cp.config // { inherit cudaCapabilities; };
