@@ -1,0 +1,66 @@
+--- a/server/src/repositories/person.repository.ts
++++ b/server/src/repositories/person.repository.ts
+@@ -999,6 +999,47 @@
+     }
+   }
+ 
++  /**
++   * Push isHidden/isFavorite changes down to the users this person is shared with, but only where
++   * their copy still inherits the sharer's value (equal to the sharer's current value). Must run
++   * before the sharer's own row is updated, since that current value is what "inherited" compares to.
++   */
++  @GenerateSql({ params: [{ userId: DummyValue.UUID, personGroupId: DummyValue.UUID }, { isHidden: true }] })
++  async updatePersonalForInheritingRecipients(
++    { userId, personGroupId }: { userId: string; personGroupId: string },
++    { isHidden, isFavorite }: Pick<Updateable<PersonTable>, 'isHidden' | 'isFavorite'>,
++  ): Promise<void> {
++    const update = (person: Pick<Updateable<PersonTable>, 'isHidden' | 'isFavorite'>) =>
++      this.db
++        .updateTable('person')
++        .set(person)
++        .where('person.personGroupId', '=', personGroupId)
++        .where('person.ownerId', 'in', (eb) =>
++          eb
++            .selectFrom('person_user')
++            .select('person_user.sharedWithId')
++            .where('person_user.personGroupId', '=', personGroupId)
++            .where('person_user.sharedById', '=', userId),
++        );
++    const sharer = (eb: ExpressionBuilder<DB, 'person'>) =>
++      eb
++        .selectFrom('person as sharer')
++        .where('sharer.personGroupId', '=', personGroupId)
++        .where('sharer.ownerId', '=', userId);
++
++    if (isHidden !== undefined) {
++      await update({ isHidden })
++        .where((eb) => eb('person.isHidden', '=', sharer(eb).select('sharer.isHidden')))
++        .execute();
++    }
++
++    if (isFavorite !== undefined) {
++      await update({ isFavorite })
++        .where((eb) => eb('person.isFavorite', '=', sharer(eb).select('sharer.isFavorite')))
++        .execute();
++    }
++  }
++
+   async updateAll(people: Insertable<PersonTable>[]): Promise<void> {
+     if (people.length === 0) {
+       return;
+--- a/server/src/services/person.service.ts
++++ b/server/src/services/person.service.ts
+@@ -274,6 +274,13 @@
+       );
+     }
+ 
++    if (!userIdOverride && hasSomeDefined([isHidden, isFavorite])) {
++      await this.personRepository.updatePersonalForInheritingRecipients(
++        { userId: auth.user.id, personGroupId },
++        { isHidden, isFavorite },
++      );
++    }
++
+     let faceId: string | undefined;
+ 
+     if (assetId) {

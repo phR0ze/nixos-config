@@ -26,6 +26,8 @@
 #     until the recipient sets their own (upstream only copies them once, when shared), after
 #     which the sharer's value shows as an "aka". No schema change: "inherited" means empty or
 #     still equal to the sharer's value.
+#   - 001-shared-person-hidden-inherit: the same for hidden/favorite (upstream keeps them strictly
+#     per-user). Booleans have no "unset", so inherited only means equal to the sharer's value.
 #---------------------------------------------------------------------------------------------------
 { immich, lib, cudaCapabilities ? [ ] }:
 let
