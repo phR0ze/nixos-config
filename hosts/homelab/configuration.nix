@@ -3,7 +3,7 @@
 # ### Features
 # - Homelab server deployment
 # --------------------------------------------------------------------------------------------------
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -15,6 +15,10 @@
     host.autologin = true;
     host.desktop.xfce.standard = true;
     devices.gpu.nvidia = { enable = true; open = true; };    # GeForce GTX 1660 (Turing)
+
+    # UEFI capsule updates aren't supported in this machine's firmware setup, and
+    # fwupd-refresh.service just fails/flaps on LVFS metadata downloads with no benefit.
+    services.fwupd.enable = lib.mkForce false;
 
     virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
