@@ -1,0 +1,70 @@
+--- a/server/src/repositories/person.repository.ts
++++ b/server/src/repositories/person.repository.ts
+@@ -951,6 +951,54 @@
+       .execute();
+   }
+ 
++  /**
++   * Push name/birthDate edits down to the users this person is shared with, but only where their
++   * copy still inherits the sharer's value (empty, or equal to the sharer's current value). Must run
++   * before the sharer's own row is updated, since that current value is what "inherited" compares to.
++   */
++  @GenerateSql({ params: [{ userId: DummyValue.UUID, personGroupId: DummyValue.UUID }, { name: DummyValue.STRING }] })
++  async updateForInheritingRecipients(
++    { userId, personGroupId }: { userId: string; personGroupId: string },
++    { name, birthDate }: Pick<Updateable<PersonTable>, 'name' | 'birthDate'>,
++  ): Promise<void> {
++    const update = (person: Pick<Updateable<PersonTable>, 'name' | 'birthDate'>) =>
++      this.db
++        .updateTable('person')
++        .set(person)
++        .where('person.personGroupId', '=', personGroupId)
++        .where('person.ownerId', 'in', (eb) =>
++          eb
++            .selectFrom('person_user')
++            .select('person_user.sharedWithId')
++            .where('person_user.personGroupId', '=', personGroupId)
++            .where('person_user.sharedById', '=', userId),
++        );
++    const sharer = (eb: ExpressionBuilder<DB, 'person'>) =>
++      eb
++        .selectFrom('person as sharer')
++        .where('sharer.personGroupId', '=', personGroupId)
++        .where('sharer.ownerId', '=', userId);
++
++    if (name !== undefined) {
++      await update({ name })
++        .where((eb) =>
++          eb.or([eb('person.name', '=', ''), eb('person.name', '=', sharer(eb).select('sharer.name'))]),
++        )
++        .execute();
++    }
++
++    if (birthDate !== undefined) {
++      await update({ birthDate })
++        .where((eb) =>
++          eb.or([
++            eb('person.birthDate', 'is', null),
++            eb('person.birthDate', '=', sharer(eb).select('sharer.birthDate')),
++          ]),
++        )
++        .execute();
++    }
++  }
++
+   async updateAll(people: Insertable<PersonTable>[]): Promise<void> {
+     if (people.length === 0) {
+       return;
+--- a/server/src/services/person.service.ts
++++ b/server/src/services/person.service.ts
+@@ -268,6 +268,10 @@
+ 
+     if (!userIdOverride && hasSharedProperties) {
+       await this.personRepository.updateForWritableOwners({ userId: auth.user.id, personGroupId }, { name, birthDate });
++      await this.personRepository.updateForInheritingRecipients(
++        { userId: auth.user.id, personGroupId },
++        { name, birthDate },
++      );
+     }
+ 
+     let faceId: string | undefined;

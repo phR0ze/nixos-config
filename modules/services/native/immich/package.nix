@@ -17,6 +17,15 @@
 # onnxruntime's built-in TensorRT provider is disabled too: Immich never selects it (it uses CUDA,
 # or TensorRT-RTX via the separate `onnxruntime_ep_nv_tensorrt_rtx` plugin), and the TensorRT
 # 11.3 redist crashes patchelf (`shiftFile: Assertion splitIndex == -1`) in addDriverRunpath.
+#
+# Every `patches/*.patch` is applied to the server/web source in name order, hence the numbered
+# `NNN-` prefixes; a new patch needs no change here. Patching the source means Immich is built
+# locally rather than fetched from the binary cache (`pnpmDeps` is unaffected - no lockfile edits).
+# When an Immich upgrade fails to apply one, rebase it or drop it if upstream now covers it:
+#   - 000-shared-person-inherit: a shared person's name/birth date follows the sharer's edits
+#     until the recipient sets their own (upstream only copies them once, when shared), after
+#     which the sharer's value shows as an "aka". No schema change: "inherited" means empty or
+#     still equal to the sharer's value.
 #---------------------------------------------------------------------------------------------------
 { immich, lib, cudaCapabilities ? [ ] }:
 let
@@ -37,7 +46,10 @@ let
       };
     };
   });
+  patches = map (name: ./patches + "/${name}") (builtins.attrNames (lib.filterAttrs
+    (name: type: type == "regular" && lib.hasSuffix ".patch" name) (builtins.readDir ./patches)));
 in
 immich.overrideAttrs (old: {
+  patches = (old.patches or [ ]) ++ patches;
   passthru = old.passthru // { inherit machine-learning; };
 })
