@@ -63,6 +63,18 @@
      const person = await this.findOrFail(auth, personGroupId);
  
      await this.personRepository.reassignFace(face.id, person.personGroupId);
+@@ -683,6 +691,11 @@
+       ids: ids.map((id) => ({ personGroupId: id, ownerId: auth.user.id })),
+     });
+     const allowedIds = new Set(allowed.values().map((item) => item.personGroupId));
++    // fail the whole merge rather than reporting per-person `no_permission`, which the web UI ignores
++    // and shows as a successful merge (e.g. merging read-only shared people)
++    if (allowedIds.size !== ids.length) {
++      throw new BadRequestException('Not found or no person.merge access');
++    }
+     const results = new Map<string, BulkIdResponseDto>(
+       ids.map((id) => [
+         id,
 --- a/web/src/lib/services/person-user.service.ts
 +++ b/web/src/lib/services/person-user.service.ts
 @@ -87,11 +87,11 @@
