@@ -1,0 +1,90 @@
+--- a/server/src/repositories/access.repository.ts
++++ b/server/src/repositories/access.repository.ts
+@@ -548,14 +548,37 @@
+       .select(['personGroupId', 'ownerId'])
+       .where((eb) =>
+         eb.or([
+-          eb.exists(
+-            eb
+-              .selectFrom('person')
+-              .whereRef('people.personGroupId', '=', 'person.personGroupId')
+-              .whereRef('people.ownerId', '=', 'person.ownerId')
+-              .where('person.ownerId', '=', userId)
+-              .selectAll(),
+-          ),
++          eb.and([
++            eb.exists(
++              eb
++                .selectFrom('person')
++                .whereRef('people.personGroupId', '=', 'person.personGroupId')
++                .whereRef('people.ownerId', '=', 'person.ownerId')
++                .where('person.ownerId', '=', userId)
++                .selectAll(),
++            ),
++            // owning a copy that was shared with you is capped by the role it was shared with, so a
++            // read share keeps the recipient's copy read-only
++            eb.or([
++              eb.not(
++                eb.exists(
++                  eb
++                    .selectFrom('person_user')
++                    .where('person_user.sharedWithId', '=', userId)
++                    .whereRef('people.personGroupId', '=', 'person_user.personGroupId')
++                    .selectAll(),
++                ),
++              ),
++              eb.exists(
++                eb
++                  .selectFrom('person_user')
++                  .where('person_user.sharedWithId', '=', userId)
++                  .where('person_user.role', 'in', roles)
++                  .whereRef('people.personGroupId', '=', 'person_user.personGroupId')
++                  .selectAll(),
++              ),
++            ]),
++          ]),
+           eb.exists(
+             eb
+               .selectFrom('person_user')
+--- a/server/src/services/person.service.ts
++++ b/server/src/services/person.service.ts
+@@ -149,6 +149,14 @@
+     });
+     await this.requireAccess({ auth, permission: Permission.PersonCreate, ids: [dto.id] });
+     const face = await this.personRepository.getFaceById(dto.id, { viewingUserId: auth.user.id });
++    if (face.person) {
++      // moving a face out of a person is an edit of that person too (e.g. a read-only shared one)
++      await this.requirePersonAccess({
++        auth,
++        permission: Permission.PersonUpdate,
++        ids: [{ personGroupId: face.person.personGroupId, ownerId: auth.user.id }],
++      });
++    }
+     const person = await this.findOrFail(auth, personGroupId);
+ 
+     await this.personRepository.reassignFace(face.id, person.personGroupId);
+--- a/web/src/lib/services/person-user.service.ts
++++ b/web/src/lib/services/person-user.service.ts
+@@ -87,11 +87,11 @@
+   try {
+     if (everyone) {
+       await upsertPeopleUsers({
+-        peopleUsersUpsertDto: { type: PeopleUsersUpsertType.Everyone, sharedWithIds, role: PersonUserRole.Admin },
++        peopleUsersUpsertDto: { type: PeopleUsersUpsertType.Everyone, sharedWithIds, role: PersonUserRole.Read },
+       });
+     } else {
+       if (personIds.length > 0) {
+-        await upsertPeopleUsers({ peopleUsersUpsertDto: { personIds, sharedWithIds, role: PersonUserRole.Admin } });
++        await upsertPeopleUsers({ peopleUsersUpsertDto: { personIds, sharedWithIds, role: PersonUserRole.Read } });
+       }
+ 
+       if (removedIds.length > 0) {
+@@ -119,7 +119,7 @@
+       peopleUsersUpsertDto: {
+         personIds: [person.id],
+         sharedWithIds: users.map(({ id }) => id),
+-        role: PersonUserRole.Admin,
++        role: PersonUserRole.Read,
+       },
+     });
+     eventManager.emit('PersonShare', { personId: person.id });

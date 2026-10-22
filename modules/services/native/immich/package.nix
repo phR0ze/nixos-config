@@ -28,6 +28,10 @@
 #     still equal to the sharer's value.
 #   - 001-shared-person-hidden-inherit: the same for hidden/favorite (upstream keeps them strictly
 #     per-user). Booleans have no "unset", so inherited only means equal to the sharer's value.
+#   - 002-shared-person-read-only: owning a copy of a shared person is capped by the role it was
+#     shared with, so a Read share blocks the recipient from renaming, birth date, hide, favorite,
+#     merge, delete and face reassignment (upstream only limits access to the sharer's copy).
+#     The web UI has no role picker and always shared as Admin; it now always shares as Read.
 #---------------------------------------------------------------------------------------------------
 { immich, lib, cudaCapabilities ? [ ] }:
 let
