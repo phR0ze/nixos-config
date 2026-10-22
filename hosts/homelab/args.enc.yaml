@@ -45,6 +45,7 @@ host:
                       dirMode: ENC[AES256_GCM,data:inHjLA==,iv:gy53cqlAL0Wgfkz9elorr6/hpziDN0gSFkIltibx48g=,tag:HZ3cX50r2k0Dy1Zzmd93TA==,type:str]
                       fileMode: ENC[AES256_GCM,data:jNte4Q==,iv:7NT46uhnbh7J7xQwFX1VgJQF5Fw2GQam3i0UifgHbcc=,tag:aOOQcHqSWUQLAGeymtDeDQ==,type:str]
                       writable: ENC[AES256_GCM,data:UzaouA==,iv:mxzsh9YvLV27rvpcM8xDS8gOy6O9YmhOVi4tkiYy4zY=,tag:qFlyBKsMipl67gEDaxhZag==,type:bool]
+                      gid: ENC[AES256_GCM,data:SGgPbkxC,iv:q8qDOBa7LyBBFSnnSZX1GQI9KXPHEkdUkXHhtS/DRZA=,tag:dMbGio1Si3yS6G3WzHssfw==,type:str]
             adguardhome:
                 dnsRewrites:
                     - domain: ENC[AES256_GCM,data:GUoYjHfhERn4X31+3az+DDun,iv:eaTHaRqCrERHYKudcl4dhDc44hYoAF5yz1NOkuipZyE=,tag:0TjumKZyR8fQdJaIkaQdjg==,type:str]
@@ -155,7 +156,7 @@ sops:
             15E/UYdLPOZ/obszZQVoI4bMn2L71YCx0fhNnxV0e0JQRMQlzjvm9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-10-22T00:24:11Z"
-    mac: ENC[AES256_GCM,data:1VLbQH3v2Mk/IzF8UJdyUo873iSteXEE5F8y9OPDi1T4FyTIOAtt9W/phtBkwY3AHddUXsI8ImQe6a4tqFP8KqLtcJ6oQ+sNW6cXVY/NWv0kjgvnLYOihkZGLWCA1GA360q1vGB+r3q2AvhXZEV810IQN5S+RIzTqkc7i2fA3sE=,iv:RUMdEMsq+OjT9GfrhDh48JWMX3KGCJDJ+YlBREjB8R8=,tag:7LvCY4PYHLRiOh6Aa0+Bzg==,type:str]
+    lastmodified: "2026-10-22T02:46:02Z"
+    mac: ENC[AES256_GCM,data:BTCDd/Wvg8mbFMAUj5LqmkoLYppfOPJ//UIdB9QyM7EE/8EXCDLP3E94cl+ZDuG4rCkXEo8rXP0asnUVvFLDTqXprVZP/plDRdI+jhtC80xFhaBGYmiTDV2h1bwAirXoP67zIhTXVTwclSNBc9Hmd34k5P6E1nWLb8T7pGbdSjE=,iv:Sbi4qGC34onB61vakvDEijB7DclUxkq4i79Pu6IHbHE=,tag:M0YK2NA348L4eog4pY1MSA==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1

@@ -38,6 +38,11 @@
 #    regenerable, so only their `.immich` marker files are copied. Each run overwrites the last and
 #    it stays on this disk, so pair it with something that keeps history off-box.
 #    `backupDir` is forwarded from `host.backupDir`; `null` (the default) disables backups.
+# 8. Emptying the trash deletes originals from external libraries too. For a library on an SMB
+#    share (`services.native.smb`) give just that entry `writable: true`, `gid: immich` and
+#    `dirMode: "0775"`, so only Immich gains write access and only to that share. Otherwise the
+#    delete fails silently (`Unable to remove file from disk` / `EROFS` in the journal) and the
+#    next library scan re-imports the file.
 #
 # ### Backup process
 # #### Trigger backup

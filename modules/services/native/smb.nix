@@ -128,6 +128,25 @@ in
             type = lib.types.str;
             example = "smb/secretA";
           };
+          uid = lib.mkOption {
+            description = ''
+              Owner forced on this share's files, defaults to `services.native.smb.uid`. Numeric,
+              or a user name that exists on this host.
+            '';
+            type = lib.types.either lib.types.int lib.types.str;
+            default = cfg.uid;
+          };
+          gid = lib.mkOption {
+            description = ''
+              Group forced on this share's files, defaults to `services.native.smb.gid`. Numeric,
+              or a group name that exists on this host - e.g. a service's own group, paired with a
+              group-writable `dirMode` like `0775`, to let just that service write to just this
+              share (Immich deleting originals from an external library).
+            '';
+            type = lib.types.either lib.types.int lib.types.str;
+            default = cfg.gid;
+            example = "immich";
+          };
           user = lib.mkOption {
             description = "Access user, defaults to `services.native.smb.user`";
             type = lib.types.str;
@@ -207,7 +226,7 @@ in
           "vers=3.0,iocharset=utf8"
 
           # Use specific uid and gid for file ownership
-          "uid=${toString cfg.uid},gid=${toString cfg.gid}"
+          "uid=${toString x.uid},gid=${toString x.gid}"
 
           # Ignore the server ids and always use client uid,gid for file ownership
           "forceuid,forcegid"
