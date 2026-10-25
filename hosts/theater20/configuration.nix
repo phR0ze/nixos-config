@@ -11,7 +11,7 @@
 
   config = {
     host.boot.efi = true;
-    host.autologin = true;
+    host.autologin = false;
     host.nix.cache.enable = true;
     host.desktop.xfce.theater = true;
 
