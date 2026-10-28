@@ -18,6 +18,13 @@
 # or TensorRT-RTX via the separate `onnxruntime_ep_nv_tensorrt_rtx` plugin), and the TensorRT
 # 11.3 redist crashes patchelf (`shiftFile: Assertion splitIndex == -1`) in addDriverRunpath.
 #
+# The ML service is taken from `immichMl` (default: `immich`), which the module passes in from the
+# separate `nixpkgs-immich-ml` flake input. Any nixpkgs bump changes onnxruntime's dependency hashes
+# and forces the long CUDA recompile even when nothing ML-related changed, so the server follows
+# `nixpkgs-unstable` while ML stays on a pin that's already built. Server and ML only talk over
+# HTTP, so a patch-level version skew between them is fine; bump the ML pin when an Immich release
+# changes `machine-learning/`.
+#
 # Every `patches/*.patch` is applied to the server/web source in name order, hence the numbered
 # `NNN-` prefixes; a new patch needs no change here. Patching the source means Immich is built
 # locally rather than fetched from the binary cache (`pnpmDeps` is unaffected - no lockfile edits).
@@ -33,9 +40,9 @@
 #     merge, delete and face reassignment (upstream only limits access to the sharer's copy).
 #     The web UI has no role picker and always shared as Admin; it now always shares as Read.
 #---------------------------------------------------------------------------------------------------
-{ immich, lib, cudaCapabilities ? [ ] }:
+{ immich, lib, cudaCapabilities ? [ ], immichMl ? immich }:
 let
-  machine-learning = immich.machine-learning.override (old: {
+  machine-learning = immichMl.machine-learning.override (old: {
     python3 = old.python3.override {
       packageOverrides = pyfinal: pyprev: {
         onnxruntime = pyprev.onnxruntime.override (o: {

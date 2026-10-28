@@ -181,7 +181,14 @@ in
           message = "services.native.immich.cuda requires 'devices.gpu.nvidia.enable' on the current (non-legacy) driver with a Turing or newer card"; }
       ];
 
-      services.immich.package = pkgs.callPackage ./package.nix { inherit (cfg) cudaCapabilities; };
+      # ML comes from its own pin (see package.nix), so a server bump doesn't recompile onnxruntime
+      services.immich.package = pkgs.callPackage ./package.nix {
+        inherit (cfg) cudaCapabilities;
+        immichMl = (import inputs.nixpkgs-immich-ml {
+          system = pkgs.stdenv.hostPlatform.system;
+          config.allowUnfreePredicate = pkg: true;
+        }).immich;
+      };
 
       # Upstream's default `[ ]` sets PrivateDevices, hiding the GPU from both services
       services.immich.accelerationDevices = [

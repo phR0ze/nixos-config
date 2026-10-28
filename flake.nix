@@ -6,6 +6,11 @@
     # nixos-unstable from 2026.10.23 (bumped for Immich 3.3.5)
     nixpkgs-unstable.url = "github:nixos/nixpkgs/3ec636362e1816bc2f0888fa0fa2c69f1bc9e504";
 
+    # nixos-unstable from 2026.10.23 (Immich ML 3.3.5), only used by homelab's CUDA Immich
+    # machine-learning. Pinned apart from nixpkgs-unstable so a server bump doesn't recompile
+    # onnxruntime with CUDA; bump it only when the ML service itself needs to move.
+    nixpkgs-immich-ml.url = "github:nixos/nixpkgs/3ec636362e1816bc2f0888fa0fa2c69f1bc9e504";
+
     # Flake inputs can't be conditional on which host so declared here, but only gets used by macbook
     nixos-hardware.url = "github:nixos/nixos-hardware/779c32a00155994c86cde8213a8dd4df139d4355";
 
