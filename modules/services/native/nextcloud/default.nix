@@ -40,8 +40,13 @@
 #      `sharing.linkExpireDays` (7) days and are download only.
 #    - Federated sharing and the lookup server are off. `cloud_federation_api` and
 #      `federatedfilesharing` are always-enabled apps, so this is done through config instead.
-#    - `disabledApps` (`federation`, `sharebymail`) are disabled. Removing one from the list
-#      leaves it disabled; re-enable it with `nextcloud-occ app:enable <app>`.
+#    - Resharing and username autocomplete in the share dialog are off.
+# 8. Files only by default, every extra below is an option that's off unless enabled:
+#    - `apps.<name>`: bundled apps not needed for files. Each is enabled or disabled to match on
+#      every reconcile run. Always-enabled apps such as `dav` and `cloud_federation_api` can't be
+#      disabled, so their endpoints are blocked in nginx instead (`calDav`, `sharing.federation`).
+#    - `userMounts`: users adding their own External Storage, e.g. WebDAV or SFTP into the LAN.
+#    - `internetAccess`, `profiles`, `passwordReset`.
 #
 # ### Backup process
 #  sudo systemctl start backup-nextcloud
@@ -165,10 +170,32 @@ let
 
   declaredGroups = lib.unique (lib.concatMap (u: u.groups) (lib.attrValues cfg.users));
 
-  # Shipped apps `occ app:disable` refuses, from core/shipped.json
-  alwaysEnabledApps = [ "cloud_federation_api" "dav" "federatedfilesharing" "files"
-    "lookup_server_connector" "oauth2" "profile" "provisioning_api" "settings" "theming"
-    "twofactor_backupcodes" "viewer" "workflowengine" ];
+  # Default-enabled bundled apps, from core/shipped.json, that a files-only server doesn't need.
+  # Each becomes an `apps.<name>` option, see deployment note 8
+  optionalApps = {
+    app_api = "ExApps, external apps run through Docker deploy daemons";
+    circles = "Teams, a second sharing system";
+    comments = "comments on files";
+    contactsinteraction = "contacts collected from interactions";
+    dashboard = "the dashboard start page";
+    federation = "trusted servers, syncing users with other Nextcloud servers";
+    files_downloadlimit = "download limits on public link shares";
+    files_reminders = "file reminders";
+    firstrunwizard = "the first-login wizard";
+    nextcloud_announcements = "announcements fetched from nextcloud.com";
+    photos = "the Photos app";
+    privacy = "the privacy settings page";
+    recommendations = "file recommendations";
+    related_resources = "related resources in the sidebar";
+    serverinfo = "the server info page and its monitoring API";
+    sharebymail = "sharing by email";
+    support = "the support settings page";
+    survey_client = "usage statistics sent to nextcloud.com";
+    updatenotification = "update checks against nextcloud.com, Nix manages updates";
+    user_status = "user statuses";
+    weather_status = "the weather widget, which calls an external weather API";
+    webhook_listeners = "webhooks, HTTP requests to admin-chosen URLs";
+  };
 
   yesNo = b: if b then "yes" else "no";
   sh = cfg.sharing;
@@ -177,7 +204,10 @@ let
   # App config values as `app.key = value`, applied by reconcile.sh on every run
   appConfig = {
     files.default_quota = cfg.defaultQuota;
+    files_external.allow_user_mounting = yesNo cfg.userMounts;
     core = {
+      shareapi_allow_resharing = yesNo sh.resharing;
+      shareapi_allow_share_dialog_user_enumeration = yesNo sh.userEnumeration;
       shareapi_allow_links = yesNo sh.links;
       shareapi_enforce_links_password = yesNo sh.linkPassword;
       shareapi_allow_public_upload = yesNo sh.linkUpload;
@@ -199,7 +229,7 @@ let
 
   # Desired state for reconcile.sh, passwords referenced by file
   desired = pkgs.writeText "nextcloud-desired.json" (builtins.toJSON {
-    inherit (cfg) adminUser disabledApps;
+    inherit (cfg) adminUser apps;
     inherit appConfig;
     groups = declaredGroups;
     users = lib.mapAttrsToList (ukey: u: {
@@ -321,17 +351,51 @@ in
         federation = lib.mkOption {
           type = types.bool;
           default = false;
-          description = "Allow federated (cross-server) sharing and the lookup server.";
+          description = "Allow federated (cross-server) sharing and the lookup server, else their endpoints are blocked.";
+        };
+        resharing = lib.mkOption {
+          type = types.bool;
+          default = false;
+          description = "Allow recipients to reshare files shared with them.";
+        };
+        userEnumeration = lib.mkOption {
+          type = types.bool;
+          default = false;
+          description = "Autocomplete other users' names in the share dialog, which reveals who has an account.";
         };
       };
 
-      disabledApps = lib.mkOption {
-        type = listOf types.str;
-        default = [ "federation" "sharebymail" ];
-        description = ''
-          Bundled apps kept disabled, see deployment note 7. Always-enabled apps such as
-          `cloud_federation_api` and `federatedfilesharing` can't be disabled.
-        '';
+      # See deployment note 8
+      apps = lib.mapAttrs (_: desc: lib.mkEnableOption desc) optionalApps;
+
+      userMounts = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = "Let users add their own External Storage, which could reach into the LAN.";
+      };
+
+      calDav = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = "Serve the always-enabled CalDAV and CardDAV endpoints, else nginx blocks them.";
+      };
+
+      internetAccess = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = "Let Nextcloud make its own outbound checks, e.g. for updates.";
+      };
+
+      profiles = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = "Enable user profile pages, which can be made public.";
+      };
+
+      passwordReset = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = "Show the email password reset link on the login page.";
       };
 
       smb = smbOptions;
@@ -429,9 +493,6 @@ in
           message = "services.native.nextcloud users, mounts and sharedMounts keys must stay unique once joined and symbols become '-'"; }
         { assertion = lib.allUnique (map (u: u.name) (lib.attrValues cfg.users));
           message = "services.native.nextcloud has two users with the same 'name'"; }
-        { assertion = !lib.elem "files_external" cfg.disabledApps
-            && lib.all (a: !lib.elem a alwaysEnabledApps) cfg.disabledApps;
-          message = "services.native.nextcloud.disabledApps can't list files_external, the SMB mounts need it, or an always-enabled app: ${toString alwaysEnabledApps}"; }
       ] ++ map (m: {
         assertion = m.configuration.host != null && m.configuration.user != null && m.secretRef != null;
         message = "services.native.nextcloud mount '${m.key}' needs a host, user and secretRef, set on the mount, its user's smb or the top-level smb";
@@ -498,6 +559,13 @@ in
           overwriteprotocol = lib.mkIf cfg.caddy "https";
           maintenance_window_start = 1;
           skeletondirectory = "";
+          defaultapp = if cfg.apps.dashboard then "dashboard,files" else "files";
+          has_internet_connection = cfg.internetAccess;
+          updatechecker = cfg.internetAccess;
+          "profile.enabled" = cfg.profiles;
+          lost_password_link = lib.mkIf (!cfg.passwordReset) "disabled";
+          knowledgebaseenabled = false;
+          "simpleSignUpLink.shown" = false;
           log_type = "file";
           loglevel = 2;
           preview_max_x = 2048;
@@ -531,9 +599,25 @@ in
       # Our own name resolves to local Caddy, for notify_push
       networking.hosts."127.0.0.1" = lib.mkIf cfg.caddy [ cfg.hostName ];
 
-      services.nginx.virtualHosts.${cfg.hostName}.listen = [
-        { addr = if cfg.caddy then "127.0.0.1" else "0.0.0.0"; port = cfg.port; }
-      ];
+      # Endpoints of always-enabled apps that can't be disabled, see deployment note 8. Regexes run
+      # before upstream's `\.php` handler, exact matches before its `/.well-known` prefix
+      services.nginx.virtualHosts.${cfg.hostName} = {
+        listen = [ { addr = if cfg.caddy then "127.0.0.1" else "0.0.0.0"; port = cfg.port; } ];
+        locations = lib.optionalAttrs (!cfg.calDav) {
+          "~ ^/remote\\.php/(?:caldav|carddav|dav/(?:calendars|addressbooks|public-calendars))(?:$|/)" = {
+            priority = 450;
+            return = "404";
+          };
+          "= /.well-known/caldav".return = "404";
+          "= /.well-known/carddav".return = "404";
+        } // lib.optionalAttrs (!sh.federation) {
+          "~ ^/(?:index\\.php/)?(?:ocm-provider|ocs-provider|ocm)(?:$|/)" = {
+            priority = 450;
+            return = "404";
+          };
+          "= /.well-known/ocm".return = "404";
+        };
+      };
       networking.firewall.allowedTCPPorts = lib.optionals (!cfg.caddy) [ cfg.port ];
 
       secret.templates = {

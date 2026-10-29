@@ -19,13 +19,16 @@ occ app:enable files_external >/dev/null
 occ background:cron >/dev/null
 
 enabled=$(occ app:list --enabled --output=json)
-while IFS= read -r a; do
-  [ -z "$a" ] && continue
-  if jq -e --arg a "$a" '.enabled | has($a)' <<<"$enabled" >/dev/null; then
+while IFS=$'\t' read -r a want; do
+  have=$(jq --arg a "$a" '.enabled | has($a)' <<<"$enabled")
+  if [ "$want" = true ] && [ "$have" = false ]; then
+    occ app:enable "$a" >/dev/null
+    echo "enabled app $a"
+  elif [ "$want" = false ] && [ "$have" = true ]; then
     occ app:disable "$a" >/dev/null
     echo "disabled app $a"
   fi
-done < <(jq -r '.disabledApps[]' "$desired")
+done < <(jq -r '.apps | to_entries[] | [.key, .value] | @tsv' "$desired")
 
 while IFS=$'\t' read -r app k v; do
   occ config:app:set "$app" "$k" --value "$v" >/dev/null
