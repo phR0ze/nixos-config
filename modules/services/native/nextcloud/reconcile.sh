@@ -14,10 +14,22 @@ mkdir -p "$state"
 occ() { nextcloud-occ --no-interaction "$@"; }
 warn() { echo "warning: $*" >&2; }
 
-# Settings
+# Apps and settings, see deployment note 7 in default.nix
 occ app:enable files_external >/dev/null
 occ background:cron >/dev/null
-occ config:app:set files default_quota --value "$(jq -r .defaultQuota "$desired")" >/dev/null
+
+enabled=$(occ app:list --enabled --output=json)
+while IFS= read -r a; do
+  [ -z "$a" ] && continue
+  if jq -e --arg a "$a" '.enabled | has($a)' <<<"$enabled" >/dev/null; then
+    occ app:disable "$a" >/dev/null
+    echo "disabled app $a"
+  fi
+done < <(jq -r '.disabledApps[]' "$desired")
+
+while IFS=$'\t' read -r app k v; do
+  occ config:app:set "$app" "$k" --value "$v" >/dev/null
+done < <(jq -r '.appConfig | to_entries[] | .key as $a | .value | to_entries[] | [$a, .key, .value] | @tsv' "$desired")
 
 # Groups
 groups=$(occ group:list --output=json)

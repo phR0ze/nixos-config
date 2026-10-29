@@ -34,6 +34,14 @@
 # 5. Pangolin: set `whichDomains = "all"` and add a private `nextcloud-vpn` Newt resource.
 #    - Clients and WebDAV can't pass Pangolin's SSO, so a public resource is for browsers only.
 # 6. Nightly backup of `/var/lib/nextcloud` and a DB dump to `<backupDir>/nextcloud`.
+# 7. Hardened sharing by default, applied by `nextcloud-reconcile` on every run, so changes made in
+#    the admin UI are reverted:
+#    - Public links are off. With `sharing.links` on they need a password, expire within
+#      `sharing.linkExpireDays` (7) days and are download only.
+#    - Federated sharing and the lookup server are off. `cloud_federation_api` and
+#      `federatedfilesharing` are always-enabled apps, so this is done through config instead.
+#    - `disabledApps` (`federation`, `sharebymail`) are disabled. Removing one from the list
+#      leaves it disabled; re-enable it with `nextcloud-occ app:enable <app>`.
 #
 # ### Backup process
 #  sudo systemctl start backup-nextcloud
@@ -157,9 +165,42 @@ let
 
   declaredGroups = lib.unique (lib.concatMap (u: u.groups) (lib.attrValues cfg.users));
 
+  # Shipped apps `occ app:disable` refuses, from core/shipped.json
+  alwaysEnabledApps = [ "cloud_federation_api" "dav" "federatedfilesharing" "files"
+    "lookup_server_connector" "oauth2" "profile" "provisioning_api" "settings" "theming"
+    "twofactor_backupcodes" "viewer" "workflowengine" ];
+
+  yesNo = b: if b then "yes" else "no";
+  sh = cfg.sharing;
+  expires = sh.linkExpireDays != null;
+
+  # App config values as `app.key = value`, applied by reconcile.sh on every run
+  appConfig = {
+    files.default_quota = cfg.defaultQuota;
+    core = {
+      shareapi_allow_links = yesNo sh.links;
+      shareapi_enforce_links_password = yesNo sh.linkPassword;
+      shareapi_allow_public_upload = yesNo sh.linkUpload;
+      shareapi_default_expire_date = yesNo expires;
+      shareapi_enforce_expire_date = yesNo expires;
+      shareapi_allow_federation_on_public_shares = yesNo sh.federation;
+    } // lib.optionalAttrs expires {
+      shareapi_expire_after_n_days = toString sh.linkExpireDays;
+    };
+    files_sharing = lib.genAttrs [
+      "outgoing_server2server_share_enabled"
+      "incoming_server2server_share_enabled"
+      "outgoing_server2server_group_share_enabled"
+      "incoming_server2server_group_share_enabled"
+      "lookupServerEnabled"
+      "lookupServerUploadEnabled"
+    ] (_: yesNo sh.federation);
+  };
+
   # Desired state for reconcile.sh, passwords referenced by file
   desired = pkgs.writeText "nextcloud-desired.json" (builtins.toJSON {
-    inherit (cfg) defaultQuota adminUser;
+    inherit (cfg) adminUser disabledApps;
+    inherit appConfig;
     groups = declaredGroups;
     users = lib.mapAttrsToList (ukey: u: {
       uid = u.name;
@@ -254,6 +295,43 @@ in
         type = types.str;
         default = "1 GB";
         description = "Default quota for local storage, SMB mounts excluded.";
+      };
+
+      sharing = {
+        links = lib.mkOption {
+          type = types.bool;
+          default = false;
+          description = "Allow public link shares, which publish files to anyone holding the link.";
+        };
+        linkPassword = lib.mkOption {
+          type = types.bool;
+          default = true;
+          description = "Require a password on public link shares.";
+        };
+        linkUpload = lib.mkOption {
+          type = types.bool;
+          default = false;
+          description = "Allow uploads through public link shares of folders.";
+        };
+        linkExpireDays = lib.mkOption {
+          type = types.nullOr types.ints.positive;
+          default = 7;
+          description = "Enforced maximum, and default, lifetime of public link shares. `null` for no expiry.";
+        };
+        federation = lib.mkOption {
+          type = types.bool;
+          default = false;
+          description = "Allow federated (cross-server) sharing and the lookup server.";
+        };
+      };
+
+      disabledApps = lib.mkOption {
+        type = listOf types.str;
+        default = [ "federation" "sharebymail" ];
+        description = ''
+          Bundled apps kept disabled, see deployment note 7. Always-enabled apps such as
+          `cloud_federation_api` and `federatedfilesharing` can't be disabled.
+        '';
       };
 
       smb = smbOptions;
@@ -351,6 +429,9 @@ in
           message = "services.native.nextcloud users, mounts and sharedMounts keys must stay unique once joined and symbols become '-'"; }
         { assertion = lib.allUnique (map (u: u.name) (lib.attrValues cfg.users));
           message = "services.native.nextcloud has two users with the same 'name'"; }
+        { assertion = !lib.elem "files_external" cfg.disabledApps
+            && lib.all (a: !lib.elem a alwaysEnabledApps) cfg.disabledApps;
+          message = "services.native.nextcloud.disabledApps can't list files_external, the SMB mounts need it, or an always-enabled app: ${toString alwaysEnabledApps}"; }
       ] ++ map (m: {
         assertion = m.configuration.host != null && m.configuration.user != null && m.secretRef != null;
         message = "services.native.nextcloud mount '${m.key}' needs a host, user and secretRef, set on the mount, its user's smb or the top-level smb";
