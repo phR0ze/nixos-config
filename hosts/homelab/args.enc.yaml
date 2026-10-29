@@ -46,6 +46,25 @@ host:
                       fileMode: ENC[AES256_GCM,data:jNte4Q==,iv:7NT46uhnbh7J7xQwFX1VgJQF5Fw2GQam3i0UifgHbcc=,tag:aOOQcHqSWUQLAGeymtDeDQ==,type:str]
                       writable: ENC[AES256_GCM,data:UzaouA==,iv:mxzsh9YvLV27rvpcM8xDS8gOy6O9YmhOVi4tkiYy4zY=,tag:qFlyBKsMipl67gEDaxhZag==,type:bool]
                       gid: ENC[AES256_GCM,data:SGgPbkxC,iv:q8qDOBa7LyBBFSnnSZX1GQI9KXPHEkdUkXHhtS/DRZA=,tag:dMbGio1Si3yS6G3WzHssfw==,type:str]
+            nextcloud:
+                smb:
+                    host: ENC[AES256_GCM,data:uqb2G+fYTN2tpE4=,iv:eNqQKXe7dsWSMd9MyY4iSApbtEdjix2pyVmRuMr3FjI=,tag:SWNFKnInC0RWidBiyWsVHQ==,type:str]
+                users:
+                    u2:
+                        name: ENC[AES256_GCM,data:qPqnxP0=,iv:sAvJgrr/qM06Ir5lArnZHfb61b1/xnmrh8tYZJ4sXEA=,tag:mm17MjgkcBQ8hpUaJcKuww==,type:str]
+                        displayName: ENC[AES256_GCM,data:pypxpwA=,iv:sOJ4CgeFkkMdoYnBBMft12O+sKWketxAtNvlkSrCFNc=,tag:+oJUgWNRFbydUs90142+eg==,type:str]
+                        passwordSecretRef: ENC[AES256_GCM,data:OUMUiKLyuSKzd9o=,iv:W4JMWlqnIu09v/7IiBqQiTGW+z+jGVGfcEog6lTKJoo=,tag:CDRhexjxUy4kaLvxnbqTVg==,type:str]
+                        groups:
+                            - ENC[AES256_GCM,data:T2elvjrV,iv:z4yxkon+dx6gnvPYcqvJzEt11U3+V8HzVjxMvZ8iE+8=,tag:mBRgoL2I9lXubt80EAOfCg==,type:str]
+                        quota: ENC[AES256_GCM,data:d4iB+A==,iv:fN4Vd8yVb/QDYLtpeU0ShnPAzzCCM/K+Bv4cqouzi/Y=,tag:ej/I5P+954aaXe4znfiV/g==,type:str]
+                        smb:
+                            user: ENC[AES256_GCM,data:SEF7PpY=,iv:X/CbnjohAoWg7wJ7ulkm6RteSx0WRKsYcZIFD90XH4s=,tag:5AIoPFZeRr40XRt1sGISMQ==,type:str]
+                            secretRef: ENC[AES256_GCM,data:JnSgtOS0jbSIrDU=,iv:PUrEuiaHCchy3OtgcJR2YQNWM8/d00/RSqGC9L+fSB8=,tag:oj6PitORiNryx9ZeyWktrg==,type:str]
+                        mounts:
+                            m1:
+                                name: ENC[AES256_GCM,data:E9Vu4w==,iv:QykVyes/NLrEI5QWVlWYCPh7oAJeL0Mn1ZdL7l7Cr8k=,tag:mzYgRO+6PcQ+OdpD2lKVsg==,type:str]
+                                share: ENC[AES256_GCM,data:KUj8+Q==,iv:WdpmeTQjbtQvOimdUBGxJ2XwLm1Ss3StM+1iapH3Vfs=,tag:dqQizdBITTUiL0whztYYDQ==,type:str]
+                                path: ENC[AES256_GCM,data:sfZe7w==,iv:I8Izr5T/2fL4FTN5f/Nwf7woF9uM/JkZSuSRYWbzbzw=,tag:5FnVdk1T/8D0EKlqzpYXWQ==,type:str]
             adguardhome:
                 dnsRewrites:
                     - domain: ENC[AES256_GCM,data:GUoYjHfhERn4X31+3az+DDun,iv:eaTHaRqCrERHYKudcl4dhDc44hYoAF5yz1NOkuipZyE=,tag:0TjumKZyR8fQdJaIkaQdjg==,type:str]
@@ -156,7 +175,7 @@ sops:
             15E/UYdLPOZ/obszZQVoI4bMn2L71YCx0fhNnxV0e0JQRMQlzjvm9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-10-22T02:46:02Z"
-    mac: ENC[AES256_GCM,data:BTCDd/Wvg8mbFMAUj5LqmkoLYppfOPJ//UIdB9QyM7EE/8EXCDLP3E94cl+ZDuG4rCkXEo8rXP0asnUVvFLDTqXprVZP/plDRdI+jhtC80xFhaBGYmiTDV2h1bwAirXoP67zIhTXVTwclSNBc9Hmd34k5P6E1nWLb8T7pGbdSjE=,iv:Sbi4qGC34onB61vakvDEijB7DclUxkq4i79Pu6IHbHE=,tag:M0YK2NA348L4eog4pY1MSA==,type:str]
+    lastmodified: "2026-10-29T23:16:18Z"
+    mac: ENC[AES256_GCM,data:oIw+1tPVzzg2PjQzVv6Dn31Lr/MsHUNL1MBbZTGu4sxlDZg6hJ9mPjPzkr7wGoglbY+mtaHyXAsBbY2sHPJgAHIkl1+lAV1sggP3qCLOBsC8YyUYDmeBGLpT1pDJCBPYvZe8Vt9kz9sdQosoZKa7/MuZ+u/QRT15cQX0RU3L1IE=,iv:tCXio6pT8YZ4nTL6d+/ItG+DgXikLdMcJddvkbRuBqg=,tag:SLr8S1mpW1MQVBZIlskNWg==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1

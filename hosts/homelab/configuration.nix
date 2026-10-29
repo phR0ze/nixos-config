@@ -51,6 +51,25 @@
       enable = true; port = 2283; subdomains = [ "immich" "immich-vpn" ];
       cuda = true; cudaCapabilities = [ "7.5" ];    # GTX 1660 (Turing)
     };
+    services.native.nextcloud = {
+      enable = true; port = 8090; subdomains = [ "nextcloud" "nextcloud-vpn" ];
+    };
+
+    # Shared by Immich and Nextcloud, sized for 96 GB and 16 threads on a SATA SSD, leaving most of
+    # the RAM to the page cache, Jellyfin, Immich ML and VMs
+    services.postgresql.settings = {
+      shared_buffers = "8GB";
+      effective_cache_size = "48GB";
+      work_mem = "32MB";
+      maintenance_work_mem = "1GB";             # Immich's vector index builds
+      random_page_cost = 1.1;
+      effective_io_concurrency = 200;
+      max_wal_size = "4GB";                     # fewer checkpoints during large imports
+      max_worker_processes = 16;
+      max_parallel_workers = 8;
+      max_parallel_workers_per_gather = 4;
+      max_parallel_maintenance_workers = 4;
+    };
 
     # Additional apps
     environment.systemPackages = [
