@@ -51,6 +51,11 @@
 #      `nextcloud-occ` manage everything, so it's kept disabled. For break-glass access enable the
 #      option, or run `nextcloud-occ user:enable <adminUser>` until the next reconcile run.
 #      Users in a declared `admin` group are admins too, so keep daily accounts out of it.
+#    - `adminRanges`: admin actions only from loopback and private ranges, i.e. the LAN and the
+#      `nextcloud-vpn` resource. Pangolin's public resource carries the real client IP, which Caddy
+#      and Nextcloud both read from Newt's X-Forwarded-For.
+#    - `egress`: units running Nextcloud's PHP may only connect to localhost and the mount hosts,
+#      which must be IPs. PostgreSQL and Redis are unix sockets and DNS is the local resolver.
 #
 # ### Backup process
 #  sudo systemctl start backup-nextcloud
@@ -316,6 +321,25 @@ in
         description = "Let `adminUser` log in, else reconcile keeps it disabled. `nextcloud-occ` works either way.";
       };
 
+      adminRanges = lib.mkOption {
+        type = listOf types.str;
+        default = [ "127.0.0.0/8" "10.0.0.0/8" "172.16.0.0/12" "192.168.0.0/16" ];
+        description = ''
+          Client IP ranges admin actions are allowed from, see deployment note 8. Admins elsewhere
+          can still use their files. `[ ]` allows them from anywhere.
+        '';
+      };
+
+      egress = lib.mkOption {
+        type = listOf types.str;
+        default = [ ];
+        example = [ "192.168.x.x/32" ];
+        description = ''
+          Addresses Nextcloud may connect to besides localhost and the mount hosts, see deployment
+          note 8. Ignored with `internetAccess`, which lifts the restriction.
+        '';
+      };
+
       adminPasswordSecretRef = lib.mkOption {
         type = types.str;
         default = "nextcloud/adminPassword";
@@ -535,7 +559,8 @@ in
         message = "services.native.nextcloud user '${ukey}' can see two mounts with the same 'name'";
       }) cfg.users;
 
-      # - trusted_proxies: only Caddy may set X-Forwarded-For, which brute-force protection uses
+      # - trusted_proxies: only Caddy and the proxies it trusts may set X-Forwarded-For, which
+      #   brute-force protection and allowed_admin_ranges use
       # - skeletondirectory: no sample files for new users
       services.nextcloud = {
         enable = true;
@@ -577,7 +602,9 @@ in
           trusted_domains = if cfg.caddy
             then lib.concatMap (zone: map (sub: "${sub}.${zone}") cfg.subdomains) zones
             else [ ];
-          trusted_proxies = lib.optionals cfg.caddy [ "127.0.0.1" ];
+          # Every proxy Caddy trusts too, e.g. Newt, else the last one would be taken for the client
+          trusted_proxies = lib.optionals cfg.caddy config.services.native.caddy.trustedProxies;
+          allowed_admin_ranges = cfg.adminRanges;
           overwriteprotocol = lib.mkIf cfg.caddy "https";
           maintenance_window_start = 1;
           skeletondirectory = "";
@@ -767,6 +794,28 @@ in
           Persistent = true;
         };
       };
+    }))
+
+    # Egress allowlist for every unit running Nextcloud's PHP, see deployment note 8. Inbound from
+    # nginx is a unix socket, so unaffected
+    (lib.mkIf (!cfg.internetAccess) (let
+      hosts = lib.unique (lib.filter (h: h != null) (map (m: m.configuration.host) mounts));
+      isIP = h: builtins.match "[0-9]+(\\.[0-9]+){3}" h != null
+        || builtins.match "[0-9a-fA-F:]*:[0-9a-fA-F:]*" h != null;
+    in {
+      assertions = [
+        { assertion = lib.all isIP hosts;
+          message = "services.native.nextcloud mount hosts must be IP addresses for the egress allowlist, or set 'internetAccess': ${toString (lib.filter (h: !isIP h) hosts)}"; }
+      ];
+
+      systemd.services = lib.genAttrs ([ "phpfpm-nextcloud" "nextcloud-setup" "nextcloud-cron"
+        "nextcloud-update-db" "nextcloud-reconcile" "nextcloud-previews" ]
+        ++ map (m: "nextcloud-smb-notify-${m.id}") notifyMounts) (_: {
+        serviceConfig = {
+          IPAddressDeny = "any";
+          IPAddressAllow = [ "localhost" ] ++ hosts ++ cfg.egress;
+        };
+      });
     }))
 
     # One Caddy proxy per subdomain
