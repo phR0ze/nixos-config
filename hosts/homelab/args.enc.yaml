@@ -149,6 +149,7 @@ host:
                             defaultRoles:
                                 - ENC[AES256_GCM,data:XvA0QkHcCVkc6jmWNrZh,iv:ehiuhH6SRT27pS0Ir306Cb41bD3oPpGTnTONFFhwBd0=,tag:oIXWOABbULuAwyw6KJTuCA==,type:str]
                             resources:
+                                nextcloud: {}
                                 vault: {}
                                 vault-vpn:
                                     public: ENC[AES256_GCM,data:bh/FWtw=,iv:gb1CO15579BmPjekiajsln8pN6eGIcxUsDuNxZGZ5PU=,tag:4HPfzLTdr1EhVt5/fX71Sw==,type:bool]
@@ -175,7 +176,7 @@ sops:
             15E/UYdLPOZ/obszZQVoI4bMn2L71YCx0fhNnxV0e0JQRMQlzjvm9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-10-29T23:16:18Z"
-    mac: ENC[AES256_GCM,data:oIw+1tPVzzg2PjQzVv6Dn31Lr/MsHUNL1MBbZTGu4sxlDZg6hJ9mPjPzkr7wGoglbY+mtaHyXAsBbY2sHPJgAHIkl1+lAV1sggP3qCLOBsC8YyUYDmeBGLpT1pDJCBPYvZe8Vt9kz9sdQosoZKa7/MuZ+u/QRT15cQX0RU3L1IE=,iv:tCXio6pT8YZ4nTL6d+/ItG+DgXikLdMcJddvkbRuBqg=,tag:SLr8S1mpW1MQVBZIlskNWg==,type:str]
+    lastmodified: "2026-10-29T23:34:53Z"
+    mac: ENC[AES256_GCM,data:mSPzxGlTkARRwnJJ0BBd8Z5LNeKvhA/rzgZNHRsU5irRDjC9KS8EPGjz6pcPWAQ1jmGGcfTQuLf/lb6Aoi5Ky8aNoOmQ7E7mL1dMTrEHPgOx/Hcbb2ugR1TJvkOt3Gu0XdptOMk++hDHYt66E0oeNXhFgRvM9CbiR9T9/iOjzl4=,iv:is8UCgzq6V8i8iJ7KmW+ts4+W7+KMM7zHLHUkOHQCEY=,tag:ceBN/hF65kdqAPlD7put/Q==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1
