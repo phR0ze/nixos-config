@@ -53,6 +53,16 @@
       enable = true; port = 8090; subdomains = [ "nextcloud" "nextcloud-vpn" ];
     };
 
+    # Shared by Immich and Nextcloud, sized for this 8 GB VM on SSD alongside PHP-FPM and Immich ML
+    services.postgresql.settings = {
+      shared_buffers = "1GB";
+      effective_cache_size = "3GB";
+      work_mem = "16MB";
+      maintenance_work_mem = "256MB";
+      random_page_cost = 1.1;
+      effective_io_concurrency = 200;
+    };
+
     # Additional apps
     environment.systemPackages = [
       pkgs.brave

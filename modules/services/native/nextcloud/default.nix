@@ -205,6 +205,9 @@ let
   appConfig = {
     files.default_quota = cfg.defaultQuota;
     files_external.allow_user_mounting = yesNo cfg.userMounts;
+    preview.jpeg_quality = toString cfg.previewJpegQuality;
+    # Only the sizes the web UI and clients actually request, per the app's README
+    previewgenerator = { squareSizes = "32 256"; widthSizes = "256 384"; heightSizes = "256"; };
     core = {
       shareapi_allow_resharing = yesNo sh.resharing;
       shareapi_allow_share_dialog_user_enumeration = yesNo sh.userEnumeration;
@@ -392,6 +395,12 @@ in
         description = "Enable user profile pages, which can be made public.";
       };
 
+      previewJpegQuality = lib.mkOption {
+        type = types.ints.between 1 100;
+        default = 80;
+        description = "JPEG quality of generated previews, lower is smaller and faster to load.";
+      };
+
       passwordReset = lib.mkOption {
         type = types.bool;
         default = false;
@@ -541,6 +550,9 @@ in
           "opcache.memory_consumption" = "256";
           "opcache.max_accelerated_files" = "20000";
           "opcache.revalidate_freq" = "60";
+          # Tracing JIT, as upstream's server tuning guide recommends
+          "opcache.jit" = "1255";
+          "opcache.jit_buffer_size" = "8M";
         };
         poolSettings = {
           "pm" = "dynamic";
@@ -572,7 +584,6 @@ in
           preview_max_y = 2048;
           preview_max_scale_factor = 1;
           preview_max_filesize_image = 50;
-          jpeg_quality = 60;
           enabledPreviewProviders = [
             "OC\\Preview\\PNG"
             "OC\\Preview\\JPEG"
