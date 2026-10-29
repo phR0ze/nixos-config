@@ -1,6 +1,9 @@
 host:
     id: ENC[AES256_GCM,data:9IioDlQSK9Vjr3LyChiQ0MSJ8wbh001IQolKnk1rTOM=,iv:qYKfj+QYCasOGsx8qvISl2Xg9Z1tEP3kK6KHnVHV3mA=,tag:1iIEYyJS6eaabYlNyItkZw==,type:str]
     name: ENC[AES256_GCM,data:wDRgXhMIZ2E=,iv:cZHp7c8yeIhN4jaeRbHUsi2bvpg/AYK0/KuDMFvm2Jg=,tag:wE6hL2mzvWl02FBep2rk9g==,type:str]
+    network:
+        dns:
+            primary: ENC[AES256_GCM,data:22jp/SQ8vA==,iv:/vHDKr/ltHqvp5XN82ESTyz8Wpgoso+5pWsm6S0VGJ8=,tag:0/p8JA2k5FW0Ac7hFFMNxg==,type:str]
 sops:
     age:
         - enc: |
@@ -12,7 +15,7 @@ sops:
             7QSQIgnMzJ0ssNgGWF18omkKI+qtCXiI8zg9gdU1MqjtarXv+YkQQg==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-09-25T20:55:19Z"
-    mac: ENC[AES256_GCM,data:2gnJErO1TJ5GDdUqSVR8U0LouVZVrTUt69j2TiEZoPpV7R9q8CQKW99fOn7BLX7/H6wYpc2RtRgJgoEDO3gA+i8Gys4iRXnh5W/IBnh58LcYLdrQRFutV2qHiLsukKof1BvROVQ24DFUu/2bdH0v0w83yX9yTvqSzSqRb6nwITs=,iv:+5hPjDDDojs+jCvwKG3OW3ffxlL4HPkFKEgKnnl6O3k=,tag:9jMnlfe/NbK3YzjaZPm0fg==,type:str]
+    lastmodified: "2026-10-29T23:40:11Z"
+    mac: ENC[AES256_GCM,data:++3/9Jr3SFKKNpr/4BWcjLoK9uwJYPkcGHkjUqz0Hb3fEX4GOsfqS2S9Q/jDlPlvkv9W8GjcQRLa1LC+/QSHjwwosb+6zrozyHmEUPyXe9g5NR8kfzaqYaZwISuVsyIrqCfA+tmMFgYF589582XO0VQl7EwLRlg8ZojhVr5nHNI=,iv:b2YjPINkmNgddZeB/T2WNqfFf8SDHGioAmUCMfCjjhM=,tag:ewpnBri07wvUT1cdWlJAmw==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1
