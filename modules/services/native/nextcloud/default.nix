@@ -47,6 +47,10 @@
 #      disabled, so their endpoints are blocked in nginx instead (`calDav`, `sharing.federation`).
 #    - `userMounts`: users adding their own External Storage, e.g. WebDAV or SFTP into the LAN.
 #    - `internetAccess`, `profiles`, `passwordReset`.
+#    - `adminLogin`: the admin account is only needed for first setup, as reconcile and
+#      `nextcloud-occ` manage everything, so it's kept disabled. For break-glass access enable the
+#      option, or run `nextcloud-occ user:enable <adminUser>` until the next reconcile run.
+#      Users in a declared `admin` group are admins too, so keep daily accounts out of it.
 #
 # ### Backup process
 #  sudo systemctl start backup-nextcloud
@@ -232,7 +236,7 @@ let
 
   # Desired state for reconcile.sh, passwords referenced by file
   desired = pkgs.writeText "nextcloud-desired.json" (builtins.toJSON {
-    inherit (cfg) adminUser apps;
+    inherit (cfg) adminUser adminLogin apps;
     inherit appConfig;
     groups = declaredGroups;
     users = lib.mapAttrsToList (ukey: u: {
@@ -304,6 +308,12 @@ in
         type = types.str;
         default = "admin";
         description = "Name of the admin account created on first setup.";
+      };
+
+      adminLogin = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = "Let `adminUser` log in, else reconcile keeps it disabled. `nextcloud-occ` works either way.";
       };
 
       adminPasswordSecretRef = lib.mkOption {

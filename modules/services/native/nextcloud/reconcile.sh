@@ -34,6 +34,21 @@ while IFS=$'\t' read -r app k v; do
   occ config:app:set "$app" "$k" --value "$v" >/dev/null
 done < <(jq -r '.appConfig | to_entries[] | .key as $a | .value | to_entries[] | [$a, .key, .value] | @tsv' "$desired")
 
+# Admin account, see deployment note 8
+admin=$(jq -r .adminUser "$desired")
+want=$(jq -r .adminLogin "$desired")
+if have=$(occ user:info "$admin" --output=json | jq -r .enabled); then
+  if [ "$want" = true ] && [ "$have" = false ]; then
+    occ user:enable "$admin" >/dev/null
+    echo "enabled admin $admin"
+  elif [ "$want" = false ] && [ "$have" = true ]; then
+    occ user:disable "$admin" >/dev/null
+    echo "disabled admin $admin"
+  fi
+else
+  warn "admin $admin doesn't exist"
+fi
+
 # Groups
 groups=$(occ group:list --output=json)
 while IFS= read -r g; do
