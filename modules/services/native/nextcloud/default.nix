@@ -47,6 +47,8 @@
 #      disabled, so their endpoints are blocked in nginx instead (`calDav`, `sharing.federation`).
 #    - `userMounts`: users adding their own External Storage, e.g. WebDAV or SFTP into the LAN.
 #    - `internetAccess`, `profiles`, `passwordReset`.
+#    - `auditLog` is the exception, on by default: logins, file accesses and admin actions go to
+#      `/var/lib/nextcloud/data/audit.log`, which users can't see.
 #    - `adminLogin`: the admin account is only needed for first setup, as reconcile and
 #      `nextcloud-occ` manage everything, so it's kept disabled. For break-glass access enable the
 #      option, or run `nextcloud-occ user:enable <adminUser>` until the next reconcile run.
@@ -182,6 +184,7 @@ let
   # Default-enabled bundled apps, from core/shipped.json, that a files-only server doesn't need.
   # Each becomes an `apps.<name>` option, see deployment note 8
   optionalApps = {
+    activity = "the activity stream of file changes";
     app_api = "ExApps, external apps run through Docker deploy daemons";
     circles = "Teams, a second sharing system";
     comments = "comments on files";
@@ -241,7 +244,8 @@ let
 
   # Desired state for reconcile.sh, passwords referenced by file
   desired = pkgs.writeText "nextcloud-desired.json" (builtins.toJSON {
-    inherit (cfg) adminUser adminLogin apps;
+    inherit (cfg) adminUser adminLogin;
+    apps = cfg.apps // { admin_audit = cfg.auditLog; };
     inherit appConfig;
     groups = declaredGroups;
     users = lib.mapAttrsToList (ukey: u: {
@@ -404,6 +408,15 @@ in
 
       # See deployment note 8
       apps = lib.mapAttrs (_: desc: lib.mkEnableOption desc) optionalApps;
+
+      auditLog = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Enable the bundled `admin_audit` app, which logs logins, file accesses and admin actions
+          to `<datadir>/audit.log`, rotated at `log_rotate_size` (100 MB).
+        '';
+      };
 
       userMounts = lib.mkOption {
         type = types.bool;
