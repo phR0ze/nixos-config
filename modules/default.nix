@@ -530,6 +530,24 @@ in
       services.native.immich.domains = cfg.network.domains;
     })
 
+    # Users, mounts and the NAS address come from args, so they stay untracked. Mount domains
+    # default to the smb module's
+    (lib.mkIf config.services.native.nextcloud.enable (
+      let arg = f.getSvcFunc "native.nextcloud" cfg.services;
+          smb = f.getSvcFunc "native.smb" cfg.services;
+      in {
+        services.native.nextcloud = {
+          sopsFile = cfg.sopsFile;
+          domains = cfg.network.domains;
+          # `smb` is a group of options rather than one, so merge its args in field by field
+          smb = { domain = smb "domain"; }
+            // (let v = f.getSvcValue "native.nextcloud.smb" cfg.services; in if v == null then { } else v);
+          users = arg "users";
+          sharedMounts = arg "sharedMounts";
+        };
+      }
+    ))
+
     (lib.mkIf config.services.native.adguardhome.enable (
       let arg = f.getSvcFunc "native.adguardhome" cfg.services;
       in {
@@ -567,6 +585,7 @@ in
       services.native.adguardhome.backupDir = lib.mkIf config.services.native.adguardhome.enable cfg.backupDir;
       services.native.immich.backupDir = lib.mkIf config.services.native.immich.enable cfg.backupDir;
       services.native.jellyfin.backupDir = lib.mkIf config.services.native.jellyfin.enable cfg.backupDir;
+      services.native.nextcloud.backupDir = lib.mkIf config.services.native.nextcloud.enable cfg.backupDir;
       services.native.vaultwarden.backupDir = lib.mkIf config.services.native.vaultwarden.enable cfg.backupDir;
       services.oci.homarr.backupDir = lib.mkIf config.services.oci.homarr.enable cfg.backupDir;
       services.oci.oneup.backupDir = lib.mkIf config.services.oci.oneup.enable cfg.backupDir;

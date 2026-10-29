@@ -33,7 +33,7 @@
     # Caddy fronted services
     services.native.caddy.enable = true;
     services.native.adguardhome.enable = true;
-    services.native.jellyfin.enable = true;
+    #services.native.jellyfin.enable = true;
     # services.oci.homarr = {
     #   enable = true; port = 8080; user.uid = 2000; tag = "v2.3.0";
     # };
@@ -43,11 +43,14 @@
     # services.oci.oneup = {
     #   enable = true; port = 8082; user.uid = 2002; tag = "latest";
     # };
-    services.native.vaultwarden = {
-      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
-    };
+    # services.native.vaultwarden = {
+    #   enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
+    # };
     services.native.immich = {
       enable = true; port = 2283; subdomains = [ "immich" "immich-vpn" ];
+    };
+    services.native.nextcloud = {
+      enable = true; port = 8090; subdomains = [ "nextcloud" "nextcloud-vpn" ];
     };
 
     # Additional apps

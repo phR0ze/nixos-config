@@ -13,6 +13,7 @@
     ./keyd
     ./minecraft
     ./mullvad
+    ./nextcloud
     ./nfs.nix
     ./nix-cache
     ./smartd.nix
