@@ -83,6 +83,7 @@ while IFS= read -r m; do
     # The import file holds the password, so it lives in the 0700 RuntimeDirectory only briefly
     tmp="$RUNTIME_DIRECTORY/import.json"
     jq --rawfile pw "$pwfile" '[{
+        mount_id: null,
         mount_point: .mountPoint,
         storage: "\\OCA\\Files_External\\Lib\\Storage\\SMB",
         authentication_type: "password::password",

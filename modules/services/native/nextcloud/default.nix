@@ -30,7 +30,7 @@
 # 3. `nextcloud-reconcile` only adds or updates. Delete a removed mount with
 #    `nextcloud-occ files_external:delete <id>`.
 #    - A changed mount password is briefly visible in `/proc`, as `occ` only takes it as an argument.
-# 4. Each mount gets an SMB change watcher unless `notify = false`.
+# 4. Each mount gets an SMB change watcher, which first scans it, unless `notify = false`.
 # 5. Pangolin: set `whichDomains = "all"` and add a private `nextcloud-vpn` Newt resource.
 #    - Clients and WebDAV can't pass Pangolin's SSO, so a public resource is for browsers only.
 # 6. Nightly backup of `/var/lib/nextcloud` and a DB dump to `<backupDir>/nextcloud`.
@@ -469,12 +469,23 @@ in
 
       # SMB watchers, see deployment note 4. Started after boot once the network is up, retried
       # while the NAS is down. Watching needs the smbclient binary
+      # - Mounts never check for changes themselves, so each start first scans the mount, through
+      #   a user who sees it, to pick up existing files and anything missed while it was down
       systemd.services = lib.listToAttrs (map (m: lib.nameValuePair "nextcloud-smb-notify-${m.id}" {
         description = "Watch Nextcloud mount ${m.key} for SMB changes";
         after = [ "nextcloud-reconcile.service" ];
         wants = [ "nextcloud-reconcile.service" ];
-        path = [ config.services.nextcloud.occ pkgs.samba pkgs.coreutils ];
+        # Restart, and so rescan, when the mount's settings change, e.g. a new `path`
+        restartTriggers = [ (builtins.toJSON m) ];
+        path = [ config.services.nextcloud.occ pkgs.samba pkgs.coreutils pkgs.jq ];
         script = ''
+          user=${if m.users != [ ] then lib.escapeShellArg (lib.head m.users) else ''
+            $(nextcloud-occ group:list --output=json \
+              | jq -r --argjson g ${lib.escapeShellArg (builtins.toJSON m.groups)} \
+                'first(. as $l | $g[] | $l[.][]?) // empty')''}
+          if [ -n "$user" ]; then
+            nextcloud-occ files:scan --path="/$user/files"${lib.escapeShellArg m.mountPoint}
+          fi
           exec nextcloud-occ files_external:notify "$(cat ${stateDir}/${m.id}.id)"
         '';
         serviceConfig = {
@@ -582,6 +593,10 @@ in
 
       services.native.caddy.enable = lib.mkDefault true;
       services.native.caddy.domains = f.caddyProxies cfg (map (sub: { subdomain = sub; inherit (cfg) port; }) cfg.subdomains);
+
+      # notify_push reaches Nextcloud through Caddy over loopback and checks its X-Forwarded-For
+      # survives, which Caddy only keeps from a trusted proxy
+      services.native.caddy.trustedProxies = [ "127.0.0.1/32" ];
     })
   ]);
 }
