@@ -55,6 +55,7 @@
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.oci.homarr;
+  image = "ghcr.io/homarr-labs/homarr";
 in
 {
   options.services.oci.homarr = (import ../../types/service.nix {
@@ -97,7 +98,7 @@ in
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
       # Have services.native.alerts check this image for new upstream releases
-      services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "homarr-labs/homarr"; };
+      services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "homarr-labs/homarr"; inherit image; };
 
       assertions = f.ociAsserts cfg ++ [
         { assertion = cfg.caddy -> cfg.subdomain != null;
@@ -135,7 +136,7 @@ in
       virtualisation.oci-containers.containers."${cfg.name}" = {
         # Direct non-root is not supported
         #user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
-        image = "ghcr.io/homarr-labs/homarr:${cfg.tag}";
+        image = "${image}:${cfg.tag}";
         autoStart = true;
         hostname = "${cfg.name}";
         networks = [ (f.contNetwork cfg.name cfg.name) ];  # Isolated network, named veth

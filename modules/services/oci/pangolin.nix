@@ -78,6 +78,14 @@
 let
   cfg = config.services.oci.pangolin;
   dataDir = "/var/lib/${cfg.name}";
+
+  # Registry references (tagged by the matching `<name>Tag`), shared by the compose file and alerts
+  images = {
+    pangolin = "docker.io/fosrl/pangolin";
+    gerbil = "docker.io/fosrl/gerbil";
+    traefik = "docker.io/traefik";
+    crowdsec = "docker.io/crowdsecurity/crowdsec";
+  };
   serverSecretKey = "${cfg.name}/${cfg.serverSecretRef}";
   cloudflareApiTokenKey = "${cfg.name}/${cfg.cloudflareApiTokenRef}";
 
@@ -132,7 +140,7 @@ let
     name: ${cfg.name}
     services:
       pangolin:
-        image: docker.io/fosrl/pangolin:${cfg.pangolinTag}
+        image: ${images.pangolin}:${cfg.pangolinTag}
         container_name: ${cfg.name}
         restart: unless-stopped
         networks:
@@ -156,7 +164,7 @@ let
           retries: 15
 
       gerbil:
-        image: docker.io/fosrl/gerbil:${cfg.gerbilTag}
+        image: ${images.gerbil}:${cfg.gerbilTag}
         container_name: gerbil
         restart: unless-stopped
         networks:
@@ -182,7 +190,7 @@ let
           - 443:443
 
       traefik:
-        image: docker.io/traefik:${cfg.traefikTag}
+        image: ${images.traefik}:${cfg.traefikTag}
         container_name: traefik
         restart: unless-stopped
         network_mode: service:gerbil
@@ -208,7 +216,7 @@ let
           - ./config/traefik/logs:/var/log/traefik
 
       crowdsec:
-        image: docker.io/crowdsecurity/crowdsec:${cfg.crowdsecTag}
+        image: ${images.crowdsec}:${cfg.crowdsecTag}
         container_name: crowdsec
         restart: unless-stopped
         networks:
@@ -1181,10 +1189,10 @@ in
     services.native.alerts.containers.units."${cfg.name}-stack" = [ cfg.name "gerbil" "traefik" "crowdsec" ];
     services.native.alerts.imageUpdates.images = {
       # EE and CE ship from the same release as separate image tags (`ee-` is handled by alerts)
-      pangolin = { tag = cfg.pangolinTag; repo = "fosrl/pangolin"; };
-      gerbil = { tag = cfg.gerbilTag; repo = "fosrl/gerbil"; };
-      traefik = { tag = cfg.traefikTag; repo = "traefik/traefik"; };
-      crowdsec = { tag = cfg.crowdsecTag; repo = "crowdsecurity/crowdsec"; };
+      pangolin = { tag = cfg.pangolinTag; repo = "fosrl/pangolin"; image = images.pangolin; };
+      gerbil = { tag = cfg.gerbilTag; repo = "fosrl/gerbil"; image = images.gerbil; };
+      traefik = { tag = cfg.traefikTag; repo = "traefik/traefik"; image = images.traefik; };
+      crowdsec = { tag = cfg.crowdsecTag; repo = "crowdsecurity/crowdsec"; image = images.crowdsec; };
     };
 
     # The compose stack itself - a oneshot "up -d"/"down" pair rather than a long-running
@@ -1237,8 +1245,24 @@ in
         # network whose bridge or subnet doesn't match - e.g. the auto-named podmanN from before
         # `bridge` was set (hosts/vm-vps1, 2026-10-05), or an auto-assigned subnet from before
         # `subnet` was - is removed here for `up` to recreate.
+        #
+        # Missing images are pulled *before* that teardown, so a tag that can't be pulled fails the
+        # start with the pull error while a running stack is still up - otherwise `down` removes it
+        # and `up` exits 125 with no traefik container at all (a GitHub release whose Docker
+        # official image wasn't published yet, hosts/vps2, 2026-10-30). Only missing images are
+        # pulled, so a registry outage never blocks a start whose images are all local.
         ExecStartPre = pkgs.writeShellScript "${cfg.name}-stack-reset" ''
           set -euo pipefail
+          for ref in ${lib.escapeShellArgs (lib.mapAttrsToList (n: img: "${img}:${cfg."${n}Tag"}") images)}; do
+            ${pkgs.podman}/bin/podman image exists "$ref" && continue
+            for try in 1 2 3; do
+              ${pkgs.podman}/bin/podman pull "$ref" && continue 2
+              echo "pull of $ref failed (attempt $try/3)" >&2
+              sleep 10
+            done
+            echo "$ref can't be pulled - not touching the stack" >&2
+            exit 1
+          done
           ${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} down
           # Fresh copy of the sops-rendered config.yml on every start, so the restart sops-nix
           # triggers when the template changes (restartUnits below) picks it up - see tmpfiles
@@ -1264,7 +1288,16 @@ in
         # missing-GeoLite2 crash loop hung activation for 18+ minutes with no timeout in place
         # (hosts/vm-vps1 testing, 2026-09-21).
         TimeoutStartSec = "5min";
+        # A failed start (a pull that can't reach the registry, a startup race with the host LAPI)
+        # otherwise leaves the stack down until someone notices. A `nixos-rebuild switch` still
+        # reports the failed start, then the retries carry on behind it.
+        Restart = "on-failure";
+        RestartSec = "30s";
       };
+      # Bounded so a start that can never succeed (a tag that doesn't exist) settles as `failed`,
+      # where check-failed-units alerts on it, instead of retrying forever
+      startLimitIntervalSec = 900;
+      startLimitBurst = 5;
     };
 
     # Registers this stack with the host LAPI, the single CrowdSec hub: the crowdsec container as an

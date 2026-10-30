@@ -114,6 +114,7 @@
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.oci.newt;
+  image = "docker.io/fosrl/newt";
   caddy = config.services.native.caddy;
 
   # Only enabled instances get a container, network, secret and egress rule
@@ -358,7 +359,7 @@ let
 
     # Generate the "podman-newt-<instance>" service unit (cfg.port is unused, no ports published)
     virtualisation.oci-containers.containers."${cont}" = {
-      image = "docker.io/fosrl/newt:${cfg.tag}";
+      image = "${image}:${cfg.tag}";
       autoStart = true;
       hostname = cont;
       user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
@@ -483,7 +484,7 @@ in
   # Merged per option path: a top-level `mkMerge` over `instances` would infinitely recurse
   config = lib.mkIf (cfg.enable && enabled != { }) {
     # Have services.native.alerts check this image for new upstream releases
-    services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "fosrl/newt"; };
+    services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "fosrl/newt"; inherit image; };
 
     assertions = [
       { assertion = cfg.sopsFile != null;

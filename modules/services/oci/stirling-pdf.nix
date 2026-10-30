@@ -25,6 +25,7 @@
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.oci.stirling-pdf;
+  image = "docker.stirlingpdf.com/stirlingtools/stirling-pdf";
 in
 {
   options.services.oci.stirling-pdf = import ../../types/service.nix {
@@ -34,7 +35,7 @@ in
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
       # Have services.native.alerts check this image for new upstream releases
-      services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "Stirling-Tools/Stirling-PDF"; };
+      services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "Stirling-Tools/Stirling-PDF"; inherit image; };
 
       assertions = f.ociAsserts cfg ++ [
         { assertion = cfg.caddy -> cfg.subdomain != null;
@@ -63,7 +64,7 @@ in
       virtualisation.oci-containers.containers."${cfg.name}" = {
         # [Non-root isn't supported](https://github.com/Stirling-Tools/Stirling-PDF/issues/508)
         # user = "${toString cfg.user.uid}:${toString cfg.user.gid}";
-        image = "docker.stirlingpdf.com/stirlingtools/stirling-pdf:${cfg.tag}";
+        image = "${image}:${cfg.tag}";
         autoStart = true;
         hostname = "${cfg.name}";
         networks = [ (f.contNetwork cfg.name cfg.name) ];  # Isolated network, named veth

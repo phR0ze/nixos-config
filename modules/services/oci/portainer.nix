@@ -21,6 +21,7 @@
 { config, lib, f, ... }: with lib.types;
 let
   cfg = config.services.oci.portainer;
+  image = "docker.io/portainer/portainer-ce";
 in
 {
   options = {
@@ -81,7 +82,7 @@ in
 
   config = lib.mkIf cfg.enable {
     # Have services.native.alerts check this image for new upstream releases
-    services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "portainer/portainer"; };
+    services.native.alerts.imageUpdates.images.${cfg.name} = { tag = cfg.tag; repo = "portainer/portainer"; inherit image; };
 
     assertions = [
       { assertion = !config.virtualization.podman.harden;
@@ -110,7 +111,7 @@ in
     #   which Portainer's socket-based container management actually needs — it only widened what a
     #   compromised Portainer process (before ever touching the socket) could do for free.
     virtualisation.oci-containers.containers."${cfg.name}" = {
-      image = "portainer/portainer-ce:${cfg.tag}";
+      image = "${image}:${cfg.tag}";
       autoStart = true;
       hostname = "${cfg.name}";
       networks = [ (f.contNetwork cfg.name cfg.name) ];  # Isolated network, named veth

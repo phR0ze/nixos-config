@@ -62,7 +62,7 @@ let
   versionedImages = lib.filterAttrs (_: img: img != null) (lib.mapAttrs (_: img:
     let m = builtins.match "([^0-9]*)([0-9]+(\\.[0-9]+)*)" img.tag; in
     if m == null then null else {
-      inherit (img) tag repo;
+      inherit (img) tag repo image;
       prefix = lib.elemAt m 0;
       version = lib.elemAt m 1;
       minorOnly = builtins.length (lib.splitString "." (lib.elemAt m 1)) == 2;
@@ -202,7 +202,8 @@ in
       images = lib.mkOption {
         description = ''
           Pinned container images to compare against their upstream project's latest GitHub
-          release, pushing a notification when the set of outdated images changes. A notice only,
+          release, pushing a notification when the set of outdated images changes. A release is
+          only reported once `image` has its tag, so every reported version can be pulled. A notice only,
           never an update - bumping a pin stays a deliberate change after reading the release
           notes. Each module running pinned images adds its own entries, rather than this being
           listed per host. A tag's non-numeric prefix (`v`, `ee-`) is kept on the reported version
@@ -220,6 +221,16 @@ in
               description = "GitHub `owner/repo` whose latest release is compared against `tag`";
               type = lib.types.str;
               example = "crowdsecurity/crowdsec";
+            };
+            image = lib.mkOption {
+              description = ''
+                Registry image reference, without a tag, that the pin is pulled from. A new release
+                is only reported once its tag exists here - a GitHub release often lands hours or
+                days before its image (Docker's official images are rebuilt separately), and
+                bumping to a tag that can't be pulled takes the service down.
+              '';
+              type = lib.types.str;
+              example = "docker.io/crowdsecurity/crowdsec";
             };
           };
         });
@@ -604,11 +615,27 @@ in
                 "https://api.github.com/repos/$1/releases/latest" \
                 | ${pkgs.jq}/bin/jq -er '.tag_name' | sed 's/^v//'
             }
+
+            # Whether an image reference can actually be pulled - its manifest exists. Only the
+            # manifest is fetched, never the image. References are fully qualified, so skopeo gets
+            # an empty registries.conf: it rejects the v1-format /etc/containers/registries.conf
+            # NixOS generates ("registries.conf must be in v2 format"), which podman still accepts
+            pullable() {
+              ${pkgs.skopeo}/bin/skopeo --registries-conf ${pkgs.writeText "registries.conf" ""} \
+                inspect --raw --no-creds --retry-times 2 "docker://$1" >/dev/null 2>&1
+            }
           '' + lib.concatStrings (lib.mapAttrsToList (name: img: ''
             if new=$(latest ${lib.escapeShellArg img.repo}); then
               ${lib.optionalString img.minorOnly ''new=$(printf '%s' "$new" | cut -d. -f1-2)''}
-              if [ "$new" != ${lib.escapeShellArg img.version} ]; then
+              if [ "$new" = ${lib.escapeShellArg img.version} ]; then
+                :
+              elif pullable ${lib.escapeShellArg "${img.image}:${img.prefix}"}"$new"; then
                 REPORT+=${lib.escapeShellArg "${name}: ${img.tag} -> ${img.prefix}"}"$new"$'\n'
+              else
+                # Released but not yet pullable (or the registry is unreachable) - keep the last
+                # known result for this pin, so it's reported on a later run once the image is published
+                old=$(printf '%s\n' "$PREV" | grep -m1 -F ${lib.escapeShellArg "${name}: ${img.tag} -> "} || true)
+                [ -n "$old" ] && REPORT+="$old"$'\n'
               fi
             else
               # Keep the last known result rather than flip-flopping the state on a failed fetch
