@@ -6,6 +6,8 @@ host:
         gateway: ENC[AES256_GCM,data:OnVwUHcLomZejfc=,iv:2fT9ofreoshiC+7TejLpaSW2FTDnxZNa9Nx4ye8Qw0g=,tag:VYyPSRv6yZCrldoC8Hcq5A==,type:str]
         dns:
             primary: ENC[AES256_GCM,data:qycqRllJXjWoWgk=,iv:JvVgdqcyuAHQk7vsjQiptmP1+0vPq+AdbxNOXUPAnqk=,tag:FY4xExXGQrG9tqyCeeAp7Q==,type:str]
+        allowList:
+            - ENC[AES256_GCM,data:nmfWS1AHNalahp41Hg==,iv:Wj8BE3M2AbK5nWVVAcFqJ+UNkHx1lIdGBivfLtbE1aY=,tag:j5spLXI3CDfnHNmjEX3VlA==,type:str]
     git:
         user: ENC[AES256_GCM,data:caCnB963,iv:XhjBXZTkApl5FomoCvsNlK382/IPtqGkeOgCATYQ6T4=,tag:kIZe14vdDmvkLpxcXNt5fw==,type:str]
         email: ENC[AES256_GCM,data:qHB1GfSAb7ucdEVv//y4VtySRw/Oaetv8Yl1RwRBVHZWl2drBWKcLQ==,iv:JkRSyEpMLay+RUhnaxj6do4ds//rYITf0jGhH/YCdaA=,tag:rX6C0MELTR0Ap0wIyM2mNw==,type:str]
@@ -33,7 +35,7 @@ sops:
             MheJbzdAFE9sa4Nnze2/p/CY8aVAwDk0B9F9tDYq3T9RHsvVcZNvKw==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-10-11T21:01:57Z"
-    mac: ENC[AES256_GCM,data:7/+j8HdT4Ch3hphxk5fahUsQugxkyDt1J0zD3Xk7pVkQ4Z2XWw5uxTSOLMYqKvhvEZO9Tr+NyXuWcil+Qe+WkIUr199T/tw9KYt1TkIAiBbRrE9q7bsVEYvyXPc+whcyQnJ6nsd+kucO/mujhzwJzW/gmosVoEGdJ/gyXRmgpOc=,iv:DmyfshAXMAicwYpCHQcSccRQwYmH13FAXTq6cjWhDG4=,tag:9YCqk0x+u0OfBSVe00Njkw==,type:str]
+    lastmodified: "2026-10-30T00:25:47Z"
+    mac: ENC[AES256_GCM,data:fUn5agCBXtWvnYKBGmXSouaKe5U3aRbisDHz0Rri90Fy64/OYUWkXpb+woIYPN0aXc67S5iFMNhDeR0lZw26TLKFD4aOK5zoRZaQPjGpRAAXQ048DBrSQsvueOBDomuBvsExHedhFTkUdykAhz5Rl108A4MCBnECT2fGEvXTcVM=,iv:enqYXF1UHmc3bZWyw6FxFlcsP/bxeL7CFie5IM1DHIo=,tag:PUru5uMzUY0dpKJrimENGQ==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1
