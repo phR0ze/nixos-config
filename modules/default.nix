@@ -500,15 +500,28 @@ in
     ))
 
     (lib.mkIf config.services.native.caddy.enable (
-      let arg = f.getSvcFunc "native.caddy" cfg.services;
+      let
+        arg = f.getSvcFunc "native.caddy" cfg.services;
+
+        # Backends on other machines, placed on zones like an app's own proxies via `whichDomains`
+        # (default `primary`) so no zone has to be spelled out as a key, which sops leaves in
+        # plaintext
+        proxies = f.getSvcValue "native.caddy.proxies" cfg.services;
+        offHost = map (p: f.caddyProxies
+          { domains = cfg.network.domains; whichDomains = p.whichDomains or "primary"; }
+          [ (removeAttrs p [ "whichDomains" ]) ]) (if proxies == null then [ ] else proxies);
       in {
         services.native.caddy.sopsFile = cfg.sopsFile;
         # One Caddy zone per host domain. Args can add per-zone extras (a different
-        # `cloudflareApiTokenSecretRef`, `proxies` to other machines) keyed by the same zone.
-        services.native.caddy.domains = lib.mkMerge [
+        # `cloudflareApiTokenSecretRef`) keyed by the same zone, and zone-less `proxies`.
+        services.native.caddy.domains = lib.mkMerge ([
           (lib.genAttrs cfg.network.domains (_: { }))
           (arg "domains")
-        ];
+        ] ++ offHost);
+        assertions = map (p: {
+          assertion = lib.elem (p.whichDomains or "primary") [ "primary" "all" ];
+          message = "host.services.native.caddy.proxies: '${p.subdomain or "?"}' has whichDomains '${p.whichDomains}', expected 'primary' or 'all'";
+        }) (if proxies == null then [ ] else proxies);
         services.native.caddy.trustedProxies = arg "trustedProxies";
       }
     ))

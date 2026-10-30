@@ -19,8 +19,9 @@
 #    tracked files.
 # 3. Proxies: apps add their own entry to `domains.<zone>.proxies` via their `subdomain`, `domains`
 #    and `whichDomains` options - the primary (first) zone only by default, every zone with
-#    `whichDomains = "all"`. Backends on other machines go in
-#    `host.services.native.caddy.domains.<zone>.proxies` in `args.enc.yaml` to keep LAN IPs untracked.
+#    `whichDomains = "all"`. Backends on other machines go in `host.services.native.caddy.proxies`
+#    in `args.enc.yaml` (same fields plus optional `whichDomains`) to keep LAN IPs untracked; the
+#    list is zone-less because sops leaves keys, e.g. `domains.<zone>`, in plaintext.
 # 4. Pangolin: with `services.oci.newt` on this host, resources target
 #    `https://host.containers.internal:443` and keep their public name end to end, so Caddy must
 #    serve that subdomain on the Pangolin server's zone (see newt.nix's "Blueprints", which asserts
@@ -110,7 +111,7 @@ in
               example = [{ subdomain = "vault"; port = 8222; }];
               description = ''
                 Backends served as `<subdomain>.<name>`. Filled in by apps' own `subdomain`/`domains`
-                options and by `host.services.native.caddy.domains.<zone>.proxies` in build-time args.
+                options and by `host.services.native.caddy.proxies` in build-time args.
               '';
             };
           };
