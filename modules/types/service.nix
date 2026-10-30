@@ -25,11 +25,12 @@
     default = defaults.name or null;
   };
 
+  # No floating default: every host pins an explicit image version
   tag = lib.mkOption {
-    description = "Service image 'tag' to use";
+    description = "Service image 'tag' to use - an explicit version, never 'latest'";
     type = types.str;
-    default = defaults.tag or "latest";
-  };
+    example = "1.2.3";
+  } // lib.optionalAttrs (defaults ? tag) { default = defaults.tag; };
 
   user = lib.mkOption {
     description = "User options for service";

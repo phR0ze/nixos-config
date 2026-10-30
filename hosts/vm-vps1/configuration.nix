@@ -32,7 +32,7 @@
       enable = true;
       pangolinTag = "ee-1.24.0";
       gerbilTag = "1.5.2";
-      traefikTag = "v3.7";
+      traefikTag = "v3.7.17";
       crowdsecTag = "v1.7.8";  # agent only, must not be newer than the host LAPI
       badgerPluginVersion = "v1.7.0";
       crowdsecPluginVersion = "v1.7.1";

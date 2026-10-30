@@ -37,10 +37,9 @@ in
           };
 
           tag = lib.mkOption {
-            description = "Portainer CE image tag to use";
+            description = "Portainer CE image tag - an explicit version, check github.com/portainer/portainer/releases";
             type = types.str;
-            default = "lts";
-            example = "2.21.4";
+            example = "2.45.3";
           };
 
           port = lib.mkOption {
