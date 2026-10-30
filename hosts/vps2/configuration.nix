@@ -28,5 +28,10 @@
       badgerPluginVersion = "v1.7.0";
       crowdsecPluginVersion = "v1.7.1";
     };
+
+    # TEMPORARY: CVE-2026-98432 (remote TCP use-after-free, fixed in 6.18.56) is reachable via the
+    # MPTCP listeners Go >= 1.24 opens by default (traefik, gerbil, crowdsec). Disabling MPTCP makes
+    # them fall back to plain TCP. Remove once the nixpkgs pin bump puts this host on >= 6.18.56.
+    boot.kernel.sysctl."net.mptcp.enabled" = 0;
   };
 }

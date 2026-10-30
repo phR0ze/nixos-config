@@ -147,6 +147,8 @@ let
           default:
             x-podman.interface_name: ${vethOpt cfg.name}
             ipv4_address: ${pangolinIp}
+        sysctls:
+          - net.mptcp.enabled=0    # TEMPORARY: CVE-2026-98432, see hosts/vps1/configuration.nix
         deploy:
           resources:
             limits:
@@ -171,6 +173,8 @@ let
           default:
             x-podman.interface_name: ${vethOpt "gerbil"}
             ipv4_address: ${gerbilIp}
+        sysctls:
+          - net.mptcp.enabled=0    # TEMPORARY: CVE-2026-98432, see hosts/vps1/configuration.nix
         depends_on:
           pangolin:
             condition: service_healthy
@@ -223,6 +227,8 @@ let
           default:
             x-podman.interface_name: ${vethOpt "crowdsec"}
             ipv4_address: ${crowdsecIp}
+        sysctls:
+          - net.mptcp.enabled=0    # TEMPORARY: CVE-2026-98432, see hosts/vps1/configuration.nix
         environment:
           GID: "1000"
           COLLECTIONS: ${lib.concatStringsSep " " cfg.crowdsecCollections}
