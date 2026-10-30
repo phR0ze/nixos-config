@@ -51,6 +51,14 @@ let
 
   hasProxies = lib.any (zone: proxiesOf zone != [ ]) zones;
 
+  # Plain HTTP to the backend, or HTTPS without certificate checks for self-signed LAN appliances
+  reverseProxy = p: if p.tlsSkipVerify then ''
+    reverse_proxy https://${p.host}:${toString p.port} {
+          transport http {
+            tls_insecure_skip_verify
+          }
+        }'' else "reverse_proxy ${p.host}:${toString p.port}";
+
   # One `*.<zone>` site per zone with only that zone's proxies, each with its own wildcard
   # certificate requested with that zone's own token
   wildcardSite = zone: lib.nameValuePair "*.${zone.name}" {
@@ -71,7 +79,7 @@ let
     '' + lib.concatMapStringsSep "\n" (p: ''
       @${p.subdomain} host ${p.subdomain}.${zone.name}
       handle @${p.subdomain} {
-        reverse_proxy ${p.host}:${toString p.port}
+        ${reverseProxy p}
       }
     '') (proxiesOf zone) + ''
 

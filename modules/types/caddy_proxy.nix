@@ -29,7 +29,17 @@
 
     port = lib.mkOption {
       type = types.port;
-      description = "Backend HTTP port on `host` this proxy forwards to.";
+      description = "Backend port on `host` this proxy forwards to.";
+    };
+
+    tlsSkipVerify = lib.mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Speak HTTPS to the backend without verifying its certificate, for LAN appliances that only
+        serve a self-signed one (e.g. Synology DSM on 5001). The hop stays encrypted but isn't
+        authenticated, so only use it for backends on a trusted network.
+      '';
     };
   };
 }
