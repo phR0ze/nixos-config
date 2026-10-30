@@ -1264,6 +1264,28 @@ in
             exit 1
           done
           ${pkgs.podman-compose}/bin/podman-compose -f docker-compose.yml -p ${cfg.name} down
+          # A create killed partway (a start that fails or times out mid-`up`) can leave a
+          # storage-only container: unknown to podman, so `down` can't see it, yet still holding
+          # its name, so every later `up` fails "name is already in use" and hangs on the healthy
+          # wait. Its overlay `merged` dir may also hold the empty mount-point skeleton, which
+          # `rm --storage` refuses ("directory not empty") - cleared only when nothing has it
+          # mounted (hosts/vps2, 2026-10-30).
+          ${pkgs.podman}/bin/podman ps -a --external --format '{{.ID}} {{.Names}} {{.Status}}' \
+            | while read -r id name status; do
+            case "$name" in ${lib.concatStringsSep "|" [ cfg.name "gerbil" "traefik" "crowdsec" ]}) ;; *) continue ;; esac
+            [ "$status" = Storage ] || continue
+            if ! err=$(${pkgs.podman}/bin/podman rm --force --storage "$id" 2>&1); then
+              merged=$(printf '%s' "$err" | grep -o '/var/lib/containers/storage/overlay/[0-9a-f]*/merged' | head -1)
+              layer=$(basename "$(dirname "$merged")")
+              if [ -z "$merged" ] || grep -qs "$layer" /proc/[0-9]*/mountinfo; then
+                echo "can't remove orphaned container $name ($id): $err" >&2
+                exit 1
+              fi
+              rm -rf --one-file-system "''${merged:?}"/*
+              ${pkgs.podman}/bin/podman rm --force --storage "$id"
+            fi
+            echo "removed orphaned container $name ($id)"
+          done
           # Fresh copy of the sops-rendered config.yml on every start, so the restart sops-nix
           # triggers when the template changes (restartUnits below) picks it up - see tmpfiles
           install -m 0400 ${config.secret.templates."${cfg.name}-config".path} config/config.yml
