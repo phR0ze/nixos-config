@@ -601,12 +601,14 @@ let
   #   `PUT /api/v1/user/<id>/olm` (hosts/vps1, 2026-10-12) - that hit came via the old dashboard
   #   name after a dashboardDomain change, which no exclusion here covers, so clients must move
   #   to the new name promptly.
-  # - WebDAV on `webdavSubdomains` (e.g. Nextcloud), `/remote.php/dav/` only. 911100 for every
-  #   WebDAV method, as PROPFIND/REPORT/MOVE/... aren't in CRS's method policy. For the methods
-  #   carrying an XML body, also 920420 and the XSS rules 941100/941130: Nextcloud's web UI sends
-  #   that body as `text/plain`, so CRS parses the XML as form arguments and reads `<?xml` and
-  #   `xmlns:` as XSS. One folder listing in Firefox (a PROPFIND and a favorites REPORT) scored 20
-  #   with an XSS category and banned the user on the first request (hosts/vps1, 2026-10-29).
+  # - All out-of-band CRS (tag OWASP_CRS) for WebDAV on `webdavSubdomains` (e.g. Nextcloud),
+  #   `/remote.php/dav/` only. Its methods (PROPFIND, REPORT, MOVE, ...) are outside CRS's method
+  #   policy (911100), and its bodies are XML or file contents that CRS, given Nextcloud's
+  #   `text/plain`, parses as form arguments. A folder listing scored 20 on 911100, 920420 and the
+  #   XSS rules 941100/941130 (hosts/vps1, 2026-10-29), and an upload matched nearly every category
+  #   (anomaly 52790, hosts/vps1, 2026-10-30), each banning the user on its first request. Per-rule
+  #   exclusions can't cover arbitrary file contents. These paths sit behind Pangolin's SSO and
+  #   Nextcloud's own auth, and the in-band virtual patches still apply to them.
   appsecExclusionsName = "custom/${cfg.name}-exclusions";
   crowdsecAppsecExclusionsText = ''
     name: ${appsecExclusionsName}
@@ -623,19 +625,12 @@ let
   ''
   # Re-indented under `pre_eval:`, as each `'''` string has its own indentation stripped
   + lib.optionalString (webdavHosts != [ ]) (lib.concatMapStrings (l: "  ${l}\n") (lib.splitString "\n" ''
-    - filter: IsOutBand == true && req.Host in ${builtins.toJSON webdavHosts} && req.URL.Path startsWith "/remote.php/dav/" && req.Method in ${builtins.toJSON webdavMethods}
+    - filter: IsOutBand == true && req.Host in ${builtins.toJSON webdavHosts} && req.URL.Path startsWith "/remote.php/dav/"
       apply:
-        - RemoveOutBandRuleByID(911100)
-    - filter: IsOutBand == true && req.Host in ${builtins.toJSON webdavHosts} && req.URL.Path startsWith "/remote.php/dav/" && req.Method in ${builtins.toJSON webdavXmlMethods}
-      apply:
-        - RemoveOutBandRuleByID(920420)
-        - RemoveOutBandRuleByID(941100)
-        - RemoveOutBandRuleByID(941130)''));
+        - RemoveOutBandRuleByTag("OWASP_CRS")''));
 
-  # Every `webdavSubdomains` entry on every zone, and the WebDAV methods outside CRS's method policy
+  # Every `webdavSubdomains` entry on every zone
   webdavHosts = lib.concatMap (zone: map (sub: "${sub}.${zone}") cfg.webdavSubdomains) cfg.domains;
-  webdavXmlMethods = [ "PROPFIND" "PROPPATCH" "REPORT" "SEARCH" "LOCK" ];
-  webdavMethods = webdavXmlMethods ++ [ "MKCOL" "COPY" "MOVE" "UNLOCK" "PUT" "DELETE" ];
 
   # Bans repeated lone CRS hits, which the host LAPI's profiles no longer ban on their own (see
   # services.native.crowdsec's profiles): 3 different URLs (query string ignored) from one IP
@@ -809,9 +804,10 @@ in
 
     webdavSubdomains = lib.mkOption {
       description = ''
-        Subdomains, on every zone in `domains`, whose `/remote.php/dav/` WebDAV traffic is exempt
-        from the CRS rules it trips by design, see crowdsecAppsecExclusionsText. Subdomains only, so
-        the zones stay out of tracked files.
+        Subdomains, on every zone in `domains`, whose `/remote.php/dav/` WebDAV traffic skips
+        out-of-band CRS, which its methods and bodies trip by design, see
+        crowdsecAppsecExclusionsText. In-band virtual patches still apply. Subdomains only, so the
+        zones stay out of tracked files.
       '';
       type = types.listOf types.str;
       default = [ ];
