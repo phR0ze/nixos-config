@@ -573,6 +573,8 @@ in
 
     (lib.mkIf config.services.native.alerts.enable {
       services.native.alerts.sopsFile = cfg.sopsFile;
+      services.native.alerts.publicIp.expected =
+        lib.mkIf (cfg.network.allowList != [ ]) (lib.head cfg.network.allowList);
     })
 
     (lib.mkIf config.services.native.crowdsec.enable {

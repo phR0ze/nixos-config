@@ -25,6 +25,9 @@
 
     services.native.smb.enable = true;
     services.native.mullvad.enable = true;
+
+    # vps1 allowlists this address for Newt, so get told when the ISP changes it
+    services.native.alerts = { enable = true; publicIp.enable = true; };
     services.native.minecraft.enable = true;
     services.native.nix-cache.host.enable = true;
     services.oci.newt = {

@@ -6,6 +6,7 @@
 # - Configurable alerts for missing, failed or stale `backup-<name>` units
 # - Configurable alerts for down/unhealthy podman containers
 # - Configurable alerts for new upstream releases of pinned container images
+# - Configurable alerts for a public IP that no longer matches `host.network.allowList`
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }:
 let
@@ -230,6 +231,43 @@ in
         description = "When to check for new releases, as a systemd `OnCalendar` expression";
         type = lib.types.str;
         default = "09:00";
+      };
+    };
+
+    publicIp = {
+      enable = lib.mkOption {
+        description = ''
+          Push a notification when this host's public IPv4 address stops matching `expected`, e.g.
+          a homelab whose ISP-assigned address a Pangolin VPS allowlists, so Newt isn't banned once
+          it changes. Only for the host whose own address `expected` is: on the VPS the same
+          allowList holds the homelab's address, not its own.
+        '';
+        type = lib.types.bool;
+        default = false;
+      };
+
+      expected = lib.mkOption {
+        description = ''
+          The address this host should have. Forwarded from the first `host.network.allowList`
+          entry by `modules/default.nix`, a `/32` suffix dropped.
+        '';
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+      };
+
+      url = lib.mkOption {
+        description = "Service returning the caller's IPv4 address as plain text";
+        type = lib.types.str;
+        default = "https://ifconfig.me";
+      };
+
+      interval = lib.mkOption {
+        description = ''
+          How often to check, as a systemd time span (`OnUnitActiveSec`). Also the worst-case delay
+          between the address changing and the notification going out.
+        '';
+        type = lib.types.str;
+        default = "15min";
       };
     };
   };
@@ -602,5 +640,51 @@ in
         };
       };
     })
+
+    # A failed lookup (network down, service unreachable) keeps the last state and retries on the
+    # next run, so it never reads as a change or a recovery
+    (lib.mkIf cfg.publicIp.enable (let
+      expected = lib.removeSuffix "/32" cfg.publicIp.expected;
+    in {
+      assertions = [
+        { assertion = cfg.publicIp.expected != null
+            && builtins.match "[0-9]+(\\.[0-9]+){3}" expected != null;
+          message = "services.native.alerts.publicIp requires 'expected' to be a single IPv4 address, normally the first host.network.allowList entry"; }
+      ];
+
+      systemd.services.check-public-ip = {
+        description = "Push a notification when the public IP stops matching the allowlist";
+        serviceConfig = {
+          Type = "oneshot";
+          StateDirectory = "alerts";
+          ExecStart = toString (pkgs.writeShellScript "check-public-ip" ''
+            set -uo pipefail
+            ${ntfyFunc}
+            ${reportFunc}
+            HOST=${config.networking.hostName}
+            if ! IP=$(${pkgs.curl}/bin/curl -4 -sf --max-time 30 ${lib.escapeShellArg cfg.publicIp.url}) \
+                || ! [[ "$IP" =~ ^[0-9]+(\.[0-9]+){3}$ ]]; then
+              echo "Couldn't determine the public IP, keeping the last state" >&2
+              exit 0
+            fi
+            PROBLEM=""
+            if [ "$IP" != ${lib.escapeShellArg expected} ]; then
+              PROBLEM="Public IP is $IP, not ${expected}. Update host.network.allowList in this host's and the Pangolin VPS's args"
+            fi
+            report /var/lib/alerts/public-ip.state \
+              "public IP changed" "public IP matches the allowlist again" "$PROBLEM"
+          '');
+        };
+      };
+
+      systemd.timers.check-public-ip = {
+        description = "Check the public IP every ${cfg.publicIp.interval}";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnBootSec = "5min";
+          OnUnitActiveSec = cfg.publicIp.interval;
+        };
+      };
+    }))
   ]);
 }
