@@ -395,10 +395,9 @@ in
       # go through Caddy's TLS instead of hitting AdGuard's HTTP port directly.
       services.adguardhome = {
         enable = true;
-        host = cfg.bindAddress;
-        port = cfg.port;
         openFirewall = !cfg.caddy; # opens only the HTTP admin port - see note above
         settings = {
+          http.address = "${cfg.bindAddress}:${toString cfg.port}";
           theme = "dark";
           dns = {
             bind_hosts = [

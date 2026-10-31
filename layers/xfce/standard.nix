@@ -81,7 +81,7 @@ in
         # Office
         hunspell                  # LibreOffice spell checker and actively maintained
         hunspellDicts.en_US       # LibreOffice spell checker and actively maintained
-        libreoffice-fresh         # Comprehensive, professional-quality productivity suite
+        libreoffice               # Comprehensive, professional-quality productivity suite
         scribus                   # Open Source Desktop Publishing
 
         # Utilities
