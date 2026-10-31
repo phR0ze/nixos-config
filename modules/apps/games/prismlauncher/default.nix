@@ -34,7 +34,7 @@ in
       tag = lib.mkOption {
         description = "Version tag to match patches against";
         type = types.str;
-        default = "v11.0";
+        default = "v11.1";
       };
     };
   };

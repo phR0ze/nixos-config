@@ -1,8 +1,7 @@
-Binary files a/.git/index and b/.git/index differ
-diff '--color=auto' -ruN a/launcher/Application.cpp b/launcher/Application.cpp
---- a/launcher/Application.cpp	2025-02-15 13:05:23.387149802 -0700
-+++ b/launcher/Application.cpp	2025-02-15 14:31:54.883316967 -0700
-@@ -1094,7 +1094,7 @@
+diff -ruN a/launcher/Application.cpp b/launcher/Application.cpp
+--- a/launcher/Application.cpp
++++ b/launcher/Application.cpp
+@@ -1220,7 +1220,7 @@
      bool pasteInterventionRequired = settings()->get("PastebinURL") != "";
      bool validWidgets = m_themeManager->isValidApplicationTheme(settings()->get("ApplicationTheme").toString());
      bool validIcons = m_themeManager->isValidIconTheme(settings()->get("IconTheme").toString());
@@ -11,14 +10,14 @@ diff '--color=auto' -ruN a/launcher/Application.cpp b/launcher/Application.cpp
      bool themeInterventionRequired = !validWidgets || !validIcons;
      bool wizardRequired = javaRequired || languageRequired || pasteInterventionRequired || themeInterventionRequired || askjava || login;
      if (wizardRequired) {
-diff '--color=auto' -ruN a/launcher/LaunchController.cpp b/launcher/LaunchController.cpp
---- a/launcher/LaunchController.cpp	2025-02-15 13:05:23.388149815 -0700
-+++ b/launcher/LaunchController.cpp	2025-02-15 13:50:48.348069975 -0700
-@@ -86,23 +86,6 @@
+diff -ruN a/launcher/LaunchController.cpp b/launcher/LaunchController.cpp
+--- a/launcher/LaunchController.cpp
++++ b/launcher/LaunchController.cpp
+@@ -92,24 +92,6 @@
+         m_accountToUse = accounts->at(instanceAccountIndex);
+     }
  
-     // Find an account to use.
-     auto accounts = APPLICATION->accounts();
--    if (accounts->count() <= 0 || !accounts->anyAccountIsValid()) {
+-    if (!accounts->anyAccountIsValid()) {
 -        // Tell the user they need to log in at least one account in order to play.
 -        auto reply = CustomMessageBox::selectable(m_parentWidget, tr("No Accounts"),
 -                                                  tr("In order to play Minecraft, you must have at least one Microsoft "
@@ -35,25 +34,26 @@ diff '--color=auto' -ruN a/launcher/LaunchController.cpp b/launcher/LaunchContro
 -            return;
 -        }
 -    }
- 
-     // Select the account to use. If the instance has a specific account set, that will be used. Otherwise, the default account will be used
-     auto instanceAccountId = m_instance->settings()->get("InstanceAccountId").toString();
-diff '--color=auto' -ruN a/launcher/minecraft/auth/MinecraftAccount.h b/launcher/minecraft/auth/MinecraftAccount.h
---- a/launcher/minecraft/auth/MinecraftAccount.h	2025-02-15 13:26:53.226367619 -0700
-+++ b/launcher/minecraft/auth/MinecraftAccount.h	2025-02-15 13:11:35.679290909 -0700
+-
+     if (!m_accountToUse && accounts->anyAccountIsValid()) {
+         // If no default account is set, ask the user which one to use.
+         ProfileSelectDialog selectDialog(tr("Which account would you like to use?"), ProfileSelectDialog::GlobalDefaultCheckbox,
+diff -ruN a/launcher/minecraft/auth/MinecraftAccount.h b/launcher/minecraft/auth/MinecraftAccount.h
+--- a/launcher/minecraft/auth/MinecraftAccount.h
++++ b/launcher/minecraft/auth/MinecraftAccount.h
 @@ -116,7 +116,7 @@
  
-     [[nodiscard]] AccountType accountType() const noexcept { return data.type; }
+     AccountType accountType() const noexcept { return data.type; }
  
 -    bool ownsMinecraft() const { return data.type != AccountType::Offline && data.minecraftEntitlement.ownsMinecraft; }
 +    bool ownsMinecraft() const { return true; }
  
      bool hasProfile() const { return data.profileId().size() != 0; }
  
-diff '--color=auto' -ruN a/launcher/ui/pages/global/AccountListPage.cpp b/launcher/ui/pages/global/AccountListPage.cpp
---- a/launcher/ui/pages/global/AccountListPage.cpp	2025-02-15 13:26:53.230367666 -0700
-+++ b/launcher/ui/pages/global/AccountListPage.cpp	2025-02-15 13:13:17.844319403 -0700
-@@ -141,13 +141,7 @@
+diff -ruN a/launcher/ui/pages/global/AccountListPage.cpp b/launcher/ui/pages/global/AccountListPage.cpp
+--- a/launcher/ui/pages/global/AccountListPage.cpp
++++ b/launcher/ui/pages/global/AccountListPage.cpp
+@@ -140,14 +140,7 @@
  
  void AccountListPage::on_actionAddOffline_triggered()
  {
@@ -64,7 +64,8 @@ diff '--color=auto' -ruN a/launcher/ui/pages/global/AccountListPage.cpp b/launch
 -                                "If you have lost your account you can contact Microsoft for support."));
 -        return;
 -    }
+-
 +    // Allow offline accounts
- 
-     MinecraftAccountPtr account =
-         OfflineLoginDialog::newAccount(this, tr("Please enter your desired username to add your offline account."));
+     ChooseOfflineNameDialog dialog(tr("Please enter your desired username to add your offline account."), this);
+     if (dialog.exec() != QDialog::Accepted) {
+         return;
