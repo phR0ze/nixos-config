@@ -94,29 +94,29 @@ in
 
     services.crowdsec = {
       enable = true;
-      settings.general.api.server.enable = true;   # local LAPI for the bouncer to query decisions from
+      settings.config.api.server.enable = true;    # local LAPI for the bouncer to query decisions from
 
       # The single LAPI for every CrowdSec component on the host, including container agents and
       # bouncers (e.g. services.oci.pangolin's), which reach it over their podman bridge - so it
       # can't stay on loopback. networking.firewall keeps 8080 closed on every other interface;
       # a module that needs it opens it on its own bridge only.
-      settings.general.api.server.listen_uri = "0.0.0.0:8080";
+      settings.config.api.server.listen_uri = "0.0.0.0:8080";
       autoUpdateService = true;                    # daily `cscli hub update` to pick up new/CVE scenarios
 
       # Local LAPI machine credentials, auto-provisioned by `cscli machine add --auto` on first
       # activation (see the crowdsec module's ExecStartPre) whenever this file doesn't exist yet -
       # required any time api.server.enable is set, regardless of the CAPI/hosted-console settings.
-      settings.lapi.credentialsFile = "/var/lib/crowdsec/state/local_api_credentials.yaml";
+      settings.config.api.client.credentials_path = "/var/lib/crowdsec/state/local_api_credentials.yaml";
 
       # Without a `flush` block the LAPI never prunes its database: every alert and expired
       # decision (community blocklist refreshes included) is kept forever. Deleting an alert
       # deletes its decisions too, so max_age must stay at or above the longest ban the profiles
       # below can issue (2160h = 90d).
-      settings.general.db_config.flush.max_age = "90d";
+      settings.config.db_config.flush.max_age = "90d";
 
       # console.configuration.share_* are intentionally left at their false upstream defaults -
       # nothing is reported to CrowdSec's hosted console unless explicitly opted into.
-      settings.capi.credentialsFile = cfg.capiCredentialsFile;
+      settings.config.api.server.online_client.credentials_path = cfg.capiCredentialsFile;
 
       # Port-scan detection against the dropped-connection logs enabled above - this is what covers
       # traffic that never touches any particular service's own logs at all. Left as the
@@ -126,7 +126,7 @@ in
       # a VM test shows this one stops matching.
       hub.collections = [ "crowdsecurity/iptables" ];
 
-      localConfig = {
+      settings = {
         acquisitions = [
           {
             source = "journalctl";
@@ -153,7 +153,7 @@ in
             };
         };
 
-        # Setting localConfig.profiles at all replaces the hub's profiles.yaml outright (it does
+        # Setting settings.profiles at all replaces the hub's profiles.yaml outright (it does
         # not merge). Upstream splits Ip/Range scope into two profiles since they can carry
         # different durations, but both escalate the same way here, so one profile covers both. It
         # matches every Ip/Range alert, not just upstream's `Alert.Remediation == true`, so a
@@ -338,9 +338,9 @@ in
       };
     };
 
-    # nixpkgs' own `settings.console.tokenFile` enrollment is unusable: its guard is inverted (it
-    # only enrolls when the token file does *not* exist, then reads that missing file). Enrolled
-    # once here instead, tracked by a marker file.
+    # nixpkgs' own console enrollment (originally `settings.console.tokenFile`, whose guard was
+    # inverted; now `settings.console.enrollKeyFile`) isn't used. Enrolled once here instead,
+    # tracked by a marker file.
     #
     # A first enroll exits 1 even when it worked: cscli enrolls with the Console, then always
     # rewrites console.yaml, which is a read-only store path here. Its output can't be relied on to
@@ -431,7 +431,7 @@ in
       };
     };
 
-    # Upstream deploys every localConfig file (scenarios, parsers, postoverflows, ...) as a tmpfiles
+    # Upstream deploys every settings file (scenarios, parsers, postoverflows, ...) as a tmpfiles
     # `L+` symlink named after its content-hashed store path, but never removes the previous
     # generation's link. Any change to e.g. the allowlist above therefore leaves two files declaring
     # the same `name` side by side, and crowdsec loads whichever sorts first ("multiple

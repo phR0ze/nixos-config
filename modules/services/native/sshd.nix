@@ -256,7 +256,7 @@ in
         # updates can't leave one piece behind by hand-picking just sshd.
         hub.collections = [ "crowdsecurity/linux" ];
 
-        localConfig = {
+        settings = {
           acquisitions = [
             {
               source = "journalctl";

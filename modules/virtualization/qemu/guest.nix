@@ -560,11 +560,6 @@ in
         "virtio_pci"
         "virtio_rng"
       ];
-      boot.initrd.postDeviceCommands = lib.mkIf (!config.boot.initrd.systemd.enable) ''
-        # Set the system time from the hardware clock to work around a bug in qemu-kvm > 1.5.2 (where
-        # the VM clock is initialised to the *boot time* of the host).
-        hwclock -s
-      '';
       system.requiredKernelConfig = with config.lib.kernelConfig; [
         (isEnabled "VIRTIO_BLK") (isEnabled "VIRTIO_PCI") (isEnabled "VIRTIO_NET")
         (isEnabled "EXT4_FS") (isEnabled "NET_9P_VIRTIO") (isEnabled "9P_FS")
@@ -575,29 +570,10 @@ in
       ] ++ lib.optionals (cfg.nixStore.useHost) [
         (isEnabled "OVERLAY_FS")
       ];
-      systemd.tmpfiles.rules = lib.mkIf config.boot.initrd.systemd.enable [
+      systemd.tmpfiles.rules = [
         "f /etc/NIXOS 0644 root root -"
         "d /boot 0644 root root -"
       ];
-      boot.initrd.postMountCommands = lib.mkIf (!config.boot.initrd.systemd.enable)
-        ''
-          # Mark this as a NixOS host.
-          mkdir -p $targetRoot/etc
-          echo -n > $targetRoot/etc/NIXOS
-
-          # Fix the permissions on /tmp.
-          chmod 1777 $targetRoot/tmp
-
-          mkdir -p $targetRoot/boot
-
-          ${lib.optionalString cfg.nixStore.useHost ''
-            echo "mounting overlay filesystem on /nix/store..."
-            mkdir -p -m 0755 $targetRoot/nix/.rw-store/store $targetRoot/nix/.rw-store/work $targetRoot/nix/store
-            mount -t overlay overlay $targetRoot/nix/store \
-              -o lowerdir=$targetRoot/nix/.ro-store,upperdir=$targetRoot/nix/.rw-store/store,workdir=$targetRoot/nix/.rw-store/work || fail
-          ''}
-        '';
-
       # After booting, register the closure of the paths in `registeredPaths' in the Nix
       # database in the VM.  This allows Nix operations to work in the VM.  The path to the
       # registration file is passed through the kernel command line to allow `system.build.toplevel' to
@@ -610,7 +586,7 @@ in
           fi
         '';
 
-      boot.initrd.systemd = lib.mkIf (config.boot.initrd.systemd.enable && cfg.nixStore.useHost) {
+      boot.initrd.systemd = lib.mkIf cfg.nixStore.useHost {
         mounts = [{
           where = "/sysroot/nix/store";
           what = "overlay";
@@ -664,7 +640,7 @@ in
         };
 
         # Mount the host store as read only and then create a writable non-persistent tmpfs
-        # mount point that will then be layered over it during the boot.initrd.postMountCommands
+        # mount point that will then be layered over it by the initrd overlay mount above
         "/nix/.ro-store" = lib.mkIf (cfg.nixStore.useHost) {
           device = "nix-store";
           fsType = "9p";

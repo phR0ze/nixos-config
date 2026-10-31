@@ -45,12 +45,12 @@ in
       # - RuntimeMaxUse bounds the volatile fallback too, in case /var is ever unavailable at boot
       # - Seal=yes: tamper-evident logs (Forward Secure Sealing) - small ongoing CPU cost
       # ------------------------------------------------------------------------------------------------
-      services.journald.storage = "persistent";
-      services.journald.extraConfig = ''
-        SystemMaxUse=256M
-        RuntimeMaxUse=64M
-        Seal=yes
-      '';
+      services.journald.settings.Journal = {
+        Storage = "persistent";
+        SystemMaxUse = "256M";
+        RuntimeMaxUse = "64M";
+        Seal = true;
+      };
 
       # Timesyncd configuration
       # Defaults are fine
@@ -65,9 +65,7 @@ in
       #   reader of the logs - undesirable on a desktop where debug logs help troubleshoot drivers
       #   and apps
       # ------------------------------------------------------------------------------------------------
-      services.journald.extraConfig = ''
-        MaxLevelStore=info
-      '';
+      services.journald.settings.Journal.MaxLevelStore = "info";
     })
 
     (lib.mkIf cfg.lowMemory {
