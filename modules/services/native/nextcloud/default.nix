@@ -245,6 +245,7 @@ let
   # Desired state for reconcile.sh, passwords referenced by file
   desired = pkgs.writeText "nextcloud-desired.json" (builtins.toJSON {
     inherit (cfg) adminUser adminLogin;
+    adminPasswordFile = config.secret.templates."nextcloud-admin".path;
     apps = cfg.apps // { admin_audit = cfg.auditLog; };
     inherit appConfig;
     groups = declaredGroups;
@@ -316,7 +317,7 @@ in
       adminUser = lib.mkOption {
         type = types.str;
         default = "admin";
-        description = "Name of the admin account created on first setup.";
+        description = "Name of the admin account, created by reconcile if it doesn't exist.";
       };
 
       adminLogin = lib.mkOption {
@@ -583,8 +584,6 @@ in
         database.createLocally = true;
         config = {
           dbtype = "pgsql";
-          adminuser = cfg.adminUser;
-          adminpassFile = config.secret.templates."nextcloud-admin".path;
         };
         configureRedis = true;
         caching.apcu = true;
@@ -682,12 +681,8 @@ in
       networking.firewall.allowedTCPPorts = lib.optionals (!cfg.caddy) [ cfg.port ];
 
       secret.templates = {
-        # Read by upstream as root, on first setup only
-        "nextcloud-admin" = {
-          filemode = "0400";
-          content = config.secret.ref.${cfg.adminPasswordSecretRef};
-          secrets.${cfg.adminPasswordSecretRef}.sopsFile = cfg.sopsFile;
-        };
+        # Read by reconcile, only when it has to create the admin account
+        "nextcloud-admin" = secretTemplate cfg.adminPasswordSecretRef;
       }
       // lib.mapAttrs' (ukey: u: lib.nameValuePair "nextcloud-user-${safe ukey}" (secretTemplate u.passwordSecretRef)) cfg.users
       // lib.listToAttrs (map (ref: lib.nameValuePair "nextcloud-smb-${safe ref}" (secretTemplate ref))

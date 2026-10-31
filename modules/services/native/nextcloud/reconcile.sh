@@ -34,9 +34,17 @@ while IFS=$'\t' read -r app k v; do
   occ config:app:set "$app" "$k" --value "$v" >/dev/null
 done < <(jq -r '.appConfig | to_entries[] | .key as $a | .value | to_entries[] | [$a, .key, .value] | @tsv' "$desired")
 
-# Admin account, see deployment note 8
+# Admin account, see deployment note 8. Upstream installs without one, so it's created here with
+# its initial password and put in the admin group like any other declared user
 admin=$(jq -r .adminUser "$desired")
 want=$(jq -r .adminLogin "$desired")
+if ! occ user:info "$admin" --output=json >/dev/null 2>&1; then
+  if ! occ group:list --output=json | jq -e 'has("admin")' >/dev/null; then
+    occ group:add admin >/dev/null
+  fi
+  OC_PASS="$(<"$(jq -r .adminPasswordFile "$desired")")" occ user:add --password-from-env --group admin "$admin" >/dev/null
+  echo "created admin $admin"
+fi
 if have=$(occ user:info "$admin" --output=json | jq -r .enabled); then
   if [ "$want" = true ] && [ "$have" = false ]; then
     occ user:enable "$admin" >/dev/null
