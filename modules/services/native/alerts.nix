@@ -42,7 +42,11 @@ let
       new=$(comm -13 <(lines "$prev") <(lines "$current"))
       gone=$(comm -23 <(lines "$prev") <(lines "$current"))
       still=$(comm -12 <(lines "$prev") <(lines "$current"))
-      [ -n "$new" ] && msg+="New:"$'\n'"$new"$'\n'
+      # A lone set of new problems is self-explanatory under the failure title; the label is only
+      # needed to tell it apart from the Resolved/Still failing sections.
+      if [ -n "$new" ]; then
+        if [ -z "$gone$still" ]; then msg+="$new"$'\n'; else msg+="New:"$'\n'"$new"$'\n'; fi
+      fi
       [ -n "$gone" ] && msg+="Resolved:"$'\n'"$gone"$'\n'
       [ -n "$still" ] && msg+="Still failing:"$'\n'"$still"$'\n'
       [ -z "$current" ] && msg+="All healthy again"
@@ -438,7 +442,7 @@ in
             crowdsec_summary ${lib.escapeShellArg "CrowdSec [${c}]"} ${podman} exec ${lib.escapeShellArg c} cscli
           '') cfg.securityDigest.crowdsecContainers
           + ''
-            ntfy -H "Title: [ $HOST ] Daily security digest (last 24h)" -d "$MSG" || exit 1
+            ntfy -H "Title: [ $HOST ] Daily security digest" -d "$MSG" || exit 1
           ''
           # Only advanced once the digest is sent, so a failed push doesn't drop a day's drops
           + lib.optionalString config.devices.network.harden.enable ''
@@ -696,7 +700,7 @@ in
             fi
             PROBLEM=""
             if [ "$IP" != ${lib.escapeShellArg expected} ]; then
-              PROBLEM="Public IP is $IP, not ${expected}. Update host.network.allowList in this host's and the Pangolin VPS's args"
+              PROBLEM="Public IP is $IP, not ${expected}"
             fi
             report /var/lib/alerts/public-ip.state \
               "public IP changed" "public IP matches the allowlist again" "$PROBLEM"

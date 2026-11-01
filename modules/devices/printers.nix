@@ -49,13 +49,9 @@ in
         enable = true;
         extraBackends = [
           pkgs.epkowa                         # Epson scanner support
-          pkgs.utsushi                        # Generic scanner support
+          pkgs.sane-airscan                   # Driverless eSCL/WSD network scanning
         ];
       };
-
-      services.udev.packages = [
-        pkgs.utsushi
-      ];
 
       system.users.admin.extraGroups = [ "scanner" ];
     })

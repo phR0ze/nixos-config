@@ -21,13 +21,9 @@ in
       extraBackends = [
         pkgs.epkowa                         # Epson scanner support
         pkgs.hplipWithPlugin                # HP scanner support
-        pkgs.utsushi                        # Generic scanner support
+        pkgs.sane-airscan                   # Driverless eSCL/WSD network scanning
       ];
     };
-
-    services.udev.packages = [
-      pkgs.utsushi
-    ];
 
     users.users.${host.user.name}.extraGroups = [ "scanner" "lp" ];
   };

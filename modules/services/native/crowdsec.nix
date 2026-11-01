@@ -104,7 +104,7 @@ in
       autoUpdateService = true;                    # daily `cscli hub update` to pick up new/CVE scenarios
 
       # Local LAPI machine credentials, auto-provisioned by `cscli machine add --auto` on first
-      # activation (see the crowdsec module's ExecStartPre) whenever this file doesn't exist yet -
+      # activation (see upstream's crowdsec-setup.service) whenever this file doesn't exist yet -
       # required any time api.server.enable is set, regardless of the CAPI/hosted-console settings.
       settings.config.api.client.credentials_path = "/var/lib/crowdsec/state/local_api_credentials.yaml";
 
@@ -415,8 +415,8 @@ in
     # upstream's own guard just skips its own attempt as normal.
     systemd.services.crowdsec-clear-stale-lapi-creds = {
       description = "Ensure a valid CrowdSec LAPI credentials file, recovering from an interrupted registration";
-      before = [ "crowdsec.service" ];
-      requiredBy = [ "crowdsec.service" ];
+      before = [ "crowdsec-setup.service" "crowdsec.service" ];
+      requiredBy = [ "crowdsec-setup.service" "crowdsec.service" ];
       path = [ config.system.path ];
       serviceConfig = {
         Type = "oneshot";
@@ -460,17 +460,6 @@ in
         '';
     };
 
-    # Upstream's crowdsec-update-hub.service (autoUpdateService above) always fails its
-    # ExecStartPost, `systemctl reload crowdsec.service`, two ways at once: the sandboxed
-    # DynamicUser it runs as is never D-Bus-authorized to reload units, and crowdsec.service has no
-    # ExecReload= anyway (confirmed live - even plain root gets "Job type reload is not
-    # applicable"). The `+` prefix runs just this command with full privileges to fix the first
-    # issue; try-reload-or-restart (vs. reload) falls back to a full restart to fix the second.
-    # Confirmed live via a `systemd-run` unit replicating the sandbox - crowdsec.service's
-    # ActiveEnterTimestamp advanced when triggered this way.
-    systemd.services.crowdsec-update-hub.serviceConfig.ExecStartPost =
-      lib.mkForce "+systemctl try-reload-or-restart crowdsec.service";
-
     # Never serve the 0.0.0.0 LAPI without the firewall in place: if the ruleset fails to load at
     # boot, or nftables.service is stopped (which flushes it), crowdsec doesn't start or is stopped
     # with it. A switch only reloads nftables.service, which doesn't propagate, so firewall changes
@@ -479,13 +468,19 @@ in
     systemd.services.crowdsec.requires = [ "nftables.service" ];
     systemd.services.crowdsec.after = [ "nftables.service" ];
 
-    systemd.services.crowdsec.serviceConfig = {
-      # crowdsec-setup's ExecStartPre runs `cscli hub update`, which needs DNS. network-online only
-      # means a link is routable, not that the resolver answers yet, so that lookup can still fail
-      # ("Temporary failure in name resolution") and upstream sets RestartSec = 60 but no Restart=,
-      # leaving the unit failed for good (hosts/vm-vps1 testing, 2026-10-07). Retry until DNS is up;
-      # 60s spacing never trips the default start limit.
+    # crowdsec-setup runs `cscli hub update`, which needs DNS. network-online only means a link is
+    # routable, not that the resolver answers yet, so that lookup can still fail ("Temporary failure
+    # in name resolution") and upstream gives the oneshot no Restart=, leaving it failed for good
+    # (hosts/vm-vps1 testing, 2026-10-07). Retry until DNS is up; 60s spacing never trips the
+    # default start limit. crowdsec.service itself already has upstream's Restart = "always".
+    systemd.services.crowdsec-setup.serviceConfig = {
       Restart = "on-failure";
+      RestartSec = 60;
+    };
+
+    # Hardening on top of upstream's own sandbox. Upstream sets ProtectControlGroups = "strict",
+    # ProtectHostname = "true:<name>" and ProtectKernelLogs = false itself, so those are left to it.
+    systemd.services.crowdsec.serviceConfig = {
       ProtectSystem = "strict";
       ProtectHome = true;
       ReadWritePaths = [ "/var/lib/crowdsec" "/etc/crowdsec" ];
@@ -493,10 +488,7 @@ in
       NoNewPrivileges = true;
       ProtectKernelTunables = true;
       ProtectKernelModules = true;
-      ProtectKernelLogs = true;
-      ProtectControlGroups = true;
       ProtectClock = true;
-      ProtectHostname = true;
       RestrictSUIDSGID = true;
       LockPersonality = true;
       RestrictRealtime = true;

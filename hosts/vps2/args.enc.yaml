@@ -18,7 +18,7 @@ host:
             ip: ENC[AES256_GCM,data:X2UgErlHhVgsP+98FTRe,iv:Os0lNPJIGnat32TfSq1z+ot1hJB0w+PdZSkOj7rmFLo=,tag:jxK6tDe8XIKhFuCxGXmXfg==,type:str]
             mapNameFromMAC: ENC[AES256_GCM,data:tfaxidWXtcYPz2Lf0lG6kS0=,iv:FQZkBSDSKthPgwAFIkB+nFynDFjrgHTPeyL+0ipze+U=,tag:2M/40/FEVh/WFnO/dVRKrQ==,type:str]
         allowList:
-            - ENC[AES256_GCM,data:WGZs+MbqoOGXC6O4Rg==,iv:dl7UDmCUHUEsCqJUF5TAgh+utcvHL5sK4lLn/ZLWgqw=,tag:scik40X3MVeGOq9uZiEqFQ==,type:str]
+            - ENC[AES256_GCM,data:MQt/GZvc9VIibQNeCIuG,iv:MiukWYP8ABHBz0zYu4+HY0w4o7wc9KMwPp68FCx7F8E=,tag:Z2RWDnvCt9OTZccCglq3RQ==,type:str]
     git:
         user: ENC[AES256_GCM,data:idgsY3kU,iv:d8QTR6w3Ti/pt5ezmWx/gAQLvRVxjA4xIHVPzuc5Yn8=,tag:xwsJzoVPctAR+Xxf53XIiA==,type:str]
         email: ENC[AES256_GCM,data:eV8676UCSkibPZ1rpfj0W6ZX13OdypkuXJwokQYw6vl5TO2nUOL34A==,iv:M0cuPqGIeMuBMHlHplDV232m2xW9jTecyjB2KyjmAy8=,tag:njt26Kna0ocKaiIx9xbsGg==,type:str]
@@ -41,7 +41,7 @@ sops:
             36bOY3LRplz7dNH0MyF/HI8761YziGSCX58Hn4lF0yEF01yOb7Mk3g==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1ugsz6x2fq8tqdd39gnchvzrcgv2sg79mknrutw2tsgu82z73kpxsqaxf3g
-    lastmodified: "2026-10-29T23:58:16Z"
-    mac: ENC[AES256_GCM,data:gr8ii3usohjc1LKDjTpFmiHZS1wdG070jeTIHB8RV95L4yOVNuKkMy9t1uRV3X/Cx3p12PSFY4FoUev/nJFYP+sAJuQY/6teNwixlaT1x2ftZ8DQUZhD9pqVDu0SNFICQyzI93fvhhkgyzpD+6tHMkQmVlO1yosH+ZOA1yRpwQo=,iv:sQndJRIjWrLB+YlhdJuweTBjZ14xAcm7ZrZQqHrOZ/k=,tag:kdPVkkDhFWNEBWrfHZGkIw==,type:str]
+    lastmodified: "2026-11-01T14:56:27Z"
+    mac: ENC[AES256_GCM,data:3d+3YQqnLsMnxKY4Dl58UVBkxNhyaW5cIJXycCKEwYP9gV2Nh6SQGO0Rlh54nHX4mO65prRcL720ZxNqBRO3ip0qv3Hfbo+3UzF9uSXCuVRRYj0RwameFALlNCi5KP4QV8TCrl52NSfsivhJ26D4ZjIHe3gzFVVjqSCw1GnvGLI=,iv:VlCWUZcpsHVTXLTVlYgxmssTqwVmVOI+4jYhs8+WOo8=,tag:px85q648JsKivknrf9LdZA==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1
