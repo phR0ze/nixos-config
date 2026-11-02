@@ -333,6 +333,9 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
+        # oneshots never time out by default; a crowdsec that can't start would otherwise hold
+        # network-services.target (and a running switch) open indefinitely
+        TimeoutStartSec = "5min";
         User = config.services.crowdsec.user;
         Group = config.services.crowdsec.group;
       };
@@ -446,9 +449,14 @@ in
       serviceConfig.Type = "oneshot";
       script =
         let
-          expected = lib.attrNames (lib.filterAttrs (_: v: v ? link)
+          # Matches any symlink rule type (L, L+, ...) rather than one spelling: upstream's 26.11
+          # rework renamed `link` to `"L+"`, which left this list empty and pruned every link,
+          # config.yaml included. The assert fails the build instead of repeating that silently.
+          expected = lib.attrNames (lib.filterAttrs (_: v: lib.any (lib.hasPrefix "L") (lib.attrNames v))
             config.systemd.tmpfiles.settings."10-crowdsec");
         in
+        assert lib.assertMsg (lib.elem "/etc/crowdsec/config.yaml" expected)
+          "crowdsec-prune-stale-links: upstream tmpfiles no longer declares /etc/crowdsec/config.yaml as a symlink, update the filter";
         ''
           declare -A expected=(${lib.concatMapStringsSep " " (p: "[${lib.escapeShellArg p}]=1") expected})
           find /etc/crowdsec -type l -lname '/nix/store/*' -print0 | while IFS= read -r -d "" link; do
