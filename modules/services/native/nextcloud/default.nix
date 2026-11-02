@@ -578,7 +578,7 @@ in
       # - skeletondirectory: no sample files for new users
       services.nextcloud = {
         enable = true;
-        package = pkgs.nextcloud34;   # one major per deploy, Nextcloud can't skip versions
+        package = pkgs.nextcloud35;   # one major per deploy, Nextcloud can't skip versions
         hostName = cfg.hostName;
         https = cfg.caddy;
         database.createLocally = true;
