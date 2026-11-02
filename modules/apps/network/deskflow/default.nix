@@ -5,8 +5,11 @@
 # configurations using the nixpkgs deskflow package.
 #
 # deskflow-core accepts only a single -s <settingsFile> flag. All configuration
-# (screen name, TLS, interface, server layout path) lives in an INI-format settings
-# file. This module generates both the settings file and the screen layout config.
+# (computer name, known computers, TLS, interface, server layout path) lives in an INI-format
+# settings file. This module generates both the settings file and the layout config.
+#
+# Since 1.27.0 computers are declared in the settings file as [computer_<name>] groups; a
+# `section: screens` in the layout file is ignored, so the layout file only holds links.
 #
 # ### Usage
 #   Server: apps.network.deskflow.server.enable = true;
@@ -26,13 +29,9 @@ let
   cfgC = config.apps.network.deskflow.client;
   cfgS = config.apps.network.deskflow.server;
 
-  # Screen layout config passed to deskflow-core via externalConfigFile in the settings file
+  # Layout config passed to deskflow-core via externalConfigFile in the settings file
   serverLayoutConfig = lib.mkIf cfgS.enable
     (pkgs.writeText "deskflow-layout.conf" ''
-      section: screens
-        ${cfgS.name}:
-        ${cfgS.clientName}:
-      end
       section: links
         ${cfgS.name}:
           right = ${cfgS.clientName}
@@ -46,8 +45,14 @@ let
   serverSettingsFile = cfgS: pkgs.writeText "deskflow-server.conf" ''
     [core]
     coreMode=2
-    screenName=${cfgS.name}
+    computerName=${cfgS.name}
     ${lib.optionalString (cfgS.address != "") "interface=${cfgS.address}"}
+
+    [computer_${cfgS.name}]
+    name=${cfgS.name}
+
+    [computer_${cfgS.clientName}]
+    name=${cfgS.clientName}
 
     [security]
     tlsEnabled=${if cfgS.enableTls then "true" else "false"}
@@ -60,7 +65,7 @@ let
   clientSettingsFile = cfgC: pkgs.writeText "deskflow-client.conf" ''
     [core]
     coreMode=1
-    screenName=${cfgC.name}
+    computerName=${cfgC.name}
     ${lib.optionalString (cfgC.server != "") "remoteHost=${cfgC.server}"}
 
     [security]
@@ -149,7 +154,7 @@ in
       # View rules with: sudo iptables -S
       networking.firewall.allowedTCPPorts = [ 24800 ];
 
-      # Screen layout config (which screens exist and their adjacency)
+      # Layout config (computer adjacency); the computers themselves are declared in the settings file
       environment.etc."deskflow-layout.conf".source = serverLayoutConfig;
 
       systemd.user.services.deskflow-server = {
