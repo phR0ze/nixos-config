@@ -245,6 +245,12 @@ in
       # over SSH can set it back to true.
       nix.settings.sandbox = lib.mkDefault false;
 
+      # nixpkgs' logrotate checkConfig assumes the sandbox: it forces missingok since the logged
+      # files "won't exist" at build time. Unsandboxed, nixbld stats the live paths instead, and a
+      # root-only log dir (e.g. /var/lib/pangolin/config/traefik/logs) fails with EACCES, which
+      # missingok doesn't cover - so the check is only meaningful with the sandbox back on.
+      services.logrotate.checkConfig = lib.mkDefault (config.nix.settings.sandbox != false);
+
       # Turn on the shared CrowdSec engine (services.native.crowdsec) and feed it SSH-specific
       # detection - it already handles the generic engine/bouncer/profile/allowlist wiring.
       services.native.crowdsec.enable = true;
