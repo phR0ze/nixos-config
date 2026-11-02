@@ -60,6 +60,10 @@
 
     # Shared by Immich and Nextcloud, sized for 96 GB and 16 threads on a SATA SSD, leaving most of
     # the RAM to the page cache, Jellyfin, Immich ML and VMs
+    # Pinned to the on-disk cluster's major version: with no host.nix.stateVersion the default
+    # follows nixpkgs (17 -> 18 in Nov 2026), which would start an empty /var/lib/postgresql/18.
+    # Bump only alongside a pg_upgrade.
+    services.postgresql.package = pkgs.postgresql_17;
     services.postgresql.settings = {
       shared_buffers = "8GB";
       effective_cache_size = "48GB";

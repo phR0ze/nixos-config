@@ -110,6 +110,17 @@ utils::handle_root()
             exit 1
         fi
 
+        # Dropping to a user who needs a password to sudo back up for the root-owned CONFIG_DIR
+        # (e.g. hardened hosts without passwordlessSudo) only trades root for a password prompt, so
+        # stay root instead. Limited to update, whose every effectful step already runs via $SUDO;
+        # other commands (e.g. init, build, run) rely on the real user's $HOME/$USER.
+        if [[ -n "$SUDO" && "${ARGS[0]}" == "update" ]] \
+            && ! sudo -u "$SUDO_USER" -- sudo -n true 2>/dev/null; then
+            log::d "Keeping root privileges, $SUDO_USER lacks passwordless sudo"
+            SUDO=""
+            return
+        fi
+
         # Next set $USER correctly and drop elevated privileges
         log::ls "Dropping root privileges..."
         USER="$SUDO_USER"
