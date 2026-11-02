@@ -167,6 +167,11 @@ in
         # From the NixOS Hardening wiki (nixpkgs' hardened profile was removed in 26.05).
         # kexec is already off via security.protectKernelImage.
         "kernel.io_uring_disabled" = 2;             # io_uring is a recurring kernel exploit surface; nothing here uses it
+        # MPTCP is the same kind of surface (CVE-2026-98432 needed a stop-gap before 6.18.56) and is
+        # reachable remotely: Go >= 1.24 opens MPTCP listeners by default, which then fall back to
+        # plain TCP. Per network namespace - container stacks set it on their own netns too (e.g.
+        # services.oci.pangolin), since a new netns starts with MPTCP enabled.
+        "net.mptcp.enabled" = 0;
         "kernel.ftrace_enabled" = 0;                # no runtime function tracing
         "fs.suid_dumpable" = 0;                     # never core-dump setuid processes
         "fs.protected_fifos" = 2;                   # no O_CREAT opens of others' FIFOs/files in

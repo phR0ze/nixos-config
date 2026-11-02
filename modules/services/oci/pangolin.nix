@@ -147,6 +147,8 @@ let
           default:
             x-podman.interface_name: ${vethOpt cfg.name}
             ipv4_address: ${pangolinIp}
+        sysctls:
+          - net.mptcp.enabled=0    # per-netns, see devices.kernel.harden's net.mptcp.enabled
         deploy:
           resources:
             limits:
@@ -171,6 +173,8 @@ let
           default:
             x-podman.interface_name: ${vethOpt "gerbil"}
             ipv4_address: ${gerbilIp}
+        sysctls:
+          - net.mptcp.enabled=0    # also covers traefik, which shares this netns
         depends_on:
           pangolin:
             condition: service_healthy
@@ -223,6 +227,8 @@ let
           default:
             x-podman.interface_name: ${vethOpt "crowdsec"}
             ipv4_address: ${crowdsecIp}
+        sysctls:
+          - net.mptcp.enabled=0
         environment:
           GID: "1000"
           COLLECTIONS: ${lib.concatStringsSep " " cfg.crowdsecCollections}
