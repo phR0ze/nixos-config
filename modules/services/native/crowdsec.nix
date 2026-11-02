@@ -441,6 +441,17 @@ in
     # postoverflows named ...: ignoring ..."), possibly the stale one. Prune any store-path symlink
     # under /etc/crowdsec that the current generation's tmpfiles rules no longer declare. Hub items
     # are symlinks into /var/lib/crowdsec, never /nix/store, so they're left alone.
+    # Upstream writes profiles.yaml as a tmpfiles `f+` rule with the YAML inline as its argument,
+    # and tmpfiles expands `%` specifiers there: the profiles' `Sprintf('%dh', ...)` hits `%d`
+    # (credentials dir, "Invalid slot" outside a unit), so the rule is skipped and profiles.yaml
+    # is never written. Link a store file instead, which tmpfiles never expands.
+    systemd.tmpfiles.settings."10-crowdsec".${config.services.crowdsec.settings.config.api.server.profiles_path} =
+      lib.mkForce {
+        "L+".argument = toString (pkgs.writeText "crowdsec-profiles.yaml"
+          (lib.concatMapStringsSep "\n---\n" (lib.generators.toYAML { })
+            config.services.crowdsec.settings.profiles));
+      };
+
     systemd.services.crowdsec-prune-stale-links = {
       description = "Remove CrowdSec local config symlinks left behind by previous generations";
       before = [ "crowdsec.service" ];
