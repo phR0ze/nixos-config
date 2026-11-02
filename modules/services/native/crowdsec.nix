@@ -108,6 +108,19 @@ in
       # required any time api.server.enable is set, regardless of the CAPI/hosted-console settings.
       settings.config.api.client.credentials_path = "/var/lib/crowdsec/state/local_api_credentials.yaml";
 
+      # Data location (db, hub, data files) is set explicitly rather than following upstream's
+      # default, so a default change can never silently strand the database. Upstream derives its
+      # sandbox paths and tmpfiles dirs from these, so overriding them is fully supported. Its
+      # 26.11 rework moved the default from /var/lib/crowdsec/state to /var/lib/crowdsec/data with
+      # no migration, and an upgraded host came up on an empty database: every machine, bouncer
+      # key, decision and the allowlist gone (hosts/vps2, 2026-11-02).
+      settings.config.config_paths = {
+        data_dir = "/var/lib/crowdsec/state";
+        hub_dir = "/var/lib/crowdsec/state/hub";
+        index_path = "/var/lib/crowdsec/state/hub/.index.json";
+      };
+      settings.config.db_config.db_path = "/var/lib/crowdsec/state/crowdsec.db";
+
       # Without a `flush` block the LAPI never prunes its database: every alert and expired
       # decision (community blocklist refreshes included) is kept forever. Deleting an alert
       # deletes its decisions too, so max_age must stay at or above the longest ban the profiles
@@ -370,6 +383,8 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
+        # Same as crowdsec-allowlist-sync: bound the wait on a crowdsec that can't start
+        TimeoutStartSec = "5min";
         User = config.services.crowdsec.user;
         Group = config.services.crowdsec.group;
         StateDirectory = "crowdsec-console-enroll";
