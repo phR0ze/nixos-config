@@ -93,6 +93,21 @@ in
       default = "alerts/ntfyTopic";
     };
 
+    pushScript = lib.mkOption {
+      description = ''
+        Script other modules push their own notifications through, taking curl arguments (e.g.
+        `-H "Title: ..." -d "message"`). Keeps the topic out of argv like the built-in alerts. Must
+        run as root to read the topic secret.
+      '';
+      type = lib.types.package;
+      internal = true;
+      readOnly = true;
+      default = pkgs.writeShellScript "alerts-push" ''
+        ${ntfyFunc}
+        ntfy "$@"
+      '';
+    };
+
     failedUnits = {
       enable = lib.mkOption {
         description = "Push a notification when the set of failed systemd units changes";

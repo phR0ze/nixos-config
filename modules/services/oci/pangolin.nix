@@ -941,6 +941,18 @@ in
       type = types.ints.positive;
       default = 168;
     };
+
+    dynamicAllowNewts = lib.mkOption {
+      description = ''
+        Whether to keep every connected Newt site's public IP on the host LAPI's `newt-sites`
+        allowlist, so a site whose ISP changes its address is never banned on reconnect. The IP is
+        gerbil's WireGuard endpoint for the site's peer, which only moves after a handshake with
+        the site's key, so it can't be spoofed. Pangolin client peers (phones, laptops) are left
+        out on purpose, since their addresses are usually shared carrier or public Wi-Fi NAT.
+      '';
+      type = types.bool;
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -1164,6 +1176,103 @@ in
     systemd.timers."${cfg.name}-geolite-refresh" = {
       wantedBy = [ "timers.target" ];
       timerConfig = { OnCalendar = "weekly"; Persistent = true; RandomizedDelaySec = "1h"; };
+    };
+
+    # Allowlists each connected Newt site's public IP (see dynamicAllowNewts). Sites are matched by
+    # their WireGuard pubkey from Pangolin's DB, since gerbil's wg0 also holds client peers and
+    # nothing in `wg show` tells the two apart. Gerbil's image has no `wg`, so the host's runs in
+    # its netns. Only a handshake under 5 min old counts as connected. An offline site keeps its
+    # last IP (per-site state file) so a short outage can't strand it behind a ban; the IP is only
+    # replaced once the site is seen somewhere else, or dropped when the site is deleted.
+    # A separate list from services.native.crowdsec's `management`, which its sync prunes.
+    systemd.services."${cfg.name}-newt-allowlist" = lib.mkIf cfg.dynamicAllowNewts {
+      description = "Allowlist connected Pangolin Newt sites' public IPs in CrowdSec";
+      after = [ "${cfg.name}-stack.service" "crowdsec.service" ];
+      path = [
+        pkgs.sqlite pkgs.wireguard-tools pkgs.util-linux pkgs.jq pkgs.gawk
+        config.virtualisation.podman.package config.system.path
+      ];
+      serviceConfig = {
+        Type = "oneshot";
+        StateDirectory = "${cfg.name}-newt-allowlist";
+        UMask = "0077";
+      };
+      script = ''
+        set -euo pipefail
+        stateDir=/var/lib/${cfg.name}-newt-allowlist
+        list=newt-sites
+        cs() { runuser -u ${config.services.crowdsec.user} -- cscli "$@"; }
+        push() {
+          ${if config.services.native.alerts.enable then ''
+            ${config.services.native.alerts.pushScript} \
+              -H "Title: [ ${config.networking.hostName} ] Newt site allowlisted" -d "$1" \
+              || echo "Push failed: $1" >&2
+          '' else ''
+            echo "$1"
+          ''}
+        }
+
+        sites=$(sqlite3 -readonly -cmd '.timeout 5000' -separator ' ' ${dataDir}/config/db/db.sqlite \
+          "select pubKey, name from sites where type = 'newt' and length(pubKey) > 0;")
+
+        pid=$(podman inspect -f '{{.State.Pid}}' gerbil 2>/dev/null || true)
+        if ! [[ "$pid" =~ ^[1-9][0-9]*$ ]]; then
+          echo "gerbil isn't running, nothing to do" >&2
+          exit 0
+        fi
+        # Peer lines: pubkey psk endpoint allowed-ips latest-handshake rx tx keepalive
+        dump=$(nsenter -t "$pid" -n wg show wg0 dump | tail -n +2)
+        now=$(date +%s)
+
+        # Record each connected site's IP as "<ip> <name>" in a file named after its pubkey
+        declare -A known=() prev=()
+        while read -r key name; do
+          [ -n "$key" ] || continue
+          f=$stateDir/$(printf '%s' "$key" | sha256sum | cut -d' ' -f1)
+          known[$f]=1
+          read -r ep hs < <(awk -v k="$key" '$1 == k { print $3, $5 }' <<<"$dump") || true
+          ip=''${ep%:*}
+          if [[ "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ && "''${hs:-}" =~ ^[0-9]+$ ]] \
+              && (( hs > 0 && now - hs < 300 )) \
+              && [ "$(cat "$f" 2>/dev/null || true)" != "$ip $name" ]; then
+            # Remember the IP being replaced, for the push
+            old=$(cut -d' ' -f1 "$f" 2>/dev/null || true)
+            [ -z "$old" ] || [ "$old" = "$ip" ] || prev[$ip]=$old
+            printf '%s %s\n' "$ip" "$name" > "$f"
+          fi
+        done <<<"$sites"
+        for f in "$stateDir"/*; do
+          [ -e "$f" ] || continue
+          [ -n "''${known[$f]:-}" ] || rm -f -- "$f"
+        done
+
+        for i in $(seq 1 30); do
+          cs lapi status >/dev/null 2>&1 && break
+          sleep 2
+        done
+        if ! cs allowlists list -o json | jq -e --arg n "$list" 'any(.[]?; .name == $n)' >/dev/null; then
+          cs allowlists create "$list" -d "Public IPs of connected Pangolin Newt sites"
+        fi
+        current=$(cs allowlists inspect "$list" -o json | jq -r '.items // [] | .[].value')
+        wanted=$(cat "$stateDir"/* 2>/dev/null || true)
+
+        while read -r ip name; do
+          [ -n "$ip" ] || continue
+          grep -qxF -- "$ip" <<<"$current" && continue
+          cs allowlists add "$list" "$ip" -d "newt site $name"
+          # Adding to an allowlist doesn't lift a ban already in place
+          cs decisions delete --ip "$ip" >/dev/null
+          current+=$'\n'$ip
+          push "$name: ''${prev[$ip]:+''${prev[$ip]} → }$ip"
+        done <<<"$wanted"
+        for v in $current; do
+          cut -d' ' -f1 <<<"$wanted" | grep -qxF -- "$v" || cs allowlists remove "$list" "$v"
+        done
+      '';
+    };
+    systemd.timers."${cfg.name}-newt-allowlist" = lib.mkIf cfg.dynamicAllowNewts {
+      wantedBy = [ "timers.target" ];
+      timerConfig = { OnBootSec = "2min"; OnUnitActiveSec = "2min"; };
     };
 
     # Traefik's own access log (config/traefik/logs/access.log) grows unbounded otherwise - nothing
