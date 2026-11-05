@@ -179,13 +179,19 @@ in
       #   clients connect directly, so no proxy is trusted
       # - HOME: gunicorn creates its control socket in $HOME/.gunicorn and the immich user's home
       #   is the read-only /var/empty, so point it at upstream's writable cache dir
+      # - ORT_DISABLE_TELEMETRY: onnxruntime started sending usage telemetry to Microsoft by default.
+      #   Immich 3.3.6 sets this inside its ML package, but ML runs from its own pin (package.nix),
+      #   so set it here rather than wait on that pin. Harmless once the pin includes the fix
       services.immich = {
         enable = true;
         port = cfg.port;
         host = if cfg.caddy then "127.0.0.1" else "0.0.0.0";
         openFirewall = !cfg.caddy;
         environment.IMMICH_TRUSTED_PROXIES = lib.mkIf cfg.caddy "127.0.0.1";
-        machine-learning.environment.HOME = "/var/cache/immich";
+        machine-learning.environment = {
+          HOME = "/var/cache/immich";
+          ORT_DISABLE_TELEMETRY = "1";
+        };
       };
     }
 
