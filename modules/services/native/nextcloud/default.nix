@@ -47,11 +47,14 @@
 #      disabled, so their endpoints are blocked in nginx instead (`calDav`, `sharing.federation`).
 #    - `userMounts`: users adding their own External Storage, e.g. WebDAV or SFTP into the LAN.
 #    - `internetAccess`, `profiles`, `passwordReset`.
-#    - `auditLog` and `videoPreviews` are the exceptions, on by default:
+#    - `auditLog`, `videoPreviews` and `pdfPreviews` are the exceptions, on by default:
 #      - `auditLog`: logins, file accesses and admin actions go to
 #        `/var/lib/nextcloud/data/audit.log`, which users can't see.
 #      - `videoPreviews`: video thumbnails via ffmpeg, from the first 10 MB of each video on SMB
 #        mounts. ffmpeg parses untrusted video files, so turn it off where that matters more.
+#      - `pdfPreviews`: PDF thumbnails of the first page via ImageMagick and Ghostscript. Each PDF
+#        on an SMB mount is copied in full to render it. Ghostscript parses untrusted PDFs and has a
+#        history of `-dSAFER` bypasses, so turn it off where that matters more.
 #    - `adminLogin`: the admin account is only needed for first setup, as reconcile and
 #      `nextcloud-occ` manage everything, so it's kept disabled. For break-glass access enable the
 #      option, or run `nextcloud-occ user:enable <adminUser>` until the next reconcile run.
@@ -461,6 +464,12 @@ in
         description = "Generate video thumbnails with ffmpeg, which parses untrusted video files.";
       };
 
+      pdfPreviews = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = "Generate PDF thumbnails with Ghostscript, which parses untrusted PDF files.";
+      };
+
       passwordReset = lib.mkOption {
         type = types.bool;
         default = false;
@@ -662,7 +671,8 @@ in
             "OC\\Preview\\MarkDown"
             "OC\\Preview\\OpenDocument"
             "OC\\Preview\\Krita"
-          ] ++ lib.optional cfg.videoPreviews "OC\\Preview\\Movie";
+          ] ++ lib.optional cfg.videoPreviews "OC\\Preview\\Movie"
+            ++ lib.optional cfg.pdfPreviews "OC\\Preview\\PDF";
           preview_ffmpeg_path = lib.mkIf cfg.videoPreviews "${pkgs.ffmpeg-headless}/bin/ffmpeg";
           preview_ffprobe_path = lib.mkIf cfg.videoPreviews "${pkgs.ffmpeg-headless}/bin/ffprobe";
         };
@@ -673,6 +683,11 @@ in
           nextcloudUrl = if cfg.caddy then "https://${cfg.hostName}" else "http://127.0.0.1:${toString cfg.port}";
         };
       };
+
+      # ImageMagick renders PDFs by running `gs` from PATH, in every unit that generates previews.
+      # Upstream's PATH for the pool, with Ghostscript first
+      services.phpfpm.pools.nextcloud.phpEnv.PATH = lib.mkIf cfg.pdfPreviews (lib.mkForce
+        "${pkgs.ghostscript_headless}/bin:/run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin:/usr/bin:/bin");
 
       # Our own name resolves to local Caddy, for notify_push
       networking.hosts."127.0.0.1" = lib.mkIf cfg.caddy [ cfg.hostName ];
@@ -752,9 +767,12 @@ in
           };
         };
 
+        nextcloud-cron.path = lib.optional cfg.pdfPreviews pkgs.ghostscript_headless;
+
         nextcloud-previews = {
           description = "Pre-generate Nextcloud previews";
           after = [ "nextcloud-setup.service" ];
+          path = lib.optional cfg.pdfPreviews pkgs.ghostscript_headless;
           serviceConfig = {
             Type = "oneshot";
             User = "nextcloud";
