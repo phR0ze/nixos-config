@@ -620,6 +620,10 @@ in
           overwriteprotocol = lib.mkIf cfg.caddy "https";
           maintenance_window_start = 1;
           skeletondirectory = "";
+          # Stage uploads' .part files in local storage, so only the finished file is copied to an
+          # SMB mount. Renaming the .part file on the Synology timed out, failing the upload
+          # (hosts/homelab, 2026-11-05). Quota doesn't apply to .part files, so large uploads still fit
+          part_file_in_storage = false;
           defaultapp = if cfg.apps.dashboard then "dashboard,files" else "files";
           has_internet_connection = cfg.internetAccess;
           updatechecker = cfg.internetAccess;
