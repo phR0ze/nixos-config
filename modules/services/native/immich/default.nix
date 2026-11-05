@@ -23,7 +23,9 @@
 # 4. System settings stay in the admin UI (upstream `settings = null`). Setting
 #    `services.immich.settings` makes Immich read its whole config from a file and locks the UI.
 #    In the UI set Server > External domain to `https://<first subdomain>.<primary domain>` for
-#    share links, and with `cuda` set Video Transcoding > Hardware Acceleration to NVENC.
+#    share links (or, with `services.native.immich-public-proxy`, to its `publicUrl` so links go
+#    through the proxy instead of behind Pangolin's SSO), and with `cuda` set Video Transcoding >
+#    Hardware Acceleration to NVENC.
 # 5. The first account created through the web UI becomes the admin.
 # 6. `cuda` runs machine learning (smart search, faces, OCR) on onnxruntime's CUDA provider and
 #    gives both services the NVIDIA device nodes for NVENC transcoding. Needs a Turing or newer

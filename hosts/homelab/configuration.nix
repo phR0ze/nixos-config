@@ -53,11 +53,11 @@
       enable = true; port = 2283; subdomains = [ "immich" "immich-vpn" ];
       cuda = true; cudaCapabilities = [ "7.5" ];    # GTX 1660 (Turing)
     };
+    services.native.immich-public-proxy = {
+      enable = true; port = 2284;
+    };
     services.native.nextcloud = {
       enable = true; port = 8090; subdomains = [ "nextcloud" "nextcloud-vpn" ];
-      # The Android app streams video through a direct link, which needs public links allowed
-      sharing.links = true;
-      videoPreviews = true;
     };
 
     # Shared by Immich and Nextcloud, sized for 96 GB and 16 threads on a SATA SSD, leaving most of

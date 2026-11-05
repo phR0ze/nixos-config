@@ -543,6 +543,25 @@ in
       services.native.immich.domains = cfg.network.domains;
     })
 
+    # Immich on this host is reached over loopback. The public URL follows the Newt resource that
+    # publishes the proxy's subdomain, so share links carry the Pangolin name
+    (lib.mkIf config.services.native.immich-public-proxy.enable (
+      let
+        ipp = config.services.native.immich-public-proxy;
+        newt = config.services.oci.newt;
+        published = lib.optionals newt.enable (lib.concatLists (lib.mapAttrsToList (_: inst:
+          map (res: "https://${res.subdomain}.${inst.pangolin.domain}")
+            (lib.filter (res: res.public && res.subdomain == ipp.subdomain)
+              (lib.attrValues inst.pangolin.resources)))
+          (lib.filterAttrs (_: inst: inst.enable) newt.instances)));
+      in {
+        services.native.immich-public-proxy.domains = cfg.network.domains;
+        services.native.immich-public-proxy.immichUrl = lib.mkIf config.services.native.immich.enable
+          "http://127.0.0.1:${toString config.services.native.immich.port}";
+        services.native.immich-public-proxy.publicUrl = lib.mkIf (published != [ ]) (lib.head published);
+      }
+    ))
+
     # Users, mounts and the NAS address come from args, so they stay untracked. Mount domains
     # default to the smb module's
     (lib.mkIf config.services.native.nextcloud.enable (

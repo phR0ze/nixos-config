@@ -75,12 +75,14 @@
 #                 vault: { }                               # public only, default roles
 #                 vault-vpn: { public: false, private: true }
 #                 adguard: { private: true, roles: [ "Admins" ] }  # public + private
+#                 photos: { sso: false }                   # public, no Pangolin login
 # ```
 # Every resource is named `<subdomain>.<pangolin.domain>` end to end - Caddy must serve that
 # subdomain on `pangolin.domain` (asserted; see the app's `whichDomains` and `host.network.domains`).
 # - Public (`public`, on by default): an HTTPS resource behind Platform SSO, proxied to Caddy on the
 #   gateway (`https://host.containers.internal:443`) with the SNI and Host header set to that same
-#   name.
+#   name. `sso = false` drops the SSO gate entirely, for apps that do their own access control
+#   (immich-public-proxy, whose share links carry their own key and optional password).
 # - Private (`private`): a Host-mode resource keyed `<key>` too, with `host.containers.internal`
 #   (Newt's gateway) as its destination, tcp/443 only, no UDP or ICMP, aliased to that name. The
 #   client's SNI reaches Caddy unchanged.
@@ -178,6 +180,15 @@ let
         description = "Users (username or email) granted access individually";
         type = types.listOf types.str;
         default = [ ];
+      };
+
+      sso = lib.mkOption {
+        description = ''
+          Put the public resource behind Platform SSO. `false` makes it reachable by anyone, so only
+          for apps that do their own access control (e.g. immich-public-proxy's per-link keys).
+        '';
+        type = types.bool;
+        default = true;
       };
 
       enabled = lib.mkOption {
@@ -293,7 +304,8 @@ let
         # The same name to Caddy, which serves it on this zone (asserted below)
         "host-header" = pangolinName res;
         "tls-server-name" = pangolinName res;
-        auth = { "sso-enabled" = true; "sso-roles" = rolesOf res; "sso-users" = res.users; };
+        auth = { "sso-enabled" = res.sso; }
+          // lib.optionalAttrs res.sso { "sso-roles" = rolesOf res; "sso-users" = res.users; };
         targets = [ { hostname = "host.containers.internal"; port = 443; method = "https"; } ];
       }) publicRes;
       # Keyed the same as a public one: Pangolin keeps the two in separate tables
@@ -336,6 +348,9 @@ let
         message = "${id}: the key is the resource's Pangolin niceId, so only lowercase letters, digits and inner hyphens"; }
       { assertion = res.public || res.private;
         message = "${id} sets neither 'public' nor 'private', so it would create nothing"; }
+      # Roles and users only grant access through SSO, or to the private resource
+      { assertion = res.sso || res.private || (res.roles == null && res.users == [ ]);
+        message = "${id} has 'sso = false', so its 'roles'/'users' would grant nothing - remove them"; }
     ] ++ lib.optionals (caddy.enable && inst.pangolin.domain != "") [
       # The name is the same end to end, so Caddy needs that name and its certificate
       { assertion = lib.elem inst.pangolin.domain (caddyZonesOf res.subdomain);

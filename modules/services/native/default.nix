@@ -9,6 +9,7 @@
     ./caddy
     ./crowdsec.nix
     ./immich
+    ./immich-public-proxy
     ./jellyfin.nix
     ./keyd
     ./minecraft

@@ -36,8 +36,8 @@
 # 6. Nightly backup of `/var/lib/nextcloud` and a DB dump to `<backupDir>/nextcloud`.
 # 7. Hardened sharing by default, applied by `nextcloud-reconcile` on every run, so changes made in
 #    the admin UI are reverted:
-#    - Public links are off. With `sharing.links` on they need a password, expire within
-#      `sharing.linkExpireDays` (7) days and are download only.
+#    - Public links are on (`sharing.links`), as the Android app streams video through one. They
+#      need a password, expire within `sharing.linkExpireDays` (7) days and are download only.
 #    - Federated sharing and the lookup server are off. `cloud_federation_api` and
 #      `federatedfilesharing` are always-enabled apps, so this is done through config instead.
 #    - Resharing and username autocomplete in the share dialog are off.
@@ -47,9 +47,11 @@
 #      disabled, so their endpoints are blocked in nginx instead (`calDav`, `sharing.federation`).
 #    - `userMounts`: users adding their own External Storage, e.g. WebDAV or SFTP into the LAN.
 #    - `internetAccess`, `profiles`, `passwordReset`.
-#    - `videoPreviews`: video thumbnails via ffmpeg, from the first 10 MB of each video on SMB mounts.
-#    - `auditLog` is the exception, on by default: logins, file accesses and admin actions go to
-#      `/var/lib/nextcloud/data/audit.log`, which users can't see.
+#    - `auditLog` and `videoPreviews` are the exceptions, on by default:
+#      - `auditLog`: logins, file accesses and admin actions go to
+#        `/var/lib/nextcloud/data/audit.log`, which users can't see.
+#      - `videoPreviews`: video thumbnails via ffmpeg, from the first 10 MB of each video on SMB
+#        mounts. ffmpeg parses untrusted video files, so turn it off where that matters more.
 #    - `adminLogin`: the admin account is only needed for first setup, as reconcile and
 #      `nextcloud-occ` manage everything, so it's kept disabled. For break-glass access enable the
 #      option, or run `nextcloud-occ user:enable <adminUser>` until the next reconcile run.
@@ -373,8 +375,11 @@ in
       sharing = {
         links = lib.mkOption {
           type = types.bool;
-          default = false;
-          description = "Allow public link shares, which publish files to anyone holding the link.";
+          default = true;
+          description = ''
+            Allow public link shares, which publish files to anyone holding the link. On by default
+            because the Android app streams video through a direct link, which needs them.
+          '';
         };
         linkPassword = lib.mkOption {
           type = types.bool;
@@ -452,7 +457,7 @@ in
 
       videoPreviews = lib.mkOption {
         type = types.bool;
-        default = false;
+        default = true;
         description = "Generate video thumbnails with ffmpeg, which parses untrusted video files.";
       };
 
