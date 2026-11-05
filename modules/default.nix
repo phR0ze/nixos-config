@@ -544,7 +544,8 @@ in
     })
 
     # Immich on this host is reached over loopback. The public URL follows the Newt resource that
-    # publishes the proxy's subdomain, so share links carry the Pangolin name
+    # publishes the proxy's subdomain, else the primary zone, and becomes Immich's external domain
+    # so share links carry it
     (lib.mkIf config.services.native.immich-public-proxy.enable (
       let
         ipp = config.services.native.immich-public-proxy;
@@ -558,7 +559,11 @@ in
         services.native.immich-public-proxy.domains = cfg.network.domains;
         services.native.immich-public-proxy.immichUrl = lib.mkIf config.services.native.immich.enable
           "http://127.0.0.1:${toString config.services.native.immich.port}";
-        services.native.immich-public-proxy.publicUrl = lib.mkIf (published != [ ]) (lib.head published);
+        services.native.immich-public-proxy.publicUrl =
+          if published != [ ] then lib.head published
+          else if cfg.network.domains != [ ] then "https://${ipp.subdomain}.${lib.head cfg.network.domains}"
+          else null;
+        services.native.immich.externalDomain = lib.mkIf config.services.native.immich.enable ipp.publicUrl;
       }
     ))
 

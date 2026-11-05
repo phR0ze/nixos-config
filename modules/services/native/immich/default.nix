@@ -22,10 +22,11 @@
 #    switching) and keep the public name for browsers.
 # 4. System settings stay in the admin UI (upstream `settings = null`). Setting
 #    `services.immich.settings` makes Immich read its whole config from a file and locks the UI.
-#    In the UI set Server > External domain to `https://<first subdomain>.<primary domain>` for
-#    share links (or, with `services.native.immich-public-proxy`, to its `publicUrl` so links go
-#    through the proxy instead of behind Pangolin's SSO), and with `cuda` set Video Transcoding >
-#    Hardware Acceleration to NVENC.
+#    The one exception is `externalDomain` (Server > External domain, the base of share links),
+#    written into Immich's stored config before every start, so the UI can't drift from it.
+#    With `services.native.immich-public-proxy` it's forwarded as the proxy's `publicUrl`, so links
+#    go through the proxy instead of behind Pangolin's SSO. Otherwise set it, or leave it `null`
+#    and set the field in the UI. With `cuda` set Video Transcoding > Hardware Acceleration to NVENC.
 # 5. The first account created through the web UI becomes the admin.
 # 6. `cuda` runs machine learning (smart search, faces, OCR) on onnxruntime's CUDA provider and
 #    gives both services the NVIDIA device nodes for NVENC transcoding. Needs a Turing or newer
@@ -136,6 +137,17 @@ in
         '';
       };
 
+      externalDomain = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        example = "https://photos.example.com";
+        description = ''
+          Immich's External domain, the base of every share link, kept in its stored config on
+          each start (see deployment note 4). Forwarded from `services.native.immich-public-proxy`'s
+          `publicUrl` when that's enabled. `null` leaves the field to the admin UI.
+        '';
+      };
+
       backupDir = lib.mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -202,6 +214,30 @@ in
       ];
       users.users.immich.extraGroups = [ "video" "render" ];
     })
+
+    # Immich keeps its settings as a partial JSON document merged over its defaults and loads it
+    # once at startup, so setting just `server.externalDomain` before the server starts takes
+    # effect while every other setting stays editable in the UI. `services.immich.settings` would
+    # lock the whole UI instead. Skipped until the first start has created the table, and a
+    # failure only warns rather than holding Immich down.
+    (lib.mkIf (cfg.externalDomain != null) (let
+      db = config.services.immich.database;
+    in {
+      systemd.services.immich-server.preStart = ''
+        ${config.services.postgresql.package}/bin/psql -X -q -h ${db.host} -U ${db.user} -d ${db.name} \
+          -v ON_ERROR_STOP=1 -v domain=${lib.escapeShellArg cfg.externalDomain} <<'SQL' \
+          || echo "Unable to set Immich's external domain" >&2
+        select to_regclass('public.system_metadata') is not null as ready \gset
+        \if :ready
+          insert into system_metadata (key, value)
+            values ('system-config', jsonb_build_object('server', jsonb_build_object('externalDomain', :'domain'::text)))
+          on conflict (key) do update set value = system_metadata.value
+            || jsonb_build_object('server', coalesce(system_metadata.value -> 'server', '{}'::jsonb)
+              || jsonb_build_object('externalDomain', :'domain'::text));
+        \endif
+        SQL
+      '';
+    }))
 
     # Nightly copy of mediaLocation, see deployment note 7
     # - Runs as root: the CIFS backup share forces its own owner and modes, and -rlt skips the

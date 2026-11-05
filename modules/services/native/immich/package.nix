@@ -39,6 +39,15 @@
 #     shared with, so a Read share blocks the recipient from renaming, birth date, hide, favorite,
 #     merge, delete and face reassignment (upstream only limits access to the sharer's copy).
 #     The web UI has no role picker and always shared as Admin; it now always shares as Read.
+#   - 003-shared-link-password-required: every shared link (album or individual assets) needs a
+#     password, since they're published through immich-public-proxy. Creating one without, or
+#     clearing it on edit, is rejected. Links from before the rule keep working but can't be edited
+#     until given one. List them with
+#     `sudo -u immich psql immich -c "select id, \"createdAt\" from shared_link where coalesce(password, '') = ''"`
+#   - 004-shared-link-no-slug: shared links can't have a custom URL (slug). A slug is guessable,
+#     so a link is only reachable by its random 50-byte key, and immich-public-proxy also refuses
+#     `/s/<slug>`. Saving an existing slug link requires clearing the field, which removes it. List
+#     them with `sudo -u immich psql immich -c "select id, slug from shared_link where slug is not null"`
 #---------------------------------------------------------------------------------------------------
 { immich, lib, cudaCapabilities ? [ ], immichMl ? immich }:
 let

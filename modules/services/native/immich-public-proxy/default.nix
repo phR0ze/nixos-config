@@ -18,13 +18,13 @@
 #    `photos: { sso: false }` in the Newt instance's `pangolin.resources`
 #    (modules/services/oci/newt.nix "Blueprints"). Immich's own `immich` resource keeps its SSO.
 # 3. Access is per share link: each link is created by one Immich user, carries a random key and
-#    can have its own password and expiry, which the proxy prompts for. Set a password on any
-#    share that shouldn't be open to whoever holds the link.
-# 4. In Immich's admin UI, set Server > External domain to `publicUrl`
-#    (`https://<subdomain>.<pangolin domain>`), so generated share links point here instead of at
-#    Immich.
-# 5. `publicUrl` is forwarded from the Newt resource on the same subdomain when there is one,
-#    otherwise it's `https://<subdomain>.<primary domain>`.
+#    has its own password and expiry, which the proxy prompts for. Patched Immich builds require
+#    the password and refuse custom URLs (modules/services/native/immich/package.nix, patches 003
+#    and 004). Custom-URL `/s/<slug>` links return 404 here regardless (`allowSlugLinks = false`),
+#    since a slug is guessable where the random key isn't.
+# 4. `publicUrl` is forwarded from the Newt resource on the same subdomain when there is one,
+#    otherwise it's `https://<subdomain>.<primary domain>`. It's also forwarded as Immich's
+#    `externalDomain`, so share links point here instead of at Immich.
 #
 # ### Verify
 #  systemctl status immich-public-proxy
@@ -33,9 +33,6 @@
 { config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.native.immich-public-proxy;
-  publicUrl = if cfg.publicUrl != null then cfg.publicUrl
-    else if cfg.domains == [ ] then "" # Asserted below
-    else "https://${cfg.subdomain}.${lib.head cfg.domains}";
 in
 {
   options = {
@@ -70,9 +67,9 @@ in
         default = null;
         example = "https://photos.example.com";
         description = ''
-          The proxy's public base URL (`PUBLIC_BASE_URL`), the one to set as Immich's External
-          domain. Forwarded from the Newt resource on `subdomain`, if any, otherwise `null`, which
-          means `https://<subdomain>.<primary domain>`.
+          The proxy's public base URL (`PUBLIC_BASE_URL`), also Immich's `externalDomain`.
+          Forwarded from the Newt resource on `subdomain`, if any, otherwise
+          `https://<subdomain>.<primary domain>`.
         '';
       };
     };
@@ -84,6 +81,8 @@ in
         message = "services.native.immich-public-proxy requires 'port' to be set"; }
       { assertion = cfg.immichUrl != null;
         message = "services.native.immich-public-proxy requires 'immichUrl', forwarded automatically when services.native.immich is enabled on this host"; }
+      { assertion = cfg.publicUrl != null;
+        message = "services.native.immich-public-proxy requires 'publicUrl', forwarded automatically from 'host.network.domains'"; }
       (f.caddyDomainsAssert "native.immich-public-proxy" cfg)
     ];
 
@@ -92,10 +91,12 @@ in
       package = pkgs.callPackage ./package.nix { };
       port = cfg.port;
       immichUrl = cfg.immichUrl;
+      # Custom-URL (`/s/<slug>`) links are guessable, so only random-key `/share/<key>` links work
+      settings.ipp.allowSlugLinks = false;
     };
 
     systemd.services.immich-public-proxy = {
-      environment.PUBLIC_BASE_URL = publicUrl;
+      environment.PUBLIC_BASE_URL = cfg.publicUrl;
       serviceConfig = {
         # Loopback only: Caddy in, Immich out (note 1)
         IPAddressDeny = "any";

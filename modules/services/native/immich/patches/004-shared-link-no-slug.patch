@@ -1,0 +1,23 @@
+--- a/server/src/services/shared-link.service.ts
++++ b/server/src/services/shared-link.service.ts
+@@ -70,6 +70,9 @@
+     if (!dto.password) {
+       throw new BadRequestException('Shared links require a password');
+     }
++    if (dto.slug) {
++      throw new BadRequestException('Shared links cannot use a custom URL, leave it empty');
++    }
+ 
+     switch (dto.type) {
+       case SharedLinkType.Album: {
+@@ -128,6 +131,10 @@
+     if (!(dto.password === undefined ? existing.password : dto.password)) {
+       throw new BadRequestException('Shared links require a password');
+     }
++    // Empty clears an existing slug (stored as `slug || null`), so only a non-empty one is refused
++    if (dto.slug) {
++      throw new BadRequestException('Shared links cannot use a custom URL, clear it to save');
++    }
+ 
+     try {
+       const sharedLink = await this.sharedLinkRepository.update({
