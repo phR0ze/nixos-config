@@ -47,6 +47,7 @@
 #      disabled, so their endpoints are blocked in nginx instead (`calDav`, `sharing.federation`).
 #    - `userMounts`: users adding their own External Storage, e.g. WebDAV or SFTP into the LAN.
 #    - `internetAccess`, `profiles`, `passwordReset`.
+#    - `videoPreviews`: video thumbnails via ffmpeg, from the first 10 MB of each video on SMB mounts.
 #    - `auditLog` is the exception, on by default: logins, file accesses and admin actions go to
 #      `/var/lib/nextcloud/data/audit.log`, which users can't see.
 #    - `adminLogin`: the admin account is only needed for first setup, as reconcile and
@@ -449,6 +450,12 @@ in
         description = "JPEG quality of generated previews, lower is smaller and faster to load.";
       };
 
+      videoPreviews = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = "Generate video thumbnails with ffmpeg, which parses untrusted video files.";
+      };
+
       passwordReset = lib.mkOption {
         type = types.bool;
         default = false;
@@ -650,7 +657,9 @@ in
             "OC\\Preview\\MarkDown"
             "OC\\Preview\\OpenDocument"
             "OC\\Preview\\Krita"
-          ];
+          ] ++ lib.optional cfg.videoPreviews "OC\\Preview\\Movie";
+          preview_ffmpeg_path = lib.mkIf cfg.videoPreviews "${pkgs.ffmpeg-headless}/bin/ffmpeg";
+          preview_ffprobe_path = lib.mkIf cfg.videoPreviews "${pkgs.ffmpeg-headless}/bin/ffprobe";
         };
 
         # Pushes changes to clients instead of polling, via local Caddy for the real certificate

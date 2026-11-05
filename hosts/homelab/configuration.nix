@@ -55,6 +55,9 @@
     };
     services.native.nextcloud = {
       enable = true; port = 8090; subdomains = [ "nextcloud" "nextcloud-vpn" ];
+      # The Android app streams video through a direct link, which needs public links allowed
+      sharing.links = true;
+      videoPreviews = true;
     };
 
     # Shared by Immich and Nextcloud, sized for 96 GB and 16 threads on a SATA SSD, leaving most of
