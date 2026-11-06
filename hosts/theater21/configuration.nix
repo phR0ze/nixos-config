@@ -16,6 +16,7 @@
     host.desktop.xfce.theater = true;
 
     devices.gpu.intel.enable = true;
+    devices.audio.usbAdapter = true;
     services.native.smb.enable = true;
 
     # The only disk is eMMC, which exposes no S.M.A.R.T. data so smartd would fail to start having
