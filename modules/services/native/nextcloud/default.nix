@@ -819,6 +819,7 @@ in
     # Nightly backup, see deployment note 6
     # - Root and -rlt: the CIFS backup share forces its own owner and modes
     # - Store symlinks are excluded as CIFS can't create symlinks, and NixOS regenerates them
+    # - `.cache` is excluded too: fontconfig's cache from preview rendering holds symlinks
     # - No wantedBy, so it never runs at boot against an unmounted share
     (lib.mkIf (cfg.backupDir != null) (let
       backupDir = "${cfg.backupDir}/nextcloud";
@@ -849,6 +850,7 @@ in
           rsync -rlt --delete \
             --exclude='/data/appdata_*/preview/' --exclude='/data/updater-*' \
             --exclude=/nix-apps --exclude=/store-apps --exclude=/config/override.config.php \
+            --exclude=/.cache/ \
             ${home}/ ${backupDir}/
         '';
       };
