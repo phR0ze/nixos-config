@@ -43,7 +43,6 @@
     # Misc
     environment.systemPackages = [
       pkgs.xchm                     # App for reading Microsoft help files for technical manuals
-      pkgs.synology-drive-client
       pkgs.freetube
       #pkgs.wiiload                 # Depends on freeimage which has bit rotted
       #pkgs.wiimms-iso-tools        # Depends on freeimage which has bit rotted

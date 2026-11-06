@@ -12,7 +12,6 @@
     # Test
     # --------------------------------------------
     environment.systemPackages = [
-      #pkgs.synology-drive-client
     ];
 
     # Portainer service

@@ -21,7 +21,6 @@
     ./smartd.nix
     ./smb.nix
     ./sshd.nix
-    ./synology-drive-client
     ./systemd.nix
     ./vaultwarden.nix
   ];

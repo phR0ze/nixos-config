@@ -51,7 +51,6 @@
       '')
     ] ++ [
       xchm               # App for reading Microsoft help files for technical manuals
-      synology-drive-client
       freetube
       #wiiload                 # Depends on freeimage which has bit rotted
       #wiimms-iso-tools        # Depends on freeimage which has bit rotted

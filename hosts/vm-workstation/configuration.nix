@@ -40,7 +40,6 @@
     # Misc
     environment.systemPackages = with pkgs; [
       xchm
-      synology-drive-client
       freetube
       quickemu
       zed-editor
