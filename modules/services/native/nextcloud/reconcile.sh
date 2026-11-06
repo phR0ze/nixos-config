@@ -34,6 +34,21 @@ while IFS=$'\t' read -r app k v; do
   occ config:app:set "$app" "$k" --value "$v" >/dev/null
 done < <(jq -r '.appConfig | to_entries[] | .key as $a | .value | to_entries[] | [$a, .key, .value] | @tsv' "$desired")
 
+# Nextcloud Office, see deployment note 9. Sets both URLs and refreshes Collabora's discovery, which
+# derives the public URL. Collabora may still be starting, and being down mustn't stop the rest
+if office=$(jq -ce '.office // empty' "$desired"); then
+  wopi=$(jq -r .wopiUrl <<<"$office")
+  ok=false
+  for _ in $(seq 30); do
+    if occ richdocuments:activate-config --wopi-url "$wopi" --callback-url "$(jq -r .callbackUrl <<<"$office")" >/dev/null 2>&1; then
+      ok=true
+      break
+    fi
+    sleep 2
+  done
+  [ "$ok" = true ] || warn "couldn't configure Nextcloud Office against Collabora at $wopi, see 'nextcloud-occ richdocuments:activate-config'"
+fi
+
 # Admin account, see deployment note 8. Upstream installs without one, so it's created here with
 # its initial password and put in the admin group like any other declared user
 admin=$(jq -r .adminUser "$desired")

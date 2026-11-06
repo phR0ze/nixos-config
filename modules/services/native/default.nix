@@ -7,6 +7,7 @@
     ./adguardhome
     ./alerts.nix
     ./caddy
+    ./collabora
     ./crowdsec.nix
     ./immich
     ./immich-public-proxy

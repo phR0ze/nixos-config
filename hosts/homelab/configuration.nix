@@ -58,6 +58,7 @@
     };
     services.native.nextcloud = {
       enable = true; port = 8090; subdomains = [ "nextcloud" "nextcloud-vpn" ];
+      office.enable = true;
     };
 
     # Shared by Immich and Nextcloud, sized for 96 GB and 16 threads on a SATA SSD, leaving most of

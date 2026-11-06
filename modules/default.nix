@@ -600,6 +600,10 @@ in
       services.native.jellyfin.domains = cfg.network.domains;
     })
 
+    (lib.mkIf config.services.native.collabora.enable {
+      services.native.collabora.domains = cfg.network.domains;
+    })
+
     (lib.mkIf config.services.native.mullvad.enable {
       services.native.mullvad.sopsFile = cfg.sopsFile;
     })

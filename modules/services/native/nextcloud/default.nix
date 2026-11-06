@@ -64,6 +64,13 @@
 #      and Nextcloud both read from Newt's X-Forwarded-For.
 #    - `egress`: units running Nextcloud's PHP may only connect to localhost and the mount hosts,
 #      which must be IPs. PostgreSQL and Redis are unix sockets and DNS is the local resolver.
+# 9. `office`: Nextcloud Office (`richdocuments`), editing documents in the browser through
+#    `services.native.collabora` on this host, which it enables. See that module for Pangolin.
+#    - Nextcloud reaches Collabora on loopback, and Collabora calls back to `hostName`, which
+#      resolves to local Caddy, so `egress` needs nothing more. Only loopback may make WOPI calls.
+#    - `nextcloud-reconcile` sets both URLs and refreshes Collabora's discovery on every run. If
+#      Collabora wasn't up in time, rerun it with `systemctl restart nextcloud-reconcile`.
+#    - richdocuments also renders Office, ODF, RTF and PDF thumbnails through Collabora's sandbox.
 #
 # ### Backup process
 #  sudo systemctl start backup-nextcloud
@@ -84,6 +91,9 @@ let
 
   # Zones Caddy serves this app on, matching `f.caddyProxies`
   zones = if cfg.whichDomains == "all" then cfg.domains else lib.take 1 cfg.domains;
+
+  # Every name Caddy serves this app on
+  serverNames = lib.concatMap (zone: map (sub: "${sub}.${zone}") cfg.subdomains) zones;
 
   # Unit- and file-name safe string, e.g. "Family Photos" -> "Family-Photos"
   safe = s: lib.concatMapStrings (c: if builtins.match "[A-Za-z0-9_.-]" c != null then c else "-")
@@ -238,6 +248,8 @@ let
     } // lib.optionalAttrs expires {
       shareapi_expire_after_n_days = toString sh.linkExpireDays;
     };
+    # Only Collabora on loopback may make WOPI calls, see deployment note 9
+    richdocuments = lib.optionalAttrs cfg.office.enable { wopi_allowlist = "127.0.0.1,::1"; };
     files_sharing = lib.genAttrs [
       "outgoing_server2server_share_enabled"
       "incoming_server2server_share_enabled"
@@ -252,8 +264,13 @@ let
   desired = pkgs.writeText "nextcloud-desired.json" (builtins.toJSON {
     inherit (cfg) adminUser adminLogin;
     adminPasswordFile = config.secret.templates."nextcloud-admin".path;
-    apps = cfg.apps // { admin_audit = cfg.auditLog; };
+    apps = cfg.apps // { admin_audit = cfg.auditLog; richdocuments = cfg.office.enable; };
     inherit appConfig;
+    # See deployment note 9
+    office = if !cfg.office.enable then null else {
+      wopiUrl = "http://127.0.0.1:${toString config.services.native.collabora.port}";
+      callbackUrl = "https://${cfg.hostName}";
+    };
     groups = declaredGroups;
     users = lib.mapAttrsToList (ukey: u: {
       uid = u.name;
@@ -470,6 +487,11 @@ in
         description = "Generate PDF thumbnails with Ghostscript, which parses untrusted PDF files.";
       };
 
+      office.enable = lib.mkEnableOption ''
+        Nextcloud Office, editing documents in the browser through `services.native.collabora`,
+        see deployment note 9
+      '';
+
       passwordReset = lib.mkOption {
         type = types.bool;
         default = false;
@@ -610,7 +632,8 @@ in
         caching.apcu = true;
         appstoreEnable = false;
         extraAppsEnable = true;
-        extraApps = { inherit (config.services.nextcloud.package.packages.apps) previewgenerator; };
+        extraApps = { inherit (config.services.nextcloud.package.packages.apps) previewgenerator; }
+          // lib.optionalAttrs cfg.office.enable { inherit (config.services.nextcloud.package.packages.apps) richdocuments; };
         phpExtraExtensions = all: [ all.smbclient ];
         maxUploadSize = cfg.maxUploadSize;
         phpOptions = {
@@ -632,9 +655,7 @@ in
           "pm.status_path" = "/status";
         };
         settings = {
-          trusted_domains = if cfg.caddy
-            then lib.concatMap (zone: map (sub: "${sub}.${zone}") cfg.subdomains) zones
-            else [ ];
+          trusted_domains = lib.optionals cfg.caddy serverNames;
           # Every proxy Caddy trusts too, e.g. Newt, else the last one would be taken for the client
           trusted_proxies = lib.optionals cfg.caddy config.services.native.caddy.trustedProxies;
           allowed_admin_ranges = cfg.adminRanges;
@@ -752,8 +773,9 @@ in
         # See deployment note 3. RemainAfterExit so a changed desired state reruns it on switch
         nextcloud-reconcile = {
           description = "Apply declared Nextcloud users, groups and SMB mounts";
-          after = [ "nextcloud-setup.service" ];
+          after = [ "nextcloud-setup.service" ] ++ lib.optional cfg.office.enable "coolwsd.service";
           requires = [ "nextcloud-setup.service" ];
+          wants = lib.optional cfg.office.enable "coolwsd.service";
           wantedBy = [ "multi-user.target" ];
           serviceConfig = {
             Type = "oneshot";
@@ -862,6 +884,18 @@ in
         };
       });
     }))
+
+    # Nextcloud Office, see deployment note 9
+    (lib.mkIf cfg.office.enable {
+      assertions = [
+        { assertion = cfg.caddy;
+          message = "services.native.nextcloud.office requires caddy, as Collabora calls back to Nextcloud over HTTPS"; }
+      ];
+
+      services.native.collabora.enable = lib.mkDefault true;
+      # The canonical name first, as Collabora's alias group starts with it
+      services.native.collabora.wopiHosts = lib.unique ([ cfg.hostName ] ++ serverNames);
+    })
 
     # One Caddy proxy per subdomain
     (lib.mkIf cfg.caddy {
