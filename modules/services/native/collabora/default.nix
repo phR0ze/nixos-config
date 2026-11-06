@@ -22,9 +22,12 @@
 #      `hostName` can convert files, which is why it's kept off the internet.
 #    - No egress besides localhost, so no update checks, Zotero or other remote services.
 #    - The admin console is off, documents are monitored through `journalctl -u coolwsd`.
-# 5. Stateless: documents live in Nextcloud and `/var/lib/cool` is regenerated, so no backups.
+# 5. Fonts: documents render with the host's `fonts.packages` and fontconfig defaults, through
+#    `FONTCONFIG_FILE`, as the jail has no /etc. Collabora mounts /nix/store into every jail for this.
+#    Install any font a document uses there, e.g. Lora, or Collabora substitutes it.
+# 6. Stateless: documents live in Nextcloud and `/var/lib/cool` is regenerated, so no backups.
 # --------------------------------------------------------------------------------------------------
-{ config, lib, f, ... }: with lib.types;
+{ config, lib, pkgs, f, ... }: with lib.types;
 let
   cfg = config.services.native.collabora;
 
@@ -72,6 +75,8 @@ in
 
   config = lib.mkIf cfg.enable {
     assertions = [
+      { assertion = config.fonts.fontconfig.enable;
+        message = "services.native.collabora requires fonts.fontconfig.enable for the jail's fonts"; }
       { assertion = cfg.hostName != null;
         message = "services.native.collabora requires 'hostName', the default needs 'domains' and 'subdomains'"; }
       { assertion = cfg.wopiHosts != [ ];
@@ -111,6 +116,15 @@ in
       IPAddressDeny = "any";
       IPAddressAllow = [ "localhost" ];
     };
+
+    # The jail's fonts, see deployment note 5. Kits inherit coolwsd's environment and see the
+    # read-only /nix/store, but not /etc, so fontconfig gets a store-only config, as nixpkgs'
+    # gotenberg module does. The host's conf.d brings its font cache, aliases and defaults
+    systemd.services.coolwsd.environment.FONTCONFIG_FILE = lib.mkIf config.fonts.fontconfig.enable
+      (pkgs.makeFontsConf {
+        fontDirectories = config.fonts.packages;
+        includes = [ "${config.environment.etc.fonts.source}/conf.d" ];
+      });
 
     services.native.caddy.enable = lib.mkDefault true;
     services.native.caddy.domains = f.caddyProxies cfg (map (sub: { subdomain = sub; inherit (cfg) port; }) cfg.subdomains);
