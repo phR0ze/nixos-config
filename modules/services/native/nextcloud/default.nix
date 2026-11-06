@@ -710,6 +710,9 @@ in
       services.phpfpm.pools.nextcloud.phpEnv.PATH = lib.mkIf cfg.pdfPreviews (lib.mkForce
         "${pkgs.ghostscript_headless}/bin:/run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin:/usr/bin:/bin");
 
+      # `nextcloud-occ` run by hand, e.g. `preview:generate-all`, inherits the caller's PATH
+      environment.systemPackages = lib.optional cfg.pdfPreviews pkgs.ghostscript_headless;
+
       # Our own name resolves to local Caddy, for notify_push
       networking.hosts."127.0.0.1" = lib.mkIf cfg.caddy [ cfg.hostName ];
 
