@@ -47,7 +47,7 @@ in
     {
       environment.systemPackages = [
         pkgs.jellyfin-ffmpeg          # Jellyfin codecs bundle
-        pkgs.jellyfin-media-player    # Crossplatform desktop client
+        (pkgs.callPackage ./package.nix {})  # Crossplatform desktop client, EGL for VA-API
       ];
     }
 
