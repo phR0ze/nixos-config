@@ -47,7 +47,11 @@ in
     {
       environment.systemPackages = [
         pkgs.jellyfin-ffmpeg          # Jellyfin codecs bundle
-        (pkgs.callPackage ./package.nix {})  # Crossplatform desktop client, EGL for VA-API
+        # Crossplatform desktop client, EGL wrapped for VA-API zero-copy on Mesa GPUs. The NVIDIA
+        # proprietary driver can't create Qt's xcb_egl context under X11 (aborts with "Failed to
+        # initialize graphics backend for OpenGL") and doesn't do VA-API anyway, so use stock there.
+        (if config.devices.gpu.nvidia.enable then pkgs.jellyfin-desktop
+          else pkgs.callPackage ./package.nix {})
       ];
     }
 
