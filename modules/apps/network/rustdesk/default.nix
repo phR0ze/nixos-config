@@ -215,12 +215,14 @@ in
     })
 
     # Configure RustDesk to autostart after login
+    # - delayed so the panel's StatusNotifierWatcher is up first, otherwise the tray falls back to a
+    #   legacy XEmbed icon as well as the SNI one and the panel shows two RustDesk icons
     (lib.mkIf cfg.autostart {
       environment.etc."xdg/autostart/rustdesk.desktop".text = ''
         [Desktop Entry]
         Type=Application
         Terminal=false
-        Exec=${pkgs.rustdesk-flutter}/bin/rustdesk --service
+        Exec=${pkgs.bash}/bin/sh -c "sleep 5; exec ${pkgs.rustdesk-flutter}/bin/rustdesk --service"
       '';
     })
   ]);
