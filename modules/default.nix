@@ -630,6 +630,7 @@ in
       services.native.jellyfin.backupDir = lib.mkIf config.services.native.jellyfin.enable cfg.backupDir;
       services.native.nextcloud.backupDir = lib.mkIf config.services.native.nextcloud.enable cfg.backupDir;
       services.native.vaultwarden.backupDir = lib.mkIf config.services.native.vaultwarden.enable cfg.backupDir;
+      services.oci.ghost.backupDir = lib.mkIf config.services.oci.ghost.enable cfg.backupDir;
       services.oci.homarr.backupDir = lib.mkIf config.services.oci.homarr.enable cfg.backupDir;
       services.oci.oneup.backupDir = lib.mkIf config.services.oci.oneup.enable cfg.backupDir;
     })
@@ -637,6 +638,7 @@ in
     # Shared OCI service forwarding, see `ociForward` above. Pangolin and Portainer are not in this
     # list: neither is built on modules/types/service.nix, so they have no common field set to
     # forward (Pangolin has its own block below).
+    (lib.mkIf config.services.oci.ghost.enable { services.oci.ghost = ociForward "ghost"; })
     (lib.mkIf config.services.oci.homarr.enable { services.oci.homarr = ociForward "homarr"; })
     (lib.mkIf config.services.oci.oneup.enable { services.oci.oneup = ociForward "oneup"; })
     (lib.mkIf config.services.oci.stirling-pdf.enable { services.oci.stirling-pdf = ociForward "stirling-pdf"; })

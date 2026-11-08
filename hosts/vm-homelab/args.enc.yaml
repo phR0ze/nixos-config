@@ -73,6 +73,9 @@ host:
                         pangolin:
                             ip: ENC[AES256_GCM,data:iUuOBrqSoPwsHWcd,iv:mqpSHAvRFk14rphJKf8dMcw0B7KGjIgdHXP6vcZXYwI=,tag:vlUJlTJvka0R4FNStkdbFA==,type:str]
                             url: ENC[AES256_GCM,data:oy4uTGrNtBgeuwVKskkJ19kWYIpTJ1C3EmcGKJJ8C/FmMXPz,iv:xgvdli/skZ2UQW1OMsIe2VH93V32LJeFYZcWp/7WEcQ=,tag:FLWOPz6ZSPcGk1Ion3M7lg==,type:str]
+            ghost:
+                ip: ENC[AES256_GCM,data:w97Ae2hiTfv5KOI=,iv:eNQBLTxrSN2+WBm9YTfSvbtVeDnYRfgZX9bJlzF+JzY=,tag:ZrNoy6jxQE3UZXihJEPgww==,type:str]
+                subnet: ENC[AES256_GCM,data:6IYnyHHl3Fv2ykcnoY0=,iv:7xRTctPaO8xUR7XpU5TX0AvvxMyjuQvRIc9gS39Oerg=,tag:oBAUdoO8H7Ic0O3qLTmadw==,type:str]
 sops:
     age:
         - enc: |
@@ -84,7 +87,7 @@ sops:
             15E/UYdLPOZ/obszZQVoI4bMn2L71YCx0fhNnxV0e0JQRMQlzjvm9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-10-29T03:52:44Z"
-    mac: ENC[AES256_GCM,data:WyFZZ+ojv0iEg2OIWW18GsEv/UBm8Vt66kNpFW0BWZQXexFwz67qLWP3hFv7dAlTGxSfGE42IrEIvKSxp3UZ1/zDKbFhNdmsDL3zFe2zqq3qIoWWrh7FK3CPouqMonF5G5xmAjQg6W+zYP7RBRglRNL7awlXIDVt+Yqc/5fJs+k=,iv:bncWZSSEKxGwWfOCA5UDE3iMxf6lCzViTmAtPPNnbpY=,tag:PiSuo71256+TPHQpWl/3Tg==,type:str]
+    lastmodified: "2026-11-08T00:12:32Z"
+    mac: ENC[AES256_GCM,data:j0grSfDDhsqMCCoB1vQAepUgUySFPanxb0/xxLjG/uP/3A7h3M/qGyfKrvM7f+ZOd14n39fKcjaNAiB+48LJAAe33pjQIRf/BIIP38NswgoN294Fyfs9/Z2EsHgyrIdQjpWlFPSDNW7+uBuSnZH1sN/GQlKmK8hCU5IRbC823AI=,iv:6eni/Fgc8NKG3mAoCGj7FWe4eTq89s4jiwSVUTz4lGs=,tag:vmANNAf7rJv4vIg1XatABQ==,type:str]
     unencrypted_suffix: _unencrypted
-    version: 3.13.1
+    version: 3.13.3

@@ -24,44 +24,47 @@
 
     services.native.smb.enable = true;
     #services.native.mullvad.enable = true;
-    services.native.minecraft.enable = true;
-    services.native.nix-cache.host.enable = true;
-    services.oci.newt = {
-      enable = true; user.uid = 2005; tag = "1.18.1";
-    };
+    #services.native.minecraft.enable = true;
+    #services.native.nix-cache.host.enable = true;
+    # services.oci.newt = {
+    #   enable = true; user.uid = 2005; tag = "1.18.1";
+    # };
 
     # Caddy fronted services
     services.native.caddy.enable = true;
     services.native.adguardhome.enable = true;
-    services.native.jellyfin.enable = true;
-    services.oci.homarr = {
-      enable = true; port = 8080; user.uid = 2000; tag = "v2.3.0";
+    # services.native.jellyfin.enable = true;
+    # services.oci.homarr = {
+    #   enable = true; port = 8080; user.uid = 2000; tag = "v2.3.0";
+    # };
+    # services.oci.stirling-pdf = {
+    #   enable = true; port = 8081; user.uid = 2001; tag = "3.1.0";
+    # };
+    # services.oci.oneup = {
+    #   enable = true; port = 8082; user.uid = 2002; tag = "latest";
+    # };
+    services.oci.ghost = {
+      enable = true; port = 8083; user.uid = 2003; tag = "6.75.0"; dbTag = "8.0.46";
     };
-    services.oci.stirling-pdf = {
-      enable = true; port = 8081; user.uid = 2001; tag = "3.1.0";
-    };
-    services.oci.oneup = {
-      enable = true; port = 8082; user.uid = 2002; tag = "latest";
-    };
-    services.native.vaultwarden = {
-      enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
-    };
-    services.native.immich = {
-      enable = true; port = 2283; subdomains = [ "immich" "immich-vpn" ];
-    };
-    services.native.nextcloud = {
-      enable = true; port = 8090; subdomains = [ "nextcloud" "nextcloud-vpn" ];
-    };
-
-    # Shared by Immich and Nextcloud, sized for this 8 GB VM on SSD alongside PHP-FPM and Immich ML
-    services.postgresql.settings = {
-      shared_buffers = "1GB";
-      effective_cache_size = "3GB";
-      work_mem = "16MB";
-      maintenance_work_mem = "256MB";
-      random_page_cost = 1.1;
-      effective_io_concurrency = 200;
-    };
+    # services.native.vaultwarden = {
+    #   enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
+    # };
+    # services.native.immich = {
+    #   enable = true; port = 2283; subdomains = [ "immich" "immich-vpn" ];
+    # };
+    # services.native.nextcloud = {
+    #   enable = true; port = 8090; subdomains = [ "nextcloud" "nextcloud-vpn" ];
+    # };
+    #
+    # # Shared by Immich and Nextcloud, sized for this 8 GB VM on SSD alongside PHP-FPM and Immich ML
+    # services.postgresql.settings = {
+    #   shared_buffers = "1GB";
+    #   effective_cache_size = "3GB";
+    #   work_mem = "16MB";
+    #   maintenance_work_mem = "256MB";
+    #   random_page_cost = 1.1;
+    #   effective_io_concurrency = 200;
+    # };
 
     # Additional apps
     environment.systemPackages = [

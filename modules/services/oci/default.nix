@@ -10,6 +10,7 @@
 { ... }:
 {
   imports = [
+    ./ghost.nix
     ./homarr.nix
     ./newt.nix
     ./oneup.nix
