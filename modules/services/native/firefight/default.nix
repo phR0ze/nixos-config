@@ -6,6 +6,7 @@
 # - `server`   - firefight-server as a system service, with pre-configured admin token,
 #                enrollment key and declarative timers (assigned to clients in the control deck)
 # - `serverUi` - the control deck app, already pointed at the server with the admin token
+#                (`serverUi.autoStart`, on with `server`, adds it to the desktop session's autostart)
 # - `client`   - firefight-agent as a systemd user service in the graphical session, enrolling
 #                itself with the shared enrollment key so no manual approval is needed
 # - `clientUi` - the client display app, autostarted with the desktop session and living in the
@@ -219,6 +220,10 @@ let
     "${firefight.app}/bin/firefight" "--mode=client" "--agent-port=${toString cfg.client.uiPort}"
   ] ++ lib.optional cfg.clientUi.startHidden "--start-hidden"
     ++ lib.optional (!cfg.clientUi.tray) "--no-tray");
+
+  # Control deck command line, shared by its desktop entry and autostart entry
+  deckExec = "${firefight.app}/bin/firefight --mode=server --server=${cfg.serverUi.server}"
+    + " --token-file=${secretPath cfg.adminTokenSecretRef}";
 in
 {
   options = {
@@ -358,6 +363,13 @@ in
           defaultText = lib.literalExpression ''"localhost:''${server.port}" when server.enable'';
           example = "server-host:7878";
         };
+
+        autoStart = lib.mkOption {
+          description = "Start the control deck with the desktop session (at boot with autologin)";
+          type = bool;
+          default = cfg.server.enable;
+          defaultText = lib.literalExpression "server.enable";
+        };
       };
 
       clientUi = {
@@ -371,7 +383,8 @@ in
         autoStart = lib.mkOption {
           description = "Start the client display with the desktop session (at boot with autologin)";
           type = bool;
-          default = true;
+          default = cfg.client.enable;
+          defaultText = lib.literalExpression "client.enable";
         };
 
         startHidden = lib.mkOption {
@@ -497,12 +510,22 @@ in
           name = "firefight-deck";
           desktopName = "Firefight Control Deck";
           comment = "Configure and control firefight timers";
-          exec = "${firefight.app}/bin/firefight --mode=server --server=${cfg.serverUi.server}"
-            + " --token-file=${secretPath cfg.adminTokenSecretRef}";
+          exec = deckExec;
           icon = "alarm-symbolic";
           categories = [ "Utility" ];
         })
       ];
+
+      # Delayed so the panel's StatusNotifierWatcher is up first, same as the client display
+      environment.etc."xdg/autostart/firefight-deck.desktop" = lib.mkIf cfg.serverUi.autoStart {
+        text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=Firefight Control Deck
+          Terminal=false
+          Exec=${pkgs.bash}/bin/sh -c "sleep 5; exec ${deckExec}"
+        '';
+      };
     })
 
     (lib.mkIf cfg.clientUi.enable {
