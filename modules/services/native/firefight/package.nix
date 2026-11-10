@@ -15,13 +15,15 @@
 #---------------------------------------------------------------------------------------------------
 { lib, fetchFromGitHub, rustPlatform, flutter, pkg-config, alsa-lib, libx11, libxi, writeShellScript
 
-# Build from a local checkout instead of the pinned source, see build.nix
-, src ? null
+# Build from a local checkout instead of the pinned source, see build.nix. Deliberately not named
+# `src`: callPackage fills any argument whose name exists in the package set, and nixpkgs has a
+# (throwing) `src` alias.
+, firefightSrc ? null
 }:
 let
   version = "0.1.0";
 
-  source = if src != null then src else fetchFromGitHub {
+  source = if firefightSrc != null then firefightSrc else fetchFromGitHub {
     owner = "phR0ze";
     repo = "firefight";
     rev = "bb59645a00ae41d5bfba3338aa54ab25782c9e41";

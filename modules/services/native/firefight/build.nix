@@ -24,4 +24,4 @@ let
     filter = path: type: !(builtins.elem (baseNameOf path) skip);
   };
 in
-  pkgs.callPackage ./package.nix { src = localSrc; }
+  pkgs.callPackage ./package.nix { firefightSrc = localSrc; }

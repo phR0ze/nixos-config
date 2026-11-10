@@ -18,6 +18,7 @@
     host.desktop.xfce.standard = true;
     devices.gpu.nvidia = { enable = true; open = true; };
 
+    services.native.firefight.client.enable = true;
     apps.games.roblox.enable = true;
   };
 }
