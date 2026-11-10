@@ -2,7 +2,6 @@
 {
   imports = [
     ./devilspie2
-    ./firefight
     ./flatpak
     ./ghostty
     ./git

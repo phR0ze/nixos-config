@@ -23,11 +23,10 @@
 # deck the same `adminToken`.
 #
 # ### Example
-#   Server host:
+#   Server host (`serverUi` comes with `server`, `clientUi` with `client`; set either false to skip):
 #   ```nix
-#   apps.system.firefight = {
+#   services.native.firefight = {
 #     server.enable = true;
-#     serverUi.enable = true;
 #     server.timers.lab-closes = {
 #       name = "Lab closes";
 #       duration = 15 * 60;
@@ -43,10 +42,7 @@
 #
 #   Client host (it shows up in the deck as its `client.name`, the hostname by default):
 #   ```nix
-#   apps.system.firefight = {
-#     client.enable = true;
-#     clientUi.enable = true;
-#   };
+#   services.native.firefight.client.enable = true;
 #   ```
 #
 # ### Server address
@@ -56,8 +52,9 @@
 #   ```yaml
 #   host:
 #     services:
-#       firefight:
-#         server: server-host:7878
+#       native:
+#         firefight:
+#           server: server-host:7878
 #   ```
 # Setting `client.server`/`serverUi.server` in a host's configuration.nix also works; if args set
 # it too, use `lib.mkForce` there to override them. Note the address still ends up in the built
@@ -75,7 +72,7 @@
 #---------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
-  cfg = config.apps.system.firefight;
+  cfg = config.services.native.firefight;
   firefight = pkgs.firefight;
 
   secretPath = key: config.secret.files.${key}.path;
@@ -201,19 +198,19 @@ let
   timerAssertions = lib.concatLists (lib.mapAttrsToList (key: t: [
     {
       assertion = t.type != "countdown" || t.duration != null;
-      message = "apps.system.firefight.server.timers.${key}: countdown timers need `duration`";
+      message = "services.native.firefight.server.timers.${key}: countdown timers need `duration`";
     }
     {
       assertion = t.type != "atTime" || t.time != null;
-      message = "apps.system.firefight.server.timers.${key}: atTime timers need `time`";
+      message = "services.native.firefight.server.timers.${key}: atTime timers need `time`";
     }
     {
       assertion = t.repeat != "days" || t.days != [ ];
-      message = "apps.system.firefight.server.timers.${key}: `repeat = \"days\"` needs `days`";
+      message = "services.native.firefight.server.timers.${key}: `repeat = \"days\"` needs `days`";
     }
     {
       assertion = lib.all (a: a.type != "command" || a.cmd != "") t.actions;
-      message = "apps.system.firefight.server.timers.${key}: command actions need `cmd`";
+      message = "services.native.firefight.server.timers.${key}: command actions need `cmd`";
     }
   ]) cfg.server.timers);
 
@@ -225,7 +222,7 @@ let
 in
 {
   options = {
-    apps.system.firefight = {
+    services.native.firefight = {
       sopsFile = lib.mkOption {
         description = ''
           Path to this host's sops-encrypted secrets file holding the admin token and enrollment
@@ -347,7 +344,12 @@ in
       };
 
       serverUi = {
-        enable = lib.mkEnableOption "Install the control deck, pointed at `serverUi.server`";
+        enable = lib.mkOption {
+          description = "Install the control deck, pointed at `serverUi.server`";
+          type = bool;
+          default = cfg.server.enable;
+          defaultText = lib.literalExpression "server.enable";
+        };
 
         server = lib.mkOption {
           description = "Server address the control deck connects to, as `host:port`";
@@ -359,7 +361,12 @@ in
       };
 
       clientUi = {
-        enable = lib.mkEnableOption "Install the client display for the local agent";
+        enable = lib.mkOption {
+          description = "Install the client display for the local agent";
+          type = bool;
+          default = cfg.client.enable;
+          defaultText = lib.literalExpression "client.enable";
+        };
 
         autoStart = lib.mkOption {
           description = "Start the client display with the desktop session (at boot with autologin)";
@@ -387,7 +394,7 @@ in
       assertions = [
         {
           assertion = cfg.sopsFile != null;
-          message = "apps.system.firefight.sopsFile must be set when the server, client or serverUi is enabled";
+          message = "services.native.firefight.sopsFile must be set when the server, client or serverUi is enabled";
         }
       ];
     })
@@ -446,7 +453,7 @@ in
       assertions = [
         {
           assertion = cfg.client.server != "";
-          message = "apps.system.firefight.client.server must be set when the server isn't on this host";
+          message = "services.native.firefight.client.server must be set when the server isn't on this host";
         }
       ];
 
@@ -480,7 +487,7 @@ in
       assertions = [
         {
           assertion = cfg.serverUi.server != "";
-          message = "apps.system.firefight.serverUi.server must be set when the server isn't on this host";
+          message = "services.native.firefight.serverUi.server must be set when the server isn't on this host";
         }
       ];
 

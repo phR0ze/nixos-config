@@ -25,6 +25,7 @@
 
     services.native.smb.enable = true;
     services.native.mullvad.enable = true;
+    services.native.firefight.server.enable = true;
 
     services.native.alerts.enable = true;
     services.native.minecraft.enable = true;

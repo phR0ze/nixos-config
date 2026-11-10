@@ -1,7 +1,7 @@
 # Used for building directly for local tests, against the same nixpkgs-unstable this repo pins
 #
 # ### Build locally
-# cd ~/Projects/nixos-config/modules/apps/system/firefight
+# cd ~/Projects/nixos-config/modules/services/native/firefight
 # nix build -f ./build.nix server
 # nix build -f ./build.nix agent
 # nix build -f ./build.nix app

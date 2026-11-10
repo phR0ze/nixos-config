@@ -19,6 +19,7 @@
 
     devices.gpu.nvidia = { enable = true; open = true; };
 
+    services.native.firefight.client.enable = true;
     apps.games.roblox.enable = true;
   };
 }

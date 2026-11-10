@@ -20,6 +20,7 @@
 
     apps.games.roblox.enable = true;
 
+    services.native.firefight.client.enable = true;
     services.native.smb.enable = true;
   };
 }

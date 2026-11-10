@@ -33,7 +33,7 @@
       in {
         # firefight needs Flutter 3.47+ (newer than stable), so its whole package set is built
         # from unstable - the same nixpkgs firefight's own flake pins.
-        firefight = pkgsUnstable.callPackage ../modules/apps/system/firefight/package.nix {};
+        firefight = pkgsUnstable.callPackage ../modules/services/native/firefight/package.nix {};
 
         # Override packages with other versions:
         immich = pkgsUnstable.immich;

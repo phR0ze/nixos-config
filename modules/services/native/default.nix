@@ -9,6 +9,7 @@
     ./caddy
     ./collabora
     ./crowdsec.nix
+    ./firefight
     ./immich
     ./immich-public-proxy
     ./jellyfin.nix
