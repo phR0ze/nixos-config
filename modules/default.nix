@@ -612,6 +612,20 @@ in
       apps.dev.claude.sopsFile = cfg.sopsFile;
     })
 
+    (lib.mkIf (with config.apps.system.firefight; server.enable || client.enable || serverUi.enable) {
+      apps.system.firefight.sopsFile = cfg.sopsFile;
+    })
+
+    # The server address agents and control decks connect to, kept out of git in args, e.g.
+    # `host.services.firefight.server: "server-host:7878"` in the root args.enc.yaml for the fleet
+    (lib.mkIf (with config.apps.system.firefight; client.enable || serverUi.enable) (
+      let arg = f.getSvcFunc "firefight" cfg.services;
+      in {
+        apps.system.firefight.client.server = arg "server";
+        apps.system.firefight.serverUi.server = arg "server";
+      }
+    ))
+
     (lib.mkIf config.services.native.alerts.enable {
       services.native.alerts.sopsFile = cfg.sopsFile;
       services.native.alerts.publicIp.expected =

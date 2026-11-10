@@ -17,6 +17,8 @@ host:
                 - ENC[AES256_GCM,data:dktn5ehsZT2hyxBs3LpzDsXYFOXdEt4BXCyWQuieLz2n98SX02818+25TLrasHJqpknn4U2WL78d6PlAeQ2/fVWEp/K1Zs6W9tvfbSfJUKmS7DD6uBuN5/jY2qXy/QhBBa/uGSFnT+1zMxwPCrFYq+fOmZINgjXS6pOEsWmZYwykJoSIr3SonIZf2l//SqPmEfAk2aMFRieF/jCSMmMI/mnnNJYN4DeU2WdaNzMjNxbCP0S1fXiRE/bwHv8vYqojcwb1P4ZY7zlQgdh5fzXM8rO+O6hRqVtbxmibTumBKjYICbCNAcl37VdzMxSylRj5eylDFzpA8u4zO0iCy3uNvzh/zDDg3UdMGrBwwelBiKfbxREzRdVGPZfyPikvsU47r9M6uef5F/k4dM0daHaGjMw0p6IE6V/SIJO0tvoCa9RVJ3ZRMuIFkTwDRpLJtyGH8kgKDU0yPmNTmk61yX3gMTp98sUqN1BcvCIZCSVIDkLlEcEjnSOmGm6CxlA=,iv:JlctIk83Ti0su1Bzi58H1oeaNHYhJMi+lL/ztowBoTM=,tag:vNesVUDg2RU88tG233oitg==,type:str]
     services:
         native:
+            firefight:
+                server: ENC[AES256_GCM,data:TPJrkcwj/5X5EkQ=,iv:Gh5YoKyBLo9wfAPu7H0RkCNg0uat9ld9SB8UouwLb5g=,tag:oKHu3AwtFtx37GdcY0npcQ==,type:str]
             nix-cache:
                 client:
                     hostIP: ENC[AES256_GCM,data:4LxlkVSod8Gwhag=,iv:gpvjsEj7U/y+ulCfStCkfVqFDFfBCOgFYDhJosW+wZY=,tag:Pei8cZ+jw0TvFs5ppMfHxA==,type:str]
@@ -35,7 +37,7 @@ sops:
             MheJbzdAFE9sa4Nnze2/p/CY8aVAwDk0B9F9tDYq3T9RHsvVcZNvKw==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-10-30T00:25:47Z"
-    mac: ENC[AES256_GCM,data:fUn5agCBXtWvnYKBGmXSouaKe5U3aRbisDHz0Rri90Fy64/OYUWkXpb+woIYPN0aXc67S5iFMNhDeR0lZw26TLKFD4aOK5zoRZaQPjGpRAAXQ048DBrSQsvueOBDomuBvsExHedhFTkUdykAhz5Rl108A4MCBnECT2fGEvXTcVM=,iv:enqYXF1UHmc3bZWyw6FxFlcsP/bxeL7CFie5IM1DHIo=,tag:PUru5uMzUY0dpKJrimENGQ==,type:str]
+    lastmodified: "2026-11-10T21:23:07Z"
+    mac: ENC[AES256_GCM,data:H4sAVzrWaFJ4+K2MYLxYt2FmPZTvEdvXo9FWchQMAbZSTix9JJao/W3M5VJtZXSsmfGsXk6qliTBMH0haSDTs3cDTQBFs+l1Zru4593uWrENtLsf/XQpe+s503hB+qUZCv21DPMGHzvQiqShHza0O/9KhL83S8LaVcwgwYwdaFs=,iv:a9CiudEBFLzlPzowqIp15utl1qMR/zP2DnUWzyjEgW0=,tag:I44+NwG9B5WA5Qj2RoeUbA==,type:str]
     unencrypted_suffix: _unencrypted
-    version: 3.13.1
+    version: 3.13.3
