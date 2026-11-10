@@ -26,8 +26,8 @@ let
   source = if firefightSrc != null then firefightSrc else fetchFromGitHub {
     owner = "phR0ze";
     repo = "firefight";
-    rev = "bb59645a00ae41d5bfba3338aa54ab25782c9e41";
-    hash = "sha256-tJtvYqRTAb4LQMONEkh7U25Zf0TKomGuw0Dd8fT/VHI=";
+    rev = "bfbb1c218cc8c246c7d05294ce920599ed326744";
+    hash = "sha256-GiPQDQQ3DJFgTa0WwwQvfv0Ke/NBkjVSqpXh6cG23L0=";
   };
 
   meta = {
