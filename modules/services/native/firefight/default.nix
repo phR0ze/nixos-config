@@ -82,6 +82,10 @@ let
   # Same address the agent and the deck use when the server runs on this host
   localServer = if cfg.server.enable then "localhost:${toString cfg.server.port}" else "";
 
+  # Server address with the default port appended when none is given, so a bare `host` works
+  defaultPort = 7878;
+  withPort = addr: if addr == "" || lib.hasInfix ":" addr then addr else "${addr}:${toString defaultPort}";
+
   weekdays = [ "Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun" ];
 
   actionType = submodule {
@@ -222,7 +226,7 @@ let
     ++ lib.optional (!cfg.clientUi.tray) "--no-tray");
 
   # Control deck command line, shared by its desktop entry and autostart entry
-  deckExec = "${firefight.app}/bin/firefight --mode=server --server=${cfg.serverUi.server}"
+  deckExec = "${firefight.app}/bin/firefight --mode=server --server=${withPort cfg.serverUi.server}"
     + " --token-file=${secretPath cfg.adminTokenSecretRef}";
 in
 {
@@ -259,7 +263,7 @@ in
         port = lib.mkOption {
           description = "Port the server listens on";
           type = port;
-          default = 7878;
+          default = defaultPort;
         };
 
         bind = lib.mkOption {
@@ -321,7 +325,7 @@ in
         enable = lib.mkEnableOption "Run firefight-agent as a systemd user service";
 
         server = lib.mkOption {
-          description = "Server address as `host:port`";
+          description = "Server address as `host:port`, or `host` for the default port 7878";
           type = str;
           default = localServer;
           defaultText = lib.literalExpression ''"localhost:''${server.port}" when server.enable'';
@@ -357,7 +361,7 @@ in
         };
 
         server = lib.mkOption {
-          description = "Server address the control deck connects to, as `host:port`";
+          description = "Server address the control deck connects to, as `host:port` (or `host` for port 7878)";
           type = str;
           default = localServer;
           defaultText = lib.literalExpression ''"localhost:''${server.port}" when server.enable'';
@@ -484,7 +488,7 @@ in
         serviceConfig = {
           ExecStart = lib.concatStringsSep " " ([
             "${firefight.agent}/bin/firefight-agent"
-            "--server" cfg.client.server
+            "--server" (withPort cfg.client.server)
             "--name" (lib.escapeShellArg cfg.client.name)
             "--ui-port" (toString cfg.client.uiPort)
           ] ++ lib.optionals (cfg.enrollKeySecretRef != null) [
