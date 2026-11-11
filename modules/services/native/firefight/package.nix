@@ -21,13 +21,13 @@
 , firefightSrc ? null
 }:
 let
-  version = "0.1.0";
+  version = "0.2.0";
 
   source = if firefightSrc != null then firefightSrc else fetchFromGitHub {
     owner = "phR0ze";
     repo = "firefight";
-    rev = "c6f674f7818f390eb3b41231bd4340809f2283ca";
-    hash = "sha256-TEErJZS85pPmpNEsLMc/w+Up4F+eqtBCoCWQZbbQQLQ=";
+    rev = "73b396510e4b00a0e4cf8ce31bf90ba020584df9";
+    hash = "sha256-kpdI6DkvKrdMA8ATrv1f8LE5RVR5JCxigEjPtPWuWkc=";
   };
 
   meta = {
@@ -40,7 +40,7 @@ let
     pname = crate;
     inherit version;
     src = source;
-    cargoHash = "sha256-u1QKJnt2LYlupUDhRo4j86YKrazdRQJFSn97Ye62fwQ=";
+    cargoHash = "sha256-8dX82q0O0+Lg0t/+L4uDivd3BWxqa+3Bo0MmthL2Mh8=";
     cargoBuildFlags = [ "-p" crate ];
     # The test suite runs in the firefight repo; the e2e tests need a live loopback server.
     doCheck = false;
