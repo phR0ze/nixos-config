@@ -729,9 +729,19 @@ in
         # geoblockAllowList, which drops everyone else - for 7h on hosts/vps1 (2026-10-09) until the
         # daily timer happened to run. So every reload re-runs this unit, and the cache keeps that
         # from depending on GitHub being reachable at that moment.
-        systemd.services.nftables.serviceConfig.ExecReload = lib.mkAfter [
-          "${config.systemd.package}/bin/systemctl --no-block start geoblock-refresh.service"
-        ];
+        #
+        # A restart (not just a reload) recreates the table too - on hosts/vps2 the sets sat at
+        # geoblockAllowList-only for 9 days (2026-11-02..11) because only ExecReload was hooked, so
+        # ExecStartPost re-runs it as well. Skipped while booting, where the timer's OnBootSec covers
+        # it, so the boot transaction never pulls in network-online.target.
+        systemd.services.nftables.serviceConfig = let
+          refresh = "${config.systemd.package}/bin/systemctl --no-block start geoblock-refresh.service";
+        in {
+          ExecReload = lib.mkAfter [ refresh ];
+          ExecStartPost = lib.mkAfter [ (toString (pkgs.writeShellScript "nftables-geoblock-refresh" ''
+            [ "$(${config.systemd.package}/bin/systemctl is-system-running)" = starting ] || ${refresh}
+          '')) ];
+        };
 
         systemd.services.geoblock-refresh = {
           description = "Fetch the current US IPv4 CIDR list and atomically refresh the geoblock nftables set";
@@ -800,7 +810,10 @@ in
           wantedBy = [ "timers.target" ];
           timerConfig = {
             OnBootSec = "2min";       # minimize the geoblockAllowList-only window after boot
-            OnUnitActiveSec = "1d";   # matches ipverse/country-ip-blocks' own daily CI cadence
+            # matches ipverse/country-ip-blocks' own daily CI cadence. OnCalendar, not
+            # OnUnitActiveSec: a monotonic-only timer restarted by a switch can end up with no next
+            # elapse at all (`NEXT -`), which left hosts/vps2 unrefreshed from 2026-11-02.
+            OnCalendar = "daily";
             RandomizedDelaySec = 300; # politeness jitter, matches crowdsec-update-hub.timer's own pattern in this repo
             Persistent = true;        # catch up if the host was off past a scheduled run
           };
