@@ -12,6 +12,7 @@ in
     apps.system.neovim = {
       enable = lib.mkEnableOption "Install and configure Neovim";
       xdgLauncher = lib.mkEnableOption "Register a Neovim XDG desktop menu entry";
+      lowMemory = lib.mkEnableOption "Leave out the LSPs, linters and debugger to keep the closure small";
     };
   };
 
@@ -35,7 +36,7 @@ in
 
       # Install supporting packages
       environment.systemPackages = [
-        (pkgs.callPackage ./package.nix {})             # Call the local neovim package
+        (pkgs.callPackage ./package.nix { inherit (cfg) lowMemory; })  # Call the local neovim package
       ];
 
       # Create default style configurations

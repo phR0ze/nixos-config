@@ -57,6 +57,7 @@ in
       devices.boot.lowMemory = true;                # zram swap to cheaply extend effective memory
       devices.kernel.lowMemory = true;              # aggressive reclaim as swap is in memory
       services.native.systemd.lowMemory  = true;    # cap journld and ensure its persisted
+      apps.system.neovim.lowMemory = true;          # no LSPs/linters/debugger in the editor
     })
   ]);
 }

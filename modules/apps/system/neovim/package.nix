@@ -14,7 +14,8 @@
 #---------------------------------------------------------------------------------------------------
 {
   neovim-unwrapped, symlinkJoin, fetchFromGitHub, makeWrapper, runCommandLocal, vimPlugins, vimUtils,
-  writeTextFile, lib, pkgs
+  writeTextFile, lib, pkgs,
+  lowMemory ? false                            # Drop the LSPs/linters/debugger from runtimeDeps
 }: let
 
   # Plugins to make available but don't load on boot.
@@ -269,9 +270,12 @@
 
   # Runtime dependencies to support Neovim and Neovim plugins
   # - this would include LSPs, utilities, linting tools etc...
+  # - `lowMemory` keeps only the search tools the pickers need; LSPs whose binary is missing just
+  #   don't start, as vim.lsp.enable skips a config whose cmd isn't executable
   runtimeDeps = with pkgs; [
     fd                                      # Simple fast Rust alternative to find
     ripgrep                                 # Faster more capable Rust grep
+  ] ++ lib.optionals (!lowMemory) [
     gopls                                   # GO LSP
     helm-ls                                 # Helm LSP
     stylua                                  # Lua opinionated code formatter
