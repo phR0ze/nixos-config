@@ -1,6 +1,7 @@
 { ... }:
 {
   imports = [
+    ./bitwarden
     ./devilspie2
     ./flatpak
     ./ghostty

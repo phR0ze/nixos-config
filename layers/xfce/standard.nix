@@ -32,6 +32,7 @@ in
       apps.media.xnviewmp.enable = true;        # Versatile image viewer with lossless JPEG rotation
       apps.network.qbittorrent.enable = true;   # Excellent bittorrent client
       apps.system.veracrypt.enable = true;      # Free Open-Source filesystem encryption
+      apps.system.bitwarden.enable = true;      # Bitwarden desktop password manager client
       apps.dev.claude.enable = true;            # Anthropic's agentic coding CLI
 
       apps.games.steam.enable = true;           # Digital distribution platform from Valve
