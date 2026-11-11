@@ -9,8 +9,9 @@
 #                (`serverUi.autoStart`, on with `server`, adds it to the desktop session's autostart)
 # - `client`   - firefight-agent as a systemd user service in the graphical session, enrolling
 #                itself with the shared enrollment key so no manual approval is needed
-# - `clientUi` - the client display app, autostarted with the desktop session and living in the
-#                system tray (closing the window hides it, it returns when a timer fires)
+# - `clientUi` - the client display app, run by the agent for as long as the agent runs (it is
+#                relaunched if it exits and cannot be quit) and living in the system tray (closing
+#                the window hides it, it returns when a timer fires)
 #
 # ### Secrets
 # Both keys come from this host's sops secrets (`sopsFile`, forwarded from `host.sopsFile` by
@@ -31,7 +32,6 @@
 #     server.timers.lab-closes = {
 #       name = "Lab closes";
 #       duration = 15 * 60;
-#       allowClientDismiss = false;
 #       actions = [
 #         { type = "sound"; sound = "gong"; }
 #         { type = "command"; cmd = "loginctl lock-session"; afterPrevious = true; }
@@ -104,13 +104,13 @@ let
         type = numbers.between 0.0 1.0;
         default = 0.8;
       };
-      loop = lib.mkOption {
+      duration = lib.mkOption {
         description = ''
-          Loop the sound until dismissed. Ignored (plays once) when the timer's
-          `allowClientDismiss` is off, since the run must then finish on its own.
+          Repeat the sound for this many seconds, then stop; `null` plays it once. Resetting the
+          timer in the control deck stops it early. The control deck offers 5, 10, 15 and 30.
         '';
-        type = bool;
-        default = true;
+        type = nullOr ints.positive;
+        default = 5;
       };
       cmd = lib.mkOption {
         description = "Shell command to run, for `type = \"command\"`";
@@ -160,11 +160,8 @@ let
         default = [ ];
         example = [ "Mon" "Wed" ];
       };
-      allowClientDismiss = lib.mkOption {
-        description = ''
-          Let client displays dismiss the timer while it fires. When off, the timer returns to idle
-          by itself once every client has finished its actions.
-        '';
+      focusOnFire = lib.mkOption {
+        description = "Bring the client display to the front when the timer fires";
         type = bool;
         default = true;
       };
@@ -189,11 +186,11 @@ let
       };
     actions = map (a: {
       kind = if a.type == "sound"
-        then { type = "sound"; inherit (a) sound volume; loop_until_dismissed = a.loop; }
+        then { type = "sound"; inherit (a) sound volume; duration_secs = a.duration; }
         else { type = "command"; inherit (a) cmd; };
       mode = if a.afterPrevious then "after_previous" else "parallel";
     }) t.actions;
-    allow_client_dismiss = t.allowClientDismiss;
+    focus_on_fire = t.focusOnFire;
   };
 
   serverConfig = pkgs.writeText "firefight-server.json" (builtins.toJSON {
@@ -219,11 +216,10 @@ let
     }
   ]) cfg.server.timers);
 
-  # Client display command line, shared by its desktop entry and autostart entry
-  displayExec = lib.concatStringsSep " " ([
-    "${firefight.app}/bin/firefight" "--mode=client" "--agent-port=${toString cfg.client.uiPort}"
-  ] ++ lib.optional cfg.clientUi.startHidden "--start-hidden"
-    ++ lib.optional (!cfg.clientUi.tray) "--no-tray");
+  # The agent launches the client display itself, adding its mode and agent port
+  displayArgs = lib.optionals cfg.clientUi.enable ([ "--display" "${firefight.app}/bin/firefight" ]
+    ++ lib.optionals cfg.clientUi.startHidden [ "--display-arg" "--start-hidden" ]
+    ++ lib.optionals (!cfg.clientUi.tray) [ "--display-arg" "--no-tray" ]);
 
   # Control deck command line, shared by its desktop entry and autostart entry
   deckExec = "${firefight.app}/bin/firefight --mode=server --server=${withPort cfg.serverUi.server}"
@@ -290,30 +286,30 @@ in
             logout-warning-40 = {
               name = "40min logout warning";
               duration = 40 * 60;
-              allowClientDismiss = true;
-              actions = [ { type = "sound"; sound = "chime"; loop = true; } ];
+              focusOnFire = false;
+              actions = [ { type = "sound"; sound = "chime"; duration = 5; } ];
             };
             logout-45 = {
               name = "45min logout";
               duration = 45 * 60;
-              allowClientDismiss = false;
+              focusOnFire = false;
               actions = [
-                { type = "sound"; sound = "gong"; }
+                { type = "sound"; sound = "gong"; duration = 5; }
                 { type = "command"; cmd = "loginctl lock-session"; afterPrevious = true; }
               ];
             };
             logout-warning-45 = {
               name = "45min logout warning";
               duration = 45 * 60;
-              allowClientDismiss = true;
-              actions = [ { type = "sound"; sound = "chime"; loop = true; } ];
+              focusOnFire = false;
+              actions = [ { type = "sound"; sound = "chime"; duration = 5; } ];
             };
             logout-50 = {
               name = "50min logout";
               duration = 50 * 60;
-              allowClientDismiss = false;
+              focusOnFire = false;
               actions = [
-                { type = "sound"; sound = "gong"; }
+                { type = "sound"; sound = "gong"; duration = 5; }
                 { type = "command"; cmd = "loginctl lock-session"; afterPrevious = true; }
               ];
             };
@@ -378,14 +374,10 @@ in
 
       clientUi = {
         enable = lib.mkOption {
-          description = "Install the client display for the local agent";
-          type = bool;
-          default = cfg.client.enable;
-          defaultText = lib.literalExpression "client.enable";
-        };
-
-        autoStart = lib.mkOption {
-          description = "Start the client display with the desktop session (at boot with autologin)";
+          description = ''
+            Have the agent run the client display: it starts with the agent, is relaunched if it
+            exits, and cannot be quit while the agent runs
+          '';
           type = bool;
           default = cfg.client.enable;
           defaultText = lib.literalExpression "client.enable";
@@ -398,7 +390,7 @@ in
         };
 
         tray = lib.mkOption {
-          description = "Closing the window hides it to the system tray instead of quitting";
+          description = "Closing the window hides it to the system tray instead of minimizing it";
           type = bool;
           default = true;
         };
@@ -493,7 +485,7 @@ in
             "--ui-port" (toString cfg.client.uiPort)
           ] ++ lib.optionals (cfg.enrollKeySecretRef != null) [
             "--enroll-key-file" (secretPath cfg.enrollKeySecretRef)
-          ]);
+          ] ++ displayArgs);
           Restart = "on-failure";
           RestartSec = 2;
         };
@@ -520,7 +512,8 @@ in
         })
       ];
 
-      # Delayed so the panel's StatusNotifierWatcher is up first, same as the client display
+      # Delayed so the panel's StatusNotifierWatcher is up first, otherwise the tray icon can be
+      # missed (the agent waits the same before starting the client display)
       environment.etc."xdg/autostart/firefight-deck.desktop" = lib.mkIf cfg.serverUi.autoStart {
         text = ''
           [Desktop Entry]
@@ -533,29 +526,12 @@ in
     })
 
     (lib.mkIf cfg.clientUi.enable {
-      environment.systemPackages = [
-        firefight.app
-        (pkgs.makeDesktopItem {
-          name = "firefight-display";
-          desktopName = "Firefight Display";
-          comment = "This machine's firefight timers";
-          exec = displayExec;
-          icon = "alarm-symbolic";
-          categories = [ "Utility" ];
-        })
+      assertions = [
+        {
+          assertion = cfg.client.enable;
+          message = "services.native.firefight.clientUi needs client.enable, since the agent runs it";
+        }
       ];
-
-      # Delayed so the panel's StatusNotifierWatcher is up first, otherwise the tray icon can be
-      # missed (the rustdesk module does the same)
-      environment.etc."xdg/autostart/firefight-display.desktop" = lib.mkIf cfg.clientUi.autoStart {
-        text = ''
-          [Desktop Entry]
-          Type=Application
-          Name=Firefight Display
-          Terminal=false
-          Exec=${pkgs.bash}/bin/sh -c "sleep 5; exec ${displayExec}"
-        '';
-      };
     })
   ];
 }
