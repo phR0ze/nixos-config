@@ -18,6 +18,7 @@ echo "op USERNAME" > /run/minecraft-server.stdin
 ## Configuration Notes
 
 - Data stored at `/var/lib/minecraft`
-- `lanOnly = true` (default) skips account validation against minecraft.net (offline mode)
+- `onlineMode = false` (default) skips account validation against minecraft.net (offline mode)
+- `white-list` is pinned to `false`, as Minecraft 26.3 changed its default to `true`
 - JVM tuned with G1GC flags for reduced pause times
 - `port` (default 25565) is set as `server-port` and opened in the firewall automatically

@@ -109,6 +109,7 @@ in
         gamemode = cfg.gameMode;
         difficulty = cfg.difficulty;
         online-mode = cfg.onlineMode;
+        white-list = false;
       };
     };
   };
