@@ -219,6 +219,13 @@ in
         "/dev/nvidia-uvm-tools"
       ];
       users.users.immich.extraGroups = [ "video" "render" ];
+
+      # ML runs each request on a thread pool sized to the CPU count (16 on homelab), and every
+      # thread gets its own CUDA stream, cuBLAS handle and arena. Face detection, OCR and smart
+      # search jobs arriving together then exhaust a 6 GB card (CUDA "out of memory" / CUBLAS
+      # "resource allocation failed"), and a request lost in that storm left a face detection job
+      # waiting forever (the server's /predict call has no timeout), deadlocking facial recognition
+      services.immich.machine-learning.environment.MACHINE_LEARNING_REQUEST_THREADS = "2";
     })
 
     # Immich keeps its settings as a partial JSON document merged over its defaults and loads it
