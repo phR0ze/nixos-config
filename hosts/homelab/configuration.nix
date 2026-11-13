@@ -47,6 +47,9 @@
     services.oci.oneup = {
       enable = true; port = 8082; user.uid = 2002; tag = "latest";
     };
+    services.oci.ghost = {
+      enable = true; port = 8083; user.uid = 2003; tag = "6.75.0"; dbTag = "8.0.46";
+    };
     services.native.vaultwarden = {
       enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
     };
