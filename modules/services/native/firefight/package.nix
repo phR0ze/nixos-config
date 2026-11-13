@@ -21,13 +21,13 @@
 , firefightSrc ? null
 }:
 let
-  version = "0.2.0";
+  version = "0.2.1";
 
   source = if firefightSrc != null then firefightSrc else fetchFromGitHub {
     owner = "phR0ze";
     repo = "firefight";
-    rev = "73b396510e4b00a0e4cf8ce31bf90ba020584df9";
-    hash = "sha256-kpdI6DkvKrdMA8ATrv1f8LE5RVR5JCxigEjPtPWuWkc=";
+    rev = "1fe9e4a2fd18e8ccc75ede3a7758c0ea98a54f48";
+    hash = "sha256-sAQaRxlJU5puFTPtNoOtTU7iu7UkOMqDIA+UtQ785/0=";
   };
 
   meta = {
