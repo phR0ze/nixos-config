@@ -8,6 +8,13 @@ let
   # dGPU power savings vs HDMI/USB-C video toggle - mutually exclusive modes, boot-only (not
   # hot-toggleable). See README.md "dGPU power saving vs HDMI/USB-C video" for full details.
   dgpuPowerSave = false;
+
+  # t2 kernel with a patch set that applies to the current nixpkgs kernel - nixos-hardware's own
+  # pinned set no longer does. See linux-t2.nix for the full rationale and how to drop it.
+  t2Kernel = import ./linux-t2.nix {
+    inherit lib pkgs;
+    nixos-hardware = inputs.nixos-hardware;
+  };
 in
 {
   imports = [
@@ -18,6 +25,9 @@ in
   ];
 
   config = {
+    # Override the apple-t2 module's own kernelPackages, see `t2Kernel` above
+    boot.kernelPackages = lib.mkForce (pkgs.linuxPackagesFor t2Kernel);
+
     host.boot.efi = true;
     host.desktop.xfce.develop = true;
     host.resolution = { x = 1920; y = 1200; } ;
