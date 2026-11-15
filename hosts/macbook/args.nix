@@ -1,9 +1,9 @@
 # Non-secret argument overrides for the macbook, layered on top of the root `args.nix`/`args.dec.yaml`
 # --------------------------------------------------------------------------------------------------
 {
-  network = {
+  host.network = {
     dns = {
-      # DHCP DNS mode for this roaming laptop. The root args.dec.yaml sets net.dns.primary to the
+      # DHCP DNS mode for this roaming laptop. The root args.dec.yaml sets host.network.dns.primary to the
       # home DNS server, which puts a host in static DNS mode (DHCP-provided DNS ignored entirely)
       # and breaks resolution on any other network (hotel wifi, airline captive portals, etc.).
       # Leaving primary empty lets each link's own DHCP-assigned DNS win, which is what makes captive
