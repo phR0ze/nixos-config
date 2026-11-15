@@ -10,8 +10,7 @@ output with audio, keyboard, and touch pad.
   * [Enable booting from exteranl media](#enable-booting-from-external-media)
   * [Install from bootable USB](#install-from-bootable-usb)
 * [Configure NixOS](#configure-nixos)
-  * [Install get-apple-firmware script](#install-get-apple-firmware-script)
-  * [Install correct WiFi driver](#install-correct-wifi-driver)
+  * [Wi-Fi and Bluetooth firmware](#wi-fi-and-bluetooth-firmware)
   * [Other config](#other-config)
 * [dGPU power saving vs HDMI/USB-C video](#dgpu-power-saving-vs-hdmiusb-c-video)
 
@@ -54,76 +53,38 @@ the `t2linux` project has done some fantastic work to add support.
 * [NixOS on a MacBookPro](https://www.arthurkoziel.com/installing-nixos-on-a-macbookpro/)
 * [MacBookPro - Arch Linux](https://wiki.archlinux.org/title/MacBookPro10,x)
 
-### Install get-apple-firmware script
-Download and install the T2Linux project's `get-apple-firmware` script from their github repo using 
-the following nix package called from your `configuration.nix`.
+### Wi-Fi and Bluetooth firmware
+NixOS doesn't ship the `brcm` firmware this hardware needs; it has to be extracted from an upstream
+macOS recovery image. `nixos-hardware`'s `apple-t2` module does this declaratively, so there is no
+longer any manual wizard step or host path involved.
 
-**configuration.nix**
 ```nix
-environment.systemPackages = [
-  pkgs.python3
-  pkgs.dmg2img
-  (pkgs.callPackage ../../packages/apple {})
-];
+hardware.apple-t2.firmware.enable = true;
+hardware.apple-t2.firmware.version = "ventura";
 ```
 
-**apple.nix** from https://github.com/t2linux/wiki/blob/master/docs/tools/firmware.sh depends on 
-`python3` and `dmg2img` to work properly.
-```nix
-{
-  stdenvNoCC, fetchurl, lib }: stdenvNoCC.mkDerivation (final: {
-  pname = "get-apple-firmware";
-  version = "fe8c338e6cf1238a390984ba06544833ab8792d3";
-  src = fetchurl {
-    url = "https://raw.github.com/t2linux/wiki/${final.version}/docs/tools/firmware.sh";
-    hash = "sha256-DYghvLnG3DO8WmLIrT4p5yzCDWRevp3vx0wYtdTLyeY=";
-  };
+This builds `brcm-firmware`, a fixed-output derivation that downloads the recovery image with
+`macrecovery` and extracts both the Wi-Fi and the Bluetooth firmware inside a Linux VM. Notes:
 
-  dontUnpack = true;
+* It needs KVM, so it has to build on the MacBook itself, and the recovery image is a multi-GB
+  download. The `t2linux.cachix.org` / `cache.soopy.moe` substituters configured in
+  `configuration.nix` may already have it prebuilt.
+* The derivation is `license = unfree`, which `modules/nixpkgs.nix`'s `allowUnfreePredicate`
+  already permits.
+* `"ventura"` matches what the old T2Linux `get-apple-firmware` wizard recommended for this model
+  (`3. Download a macOS Recovery Image...` -> `6. Ventura (13) - RECOMMENDED`). The module's own
+  default is `"sonoma"`.
 
-  buildPhase = ''
-    mkdir -p $out/bin
-    cp ${final.src} $out/bin/get-apple-firmware
-    chmod +x $out/bin/get-apple-firmware
-  '';
-
-  meta = {
-    description = "A script to get needed firmware for T2linux devices";
-    homepage = "https://t2linux.org";
-    license = lib.licenses.mit;
-    maintainers = with lib.maintainers; [ soopyc ];
-    mainProgram = "get-apple-firmware";
-  };
-})
-```
-
-### Install correct WiFi driver
-NixOS does not have the correct `brcm` firmware, so we have to extract it from the upstream macOS 
-recovery image and install it from there using the T2Linux project's `get-apple-firmware` script.
-
-1. Launch the T2Linux project's `get-apple-firmware` wizard 
-   ```bash
-   $ sudo get-apple-firmware
-   ```
-2. Choose `3. Download a macOS Recovery Image from Apple and extract the firmware from there`
-3. Choose `6. Ventura (13) - RECOMMENDED` 
-4. Add a package build block to your `configuration.nix` to install the driver
-   ```nix
-   hardware.firmware = [
-     (pkgs.stdenvNoCC.mkDerivation (final: {
-       name = "brcm-firmware";
-       src = /lib/firmware/brcm;
-       installPhase = ''
-         mkdir -p $out/lib/firmware/brcm
-         cp ${final.src}/* "$out/lib/firmware/brcm"
-       '';
-     }))
-   ];
-   ```
+This replaced an earlier hand-rolled approach: running `sudo get-apple-firmware` once to populate
+`/lib/firmware/brcm`, then wrapping that directory in a derivation with `src = /lib/firmware/brcm`.
+Because that's an absolute path outside the flake's source tree, pure evaluation can't see it, and
+every macbook build needed `--impure` - which the repo otherwise forbids. The
+`packages/apple/` wrapper for the wizard script and its `python3` / `dmg2img` dependencies are
+gone with it.
 
 ### Other config
-I saw these in the reference configurations. I did end up using the `schedutil` setting and 
-blacklisted the broadcom drivers, but used the T2Linux project's firmware path for the Wifi.
+I saw these in the reference configurations. I did end up using the `schedutil` setting and
+blacklisted the broadcom drivers, but used the t2linux firmware for the WiFi (see above).
 
 1. Enable propriety broadcom driver
    ```nix
@@ -141,7 +102,7 @@ blacklisted the broadcom drivers, but used the T2Linux project's firmware path f
 4. Power off the discrete AMD Radeon Pro 555X GPU (Polaris, no amdgpu runtime PM support) via
    `vga_switcheroo` since it otherwise stays powered on at all times, at a real idle power cost
    (roughly 20W -> 9W). This forces the Intel iGPU to be primary and disables the dGPU before the
-   display manager starts (see `configuration.nix` for `apple_gmux force_igd=y` + the
+   display manager starts (see `configuration.nix` for `hardware.apple-t2.enableIGPU` + the
    `amdgpu-off.service`). Trades away dGPU acceleration for battery life. See
    [dGPU power saving vs HDMI/USB-C video](#dgpu-power-saving-vs-hdmiusb-c-video) below for the
    full trade-off and how to switch modes.
@@ -160,7 +121,7 @@ because **the two modes are mutually exclusive**:
 
 * **`dgpuPowerSave = true`** (battery savings): forces the Intel iGPU primary at boot and powers the
   AMD dGPU off entirely via `vga_switcheroo` before the display manager starts
-  (`apple_gmux force_igd=y` + the `amdgpu-off.service`), plus `i915.enable_guc=3` as a suspend/resume
+  (`hardware.apple-t2.enableIGPU` + the `amdgpu-off.service`), plus `i915.enable_guc=3` as a suspend/resume
   mitigation. **Expected result: external video over HDMI/USB-C does not work.** T2 Macs have no
   Linux driver for Apple's USB-C DisplayPort Alt-Mode controller, so external video only works while
   the dGPU stays in its default power state — forcing the iGPU primary breaks Alt-Mode negotiation

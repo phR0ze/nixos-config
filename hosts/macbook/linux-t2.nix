@@ -35,7 +35,7 @@
 # kernel is correct again. Check `apple/t2/pkgs/linux-t2/stable.json` in nixos-hardware for the rev
 # it pins and whether it still predates the t2bce rename.
 # --------------------------------------------------------------------------------------------------
-{ lib, pkgs, nixos-hardware }:
+{ pkgs, nixos-hardware }:
 let
   # nixos-hardware's pinned t2linux rev, kept only for the apple-bce patches
   pinnedRev = "facf1c778667c3ef62104949ef64c75ce7e43b0a";
@@ -77,21 +77,26 @@ let
     url = "https://raw.githubusercontent.com/t2linux/linux-t2-patches/${p.rev}/${p.name}";
   };
 
-  # Names of the patches nixos-hardware put on the kernel, read from the same JSON it builds from so
-  # this keeps matching if it gains or drops one. Everything else in `patches` belongs to nixpkgs
-  # (e.g. randstruct-provide-seed) and has to stay.
-  pinnedNames = map (p: p.name)
-    (builtins.fromJSON (builtins.readFile "${t2Dir}/stable.json")).patches;
-
-  isPinnedT2 = p: lib.any (n: lib.hasSuffix n (baseNameOf (toString p))) pinnedNames;
-
-  # The patch list is replaced via overrideAttrs on the derivation's flat `patches` rather than
-  # `.override { kernelPatches = ... }`: the latter lands on callPackage's override of the t2
-  # package's own args, which generic.nix then *appends* to its pinned set
-  # (`t2-patches ++ args.kernelPatches`) - leaving the broken patches in place and duplicating the
-  # rest.
-  base = pkgs.callPackage t2Dir { };
+  # ## How the patch list is replaced
+  # Not via overrideAttrs on the kernel derivation's `patches`, and not via `.override` either:
+  #
+  # - `buildLinux` derives *two* derivations from `kernelPatches` - the kernel itself and
+  #   `linux-config-<version>`, which patches its own copy of the source tree to generate the
+  #   .config. overrideAttrs only reaches the former, so the pinned patches stay in the latter and
+  #   the build fails in linux-config before the kernel is ever touched.
+  # - `.override` on what generic.nix returns doesn't reach the kernel's args either. callPackage
+  #   propagates override through generic.nix's curried application, so it lands on *generic.nix's*
+  #   args - and generic.nix then *appends* that to its own set (`t2-patches ++ args.kernelPatches`),
+  #   leaving the broken patches in place and duplicating the rest.
+  #
+  # generic.nix ends the arg set it hands to `kernel.override` with `// (args.argsOverride or { })`,
+  # merging whatever we pass in `argsOverride` over the top as *kernel* args - so `kernelPatches`
+  # there replaces its pinned list outright, for the kernel and linux-config alike. (Its own
+  # `argsOverride.extraMeta` is a separate key and survives untouched, so the package meta is
+  # unchanged.) Note this drops nixpkgs' default kernelPatches, exactly as nixos-hardware already
+  # does.
+  kernelPatches = map (p: { inherit (p) name; patch = fetch p; }) patchSet;
 in
-base.overrideAttrs (prev: {
-  patches = (map fetch patchSet) ++ (builtins.filter (p: !isPinnedT2 p) prev.patches);
-})
+pkgs.callPackage t2Dir {
+  argsOverride = { inherit kernelPatches; };
+}

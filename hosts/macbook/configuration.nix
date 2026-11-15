@@ -12,7 +12,7 @@ let
   # t2 kernel with a patch set that applies to the current nixpkgs kernel - nixos-hardware's own
   # pinned set no longer does. See linux-t2.nix for the full rationale and how to drop it.
   t2Kernel = import ./linux-t2.nix {
-    inherit lib pkgs;
+    inherit pkgs;
     nixos-hardware = inputs.nixos-hardware;
   };
 in
@@ -33,6 +33,11 @@ in
     host.resolution = { x = 1920; y = 1200; } ;
     system.x11.xft.dpi = lib.mkForce 120;         # Increase the default DPI size
 
+    # UHD 630 iGPU is always present; the AMD Baffin dGPU is only driven in the default mode - in
+    # `dgpuPowerSave` it gets powered off below, so loading amdgpu early would be pointless
+    devices.gpu.intel.enable = true;
+    devices.gpu.amd.enable = !dgpuPowerSave;
+
     # Fix default power governor to run at a lower frequency and boost as needed
     powerManagement.cpuFreqGovernor = "schedutil";
 
@@ -48,9 +53,8 @@ in
     virtualization.podman.enable = true;
     virtualization.qemu.host.enable = true;
 
-    boot.extraModprobeConfig = lib.mkIf dgpuPowerSave ''
-      options apple_gmux force_igd=y
-    '';
+    # Forces the Intel iGPU primary - nixos-hardware writes the apple-gmux force_igd modprobe conf
+    hardware.apple-t2.enableIGPU = dgpuPowerSave;
     boot.kernelParams = lib.mkIf dgpuPowerSave [ "i915.enable_guc=3" ];
     systemd.services.amdgpu-off = lib.mkIf dgpuPowerSave {
       description = "Power off the discrete AMD GPU via vga_switcheroo";
@@ -63,7 +67,18 @@ in
       };
     };
 
-    # Apple firmware configuration
+    # Wi-Fi and Bluetooth firmware, extracted declaratively by nixos-hardware's brcm-firmware
+    # derivation: a fixed-output build that pulls the macOS recovery image via macrecovery and
+    # unpacks it in a Linux VM, so it needs KVM and a multi-GB download - the substituters below
+    # may have it prebuilt. This replaces the old hand-rolled derivation that read
+    # /lib/firmware/brcm off the live host, an absolute path outside the flake tree that forced
+    # `--impure` on every macbook build.
+    hardware.apple-t2.firmware.enable = true;
+    hardware.apple-t2.firmware.version = "ventura";
+
+    # Touch Bar - nixos-hardware dropped its own enableTinyDfr for the upstream nixpkgs module
+    hardware.apple.touchBar.enable = true;
+
     nix.settings = {
       trusted-substituters = [ "https://t2linux.cachix.org" "https://cache.soopy.moe" ];
       trusted-public-keys = [
@@ -71,24 +86,8 @@ in
         "cache.soopy.moe-1:0RZVsQeR+GOh0VQI9rvnHz55nVXkFardDqfm4+afjPo="
       ];
     };
-    hardware.firmware = [
-      (pkgs.stdenvNoCC.mkDerivation (final: {
-        name = "brcm-firmware";
-        src = /lib/firmware/brcm;
-        installPhase = ''
-          mkdir -p $out/lib/firmware/brcm
-          cp ${final.src}/* "$out/lib/firmware/brcm"
-        '';
-      }))
-    ];
 
     apps.media.obs.enable = true;
     apps.network.rustdesk.autostart = false;
-
-    environment.systemPackages = [
-      pkgs.python3
-      pkgs.dmg2img
-      (pkgs.callPackage ../../packages/apple {})
-    ];
   };
 }
