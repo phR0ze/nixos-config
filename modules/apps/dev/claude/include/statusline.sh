@@ -15,8 +15,12 @@ LINES_REM=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
 PROJECT=$(echo "$input" | jq -r '.workspace.project_dir // ""' | xargs basename 2>/dev/null)
 HOST=$(hostname -s 2>/dev/null)
 STYLE=$(echo "$input" | jq -r '.output_style.name // ""')
+EFFORT=$(echo "$input" | jq -r '.effort.level // ""')
 
 # Format values
+[ "$EFFORT" = "medium" ] && EFFORT="med"
+MODEL_FMT="$MODEL"
+[ -n "$EFFORT" ] && MODEL_FMT="${MODEL} - ${EFFORT}"
 COST_FMT=$(printf '$%.2f' "$COST")
 IN_K=$(awk "BEGIN {printf \"%.1fk\", $IN_TOKENS/1000}")
 OUT_K=$(awk "BEGIN {printf \"%.1fk\", $OUT_TOKENS/1000}")
@@ -63,7 +67,7 @@ for ((i=0; i<EMPTY; i++)); do EMPTY_BAR+='░'; done
 BAR="${BAR_COLOR}${FILLED_BAR}${TN_COMMENT}${EMPTY_BAR}${RESET}"
 
 # Left side: model, progress bar, tokens, cost, duration
-LEFT="${TN_PURPLE}[${MODEL}]${RESET} ${BAR} ${BAR_COLOR}${PCT}%${RESET}"
+LEFT="${TN_PURPLE}[${MODEL_FMT}]${RESET} ${BAR} ${BAR_COLOR}${PCT}%${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_BLUE}↑${IN_K} ↓${OUT_K}${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_ORANGE}${COST_FMT}${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_CYAN}${DUR_FMT}${RESET}"
@@ -76,8 +80,8 @@ if [ -n "$STYLE" ]; then
 fi
 
 # Calculate visible lengths mathematically (all content is ASCII except bar chars)
-# Left: MODEL + " " + bar(BAR_WIDTH) + " " + PCT + "% | ↑" + IN_K + " ↓" + OUT_K + " | " + COST_FMT + " | " + DUR_FMT
-LEFT_LEN=$(( ${#MODEL} + 3 + BAR_WIDTH + 1 + ${#PCT} + 1 + 3 + 1 + ${#IN_K} + 2 + ${#OUT_K} + 3 + ${#COST_FMT} + 3 + ${#DUR_FMT} ))
+# Left: MODEL_FMT + " " + bar(BAR_WIDTH) + " " + PCT + "% | ↑" + IN_K + " ↓" + OUT_K + " | " + COST_FMT + " | " + DUR_FMT
+LEFT_LEN=$(( ${#MODEL_FMT} + 3 + BAR_WIDTH + 1 + ${#PCT} + 1 + 3 + 1 + ${#IN_K} + 2 + ${#OUT_K} + 3 + ${#COST_FMT} + 3 + ${#DUR_FMT} ))
 
 # Right: HOST + ":" + PROJECT + " | +" + LINES_ADD + " -" + LINES_REM [+ " | " + STYLE]
 RIGHT_LEN=$(( ${#HOST} + 1 + ${#PROJECT} + 3 + 1 + ${#LINES_ADD} + 2 + ${#LINES_REM} ))
