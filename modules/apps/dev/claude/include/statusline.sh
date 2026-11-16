@@ -68,7 +68,7 @@ BAR="${BAR_COLOR}${FILLED_BAR}${TN_COMMENT}${EMPTY_BAR}${RESET}"
 
 # Left side: model, progress bar, tokens, cost, duration
 MODEL_COLORED="${TN_PURPLE}[${MODEL}"
-[ -n "$EFFORT" ] && MODEL_COLORED+=" - ${TN_BLUE}${EFFORT}${TN_PURPLE}"
+[ -n "$EFFORT" ] && MODEL_COLORED+=" - ${TN_ORANGE}${EFFORT}${TN_PURPLE}"
 MODEL_COLORED+="]${RESET}"
 LEFT="${MODEL_COLORED} ${BAR} ${BAR_COLOR}${PCT}%${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_BLUE}↑${IN_K} ↓${OUT_K}${RESET}"
