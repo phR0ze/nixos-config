@@ -67,7 +67,10 @@ for ((i=0; i<EMPTY; i++)); do EMPTY_BAR+='░'; done
 BAR="${BAR_COLOR}${FILLED_BAR}${TN_COMMENT}${EMPTY_BAR}${RESET}"
 
 # Left side: model, progress bar, tokens, cost, duration
-LEFT="${TN_PURPLE}[${MODEL_FMT}]${RESET} ${BAR} ${BAR_COLOR}${PCT}%${RESET}"
+MODEL_COLORED="${TN_PURPLE}[${MODEL}"
+[ -n "$EFFORT" ] && MODEL_COLORED+=" - ${TN_BLUE}${EFFORT}${TN_PURPLE}"
+MODEL_COLORED+="]${RESET}"
+LEFT="${MODEL_COLORED} ${BAR} ${BAR_COLOR}${PCT}%${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_BLUE}↑${IN_K} ↓${OUT_K}${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_ORANGE}${COST_FMT}${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_CYAN}${DUR_FMT}${RESET}"
