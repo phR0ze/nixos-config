@@ -85,7 +85,6 @@ in
 
       files.user.".claude/CLAUDE.md".copy = ./include/CLAUDE.md;
       files.user.".claude/settings.json".copy = ./include/settings.json;
-      files.user.".claude/keybindings.json".copy = ./include/keybindings.json;
       files.user.".claude/skills/docs".link = ./include/skills/docs;
       files.user.".claude/skills/markdown".link = ./include/skills/markdown;
       files.user.".claude/skills/define".link = ./include/skills/define;

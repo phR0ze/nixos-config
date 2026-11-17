@@ -18,9 +18,8 @@ STYLE=$(echo "$input" | jq -r '.output_style.name // ""')
 EFFORT=$(echo "$input" | jq -r '.effort.level // ""')
 
 # Format values
-[ "$EFFORT" = "medium" ] && EFFORT="med"
 MODEL_FMT="$MODEL"
-[ -n "$EFFORT" ] && MODEL_FMT="${MODEL} - ${EFFORT}"
+[ -n "$EFFORT" ] && MODEL_FMT="${MODEL} (${EFFORT})"
 COST_FMT=$(printf '$%.2f' "$COST")
 IN_K=$(awk "BEGIN {printf \"%.1fk\", $IN_TOKENS/1000}")
 OUT_K=$(awk "BEGIN {printf \"%.1fk\", $OUT_TOKENS/1000}")
@@ -67,9 +66,8 @@ for ((i=0; i<EMPTY; i++)); do EMPTY_BAR+='░'; done
 BAR="${BAR_COLOR}${FILLED_BAR}${TN_COMMENT}${EMPTY_BAR}${RESET}"
 
 # Left side: model, progress bar, tokens, cost, duration
-MODEL_COLORED="${TN_PURPLE}[${MODEL}"
-[ -n "$EFFORT" ] && MODEL_COLORED+=" - ${TN_ORANGE}${EFFORT}${TN_PURPLE}"
-MODEL_COLORED+="]${RESET}"
+MODEL_COLORED="${TN_PURPLE}[${MODEL}]${RESET}"
+[ -n "$EFFORT" ] && MODEL_COLORED+=" ${TN_ORANGE}(${EFFORT})${RESET}"
 LEFT="${MODEL_COLORED} ${BAR} ${BAR_COLOR}${PCT}%${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_BLUE}↑${IN_K} ↓${OUT_K}${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_ORANGE}${COST_FMT}${RESET}"
