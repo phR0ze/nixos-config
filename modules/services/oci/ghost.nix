@@ -409,8 +409,11 @@ in
         path = [ pkgs.rsync config.virtualisation.podman.package ];
         serviceConfig.Type = "oneshot";
         # --no-tablespaces: the non-root `ghost` user lacks the PROCESS privilege it would need
+        # The tmpfiles rule alone isn't enough: it can run before a network backup share is
+        # mounted, and unlike rsync the dump's redirect won't create a missing directory
         script = ''
           set -euo pipefail
+          mkdir -p ${backupDir}
           podman exec ${dbName} sh -c \
             'MYSQL_PWD="$MYSQL_PASSWORD" exec mysqldump -u"$MYSQL_USER" --single-transaction --no-tablespaces "$MYSQL_DATABASE"' \
             > ${backupDir}/ghost.sql.tmp
