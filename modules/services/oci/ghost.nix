@@ -421,7 +421,7 @@ in
             'MYSQL_PWD="$MYSQL_PASSWORD" exec mysqldump -u"$MYSQL_USER" --single-transaction --no-tablespaces "$MYSQL_DATABASE"' \
             > ${backupDir}/ghost.sql.tmp
           mv ${backupDir}/ghost.sql.tmp ${backupDir}/ghost.sql
-          rsync -a --no-links --delete --exclude=/logs/${dataDir}/content/ ${backupDir}/content/
+          rsync -a --no-links --delete --exclude=/logs/ ${dataDir}/content/ ${backupDir}/content/
         '';
       };
 
