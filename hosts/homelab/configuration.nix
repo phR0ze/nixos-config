@@ -49,6 +49,7 @@
     };
     services.oci.ghost = {
       enable = true; port = 8083; user.uid = 2003; tag = "6.75.0"; dbTag = "8.0.46";
+      mail.enable = false;    # no SMTP provider yet; also disables new-device login codes
     };
     services.native.vaultwarden = {
       enable = true; port = 8222; subdomains = [ "vault" "vault-vpn" ];
