@@ -411,6 +411,9 @@ in
         # --no-tablespaces: the non-root `ghost` user lacks the PROCESS privilege it would need
         # The tmpfiles rule alone isn't enough: it can run before a network backup share is
         # mounted, and unlike rsync the dump's redirect won't create a missing directory
+        # --no-links: the bundled themes (casper, source) are symlinks into the image's install
+        #   dir, dangling on the host and recreated by Ghost at startup; the CIFS share also
+        #   can't store symlinks (EOPNOTSUPP -> rsync exit 23)
         script = ''
           set -euo pipefail
           mkdir -p ${backupDir}
@@ -418,7 +421,7 @@ in
             'MYSQL_PWD="$MYSQL_PASSWORD" exec mysqldump -u"$MYSQL_USER" --single-transaction --no-tablespaces "$MYSQL_DATABASE"' \
             > ${backupDir}/ghost.sql.tmp
           mv ${backupDir}/ghost.sql.tmp ${backupDir}/ghost.sql
-          rsync -a --delete --exclude=/logs/ ${dataDir}/content/ ${backupDir}/content/
+          rsync -a --no-links --delete --exclude=/logs/${dataDir}/content/ ${backupDir}/content/
         '';
       };
 
