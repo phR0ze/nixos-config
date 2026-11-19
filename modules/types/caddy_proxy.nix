@@ -32,6 +32,17 @@
       description = "Backend port on `host` this proxy forwards to.";
     };
 
+    noStore = lib.mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Send `Cache-Control: no-store` on every response so browsers never keep a copy. For backends
+        that serve static assets with a fixed `Last-Modified` (e.g. 1980 from a reproducible image
+        build) and no `ETag`, which browsers otherwise heuristically cache for years and which
+        `no-cache` revalidation can't fix, since `If-Modified-Since` always answers 304.
+      '';
+    };
+
     tlsSkipVerify = lib.mkOption {
       type = types.bool;
       default = false;

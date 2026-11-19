@@ -78,7 +78,9 @@ let
       }
     '' + lib.concatMapStringsSep "\n" (p: ''
       @${p.subdomain} host ${p.subdomain}.${zone.name}
-      handle @${p.subdomain} {
+      handle @${p.subdomain} {${lib.optionalString p.noStore ''
+
+        header Cache-Control "no-store"''}
         ${reverseProxy p}
       }
     '') (proxiesOf zone) + ''

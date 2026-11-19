@@ -173,9 +173,11 @@ in
 
     # Contribute a proxy entry on each zone it's served on (see `whichDomains`) rather than
     # requiring it be listed separately in the machine's configuration.nix
+    # - noStore: the Flutter assets carry a 1980 `Last-Modified` and no ETag, which browsers cache
+    #   for years and can't revalidate, so updates never showed up on other machines
     (lib.mkIf cfg.caddy {
       services.native.caddy.enable = lib.mkDefault true;
-      services.native.caddy.domains = f.caddyProxies cfg [ { inherit (cfg) subdomain port; } ];
+      services.native.caddy.domains = f.caddyProxies cfg [ { inherit (cfg) subdomain port; noStore = true; } ];
       assertions = [ (f.caddyDomainsAssert "oci.${cfg.name}" cfg) ];
     })
   ]);
