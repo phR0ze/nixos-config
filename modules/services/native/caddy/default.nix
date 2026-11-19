@@ -153,7 +153,7 @@ in
 
       cloudflarePluginHash = lib.mkOption {
         type = types.str;
-        default = "sha256-tubXIDCJnO2mvdnPlZclwDhNGaeeYLSt7lnni3+pXDo=";
+        default = "sha256-QSiwKqKvSxhksWBF4/MlBOpyXba5xOQ2sRwA0R7399E=";
         description = ''
           Hash of Caddy's source with `cloudflarePluginTag` vendored in. Changes whenever the tag or
           nixpkgs' caddy version does.

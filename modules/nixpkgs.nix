@@ -36,7 +36,10 @@
         firefight = pkgsUnstable.callPackage ../modules/services/native/firefight/package.nix {};
 
         # Override packages with other versions:
+        # caddy/postgresql_17: security fixes (Caddy 2.11.8 path bypasses, PostgreSQL 17.12) ahead of nixpkgs
+        caddy = pkgsUnstable.caddy;
         immich = pkgsUnstable.immich;
+        postgresql_17 = pkgsUnstable.postgresql_17;
         vscode = pkgsUnstable.vscode;
         zed-editor = pkgsUnstable.zed-editor;
         zoom-us = pkgsUnstable.zoom-us;

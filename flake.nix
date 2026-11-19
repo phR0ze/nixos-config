@@ -3,9 +3,9 @@
     # nixos-unstable from 2026.10.30
     nixpkgs.url = "github:nixos/nixpkgs/1c89083e451e891152365b799595cf7790a43325";
 
-    # nixos-unstable from 2026.11.03, kept ahead of nixpkgs for the packages overlaid in
+    # nixos-unstable from 2026.11.17, kept ahead of nixpkgs for the packages overlaid in
     # modules/nixpkgs.nix
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/1d060086d60cb76a40cf37109f979d88a5bd6396";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/04906337b6d53e8bb0eaf0470ae9f070a4d4eb55";
 
     # nixos-unstable from 2026.10.23 (Immich ML 3.3.5), only used by homelab's CUDA Immich
     # machine-learning. Pinned apart from nixpkgs-unstable so a server bump doesn't recompile
