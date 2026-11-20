@@ -56,6 +56,15 @@
 let
   cfg = config.services.oci.homarr;
   image = "ghcr.io/homarr-labs/homarr";
+
+  # Every hostname this host's Caddy serves, pinned to the bridge gateway (where Caddy listens) so
+  # Homarr's server-side app status pings reach Caddy here. Otherwise the container resolves them
+  # via public DNS (Pangolin on the VPS, not AdGuard's LAN rewrite) or the host's copied
+  # /etc/hosts, where e.g. Nextcloud pins its own name to 127.0.0.1, i.e. the container itself.
+  gateway = f.hostInSubnet cfg.subnet 1;
+  caddyHosts = lib.optionals config.services.native.caddy.enable (lib.concatMap
+    (zone: map (p: "${p.subdomain}.${zone.name}") (lib.filter (p: p.subdomain != null) zone.proxies))
+    (lib.attrValues config.services.native.caddy.domains));
 in
 {
   options.services.oci.homarr = (import ../../types/service.nix {
@@ -145,7 +154,7 @@ in
         volumes = [
           "/var/lib/${cfg.name}/appdata:/appdata:rw"
         ];
-        extraOptions = [ "--ip=${cfg.ip}" ];
+        extraOptions = [ "--ip=${cfg.ip}" ] ++ map (h: "--add-host=${h}:${gateway}") caddyHosts;
 
         # Configure app via overrides
         environment = {
