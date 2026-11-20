@@ -415,6 +415,12 @@ in
               "https://dns10.quad9.net/dns-query"
             ];
 
+            # AdGuard isn't the DHCP server, so it has no source for LAN hostnames, and the default
+            # private resolver (systemd-resolved) can't answer either, leaving every LAN reverse
+            # lookup to time out. Answer them as NXDOMAIN locally instead; client names come from
+            # the declared persistent clients
+            use_private_ptr_resolvers = false;
+
             # Don't even bother logging just drop them. Setting this replaces AdGuard's defaults, so
             # its fingerprinting-query defaults are repeated here
             blocked_hosts = [
@@ -714,6 +720,11 @@ in
           statistics = {
             # Increase retention to 90 days
             interval = "2160h";
+          };
+          querylog = {
+            # The query log is an unindexed JSON file, so filtered searches in the UI page through
+            # all of it; keep it short. Long-term trends live in statistics above
+            interval = "336h"; # 14 days
           };
 
           # Only when declared, so a host without args keeps managing clients in the web UI
