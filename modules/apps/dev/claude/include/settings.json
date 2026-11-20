@@ -75,5 +75,6 @@
   },
   "effortLevel": "medium",
   "skipAutoPermissionPrompt": true,
-  "vim": true
+  "vim": true,
+  "model": "opus"
 }
