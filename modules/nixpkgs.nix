@@ -22,6 +22,9 @@
       desktop-assets = final.callPackage ../packages/desktop-assets {};
       opencode = final.callPackage ../modules/apps/dev/opencode/package.nix {};
       rdutil = final.callPackage ../modules/apps/dev/rdutil/package.nix {};
+      rustdesk-flutter = final.callPackage ../modules/apps/network/rustdesk/package.nix {
+        rustdesk-flutter = prev.rustdesk-flutter;
+      };
       tinymediamanager = final.callPackage ../packages/tinymediamanager {};
     } // (let
       pkgsUnstable = import inputs.nixpkgs-unstable {
