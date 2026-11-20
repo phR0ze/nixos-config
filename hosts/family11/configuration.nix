@@ -7,7 +7,7 @@
 # - Basic desktop deployment
 # - RTL8822BU USB WiFi (0bda:b812) via in-kernel rtw88_8822bu driver
 # --------------------------------------------------------------------------------------------------
-{ ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -24,5 +24,9 @@
     apps.media.gen-thumbs.enable = true;
 
     services.native.smb.enable = true;
+
+    environment.systemPackages = [
+      pkgs.thunderbird
+    ];
   };
 }
