@@ -82,7 +82,10 @@ in
               enable = true;
               greeters.slick = {
                 enable = true;
-                draw-user-backgrounds = true;
+                # Always use the configured `lightdm.background`. With user backgrounds on, the
+                # greeter shows the user's AccountsService `BackgroundFile`, which xfdesktop sets
+                # to "" when it renders its compiled-in default (no per-monitor `last-image`).
+                draw-user-backgrounds = false;
                 theme.name = "Adwaita-dark";
                 extraConfig = ''
                   enable-hidpi=on
