@@ -161,8 +161,15 @@ while IFS= read -r m; do
     continue
   fi
 
-  [ "$(cat "$state/$id.sha" 2>/dev/null)" = "$sha" ] && continue
+  # The mount point is checked against Nextcloud too, so a rename recorded in the hash before
+  # mount points were updated still gets applied
+  current=$(jq --argjson id "$mid" '.[] | select(.mount_id == $id)' <<<"$list")
+  mountPoint=$(jq -r .mountPoint <<<"$m")
+  [ "$(cat "$state/$id.sha" 2>/dev/null)" = "$sha" ] \
+    && [ "$(jq -r .mount_point <<<"$current")" = "$mountPoint" ] && continue
 
+  # `name` changes only rename the mount, keeping its id, filecache and shares
+  occ files_external:config "$mid" mount_point "$mountPoint" >/dev/null
   while IFS=$'\t' read -r k v; do
     occ files_external:config "$mid" "$k" "$v" >/dev/null
   done < <(jq -r '.configuration | to_entries[] | [.key, (.value | tostring)] | @tsv' <<<"$m")
@@ -175,7 +182,6 @@ while IFS= read -r m; do
 
   # Applicability as add/remove deltas in one call. Clearing it first would leave the mount briefly
   # visible to everyone, since an empty applicable list means all users
-  current=$(jq --argjson id "$mid" '.[] | select(.mount_id == $id)' <<<"$list")
   args=()
   while IFS= read -r x; do if [ -n "$x" ]; then args+=(--add-user "$x"); fi; done \
     < <(jq -rn --argjson c "$current" --argjson m "$m" '($m.users - $c.applicable_users)[]')
