@@ -87,6 +87,9 @@ host:
                                 name: ENC[AES256_GCM,data:bNwX43i6,iv:wVHLKP2w0D8HkzD0RgRlqAffIMGhMQLByHi5RyQRD5Y=,tag:pdi2k3RWfHKtr4d7FrtkHw==,type:str]
                                 share: ENC[AES256_GCM,data:gPn73Q==,iv:m0GZyhqqXon5XeLahMEzki9NnQGNhNdLIg9fG/mL20w=,tag:i9WgmUQIAwgL6sUFSLylpA==,type:str]
                                 path: ENC[AES256_GCM,data:le1bOR6B,iv:XOPlUOXjk3+Pqd7nu2N9a0l2RWJzxDskS3tKGwge3YY=,tag:5MEZfWbdZ57ueJAsus9BHw==,type:str]
+                            m3:
+                                name: ENC[AES256_GCM,data:euNG7j0=,iv:W5ZMR01eYVIzwkv+dz8QLai/p9IL83YacVkWXfZhPGA=,tag:GcTyMd35D9ar/uB/sI52/A==,type:str]
+                                share: ENC[AES256_GCM,data:FPPBo2Q=,iv:Rfx8cUMDMw7K6bEr1Myxu4sQ22K2jTxz/q2ohgp7Waw=,tag:s6mMWBiLl5dn2MWB5ocv9A==,type:str]
                     u2:
                         name: ENC[AES256_GCM,data:qPqnxP0=,iv:sAvJgrr/qM06Ir5lArnZHfb61b1/xnmrh8tYZJ4sXEA=,tag:mm17MjgkcBQ8hpUaJcKuww==,type:str]
                         displayName: ENC[AES256_GCM,data:pypxpwA=,iv:sOJ4CgeFkkMdoYnBBMft12O+sKWketxAtNvlkSrCFNc=,tag:+oJUgWNRFbydUs90142+eg==,type:str]
@@ -228,7 +231,7 @@ sops:
             15E/UYdLPOZ/obszZQVoI4bMn2L71YCx0fhNnxV0e0JQRMQlzjvm9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-11-20T00:01:22Z"
-    mac: ENC[AES256_GCM,data:kgm6CLZ7jH7qMv+gaLzplRSWREGe8lLq2WMAaoRak/zRMtsjxafTqKapQ+Qh3Duc1e/JLndhwazhKqwl4e4hzDvHefgF0LJoG8yPFh9M1WzV8gcxrIc875QKP2x8CJk/yHq8OtgsDNCdBQyPjRbGvFITDGE2znX/63GHP6nGP9s=,iv:Ntq1lbgvSl9jnGPozD7uvvIOTSk6kM0vYjrCFYvQOgg=,tag:rSdBLTw9A/F2LpOP09RfZg==,type:str]
+    lastmodified: "2026-11-20T00:03:14Z"
+    mac: ENC[AES256_GCM,data:l8I0yT89VWTWBBmwgP09VLJe7Y2KaXWehSWAgkYSwv5rlZEX5G5RF3sZBm9IEPX5cwxxOLUZNbuKcxVjJYBqa501j/aeGTKVvDCDs05L/kMhJxGbzbdikBeWRrjJBqw1piOMZjHRrSkj0AVFS2r2lWpMgcfdW8TuoXmT4A0kurQ=,iv:/qxPypkBoXANuF7YLu61bntlVedwID9djbU7pmSpvSM=,tag:oE6bSApwRWexuRACj4ok0Q==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.3
