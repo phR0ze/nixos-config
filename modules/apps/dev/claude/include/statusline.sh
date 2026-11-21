@@ -9,12 +9,12 @@ COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
 IN_TOKENS=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
 OUT_TOKENS=$(echo "$input" | jq -r '.context_window.total_output_tokens // 0')
-DURATION_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0' | cut -d. -f1)
-LINES_ADD=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
-LINES_REM=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
+LIMIT_5H=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
+LIMIT_7D=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
 PROJECT=$(echo "$input" | jq -r '.workspace.project_dir // ""' | xargs basename 2>/dev/null)
 HOST=$(hostname -s 2>/dev/null)
-STYLE=$(echo "$input" | jq -r '.output_style.name // ""')
+# Session name (/rename or auto title), falling back to the short session id
+SESSION=$(echo "$input" | jq -r '.session_name // (.session_id // "" | .[0:8])')
 EFFORT=$(echo "$input" | jq -r '.effort.level // ""')
 
 # Format values
@@ -24,14 +24,11 @@ COST_FMT=$(printf '$%.2f' "$COST")
 IN_K=$(awk "BEGIN {printf \"%.1fk\", $IN_TOKENS/1000}")
 OUT_K=$(awk "BEGIN {printf \"%.1fk\", $OUT_TOKENS/1000}")
 
-DURATION_S=$((DURATION_MS / 1000))
-DURATION_M=$((DURATION_S / 60))
-DURATION_RS=$((DURATION_S % 60))
-if [ "$DURATION_M" -gt 0 ]; then
-  DUR_FMT="${DURATION_M}m ${DURATION_RS}s"
-else
-  DUR_FMT="${DURATION_RS}s"
-fi
+# Usage limits (subscription only; absent for API-key billing)
+LIMITS_FMT=""
+[ -n "$LIMIT_5H" ] && LIMITS_FMT+=$(printf '5h %.0f%%' "$LIMIT_5H")
+[ -n "$LIMIT_5H" ] && [ -n "$LIMIT_7D" ] && LIMITS_FMT+=" "
+[ -n "$LIMIT_7D" ] && LIMITS_FMT+=$(printf '7d %.0f%%' "$LIMIT_7D")
 
 # Tokyo Night colors (truecolor)
 RESET=$'\e[0m'
@@ -65,28 +62,27 @@ for ((i=0; i<EMPTY; i++)); do EMPTY_BAR+='░'; done
 
 BAR="${BAR_COLOR}${FILLED_BAR}${TN_COMMENT}${EMPTY_BAR}${RESET}"
 
-# Left side: model, progress bar, tokens, cost, duration
+# Left side: model, progress bar, tokens, cost, usage limits
 MODEL_COLORED="${TN_PURPLE}[${MODEL}]${RESET}"
 [ -n "$EFFORT" ] && MODEL_COLORED+=" ${TN_ORANGE}(${EFFORT})${RESET}"
 LEFT="${MODEL_COLORED} ${BAR} ${BAR_COLOR}${PCT}%${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_BLUE}↑${IN_K} ↓${OUT_K}${RESET}"
 LEFT+=" ${TN_COMMENT}|${RESET} ${TN_ORANGE}${COST_FMT}${RESET}"
-LEFT+=" ${TN_COMMENT}|${RESET} ${TN_CYAN}${DUR_FMT}${RESET}"
+[ -n "$LIMITS_FMT" ] && LEFT+=" ${TN_COMMENT}|${RESET} ${TN_CYAN}${LIMITS_FMT}${RESET}"
 
-# Right side: hostname:project, lines changed, style
-RIGHT="${TN_ORANGE}${HOST}:${RESET}${TN_BLUE}${PROJECT}${RESET} ${TN_COMMENT}|${RESET} ${TN_GREEN}+${LINES_ADD}${RESET} ${TN_RED}-${LINES_REM}${RESET}"
-if [ -n "$STYLE" ]; then
-  STYLE_UPPER=$(echo "$STYLE" | tr '[:lower:]' '[:upper:]')
-  RIGHT+=" ${TN_COMMENT}|${RESET} ${TN_PURPLE}${STYLE_UPPER}${RESET}"
-fi
+# Right side: session, hostname:project
+RIGHT=""
+[ -n "$SESSION" ] && RIGHT="${TN_PURPLE}${SESSION}${RESET} ${TN_COMMENT}|${RESET} "
+RIGHT+="${TN_ORANGE}${HOST}:${RESET}${TN_BLUE}${PROJECT}${RESET}"
 
 # Calculate visible lengths mathematically (all content is ASCII except bar chars)
-# Left: MODEL_FMT + " " + bar(BAR_WIDTH) + " " + PCT + "% | ↑" + IN_K + " ↓" + OUT_K + " | " + COST_FMT + " | " + DUR_FMT
-LEFT_LEN=$(( ${#MODEL_FMT} + 3 + BAR_WIDTH + 1 + ${#PCT} + 1 + 3 + 1 + ${#IN_K} + 2 + ${#OUT_K} + 3 + ${#COST_FMT} + 3 + ${#DUR_FMT} ))
+# Left: MODEL_FMT + " " + bar(BAR_WIDTH) + " " + PCT + "% | ↑" + IN_K + " ↓" + OUT_K + " | " + COST_FMT [+ " | " + LIMITS_FMT]
+LEFT_LEN=$(( ${#MODEL_FMT} + 3 + BAR_WIDTH + 1 + ${#PCT} + 1 + 3 + 1 + ${#IN_K} + 2 + ${#OUT_K} + 3 + ${#COST_FMT} ))
+[ -n "$LIMITS_FMT" ] && LEFT_LEN=$(( LEFT_LEN + 3 + ${#LIMITS_FMT} ))
 
-# Right: HOST + ":" + PROJECT + " | +" + LINES_ADD + " -" + LINES_REM [+ " | " + STYLE]
-RIGHT_LEN=$(( ${#HOST} + 1 + ${#PROJECT} + 3 + 1 + ${#LINES_ADD} + 2 + ${#LINES_REM} ))
-[ -n "$STYLE" ] && RIGHT_LEN=$(( RIGHT_LEN + 3 + ${#STYLE_UPPER} ))
+# Right: [SESSION + " | "] + HOST + ":" + PROJECT
+RIGHT_LEN=$(( ${#HOST} + 1 + ${#PROJECT} ))
+[ -n "$SESSION" ] && RIGHT_LEN=$(( RIGHT_LEN + ${#SESSION} + 3 ))
 
 # Get terminal width — prioritize stty as it reflects actual current size
 COLS=$(stty size </dev/tty 2>/dev/null | cut -d' ' -f2)
