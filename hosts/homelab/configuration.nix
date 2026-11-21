@@ -37,7 +37,9 @@
     # Caddy fronted services
     services.native.caddy.enable = true;
     services.native.adguardhome.enable = true;
-    services.native.jellyfin.enable = true;
+    services.native.jellyfin = {
+      enable = true; subdomains = [ "jellyfin" "jellyfin-vpn" ];
+    };
     services.oci.homarr = {
       enable = true; port = 8080; user.uid = 2000; tag = "v2.3.0";
     };

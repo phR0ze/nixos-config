@@ -56,15 +56,21 @@ in
         default = true;
         description = ''
           Front Jellyfin with `services.native.caddy` (enabled by default along with it) at
-          `<subdomain>.<zone>` (see `whichDomains`). When `false`, Jellyfin's ports are opened on
-          the LAN instead.
+          `<subdomain>.<zone>` for each `subdomains` entry (see `whichDomains`). When `false`,
+          Jellyfin's ports are opened on the LAN instead.
         '';
       };
 
-      subdomain = lib.mkOption {
-        type = lib.types.str;
-        default = "jellyfin";
-        description = "Subdomain Jellyfin is served at when `caddy` is enabled.";
+      subdomains = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ "jellyfin" ];
+        example = [ "jellyfin" "jellyfin-vpn" ];
+        description = ''
+          Subdomains Jellyfin is served at when `caddy` is enabled - every entry gets its own
+          hostname matcher on each served zone's wildcard block, all routed to the same backend.
+          List more than one to give it a distinct name for a Pangolin private resource (see
+          "Private resources" in modules/services/oci/newt.nix).
+        '';
       };
 
       backupDir = lib.mkOption {
@@ -200,8 +206,13 @@ in
     # Add a caddy proxy config for DNS subdomain resolution
     (lib.mkIf cfg.caddy {
       services.native.caddy.enable = lib.mkDefault true;
-      services.native.caddy.domains = f.caddyProxies cfg [ { inherit (cfg) subdomain port; } ];
-      assertions = [ (f.caddyDomainsAssert "native.jellyfin" cfg) ];
+      services.native.caddy.domains = f.caddyProxies cfg
+        (map (sub: { subdomain = sub; inherit (cfg) port; }) cfg.subdomains);
+      assertions = [
+        (f.caddyDomainsAssert "native.jellyfin" cfg)
+        { assertion = cfg.subdomains != [ ];
+          message = "services.native.jellyfin with caddy requires at least one 'subdomains' entry"; }
+      ];
     })
   ]);
 }
