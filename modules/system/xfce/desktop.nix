@@ -78,9 +78,21 @@ in
     # xfdesktop keys backdrops per output connector (`monitoreDP`, `monitorHDMI-A-1`, ...), which
     # varies by driver. Rather than pre-seed every possible name, xfdesktop is rebuilt with the
     # background as its compiled-in fallback, used for any monitor without its own `last-image`.
+    #
+    # The xfce4-screensaver lock dialog doesn't use xfdesktop's fallback: with no `last-image` it
+    # searches XDG_DATA_DIRS for Xfce's stock `backgrounds/xfce/xfce-x.svg`. Short-circuit that
+    # search to the configured background (skipped at runtime if it's a color, not a file).
     nixpkgs.overlays = [ (final: prev: {
       xfdesktop = prev.xfdesktop.overrideAttrs (o: {
         configureFlags = (o.configureFlags or [ ]) ++ [ "--with-default-backdrop-filename=${cfg.background}" ];
+      });
+      xfce4-screensaver = prev.xfce4-screensaver.overrideAttrs (o: {
+        postPatch = (o.postPatch or "") + ''
+          substituteInPlace src/xfce-bg.c --replace-fail \
+            'dirs = g_get_system_data_dirs ();' \
+            'if (g_file_test ("${cfg.background}", G_FILE_TEST_EXISTS)) return g_strdup ("${cfg.background}");
+              dirs = g_get_system_data_dirs ();'
+        '';
       });
     }) ];
     files.all.".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml".copy = xmlfile;
