@@ -198,6 +198,9 @@ host:
                                     public: ENC[AES256_GCM,data:CYWEk1E=,iv:5Ss3BtGAU8kORvHszVSTM3TZhc9AzlfwWFvg04b1IK4=,tag:ciN4QEGD1FURyrF59gQ1fQ==,type:bool]
                                     private: ENC[AES256_GCM,data:T1JE+Q==,iv:JV+yQ4Dg+O6TJ5DDvcME8Kip08L0iCGnORtcTgNvO0k=,tag:zlMx2BCnZzK5Pa7H93XNgA==,type:bool]
                                 jellyfin: {}
+                                jellyfin-vpn:
+                                    public: ENC[AES256_GCM,data:oosm3SI=,iv:mYzonviZ0XUXgpbFXFLxRr3wBNvFutoaonMd9F+NMPE=,tag:ncYJuwcurDaPX69Untvffw==,type:bool]
+                                    private: ENC[AES256_GCM,data:b1dNvQ==,iv:SpvcoExUsCuFXrre46sCecy3GPCYXzIbnI2x3a4QtZo=,tag:F3O0Nq6MvvzgvAYOQAULLg==,type:bool]
                                 nextcloud: {}
                                 nextcloud-vpn:
                                     public: ENC[AES256_GCM,data:chlJ00w=,iv:6Xn2TW7DlO5yt7bQCKTR6SOWJpPrOjN0w0zz0MhhpZU=,tag:xs+t+WIQQ0GbEisuy+wwQQ==,type:bool]
@@ -239,7 +242,7 @@ sops:
             15E/UYdLPOZ/obszZQVoI4bMn2L71YCx0fhNnxV0e0JQRMQlzjvm9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age12hd2w2xuh70a0yrz72v79p6x8juajcn2ntt26enrm5utkjgueq0qxzdy3w
-    lastmodified: "2026-11-21T01:42:50Z"
-    mac: ENC[AES256_GCM,data:vm2tw8twvpPOEXPDqqrVzyG3VN/IFCIu/KtGZi1/CGLOiTMVqf2QhvEyMzdeu1KnwwxSDSyrpkvAz+0qbZ5pUagl5bPH1BI+NMKZZamNyAnOib/VPORomF8on+SW2H/QVCpQdAtEeXXTIwfCWnp/c9U+ARs2qUmhJcdb4JTLnSg=,iv:JMC0Rofs5y+ib9/DQjk7Nj4a1uXqNyk7iuZEygM25eE=,tag:PnWGFM8qZfAfMiJkP7Pz+Q==,type:str]
+    lastmodified: "2026-11-21T01:58:15Z"
+    mac: ENC[AES256_GCM,data:q3mZZPl8G9hmTxBYXwmt5Etdsa4bH+taEggzE20j9bHA5pepbXe4e8A8axviB11mIqbS/Z9n1ofAvmoi5VjDi1aAlUewUy1Bc96LYbOjU/acK+tQ7peRCwxs1ZXU+F4t9+X8t6bj/3plS6Ergcgc0sb6tcQec7hLGnaFfE/I5T4=,iv:9b1P8w5EaUtMTNd7BLoQPaJoUtR2OHPKjUK7sNnup78=,tag:vHebvtz554QDavV4KDViNA==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.3
