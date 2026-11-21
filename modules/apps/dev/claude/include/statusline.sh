@@ -90,8 +90,8 @@ COLS=$(stty size </dev/tty 2>/dev/null | cut -d' ' -f2)
 [ -z "$COLS" ] && COLS=$(tput cols 2>/dev/null)
 [ -z "$COLS" ] && COLS=200
 
-# Subtract 4 to account for left and right margins added by Claude Code
-PAD=$((COLS - LEFT_LEN - RIGHT_LEN - 10))
+# Claude Code indents the status line by 2 columns; keep 1 spare column so it never wraps
+PAD=$((COLS - LEFT_LEN - RIGHT_LEN - 3))
 
 if [ "$PAD" -gt 0 ]; then
   SPACES=$(printf "%${PAD}s" "")
