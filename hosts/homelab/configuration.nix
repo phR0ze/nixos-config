@@ -27,6 +27,13 @@
     services.native.mullvad.enable = true;
     services.native.firefight.server.enable = true;
 
+    # Key-only SSH: the admin key comes from the root secrets.enc.yaml (users/admin/authorizedKeys).
+    # KbdInteractive too, or PAM can still prompt for a password.
+    services.openssh.settings = {
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+    };
+
     services.native.alerts.enable = true;
     services.native.minecraft.enable = true;
     services.native.nix-cache.host.enable = true;
