@@ -98,5 +98,9 @@ in
 
     apps.media.obs.enable = true;
     apps.network.rustdesk.autostart = false;
+
+    environment.systemPackages = [
+      pkgs.pangolin-cli                           # Pangolin CLI and VPN client
+    ];
   };
 }
