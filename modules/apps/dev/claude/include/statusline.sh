@@ -51,7 +51,7 @@ else
 fi
 
 # Build progress bar
-BAR_WIDTH=20
+BAR_WIDTH=10
 FILLED=$((PCT * BAR_WIDTH / 100))
 EMPTY=$((BAR_WIDTH - FILLED))
 
@@ -90,8 +90,8 @@ COLS=$(stty size </dev/tty 2>/dev/null | cut -d' ' -f2)
 [ -z "$COLS" ] && COLS=$(tput cols 2>/dev/null)
 [ -z "$COLS" ] && COLS=200
 
-# Claude Code indents the status line by 2 columns; keep 1 spare column so it never wraps
-PAD=$((COLS - LEFT_LEN - RIGHT_LEN - 3))
+# Claude Code reserves a 2-column margin on each side and truncates anything wider with "…"
+PAD=$((COLS - LEFT_LEN - RIGHT_LEN - 4))
 
 if [ "$PAD" -gt 0 ]; then
   SPACES=$(printf "%${PAD}s" "")
