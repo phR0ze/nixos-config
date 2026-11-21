@@ -4,10 +4,12 @@
 #
 # ### Parameters
 emoji="$1"          # app trigger word to use for emoji lookup
-desc="$2"         # directory path or string title
+desc="$2"         # directory path or string title; defaults to the hostname if omitted
 
 # Description might be a path, if so use the basename
-if [[ -d "$desc" ]]; then
+if [[ $# -lt 2 ]]; then
+  name="${HOSTNAME:-$(hostname)}"
+elif [[ -d "$desc" ]]; then
   name="$(basename "$(realpath "$desc")")"
 else
   name="$desc"
