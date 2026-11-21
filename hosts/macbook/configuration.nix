@@ -79,6 +79,15 @@ in
     # Touch Bar - nixos-hardware dropped its own enableTinyDfr for the upstream nixpkgs module
     hardware.apple.touchBar.enable = true;
 
+    # The T2's virtual USB bus makes udev classify the built-in trackpad as external, and libinput
+    # never enables disable-while-typing on external touchpads - so palm brushes tap-click and steal
+    # focus mid-typing. systemd's 70-touchpad.hwdb marks the 05ac:0280/0340 T2 trackpads internal
+    # but not this model's 05ac:027c; add the same entry for it.
+    services.udev.extraHwdb = ''
+      touchpad:usb:v05acp027c:name:Apple Inc. Apple Internal Keyboard / Trackpad:*
+       ID_INPUT_TOUCHPAD_INTEGRATION=internal
+    '';
+
     nix.settings = {
       trusted-substituters = [ "https://t2linux.cachix.org" "https://cache.soopy.moe" ];
       trusted-public-keys = [

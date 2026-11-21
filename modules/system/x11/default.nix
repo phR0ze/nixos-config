@@ -108,6 +108,10 @@ in
           touchpad = {
             accelSpeed = "1";
             naturalScrolling = true;
+
+            # NixOS defaults this to false and writes `DisableWhileTyping "off"`, overriding
+            # libinput's own on-by-default. Without it palm brushes tap-click while typing.
+            disableWhileTyping = true;
           };
         };
       };
