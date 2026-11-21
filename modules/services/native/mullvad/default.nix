@@ -45,8 +45,14 @@
 #    ```
 # 4. Log out and back in to trigger the autostart, or start it manually as noted below
 #
-# * Note: you can manually start with `xdg-open "/etc/xdg/autostart/mullvad-apps-over-vpn.desktop"`
-# * The app will not be restarted if it exits or fails
+# ### Running the apps
+# Each entry in `apps` runs as its own systemd user service named after the app's command, e.g.
+# `vopono-qbittorrent` and `vopono-brave`, started with the graphical session when `autostart` is set.
+# * Start/stop manually: `systemctl --user start vopono-qbittorrent`
+# * Logs: `journalctl --user -u vopono-qbittorrent -b`
+# * Restarted if vopono or the app fails, but not when the app is closed normally
+# * The first app creates the VPN network namespace; the rest wait for it and join it, so they never
+#   race to create their own
 # * Requires passwordless sudo access to be able to elevate privileges when needed
 # * Validation can be done by using brave as an app and navigating to https://mullvad.net/en/check
 # --------------------------------------------------------------------------------------------------
@@ -57,25 +63,49 @@ let
   wgConfig = "mullvad-wg.conf";
   vopono = lib.getExe pkgs.vopono;
 
-  # Start the first app to create the namespace, wait for it to be up, then start the rest which
-  # will join the existing namespace rather than racing to create their own
-  launcher = pkgs.writeShellScript "mullvad-apps-over-vpn" ''
-    ${vopono} exec ${lib.escapeShellArg (lib.head cfg.apps)} &
-    ${lib.optionalString (lib.length cfg.apps > 1) ''
+  # User service name for an app, from its command's basename e.g. `brave https://...` -> `vopono-brave`
+  unitName = app: "vopono-" + lib.replaceStrings [ "." ] [ "-" ]
+    (baseNameOf (lib.head (lib.splitString " " app)));
+  unitNames = map unitName cfg.apps;
+  firstUnit = lib.head unitNames;
+
+  # Wait for the first app's VPN namespace so later apps join it rather than creating their own
+  waitForNamespace = pkgs.writeShellScript "vopono-wait-for-namespace" ''
     for _ in $(seq 60); do
-      [ -n "$(${vopono} list namespaces 2>/dev/null)" ] && break
+      [ -n "$(${vopono} list namespaces 2>/dev/null)" ] && exit 0
       sleep 1
     done
-    ${lib.concatMapStrings (app: "${vopono} exec ${lib.escapeShellArg app} &\n") (lib.tail cfg.apps)}''}
-    wait
+    echo "vopono network namespace not up after 60s, is ${firstUnit} running?" >&2
+    exit 1
   '';
+
+  appService = index: app: lib.nameValuePair (unitName app) {
+    description = "${app} over the Mullvad VPN via vopono";
+    after = [ "graphical-session.target" ] ++ lib.optional (index > 0) "${firstUnit}.service";
+    partOf = [ "graphical-session.target" ];
+    wantedBy = lib.optional cfg.autostart "graphical-session.target";
+    # sudo from the setuid wrappers, the app itself from the system profile
+    path = [ "/run/wrappers" "/run/current-system/sw" ];
+    startLimitIntervalSec = 300;
+    startLimitBurst = 5;
+    serviceConfig = {
+      ExecStartPre = lib.mkIf (index > 0) "${waitForNamespace}";
+      # Via a script so the app's command line needs no systemd quoting or % escaping
+      ExecStart = "${pkgs.writeShellScript (unitName app) "exec ${vopono} exec ${lib.escapeShellArg app}"}";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+  };
 in
 {
   options = {
     services.native.mullvad = {
       enable = lib.mkEnableOption "Configure Mullvad VPN service with Vopono";
       autostart = lib.mkOption {
-        description = "Autostart VPN on login";
+        description = ''
+          Start the `apps` user services with the graphical session. When off they can still be
+          started with `systemctl --user start vopono-<app>`.
+        '';
         type = types.bool;
         default = true;
       };
@@ -211,25 +241,21 @@ in
       ];
     })
 
-    # Configure to autostart after login
-    # Creates a single `/etc/xdg/autostart/mullvad-apps-over-vpn.desktop` that launches the apps in
-    # sequence. Separate autostart entries would race to create the same vopono network namespace
-    # and all but one would fail, so the first app creates it and the rest join once it is up.
-    (lib.mkIf cfg.autostart {
+    # One user service per app, see "Running the apps" above
+    {
       assertions = [
         {
-          assertion = cfg.apps != [ ] && !(lib.elem "" cfg.apps);
+          assertion = !(lib.elem "" cfg.apps) && lib.allUnique unitNames;
+          message = "services.native.mullvad.apps entries must be non-empty and start with distinct commands, each becomes a vopono-<command> user service";
+        }
+        {
+          assertion = !cfg.autostart || cfg.apps != [ ];
           message = "services.native.mullvad.apps must be set when services.native.mullvad.autostart is enabled";
         }
       ];
 
-      environment.etc."xdg/autostart/mullvad-apps-over-vpn.desktop".text = ''
-        [Desktop Entry]
-        Type=Application
-        Terminal=true
-        Exec=${launcher}
-      '';
-    })
+      systemd.user.services = lib.listToAttrs (lib.imap0 appService cfg.apps);
+    }
 
   ]);
 }

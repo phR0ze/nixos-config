@@ -6,7 +6,7 @@
 # - `server`   - firefight-server as a system service, with pre-configured admin token,
 #                enrollment key and declarative timers (assigned to clients in the control deck)
 # - `serverUi` - the control deck app, already pointed at the server with the admin token
-#                (`serverUi.autoStart`, on with `server`, adds it to the desktop session's autostart)
+#                (`serverUi.autoStart`, on with `server`, starts it as a user service with the session)
 # - `client`   - firefight-agent as a systemd user service in the graphical session, enrolling
 #                itself with the shared enrollment key so no manual approval is needed
 # - `clientUi` - the client display app, run by the agent for as long as the agent runs (it is
@@ -512,16 +512,25 @@ in
         })
       ];
 
-      # Delayed so the panel's StatusNotifierWatcher is up first, otherwise the tray icon can be
-      # missed (the agent waits the same before starting the client display)
-      environment.etc."xdg/autostart/firefight-deck.desktop" = lib.mkIf cfg.serverUi.autoStart {
-        text = ''
-          [Desktop Entry]
-          Type=Application
-          Name=Firefight Control Deck
-          Terminal=false
-          Exec=${pkgs.bash}/bin/sh -c "sleep 5; exec ${deckExec}"
-        '';
+      # Runs as a user service in the graphical session, restarted if it fails (e.g. the server or
+      # its token secret isn't up yet) and logging to `journalctl --user -u firefight-deck`.
+      # Waits for the panel's StatusNotifierWatcher first, otherwise the tray icon can be missed
+      # (the agent waits similarly before starting the client display). The `-` lets the deck
+      # start anyway if no tray shows up in time. Without `autoStart` it can still be started with
+      # `systemctl --user start firefight-deck`.
+      systemd.user.services.firefight-deck = {
+        description = "firefight control deck";
+        after = [ "graphical-session.target" ];
+        partOf = [ "graphical-session.target" ];
+        wantedBy = lib.optional cfg.serverUi.autoStart "graphical-session.target";
+        startLimitIntervalSec = 120;
+        startLimitBurst = 5;
+        serviceConfig = {
+          ExecStartPre = "-${lib.getExe' pkgs.glib "gdbus"} wait --session --timeout 30 org.kde.StatusNotifierWatcher";
+          ExecStart = deckExec;
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
       };
     })
 

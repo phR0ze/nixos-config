@@ -15,13 +15,13 @@
 # - `on.<event>` lists promote scripts to other events via the generated `devilspie2.lua` index; a
 #   script named in one of those lists is no longer run on window open
 # - devilspie2 watches the script folder and reloads automatically when its content changes
-# - devilspie2 exits immediately when the script folder is empty, so the autostart entry is only
+# - devilspie2 exits immediately when the script folder is empty, so the user service is only
 #   installed once at least one script is defined
 #
 # ### Other notes
 # - Some apps set their own geometry after mapping and will race the rule. Applying the geometry a
 #   second time in the same script is the usual workaround.
-# - `debug = true` is what makes `debug_print` output visible, which lands in the session log
+# - `debug = true` is what makes `debug_print` output visible, see `journalctl --user -u devilspie2`
 # --------------------------------------------------------------------------------------------------
 { config, lib, pkgs, ... }: with lib.types;
 let
@@ -129,15 +129,25 @@ in
       };
     }
 
-    # Autostart after login. Skipped without scripts as devilspie2 exits on an empty script folder.
-    (lib.mkIf (cfg.autostart && cfg.scripts != { }) {
-      environment.etc."xdg/autostart/devilspie2.desktop".text = ''
-        [Desktop Entry]
-        Type=Application
-        Name=Devilspie2
-        Terminal=false
-        Exec=${pkgs.devilspie2}/bin/devilspie2${lib.optionalString cfg.debug " --debug"}${lib.optionalString cfg.emulate " --emulate"}
-      '';
+    # Run as a user service in the graphical session, restarted if it crashes and logging to
+    # `journalctl --user -u devilspie2`. Skipped without scripts as devilspie2 exits on an empty
+    # script folder. Without `autostart` it can still be started with `systemctl --user start`.
+    (lib.mkIf (cfg.scripts != { }) {
+      systemd.user.services.devilspie2 = {
+        description = "devilspie2 window matching";
+        after = [ "graphical-session.target" ];
+        partOf = [ "graphical-session.target" ];
+        wantedBy = lib.optional cfg.autostart "graphical-session.target";
+        startLimitIntervalSec = 120;
+        startLimitBurst = 5;
+        serviceConfig = {
+          ExecStart = "${pkgs.devilspie2}/bin/devilspie2"
+            + lib.optionalString cfg.debug " --debug"
+            + lib.optionalString cfg.emulate " --emulate";
+          Restart = "on-failure";
+          RestartSec = 2;
+        };
+      };
     })
   ]);
 }
