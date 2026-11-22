@@ -26,6 +26,18 @@ let
     sections.state.maximized = true;
     version = 7;
   };
+
+  # Client settings live in the profile's jellyfin-desktop.conf, same `version` rule as storage.json.
+  # Only the keys set here are seeded, everything else falls back to the app's own defaults.
+  settingsJson = builtins.toJSON {
+    sections.audio.normalize = false;
+    version = 7;
+  };
+
+  loudnessNode = "jellyfin_loudness";
+
+  # The profile has to be created by us for anything to be seeded into it
+  seedProfile = cfg.maximized || !cfg.normalizeDownmix;
 in
 {
   options = {
@@ -40,6 +52,49 @@ in
           state only: the user's own window changes are saved over it and never overwritten.
         '';
       };
+
+      normalizeDownmix = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          The client's "Normalize downmix" audio setting (mpv's `audio-normalize-downmix`). The app
+          defaults it on, which scales the whole mix down when folding 5.1/7.1 to stereo so it can't
+          clip, leaving surround movies far quieter than stereo content with dialog hardest hit.
+          `false` seeds it off. Seeded as initial state only: an existing profile's
+          jellyfin-desktop.conf is never overwritten, change it in the client's audio settings.
+        '';
+      };
+
+      loudness = {
+        enable = lib.mkEnableOption ''
+          routing the client's audio through a PipeWire compressor + limiter sink. Movies keep
+          dialog far below music/web loudness to leave headroom for effects, so even at 100% they
+          play much quieter than e.g. a browser. This lifts quiet passages without clipping loud
+          ones, and only for the client: other apps are untouched. Applies to stereo output only,
+          not passthrough bitstreams
+        '';
+
+        threshold = lib.mkOption {
+          type = types.numbers.between (-30) 0;
+          default = -30;
+          description = "Level in dB above which the compressor starts reducing gain.";
+        };
+
+        ratio = lib.mkOption {
+          type = types.numbers.between 1 20;
+          default = 4;
+          description = "Compression ratio 1:n above the threshold. Higher is flatter.";
+        };
+
+        gain = lib.mkOption {
+          type = types.numbers.between 0 24;
+          default = 12;
+          description = ''
+            Makeup gain in dB applied after compression, i.e. how much louder quiet passages get.
+            Lower it if loud scenes sound squashed, the limiter keeps it from clipping either way.
+          '';
+        };
+      };
     };
   };
 
@@ -50,14 +105,79 @@ in
         # Crossplatform desktop client, EGL wrapped for VA-API zero-copy on Mesa GPUs. The NVIDIA
         # proprietary driver can't create Qt's xcb_egl context under X11 (aborts with "Failed to
         # initialize graphics backend for OpenGL") and doesn't do VA-API anyway, so use stock there.
-        (if config.devices.gpu.nvidia.enable then pkgs.jellyfin-desktop
-          else pkgs.callPackage ./package.nix {})
+        (pkgs.callPackage ./package.nix {
+          egl = !config.devices.gpu.nvidia.enable;
+          pipewireNode = if cfg.loudness.enable then loudnessNode else null;
+        })
       ];
     }
 
-    (lib.mkIf cfg.maximized {
+    # Compressor + limiter sink that only the client's audio is routed through, see `loudness`.
+    # Loaded into the user's PipeWire daemon; its output follows the default sink.
+    (lib.mkIf cfg.loudness.enable (let
+      ladspa = "${pkgs.ladspaPlugins}/lib/ladspa";
+    in {
+      assertions = [
+        { assertion = config.services.pipewire.enable;
+          message = "apps.media.jellyfin.loudness requires PipeWire (devices.audio.enable)"; }
+      ];
+
+      services.pipewire.extraConfig.pipewire."60-jellyfin-loudness"."context.modules" = [{
+        name = "libpipewire-module-filter-chain";
+        args = {
+          "node.description" = "Jellyfin Loudness";
+          "media.name" = "Jellyfin Loudness";
+          "filter.graph" = {
+            nodes = [
+              { type = "ladspa"; name = "comp"; plugin = "${ladspa}/sc4_1882.so"; label = "sc4";
+                control = {
+                  "RMS/peak" = 1;                     # RMS detection, follows loudness not spikes
+                  "Attack time (ms)" = 10;
+                  "Release time (ms)" = 300;
+                  "Threshold level (dB)" = cfg.loudness.threshold;
+                  "Ratio (1:n)" = cfg.loudness.ratio;
+                  "Knee radius (dB)" = 6;
+                  "Makeup gain (dB)" = cfg.loudness.gain;
+                };
+              }
+              # Catch the transients the compressor's attack lets through after makeup gain
+              { type = "ladspa"; name = "limit"; label = "fastLookaheadLimiter";
+                plugin = "${ladspa}/fast_lookahead_limiter_1913.so";
+                control = { "Input gain (dB)" = 0; "Limit (dB)" = -1; "Release time (s)" = 0.1; };
+              }
+            ];
+            links = [
+              { output = "comp:Left output"; input = "limit:Input 1"; }
+              { output = "comp:Right output"; input = "limit:Input 2"; }
+            ];
+            inputs = [ "comp:Left input" "comp:Right input" ];
+            outputs = [ "limit:Output 1" "limit:Output 2" ];
+          };
+          "audio.channels" = 2;
+          "audio.position" = [ "FL" "FR" ];
+          "capture.props" = {
+            "node.name" = loudnessNode;
+            "media.class" = "Audio/Sink";
+            "priority.session" = 0;                 # never picked as the default sink
+          };
+          "playback.props" = {
+            "node.name" = "${loudnessNode}.output";
+            "node.passive" = true;                  # don't hold the real sink open when idle
+          };
+        };
+      }];
+    }))
+
+    (lib.mkIf seedProfile {
       files.all.".local/share/jellyfin-desktop/profiles.json".weakCopy = profilesJson;
+    })
+
+    (lib.mkIf cfg.maximized {
       files.all."${profileDir}/storage.json".weakCopy = storageJson;
+    })
+
+    (lib.mkIf (!cfg.normalizeDownmix) {
+      files.all."${profileDir}/jellyfin-desktop.conf".weakCopy = settingsJson;
     })
   ]);
 }
