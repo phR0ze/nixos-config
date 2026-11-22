@@ -76,6 +76,7 @@
 #                 vault-vpn: { public: false, private: true }
 #                 adguard: { private: true, roles: [ "Admins" ] }  # public + private
 #                 photos: { sso: false }                   # public, no Pangolin login
+#                 ssh: { public: false, private: true, port: 22 }  # host sshd, not Caddy
 # ```
 # Every resource is named `<subdomain>.<pangolin.domain>` end to end - Caddy must serve that
 # subdomain on `pangolin.domain` (asserted; see the app's `whichDomains` and `host.network.domains`).
@@ -84,8 +85,12 @@
 #   name. `sso = false` drops the SSO gate entirely, for apps that do their own access control
 #   (immich-public-proxy, whose share links carry their own key and optional password).
 # - Private (`private`): a Host-mode resource keyed `<key>` too, with `host.containers.internal`
-#   (Newt's gateway) as its destination, tcp/443 only, no UDP or ICMP, aliased to that name. The
-#   client's SNI reaches Caddy unchanged.
+#   (Newt's gateway) as its destination, tcp/`port` only (443, Caddy, by default), no UDP or ICMP,
+#   aliased to that name. The client's SNI reaches Caddy unchanged.
+# - Non-Caddy (`port` other than 443): a private-only resource to another host service on the
+#   gateway, e.g. `port = 22` for sshd. No Caddy zone needed; the port joins the egress rule. The
+#   service sees connections from the instance's container `ip`, and its host firewall rule must
+#   accept them on the podman bridge (a plain allowedTCPPorts entry does).
 # - Roles are `roles` or else `pangolin.defaultRoles`, matched by exact name within the site's
 #   org (roles are per org). Create them in the dashboard first: a new public resource with an
 #   unknown role fails the whole blueprint ("Role not found", ee-1.24.0), while existing public
@@ -101,7 +106,8 @@
 # ### Egress containment
 # The Pangolin server chooses Newt's targets, so unrestricted it could reach any LAN host or use this
 # homelab as a relay. Each instance's default-deny `newt-<instance>-egress` nftables table allows only:
-# - gateway tcp/443 (Caddy) and udp/53 (aardvark-dns)
+# - gateway tcp/443 (Caddy) and udp/53 (aardvark-dns), plus the `port` of each non-Caddy private
+#   resource (e.g. tcp/22)
 # - `pangolin.ip` tcp/443 (API/websocket) and udp/51820,21820 (Gerbil WireGuard/relay)
 # Everything else is rejected so blocked dials fail fast. Notes:
 # - `pangolin.ip` is pinned rather than resolved, so DNS changes or server-pushed endpoints can't
@@ -152,7 +158,7 @@ let
       subdomain = lib.mkOption {
         description = ''
           The resource's name `<subdomain>.<pangolin.domain>`, used end to end: public `full-domain`,
-          SNI and Host header to Caddy, and private alias
+          SNI and Host header to Caddy, and private alias (the only use for a non-Caddy `port`)
         '';
         type = types.str;
         default = name;
@@ -168,6 +174,16 @@ let
         description = "Create the private Host-mode resource, keyed `<key>` like the public one";
         type = types.bool;
         default = false;
+      };
+
+      port = lib.mkOption {
+        description = ''
+          Host TCP port the resource targets on Newt's gateway. 443 is Caddy; any other port is a
+          non-Caddy host service (e.g. 22 for sshd), allowed only as a private resource, and added
+          to the instance's egress rule.
+        '';
+        type = types.port;
+        default = 443;
       };
 
       roles = lib.mkOption {
@@ -293,6 +309,9 @@ let
     # See "Blueprints" above
     publicRes = lib.filterAttrs (_: res: res.public) inst.pangolin.resources;
     privateRes = lib.filterAttrs (_: res: res.private) inst.pangolin.resources;
+    caddyRes = lib.filterAttrs (_: res: res.port == 443) inst.pangolin.resources;
+    # Non-Caddy host ports the private resources reach, each opened in the egress rule
+    extraPorts = lib.unique (lib.filter (p: p != 443) (lib.mapAttrsToList (_: res: res.port) privateRes));
     rolesOf = res: if res.roles == null then inst.pangolin.defaultRoles else res.roles;
     pangolinName = res: "${res.subdomain}.${inst.pangolin.domain}";
     blueprint = (pkgs.formats.yaml { }).generate "${cont}-blueprint.yaml" {
@@ -316,7 +335,7 @@ let
         # gateway, the one address the egress rule allows. A hostname destination needs `alias`.
         destination = "host.containers.internal";
         alias = pangolinName res;
-        "tcp-ports" = "443";
+        "tcp-ports" = toString res.port;
         "udp-ports" = "";       # Empty is none, unset would be all
         "disable-icmp" = true;
         roles = rolesOf res;
@@ -337,9 +356,10 @@ let
     ] ++ lib.optionals (inst.pangolin.resources != { }) [
       { assertion = inst.pangolin.domain != "";
         message = "services.oci.newt.instances.${name} has 'pangolin.resources' but no 'pangolin.domain' (host.services.oci.newt.instances.${name}.pangolin.domain) — the Pangolin server's base domain they're named under"; }
-      # Every resource targets this host's Caddy
+    ] ++ lib.optionals (caddyRes != { }) [
+      # Port-443 resources target this host's Caddy
       { assertion = caddy.enable;
-        message = "services.oci.newt.instances.${name} has 'pangolin.resources' but services.native.caddy isn't enabled — every resource targets this host's Caddy"; }
+        message = "services.oci.newt.instances.${name} has port-443 'pangolin.resources' but services.native.caddy isn't enabled — they target this host's Caddy"; }
     ] ++ lib.optionals (privateRes != { }) [
       { assertion = cfg.allowClients;
         message = "services.oci.newt.instances.${name} has private resources but 'allowClients' is off, so no client could reach them"; }
@@ -351,7 +371,10 @@ let
       # Roles and users only grant access through SSO, or to the private resource
       { assertion = res.sso || res.private || (res.roles == null && res.users == [ ]);
         message = "${id} has 'sso = false', so its 'roles'/'users' would grant nothing - remove them"; }
-    ] ++ lib.optionals (caddy.enable && inst.pangolin.domain != "") [
+      # Public resources are HTTPS to Caddy; raw TCP is private only
+      { assertion = res.port == 443 || !res.public;
+        message = "${id} targets port ${toString res.port}, which isn't Caddy, so it can only be private - set 'public = false'"; }
+    ] ++ lib.optionals (res.port == 443 && caddy.enable && inst.pangolin.domain != "") [
       # The name is the same end to end, so Caddy needs that name and its certificate
       { assertion = lib.elem inst.pangolin.domain (caddyZonesOf res.subdomain);
         message = "${id}: Caddy doesn't serve '${res.subdomain}' on the instance's pangolin.domain — list that zone in host.network.domains and set the app's whichDomains = \"all\" (or name a subdomain Caddy serves there)"; }
@@ -433,6 +456,10 @@ let
           # Caddy and aardvark-dns on the bridge gateway
           ip daddr ${gateway} tcp dport 443 accept
           ip daddr ${gateway} udp dport 53 accept
+          ${lib.optionalString (extraPorts != [ ]) ''
+          # Non-Caddy host services of private resources (e.g. sshd)
+          ip daddr ${gateway} tcp dport { ${lib.concatMapStringsSep ", " toString extraPorts} } accept
+          ''}
 
           # Pangolin: API/websocket and Gerbil's WireGuard/relay ports
           ip daddr ${toString inst.pangolin.ip} tcp dport 443 accept
