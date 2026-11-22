@@ -14,7 +14,7 @@
     ./homarr.nix
     ./newt.nix
     ./oneup.nix
-    ./pangolin.nix
+    ./pangolin
     ./portainer.nix
     ./stirling-pdf.nix
   ];
