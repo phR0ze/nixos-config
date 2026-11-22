@@ -16,7 +16,6 @@
     host.desktop.xfce.theater = true;
 
     devices.gpu.intel.enable = true;
-    apps.media.jellyfin.loudness.enable = true;   # Lift quiet movie dialog to browser loudness
     services.native.smb.enable = true;
     services.native.keyd.enable = true;
 

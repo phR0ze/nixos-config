@@ -27,17 +27,7 @@ let
     version = 7;
   };
 
-  # Client settings live in the profile's jellyfin-desktop.conf, same `version` rule as storage.json.
-  # Only the keys set here are seeded, everything else falls back to the app's own defaults.
-  settingsJson = builtins.toJSON {
-    sections.audio.normalize = false;
-    version = 7;
-  };
-
   loudnessNode = "jellyfin_loudness";
-
-  # The profile has to be created by us for anything to be seeded into it
-  seedProfile = cfg.maximized || !cfg.normalizeDownmix;
 in
 {
   options = {
@@ -53,26 +43,20 @@ in
         '';
       };
 
-      normalizeDownmix = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = ''
-          The client's "Normalize downmix" audio setting (mpv's `audio-normalize-downmix`). The app
-          defaults it on, which scales the whole mix down when folding 5.1/7.1 to stereo so it can't
-          clip, leaving surround movies far quieter than stereo content with dialog hardest hit.
-          `false` seeds it off. Seeded as initial state only: an existing profile's
-          jellyfin-desktop.conf is never overwritten, change it in the client's audio settings.
-        '';
-      };
-
       loudness = {
-        enable = lib.mkEnableOption ''
-          routing the client's audio through a PipeWire compressor + limiter sink. Movies keep
-          dialog far below music/web loudness to leave headroom for effects, so even at 100% they
-          play much quieter than e.g. a browser. This lifts quiet passages without clipping loud
-          ones, and only for the client: other apps are untouched. Applies to stereo output only,
-          not passthrough bitstreams
-        '';
+        enable = lib.mkOption {
+          type = types.bool;
+          default = config.services.pipewire.enable;
+          defaultText = lib.literalExpression "config.services.pipewire.enable";
+          description = ''
+            Route the client's audio through a PipeWire compressor + limiter sink. Movies keep
+            dialog far below music/web loudness to leave headroom for effects, so even at 100% they
+            play much quieter than e.g. a browser, worse still with the client's default "Normalize
+            downmix" scaling 5.1 down when folding to stereo. This lifts quiet passages without
+            clipping loud ones, and only for the client: other apps are untouched. Applies to
+            stereo output only, not passthrough bitstreams.
+          '';
+        };
 
         threshold = lib.mkOption {
           type = types.numbers.between (-30) 0;
@@ -168,16 +152,9 @@ in
       }];
     }))
 
-    (lib.mkIf seedProfile {
-      files.all.".local/share/jellyfin-desktop/profiles.json".weakCopy = profilesJson;
-    })
-
     (lib.mkIf cfg.maximized {
+      files.all.".local/share/jellyfin-desktop/profiles.json".weakCopy = profilesJson;
       files.all."${profileDir}/storage.json".weakCopy = storageJson;
-    })
-
-    (lib.mkIf (!cfg.normalizeDownmix) {
-      files.all."${profileDir}/jellyfin-desktop.conf".weakCopy = settingsJson;
     })
   ]);
 }
