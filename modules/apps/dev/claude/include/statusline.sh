@@ -7,8 +7,6 @@ input=$(cat)
 MODEL=$(echo "$input" | jq -r '.model.display_name')
 COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
-IN_TOKENS=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
-OUT_TOKENS=$(echo "$input" | jq -r '.context_window.total_output_tokens // 0')
 LIMIT_5H=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
 LIMIT_7D=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
 PROJECT=$(echo "$input" | jq -r '.workspace.project_dir // ""' | xargs basename 2>/dev/null)
@@ -21,8 +19,6 @@ EFFORT=$(echo "$input" | jq -r '.effort.level // ""')
 MODEL_FMT="$MODEL"
 [ -n "$EFFORT" ] && MODEL_FMT="${MODEL} (${EFFORT})"
 COST_FMT=$(printf '$%.2f' "$COST")
-IN_K=$(awk "BEGIN {printf \"%.1fk\", $IN_TOKENS/1000}")
-OUT_K=$(awk "BEGIN {printf \"%.1fk\", $OUT_TOKENS/1000}")
 
 # Usage limits (subscription only; absent for API-key billing)
 LIMITS_FMT=""
@@ -62,27 +58,26 @@ for ((i=0; i<EMPTY; i++)); do EMPTY_BAR+='░'; done
 
 BAR="${BAR_COLOR}${FILLED_BAR}${TN_COMMENT}${EMPTY_BAR}${RESET}"
 
-# Left side: model, progress bar, tokens, cost, usage limits
+# Left side: model, progress bar, cost, usage limits
 MODEL_COLORED="${TN_PURPLE}[${MODEL}]${RESET}"
 [ -n "$EFFORT" ] && MODEL_COLORED+=" ${TN_ORANGE}(${EFFORT})${RESET}"
 LEFT="${MODEL_COLORED} ${BAR} ${BAR_COLOR}${PCT}%${RESET}"
-LEFT+=" ${TN_COMMENT}|${RESET} ${TN_BLUE}↑${IN_K} ↓${OUT_K}${RESET}"
-LEFT+=" ${TN_COMMENT}|${RESET} ${TN_ORANGE}${COST_FMT}${RESET}"
-[ -n "$LIMITS_FMT" ] && LEFT+=" ${TN_COMMENT}|${RESET} ${TN_CYAN}${LIMITS_FMT}${RESET}"
+LEFT+=" ${TN_COMMENT}|${RESET} ${TN_CYAN}${COST_FMT}${RESET}"
+[ -n "$LIMITS_FMT" ] && LEFT+=" ${TN_COMMENT}|${RESET} ${TN_ORANGE}${LIMITS_FMT}${RESET}"
 
-# Right side: session, hostname:project
+# Right side: | session, hostname:project
 RIGHT=""
-[ -n "$SESSION" ] && RIGHT="${TN_PURPLE}${SESSION}${RESET} ${TN_COMMENT}|${RESET} "
+[ -n "$SESSION" ] && RIGHT="${TN_COMMENT}|${RESET} ${TN_PURPLE}${SESSION}${RESET} ${TN_COMMENT}|${RESET} "
 RIGHT+="${TN_ORANGE}${HOST}:${RESET}${TN_BLUE}${PROJECT}${RESET}"
 
 # Calculate visible lengths mathematically (all content is ASCII except bar chars)
-# Left: MODEL_FMT + " " + bar(BAR_WIDTH) + " " + PCT + "% | ↑" + IN_K + " ↓" + OUT_K + " | " + COST_FMT [+ " | " + LIMITS_FMT]
-LEFT_LEN=$(( ${#MODEL_FMT} + 3 + BAR_WIDTH + 1 + ${#PCT} + 1 + 3 + 1 + ${#IN_K} + 2 + ${#OUT_K} + 3 + ${#COST_FMT} ))
+# Left: MODEL_FMT + " " + bar(BAR_WIDTH) + " " + PCT + "% | " + COST_FMT [+ " | " + LIMITS_FMT]
+LEFT_LEN=$(( ${#MODEL_FMT} + 3 + BAR_WIDTH + 1 + ${#PCT} + 1 + 3 + ${#COST_FMT} ))
 [ -n "$LIMITS_FMT" ] && LEFT_LEN=$(( LEFT_LEN + 3 + ${#LIMITS_FMT} ))
 
-# Right: [SESSION + " | "] + HOST + ":" + PROJECT
+# Right: ["| " + SESSION + " | "] + HOST + ":" + PROJECT
 RIGHT_LEN=$(( ${#HOST} + 1 + ${#PROJECT} ))
-[ -n "$SESSION" ] && RIGHT_LEN=$(( RIGHT_LEN + ${#SESSION} + 3 ))
+[ -n "$SESSION" ] && RIGHT_LEN=$(( RIGHT_LEN + 2 + ${#SESSION} + 3 ))
 
 # Get terminal width — prioritize stty as it reflects actual current size
 COLS=$(stty size </dev/tty 2>/dev/null | cut -d' ' -f2)
