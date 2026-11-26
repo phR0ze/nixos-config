@@ -125,6 +125,16 @@ let
       example = "smb/secretA";
       description = "Key in `sopsFile` holding `user`'s SMB password.";
     };
+    timeout = lib.mkOption {
+      type = types.nullOr types.ints.positive;
+      default = null;
+      example = 90;
+      description = ''
+        Seconds to wait on each SMB operation, 60 when unset everywhere (Nextcloud's own default is
+        20). It must be long enough for a hibernating Synology's disks to spin up, else the
+        first access after idle times out.
+      '';
+    };
   };
 
   mountOptions = smbOptions // {
@@ -170,6 +180,7 @@ let
       domain = let d = pick chain "domain"; in if d == null then "" else d;
       inherit (m) share;
       root = m.path;  # Nextcloud's name for the subfolder
+      timeout = let t = pick chain "timeout"; in if t == null then 60 else t;
     };
     options = {
       readonly = readOnly;
@@ -666,6 +677,11 @@ in
           # SMB mount. Renaming the .part file on the Synology timed out, failing the upload
           # (hosts/homelab, 2026-11-05). Quota doesn't apply to .part files, so large uploads still fit
           part_file_in_storage = false;
+          # Nextcloud reports an SMB timeout as an auth failure, so a slow disk spin-up made a mount
+          # unavailable for the 30 min auth back-off (hosts/homelab, 2026-11-26). 600 s is the floor,
+          # the same as for any other unavailable storage, and a real bad password still only costs
+          # one login attempt per mount every 10 min, well under Synology's auto-block threshold
+          "external_storage.auth_availability_delay" = 600;
           defaultapp = if cfg.apps.dashboard then "dashboard,files" else "files";
           has_internet_connection = cfg.internetAccess;
           updatechecker = cfg.internetAccess;
