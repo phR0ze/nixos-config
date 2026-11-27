@@ -21,12 +21,12 @@
     };
     services.oci.pangolin = {
       enable = true;
-      pangolinTag = "ee-1.26.0";
+      pangolinTag = "ee-1.27.1";
       gerbilTag = "1.6.0";
-      traefikTag = "v3.7.18";
-      crowdsecTag = "v1.8.1";  # agent only, must not be newer than the host LAPI
+      traefikTag = "v3.7.20";
+      crowdsecTag = "v1.8.2";  # agent only, must not be newer than the host LAPI
       badgerPluginVersion = "v1.8.0";
-      crowdsecPluginVersion = "v1.7.1";
+      crowdsecPluginVersion = "v1.8.2";
     };
   };
 }

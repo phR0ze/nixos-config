@@ -40,7 +40,9 @@
 
         # Override packages with other versions:
         # caddy/postgresql_17: security fixes (Caddy 2.11.8 path bypasses, PostgreSQL 17.12) ahead of nixpkgs
+        # crowdsec: 1.8.2 host LAPI, so the Pangolin stack's agent container (which must not be newer) can move to it
         caddy = pkgsUnstable.caddy;
+        crowdsec = pkgsUnstable.crowdsec;
         immich = pkgsUnstable.immich;
         postgresql_17 = pkgsUnstable.postgresql_17;
         vscode = pkgsUnstable.vscode;
