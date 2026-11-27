@@ -623,6 +623,12 @@ let
   #   (anomaly 52790, hosts/vps1, 2026-10-30), each banning the user on its first request. Per-rule
   #   exclusions can't cover arbitrary file contents. These paths sit behind Pangolin's SSO and
   #   Nextcloud's own auth, and the in-band virtual patches still apply to them.
+  # - 932370/932380 (Windows command injection) for Jellyfin's playback reporting
+  #   (`/Sessions/Playing[/Progress|/Stopped|/Ping]`) on `jellyfin*` hosts. The web player POSTs
+  #   `{"EventName":"timeupdate"}` (also `pause`, `volumechange`, ...) every few seconds while
+  #   playing, and 932370 matched `timeupdate` as the Windows `time` command (`pause` is one too).
+  #   Its RCE category bans on a single hit, so streaming a video banned the viewer for 4h
+  #   (hosts/vps1, 2026-11-26). Only these two rules are dropped and only on that path.
   appsecExclusionsName = "custom/${cfg.name}-exclusions";
   crowdsecAppsecExclusionsText = ''
     name: ${appsecExclusionsName}
@@ -636,6 +642,10 @@ let
       - filter: IsOutBand == true && req.Host == "${cfg.dashboardDomain}" && req.Method in ["PUT", "PATCH", "DELETE"]
         apply:
           - RemoveOutBandRuleByID(911100)
+      - filter: IsOutBand == true && req.Host startsWith "jellyfin" && req.Method == "POST" && req.URL.Path matches "(?i)^/Sessions/Playing(/(Progress|Stopped|Ping))?$"
+        apply:
+          - RemoveOutBandRuleByID(932370)
+          - RemoveOutBandRuleByID(932380)
   ''
   # Re-indented under `pre_eval:`, as each `'''` string has its own indentation stripped
   + lib.optionalString (webdavHosts != [ ]) (lib.concatMapStrings (l: "  ${l}\n") (lib.splitString "\n" ''
