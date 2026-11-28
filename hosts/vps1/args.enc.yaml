@@ -20,6 +20,7 @@ host:
             mapNameFromMAC: ENC[AES256_GCM,data:MUbATKsrS4bfRf5mTh1B0S0=,iv:Kn0lcomseHsjIIspDhNEWAmD3tQzIyLdoFD7jyLPCKQ=,tag:1mOBhBiPrH0ILpsmws+vFw==,type:str]
         allowList:
             - ENC[AES256_GCM,data:X2A9xgE4sPIjoVvswdvh,iv:LuSM67UgrpZFmEOHmHqyYscZ3rfuauyATr1h5RlSRcw=,tag:UoCK2j2/bwhVasALw88kPQ==,type:str]
+            - ENC[AES256_GCM,data:sIwlS9+rzya8zZgwYQ==,iv:2bUpH4HIQ3MlPutBDVv7kuU82v6QutxRFdB7vxVn6OA=,tag:yc1eghnr6tisH51/BFhiwQ==,type:str]
     git:
         user: ENC[AES256_GCM,data:idgsY3kU,iv:d8QTR6w3Ti/pt5ezmWx/gAQLvRVxjA4xIHVPzuc5Yn8=,tag:xwsJzoVPctAR+Xxf53XIiA==,type:str]
         email: ENC[AES256_GCM,data:eV8676UCSkibPZ1rpfj0W6ZX13OdypkuXJwokQYw6vl5TO2nUOL34A==,iv:M0cuPqGIeMuBMHlHplDV232m2xW9jTecyjB2KyjmAy8=,tag:njt26Kna0ocKaiIx9xbsGg==,type:str]
@@ -42,7 +43,7 @@ sops:
             36bOY3LRplz7dNH0MyF/HI8761YziGSCX58Hn4lF0yEF01yOb7Mk3g==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1ugsz6x2fq8tqdd39gnchvzrcgv2sg79mknrutw2tsgu82z73kpxsqaxf3g
-    lastmodified: "2026-11-01T14:56:07Z"
-    mac: ENC[AES256_GCM,data:kMwYAKHW76Rup4u+zRBaRRlAADoJfZPR0Pyk2QThrTRvxu1+Xur3dKDIXlUQ0wwRbSDdYyyIfhyymH7NR0RfjS6P7JPRFUuYEy7mTT3+z4Ww301ttY71JFlds1QO7aCeVfpxLzgOrzEvpVAGVCW1PJtJeq7Lko4q1mnWa32wt7M=,iv:wilTd6egAiXX155K53igrfK4tCnJKY7M4kI/k4gr5go=,tag:xHnyOYpusnfisOZtp+/org==,type:str]
+    lastmodified: "2026-11-28T18:19:42Z"
+    mac: ENC[AES256_GCM,data:ME2HrzoGSXx0y99TW4H3w99mNWnli/sL/IW6DQH9y9SD+vaoxkg13GDYWmnsNvp3LG2ra63aHEmhv6uDHsOL3gK8Z/8RrKEXPk0fYiVp/UanSuNtxvoEkTkTXCcErTrwifn2tYg4511Kh3Kj9WW+jI69AJ0GVk/J6JMzM62zj3w=,iv:oYmKWoMME2giFOy2UKdWYKrOw/4FePKWg6jjccSEvDQ=,tag:2BunjXR6kIua4s79ZEJKgA==,type:str]
     unencrypted_suffix: _unencrypted
-    version: 3.13.1
+    version: 3.13.3

@@ -27,8 +27,7 @@
       crowdsecTag = "v1.8.2";  # agent only, must not be newer than the host LAPI
       badgerPluginVersion = "v1.8.0";
       crowdsecPluginVersion = "v1.8.2";
-      webdavSubdomains = [ "nextcloud" ];   # homelab's Nextcloud, see crowdsecAppsecExclusionsText
-      vaultwardenSubdomains = [ "vault" ];  # homelab's Vaultwarden, same
+      webdavSubdomains = [ "nextcloud" "nextcloud-vpn" ]; # homelab's Nextcloud, see crowdsecAppsecExclusionsText
     };
   };
 }

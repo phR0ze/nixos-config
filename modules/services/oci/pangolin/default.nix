@@ -610,12 +610,16 @@ let
   #   "pangolin" (an old SQL-injection tool), which matches the clients' `pangolin-<platform>-<ver>`
   #   user agent, e.g. the Android client polling for device-code approval right after its login
   #   (hosts/vps1, 2026-10-11).
-  # - 911100 (method not allowed by policy) for the dashboard host: Pangolin's API is REST and uses
-  #   PUT/PATCH/DELETE by design (see `server.cors.methods`), which CRS's default GET/HEAD/POST/
-  #   OPTIONS policy scores 5 each time. Together with 913100 it banned the Android client's
-  #   `PUT /api/v1/user/<id>/olm` (hosts/vps1, 2026-10-12) - that hit came via the old dashboard
-  #   name after a dashboardDomain change, which no exclusion here covers, so clients must move
-  #   to the new name promptly.
+  # - 911100 (method not allowed by policy) for PUT/PATCH/DELETE on every host. CRS's default
+  #   policy allows only GET/HEAD/POST/OPTIONS, but REST APIs use these verbs by design and put
+  #   object IDs in the path, so a user editing a few items walks distinct URLs exactly like a
+  #   prober and fills crs-probing. It banned the user from Pangolin's API (Android client's
+  #   `PUT /api/v1/user/<id>/olm`, hosts/vps1, 2026-10-12), Vaultwarden (deleting 3 items, `PUT
+  #   /api/ciphers/<id>/delete`, 2026-11-28) and Immich (`PUT /api/assets/<id>`, 2026-11-28). Each
+  #   had its own host-scoped exclusion until this replaced them. The verb alone is a weak attack
+  #   signal: a malicious PUT (e.g. a webshell upload) carries a body that trips CRS's attack-
+  #   category rules, which still ban on one hit, and the in-band virtual patches still apply.
+  #   Other methods (TRACE, DEBUG, WebDAV's PROPFIND/MOVE, ...) still score everywhere but WebDAV.
   # - All out-of-band CRS (tag OWASP_CRS) for WebDAV on `webdavSubdomains` (e.g. Nextcloud),
   #   `/remote.php/dav/` only. Its methods (PROPFIND, REPORT, MOVE, ...) are outside CRS's method
   #   policy (911100), and its bodies are XML or file contents that CRS, given Nextcloud's
@@ -632,25 +636,25 @@ let
   #   playing, and 932370 matched `timeupdate` as the Windows `time` command (`pause` is one too).
   #   Its RCE category bans on a single hit, so streaming a video banned the viewer for 4h
   #   (hosts/vps1, 2026-11-26). Only these two rules are dropped and only on that path.
-  # - 911100 (method not allowed by policy) for Vaultwarden's REST API (`/api/` on
-  #   `vaultwardenSubdomains`), authenticated requests only (`Authorization: Bearer`, which every
-  #   Bitwarden client API call carries; the WAF can't verify it, Vaultwarden does). Clients use
-  #   PUT/DELETE by design, e.g. `PUT /api/ciphers/<id>/delete` per deleted item. Each scored 5 on
-  #   its own, and deleting 3 items in 14s filled crs-probing's 3 distinct URLs, banning the user
-  #   on every port, SSH included (hosts/vps1, 2026-11-28). Every other CRS rule still applies.
+  # The private `-vpn` names (e.g. `nextcloud-vpn`) belong in `webdavSubdomains` too. A client
+  # whose Pangolin tunnel is down resolves them through the public wildcard record to this host,
+  # where the catch-all router answers 403 but AppSec scores them first: two Nextcloud client
+  # PROPFINDs to `nextcloud-vpn` filled crs-probing along with the Immich PUT above (hosts/vps1,
+  # 2026-11-28). The wildcard cert keeps these names out of CT logs, so in practice only our own
+  # devices send them here.
   appsecExclusionsName = "custom/${cfg.name}-exclusions";
   crowdsecAppsecExclusionsText = ''
     name: ${appsecExclusionsName}
     pre_eval:
+      - filter: IsOutBand == true && req.Method in ["PUT", "PATCH", "DELETE"]
+        apply:
+          - RemoveOutBandRuleByID(911100)
       - filter: IsOutBand == true && req.Host == "${cfg.dashboardDomain}" && req.Header.Get("Next-Action") != ""
         apply:
           - RemoveOutBandRuleByID(920420)
       - filter: IsOutBand == true && req.Host == "${cfg.dashboardDomain}" && req.Header.Get("User-Agent") startsWith "pangolin-"
         apply:
           - RemoveOutBandRuleByID(913100)
-      - filter: IsOutBand == true && req.Host == "${cfg.dashboardDomain}" && req.Method in ["PUT", "PATCH", "DELETE"]
-        apply:
-          - RemoveOutBandRuleByID(911100)
       - filter: IsOutBand == true && req.Host startsWith "jellyfin" && req.Method == "POST" && req.URL.Path matches "(?i)^/Sessions/Playing(/(Progress|Stopped|Ping))?$"
         apply:
           - RemoveOutBandRuleByID(932370)
@@ -660,20 +664,17 @@ let
   + lib.optionalString (webdavHosts != [ ]) (lib.concatMapStrings (l: "  ${l}\n") (lib.splitString "\n" ''
     - filter: IsOutBand == true && req.Host in ${builtins.toJSON webdavHosts} && req.URL.Path startsWith "/remote.php/dav/"
       apply:
-        - RemoveOutBandRuleByTag("OWASP_CRS")''))
-  + lib.optionalString (vaultwardenHosts != [ ]) (lib.concatMapStrings (l: "  ${l}\n") (lib.splitString "\n" ''
-    - filter: IsOutBand == true && req.Host in ${builtins.toJSON vaultwardenHosts} && req.Method in ["PUT", "PATCH", "DELETE"] && req.URL.Path startsWith "/api/" && req.Header.Get("Authorization") startsWith "Bearer "
-      apply:
-        - RemoveOutBandRuleByID(911100)''));
+        - RemoveOutBandRuleByTag("OWASP_CRS")''));
 
-  # Every `webdavSubdomains` / `vaultwardenSubdomains` entry on every zone
+  # Every `webdavSubdomains` entry on every zone
   webdavHosts = lib.concatMap (zone: map (sub: "${sub}.${zone}") cfg.webdavSubdomains) cfg.domains;
-  vaultwardenHosts = lib.concatMap (zone: map (sub: "${sub}.${zone}") cfg.vaultwardenSubdomains) cfg.domains;
 
   # Bans repeated lone CRS hits, which the host LAPI's profiles no longer ban on their own (see
   # services.native.crowdsec's profiles): 3 different URLs (query string ignored) from one IP
   # within a few minutes - the bucket drains one URL every 150s. A client polling or retrying
-  # repeats the same URL and never fills it; probing walks new paths. Same filter as the hub's
+  # repeats the same URL and never fills it; probing walks new paths. A REST client with object
+  # IDs in its paths walks new URLs too, which is why REST verbs skip the method policy (see
+  # crowdsecAppsecExclusionsText) rather than each API getting its own exclusion. Same filter as the hub's
   # crowdsecurity/crowdsec-appsec-outofband, which counts every hit instead.
   crowdsecCrsProbingText = ''
     type: leaky
@@ -870,23 +871,12 @@ in
       description = ''
         Subdomains, on every zone in `domains`, whose `/remote.php/dav/` WebDAV traffic skips
         out-of-band CRS, which its methods and bodies trip by design, see
-        crowdsecAppsecExclusionsText. In-band virtual patches still apply. Subdomains only, so the
-        zones stay out of tracked files.
+        crowdsecAppsecExclusionsText. In-band virtual patches still apply. Include the private
+        `-vpn` name too. Subdomains only, so the zones stay out of tracked files.
       '';
       type = types.listOf types.str;
       default = [ ];
-      example = [ "nextcloud" ];
-    };
-
-    vaultwardenSubdomains = lib.mkOption {
-      description = ''
-        Subdomains, on every zone in `domains`, serving Vaultwarden. Its authenticated `/api/`
-        PUT/PATCH/DELETE requests skip only CRS's method policy rule (911100), see
-        crowdsecAppsecExclusionsText. Subdomains only, so the zones stay out of tracked files.
-      '';
-      type = types.listOf types.str;
-      default = [ ];
-      example = [ "vault" ];
+      example = [ "nextcloud" "nextcloud-vpn" ];
     };
 
     sopsFile = lib.mkOption {
