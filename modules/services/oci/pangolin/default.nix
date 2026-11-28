@@ -321,6 +321,7 @@ let
         names:
           ClientAddr: keep
           ClientHost: keep
+          RequestHost: keep       # target_fqdn, scopes crowdsecWebdavBfText to the WebDAV hosts
           RequestMethod: keep
           RequestPath: keep
           RequestProtocol: keep
@@ -621,8 +622,10 @@ let
   #   `text/plain`, parses as form arguments. A folder listing scored 20 on 911100, 920420 and the
   #   XSS rules 941100/941130 (hosts/vps1, 2026-10-29), and an upload matched nearly every category
   #   (anomaly 52790, hosts/vps1, 2026-10-30), each banning the user on its first request. Per-rule
-  #   exclusions can't cover arbitrary file contents. These paths sit behind Pangolin's SSO and
-  #   Nextcloud's own auth, and the in-band virtual patches still apply to them.
+  #   exclusions can't cover arbitrary file contents. DAV clients authenticate with HTTP Basic, so
+  #   these paths are usually exempt from Pangolin's SSO and only Nextcloud's own auth guards them.
+  #   The in-band virtual patches still apply, and crowdsecWebdavBfText bans password guessing,
+  #   which CRS can no longer see here.
   # - 932370/932380 (Windows command injection) for Jellyfin's playback reporting
   #   (`/Sessions/Playing[/Progress|/Stopped|/Ping]`) on `jellyfin*` hosts. The web player POSTs
   #   `{"EventName":"timeupdate"}` (also `pause`, `volumechange`, ...) every few seconds while
@@ -688,12 +691,38 @@ let
       service: http
   '';
 
+  # Bans password guessing against the WebDAV hosts (e.g. Nextcloud's DAV/OCS Basic auth), which
+  # the exclusion above hides from CRS: more than 10 failed logins from one IP, draining one per
+  # minute, so a burst of 11 or a sustained rate above 1/min trips it. A failed login is a 401 to a
+  # request that carried credentials: Traefik logs a redacted `Authorization` only when present.
+  # The 401 a Basic-auth client gets before it sends credentials (the challenge) doesn't count,
+  # and a guesser must send credentials to guess, so dropping them evades nothing. The hub's
+  # LePresidente/http-generic-401-bf only counts POSTs per path, which a PROPFIND/GET spray never
+  # matches. Hosts match case-insensitively. A device left with a stale password can trip it too,
+  # but that only bans the web ports, never SSH (services.native.crowdsec's sshPorts).
+  crowdsecWebdavBfText = ''
+    type: leaky
+    name: custom/${cfg.name}-webdav-bf
+    description: "IP failed HTTP Basic auth on a WebDAV host more than 10 times"
+    filter: evt.Meta.log_type == 'http_access-log' && evt.Meta.http_status == '401' && lower(evt.Meta.target_fqdn) in ${builtins.toJSON (map lib.toLower webdavHosts)} && evt.Unmarshaled.traefik["request_Authorization"] != nil
+    groupby: evt.Meta.source_ip
+    capacity: 10
+    leakspeed: 1m
+    blackhole: 5m
+    labels:
+      type: bruteforce
+      behavior: "http:bruteforce"
+      remediation: true
+      service: http
+  '';
+
   # Forces the systemd unit definition itself to change whenever any rendered config changes -
   # otherwise a `nixos-rebuild switch` that only updates a symlink target doesn't bump the unit's
   # own hash, so NixOS never restarts it and podman-compose never re-applies the new config.
   configRev = builtins.hashString "sha256" (
     composeText + traefikConfigText + dynamicConfigText + crowdsecAcquisTraefikText
     + crowdsecAcquisAppsecText + crowdsecAppsecExclusionsText + crowdsecCrsProbingText
+    + lib.optionalString (webdavHosts != [ ]) crowdsecWebdavBfText
   );
 in
 {
@@ -1093,6 +1122,10 @@ in
       "d ${dataDir}/config/crowdsec/scenarios 0750 root root -"
       "r ${dataDir}/config/crowdsec/scenarios/${cfg.name}-crs-probing.yaml"
       "C+ ${dataDir}/config/crowdsec/scenarios/${cfg.name}-crs-probing.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-crs-probing.yaml" crowdsecCrsProbingText}"
+      "r ${dataDir}/config/crowdsec/scenarios/${cfg.name}-webdav-bf.yaml"
+    ] ++ lib.optionals (webdavHosts != [ ]) [
+      "C+ ${dataDir}/config/crowdsec/scenarios/${cfg.name}-webdav-bf.yaml - - - - ${pkgs.writeText "${cfg.name}-crowdsec-webdav-bf.yaml" crowdsecWebdavBfText}"
+    ] ++ [
       # Left over from when the container ran its own LAPI with 4h bans; profiles now live on the
       # host LAPI, and an agent never reads this
       "r ${dataDir}/config/crowdsec/profiles.yaml"
