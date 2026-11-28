@@ -13,4 +13,4 @@ before running any `cargo`/`rustc`/`rustfmt`/`clippy`/`rust-analyzer` commands.
 ## Git commits
 * NEVER commit automatically. Always wait for explicit user approval before running `git commit`.
 * NEVER include in comments or code user private or secret or PII data
-
+* NEVER include Co-Authored-By attribution to Claude or Claude models
