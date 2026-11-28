@@ -8,6 +8,124 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.services.native.crowdsec;
+  bouncerCfg = config.services.crowdsec-firewall-bouncer;
+
+  # Split bans: see the `sshPorts` option and the nftables tables below
+  sshSplit = cfg.sshPorts != [ ];
+  sshBouncer = "crowdsec-firewall-bouncer-ssh";
+  sshSet4 = "crowdsec-ssh";
+  sshSet6 = "crowdsec6-ssh";
+
+  # Registers a bouncer with the local LAPI, storing its key in /var/lib/<name>-register. Replaces
+  # upstream's broken crowdsec-firewall-bouncer-register.service: same idempotent register-once
+  # logic, but calling the working `cscli` wrapper instead of the raw, unconfigured package binary.
+  # An interrupted run can leave the name registered with its api-key file lost, and `cscli
+  # bouncers add` refuses a duplicate name with no --force, so recovery is delete-then-recreate.
+  mkBouncerRegister = name: {
+    description = "Register ${name} to the local CrowdSec service";
+    after = [ "crowdsec.service" ];
+    wants = [ "crowdsec.service" ];
+    # The `cscli` wrapper only lands on environment.systemPackages, not any package we can
+    # reference directly - config.system.path (not just pkgs.jq) is needed for a systemd unit to
+    # find it.
+    path = [ pkgs.jq config.system.path ];
+    script = ''
+      set -euo pipefail
+      apiKeyFile=/var/lib/${name}-register/api-key.cred
+      if cscli bouncers list --output json | jq -e --arg n ${name} 'any(.[]; .name == $n)' >/dev/null \
+          && [ -s "$apiKeyFile" ]; then
+        exit 0
+      fi
+      cscli bouncers delete --ignore-missing -- ${name} >/dev/null
+      rm -f "$apiKeyFile"
+      if ! cscli bouncers add --output raw -- ${name} >"$apiKeyFile"; then
+        rm -f "$apiKeyFile"
+        exit 1
+      fi
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      User = config.services.crowdsec.user;
+      Group = config.services.crowdsec.group;
+      StateDirectory = "${name}-register";
+      UMask = "0077";
+    };
+  };
+
+  # Hardening on top of upstream's sandbox, shared by both firewall bouncers
+  bouncerHardening = {
+    # The bouncer exits fatally ("bouncer stream halted") if crowdsec's LAPI isn't listening yet,
+    # e.g. while crowdsec.service is still retrying its boot-time hub update above. Upstream sets
+    # no Restart=, so keep retrying until the LAPI comes up.
+    Restart = "on-failure";
+    RestartSec = 30;
+
+    # CAP_NET_ADMIN manipulates the nftables ruleset via netlink - cannot be capability-stripped
+    # like the engine (crowdsec.service). CAP_NET_RAW is NOT needed here: upstream's module only adds it for
+    # the legacy iptables/ipset mode (raw packet-filter socket access for the iptables binary),
+    # which this host no longer uses now that `networking.nftables.enable` is on.
+    NoNewPrivileges = true;
+    ProtectSystem = "strict";
+    ProtectHome = true;
+    PrivateTmp = true;
+    ProtectKernelTunables = true;
+    ProtectKernelLogs = true;
+    ProtectControlGroups = true;
+    ProtectClock = true;
+    ProtectHostname = true;
+    RestrictSUIDSGID = true;
+    LockPersonality = true;
+    RestrictRealtime = true;
+    MemoryDenyWriteExecute = true;
+    CapabilityBoundingSet = [ "CAP_NET_ADMIN" ];
+  };
+
+  # One family's ban sets plus the chain that drops them. Hooked at prerouting, ahead of netavark's
+  # DNAT (dstnat, -100), so it covers the host's own ports and container-published ones (e.g.
+  # Pangolin's 443 and WireGuard), which are DNAT'd through `forward` and never reach `input`. The
+  # source address is never rewritten there, so this matches the same sets the bouncers fill.
+  # With `sshPorts` set, the main set skips those ports and the SSH set covers every port.
+  mkBanTable = { family, addrType, allSet, sshSet }: ''
+    set ${allSet} {
+      type ${addrType}
+      flags timeout
+    }
+    ${lib.optionalString sshSplit ''
+      set ${sshSet} {
+        type ${addrType}
+        flags timeout
+      }
+    ''}
+    chain crowdsec-prerouting {
+      type filter hook prerouting priority mangle + 5; policy accept;
+      ${lib.optionalString sshSplit ''
+        ${family} saddr @${sshSet} drop
+        tcp dport { ${lib.concatMapStringsSep ", " toString cfg.sshPorts} } return
+      ''}
+      ${family} saddr @${allSet} drop
+    }
+  '';
+
+  # Upstream's unit, rebuilt for the SSH bouncer (nixpkgs only supports one instance)
+  sshBouncerConfig = "/run/${sshBouncer}/config.yaml";
+  sshBouncerSettings = lib.recursiveUpdate bouncerCfg.settings {
+    blacklists_ipv4 = sshSet4;
+    blacklists_ipv6 = sshSet6;
+    # Case-insensitive substring of the decision's scenario, OR'd across entries, applied by
+    # the LAPI to the decision stream (new and deleted alike). `ssh` covers the hub's
+    # crowdsecurity/ssh-* scenarios, local/ssh-bf-tight and community (CAPI) SSH decisions;
+    # `iptables-scan` covers crowdsecurity/iptables-scan-multi_ports (port scans). Web
+    # scenarios (http-*, appsec, vpatch-*, CRS anomaly scores, crs-probing, CVEs) match none.
+    # No spaces: the LAPI splits on "," without trimming.
+    scenarios_containing = [ "ssh" "iptables-scan" ];
+  };
+  sshBouncerGenConfig = pkgs.writeShellScript "${sshBouncer}-config" ''
+    set -euo pipefail
+    umask 077
+    cp ${(pkgs.formats.yaml { }).generate "${sshBouncer}.yaml" sshBouncerSettings} ${sshBouncerConfig}
+    chmod 0600 ${sshBouncerConfig}
+    ${lib.getExe pkgs.replace-secret} '@API_KEY_FILE@' "$CREDENTIALS_DIRECTORY/API_KEY_FILE" ${sshBouncerConfig}
+  '';
 in
 {
   options.services.native.crowdsec = {
@@ -22,6 +140,20 @@ in
       type = lib.types.listOf lib.types.str;
       default = [ ];
       example = [ "203.0.113.7" "198.51.100.0/24" ];
+    };
+
+    sshPorts = lib.mkOption {
+      description = ''
+        SSH ports exempt from bans that aren't SSH-related. With this empty, every ban drops the
+        source on every port. Set, a second firewall bouncer fills a separate set with only
+        SSH and port-scan decisions (local and community), dropped on every port, while the
+        main set (every decision) skips these ports. A false positive from a web app then
+        bans the user from the web apps but still lets them SSH in and lift it with
+        `cscli decisions delete`. Forwarded from services.native.sshd's harden option.
+      '';
+      type = lib.types.listOf lib.types.port;
+      default = [ ];
+      example = [ 2222 ];
     };
 
     sopsFile = lib.mkOption {
@@ -247,71 +379,84 @@ in
     };
 
     # nftables.service reloads (every switch that changes a rule) delete and recreate each declared
-    # table, emptying the bouncer's ban set. The bouncer doesn't notice and never re-adds a
-    # decision it already pushed, and its PartOf only follows stop/restart, not reload - after one
-    # reload 13.5k active bans stayed missing from the firewall for two days (hosts/vps1,
-    # 2026-10-11). A restart re-pulls every active decision.
+    # table, emptying the bouncers' ban sets. A bouncer doesn't notice and never re-adds a decision
+    # it already pushed, and its PartOf only follows stop/restart, not reload - after one reload
+    # 13.5k active bans stayed missing from the firewall for two days (hosts/vps1, 2026-10-11). A
+    # restart re-pulls every active decision.
     systemd.services.nftables.serviceConfig.ExecReload = lib.mkAfter [
-      "${config.systemd.package}/bin/systemctl --no-block try-restart crowdsec-firewall-bouncer.service"
+      "${config.systemd.package}/bin/systemctl --no-block try-restart crowdsec-firewall-bouncer.service${lib.optionalString sshSplit " ${sshBouncer}.service"}"
     ];
 
     # nixpkgs' set-only ruleset only hooks `input`, but container-published ports (e.g. Pangolin's
     # 443 and WireGuard ports) are DNAT'd and go through `forward` instead, so a ban never reached
-    # them. Upstream's own bouncer hooks both `input` and `forward`. Dropping banned sources at
-    # prerouting covers both in one place, before netavark's DNAT (dstnat, -100). The source
-    # address is never rewritten there, so this matches the same set the bouncer fills.
-    networking.nftables.tables.${config.services.crowdsec-firewall-bouncer.settings.nftables.ipv4.table}.content = lib.mkAfter ''
-      chain crowdsec-prerouting {
-        type filter hook prerouting priority mangle + 5; policy accept;
-        ip saddr @${config.services.crowdsec-firewall-bouncer.settings.blacklists_ipv4} drop
-      }
-    '';
+    # them. Upstream's own bouncer hooks both `input` and `forward`. Our own tables replace
+    # nixpkgs' (see mkBanTable), dropping banned sources at prerouting to cover both in one place.
+    #
+    # Every decision used to drop its source on every port, so a false positive from one of our own
+    # web apps also locked the user out of SSH, e.g. deleting 3 Vaultwarden items in a row
+    # (hosts/vps1, 2026-11-28). With `sshPorts` set, SSH and port-scan bans land in a second set
+    # (filled by ${sshBouncer}) that covers every port, and the main set skips the SSH ports.
+    # An IP banned only for web activity can still reach sshd, where it still faces key-only auth,
+    # MaxAuthTries, the per-source rate limit, and an SSH ban on its first failed logins. Both
+    # bouncers share each table in set-only mode; each only fills, and on stop empties, its own set.
+    services.crowdsec-firewall-bouncer.createRulesets = false;
+    networking.nftables.tables = {
+      ${bouncerCfg.settings.nftables.ipv4.table} = lib.mkIf bouncerCfg.settings.nftables.ipv4.enabled {
+        family = "ip";
+        content = mkBanTable {
+          family = "ip"; addrType = "ipv4_addr";
+          allSet = bouncerCfg.settings.blacklists_ipv4; sshSet = sshSet4;
+        };
+      };
+      ${bouncerCfg.settings.nftables.ipv6.table} = lib.mkIf bouncerCfg.settings.nftables.ipv6.enabled {
+        family = "ip6";
+        content = mkBanTable {
+          family = "ip6"; addrType = "ipv6_addr";
+          allSet = bouncerCfg.settings.blacklists_ipv6; sshSet = sshSet6;
+        };
+      };
+    };
 
-    # Replaces upstream's broken crowdsec-firewall-bouncer-register.service (see comment above) -
-    # same idempotent register-once-then-verify logic, just calling the working `cscli` wrapper
-    # instead of the raw, unconfigured package binary.
-    systemd.services.crowdsec-firewall-bouncer-register = {
-      description = "Register the CrowdSec Firewall Bouncer to the local CrowdSec service";
-      after = [ "crowdsec.service" ];
-      wants = [ "crowdsec.service" ];
-      # The `cscli` wrapper only lands on environment.systemPackages, not any package we can
-      # reference directly - config.system.path (not just pkgs.jq) is needed for a systemd unit to
-      # find it.
-      path = [ pkgs.jq config.system.path ];
-      # Same stale-registration hazard as crowdsec-clear-stale-lapi-creds below, but for the
-      # bouncer's own DB entry: an interrupted run can leave the name registered with its api-key
-      # file lost. `cscli bouncers add` refuses a duplicate name and has no --force, so recovery is
-      # delete-then-recreate rather than a plain retry.
-      script = ''
-        set -euo pipefail
-        apiKeyFile=/var/lib/crowdsec-firewall-bouncer-register/api-key.cred
-        if cscli bouncers list --output json | jq -e 'any(.[]; .name == "crowdsec-firewall-bouncer")' >/dev/null \
-            && [ -s "$apiKeyFile" ]; then
-          exit 0
-        fi
-        cscli bouncers delete --ignore-missing -- crowdsec-firewall-bouncer >/dev/null
-        rm -f "$apiKeyFile"
-        if ! cscli bouncers add --output raw -- crowdsec-firewall-bouncer >"$apiKeyFile"; then
-          rm -f "$apiKeyFile"
-          exit 1
-        fi
-      '';
-      serviceConfig = {
-        Type = "oneshot";
-        User = config.services.crowdsec.user;
-        Group = config.services.crowdsec.group;
-        StateDirectory = "crowdsec-firewall-bouncer-register";
+    systemd.services.crowdsec-firewall-bouncer-register = mkBouncerRegister "crowdsec-firewall-bouncer";
+    systemd.services."${sshBouncer}-register" = lib.mkIf sshSplit (mkBouncerRegister sshBouncer);
+
+    # Same shape as nixpkgs' crowdsec-firewall-bouncer.service, which only supports one instance
+    systemd.services.${sshBouncer} = lib.mkIf sshSplit {
+      description = "CrowdSec Firewall Bouncer for SSH and port-scan bans";
+      partOf = [ "nftables.service" ];
+      after = [ "nftables.service" "crowdsec.service" "${sshBouncer}-register.service" ];
+      wants = [ "nftables.service" "crowdsec.service" ];
+      requires = [ "${sshBouncer}-register.service" ];
+      serviceConfig = bouncerHardening // {
+        Type = "notify";
+        ExecStartPre = [ sshBouncerGenConfig "${lib.getExe bouncerCfg.package} -c ${sshBouncerConfig} -t" ];
+        ExecStart = "${lib.getExe bouncerCfg.package} -c ${sshBouncerConfig}";
+        LimitNOFILE = 65536;
+        KillMode = "mixed";
+        LoadCredential = "API_KEY_FILE:/var/lib/${sshBouncer}-register/api-key.cred";
+        DynamicUser = true;
+        RuntimeDirectory = sshBouncer;
+        AmbientCapabilities = [ "CAP_NET_ADMIN" ];
+        PrivateDevices = true;
+        ProcSubset = "pid";
+        ProtectProc = "invisible";
+        ProtectKernelModules = true;
+        RestrictNamespaces = true;
+        SystemCallArchitectures = "native";
+        RestrictAddressFamilies = [ "AF_NETLINK" "AF_UNIX" "AF_INET" "AF_INET6" ];
+        SystemCallFilter = [ "@system-service" "~@privileged" "~@resources" ];
         UMask = "0077";
       };
     };
 
     # crowdsec's startup hub update and CAPI login need the network, so start the engine and its
-    # bouncer once it's up, after boot (see devices.network.onlineServices). The register unit is
-    # listed too, as its `wants` would otherwise pull crowdsec back into boot.
+    # bouncers once it's up, after boot (see devices.network.onlineServices). The register units are
+    # listed too, as their `wants` would otherwise pull crowdsec back into boot.
     devices.network.onlineServices = [
       "crowdsec" "crowdsec-firewall-bouncer" "crowdsec-firewall-bouncer-register"
       "crowdsec-allowlist-sync"
-    ] ++ lib.optional cfg.console.enroll "crowdsec-console-enroll";
+    ] ++ lib.optional cfg.console.enroll "crowdsec-console-enroll"
+      ++ lib.optionals sshSplit [ sshBouncer "${sshBouncer}-register" ];
 
     # The postoverflow whitelist above only applies to this host's own agent. A centralized
     # allowlist is enforced by the LAPI itself, so it also covers every remote agent (e.g.
@@ -535,31 +680,6 @@ in
       CapabilityBoundingSet = [ "" ];   # the detection engine itself needs no special capabilities
     };
 
-    systemd.services.crowdsec-firewall-bouncer.serviceConfig = {
-      # The bouncer exits fatally ("bouncer stream halted") if crowdsec's LAPI isn't listening yet,
-      # e.g. while crowdsec.service is still retrying its boot-time hub update above. Upstream sets
-      # no Restart=, so keep retrying until the LAPI comes up.
-      Restart = "on-failure";
-      RestartSec = 30;
-
-      # CAP_NET_ADMIN manipulates the nftables ruleset via netlink - cannot be capability-stripped
-      # like the engine above. CAP_NET_RAW is NOT needed here: upstream's module only adds it for
-      # the legacy iptables/ipset mode (raw packet-filter socket access for the iptables binary),
-      # which this host no longer uses now that `networking.nftables.enable` is on.
-      NoNewPrivileges = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateTmp = true;
-      ProtectKernelTunables = true;
-      ProtectKernelLogs = true;
-      ProtectControlGroups = true;
-      ProtectClock = true;
-      ProtectHostname = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
-      RestrictRealtime = true;
-      MemoryDenyWriteExecute = true;
-      CapabilityBoundingSet = [ "CAP_NET_ADMIN" ];
-    };
+    systemd.services.crowdsec-firewall-bouncer.serviceConfig = bouncerHardening;
   };
 }

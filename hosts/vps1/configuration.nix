@@ -23,11 +23,12 @@
       enable = true;
       pangolinTag = "ee-1.27.1";
       gerbilTag = "1.6.0";
-      traefikTag = "v3.7.20";
+      traefikTag = "v3.8.0";
       crowdsecTag = "v1.8.2";  # agent only, must not be newer than the host LAPI
       badgerPluginVersion = "v1.8.0";
       crowdsecPluginVersion = "v1.8.2";
       webdavSubdomains = [ "nextcloud" ];   # homelab's Nextcloud, see crowdsecAppsecExclusionsText
+      vaultwardenSubdomains = [ "vault" ];  # homelab's Vaultwarden, same
     };
   };
 }

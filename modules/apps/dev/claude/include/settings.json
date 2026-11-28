@@ -73,7 +73,7 @@
     "command": "~/.claude/statusline.sh",
     "padding": 0
   },
-  "effortLevel": "medium",
+  "effortLevel": "high",
   "skipAutoPermissionPrompt": true,
   "vim": true,
   "model": "opus"

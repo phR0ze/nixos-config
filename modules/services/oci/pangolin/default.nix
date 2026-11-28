@@ -629,6 +629,12 @@ let
   #   playing, and 932370 matched `timeupdate` as the Windows `time` command (`pause` is one too).
   #   Its RCE category bans on a single hit, so streaming a video banned the viewer for 4h
   #   (hosts/vps1, 2026-11-26). Only these two rules are dropped and only on that path.
+  # - 911100 (method not allowed by policy) for Vaultwarden's REST API (`/api/` on
+  #   `vaultwardenSubdomains`), authenticated requests only (`Authorization: Bearer`, which every
+  #   Bitwarden client API call carries; the WAF can't verify it, Vaultwarden does). Clients use
+  #   PUT/DELETE by design, e.g. `PUT /api/ciphers/<id>/delete` per deleted item. Each scored 5 on
+  #   its own, and deleting 3 items in 14s filled crs-probing's 3 distinct URLs, banning the user
+  #   on every port, SSH included (hosts/vps1, 2026-11-28). Every other CRS rule still applies.
   appsecExclusionsName = "custom/${cfg.name}-exclusions";
   crowdsecAppsecExclusionsText = ''
     name: ${appsecExclusionsName}
@@ -651,10 +657,15 @@ let
   + lib.optionalString (webdavHosts != [ ]) (lib.concatMapStrings (l: "  ${l}\n") (lib.splitString "\n" ''
     - filter: IsOutBand == true && req.Host in ${builtins.toJSON webdavHosts} && req.URL.Path startsWith "/remote.php/dav/"
       apply:
-        - RemoveOutBandRuleByTag("OWASP_CRS")''));
+        - RemoveOutBandRuleByTag("OWASP_CRS")''))
+  + lib.optionalString (vaultwardenHosts != [ ]) (lib.concatMapStrings (l: "  ${l}\n") (lib.splitString "\n" ''
+    - filter: IsOutBand == true && req.Host in ${builtins.toJSON vaultwardenHosts} && req.Method in ["PUT", "PATCH", "DELETE"] && req.URL.Path startsWith "/api/" && req.Header.Get("Authorization") startsWith "Bearer "
+      apply:
+        - RemoveOutBandRuleByID(911100)''));
 
-  # Every `webdavSubdomains` entry on every zone
+  # Every `webdavSubdomains` / `vaultwardenSubdomains` entry on every zone
   webdavHosts = lib.concatMap (zone: map (sub: "${sub}.${zone}") cfg.webdavSubdomains) cfg.domains;
+  vaultwardenHosts = lib.concatMap (zone: map (sub: "${sub}.${zone}") cfg.vaultwardenSubdomains) cfg.domains;
 
   # Bans repeated lone CRS hits, which the host LAPI's profiles no longer ban on their own (see
   # services.native.crowdsec's profiles): 3 different URLs (query string ignored) from one IP
@@ -836,6 +847,17 @@ in
       type = types.listOf types.str;
       default = [ ];
       example = [ "nextcloud" ];
+    };
+
+    vaultwardenSubdomains = lib.mkOption {
+      description = ''
+        Subdomains, on every zone in `domains`, serving Vaultwarden. Its authenticated `/api/`
+        PUT/PATCH/DELETE requests skip only CRS's method policy rule (911100), see
+        crowdsecAppsecExclusionsText. Subdomains only, so the zones stay out of tracked files.
+      '';
+      type = types.listOf types.str;
+      default = [ ];
+      example = [ "vault" ];
     };
 
     sopsFile = lib.mkOption {

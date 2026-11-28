@@ -161,10 +161,23 @@ in
       # per-source before they cost a fork()+key-exchange. Excess (over-rate) SYNs simply don't match
       # here and fall through to the generic `input` chain - `logRefusedConnections` still logs them
       # (so CrowdSec's ssh-bf/port-scan scenarios keep full visibility) and the chain's own `policy
-      # drop` still discards them; only the accept path skips them.
-      networking.firewall.extraInputRules = ''
-        tcp dport 2222 ct state new limit rate 15/minute burst 5 packets accept
+      # drop` still discards them; only the accept path skips them. Tracked per source in a dynamic
+      # set (same pattern as devices.network's connlimit): a bare `limit` is one global bucket, so
+      # any scanner hitting the port used to spend the budget for everyone, the admin included.
+      networking.nftables.tables."nixos-fw".content = lib.mkBefore ''
+        set sshlimit-src {
+          type ipv4_addr
+          flags dynamic
+          timeout 5m
+        }
       '';
+      networking.firewall.extraInputRules = ''
+        tcp dport { ${lib.concatMapStringsSep ", " toString config.services.openssh.ports} } ct state new add @sshlimit-src { ip saddr limit rate 15/minute burst 5 packets } accept
+      '';
+
+      # Only SSH and port-scan bans block the SSH ports, so a false positive from a web app can't
+      # lock the admin out of the box (see services.native.crowdsec's sshPorts)
+      services.native.crowdsec.sshPorts = config.services.openssh.ports;
 
       systemd.services.sshd.serviceConfig = {
         # ProtectSystem intentionally NOT "full"/"strict": this mount-namespace restriction is
